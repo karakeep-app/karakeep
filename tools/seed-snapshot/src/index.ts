@@ -30,10 +30,26 @@ const USER_DATASETS = [
   {
     tagNames: ["research", "docs", "product"],
     urls: [
-      "https://example.com/",
-      "https://www.iana.org/domains/reserved",
-      "https://www.wikipedia.org/",
+      "https://www.nasa.gov/",
+      "https://www.nationalgeographic.com/",
+      "https://www.theverge.com/",
+      "https://www.wired.com/",
+      "https://www.apple.com/ipad-pro/",
+      "https://www.figma.com/",
+      "https://linear.app/",
+      "https://www.notion.com/",
+      "https://stripe.com/",
+      "https://www.shopify.com/",
       "https://developer.mozilla.org/en-US/docs/Web",
+      "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+      "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API",
+      "https://developer.mozilla.org/en-US/docs/Web/CSS",
+      "https://web.dev/learn/html",
+      "https://web.dev/learn/css",
+      "https://web.dev/learn/javascript",
+      "https://www.raspberrypi.com/products/raspberry-pi-5/",
+      "https://www.postgresql.org/docs/current/index.html",
+      "https://docs.docker.com/get-started/",
     ],
     lists: {
       root: "Reading Queue",
@@ -45,10 +61,10 @@ const USER_DATASETS = [
   {
     tagNames: ["engineering", "design", "ops"],
     urls: [
-      "https://www.rfc-editor.org/rfc/rfc9110.html",
-      "https://www.gnu.org/software/bash/manual/bash.html",
+      "https://github.com/features/actions",
+      "https://www.cloudflare.com/",
       "https://web.dev/",
-      "https://www.postgresql.org/docs/current/index.html",
+      "https://www.raspberrypi.com/products/raspberry-pi-5/",
     ],
     lists: {
       root: "Workbench",
@@ -175,7 +191,7 @@ async function waitForHealthy(port: number): Promise<void> {
       return res.status === 200;
     },
     "Karakeep stack to become healthy",
-    60_000,
+    Number(process.env.SEED_SNAPSHOT_HEALTH_TIMEOUT_MS ?? 120_000),
     1_000,
   );
 }
@@ -225,10 +241,21 @@ async function startContainers(composeDir: string, dataDir: string) {
 
   process.env.KARAKEEP_PORT = String(port);
 
-  logInfo("Waiting for Karakeep to report healthy...");
-  await waitForHealthy(port);
-  await sleep(5_000);
-  logSuccess("Containers are ready");
+  try {
+    logInfo("Waiting for Karakeep to report healthy...");
+    await waitForHealthy(port);
+    await sleep(5_000);
+    logSuccess("Containers are ready");
+  } catch (error) {
+    logWarn("Karakeep did not become healthy; stopping docker compose");
+    await captureDockerLogs(composeDir, composeEnv);
+    execSync("docker compose down", {
+      cwd: composeDir,
+      env: composeEnv,
+      stdio: "inherit",
+    });
+    throw error;
+  }
 
   let stopped = false;
   return {
@@ -544,6 +571,7 @@ async function main(): Promise<void> {
 
   await fs.rm(dataDir, { force: true, recursive: true });
   await fs.mkdir(dataDir, { recursive: true });
+  await fs.chmod(dataDir, 0o777);
 
   const running = await startContainers(composeDir, dataDir);
 
