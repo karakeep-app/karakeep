@@ -556,10 +556,18 @@ async function writeSnapshot(params: {
   const manifestPath = path.join(snapshotsDir, manifestName);
 
   logStep("Archiving data directory");
-  execFileSync("tar", ["-czf", archivePath, "-C", params.dataDir, "."], {
-    cwd: params.repoRoot,
-    stdio: "inherit",
-  });
+  execFileSync(
+    "tar",
+    ["--exclude", "._*", "-czf", archivePath, "-C", params.dataDir, "."],
+    {
+      cwd: params.repoRoot,
+      env: {
+        ...process.env,
+        COPYFILE_DISABLE: "1",
+      },
+      stdio: "inherit",
+    },
+  );
 
   const manifest: SnapshotManifest = {
     createdAt: createdAt.toISOString(),
