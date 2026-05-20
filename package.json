@@ -11,6 +11,7 @@
     "db:generate": "pnpm --filter @karakeep/db run generate",
     "db:migrate": "pnpm --filter @karakeep/db run migrate",
     "db:studio": "pnpm --filter @karakeep/db studio",
+    "seed:snapshot": "pnpm --filter @karakeep/seed-snapshot run snapshot",
     "workers": "pnpm --filter @karakeep/workers run start",
     "web": "pnpm --filter @karakeep/web run dev",
     "web:portless": "pnpm --filter @karakeep/web run dev:portless",

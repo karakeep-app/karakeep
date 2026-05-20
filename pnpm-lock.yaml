@@ -1621,6 +1621,31 @@ importers:
         specifier: ^5.9
         version: 5.9.3
 
+  tools/seed-snapshot:
+    dependencies:
+      '@karakeep/shared':
+        specifier: workspace:^0.1.0
+        version: link:../../packages/shared
+      '@karakeep/trpc':
+        specifier: workspace:^0.1.0
+        version: link:../../packages/trpc
+      '@trpc/client':
+        specifier: ^11.9.0
+        version: 11.9.0(@trpc/server@11.9.0(typescript@5.9.3))(typescript@5.9.3)
+      superjson:
+        specifier: ^2.2.1
+        version: 2.2.1
+    devDependencies:
+      '@karakeep/tsconfig':
+        specifier: workspace:^0.1.0
+        version: link:../../tooling/typescript
+      oxlint:
+        specifier: ^1.60.0
+        version: 1.60.0
+      tsx:
+        specifier: ^4.8.1
+        version: 4.21.0
+
 packages:
 
   '@0no-co/graphql.web@1.1.2':

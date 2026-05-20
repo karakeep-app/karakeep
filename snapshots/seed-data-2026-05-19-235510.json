@@ -1,0 +1,161 @@
+{
+  "createdAt": "2026-05-19T22:55:10.835Z",
+  "sourceCommit": "37b371245dbec4ce46d52f09b962f0cbc067f950",
+  "archive": "seed-data-2026-05-19-235510.tar.gz",
+  "dataDir": "/Users/mbassem/.codex/worktrees/d9b7/karakeep/tools/seed-snapshot/.tmp/data",
+  "users": [
+    {
+      "email": "test1@example.com",
+      "password": "test1234",
+      "seeded": true,
+      "apiKeyName": "seed-snapshot-test1@example.com",
+      "counts": {
+        "bookmarks": 4,
+        "tags": 3,
+        "manualLists": 2,
+        "smartLists": 2
+      },
+      "bookmarks": [
+        {
+          "id": "sd5ok8fon79g8mym9uixng36",
+          "url": "https://example.com/",
+          "title": "Seed snapshot bookmark 1",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "e4eajh7qj12xr868klbqdr3t",
+          "url": "https://www.iana.org/domains/reserved",
+          "title": "Seed snapshot bookmark 2",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "pcgtihc95aabo37drkcs09hl",
+          "url": "https://www.wikipedia.org/",
+          "title": "Seed snapshot bookmark 3",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "u3dk1ra8hub4i0rjuko99r4d",
+          "url": "https://developer.mozilla.org/en-US/docs/Web",
+          "title": "Seed snapshot bookmark 4",
+          "crawlStatus": "success"
+        }
+      ],
+      "tags": [
+        "research",
+        "docs",
+        "product"
+      ],
+      "lists": [
+        {
+          "name": "Reading Queue",
+          "type": "manual",
+          "parentName": null,
+          "query": null
+        },
+        {
+          "name": "Reference",
+          "type": "manual",
+          "parentName": "Reading Queue",
+          "query": null
+        },
+        {
+          "name": "Research Smart",
+          "type": "smart",
+          "parentName": null,
+          "query": "tag:research"
+        },
+        {
+          "name": "Favorites Smart",
+          "type": "smart",
+          "parentName": "Reading Queue",
+          "query": "is:fav"
+        }
+      ]
+    },
+    {
+      "email": "test2@example.com",
+      "password": "test1234",
+      "seeded": true,
+      "apiKeyName": "seed-snapshot-test2@example.com",
+      "counts": {
+        "bookmarks": 4,
+        "tags": 3,
+        "manualLists": 2,
+        "smartLists": 2
+      },
+      "bookmarks": [
+        {
+          "id": "rn40ame5tctz92arjf4mxan8",
+          "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+          "title": "Seed snapshot bookmark 1",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "j1gbwky5lortbu6q2rwjpq6v",
+          "url": "https://www.gnu.org/software/bash/manual/bash.html",
+          "title": "Seed snapshot bookmark 2",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "avqkaham9t73ktgv167u1o8t",
+          "url": "https://web.dev/",
+          "title": "Seed snapshot bookmark 3",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "lzif9xy67wkru9i52ji6fskb",
+          "url": "https://www.postgresql.org/docs/current/index.html",
+          "title": "Seed snapshot bookmark 4",
+          "crawlStatus": "success"
+        }
+      ],
+      "tags": [
+        "engineering",
+        "design",
+        "ops"
+      ],
+      "lists": [
+        {
+          "name": "Workbench",
+          "type": "manual",
+          "parentName": null,
+          "query": null
+        },
+        {
+          "name": "Deep Dives",
+          "type": "manual",
+          "parentName": "Workbench",
+          "query": null
+        },
+        {
+          "name": "Engineering Smart",
+          "type": "smart",
+          "parentName": null,
+          "query": "tag:engineering"
+        },
+        {
+          "name": "Archived Smart",
+          "type": "smart",
+          "parentName": "Workbench",
+          "query": "is:archived"
+        }
+      ]
+    },
+    {
+      "email": "test3@example.com",
+      "password": "test1234",
+      "seeded": false,
+      "apiKeyName": "seed-snapshot-test3@example.com",
+      "counts": {
+        "bookmarks": 0,
+        "tags": 0,
+        "manualLists": 0,
+        "smartLists": 0
+      },
+      "bookmarks": [],
+      "tags": [],
+      "lists": []
+    }
+  ]
+}
