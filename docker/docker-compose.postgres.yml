@@ -1,0 +1,50 @@
+# PostgreSQL overlay — combine with any base docker-compose file:
+#   docker compose -f docker-compose.yml -f docker-compose.postgres.yml up
+#   docker compose -f docker-compose.dev.yml -f docker-compose.postgres.yml up
+#
+# Set DATABASE_PASSWORD in your .env file (or export it) before starting.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-karakeep}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in .env}
+      POSTGRES_DB: ${DATABASE_NAME:-karakeep}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-karakeep} -d ${DATABASE_NAME:-karakeep}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_DIALECT: postgresql
+      DATABASE_URL: postgresql://${DATABASE_USER:-karakeep}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-karakeep}
+
+  workers:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_DIALECT: postgresql
+      DATABASE_URL: postgresql://${DATABASE_USER:-karakeep}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-karakeep}
+
+  prep:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_DIALECT: postgresql
+      DATABASE_URL: postgresql://${DATABASE_USER:-karakeep}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME:-karakeep}
+
+volumes:
+  postgres_data:

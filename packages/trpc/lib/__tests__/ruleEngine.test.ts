@@ -87,7 +87,7 @@ describe("RuleEngine", () => {
 
   beforeEach(async () => {
     vi.resetAllMocks();
-    db = getInMemoryDB(/* runMigrations */ true);
+    db = await getInMemoryDB(/* runMigrations */ true);
 
     // Seed User
     [userId] = (

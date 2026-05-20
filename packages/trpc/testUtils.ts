@@ -7,11 +7,11 @@ import type { Context } from "./index";
 import { createCallerFactory } from "./index";
 import { appRouter } from "./routers/_app";
 
-export function getTestDB() {
-  return getInMemoryDB(true);
+export async function getTestDB() {
+  return await getInMemoryDB(true);
 }
 
-export type TestDB = ReturnType<typeof getTestDB>;
+export type TestDB = Awaited<ReturnType<typeof getTestDB>>;
 
 export async function seedUsers(db: TestDB) {
   return await db
@@ -84,7 +84,7 @@ export interface CustomTestContext {
 export async function buildTestContext(
   seedDB: boolean,
 ): Promise<CustomTestContext> {
-  const db = getTestDB();
+  const db = await getTestDB();
   let users: Awaited<ReturnType<typeof seedUsers>> = [];
   if (seedDB) {
     users = await seedUsers(db);
