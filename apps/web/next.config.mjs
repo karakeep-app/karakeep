@@ -1,17 +1,11 @@
 import bundleAnalyzer from "@next/bundle-analyzer";
-import pwa from "next-pwa";
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
-const withPWA = pwa({
-  dest: "public",
-  disable: process.env.NODE_ENV != "production",
-});
-
 /** @type {import('next').NextConfig} */
-const nextConfig = withPWA({
+const nextConfig = {
   output: "standalone",
   turbopack: {
     rules: {
@@ -65,6 +59,6 @@ const nextConfig = withPWA({
   typescript: { ignoreBuildErrors: true },
 
   allowedDevOrigins: ["10.0.10.13"],
-});
+};
 
 export default withBundleAnalyzer(nextConfig);
