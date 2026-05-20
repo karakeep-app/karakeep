@@ -58,7 +58,7 @@ const nextConfig = {
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },
 
-  allowedDevOrigins: (process.env.ALLOWED_DEV_ORIGINS ?? "").split(","),
+  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS?.split(","),
 };
 
 export default withBundleAnalyzer(nextConfig);
