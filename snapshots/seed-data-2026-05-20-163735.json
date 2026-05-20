@@ -2,7 +2,6 @@
   "createdAt": "2026-05-20T15:37:35.334Z",
   "sourceCommit": "021cb12579bdf4cc5e2b50f09170c23f99ed6eab",
   "archive": "seed-data-2026-05-20-163735.tar.gz",
-  "dataDir": "/Users/mbassem/.codex/worktrees/d9b7/karakeep/tools/seed-snapshot/.tmp/data",
   "users": [
     {
       "email": "test1@example.com",

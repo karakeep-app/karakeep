@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execFileSync, execSync } from "child_process";
 import fs from "fs/promises";
 import net from "net";
 import path from "path";
@@ -20,14 +20,8 @@ type TrpcClient = ReturnType<typeof getTrpcClient>;
 type CrawlStatus = NonNullable<ZBookmarkedLink["crawlStatus"]>;
 
 const PASSWORD = "test1234";
-const USERS = [
-  { email: "test1@example.com", name: "Seed Test 1", seedData: true },
-  { email: "test2@example.com", name: "Seed Test 2", seedData: true },
-  { email: "test3@example.com", name: "Seed Test 3", seedData: false },
-] as const;
-
-const USER_DATASETS = [
-  {
+const USER_DATASETS = {
+  test1: {
     tagNames: ["research", "docs", "product"],
     urls: [
       "https://www.nasa.gov/",
@@ -58,7 +52,7 @@ const USER_DATASETS = [
       smartFav: "Favorites Smart",
     },
   },
-  {
+  test2: {
     tagNames: ["engineering", "design", "ops"],
     urls: [
       "https://github.com/features/actions",
@@ -73,6 +67,22 @@ const USER_DATASETS = [
       smartFav: "Archived Smart",
     },
   },
+} as const;
+
+type UserDataset = (typeof USER_DATASETS)[keyof typeof USER_DATASETS];
+
+const USERS = [
+  {
+    email: "test1@example.com",
+    name: "Seed Test 1",
+    datasetKey: "test1",
+  },
+  {
+    email: "test2@example.com",
+    name: "Seed Test 2",
+    datasetKey: "test2",
+  },
+  { email: "test3@example.com", name: "Seed Test 3", datasetKey: null },
 ] as const;
 
 interface SeededBookmark {
@@ -107,7 +117,6 @@ interface SnapshotManifest {
   createdAt: string;
   sourceCommit: string | null;
   archive: string;
-  dataDir: string;
   users: SeededUserManifest[];
 }
 
@@ -311,7 +320,7 @@ async function seedTags(
 
 async function createLists(
   client: TrpcClient,
-  dataset: (typeof USER_DATASETS)[number],
+  dataset: UserDataset,
 ): Promise<{
   manualLists: ZBookmarkList[];
   smartLists: ZBookmarkList[];
@@ -355,7 +364,7 @@ async function createLists(
 
 async function createBookmarks(
   client: TrpcClient,
-  dataset: (typeof USER_DATASETS)[number],
+  dataset: UserDataset,
   tags: ZTagBasic[],
   lists: ZBookmarkList[],
 ): Promise<SeededBookmark[]> {
@@ -439,7 +448,7 @@ async function waitForCrawls(
 async function seedUser(
   client: TrpcClient,
   user: (typeof USERS)[number],
-  dataset: (typeof USER_DATASETS)[number],
+  dataset: UserDataset,
 ): Promise<SeededUserManifest> {
   logStep(`Seeding ${user.email}`);
   const tags = await seedTags(client, dataset.tagNames);
@@ -475,10 +484,12 @@ async function createUsersAndSeedData(): Promise<SeededUserManifest[]> {
   const manifests: SeededUserManifest[] = [];
 
   logStep("Creating seed users");
-  for (const [index, user] of USERS.entries()) {
+  for (const user of USERS) {
     const client = await createUser(authlessClient, user.email, user.name);
-    if (user.seedData) {
-      manifests.push(await seedUser(client, user, USER_DATASETS[index]));
+    if (user.datasetKey) {
+      manifests.push(
+        await seedUser(client, user, USER_DATASETS[user.datasetKey]),
+      );
     } else {
       manifests.push({
         email: user.email,
@@ -505,15 +516,15 @@ async function createUsersAndSeedData(): Promise<SeededUserManifest[]> {
 function formatSnapshotTimestamp(date: Date): string {
   const pad = (num: number) => String(num).padStart(2, "0");
   return [
-    date.getFullYear(),
+    date.getUTCFullYear(),
     "-",
-    pad(date.getMonth() + 1),
+    pad(date.getUTCMonth() + 1),
     "-",
-    pad(date.getDate()),
+    pad(date.getUTCDate()),
     "-",
-    pad(date.getHours()),
-    pad(date.getMinutes()),
-    pad(date.getSeconds()),
+    pad(date.getUTCHours()),
+    pad(date.getUTCMinutes()),
+    pad(date.getUTCSeconds()),
   ].join("");
 }
 
@@ -537,23 +548,23 @@ async function writeSnapshot(params: {
   const snapshotsDir = path.join(params.repoRoot, "snapshots");
   await fs.mkdir(snapshotsDir, { recursive: true });
 
-  const timestamp = formatSnapshotTimestamp(new Date());
+  const createdAt = new Date();
+  const timestamp = formatSnapshotTimestamp(createdAt);
   const archiveName = `seed-data-${timestamp}.tar.gz`;
   const manifestName = `seed-data-${timestamp}.json`;
   const archivePath = path.join(snapshotsDir, archiveName);
   const manifestPath = path.join(snapshotsDir, manifestName);
 
   logStep("Archiving data directory");
-  execSync(`tar -czf "${archivePath}" -C "${params.dataDir}" .`, {
+  execFileSync("tar", ["-czf", archivePath, "-C", params.dataDir, "."], {
     cwd: params.repoRoot,
     stdio: "inherit",
   });
 
   const manifest: SnapshotManifest = {
-    createdAt: new Date().toISOString(),
+    createdAt: createdAt.toISOString(),
     sourceCommit: getSourceCommit(params.repoRoot),
     archive: archiveName,
-    dataDir: params.dataDir,
     users: params.users,
   };
   await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
