@@ -5,12 +5,8 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  playwright-extra@4.3.6:
-    hash: cc2a1c1903e66d7f6cea77c615cb9ae3b36a694502c1c588c3e34d28aa925aac
-    path: patches/playwright-extra@4.3.6.patch
-  xcode@3.0.1:
-    hash: 725863c0591d89ca053226c49fe7bc321f320391ec5f78b6c2e8e41ab1868805
-    path: patches/xcode@3.0.1.patch
+  playwright-extra@4.3.6: cc2a1c1903e66d7f6cea77c615cb9ae3b36a694502c1c588c3e34d28aa925aac
+  xcode@3.0.1: 725863c0591d89ca053226c49fe7bc321f320391ec5f78b6c2e8e41ab1868805
 
 importers:
 

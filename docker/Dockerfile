@@ -15,8 +15,8 @@ WORKDIR /app
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
-# https://github.com/karakeep-app/karakeep/issues/967
-RUN npm install -g corepack@0.31.0 && corepack enable
+# Keep Corepack current enough to verify modern pnpm release signatures.
+RUN npm install -g corepack@latest && corepack enable pnpm
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
@@ -50,8 +50,7 @@ COPY ./patches ./patches
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-# Avoid pnpm hardlink collisions in Docker while preserving the repo's hoisted workspace layout.
-RUN pnpm install --frozen-lockfile --config.package-import-method=copy
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -65,14 +64,14 @@ RUN cd packages/db && \
 RUN (cd apps/web && pnpm exec next build --experimental-build-mode compile)
 
 # Build the worker code
-RUN (cd apps/workers && pnpm build)
-RUN pnpm deploy --node-linker=isolated --filter @karakeep/workers --prod /prod/workers
+RUN (cd apps/workers && pnpm --config.verify-deps-before-run=false build)
+RUN CI=true pnpm deploy --node-linker=isolated --legacy --filter @karakeep/workers --prod /prod/workers
 
 # Build the cli
-RUN (cd apps/cli && pnpm build)
+RUN (cd apps/cli && pnpm --config.verify-deps-before-run=false build)
 
 # Build the mcp server
-RUN (cd apps/mcp && pnpm build)
+RUN (cd apps/mcp && pnpm --config.verify-deps-before-run=false build)
 
 ################# The All-in-one builder ##############
 

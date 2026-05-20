@@ -20,6 +20,7 @@ apps/browser-extension
 packages/e2e_tests
 packages/benchmarks
 tools/seed-snapshot
+snapshots
 
 # Aider
 .aider*
