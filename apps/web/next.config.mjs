@@ -13,6 +13,14 @@ const withPWA = pwa({
 /** @type {import('next').NextConfig} */
 const nextConfig = withPWA({
   output: "standalone",
+  turbopack: {
+    rules: {
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
+      },
+    },
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.svg$/,
@@ -54,8 +62,9 @@ const nextConfig = withPWA({
   // transpilePackages: ["@karakeep/shared", "@karakeep/db", "@karakeep/trpc"],
 
   /** We already do linting and typechecking as separate tasks in CI */
-  eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+
+  allowedDevOrigins: ["10.0.10.13"],
 });
 
 export default withBundleAnalyzer(nextConfig);
