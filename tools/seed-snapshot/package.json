@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "apply": "tsx src/apply.ts",
     "snapshot": "tsx src/index.ts",
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
