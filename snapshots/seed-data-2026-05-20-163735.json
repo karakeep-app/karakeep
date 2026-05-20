@@ -1,0 +1,256 @@
+{
+  "createdAt": "2026-05-20T15:37:35.334Z",
+  "sourceCommit": "021cb12579bdf4cc5e2b50f09170c23f99ed6eab",
+  "archive": "seed-data-2026-05-20-163735.tar.gz",
+  "users": [
+    {
+      "email": "test1@example.com",
+      "password": "test1234",
+      "seeded": true,
+      "apiKeyName": "seed-snapshot-test1@example.com",
+      "counts": {
+        "bookmarks": 20,
+        "tags": 3,
+        "manualLists": 2,
+        "smartLists": 2
+      },
+      "bookmarks": [
+        {
+          "id": "km2jba5wyxzsa07ea1rvlkw6",
+          "url": "https://www.nasa.gov/",
+          "title": "Seed snapshot bookmark 1",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "kxriupr76n9swxb1c5ypzk7x",
+          "url": "https://www.nationalgeographic.com/",
+          "title": "Seed snapshot bookmark 2",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "smw5grpmamknt52h2egre7w9",
+          "url": "https://www.theverge.com/",
+          "title": "Seed snapshot bookmark 3",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "t47py0t3mi1abngrzbh0ve67",
+          "url": "https://www.wired.com/",
+          "title": "Seed snapshot bookmark 4",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "exe0kj1nr1yheba71hmhnpr7",
+          "url": "https://www.apple.com/ipad-pro/",
+          "title": "Seed snapshot bookmark 5",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "yx72o5hos53bmbjhoxcv9z2g",
+          "url": "https://www.figma.com/",
+          "title": "Seed snapshot bookmark 6",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "xkoqt13nxufsk5b1y60fxo5k",
+          "url": "https://linear.app/",
+          "title": "Seed snapshot bookmark 7",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "thv2c1k4z4reuu7yc6482i8t",
+          "url": "https://www.notion.com/",
+          "title": "Seed snapshot bookmark 8",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "psg7m6mhwm1xfnpyqskb6jy5",
+          "url": "https://stripe.com/",
+          "title": "Seed snapshot bookmark 9",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "gmab7mbludxywqxx8hz9qxt6",
+          "url": "https://www.shopify.com/",
+          "title": "Seed snapshot bookmark 10",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "e2ej14zclzd0gw91u17fwux9",
+          "url": "https://developer.mozilla.org/en-US/docs/Web",
+          "title": "Seed snapshot bookmark 11",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "j0b03m8ks0cmgo8lkokku3mn",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
+          "title": "Seed snapshot bookmark 12",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "aflpy1knahedicy7hihiwz0k",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API",
+          "title": "Seed snapshot bookmark 13",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "lc8sdxnnbh6lxrp79ou39fnb",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS",
+          "title": "Seed snapshot bookmark 14",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "sb4rtshzmsa3sasllcn54gnz",
+          "url": "https://web.dev/learn/html",
+          "title": "Seed snapshot bookmark 15",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "pk4h0d754vjs6dm3508c5q78",
+          "url": "https://web.dev/learn/css",
+          "title": "Seed snapshot bookmark 16",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "jqdfmk4yb9ekec4kkg8a69cg",
+          "url": "https://web.dev/learn/javascript",
+          "title": "Seed snapshot bookmark 17",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "zcbcwbus69sc701khrtmyccz",
+          "url": "https://www.raspberrypi.com/products/raspberry-pi-5/",
+          "title": "Seed snapshot bookmark 18",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "uhvuf05w0ldy0k3bqbcslofu",
+          "url": "https://www.postgresql.org/docs/current/index.html",
+          "title": "Seed snapshot bookmark 19",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "q5mf9byhs1nekffbs25ty8rs",
+          "url": "https://docs.docker.com/get-started/",
+          "title": "Seed snapshot bookmark 20",
+          "crawlStatus": "success"
+        }
+      ],
+      "tags": [
+        "research",
+        "docs",
+        "product"
+      ],
+      "lists": [
+        {
+          "name": "Reading Queue",
+          "type": "manual",
+          "parentName": null,
+          "query": null
+        },
+        {
+          "name": "Reference",
+          "type": "manual",
+          "parentName": "Reading Queue",
+          "query": null
+        },
+        {
+          "name": "Research Smart",
+          "type": "smart",
+          "parentName": null,
+          "query": "tag:research"
+        },
+        {
+          "name": "Favorites Smart",
+          "type": "smart",
+          "parentName": "Reading Queue",
+          "query": "is:fav"
+        }
+      ]
+    },
+    {
+      "email": "test2@example.com",
+      "password": "test1234",
+      "seeded": true,
+      "apiKeyName": "seed-snapshot-test2@example.com",
+      "counts": {
+        "bookmarks": 4,
+        "tags": 3,
+        "manualLists": 2,
+        "smartLists": 2
+      },
+      "bookmarks": [
+        {
+          "id": "c9ybiun3c0lwfqvbzuumasvq",
+          "url": "https://github.com/features/actions",
+          "title": "Seed snapshot bookmark 1",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "z09y6r8bmn0c9j0z687esgus",
+          "url": "https://www.cloudflare.com/",
+          "title": "Seed snapshot bookmark 2",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "k9bkj37wdby9yxn726fsbc4f",
+          "url": "https://web.dev/",
+          "title": "Seed snapshot bookmark 3",
+          "crawlStatus": "success"
+        },
+        {
+          "id": "tvsyx6oswqu8loayf4gc7i7y",
+          "url": "https://www.raspberrypi.com/products/raspberry-pi-5/",
+          "title": "Seed snapshot bookmark 4",
+          "crawlStatus": "success"
+        }
+      ],
+      "tags": [
+        "engineering",
+        "design",
+        "ops"
+      ],
+      "lists": [
+        {
+          "name": "Workbench",
+          "type": "manual",
+          "parentName": null,
+          "query": null
+        },
+        {
+          "name": "Deep Dives",
+          "type": "manual",
+          "parentName": "Workbench",
+          "query": null
+        },
+        {
+          "name": "Engineering Smart",
+          "type": "smart",
+          "parentName": null,
+          "query": "tag:engineering"
+        },
+        {
+          "name": "Archived Smart",
+          "type": "smart",
+          "parentName": "Workbench",
+          "query": "is:archived"
+        }
+      ]
+    },
+    {
+      "email": "test3@example.com",
+      "password": "test1234",
+      "seeded": false,
+      "apiKeyName": "seed-snapshot-test3@example.com",
+      "counts": {
+        "bookmarks": 0,
+        "tags": 0,
+        "manualLists": 0,
+        "smartLists": 0
+      },
+      "bookmarks": [],
+      "tags": [],
+      "lists": []
+    }
+  ]
+}

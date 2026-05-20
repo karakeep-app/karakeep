@@ -209,7 +209,7 @@ install_karakeep() {
   $shh apt-get update
   $shh apt-get install -y nodejs
   # https://github.com/karakeep-app/karakeep/issues/967
-  $shh npm install -g corepack@0.31.0
+  $shh npm install -g corepack@latest
   msg_done "Installed Node.js"
 
   msg_start "Installing $(app)${CYAN}, please wait...${CLR}"

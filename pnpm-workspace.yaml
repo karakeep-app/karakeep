@@ -4,3 +4,27 @@ packages:
   - "tooling/*"
   - "tools/*"
   - "docs"
+
+nodeLinker: hoisted
+
+allowBuilds:
+  '@sentry/cli': true
+  '@swc/core': true
+  better-sqlite3: true
+  esbuild: true
+  re2: true
+  sharp: true
+  tesseract.js: true
+  # These install scripts are informational or unnecessary for our installs.
+  '@parcel/watcher': false
+  core-js: false
+  core-js-pure: false
+  postman-code-generators: false
+  protobufjs: false
+
+patchedDependencies:
+  xcode@3.0.1: "patches/xcode@3.0.1.patch"
+  playwright-extra@4.3.6: "patches/playwright-extra@4.3.6.patch"
+
+# Docker builds can prune packages that use one of the root patches.
+allowUnusedPatches: true

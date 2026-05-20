@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "@karakeep/seed-snapshot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "apply": "tsx src/apply.ts",
+    "snapshot": "tsx src/index.ts",
+    "lint": "oxlint --ignore-path=../../.gitignore .",
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
+    "format": "oxfmt --ignore-path=../../.gitignore --check .",
+    "format:fix": "oxfmt --ignore-path=../../.gitignore .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@karakeep/shared": "workspace:^0.1.0",
+    "@karakeep/trpc": "workspace:^0.1.0",
+    "@trpc/client": "^11.9.0",
+    "superjson": "^2.2.1"
+  },
+  "devDependencies": {
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "oxlint": "^1.60.0",
+    "tsx": "^4.8.1"
+  }
+}

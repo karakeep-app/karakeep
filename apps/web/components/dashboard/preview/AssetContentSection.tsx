@@ -56,8 +56,9 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
         />
       </div>
     ) : (
-      <iframe
+      <embed
         title={bookmark.content.assetId}
+        type="application/pdf"
         className="h-full w-full"
         src={getAssetUrl(bookmark.content.assetId)}
       />
