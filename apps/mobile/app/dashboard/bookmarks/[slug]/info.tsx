@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  Switch,
   TextInput,
   View,
 } from "react-native";
@@ -15,6 +16,7 @@ import { router, Stack, useLocalSearchParams } from "expo-router";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
 import TagPill from "@/components/bookmarks/TagPill";
 import FullPageError from "@/components/FullPageError";
+import ChevronRight from "@/components/ui/ChevronRight";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import {
   GroupedSection,
@@ -24,8 +26,19 @@ import {
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { shareBookmark } from "@/lib/shareBookmark";
+import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { ChevronUp, RefreshCw, Sparkles, Trash2 } from "lucide-react-native";
+import {
+  Archive,
+  ChevronUp,
+  Highlighter,
+  RefreshCw,
+  Share2,
+  Sparkles,
+  Star,
+  Trash2,
+} from "lucide-react-native";
 import { useHeaderHeight } from "@react-navigation/elements";
 
 import {
@@ -289,6 +302,151 @@ function AISummarySection({
   );
 }
 
+function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
+  const { toast } = useToast();
+  const { settings } = useAppSettings();
+  const { colors } = useColorScheme();
+
+  const onError = () => {
+    toast({
+      message: "Something went wrong",
+      variant: "destructive",
+      showProgress: false,
+    });
+  };
+
+  const { mutate: favoriteBookmark, variables: favoriteVariables } =
+    useUpdateBookmark({
+      onSuccess: (resp) => {
+        toast({
+          message: `Bookmark ${resp.favourited ? "added to" : "removed from"} favourites!`,
+          showProgress: false,
+        });
+      },
+      onError,
+    });
+
+  const { mutate: archiveBookmark, isPending: isArchivePending } =
+    useUpdateBookmark({
+      onSuccess: (resp) => {
+        toast({
+          message: `Bookmark ${resp.archived ? "archived" : "un-archived"}!`,
+          showProgress: false,
+        });
+      },
+      onError,
+    });
+
+  const isFavourited =
+    favoriteVariables?.bookmarkId === bookmark.id
+      ? favoriteVariables.favourited
+      : bookmark.favourited;
+
+  const actionIconColor = colors.grey;
+
+  return (
+    <GroupedSection>
+      <Pressable
+        onPress={() => {
+          Haptics.selectionAsync();
+          favoriteBookmark({
+            bookmarkId: bookmark.id,
+            favourited: !isFavourited,
+          });
+        }}
+        className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+      >
+        <View className="flex-1 flex-row items-center gap-3">
+          <Star
+            size={20}
+            color={isFavourited ? "#ebb434" : actionIconColor}
+            fill={isFavourited ? "#ebb434" : "transparent"}
+          />
+          <Text className="flex-1" numberOfLines={1}>
+            Favourite
+          </Text>
+        </View>
+        <Switch
+          className="shrink-0"
+          value={isFavourited}
+          onValueChange={(value) => {
+            Haptics.selectionAsync();
+            favoriteBookmark({
+              bookmarkId: bookmark.id,
+              favourited: value,
+            });
+          }}
+        />
+      </Pressable>
+      <RowSeparator />
+      <Pressable
+        onPress={() => {
+          Haptics.selectionAsync();
+          archiveBookmark({
+            bookmarkId: bookmark.id,
+            archived: !bookmark.archived,
+          });
+        }}
+        disabled={isArchivePending}
+        className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+      >
+        <View className="flex-1 flex-row items-center gap-3">
+          <Archive size={20} color={actionIconColor} />
+          <Text className="flex-1" numberOfLines={1}>
+            Archived
+          </Text>
+        </View>
+        {isArchivePending ? (
+          <ActivityIndicator size="small" />
+        ) : (
+          <Switch
+            className="shrink-0"
+            value={bookmark.archived}
+            onValueChange={(value) => {
+              Haptics.selectionAsync();
+              archiveBookmark({
+                bookmarkId: bookmark.id,
+                archived: value,
+              });
+            }}
+          />
+        )}
+      </Pressable>
+      <RowSeparator />
+      {bookmark.content.type === BookmarkTypes.LINK && (
+        <>
+          <Pressable
+            onPress={() => {
+              Haptics.selectionAsync();
+              router.push(`/dashboard/bookmarks/${bookmark.id}/highlights`);
+            }}
+            className="flex-row items-center justify-between gap-3 px-4 py-3 active:opacity-70"
+          >
+            <View className="flex-1 flex-row items-center gap-3">
+              <Highlighter size={20} color={actionIconColor} />
+              <Text className="flex-1" numberOfLines={1}>
+                Highlights
+              </Text>
+            </View>
+            <ChevronRight size={16} />
+          </Pressable>
+          <RowSeparator />
+        </>
+      )}
+      <Pressable
+        onPress={() => {
+          Haptics.selectionAsync();
+          shareBookmark(bookmark, settings, toast);
+        }}
+        className="flex-row items-center gap-3 px-4 py-3 active:opacity-70"
+      >
+        <Share2 size={20} color={actionIconColor} />
+        <Text numberOfLines={1}>Share Bookmark</Text>
+      </Pressable>
+    </GroupedSection>
+  );
+}
+
 // --- Main Page ---
 
 const ViewBookmarkPage = () => {
@@ -450,17 +608,20 @@ const ViewBookmarkPage = () => {
           disabled={!isOwner}
         />
         {isOwner && (
-          <GroupedSection>
-            <Pressable
-              onPress={handleDeleteBookmark}
-              disabled={isDeletionPending}
-              className="items-center px-4 py-3 active:opacity-70"
-            >
-              <Text className="text-destructive" numberOfLines={1}>
-                {isDeletionPending ? "Deleting..." : "Delete Bookmark"}
-              </Text>
-            </Pressable>
-          </GroupedSection>
+          <>
+            <BookmarkActionsSection bookmark={bookmark} />
+            <GroupedSection>
+              <Pressable
+                onPress={handleDeleteBookmark}
+                disabled={isDeletionPending}
+                className="items-center px-4 py-3 active:opacity-70"
+              >
+                <Text className="text-destructive" numberOfLines={1}>
+                  {isDeletionPending ? "Deleting..." : "Delete Bookmark"}
+                </Text>
+              </Pressable>
+            </GroupedSection>
+          </>
         )}
         <View className="items-center gap-1 pt-2">
           <Text variant="caption1" color="tertiary" selectable>

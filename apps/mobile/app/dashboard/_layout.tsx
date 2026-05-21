@@ -125,6 +125,19 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="bookmarks/[slug]/highlights"
+        options={{
+          headerTitle: "Highlights",
+          headerTransparent: false,
+          headerLargeTitle: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
         name="lists/new"
         options={{
           headerTitle: "New List",
