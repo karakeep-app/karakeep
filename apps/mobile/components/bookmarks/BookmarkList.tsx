@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
+import { ScrollView } from "react-native-gesture-handler";
 import Animated, { LinearTransition } from "react-native-reanimated";
 import EmptyState from "@/components/ui/EmptyState";
 import { useScrollToTop } from "@react-navigation/native";
@@ -31,6 +32,7 @@ export default function BookmarkList({
     <Animated.FlatList
       ref={flatListRef}
       itemLayoutAnimation={LinearTransition}
+      renderScrollComponent={(props) => <ScrollView {...props} />}
       contentInsetAdjustmentBehavior="automatic"
       ListHeaderComponent={header}
       contentContainerStyle={{

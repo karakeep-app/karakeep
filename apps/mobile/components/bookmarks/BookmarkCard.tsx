@@ -3,10 +3,10 @@ import {
   Alert,
   Linking,
   Platform,
-  Pressable,
   ScrollView,
   View,
 } from "react-native";
+import { Pressable } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { router, useRouter } from "expo-router";
