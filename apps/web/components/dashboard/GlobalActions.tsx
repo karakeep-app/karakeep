@@ -8,7 +8,7 @@ import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
 import { useKeyboardNavigationStore } from "@/lib/store/useKeyboardNavigationStore";
 import { Keyboard } from "lucide-react";
 
-import { Button } from "../ui/button";
+import { ButtonWithTooltip } from "../ui/button";
 
 export default function GlobalActions() {
   const { t } = useTranslation();
@@ -24,15 +24,15 @@ export default function GlobalActions() {
       {inBookmarkGrid && <BulkBookmarksAction />}
       {inBookmarkGrid && <SortOrderToggle />}
       {inBookmarkGrid && (
-        <Button
+        <ButtonWithTooltip
           variant="ghost"
-          size="sm"
           onClick={() => setShortcutsDialogOpen(true)}
-          title={t("keyboard_shortcuts.title")}
+          tooltip={t("keyboard_shortcuts.title")}
+          delayDuration={100}
           aria-label={t("keyboard_shortcuts.title")}
         >
-          <Keyboard className="size-4" />
-        </Button>
+          <Keyboard size={18} />
+        </ButtonWithTooltip>
       )}
     </div>
   );

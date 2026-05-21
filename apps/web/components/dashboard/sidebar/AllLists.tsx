@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
-  CollapsibleTriggerTriangle,
+  CollapsibleTriggerChevron,
 } from "@/components/ui/collapsible";
 import { toast } from "@/components/ui/sonner";
 import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
@@ -112,11 +112,10 @@ function DroppableListSidebarItem({
   return (
     <SidebarItem
       collapseButton={
-        node.children.length > 0 && (
-          <CollapsibleTriggerTriangle
-            className="absolute left-0.5 top-1/2 size-2 -translate-y-1/2"
-            open={open}
-          />
+        node.children.length > 0 ? (
+          <CollapsibleTriggerChevron className="size-4" open={open} />
+        ) : (
+          <span className="size-4" />
         )
       }
       logo={
@@ -126,7 +125,7 @@ function DroppableListSidebarItem({
       }
       name={node.item.name}
       path={`/dashboard/lists/${node.item.id}`}
-      className="group px-0.5"
+      className="group"
       right={
         <ListOptions
           onOpenChange={(isOpen) => {
@@ -158,7 +157,7 @@ function DroppableListSidebarItem({
           </Button>
         </ListOptions>
       }
-      linkClassName="py-0.5"
+      linkClassName="py-0.5 px-1"
       style={{ marginLeft: `${level * 1}rem` }}
       dropHighlight={canDrop && dropHighlight}
       onDragOver={canDrop ? onDragOver : undefined}
@@ -216,7 +215,7 @@ export default function AllLists({
   return (
     <ul className="sidebar-scrollbar max-h-full gap-y-2 overflow-auto text-sm">
       <li className="flex justify-between pb-3">
-        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+        <p className="pl-2 text-xs uppercase tracking-wider text-muted-foreground">
           Lists
         </p>
         <EditListModal>
@@ -229,19 +228,19 @@ export default function AllLists({
         </EditListModal>
       </li>
       <SidebarItem
+        collapseButton={<span className="size-4" />}
         logo={<span className="text-lg">📋</span>}
         name={t("lists.all_lists")}
         path={`/dashboard/lists`}
-        linkClassName="py-0.5"
-        className="px-0.5"
+        linkClassName="py-0.5 px-1"
         right={<InvitationNotificationBadge />}
       />
       <SidebarItem
+        collapseButton={<span className="size-4" />}
         logo={<span className="text-lg">⭐️</span>}
         name={t("lists.favourites")}
         path={`/dashboard/favourites`}
-        linkClassName="py-0.5"
-        className="px-0.5"
+        linkClassName="py-0.5 px-1"
       />
 
       {/* Owned Lists */}
@@ -266,16 +265,15 @@ export default function AllLists({
         <Collapsible open={sharedListsOpen} onOpenChange={setSharedListsOpen}>
           <SidebarItem
             collapseButton={
-              <CollapsibleTriggerTriangle
-                className="absolute left-0.5 top-1/2 size-2 -translate-y-1/2"
+              <CollapsibleTriggerChevron
+                className="size-4"
                 open={sharedListsOpen}
               />
             }
             logo={<span className="text-lg">👥</span>}
             name={t("lists.shared_lists")}
             path="#"
-            linkClassName="py-0.5"
-            className="px-0.5"
+            linkClassName="py-0.5 px-1"
           />
           <CollapsibleContent>
             <CollapsibleBookmarkLists

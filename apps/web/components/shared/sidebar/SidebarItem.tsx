@@ -51,12 +51,12 @@ export default function SidebarItem({
       onDragEnter={onDragEnter}
       onDragLeave={onDragLeave}
     >
-      <div className="flex-1">
+      <div className="flex flex-1 items-center">
         {collapseButton}
         <Link
           href={path}
           className={cn(
-            "flex items-center gap-x-2 rounded-[inherit] px-3 py-2",
+            "flex flex-1 items-center gap-x-2 rounded-[inherit] px-3 py-2",
             linkClassName,
           )}
         >

@@ -53,12 +53,6 @@ const ListPickerPage = () => {
     isPending: isAddingToList,
     variables: addVariables,
   } = useAddBookmarkToList({
-    onSuccess: () => {
-      toast({
-        message: "Added to list!",
-        showProgress: false,
-      });
-    },
     onError,
   });
 
@@ -67,12 +61,6 @@ const ListPickerPage = () => {
     isPending: isRemovingFromList,
     variables: removeVariables,
   } = useRemoveBookmarkFromList({
-    onSuccess: () => {
-      toast({
-        message: "Removed from list!",
-        showProgress: false,
-      });
-    },
     onError,
   });
 
