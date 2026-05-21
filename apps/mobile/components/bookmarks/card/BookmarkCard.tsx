@@ -1,9 +1,10 @@
-import useAppSettings from "@/lib/settings";
-import { ZBookmark } from "@karakeep/shared/types/bookmarks";
-import { createContext, useContext } from "react";
-import { NotePreview } from "../NotePreview";
-import { Pressable, View } from "react-native";
 import { Text } from "@/components/ui/Text";
+import useAppSettings from "@/lib/settings";
+import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { createContext, useContext } from "react";
+import { Pressable, View } from "react-native";
+
+import { NotePreview } from "../NotePreview";
 
 export interface BookmarkCardContext {
   bookmark: ZBookmark;

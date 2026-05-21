@@ -1,4 +1,5 @@
 import useAppSettings from "@/lib/settings";
+import { shareBookmark } from "@/lib/shareBookmark";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import * as Haptics from "expo-haptics";
@@ -20,7 +21,6 @@ import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import { useToast } from "../../ui/Toast";
-import { shareBookmark } from "@/lib/shareBookmark";
 
 export default function ActionBar({
   bookmark,

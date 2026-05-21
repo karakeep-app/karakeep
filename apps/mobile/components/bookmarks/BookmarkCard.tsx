@@ -1,6 +1,7 @@
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { buildApiHeaders } from "@/lib/utils";
+import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -21,7 +22,6 @@ import {
   BookmarkCardContainer,
   BookmarkCardContext,
 } from "./card/BookmarkCard";
-import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import TagList from "./card/TagList";
 import { Divider } from "../ui/Divider";
 import ActionBar from "./card/ActionBar";
@@ -229,11 +229,9 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
             </View>
             <BookmarkCardContainer.CompactBody />
             <BookmarkCardContainer.NoteSection />
-            {ctx.bookmark.tags.length > 0 && (
-              <View className="h-7 overflow-hidden">
-                <TagList bookmark={ctx.bookmark} />
-              </View>
-            )}
+            <View className="h-7 overflow-hidden">
+              <TagList bookmark={ctx.bookmark} />
+            </View>
             <View className="flex-row justify-end pt-0.5">
               <ActionBar bookmark={ctx.bookmark} compact />
             </View>
