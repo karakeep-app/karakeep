@@ -1,273 +1,50 @@
-import {
-  ActivityIndicator,
-  Alert,
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  View,
-} from "react-native";
-import * as Haptics from "expo-haptics";
-import { Image } from "expo-image";
-import { router, useRouter } from "expo-router";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
-import { shareBookmark } from "@/lib/shareBookmark";
-import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { buildApiHeaders } from "@/lib/utils";
-import { MenuView } from "@react-native-menu/menu";
 import { useQuery } from "@tanstack/react-query";
-import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
+import { Image } from "expo-image";
+import { useRouter } from "expo-router";
+import { Linking, View } from "react-native";
 
-import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
-import {
-  useDeleteBookmark,
-  useUpdateBookmark,
-} from "@karakeep/shared-react/hooks/bookmarks";
-import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
   getBookmarkRefreshInterval,
-  isBookmarkStillTagging,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
-import { Divider } from "../ui/Divider";
-import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkTextMarkdown from "./BookmarkTextMarkdown";
-import { NotePreview } from "./NotePreview";
-import TagPill from "./TagPill";
+import {
+  BookmarkCardContainer,
+  BookmarkCardContext,
+} from "./card/BookmarkCard";
+import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
+import TagList from "./card/TagList";
+import { Divider } from "../ui/Divider";
+import ActionBar from "./card/ActionBar";
 
-function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
-  const { toast } = useToast();
-  const { settings } = useAppSettings();
-  const { data: currentUser } = useWhoAmI();
-  const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
-
-  // Check if the current user owns this bookmark
-  const isOwner = currentUser?.id === bookmark.userId;
-
-  const onError = () => {
-    toast({
-      message: "Something went wrong",
-      variant: "destructive",
-      showProgress: false,
-    });
-  };
-
-  const { mutate: deleteBookmark, isPending: isDeletionPending } =
-    useDeleteBookmark({
-      onSuccess: () => {
-        toast({
-          message: "The bookmark has been deleted!",
-          showProgress: false,
-        });
-      },
-      onError,
-    });
-
-  const { mutate: favouriteBookmark, variables } = useUpdateBookmark({
-    onError,
-  });
-
-  const { mutate: archiveBookmark, isPending: isArchivePending } =
-    useUpdateBookmark({
-      onSuccess: (resp) => {
-        toast({
-          message: `The bookmark has been ${resp.archived ? "archived" : "un-archived"}!`,
-          showProgress: false,
-        });
-      },
-      onError,
-    });
-
-  const deleteBookmarkAlert = () =>
-    Alert.alert(
-      "Delete bookmark?",
-      "Are you sure you want to delete this bookmark?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
-          style: "destructive",
-        },
-      ],
-    );
-
-  const handleShare = () => shareBookmark(bookmark, settings, toast);
-
-  // Build actions array based on ownership
-  const menuActions = [];
-  if (isOwner) {
-    menuActions.push(
-      {
-        id: "edit",
-        title: "Edit",
-        image: Platform.select({
-          ios: "pencil",
-        }),
-        imageColor: Platform.select({
-          ios: menuIconColor,
-        }),
-      },
-      {
-        id: "manage_list",
-        title: "Manage Lists",
-        image: Platform.select({
-          ios: "list.bullet",
-        }),
-        imageColor: Platform.select({
-          ios: menuIconColor,
-        }),
-      },
-      {
-        id: "manage_tags",
-        title: "Manage Tags",
-        image: Platform.select({
-          ios: "tag",
-        }),
-        imageColor: Platform.select({
-          ios: menuIconColor,
-        }),
-      },
-      {
-        id: "archive",
-        title: bookmark.archived ? "Un-archive" : "Archive",
-        image: Platform.select({
-          ios: "folder",
-        }),
-        imageColor: Platform.select({
-          ios: menuIconColor,
-        }),
-      },
-      {
-        id: "delete",
-        title: "Delete",
-        attributes: {
-          destructive: true,
-        },
-        image: Platform.select({
-          ios: "trash",
-        }),
-        imageColor: Platform.select({
-          ios: destructiveMenuIconColor,
-        }),
-      },
-    );
-  }
-
-  return (
-    <View className="flex flex-row gap-4">
-      {(isArchivePending || isDeletionPending) && <ActivityIndicator />}
-      {isOwner && (
-        <Pressable
-          onPress={() => {
-            Haptics.selectionAsync();
-            favouriteBookmark({
-              bookmarkId: bookmark.id,
-              favourited: !bookmark.favourited,
-            });
-          }}
-        >
-          {(variables ? variables.favourited : bookmark.favourited) ? (
-            <Star fill="#ebb434" color="#ebb434" />
-          ) : (
-            <Star color="gray" />
-          )}
-        </Pressable>
-      )}
-
-      <Pressable
-        onPress={() => {
-          Haptics.selectionAsync();
-          handleShare();
-        }}
-      >
-        <ShareIcon color="gray" />
-      </Pressable>
-
-      {isOwner && menuActions.length > 0 && (
-        <MenuView
-          onPressAction={({ nativeEvent }) => {
-            Haptics.selectionAsync();
-            if (nativeEvent.event === "delete") {
-              deleteBookmarkAlert();
-            } else if (nativeEvent.event === "archive") {
-              archiveBookmark({
-                bookmarkId: bookmark.id,
-                archived: !bookmark.archived,
-              });
-            } else if (nativeEvent.event === "manage_list") {
-              router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`);
-            } else if (nativeEvent.event === "manage_tags") {
-              router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`);
-            } else if (nativeEvent.event === "edit") {
-              router.push(`/dashboard/bookmarks/${bookmark.id}/info`);
-            }
-          }}
-          actions={menuActions}
-          shouldOpenOnLongPress={false}
-        >
-          <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
-        </MenuView>
-      )}
-    </View>
-  );
-}
-
-function TagList({ bookmark }: { bookmark: ZBookmark }) {
-  const tags = bookmark.tags;
-  const { data: currentUser } = useWhoAmI();
-  const isOwner = currentUser?.id === bookmark.userId;
-
-  if (isBookmarkStillTagging(bookmark)) {
-    return (
-      <>
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-      </>
-    );
-  }
-
-  return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      <View className="flex flex-row gap-2">
-        {tags.map((t) => (
-          <TagPill key={t.id} tag={t} clickable={isOwner} />
-        ))}
-      </View>
-    </ScrollView>
-  );
-}
-
-function LinkCard({
+function useLinkCardContext({
   bookmark,
-  onOpenBookmark,
 }: {
   bookmark: ZBookmark;
-  onOpenBookmark: () => void;
-}) {
+}): Omit<BookmarkCardContext, "isOwner" | "bookmark"> | undefined {
   const { settings } = useAppSettings();
-  const { data: currentUser } = useWhoAmI();
-  const isOwner = currentUser?.id === bookmark.userId;
 
   if (bookmark.content.type !== BookmarkTypes.LINK) {
-    throw new Error("Wrong content type rendered");
+    return undefined;
   }
 
-  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const url = bookmark.content.url;
   const parsedUrl = new URL(url);
 
   const imageUrl = getBookmarkLinkImageUrl(bookmark.content);
 
-  let imageComp;
+  let contentComp;
   if (imageUrl) {
-    imageComp = (
+    contentComp = (
       <View className="h-56 min-h-56 w-full">
         <Image
           source={
@@ -289,7 +66,7 @@ function LinkCard({
       </View>
     );
   } else {
-    imageComp = (
+    contentComp = (
       <View className="h-56 w-full overflow-hidden rounded-t-lg">
         <Image
           // oxlint-disable-next-line no-require-imports
@@ -301,133 +78,60 @@ function LinkCard({
     );
   }
 
-  return (
-    <View className="flex gap-2">
-      <Pressable onPress={onOpenBookmark}>{imageComp}</Pressable>
-      <View className="flex gap-2 p-2">
-        <Text
-          className="text-xl font-bold text-foreground"
-          numberOfLines={2}
-          onPress={onOpenBookmark}
-        >
-          {bookmark.title ?? bookmark.content.title ?? parsedUrl.host}
-        </Text>
-        {note && (
-          <NotePreview
-            note={note}
-            bookmarkId={bookmark.id}
-            readOnly={!isOwner}
-          />
-        )}
-        <TagList bookmark={bookmark} />
-        <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
-        <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <Text className="my-auto shrink" numberOfLines={1}>
-            {parsedUrl.host}
-          </Text>
-          <ActionBar bookmark={bookmark} />
-        </View>
-      </View>
-    </View>
-  );
+  return {
+    media: contentComp,
+    title: bookmark.title ?? bookmark.content.title ?? parsedUrl.host,
+    footerExtras: (
+      <Text className="my-auto shrink" numberOfLines={1}>
+        {parsedUrl.host}
+      </Text>
+    ),
+  };
 }
 
-function TextCard({
+function useTextCardContext({
   bookmark,
-  onOpenBookmark,
 }: {
   bookmark: ZBookmark;
-  onOpenBookmark: () => void;
-}) {
-  const { settings } = useAppSettings();
-  const { data: currentUser } = useWhoAmI();
-  const isOwner = currentUser?.id === bookmark.userId;
-
+}): Omit<BookmarkCardContext, "isOwner" | "bookmark"> | undefined {
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
-    throw new Error("Wrong content type rendered");
+    return undefined;
   }
-  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const content = bookmark.content.text;
-  return (
-    <View className="flex max-h-96 gap-2 p-2">
-      <Pressable onPress={onOpenBookmark}>
-        {bookmark.title && (
-          <Text className="text-xl font-bold" numberOfLines={2}>
-            {bookmark.title}
-          </Text>
-        )}
-      </Pressable>
+
+  return {
+    body: (
       <View className="max-h-56 overflow-hidden p-2 text-foreground">
-        <Pressable onPress={onOpenBookmark}>
-          <BookmarkTextMarkdown text={content} />
-        </Pressable>
+        <BookmarkTextMarkdown text={content} />
       </View>
-      {note && (
-        <NotePreview note={note} bookmarkId={bookmark.id} readOnly={!isOwner} />
-      )}
-      <TagList bookmark={bookmark} />
-      <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
-      <View className="flex flex-row justify-between p-2">
-        <View />
-        <ActionBar bookmark={bookmark} />
-      </View>
-    </View>
-  );
+    ),
+    title: bookmark.title ?? undefined,
+  };
 }
 
-function AssetCard({
+function useAssetCardContext({
   bookmark,
-  onOpenBookmark,
 }: {
   bookmark: ZBookmark;
-  onOpenBookmark: () => void;
-}) {
-  const { settings } = useAppSettings();
-  const { data: currentUser } = useWhoAmI();
-  const isOwner = currentUser?.id === bookmark.userId;
-
+}): Omit<BookmarkCardContext, "isOwner" | "bookmark"> | undefined {
   if (bookmark.content.type !== BookmarkTypes.ASSET) {
-    throw new Error("Wrong content type rendered");
+    return undefined;
   }
-  const note = settings.showNotes ? bookmark.note?.trim() : undefined;
   const title = bookmark.title ?? bookmark.content.fileName;
 
   const assetImage =
     bookmark.assets.find((r) => r.assetType == "assetScreenshot")?.id ??
     bookmark.content.assetId;
 
-  return (
-    <View className="flex gap-2">
-      <Pressable onPress={onOpenBookmark}>
-        <BookmarkAssetImage
-          assetId={assetImage}
-          className="h-56 min-h-56 w-full"
-        />
-      </Pressable>
-      <View className="flex gap-2 p-2">
-        <Pressable onPress={onOpenBookmark}>
-          {title && (
-            <Text numberOfLines={2} className="text-xl font-bold">
-              {title}
-            </Text>
-          )}
-        </Pressable>
-        {note && (
-          <NotePreview
-            note={note}
-            bookmarkId={bookmark.id}
-            readOnly={!isOwner}
-          />
-        )}
-        <TagList bookmark={bookmark} />
-        <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
-        <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-          <View />
-          <ActionBar bookmark={bookmark} />
-        </View>
-      </View>
-    </View>
-  );
+  return {
+    media: (
+      <BookmarkAssetImage
+        assetId={assetImage}
+        className="h-56 min-h-56 w-full"
+      />
+    ),
+    title: title ?? undefined,
+  };
 }
 
 export default function BookmarkCard({
@@ -457,6 +161,7 @@ export default function BookmarkCard({
   const router = useRouter();
   const { settings } = useAppSettings();
   const { toast } = useToast();
+  const { data: currentUser } = useWhoAmI();
 
   const onOpenBookmark = (bookmark: ZBookmark) => {
     if (
@@ -478,40 +183,38 @@ export default function BookmarkCard({
     router.push(`/dashboard/bookmarks/${bookmark.id}`);
   };
 
-  let comp;
-  switch (bookmark.content.type) {
-    case BookmarkTypes.LINK:
-      comp = (
-        <LinkCard
-          bookmark={bookmark}
-          onOpenBookmark={() => onOpenBookmark(bookmark)}
-        />
-      );
-      break;
-    case BookmarkTypes.TEXT:
-      comp = (
-        <TextCard
-          bookmark={bookmark}
-          onOpenBookmark={() => onOpenBookmark(bookmark)}
-        />
-      );
-      break;
-    case BookmarkTypes.ASSET:
-      comp = (
-        <AssetCard
-          bookmark={bookmark}
-          onOpenBookmark={() => onOpenBookmark(bookmark)}
-        />
-      );
-      break;
-  }
+  const linkContext = useLinkCardContext({ bookmark });
+  const textContext = useTextCardContext({ bookmark });
+  const assetContext = useAssetCardContext({ bookmark });
+  const ctx = linkContext ?? textContext ?? assetContext;
 
   return (
-    <View
-      className="overflow-hidden rounded-xl bg-card"
-      style={{ borderCurve: "continuous" }}
+    <BookmarkCardContainer.Provider
+      value={{
+        ...ctx,
+        isOwner: currentUser?.id === bookmark.userId,
+        bookmark,
+        mediaOnPress: () => onOpenBookmark(bookmark),
+        bodyOnPress: () => onOpenBookmark(bookmark),
+        titleOnPress: () => onOpenBookmark(bookmark),
+      }}
     >
-      {comp}
-    </View>
+      <BookmarkCardContainer.Root>
+        <View className="flex gap-2">
+          <BookmarkCardContainer.Media />
+          <View className="flex gap-2 p-2">
+            <BookmarkCardContainer.Title />
+            <BookmarkCardContainer.Body />
+            <BookmarkCardContainer.NoteSection />
+            <TagList bookmark={bookmark} />
+            <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
+            <View className="mt-2 flex flex-row justify-between px-2 pb-2">
+              <BookmarkCardContainer.FooterExtras />
+              <ActionBar bookmark={bookmark} />
+            </View>
+          </View>
+        </View>
+      </BookmarkCardContainer.Root>
+    </BookmarkCardContainer.Provider>
   );
 }
