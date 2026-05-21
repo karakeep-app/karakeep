@@ -81,7 +81,7 @@ export default function HighlightCard({
 
   return (
     <View
-      className="overflow-hidden rounded-xl bg-card p-4"
+      className="overflow-hidden rounded-xl border border-border bg-card p-4"
       style={{ borderCurve: "continuous" }}
     >
       <View className="flex gap-3">
