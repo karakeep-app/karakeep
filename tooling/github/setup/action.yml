@@ -4,8 +4,8 @@ description: "Common setup steps for Actions"
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v2
-    - uses: actions/setup-node@v4
+    - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
       with:
         node-version: 24
         cache: "pnpm"
@@ -15,7 +15,7 @@ runs:
       run: pnpm add -g turbo
 
     - shell: bash
-      run: npm install -g corepack@0.31.0 && corepack enable
+      run: npm install -g corepack@latest && corepack enable pnpm
 
     - shell: bash
       run: pnpm install

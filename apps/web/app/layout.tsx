@@ -28,7 +28,6 @@ export const metadata: Metadata = {
   applicationName: "Karakeep",
   description:
     "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI.",
-  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     title: "Karakeep",

@@ -1,18 +1,20 @@
 import bundleAnalyzer from "@next/bundle-analyzer";
-import pwa from "next-pwa";
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
-const withPWA = pwa({
-  dest: "public",
-  disable: process.env.NODE_ENV != "production",
-});
-
 /** @type {import('next').NextConfig} */
-const nextConfig = withPWA({
+const nextConfig = {
   output: "standalone",
+  turbopack: {
+    rules: {
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
+      },
+    },
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.svg$/,
@@ -54,8 +56,9 @@ const nextConfig = withPWA({
   // transpilePackages: ["@karakeep/shared", "@karakeep/db", "@karakeep/trpc"],
 
   /** We already do linting and typechecking as separate tasks in CI */
-  eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
-});
+
+  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS?.split(","),
+};
 
 export default withBundleAnalyzer(nextConfig);

@@ -1,0 +1,35 @@
+services:
+  web:
+    build:
+      dockerfile: docker/Dockerfile
+      context: ../../
+      target: aio
+    restart: unless-stopped
+    ports:
+      - "${KARAKEEP_PORT:-3000}:3000"
+    environment:
+      DATA_DIR: /data
+      NEXTAUTH_SECRET: seed-snapshot-secret
+      NEXTAUTH_URL: http://localhost:${KARAKEEP_PORT:-3000}
+      MEILI_MASTER_KEY: dummy
+      MEILI_ADDR: http://meilisearch:7700
+      BROWSER_WEB_URL: http://chrome:9222
+      CRAWLER_NUM_WORKERS: 4
+    volumes:
+      - "${SEED_SNAPSHOT_DATA_DIR:?SEED_SNAPSHOT_DATA_DIR is required}:/data"
+  meilisearch:
+    image: getmeili/meilisearch:v1.41.0
+    restart: unless-stopped
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: dummy
+  chrome:
+    image: gcr.io/zenika-hub/alpine-chrome:124
+    restart: unless-stopped
+    command:
+      - --no-sandbox
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --remote-debugging-address=0.0.0.0
+      - --remote-debugging-port=9222
+      - --hide-scrollbars

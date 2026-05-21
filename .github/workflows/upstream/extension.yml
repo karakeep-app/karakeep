@@ -9,7 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
 
       - name: Setup
         uses: ./tooling/github/setup
@@ -25,13 +27,13 @@ jobs:
         run: pnpm run build --outDir dist-firefox
 
       - name: Upload Extension Archive (chrome)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: karakeep-extension-chrome
           path: apps/browser-extension/dist-chrome/*
 
       - name: Upload Extension Archive (firefox)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: karakeep-extension-firefox
           path: apps/browser-extension/dist-firefox/*
