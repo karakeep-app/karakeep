@@ -1,6 +1,7 @@
 import { Stack } from "expo-router/stack";
 import { tabScreenOptions } from "@/lib/tabScreenOptions";
 import { Platform } from "react-native";
+import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
 
 export default function Layout() {
@@ -10,6 +11,7 @@ export default function Layout() {
         ...tabScreenOptions,
         ...Platform.select({
           ios: {
+            headerLeft: () => <BookmarkListHeader />,
             headerRight: () => <ProfileAvatarButton />,
           },
           android: {

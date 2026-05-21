@@ -3,6 +3,7 @@ import { Platform, PlatformColor, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import InlineSearch from "@/components/search/InlineSearch";
 import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
@@ -121,6 +122,7 @@ export default function Home() {
           label="Search bookmarks..."
           onPress={() => setSearchActive(true)}
           rightElement={<ProfileAvatarButton />}
+          trailingElement={<BookmarkListHeader />}
         />
       )}
       <UpdatingBookmarkList query={{ archived: false }} />

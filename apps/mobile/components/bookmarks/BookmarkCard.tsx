@@ -78,8 +78,34 @@ function useLinkCardContext({
     );
   }
 
+  const compactMedia = (
+    <View className="h-28 w-24 overflow-hidden rounded-lg bg-muted">
+      <Image
+        source={
+          imageUrl
+            ? imageUrl.localAsset
+              ? {
+                  uri: `${settings.address}${imageUrl.url}`,
+                  headers: buildApiHeaders(
+                    settings.apiKey,
+                    settings.customHeaders,
+                  ),
+                }
+              : {
+                  uri: imageUrl.url,
+                }
+            : // oxlint-disable-next-line no-require-imports
+              require("@/assets/blur.jpeg")
+        }
+        style={{ width: "100%", height: "100%" }}
+        contentFit="cover"
+      />
+    </View>
+  );
+
   return {
     media: contentComp,
+    compactMedia,
     title: bookmark.title ?? bookmark.content.title ?? parsedUrl.host,
     footerExtras: (
       <Text className="my-auto shrink" numberOfLines={1}>
@@ -104,6 +130,11 @@ function useTextCardContext({
       <View className="max-h-56 overflow-hidden p-2 text-foreground">
         <BookmarkTextMarkdown text={content} />
       </View>
+    ),
+    compactBody: (
+      <Text className="text-sm leading-5 text-foreground" numberOfLines={3}>
+        {content}
+      </Text>
     ),
     title: bookmark.title ?? undefined,
   };
@@ -130,8 +161,87 @@ function useAssetCardContext({
         className="h-56 min-h-56 w-full"
       />
     ),
+    compactMedia: (
+      <BookmarkAssetImage
+        assetId={assetImage}
+        className="h-28 w-24 overflow-hidden rounded-lg bg-muted"
+      />
+    ),
     title: title ?? undefined,
   };
+}
+
+function CardLayout({ ctx }: { ctx: BookmarkCardContext }) {
+  return (
+    <BookmarkCardContainer.Provider value={ctx}>
+      <BookmarkCardContainer.Root>
+        <View className="flex gap-2">
+          <BookmarkCardContainer.Media />
+          <View className="flex gap-2 p-2">
+            <BookmarkCardContainer.Title />
+            <BookmarkCardContainer.Body />
+            <BookmarkCardContainer.NoteSection />
+            <TagList bookmark={ctx.bookmark} />
+            <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
+            <View className="mt-2 flex flex-row justify-between px-2 pb-2">
+              <BookmarkCardContainer.FooterExtras />
+              <ActionBar bookmark={ctx.bookmark} />
+            </View>
+          </View>
+        </View>
+      </BookmarkCardContainer.Root>
+    </BookmarkCardContainer.Provider>
+  );
+}
+
+function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
+  const hasCompactMedia = Boolean(ctx.compactMedia ?? ctx.media);
+
+  return (
+    <BookmarkCardContainer.Provider value={ctx}>
+      <BookmarkCardContainer.Root>
+        <View className={hasCompactMedia ? "flex-row p-3" : "flex gap-2 p-3"}>
+          {hasCompactMedia && (
+            <View className="justify-start">
+              <BookmarkCardContainer.CompactMedia />
+            </View>
+          )}
+          <View
+            className={
+              hasCompactMedia
+                ? "ml-3 min-h-28 flex-1 gap-1.5 overflow-hidden"
+                : "gap-2"
+            }
+          >
+            <View className="flex-row items-start gap-2">
+              <View className="min-w-0 flex-1 gap-0.5">
+                {ctx.title && (
+                  <Text
+                    className="text-base font-semibold leading-5 text-foreground"
+                    numberOfLines={2}
+                    onPress={ctx.titleOnPress}
+                  >
+                    {ctx.title}
+                  </Text>
+                )}
+                <BookmarkCardContainer.FooterExtras />
+              </View>
+            </View>
+            <BookmarkCardContainer.CompactBody />
+            <BookmarkCardContainer.NoteSection />
+            {ctx.bookmark.tags.length > 0 && (
+              <View className="h-7 overflow-hidden">
+                <TagList bookmark={ctx.bookmark} />
+              </View>
+            )}
+            <View className="flex-row justify-end pt-0.5">
+              <ActionBar bookmark={ctx.bookmark} compact />
+            </View>
+          </View>
+        </View>
+      </BookmarkCardContainer.Root>
+    </BookmarkCardContainer.Provider>
+  );
 }
 
 export default function BookmarkCard({
@@ -187,10 +297,11 @@ export default function BookmarkCard({
   const textContext = useTextCardContext({ bookmark });
   const assetContext = useAssetCardContext({ bookmark });
   const ctx = linkContext ?? textContext ?? assetContext;
+  const Layout = settings.bookmarkLayout === "list" ? ListLayout : CardLayout;
 
   return (
-    <BookmarkCardContainer.Provider
-      value={{
+    <Layout
+      ctx={{
         ...ctx,
         isOwner: currentUser?.id === bookmark.userId,
         bookmark,
@@ -198,23 +309,6 @@ export default function BookmarkCard({
         bodyOnPress: () => onOpenBookmark(bookmark),
         titleOnPress: () => onOpenBookmark(bookmark),
       }}
-    >
-      <BookmarkCardContainer.Root>
-        <View className="flex gap-2">
-          <BookmarkCardContainer.Media />
-          <View className="flex gap-2 p-2">
-            <BookmarkCardContainer.Title />
-            <BookmarkCardContainer.Body />
-            <BookmarkCardContainer.NoteSection />
-            <TagList bookmark={bookmark} />
-            <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
-            <View className="mt-2 flex flex-row justify-between px-2 pb-2">
-              <BookmarkCardContainer.FooterExtras />
-              <ActionBar bookmark={bookmark} />
-            </View>
-          </View>
-        </View>
-      </BookmarkCardContainer.Root>
-    </BookmarkCardContainer.Provider>
+    />
   );
 }

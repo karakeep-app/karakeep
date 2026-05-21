@@ -22,7 +22,13 @@ import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useToast } from "../../ui/Toast";
 import { shareBookmark } from "@/lib/shareBookmark";
 
-export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
+export default function ActionBar({
+  bookmark,
+  compact = false,
+}: {
+  bookmark: ZBookmark;
+  compact?: boolean;
+}) {
   const { toast } = useToast();
   const { settings } = useAppSettings();
   const { data: currentUser } = useWhoAmI();
@@ -142,7 +148,7 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
   }
 
   return (
-    <View className="flex flex-row gap-4">
+    <View className={compact ? "flex flex-row gap-3" : "flex flex-row gap-4"}>
       {(isArchivePending || isDeletionPending) && <ActivityIndicator />}
       {isOwner && (
         <Pressable
@@ -155,9 +161,9 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
           }}
         >
           {(variables ? variables.favourited : bookmark.favourited) ? (
-            <Star fill="#ebb434" color="#ebb434" />
+            <Star fill="#ebb434" color="#ebb434" size={compact ? 20 : 24} />
           ) : (
-            <Star color="gray" />
+            <Star color="gray" size={compact ? 20 : 24} />
           )}
         </Pressable>
       )}
@@ -168,7 +174,7 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
           handleShare();
         }}
       >
-        <ShareIcon color="gray" />
+        <ShareIcon color="gray" size={compact ? 20 : 24} />
       </Pressable>
 
       {isOwner && menuActions.length > 0 && (
@@ -193,7 +199,11 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
           actions={menuActions}
           shouldOpenOnLongPress={false}
         >
-          <Ellipsis onPress={() => Haptics.selectionAsync()} color="gray" />
+          <Ellipsis
+            onPress={() => Haptics.selectionAsync()}
+            color="gray"
+            size={compact ? 20 : 24}
+          />
         </MenuView>
       )}
     </View>

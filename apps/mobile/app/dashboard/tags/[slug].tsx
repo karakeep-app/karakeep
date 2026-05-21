@@ -1,4 +1,5 @@
 import { Stack, useLocalSearchParams } from "expo-router";
+import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import FullPageError from "@/components/FullPageError";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
@@ -27,6 +28,7 @@ export default function TagView() {
         options={{
           headerTitle: tag?.name ?? "",
           headerBackTitle: "Back",
+          headerRight: () => <BookmarkListHeader />,
         }}
       />
       {error ? (

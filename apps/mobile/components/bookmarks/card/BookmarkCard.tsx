@@ -9,7 +9,9 @@ export interface BookmarkCardContext {
   bookmark: ZBookmark;
   title?: string;
   media?: React.ReactNode;
+  compactMedia?: React.ReactNode;
   body?: React.ReactNode;
+  compactBody?: React.ReactNode;
   footerExtras?: React.ReactNode;
   isOwner?: boolean;
   mediaOnPress?: () => void;
@@ -72,6 +74,19 @@ function Media() {
   return <PressableSlot onPress={mediaOnPress}>{media}</PressableSlot>;
 }
 
+function CompactMedia() {
+  const ctx = useContext(BookmarkCardContext);
+  if (!ctx) {
+    return null;
+  }
+  const media = ctx.compactMedia ?? ctx.media;
+  if (!media) {
+    return null;
+  }
+
+  return <PressableSlot onPress={ctx.mediaOnPress}>{media}</PressableSlot>;
+}
+
 function Body() {
   const ctx = useContext(BookmarkCardContext);
   if (!ctx) {
@@ -83,6 +98,19 @@ function Body() {
 
   const { body, bodyOnPress } = ctx;
   return <PressableSlot onPress={bodyOnPress}>{body}</PressableSlot>;
+}
+
+function CompactBody() {
+  const ctx = useContext(BookmarkCardContext);
+  if (!ctx) {
+    return null;
+  }
+  const body = ctx.compactBody ?? ctx.body;
+  if (!body) {
+    return null;
+  }
+
+  return <PressableSlot onPress={ctx.bodyOnPress}>{body}</PressableSlot>;
 }
 
 function Title() {
@@ -123,7 +151,9 @@ const BookmarkCardContainer = {
   NoteSection,
   FooterExtras,
   Media,
+  CompactMedia,
   Body,
+  CompactBody,
   Title,
   Root,
 };
