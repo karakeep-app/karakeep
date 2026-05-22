@@ -40,9 +40,18 @@ export type FilterQuery =
       values: string[];
     };
 
+export interface SearchMatchExcerpt {
+  text: string;
+  startOffset: number;
+  endOffset: number;
+  matchStartOffset: number;
+  matchEndOffset: number;
+}
+
 export interface SearchResult {
   id: string;
   score?: number;
+  matchedContent?: SearchMatchExcerpt | null;
 }
 
 export interface SearchOptions {
@@ -52,6 +61,8 @@ export interface SearchOptions {
   limit?: number;
   offset?: number;
   sort?: { field: SortableAttributes; order: SortOrder }[];
+  includeMatchedContent?: boolean;
+  matchedContentLength?: number;
 }
 
 export interface SearchResponse {

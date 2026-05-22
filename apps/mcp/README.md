@@ -5,7 +5,8 @@ with Karakeep from other tools.
 
 ## Supported Tools
 
-- Searching bookmarks
+- Searching bookmarks, including optional matched content excerpts for agentic workflows
+- Fetching bookmark content, including optional partial plain-text slices by offset
 - Adding and removing bookmarks from lists
 - Attaching and detaching tags to bookmarks
 - Creating new lists

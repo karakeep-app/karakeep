@@ -42,12 +42,14 @@ import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
   zBookmarkSchema,
+  zGetBookmarkContentRequestSchema,
+  zGetBookmarkContentResponseSchema,
   zGetBookmarksRequestSchema,
   zGetBookmarksResponseSchema,
   zManipulatedTagSchema,
   zNewBookmarkRequestSchema,
-  zSearchBookmarksCursor,
   zSearchBookmarksRequestSchema,
+  zSearchBookmarksResponseSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
@@ -801,16 +803,24 @@ export const bookmarksAppRouter = router({
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
     }),
+  getBookmarkContent: bookmarksProcedure
+    .use(createBookmarksQueriedMiddleware())
+    .input(zGetBookmarkContentRequestSchema)
+    .output(zGetBookmarkContentResponseSchema)
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      return Bookmark.getBookmarkContentSlice(
+        ctx,
+        input.bookmarkId,
+        input.startOffset,
+        input.maxLength,
+      );
+    }),
   searchBookmarks: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
     .use(createEventLogMiddleware("search.query"))
     .input(zSearchBookmarksRequestSchema)
-    .output(
-      z.object({
-        bookmarks: z.array(zBookmarkSchema),
-        nextCursor: zSearchBookmarksCursor.nullable(),
-      }),
-    )
+    .output(zSearchBookmarksResponseSchema)
     .query(async ({ input, ctx }) => {
       addLogFields<"search.query">({
         "search.has_query": input.text.length > 0,
@@ -852,6 +862,8 @@ export const bookmarksAppRouter = router({
         filter,
         sort: [{ field: "createdAt", order: createdAtSortOrder }],
         limit: input.limit,
+        includeMatchedContent: input.includeMatchedContent,
+        matchedContentLength: input.matchedContentLength,
         ...(input.cursor
           ? {
               offset: input.cursor.offset,
@@ -889,8 +901,15 @@ export const bookmarksAppRouter = router({
           break;
       }
 
+      const idToMatchedContent = new Map(
+        resp.hits.map((hit) => [hit.id, hit.matchedContent ?? null]),
+      );
+
       return {
-        bookmarks: results.map((b) => b.asZBookmark()),
+        bookmarks: results.map((b) => ({
+          ...b.asZBookmark(),
+          matchedContent: idToMatchedContent.get(b.id) ?? null,
+        })),
         nextCursor:
           resp.hits.length + (input.cursor?.offset || 0) >= resp.totalHits
             ? null

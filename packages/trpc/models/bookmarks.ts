@@ -40,6 +40,7 @@ import {
   ZBareBookmark,
   ZBookmark,
   ZBookmarkContent,
+  ZGetBookmarkContentResponse,
   zGetBookmarksRequestSchema,
   ZPublicBookmark,
 } from "@karakeep/shared/types/bookmarks";
@@ -903,6 +904,70 @@ export class Bookmark extends BareBookmark {
       return null;
     }
     return htmlToPlainText(content);
+  }
+
+  static async getBookmarkContentText(ctx: AuthedContext, bookmarkId: string) {
+    const bookmark = await ctx.db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
+      with: {
+        link: true,
+        text: true,
+        asset: true,
+      },
+    });
+
+    if (!bookmark) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
+      });
+    }
+
+    if (!(await BareBookmark.isAllowedToAccessBookmark(ctx, bookmark))) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
+      });
+    }
+
+    if (bookmark.link) {
+      return (
+        (await Bookmark.getBookmarkPlainTextContent(
+          bookmark.link,
+          bookmark.userId,
+        )) ?? ""
+      );
+    }
+    if (bookmark.text) {
+      return bookmark.text.text ?? "";
+    }
+    if (bookmark.asset) {
+      return bookmark.asset.content ?? "";
+    }
+    return "";
+  }
+
+  static async getBookmarkContentSlice(
+    ctx: AuthedContext,
+    bookmarkId: string,
+    startOffset: number,
+    maxLength: number,
+  ): Promise<ZGetBookmarkContentResponse> {
+    const fullText = await Bookmark.getBookmarkContentText(ctx, bookmarkId);
+    const normalizedStartOffset = Math.min(startOffset, fullText.length);
+    const endOffset = Math.min(
+      fullText.length,
+      normalizedStartOffset + maxLength,
+    );
+
+    return {
+      text: fullText.slice(normalizedStartOffset, endOffset),
+      startOffset: normalizedStartOffset,
+      endOffset,
+      totalLength: fullText.length,
+      hasMoreBefore: normalizedStartOffset > 0,
+      hasMoreAfter: endOffset < fullText.length,
+    };
   }
 
   private async cleanupAssets() {

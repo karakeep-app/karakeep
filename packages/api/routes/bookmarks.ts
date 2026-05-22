@@ -14,6 +14,7 @@ import { apiKeyScopeMiddleware } from "../middlewares/apiKeyScopes";
 import { authMiddleware } from "../middlewares/auth";
 import { adaptPagination, zPagination } from "../utils/pagination";
 import {
+  zGetBookmarkContentSearchParamsSchema,
   zGetBookmarkQueryParamsSchema,
   zGetBookmarkSearchParamsSchema,
   zIncludeContentSearchParamsSchema,
@@ -78,7 +79,10 @@ const app = new Hono()
         text: searchParams.q,
         cursor: searchParams.cursor,
         limit: searchParams.limit,
+        sortOrder: searchParams.sortOrder,
         includeContent: searchParams.includeContent,
+        includeMatchedContent: searchParams.includeMatchedContent,
+        matchedContentLength: searchParams.matchedContentLength,
       });
       return c.json(
         {
@@ -214,6 +218,22 @@ const app = new Hono()
         includeContent: searchParams.includeContent,
       });
       return c.json(bookmark, 200);
+    },
+  )
+
+  // GET /bookmarks/[bookmarkId]/content
+  .get(
+    "/:bookmarkId/content",
+    zValidator("query", zGetBookmarkContentSearchParamsSchema),
+    async (c) => {
+      const bookmarkId = c.req.param("bookmarkId");
+      const searchParams = c.req.valid("query");
+      const content = await c.var.api.bookmarks.getBookmarkContent({
+        bookmarkId,
+        startOffset: searchParams.startOffset,
+        maxLength: searchParams.maxLength,
+      });
+      return c.json(content, 200);
     },
   )
 

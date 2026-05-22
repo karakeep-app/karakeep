@@ -1,6 +1,10 @@
 import * as z from "zod";
 
-import { zBookmarkSchema } from "@karakeep/shared/types/bookmarks";
+import {
+  zBookmarkSchema,
+  zGetBookmarkContentResponseSchema,
+  zSearchBookmarkSchema,
+} from "@karakeep/shared/types/bookmarks";
 import { zHighlightSchema } from "@karakeep/shared/types/highlights";
 import { zBookmarkListSchema } from "@karakeep/shared/types/lists";
 import { zGetTagResponseSchema } from "@karakeep/shared/types/tags";
@@ -8,6 +12,10 @@ import { zGetTagResponseSchema } from "@karakeep/shared/types/tags";
 export const ListSchema = zBookmarkListSchema.openapi("List");
 
 export const BookmarkSchema = zBookmarkSchema.openapi("Bookmark");
+export const SearchBookmarkSchema =
+  zSearchBookmarkSchema.openapi("SearchBookmark");
+export const BookmarkContentSliceSchema =
+  zGetBookmarkContentResponseSchema.openapi("BookmarkContentSlice");
 
 export const PaginatedBookmarksSchema = z
   .object({
@@ -18,6 +26,16 @@ export const PaginatedBookmarksSchema = z
       .describe("Cursor for the next page, or null if no more results."),
   })
   .openapi("PaginatedBookmarks");
+
+export const SearchResultsSchema = z
+  .object({
+    bookmarks: z.array(SearchBookmarkSchema),
+    nextCursor: z
+      .string()
+      .nullable()
+      .describe("Cursor for the next page, or null if no more results."),
+  })
+  .openapi("SearchResults");
 
 export const CursorSchema = z
   .string()

@@ -55,3 +55,27 @@ Source URL: ${bookmark.content.sourceUrl ?? ""}`;
   ${content}
   Tags: ${bookmark.tags.map((t) => t.name).join(", ")}`;
 }
+
+export function compactSearchBookmark(
+  bookmark: KarakeepAPISchemas["SearchBookmark"],
+): string {
+  const base = compactBookmark(bookmark);
+  if (!bookmark.matchedContent) {
+    return base;
+  }
+
+  return `${base}
+  Matched content offsets: ${bookmark.matchedContent.startOffset}-${bookmark.matchedContent.endOffset}
+  Match offsets: ${bookmark.matchedContent.matchStartOffset}-${bookmark.matchedContent.matchEndOffset}
+  Matched content: ${bookmark.matchedContent.text}`;
+}
+
+export function compactBookmarkContentSlice(
+  content: KarakeepAPISchemas["BookmarkContentSlice"],
+): string {
+  return `Offsets: ${content.startOffset}-${content.endOffset} / ${content.totalLength}
+Has more before: ${content.hasMoreBefore ? "yes" : "no"}
+Has more after: ${content.hasMoreAfter ? "yes" : "no"}
+
+${content.text}`;
+}

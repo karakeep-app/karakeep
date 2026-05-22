@@ -15,10 +15,12 @@ import { AssetIdSchema } from "./assets";
 import { BearerAuth } from "./common";
 import { ErrorSchema, UnauthorizedResponse } from "./errors";
 import {
+  BookmarkContentSliceSchema,
   BookmarkSchema,
   IncludeContentSearchParamSchema,
   PaginatedBookmarksSchema,
   PaginationSchema,
+  SearchResultsSchema,
 } from "./pagination";
 import { TagIdSchema } from "./tags";
 import { HighlightSchema, ListSchema } from "./types";
@@ -97,6 +99,22 @@ registry.registerPath({
           .describe(
             "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting.",
           ),
+        includeMatchedContent: z
+          .boolean()
+          .optional()
+          .default(false)
+          .describe(
+            "If set to true, each result may include a matched content excerpt with offsets into the bookmark's extracted plain-text content.",
+          ),
+        matchedContentLength: z
+          .number()
+          .int()
+          .positive()
+          .max(4000)
+          .optional()
+          .describe(
+            "Maximum length of the matched content excerpt to return when includeMatchedContent is true.",
+          ),
       })
       .extend(PaginationSchema.shape)
       .extend(IncludeContentSearchParamSchema.shape),
@@ -106,7 +124,7 @@ registry.registerPath({
       description: "A paginated list of bookmarks matching the search query.",
       content: {
         "application/json": {
-          schema: PaginatedBookmarksSchema,
+          schema: SearchResultsSchema,
         },
       },
     },
@@ -218,6 +236,61 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: BookmarkSchema,
+        },
+      },
+    },
+    401: UnauthorizedResponse,
+    404: {
+      description: "Bookmark not found.",
+      content: {
+        "application/json": {
+          schema: ErrorSchema,
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  operationId: "getBookmarkContent",
+  method: "get",
+  path: "/bookmarks/{bookmarkId}/content",
+  description:
+    "Retrieve only the extracted plain-text content of a bookmark, optionally as a slice using character offsets.",
+  summary: "Get bookmark content",
+  tags: ["Bookmarks"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    params: z.object({ bookmarkId: BookmarkIdSchema }),
+    query: z.object({
+      startOffset: z
+        .number()
+        .int()
+        .nonnegative()
+        .optional()
+        .default(0)
+        .describe(
+          "Zero-based character offset from which to start reading content.",
+        ),
+      maxLength: z
+        .number()
+        .int()
+        .positive()
+        .max(100_000)
+        .optional()
+        .default(4000)
+        .describe(
+          "Maximum number of characters to return from the requested offset.",
+        ),
+    }),
+  },
+  responses: {
+    200: {
+      description:
+        "A slice of the bookmark's extracted plain-text content, together with slice and total length metadata.",
+      content: {
+        "application/json": {
+          schema: BookmarkContentSliceSchema,
         },
       },
     },

@@ -8,6 +8,7 @@ import {
   tagsOnBookmarks,
   users,
 } from "@karakeep/db/schema";
+import * as sharedSearch from "@karakeep/shared/search";
 import * as sharedServer from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -34,7 +35,18 @@ vi.mock("@karakeep/shared-server", async (original) => {
   };
 });
 
+vi.mock("@karakeep/shared/search", async (original) => {
+  const mod = (await original()) as typeof import("@karakeep/shared/search");
+  return {
+    ...mod,
+    getSearchClient: vi.fn(),
+  };
+});
+
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
+beforeEach(() => {
+  vi.mocked(sharedSearch.getSearchClient).mockReset();
+});
 
 describe("Bookmark Routes", () => {
   async function createTestTag(api: APICallerType, tagName: string) {
@@ -853,6 +865,87 @@ describe("Bookmark Routes", () => {
     await expect(() =>
       api.getBookmark({ bookmarkId: "non-existent-id" }),
     ).rejects.toThrow(/Bookmark not found/);
+  });
+
+  test<CustomTestContext>("getBookmarkContent returns sliced plain text content", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const createdBookmark = await api.createBookmark({
+      text: "abcdefghijklmnopqrstuvwxyz",
+      type: BookmarkTypes.TEXT,
+    });
+
+    const content = await api.getBookmarkContent({
+      bookmarkId: createdBookmark.id,
+      startOffset: 5,
+      maxLength: 7,
+    });
+
+    expect(content.text).toBe("fghijkl");
+    expect(content.startOffset).toBe(5);
+    expect(content.endOffset).toBe(12);
+    expect(content.totalLength).toBe(26);
+    expect(content.hasMoreBefore).toBe(true);
+    expect(content.hasMoreAfter).toBe(true);
+  });
+
+  test<CustomTestContext>("searchBookmarks includes matched content when requested", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const createdBookmark = await api.createBookmark({
+      text: "alpha beta gamma delta epsilon zeta eta theta",
+      type: BookmarkTypes.TEXT,
+    });
+
+    const search = vi.fn().mockResolvedValue({
+      hits: [
+        {
+          id: createdBookmark.id,
+          score: 1,
+          matchedContent: {
+            text: "beta gamma delta",
+            startOffset: 6,
+            endOffset: 22,
+            matchStartOffset: 11,
+            matchEndOffset: 16,
+          },
+        },
+      ],
+      totalHits: 1,
+      processingTimeMs: 1,
+    });
+
+    vi.mocked(sharedSearch.getSearchClient).mockResolvedValue({
+      addDocuments: vi.fn(),
+      deleteDocuments: vi.fn(),
+      clearIndex: vi.fn(),
+      search,
+    });
+
+    const result = await api.searchBookmarks({
+      text: "gamma",
+      includeMatchedContent: true,
+      matchedContentLength: 120,
+    });
+
+    expect(search).toHaveBeenCalledWith(
+      expect.objectContaining({
+        query: "gamma",
+        includeMatchedContent: true,
+        matchedContentLength: 120,
+      }),
+    );
+    expect(result.bookmarks).toHaveLength(1);
+    expect(result.bookmarks[0]?.id).toBe(createdBookmark.id);
+    expect(result.bookmarks[0]?.matchedContent).toEqual({
+      text: "beta gamma delta",
+      startOffset: 6,
+      endOffset: 22,
+      matchStartOffset: 11,
+      matchEndOffset: 16,
+    });
   });
 
   test<CustomTestContext>("getBrokenLinks", async ({ apiCallers, db }) => {

@@ -125,6 +125,22 @@ export const zBookmarkSchema = zBareBookmarkSchema.extend(
 );
 export type ZBookmark = z.infer<typeof zBookmarkSchema>;
 
+export const zBookmarkMatchedContentSchema = z.object({
+  text: z.string(),
+  startOffset: z.number().int().nonnegative(),
+  endOffset: z.number().int().nonnegative(),
+  matchStartOffset: z.number().int().nonnegative(),
+  matchEndOffset: z.number().int().nonnegative(),
+});
+export type ZBookmarkMatchedContent = z.infer<
+  typeof zBookmarkMatchedContentSchema
+>;
+
+export const zSearchBookmarkSchema = zBookmarkSchema.extend({
+  matchedContent: zBookmarkMatchedContentSchema.nullable().optional(),
+});
+export type ZSearchBookmark = z.infer<typeof zSearchBookmarkSchema>;
+
 const zBookmarkTypeLinkSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
@@ -277,7 +293,38 @@ export const zSearchBookmarksRequestSchema = z.object({
   cursor: zSearchBookmarksCursor.nullish(),
   sortOrder: zSortOrder.optional().default("relevance"),
   includeContent: z.boolean().optional().default(false),
+  includeMatchedContent: z.boolean().optional().default(false),
+  matchedContentLength: z.number().int().positive().max(4000).optional(),
 });
+
+export const zSearchBookmarksResponseSchema = z.object({
+  bookmarks: z.array(zSearchBookmarkSchema),
+  nextCursor: zSearchBookmarksCursor.nullable(),
+});
+export type ZSearchBookmarksResponse = z.infer<
+  typeof zSearchBookmarksResponseSchema
+>;
+
+export const zGetBookmarkContentRequestSchema = z.object({
+  bookmarkId: z.string(),
+  startOffset: z.number().int().nonnegative().optional().default(0),
+  maxLength: z.number().int().positive().max(100_000).optional().default(4000),
+});
+export type ZGetBookmarkContentRequest = z.infer<
+  typeof zGetBookmarkContentRequestSchema
+>;
+
+export const zGetBookmarkContentResponseSchema = z.object({
+  text: z.string(),
+  startOffset: z.number().int().nonnegative(),
+  endOffset: z.number().int().nonnegative(),
+  totalLength: z.number().int().nonnegative(),
+  hasMoreBefore: z.boolean(),
+  hasMoreAfter: z.boolean(),
+});
+export type ZGetBookmarkContentResponse = z.infer<
+  typeof zGetBookmarkContentResponseSchema
+>;
 
 export const zPublicBookmarkSchema = z.object({
   id: z.string(),

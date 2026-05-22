@@ -451,6 +451,387 @@
         "type": "string",
         "description": "Cursor from a previous response to fetch the next page."
       },
+      "SearchResults": {
+        "type": "object",
+        "properties": {
+          "bookmarks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchBookmark"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cursor for the next page, or null if no more results."
+          }
+        },
+        "required": [
+          "bookmarks",
+          "nextCursor"
+        ]
+      },
+      "SearchBookmark": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "archived": {
+            "type": "boolean"
+          },
+          "favourited": {
+            "type": "boolean"
+          },
+          "taggingStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              null
+            ]
+          },
+          "summarizationStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              null
+            ]
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "source": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "api",
+              "web",
+              "cli",
+              "mobile",
+              "extension",
+              "singlefile",
+              "rss",
+              "import",
+              null
+            ]
+          },
+          "userId": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "attachedBy": {
+                  "type": "string",
+                  "enum": [
+                    "ai",
+                    "human"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "attachedBy"
+              ]
+            }
+          },
+          "content": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "link"
+                    ]
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "imageUrl": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "imageAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "screenshotAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "pdfAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "fullPageArchiveAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "precrawledArchiveAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "videoAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "favicon": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "htmlContent": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "contentAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "crawledAt": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "crawlStatus": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "success",
+                      "failure",
+                      "pending",
+                      null
+                    ]
+                  },
+                  "author": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "publisher": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "datePublished": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
+                  "dateModified": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "type",
+                  "url"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text"
+                    ]
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "sourceUrl": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "type",
+                  "text"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "asset"
+                    ]
+                  },
+                  "assetType": {
+                    "type": "string",
+                    "enum": [
+                      "image",
+                      "pdf"
+                    ]
+                  },
+                  "assetId": {
+                    "type": "string"
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "sourceUrl": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "size": {
+                    "type": "number",
+                    "nullable": true
+                  },
+                  "content": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "type",
+                  "assetType",
+                  "assetId"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "unknown"
+                    ]
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            ]
+          },
+          "assets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "assetType": {
+                  "type": "string",
+                  "enum": [
+                    "linkHtmlContent",
+                    "screenshot",
+                    "pdf",
+                    "assetScreenshot",
+                    "bannerImage",
+                    "fullPageArchive",
+                    "video",
+                    "bookmarkAsset",
+                    "precrawledArchive",
+                    "userUploaded",
+                    "avatar",
+                    "unknown"
+                  ]
+                },
+                "fileName": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "assetType"
+              ]
+            }
+          },
+          "matchedContent": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "text": {
+                "type": "string"
+              },
+              "startOffset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "endOffset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "matchStartOffset": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "matchEndOffset": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "text",
+              "startOffset",
+              "endOffset",
+              "matchStartOffset",
+              "matchEndOffset"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "modifiedAt",
+          "archived",
+          "favourited",
+          "taggingStatus",
+          "summarizationStatus",
+          "userId",
+          "tags",
+          "content",
+          "assets"
+        ]
+      },
       "Error": {
         "type": "object",
         "properties": {
@@ -466,6 +847,40 @@
         "required": [
           "code",
           "message"
+        ]
+      },
+      "BookmarkContentSlice": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "startOffset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "endOffset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "totalLength": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hasMoreBefore": {
+            "type": "boolean"
+          },
+          "hasMoreAfter": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "text",
+          "startOffset",
+          "endOffset",
+          "totalLength",
+          "hasMoreBefore",
+          "hasMoreAfter"
         ]
       },
       "List": {
@@ -1121,6 +1536,30 @@
           },
           {
             "schema": {
+              "type": "boolean",
+              "default": false,
+              "description": "If set to true, each result may include a matched content excerpt with offsets into the bookmark's extracted plain-text content."
+            },
+            "required": false,
+            "description": "If set to true, each result may include a matched content excerpt with offsets into the bookmark's extracted plain-text content.",
+            "name": "includeMatchedContent",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 4000,
+              "description": "Maximum length of the matched content excerpt to return when includeMatchedContent is true."
+            },
+            "required": false,
+            "description": "Maximum length of the matched content excerpt to return when includeMatchedContent is true.",
+            "name": "matchedContentLength",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "number",
               "description": "Maximum number of items to return per page."
             },
@@ -1156,7 +1595,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PaginatedBookmarks"
+                  "$ref": "#/components/schemas/SearchResults"
                 }
               }
             }
@@ -1514,6 +1953,85 @@
                     "summarizationStatus",
                     "userId"
                   ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/content": {
+      "get": {
+        "operationId": "getBookmarkContent",
+        "description": "Retrieve only the extracted plain-text content of a bookmark, optionally as a slice using character offsets.",
+        "summary": "Get bookmark content",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "description": "Zero-based character offset from which to start reading content."
+            },
+            "required": false,
+            "description": "Zero-based character offset from which to start reading content.",
+            "name": "startOffset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "exclusiveMinimum": true,
+              "maximum": 100000,
+              "default": 4000,
+              "description": "Maximum number of characters to return from the requested offset."
+            },
+            "required": false,
+            "description": "Maximum number of characters to return from the requested offset.",
+            "name": "maxLength",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A slice of the bookmark's extracted plain-text content, together with slice and total length metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkContentSlice"
                 }
               }
             }
