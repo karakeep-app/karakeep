@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="10dp" android:background="@drawable/widget_item_background">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Loading..." android:textSize="13sp" android:textColor="@color/widget_text_secondary" />
+</LinearLayout>
