@@ -800,6 +800,26 @@ describe("Bookmark Routes", () => {
     expect(duplicate.id).toEqual(bookmark.id);
   });
 
+  test<CustomTestContext>("bookmark links dedup ignores hash fragments", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    const bookmark = await api.createBookmark({
+      url: "https://example.com/page",
+      type: BookmarkTypes.LINK,
+    });
+    expect(bookmark.alreadyExists).toEqual(false);
+
+    const duplicate = await api.createBookmark({
+      url: "https://example.com/page#section",
+      type: BookmarkTypes.LINK,
+    });
+
+    expect(duplicate.alreadyExists).toEqual(true);
+    expect(duplicate.id).toEqual(bookmark.id);
+  });
+
   // Ensure that the pagination returns all the results
   test<CustomTestContext>("pagination", async ({ apiCallers, db }) => {
     const user = await apiCallers[0].users.whoami();

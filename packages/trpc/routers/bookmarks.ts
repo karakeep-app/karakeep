@@ -116,7 +116,7 @@ function normalizeUrlForDedup(url: string): string {
 
 function urlDedupSearchCandidates(url: string): string[] {
   const normalized = new URL(normalizeUrlForDedup(url));
-  const candidates = new Set([url.trim(), normalized.toString()]);
+  const candidates = new Set([normalized.toString()]);
 
   if (normalized.pathname !== "/" && !normalized.pathname.endsWith("/")) {
     normalized.pathname = `${normalized.pathname}/`;
