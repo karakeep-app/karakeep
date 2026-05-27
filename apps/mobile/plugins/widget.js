@@ -33,8 +33,8 @@ const KOTLIN_FILES = [
 const RESOURCE_FILES = {
   layout: ["widget_karakeep.xml", "widget_list_item.xml", "widget_list_item_loading.xml"],
   xml: ["karakeep_widget_info.xml"],
-  values: ["colors.xml", "strings.xml"],
-  "values-night": ["colors.xml"],
+  values: ["widget_colors.xml", "widget_strings.xml"],
+  "values-night": ["widget_colors.xml"],
   drawable: ["widget_background.xml", "widget_item_background.xml"],
 };
 
@@ -72,7 +72,7 @@ function copyWidgetFiles(config) {
         }
       }
 
-      // Copy resource files
+      // Copy resource files (using widget-prefixed names to avoid overwriting app resources)
       const resDir = path.join(androidProjectRoot, "app", "src", "main", "res");
       for (const [subdir, files] of Object.entries(RESOURCE_FILES)) {
         const targetDir = path.join(resDir, subdir);
