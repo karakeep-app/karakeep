@@ -1396,6 +1396,9 @@ importers:
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
+      katex:
+        specifier: ^0.16.25
+        version: 0.16.47
       lucide-react:
         specifier: ^0.501.0
         version: 0.501.0(react@19.2.3)
@@ -11499,6 +11502,10 @@ packages:
 
   jsonrepair@3.13.3:
     resolution: {integrity: sha512-BTznj0owIt2CBAH/LTo7+1I5pMvl1e1033LRl/HUowlZmJOIhzC0zbX5bxMngLkfT4WnzPP26QnW5wMr2g9tsQ==}
+    hasBin: true
+
+  katex@0.16.47:
+    resolution: {integrity: sha512-Eeo8Ys1doU1z+x8AZsPpQu+p/QcZBI5PeOo7QGQdy2x2m0MU/hYagBbGOmXwr5KVbEfVuWv9LpnQWeehogurjg==}
     hasBin: true
 
   keyv@4.5.4:
@@ -29247,6 +29254,10 @@ snapshots:
       graceful-fs: 4.2.11
 
   jsonrepair@3.13.3: {}
+
+  katex@0.16.47:
+    dependencies:
+      commander: 8.3.0
 
   keyv@4.5.4:
     dependencies:

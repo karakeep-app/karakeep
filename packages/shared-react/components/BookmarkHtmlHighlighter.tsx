@@ -7,7 +7,10 @@ import React, {
 } from "react";
 import { cn } from "@/lib/utils";
 import { PopoverAnchor } from "@radix-ui/react-popover";
+import katex from "katex";
 import { Check, Trash2 } from "lucide-react";
+
+import "katex/dist/katex.min.css";
 
 import {
   SUPPORTED_HIGHLIGHT_COLORS,
@@ -167,6 +170,54 @@ const BookmarkHTMLHighlighter = forwardRef<
 
   // Expose the content div ref to parent components
   useImperativeHandle(ref, () => contentRef.current!, []);
+
+  const normalizeMathElements = () => {
+    if (!contentRef.current) {
+      return;
+    }
+
+    const mathElements = contentRef.current.querySelectorAll("d-math");
+    for (const mathElement of mathElements) {
+      const tex = mathElement.textContent ?? "";
+      const isBlock = mathElement.hasAttribute("block");
+      const replacement = document.createElement(isBlock ? "div" : "span");
+      replacement.className = isBlock
+        ? "math math-display"
+        : "math math-inline";
+      replacement.textContent = tex;
+      mathElement.replaceWith(replacement);
+    }
+  };
+
+  const renderMathElements = () => {
+    if (!contentRef.current) {
+      return;
+    }
+
+    const mathElements = contentRef.current.querySelectorAll<HTMLElement>(
+      ".math-inline, .math-display",
+    );
+    for (const mathElement of mathElements) {
+      if (mathElement.dataset.katexRendered === "true") {
+        continue;
+      }
+
+      katex.render(mathElement.textContent ?? "", mathElement, {
+        displayMode: mathElement.classList.contains("math-display"),
+        throwOnError: false,
+      });
+      mathElement.dataset.katexRendered = "true";
+    }
+  };
+
+  useEffect(() => {
+    if (!contentRef.current) {
+      return;
+    }
+
+    normalizeMathElements();
+    renderMathElements();
+  }, [htmlContent]);
 
   const [menuPosition, setMenuPosition] = useState<{
     x: number;

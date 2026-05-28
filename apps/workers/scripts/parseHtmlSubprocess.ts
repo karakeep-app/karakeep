@@ -109,6 +109,18 @@ function normalizeLazyLoadImages(document: Document): void {
   }
 }
 
+function normalizeMathElements(document: Document): void {
+  const mathElements = document.querySelectorAll("d-math");
+  for (const mathElement of mathElements) {
+    const tex = mathElement.textContent ?? "";
+    const isBlock = mathElement.hasAttribute("block");
+    const replacement = document.createElement(isBlock ? "div" : "span");
+    replacement.className = isBlock ? "math math-display" : "math math-inline";
+    replacement.textContent = tex;
+    mathElement.replaceWith(replacement);
+  }
+}
+
 function extractReadableContent(
   htmlContent: string,
   url: string,
@@ -117,6 +129,7 @@ function extractReadableContent(
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
   try {
     normalizeLazyLoadImages(dom.window.document);
+    normalizeMathElements(dom.window.document);
     const readableContent = new Readability(dom.window.document).parse();
     if (!readableContent || typeof readableContent.content !== "string") {
       return null;
