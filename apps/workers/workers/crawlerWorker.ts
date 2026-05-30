@@ -2299,10 +2299,6 @@ async function runCrawler(
     // Enqueue openai job (if not set, assume it's true for backward compatibility)
     if (job.data.runInference !== false) {
       if (serverConfig.embedding.enableAutoIndexing) {
-        await db
-          .update(bookmarks)
-          .set({ embeddingStatus: "pending" })
-          .where(eq(bookmarks.id, bookmarkId));
         await EmbeddingsQueue.enqueue(
           {
             bookmarkId,

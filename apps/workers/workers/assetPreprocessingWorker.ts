@@ -463,10 +463,6 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
   };
   if (!isFixMode || anythingChanged) {
     if (serverConfig.embedding.enableAutoIndexing) {
-      await db
-        .update(bookmarks)
-        .set({ embeddingStatus: "pending" })
-        .where(eq(bookmarks.id, bookmarkId));
       await EmbeddingsQueue.enqueue(
         {
           bookmarkId,
