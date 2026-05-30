@@ -111,6 +111,14 @@ class MeiliSearchVectorClient implements VectorStoreClient {
       throw new Error(`Vector store task failed: ${task.error.message}`);
     }
   }
+
+  async getHealth(): Promise<boolean> {
+    if (!this.client) {
+      return false;
+    }
+    const health = await this.client.health();
+    return health.status === "available";
+  }
 }
 
 export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClient> {

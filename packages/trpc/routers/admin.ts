@@ -579,6 +579,12 @@ export const adminAppRouter = router({
           pluginName: z.string().optional(),
           error: z.string().optional(),
         }),
+        vectorStore: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
       }),
     )
     .query(async () => {
@@ -601,6 +607,13 @@ export const adminAppRouter = router({
         error?: string;
       } = { configured: true, connected: false };
 
+      const vectorStoreStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: false, connected: false };
+
       const searchClient = await getSearchClient();
       searchEngineStatus.configured = searchClient !== null;
 
@@ -614,6 +627,23 @@ export const adminAppRouter = router({
           searchEngineStatus.connected = true;
         } catch (error) {
           searchEngineStatus.error =
+            error instanceof Error ? error.message : "Unknown error";
+        }
+      }
+
+      const vectorStoreClient = await getVectorStoreClient();
+      vectorStoreStatus.configured = vectorStoreClient !== null;
+
+      if (vectorStoreClient) {
+        const pluginName = PluginManager.getPluginName(PluginType.VectorStore);
+        if (pluginName) {
+          vectorStoreStatus.pluginName = pluginName;
+        }
+
+        try {
+          vectorStoreStatus.connected = await vectorStoreClient.getHealth();
+        } catch (error) {
+          vectorStoreStatus.error =
             error instanceof Error ? error.message : "Unknown error";
         }
       }
@@ -671,6 +701,7 @@ export const adminAppRouter = router({
         searchEngine: searchEngineStatus,
         browser: browserStatus,
         queue: queueStatus,
+        vectorStore: vectorStoreStatus,
       };
     }),
   getBookmarkDebugInfo: adminBookmarksProcedure

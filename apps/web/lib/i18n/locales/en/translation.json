@@ -638,6 +638,7 @@
       "search_engine": "Search Engine",
       "browser": "Browser",
       "queue_system": "Queue System",
+      "vector_store": "Vector Store",
       "status": {
         "not_configured": "Not Configured",
         "connected": "Connected",

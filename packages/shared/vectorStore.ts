@@ -60,6 +60,11 @@ export interface VectorStoreClient {
    * Clear all vectors from the index
    */
   clearIndex(): Promise<void>;
+
+  /**
+   * Get the vector store health
+   */
+  getHealth(): Promise<boolean>;
 }
 
 export async function getVectorStoreClient(): Promise<VectorStoreClient | null> {
