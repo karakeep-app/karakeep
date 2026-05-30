@@ -263,6 +263,26 @@ bookmarksCmd
   });
 
 bookmarksCmd
+  .command("regenerate-embedding")
+  .description("trigger embedding regeneration for a bookmark")
+  .argument(
+    "<bookmarkId>",
+    "the id of the bookmark to regenerate embeddings for",
+  )
+  .action(async (bookmarkId) => {
+    const api = getAPIClient();
+    try {
+      await api.admin.adminRegenerateBookmarkEmbedding.mutate({ bookmarkId });
+      printStatusMessage(true, "Embedding regeneration queued successfully");
+    } catch (error) {
+      printErrorMessageWithReason(
+        "Failed to queue embedding regeneration",
+        error as object,
+      );
+    }
+  });
+
+bookmarksCmd
   .command("retag")
   .description("trigger AI retagging for a bookmark")
   .argument("<bookmarkId>", "the id of the bookmark to retag")
@@ -332,6 +352,12 @@ jobsCmd
           stats.indexingStats.queued.toString(),
           "-",
           "-",
+        ]);
+        data.push([
+          "Embeddings",
+          stats.embeddingsStats.queued.toString(),
+          stats.embeddingsStats.pending.toString(),
+          stats.embeddingsStats.failed.toString(),
         ]);
         data.push([
           "Video Processing",
@@ -463,6 +489,30 @@ jobsCmd
     } catch (error) {
       printErrorMessageWithReason(
         "Failed to queue mass resummarize",
+        error as object,
+      );
+    }
+  });
+
+jobsCmd
+  .command("regenerate-embeddings")
+  .description("regenerate embeddings for all bookmarks matching a status")
+  .requiredOption(
+    "--status <status>",
+    "filter by embedding status (failure, pending, all)",
+  )
+  .action(async (opts) => {
+    const api = getAPIClient();
+    const status = opts.status as "failure" | "pending" | "all";
+    try {
+      await api.admin.regenerateAllBookmarkEmbeddings.mutate({ status });
+      printStatusMessage(
+        true,
+        `Embedding regeneration queued for all bookmarks with embedding status: ${status}`,
+      );
+    } catch (error) {
+      printErrorMessageWithReason(
+        "Failed to queue embedding regeneration",
         error as object,
       );
     }
