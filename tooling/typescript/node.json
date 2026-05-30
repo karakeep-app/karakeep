@@ -5,7 +5,7 @@
   "exclude": ["node_modules", "build", "dist", ".next", ".expo"],
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "incremental": true,
     "isolatedModules": true,
     "strict": true,
