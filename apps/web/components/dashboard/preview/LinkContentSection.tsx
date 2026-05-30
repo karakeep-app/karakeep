@@ -155,6 +155,7 @@ export default function LinkContentSection({
             fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
             fontSize: `${settings.fontSize}px`,
             lineHeight: settings.lineHeight,
+            textAlign: settings.textAlign,
           }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}

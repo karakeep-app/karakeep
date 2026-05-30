@@ -64,7 +64,8 @@ export default function ReaderSettings() {
   const hasServerSettings =
     serverSettings.fontSize !== null ||
     serverSettings.lineHeight !== null ||
-    serverSettings.fontFamily !== null;
+    serverSettings.fontFamily !== null ||
+    serverSettings.textAlign !== null;
 
   const handleClearDefaults = () => {
     clearServerDefaults();
@@ -80,7 +81,7 @@ export default function ReaderSettings() {
 
   // Format local override for display
   const formatLocalOverride = (
-    key: "fontSize" | "lineHeight" | "fontFamily",
+    key: "fontSize" | "lineHeight" | "fontFamily" | "textAlign",
   ) => {
     const value = localOverrides[key];
     if (value === undefined) return null;
@@ -94,6 +95,18 @@ export default function ReaderSettings() {
           return t("settings.info.reader_settings.sans");
         case "mono":
           return t("settings.info.reader_settings.mono");
+      }
+    }
+    if (key === "textAlign") {
+      switch (value) {
+        case "left":
+          return t("settings.info.reader_settings.left");
+        case "center":
+          return t("settings.info.reader_settings.center");
+        case "right":
+          return t("settings.info.reader_settings.right");
+        case "justify":
+          return t("settings.info.reader_settings.justify");
       }
     }
     return String(value);
@@ -148,6 +161,12 @@ export default function ReaderSettings() {
                         <li>
                           {t("settings.info.reader_settings.line_height")}:{" "}
                           {formatLocalOverride("lineHeight")}
+                        </li>
+                      )}
+                      {localOverrides.textAlign !== undefined && (
+                        <li>
+                          {t("settings.info.reader_settings.text_align")}:{" "}
+                          {formatLocalOverride("textAlign")}
                         </li>
                       )}
                     </ul>
@@ -206,6 +225,58 @@ export default function ReaderSettings() {
                 <p className="text-xs text-muted-foreground">
                   {t("settings.info.reader_settings.using_default")}:{" "}
                   {READER_DEFAULTS.fontFamily}
+                </p>
+              )}
+            </div>
+
+            {/* Text Align */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                {t("settings.info.reader_settings.text_align")}
+              </Label>
+              <Select
+                disabled={!!clientConfig.demoMode}
+                value={serverSettings.textAlign ?? "not-set"}
+                onValueChange={(value) => {
+                  if (value !== "not-set") {
+                    updateServerSetting({
+                      textAlign: value as
+                        | "left"
+                        | "center"
+                        | "right"
+                        | "justify",
+                    });
+                  }
+                }}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue
+                    placeholder={t("settings.info.reader_settings.not_set")}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="not-set" disabled>
+                    {t("settings.info.reader_settings.not_set")} (
+                    {t("common.default")}: {READER_DEFAULTS.textAlign})
+                  </SelectItem>
+                  <SelectItem value="left">
+                    {t("settings.info.reader_settings.left")}
+                  </SelectItem>
+                  <SelectItem value="center">
+                    {t("settings.info.reader_settings.center")}
+                  </SelectItem>
+                  <SelectItem value="right">
+                    {t("settings.info.reader_settings.right")}
+                  </SelectItem>
+                  <SelectItem value="justify">
+                    {t("settings.info.reader_settings.justify")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {serverSettings.textAlign === null && (
+                <p className="text-xs text-muted-foreground">
+                  {t("settings.info.reader_settings.using_default")}:{" "}
+                  {READER_DEFAULTS.textAlign}
                 </p>
               )}
             </div>
@@ -287,6 +358,7 @@ export default function ReaderSettings() {
                   fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
                   fontSize: `${draggingFontSize ?? settings.fontSize}px`,
                   lineHeight: draggingLineHeight ?? settings.lineHeight,
+                  textAlign: settings.textAlign,
                 }}
               >
                 {t("settings.info.reader_settings.preview_text")}

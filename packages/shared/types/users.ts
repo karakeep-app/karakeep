@@ -194,7 +194,14 @@ export const zWrappedStatsResponseSchema = z.object({
 });
 
 export const zReaderFontFamilySchema = z.enum(["serif", "sans", "mono"]);
+export const zReaderTextAlignSchema = z.enum([
+  "left",
+  "center",
+  "right",
+  "justify",
+]);
 export type ZReaderFontFamily = z.infer<typeof zReaderFontFamilySchema>;
+export type ZReaderTextAlign = z.infer<typeof zReaderTextAlignSchema>;
 
 export const zUserSettingsSchema = z.object({
   bookmarkClickAction: z.enum([
@@ -210,6 +217,7 @@ export const zUserSettingsSchema = z.object({
   readerFontSize: z.number().int().min(12).max(24).nullable(),
   readerLineHeight: z.number().min(1.2).max(2.5).nullable(),
   readerFontFamily: zReaderFontFamilySchema.nullable(),
+  readerTextAlign: zReaderTextAlignSchema.nullable(),
   // AI settings (nullable = opt-in, null means use server default)
   autoTaggingEnabled: z.boolean().nullable(),
   autoSummarizationEnabled: z.boolean().nullable(),
@@ -230,6 +238,7 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   readerFontSize: true,
   readerLineHeight: true,
   readerFontFamily: true,
+  readerTextAlign: true,
   autoTaggingEnabled: true,
   autoSummarizationEnabled: true,
   tagStyle: true,

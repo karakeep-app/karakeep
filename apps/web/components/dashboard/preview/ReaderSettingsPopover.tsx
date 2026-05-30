@@ -208,6 +208,81 @@ export default function ReaderSettingsPopover({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-sm font-medium">
+                  {t("settings.info.reader_settings.text_align")}
+                </label>
+                <div className="flex items-center gap-1">
+                  {sessionOverrides.textAlign !== undefined && (
+                    <span className="text-xs text-muted-foreground">
+                      {t("settings.info.reader_settings.preview_inline")}
+                    </span>
+                  )}
+                  {hasLocalOverride("textAlign") &&
+                    sessionOverrides.textAlign === undefined && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                            onClick={() => clearLocalOverride("textAlign")}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {t(
+                              "settings.info.reader_settings.clear_override_hint",
+                              {
+                                value: t(
+                                  `settings.info.reader_settings.${getServerValue("textAlign")}` as const,
+                                ),
+                              },
+                            )}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                </div>
+              </div>
+              <Select
+                value={settings.textAlign}
+                onValueChange={(value) =>
+                  updateSession({
+                    textAlign: value as "left" | "center" | "right" | "justify",
+                  })
+                }
+              >
+                <SelectTrigger
+                  className={
+                    hasLocalOverride("textAlign") &&
+                    sessionOverrides.textAlign === undefined
+                      ? "border-primary/50"
+                      : ""
+                  }
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">
+                    {t("settings.info.reader_settings.left")}
+                  </SelectItem>
+                  <SelectItem value="center">
+                    {t("settings.info.reader_settings.center")}
+                  </SelectItem>
+                  <SelectItem value="right">
+                    {t("settings.info.reader_settings.right")}
+                  </SelectItem>
+                  <SelectItem value="justify">
+                    {t("settings.info.reader_settings.justify")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">
                   {t("settings.info.reader_settings.font_size")}
                 </label>
                 <div className="flex items-center gap-1">
