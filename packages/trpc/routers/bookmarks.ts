@@ -2,8 +2,6 @@ import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, like, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
-import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
-import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import {
   assets,
   AssetTypes,
@@ -18,13 +16,13 @@ import {
   users,
 } from "@karakeep/db/schema";
 import {
+  addLogFields,
   AssetPreprocessingQueue,
   buildCrawlIdempotencyKey,
-  LinkCrawlerQueue,
-  LowPriorityCrawlerQueue,
-  addLogFields,
-  logEvent,
   EmbeddingsQueue,
+  LinkCrawlerQueue,
+  logEvent,
+  LowPriorityCrawlerQueue,
   OpenAIQueue,
   QueuePriority,
   QuotaService,
@@ -32,13 +30,13 @@ import {
 } from "@karakeep/shared-server";
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
-import { bookmarkCreationCounter } from "../stats";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
+import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
@@ -51,9 +49,10 @@ import {
   zSearchBookmarksRequestSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
+import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
-import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
+import { bookmarkCreationCounter } from "../stats";
 
 import type { AuthedContext } from "../index";
 import {
@@ -812,26 +811,6 @@ export const bookmarksAppRouter = router({
       return (
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
-    }),
-  getBookmarkVector: bookmarksProcedure
-    .input(z.object({ bookmarkId: z.string() }))
-    .output(
-      z.object({
-        bookmarkId: z.string(),
-        vector: z.array(z.number()).nullable(),
-      }),
-    )
-    .use(ensureBookmarkAccess)
-    .query(async ({ input, ctx }) => {
-      const vectorStore = await getVectorStoreClient();
-      if (!vectorStore) {
-        return { bookmarkId: input.bookmarkId, vector: null };
-      }
-      const document = await vectorStore.getVector(input.bookmarkId);
-      if (!document || document.userId !== ctx.user.id) {
-        return { bookmarkId: input.bookmarkId, vector: null };
-      }
-      return { bookmarkId: input.bookmarkId, vector: document.vector };
     }),
   searchBookmarks: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())

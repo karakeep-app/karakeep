@@ -5,8 +5,6 @@ import { createKarakeepClient } from "@karakeep/sdk";
 import { createTestUser } from "../../utils/api";
 import { waitUntil } from "../../utils/general";
 
-const EXPECTED_EMBEDDING_DIMENSION = 96;
-
 interface MeiliVectorDocument {
   id: string;
   userId: string;
@@ -49,22 +47,15 @@ describe("Embeddings Worker Tests", () => {
     assert(createdBookmark);
 
     await waitUntil(async () => {
-      const vector = await getBookmarkVector(
-        karakeepPort,
-        apiKey,
-        createdBookmark.id,
-      );
-      return vector?.length === EXPECTED_EMBEDDING_DIMENSION;
+      const { data: bookmark } = await client.GET("/bookmarks/{bookmarkId}", {
+        params: {
+          path: {
+            bookmarkId: createdBookmark.id,
+          },
+        },
+      });
+      return bookmark?.embeddingStatus === "success";
     }, "Text bookmark embedding is indexed");
-
-    const embedding = await getBookmarkVector(
-      karakeepPort,
-      apiKey,
-      createdBookmark.id,
-    );
-    assert(embedding);
-    expect(embedding).toHaveLength(EXPECTED_EMBEDDING_DIMENSION);
-    expect(embedding.some((value) => value !== 0)).toBe(true);
 
     const { response: deleteResponse } = await client.DELETE(
       "/bookmarks/{bookmarkId}",
@@ -88,30 +79,6 @@ describe("Embeddings Worker Tests", () => {
     }, "Text bookmark embedding is deleted");
   }, 120000);
 });
-
-async function getBookmarkVector(
-  karakeepPort: number,
-  apiKey: string,
-  bookmarkId: string,
-): Promise<number[] | null> {
-  const response = await fetch(
-    `http://localhost:${karakeepPort}/api/v1/bookmarks/${bookmarkId}/vector`,
-    {
-      headers: {
-        authorization: `Bearer ${apiKey}`,
-      },
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch bookmark vector: ${response.status} ${await response.text()}`,
-    );
-  }
-
-  const data = (await response.json()) as { vector: number[] | null };
-  return data.vector;
-}
 
 async function getVectorDocument(
   meiliPort: number,

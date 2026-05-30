@@ -52,11 +52,6 @@ export interface VectorStoreClient {
   deleteVectors(ids: string[]): Promise<void>;
 
   /**
-   * Fetch one vector by bookmark ID
-   */
-  getVector(bookmarkId: string): Promise<BookmarkVectorDocument | null>;
-
-  /**
    * Search for similar vectors
    */
   search(options: VectorSearchOptions): Promise<VectorSearchResponse>;

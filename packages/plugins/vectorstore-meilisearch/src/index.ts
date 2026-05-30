@@ -73,29 +73,6 @@ class MeiliSearchVectorClient implements VectorStoreClient {
     await Promise.all(ids.map((id) => this.batchQueue.deleteDocument(id)));
   }
 
-  async getVector(bookmarkId: string): Promise<BookmarkVectorDocument | null> {
-    const response = await this.index.getDocuments({
-      filter: `id = "${bookmarkId}"`,
-      fields: ["id", "userId", "_vectors"],
-      limit: 1,
-      retrieveVectors: true,
-    });
-    const document = response.results[0];
-    if (!document) {
-      return null;
-    }
-
-    const vector = getDefaultVector(document);
-    if (!vector) {
-      return null;
-    }
-    return {
-      id: document.id,
-      userId: document.userId,
-      vector,
-    };
-  }
-
   async search(options: VectorSearchOptions): Promise<VectorSearchResponse> {
     const result = await this.index.search("", {
       vector: options.vector,
@@ -132,28 +109,6 @@ class MeiliSearchVectorClient implements VectorStoreClient {
       throw new Error(`Vector store task failed: ${task.error.message}`);
     }
   }
-}
-
-function getDefaultVector(document: MeiliVectorDocument): number[] | null {
-  const vector = extractVector(document._vectors.default);
-  return vector;
-}
-
-function extractVector(value: unknown): number[] | null {
-  if (Array.isArray(value)) {
-    if (value.every((item) => typeof item === "number")) {
-      return value as number[];
-    }
-    if (value.length === 1) {
-      return extractVector(value[0]);
-    }
-  }
-
-  if (typeof value === "object" && value !== null && "embeddings" in value) {
-    return extractVector(value.embeddings);
-  }
-
-  return null;
 }
 
 export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClient> {
