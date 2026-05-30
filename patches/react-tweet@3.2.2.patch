@@ -1,0 +1,16 @@
+diff --git a/dist/utils.js b/dist/utils.js
+index d3624f5836f65a302f4450e55cdab0ae253944b0..19e80cc91ca98ec20d6dfc2ddc2e5519d9cdd303 100644
+--- a/dist/utils.js
++++ b/dist/utils.js
+@@ -81,7 +81,10 @@ function getEntities(tweet) {
+     });
+ }
+ function addEntities(result, type, entities) {
+-    for (const entity of entities){
++    // Work around object-shaped entity buckets returned by the Twitter
++    // syndication API: https://github.com/vercel/react-tweet/issues/218
++    const entityList = Array.isArray(entities) ? entities : Object.values(entities ?? {}).flat();
++    for (const entity of entityList){
+         for (const [i, item] of result.entries()){
+             if (item.indices[0] > entity.indices[0] || item.indices[1] < entity.indices[1]) {
+                 continue;

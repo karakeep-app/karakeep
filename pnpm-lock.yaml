@@ -6,6 +6,7 @@ settings:
 
 patchedDependencies:
   playwright-extra@4.3.6: cc2a1c1903e66d7f6cea77c615cb9ae3b36a694502c1c588c3e34d28aa925aac
+  react-tweet@3.2.2: d7b79c3ae412d8e700a8c176df42ee89112c9bdc91d2aad0ebb7d5b011b49993
   xcode@3.0.1: 725863c0591d89ca053226c49fe7bc321f320391ec5f78b6c2e8e41ab1868805
 
 importers:
@@ -745,7 +746,7 @@ importers:
         version: 15.5.0(react@19.2.6)
       react-tweet:
         specifier: ^3.2.2
-        version: 3.2.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+        version: 3.2.2(patch_hash=d7b79c3ae412d8e700a8c176df42ee89112c9bdc91d2aad0ebb7d5b011b49993)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       remark-breaks:
         specifier: ^4.0.0
         version: 4.0.0
@@ -33344,7 +33345,7 @@ snapshots:
       react: 19.2.6
       react-dom: 19.2.6(react@19.2.6)
 
-  react-tweet@3.2.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
+  react-tweet@3.2.2(patch_hash=d7b79c3ae412d8e700a8c176df42ee89112c9bdc91d2aad0ebb7d5b011b49993)(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
     dependencies:
       '@swc/helpers': 0.5.5
       clsx: 2.1.0

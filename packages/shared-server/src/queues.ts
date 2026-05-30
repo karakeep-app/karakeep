@@ -9,7 +9,7 @@ import {
 } from "@karakeep/shared/queueing";
 import { zRuleEngineEventSchema } from "@karakeep/shared/types/rules";
 
-import { loadAllPlugins } from ".";
+import { loadAllPlugins } from "./plugins";
 
 export enum QueuePriority {
   Low = 50,
