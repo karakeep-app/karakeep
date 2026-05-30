@@ -113,6 +113,7 @@ class MeiliSearchVectorClient implements VectorStoreClient {
 
 export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClient> {
   private client: Meilisearch | undefined;
+  private version: string | undefined;
   private vectorClient: VectorStoreClient | undefined;
   private initPromise: Promise<VectorStoreClient | null> | undefined;
   private readonly indexName = "bookmarks_vectors";
@@ -148,6 +149,28 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
   private async initClient(): Promise<VectorStoreClient | null> {
     if (!this.client) {
       return null;
+    }
+
+    this.version = (await this.client.getVersion()).pkgVersion;
+    const versionParts = this.version.split(".");
+    if (Number(versionParts[0]) < 1) {
+      throw new Error(
+        `Meilisearch version ${this.version[0]} is not supported. Please upgrade to v1.x.`,
+      );
+    } else if (Number(versionParts[1]) < 3) {
+      console.warn(
+        `[meilisearch-vector] Meilisearch version before v1.3.0 doesn't support embeddings. Please upgrade to v1.3.0 or later. You are using ${this.version}`,
+      );
+      return null;
+    } else if (Number(versionParts[1]) < 13) {
+      console.warn(
+        `[meilisearch-vector] Meilisearch version before v1.13.0 didn't have the embeddings API stabilizied. Please upgrade to v1.13.0 or later. You are using ${this.version}`,
+      );
+      return null;
+    } else if (Number(versionParts[1]) < 38) {
+      console.warn(
+        `[meilisearch-vector] Meilisearch version v1.38.0 introduced major vector speed improvements. Please upgrade to v1.38.0 or later to take advantage of these improvements. You are using ${this.version}`,
+      );
     }
 
     const indices = await this.client.getIndexes();
@@ -196,25 +219,25 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
     }
 
     // Configure embedders for vector search
-    // Note: This requires Meilisearch v1.3+ with vector search enabled
     const currentEmbedders = settings.embedders;
     const desiredDimensions = serverConfig.embedding.dimensions;
     const currentEmbedder = currentEmbedders?.default;
-    const currentDimensions =
-      currentEmbedder && "dimensions" in currentEmbedder
-        ? currentEmbedder.dimensions
-        : undefined;
-    if (!currentEmbedder || currentDimensions !== desiredDimensions) {
+    if (
+      !currentEmbedder ||
+      currentEmbedder.source != "userProvided" ||
+      currentEmbedder.dimensions !== desiredDimensions
+    ) {
       console.log(`[meilisearch-vector] Configuring user-provided embedder`);
       try {
         // Use userProvided embedder since we generate embeddings ourselves
-        const taskId = await index.updateEmbedders({
-          default: {
-            source: "userProvided",
-            dimensions: desiredDimensions,
-          },
-        });
-        await this.client!.tasks.waitForTask(taskId.taskUid);
+        await index
+          .updateEmbedders({
+            default: {
+              source: "userProvided",
+              dimensions: desiredDimensions,
+            },
+          })
+          .waitTask();
       } catch (error) {
         console.warn(
           `[meilisearch-vector] Failed to configure embedder. Vector search may not work: ${error}`,
