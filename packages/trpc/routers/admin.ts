@@ -1,6 +1,6 @@
 import * as dns from "dns";
 import { TRPCError } from "@trpc/server";
-import { count, eq, or, sum } from "drizzle-orm";
+import { and, asc, count, eq, gt, inArray, or, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
@@ -301,42 +301,65 @@ export const adminAppRouter = router({
     .mutation(async ({ ctx, input }) => {
       const status = input?.status ?? "all";
 
-      const bookmarkIds = await ctx.db.query.bookmarks.findMany({
-        columns: {
-          id: true,
-        },
-        ...(status === "all"
-          ? {}
-          : { where: eq(bookmarks.embeddingStatus, status) }),
-      });
-
       const vectorStore = await getVectorStoreClient();
       if (status === "all") {
         await vectorStore?.clearIndex();
-        await ctx.db.update(bookmarks).set({ embeddingStatus: "pending" });
-      } else if (status === "failure") {
-        await ctx.db
-          .update(bookmarks)
-          .set({ embeddingStatus: "pending" })
-          .where(eq(bookmarks.embeddingStatus, "failure"));
       }
 
-      await Promise.all(
-        bookmarkIds.map((b) =>
-          EmbeddingsQueue.enqueue(
-            {
-              bookmarkId: b.id,
-              type: "index",
-              force: true,
-              runTaggingOnComplete: false,
-            },
-            {
-              priority: QueuePriority.Low,
-              groupId: "admin",
-            },
+      // Stream through the matching bookmarks in keyset-paginated batches so we
+      // never load every id into memory at once. For "all"/"failure" we flip the
+      // page to "pending" before enqueueing (avoids overwriting a worker-set
+      // status), which also consumes the "failure" filter as we advance.
+      const PAGE_SIZE = 1000;
+      let cursor: string | undefined = undefined;
+      for (;;) {
+        const page = await ctx.db
+          .select({ id: bookmarks.id })
+          .from(bookmarks)
+          .where(
+            and(
+              status === "all"
+                ? undefined
+                : eq(bookmarks.embeddingStatus, status),
+              cursor ? gt(bookmarks.id, cursor) : undefined,
+            ),
+          )
+          .orderBy(asc(bookmarks.id))
+          .limit(PAGE_SIZE);
+        if (page.length === 0) {
+          break;
+        }
+
+        const ids = page.map((b) => b.id);
+        if (status !== "pending") {
+          await ctx.db
+            .update(bookmarks)
+            .set({ embeddingStatus: "pending" })
+            .where(inArray(bookmarks.id, ids));
+        }
+
+        await Promise.all(
+          ids.map((id) =>
+            EmbeddingsQueue.enqueue(
+              {
+                bookmarkId: id,
+                type: "index",
+                force: true,
+                runTaggingOnComplete: false,
+              },
+              {
+                priority: QueuePriority.Low,
+                groupId: "admin",
+              },
+            ),
           ),
-        ),
-      );
+        );
+
+        cursor = ids[ids.length - 1];
+        if (page.length < PAGE_SIZE) {
+          break;
+        }
+      }
     }),
   reprocessAssetsFixMode: adminBookmarksProcedure.mutation(async ({ ctx }) => {
     const bookmarkIds = await ctx.db.query.bookmarkAssets.findMany({

@@ -26,9 +26,11 @@ interface MeiliVectorDocument {
 function filterToMeiliSearchFilter(filter: VectorFilterQuery): string {
   switch (filter.type) {
     case "eq":
-      return `${filter.field} = "${filter.value}"`;
+      return `${filter.field} = ${JSON.stringify(filter.value)}`;
     case "in":
-      return `${filter.field} IN [${filter.values.join(",")}]`;
+      return `${filter.field} IN [${filter.values
+        .map((v) => JSON.stringify(v))
+        .join(",")}]`;
     default: {
       const exhaustiveCheck: never = filter;
       throw new Error(`Unhandled filter type: ${exhaustiveCheck}`);
