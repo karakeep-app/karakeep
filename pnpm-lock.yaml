@@ -1275,8 +1275,8 @@ importers:
         specifier: ^0.8.0
         version: 0.8.0(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.2.15)(better-sqlite3@11.3.0)(react@19.2.6)
       meilisearch:
-        specifier: ^0.45.0
-        version: 0.45.0
+        specifier: ^0.58.0
+        version: 0.58.0
       redis:
         specifier: ^5.11.0
         version: 5.11.0
@@ -12016,8 +12016,9 @@ packages:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
     engines: {node: '>= 0.8'}
 
-  meilisearch@0.45.0:
-    resolution: {integrity: sha512-+zCzEqE+CumY4icB0Vox180adZqaNtnr60hJWGiEdmol5eWmksfY8rYsTcz87styXC2ZOg+2yF56gdH6oyIBTA==}
+  meilisearch@0.58.0:
+    resolution: {integrity: sha512-MXFlU+JVG2I3tDI4brS3UHxEv2fjOROP24TPP16c8dGHTulb1kxMgXvKP0x4ImvUcsVVJFi4QXP0JNDS/TaWaw==}
+    engines: {node: ^20.19.0 || >=22.12.0}
 
   memfs@3.5.3:
     resolution: {integrity: sha512-UERzLsxzllchadvbPs5aolHh65ISpKpM+ccLbOJ8/vvpBKmAWf+la7dXFy7Mr0ySHbdHrFv5kGFCUHHe6GFEmw==}
@@ -29931,7 +29932,7 @@ snapshots:
 
   media-typer@1.1.0: {}
 
-  meilisearch@0.45.0: {}
+  meilisearch@0.58.0: {}
 
   memfs@3.5.3:
     dependencies:

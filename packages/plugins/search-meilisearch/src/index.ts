@@ -1,5 +1,5 @@
 import type { Index } from "meilisearch";
-import { MeiliSearch } from "meilisearch";
+import { Meilisearch } from "meilisearch";
 
 import type {
   BookmarkSearchDocument,
@@ -109,9 +109,9 @@ class MeiliSearchIndexClient implements SearchIndexClient {
   }
 
   private async ensureTaskSuccess(taskUid: number): Promise<void> {
-    const task = await this.index.waitForTask(taskUid, {
-      intervalMs: 200,
-      timeOutMs: this.jobTimeoutSec * 1000 * 0.9,
+    const task = await this.index.tasks.waitForTask(taskUid, {
+      interval: 200,
+      timeout: this.jobTimeoutSec * 1000 * 0.9,
     });
     if (task.error) {
       throw new Error(`Search task failed: ${task.error.message}`);
@@ -120,14 +120,14 @@ class MeiliSearchIndexClient implements SearchIndexClient {
 }
 
 export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
-  private client: MeiliSearch | undefined;
+  private client: Meilisearch | undefined;
   private indexClient: SearchIndexClient | undefined;
   private initPromise: Promise<SearchIndexClient | null> | undefined;
   private readonly indexName = "bookmarks";
 
   constructor() {
     if (MeiliSearchProvider.isConfigured()) {
-      this.client = new MeiliSearch({
+      this.client = new Meilisearch({
         host: envConfig.MEILI_ADDR!,
         apiKey: envConfig.MEILI_MASTER_KEY,
       });
@@ -162,10 +162,11 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
     let indexFound = indices.results.find((i) => i.uid === this.indexName);
 
     if (!indexFound) {
-      const idx = await this.client.createIndex(this.indexName, {
-        primaryKey: "id",
-      });
-      await this.client.waitForTask(idx.taskUid);
+      await this.client
+        .createIndex(this.indexName, {
+          primaryKey: "id",
+        })
+        .waitTask();
       indexFound = await this.client.getIndex<BookmarkSearchDocument>(
         this.indexName,
       );
@@ -196,10 +197,9 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
       console.log(
         `[meilisearch] Updating desired filterable attributes to ${desiredFilterableAttributes} from ${settings.filterableAttributes}`,
       );
-      const taskId = await index.updateFilterableAttributes(
-        desiredFilterableAttributes,
-      );
-      await this.client!.waitForTask(taskId.taskUid);
+      await index
+        .updateFilterableAttributes(desiredFilterableAttributes)
+        .waitTask();
     }
 
     if (
@@ -209,10 +209,9 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
       console.log(
         `[meilisearch] Updating desired sortable attributes to ${desiredSortableAttributes} from ${settings.sortableAttributes}`,
       );
-      const taskId = await index.updateSortableAttributes(
-        desiredSortableAttributes,
-      );
-      await this.client!.waitForTask(taskId.taskUid);
+      await index
+        .updateSortableAttributes(desiredSortableAttributes)
+        .waitTask();
     }
   }
 }

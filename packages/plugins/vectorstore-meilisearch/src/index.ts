@@ -1,5 +1,5 @@
 import type { Index } from "meilisearch";
-import { MeiliSearch } from "meilisearch";
+import { Meilisearch } from "meilisearch";
 
 import type {
   BookmarkVectorDocument,
@@ -41,7 +41,7 @@ class MeiliSearchVectorClient implements VectorStoreClient {
 
   constructor(
     private index: Index<MeiliVectorDocument>,
-    private client: MeiliSearch,
+    private client: Meilisearch,
     jobTimeoutSec: number,
     batchSize: number,
     batchTimeoutMs: number,
@@ -124,9 +124,9 @@ class MeiliSearchVectorClient implements VectorStoreClient {
   }
 
   private async ensureTaskSuccess(taskUid: number): Promise<void> {
-    const task = await this.client.waitForTask(taskUid, {
-      intervalMs: 200,
-      timeOutMs: serverConfig.embedding.jobTimeoutSec * 1000 * 0.9,
+    const task = await this.client.tasks.waitForTask(taskUid, {
+      interval: 200,
+      timeout: serverConfig.embedding.jobTimeoutSec * 1000 * 0.9,
     });
     if (task.error) {
       throw new Error(`Vector store task failed: ${task.error.message}`);
@@ -157,14 +157,14 @@ function extractVector(value: unknown): number[] | null {
 }
 
 export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClient> {
-  private client: MeiliSearch | undefined;
+  private client: Meilisearch | undefined;
   private vectorClient: VectorStoreClient | undefined;
   private initPromise: Promise<VectorStoreClient | null> | undefined;
   private readonly indexName = "bookmarks_vectors";
 
   constructor() {
     if (MeiliSearchVectorProvider.isConfigured()) {
-      this.client = new MeiliSearch({
+      this.client = new Meilisearch({
         host: envConfig.MEILI_ADDR!,
         apiKey: envConfig.MEILI_MASTER_KEY,
       });
@@ -202,7 +202,7 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
       const idx = await this.client.createIndex(this.indexName, {
         primaryKey: "id",
       });
-      await this.client.waitForTask(idx.taskUid);
+      await this.client.tasks.waitForTask(idx.taskUid);
       indexFound = await this.client.getIndex<MeiliVectorDocument>(
         this.indexName,
       );
@@ -237,7 +237,7 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
       const taskId = await index.updateFilterableAttributes(
         desiredFilterableAttributes,
       );
-      await this.client!.waitForTask(taskId.taskUid);
+      await this.client!.tasks.waitForTask(taskId.taskUid);
     }
 
     // Configure embedders for vector search
@@ -259,7 +259,7 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
             dimensions: desiredDimensions,
           },
         });
-        await this.client!.waitForTask(taskId.taskUid);
+        await this.client!.tasks.waitForTask(taskId.taskUid);
       } catch (error) {
         console.warn(
           `[meilisearch-vector] Failed to configure embedder. Vector search may not work: ${error}`,

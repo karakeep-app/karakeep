@@ -180,9 +180,9 @@ export class BatchingDocumentQueue<TDocument extends MeiliDocument> {
   }
 
   private async ensureTaskSuccess(taskUid: number): Promise<void> {
-    const task = await this.index.waitForTask(taskUid, {
-      intervalMs: 200,
-      timeOutMs: this.jobTimeoutSec * 1000 * 0.9,
+    const task = await this.index.tasks.waitForTask(taskUid, {
+      interval: 200,
+      timeout: this.jobTimeoutSec * 1000 * 0.9,
     });
     if (task.error) {
       throw new Error(`${this.logPrefix} task failed: ${task.error.message}`);
