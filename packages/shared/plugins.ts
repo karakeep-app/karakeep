@@ -30,15 +30,32 @@ export interface PluginProvider<T> {
 // Preserve the key-dependent value type: for K, store TPlugin<K>[]
 type ProviderMap = { [K in PluginType]: TPlugin<K>[] };
 
-export class PluginManager {
-  private static providers: ProviderMap = {
+const pluginProvidersKey = "__karakeep_plugins_providers__";
+
+function createProviderMap(): ProviderMap {
+  return {
     [PluginType.Search]: [],
     [PluginType.Queue]: [],
     [PluginType.RateLimit]: [],
   };
+}
+
+const globalPluginState = globalThis as typeof globalThis & {
+  [pluginProvidersKey]?: ProviderMap;
+};
+
+export class PluginManager {
+  private static providers: ProviderMap = (globalPluginState[
+    pluginProvidersKey
+  ] ??= createProviderMap());
 
   static register<T extends PluginType>(plugin: TPlugin<T>): void {
-    PluginManager.providers[plugin.type].push(plugin);
+    const providers = PluginManager.providers[plugin.type];
+    const existingProvider = providers.findIndex((p) => p.name === plugin.name);
+    if (existingProvider >= 0) {
+      return;
+    }
+    providers.push(plugin);
   }
 
   static async getClient<T extends PluginType>(
