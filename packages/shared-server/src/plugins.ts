@@ -27,6 +27,7 @@ export async function loadAllPlugins() {
     await import("@karakeep/plugins/queue-liteque");
     await import("@karakeep/plugins/queue-restate");
     await import("@karakeep/plugins/search-meilisearch");
+    await import("@karakeep/plugins/vectorstore-meilisearch");
     // Rate limiters (order matters - last one wins)
     await import("@karakeep/plugins/ratelimit-memory");
     await import("@karakeep/plugins/ratelimit-redis");

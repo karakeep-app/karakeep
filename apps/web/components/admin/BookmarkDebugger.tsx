@@ -22,6 +22,7 @@ import {
   FileText,
   FileType,
   Image as ImageIcon,
+  Layers,
   Link as LinkIcon,
   Loader2,
   RefreshCw,
@@ -101,6 +102,21 @@ export default function BookmarkDebugger() {
     }),
   );
 
+  const regenerateEmbeddingMutation = useMutation(
+    api.admin.adminRegenerateBookmarkEmbedding.mutationOptions({
+      onSuccess: () => {
+        toast.success(t("admin.admin_tools.action_success"), {
+          description: t("admin.admin_tools.regenerate_embedding_queued"),
+        });
+      },
+      onError: (error) => {
+        toast.error(t("admin.admin_tools.action_failed"), {
+          description: error.message,
+        });
+      },
+    }),
+  );
+
   const retagMutation = useMutation(
     api.admin.adminRetagBookmark.mutationOptions({
       onSuccess: () => {
@@ -140,6 +156,12 @@ export default function BookmarkDebugger() {
   const handleReindex = () => {
     if (bookmarkId) {
       reindexMutation.mutate({ bookmarkId });
+    }
+  };
+
+  const handleRegenerateEmbedding = () => {
+    if (bookmarkId) {
+      regenerateEmbeddingMutation.mutate({ bookmarkId });
     }
   };
 
@@ -621,6 +643,19 @@ export default function BookmarkDebugger() {
                     <Search className="mr-2 h-4 w-4" />
                   )}
                   {t("admin.admin_tools.reindex")}
+                </Button>
+                <Button
+                  onClick={handleRegenerateEmbedding}
+                  disabled={regenerateEmbeddingMutation.isPending}
+                  size="sm"
+                  variant="outline"
+                >
+                  {regenerateEmbeddingMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Layers className="mr-2 h-4 w-4" />
+                  )}
+                  {t("admin.admin_tools.regenerate_embedding")}
                 </Button>
                 <Button
                   onClick={handleRetag}

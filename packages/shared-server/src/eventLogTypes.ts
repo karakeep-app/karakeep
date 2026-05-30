@@ -78,6 +78,13 @@ type EventLogInternal =
       "search.document_size"?: number;
     }
   | {
+      ["event.name"]: "embeddingsWorker.run";
+      "bookmark.id"?: string;
+      "embedding.text_size"?: number;
+      "embedding.prompt_tokens"?: number;
+      "embedding.total_tokens"?: number;
+    }
+  | {
       ["event.name"]: "backupWorker.run";
       "backup.id"?: string;
       "backup.bookmark_count"?: number;

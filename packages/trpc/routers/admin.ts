@@ -8,6 +8,7 @@ import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
   buildCrawlIdempotencyKey,
+  EmbeddingsQueue,
   FeedQueue,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
@@ -29,6 +30,7 @@ import {
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { createAdminScopedProcedure, router } from "../index";
@@ -76,6 +78,9 @@ export const adminAppRouter = router({
         indexingStats: z.object({
           queued: z.number(),
         }),
+        embeddingsStats: z.object({
+          queued: z.number(),
+        }),
         adminMaintenanceStats: z.object({
           queued: z.number(),
         }),
@@ -103,6 +108,9 @@ export const adminAppRouter = router({
 
         // Indexing
         queuedIndexing,
+
+        // Embeddings
+        queuedEmbeddings,
 
         // Inference
         queuedInferences,
@@ -138,6 +146,9 @@ export const adminAppRouter = router({
 
         // Indexing
         SearchIndexingQueue.stats(),
+
+        // Embeddings
+        EmbeddingsQueue.stats(),
 
         // Inference
         OpenAIQueue.stats(),
@@ -193,6 +204,9 @@ export const adminAppRouter = router({
         },
         indexingStats: {
           queued: queuedIndexing.pending + queuedIndexing.pending_retry,
+        },
+        embeddingsStats: {
+          queued: queuedEmbeddings.pending + queuedEmbeddings.pending_retry,
         },
         adminMaintenanceStats: {
           queued:
@@ -262,6 +276,35 @@ export const adminAppRouter = router({
       ),
     );
   }),
+  regenerateAllBookmarkEmbeddings: adminBookmarksProcedure.mutation(
+    async ({ ctx }) => {
+      const vectorStore = await getVectorStoreClient();
+      await vectorStore?.clearIndex();
+
+      const bookmarkIds = await ctx.db.query.bookmarks.findMany({
+        columns: {
+          id: true,
+        },
+      });
+
+      await Promise.all(
+        bookmarkIds.map((b) =>
+          EmbeddingsQueue.enqueue(
+            {
+              bookmarkId: b.id,
+              type: "index",
+              force: true,
+              runTaggingOnComplete: false,
+            },
+            {
+              priority: QueuePriority.Low,
+              groupId: "admin",
+            },
+          ),
+        ),
+      );
+    },
+  ),
   reprocessAssetsFixMode: adminBookmarksProcedure.mutation(async ({ ctx }) => {
     const bookmarkIds = await ctx.db.query.bookmarkAssets.findMany({
       columns: {
@@ -701,6 +744,34 @@ export const adminAppRouter = router({
         priority: QueuePriority.Low,
         groupId: "admin",
       });
+    }),
+  adminRegenerateBookmarkEmbedding: adminBookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify bookmark exists
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      await EmbeddingsQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+          type: "index",
+          force: true,
+          runTaggingOnComplete: false,
+        },
+        {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+        },
+      );
     }),
   adminRetagBookmark: adminBookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))

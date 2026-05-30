@@ -2,6 +2,7 @@
 
 import type { QueueClient } from "./queueing";
 import type { RateLimitClient } from "./ratelimiting";
+import type { VectorStoreClient } from "./vectorStore";
 import logger from "./logger";
 import { SearchIndexClient } from "./search";
 
@@ -9,12 +10,14 @@ export enum PluginType {
   Search = "search",
   Queue = "queue",
   RateLimit = "ratelimit",
+  VectorStore = "vectorstore",
 }
 
 interface PluginTypeMap {
   [PluginType.Search]: SearchIndexClient;
   [PluginType.Queue]: QueueClient;
   [PluginType.RateLimit]: RateLimitClient;
+  [PluginType.VectorStore]: VectorStoreClient;
 }
 
 export interface TPlugin<T extends PluginType> {
@@ -37,6 +40,7 @@ function createProviderMap(): ProviderMap {
     [PluginType.Search]: [],
     [PluginType.Queue]: [],
     [PluginType.RateLimit]: [],
+    [PluginType.VectorStore]: [],
   };
 }
 
@@ -49,8 +53,13 @@ export class PluginManager {
     pluginProvidersKey
   ] ??= createProviderMap());
 
+  private static providersFor<T extends PluginType>(type: T): TPlugin<T>[] {
+    PluginManager.providers[type] ??= [] as ProviderMap[T];
+    return PluginManager.providers[type] as TPlugin<T>[];
+  }
+
   static register<T extends PluginType>(plugin: TPlugin<T>): void {
-    const providers = PluginManager.providers[plugin.type];
+    const providers = PluginManager.providersFor(plugin.type);
     const existingProvider = providers.findIndex((p) => p.name === plugin.name);
     if (existingProvider >= 0) {
       return;
@@ -61,7 +70,7 @@ export class PluginManager {
   static async getClient<T extends PluginType>(
     type: T,
   ): Promise<PluginTypeMap[T] | null> {
-    const providers: TPlugin<T>[] = PluginManager.providers[type];
+    const providers = PluginManager.providersFor(type);
     if (providers.length === 0) {
       return null;
     }
@@ -69,11 +78,11 @@ export class PluginManager {
   }
 
   static isRegistered<T extends PluginType>(type: T): boolean {
-    return PluginManager.providers[type].length > 0;
+    return PluginManager.providersFor(type).length > 0;
   }
 
   static getPluginName<T extends PluginType>(type: T): string | null {
-    const providers: TPlugin<T>[] = PluginManager.providers[type];
+    const providers = PluginManager.providersFor(type);
     if (providers.length === 0) {
       return null;
     }

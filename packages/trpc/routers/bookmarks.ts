@@ -24,6 +24,7 @@ import {
   LowPriorityCrawlerQueue,
   addLogFields,
   logEvent,
+  EmbeddingsQueue,
   OpenAIQueue,
   QueuePriority,
   QuotaService,
@@ -52,6 +53,7 @@ import {
 } from "@karakeep/shared/types/bookmarks";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
+import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
 import type { AuthedContext } from "../index";
 import {
@@ -407,13 +409,23 @@ export const bookmarksAppRouter = router({
           break;
         }
         case BookmarkTypes.TEXT: {
-          await OpenAIQueue.enqueue(
-            {
-              bookmarkId: bookmark.id,
-              type: "tag",
-            },
-            enqueueOpts,
-          );
+          if (serverConfig.embedding.enableAutoIndexing) {
+            await EmbeddingsQueue.enqueue(
+              {
+                bookmarkId: bookmark.id,
+                type: "index",
+              },
+              enqueueOpts,
+            );
+          } else {
+            await OpenAIQueue.enqueue(
+              {
+                bookmarkId: bookmark.id,
+                type: "tag",
+              },
+              enqueueOpts,
+            );
+          }
           break;
         }
         case BookmarkTypes.ASSET: {
@@ -800,6 +812,26 @@ export const bookmarksAppRouter = router({
       return (
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
+    }),
+  getBookmarkVector: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .output(
+      z.object({
+        bookmarkId: z.string(),
+        vector: z.array(z.number()).nullable(),
+      }),
+    )
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      const vectorStore = await getVectorStoreClient();
+      if (!vectorStore) {
+        return { bookmarkId: input.bookmarkId, vector: null };
+      }
+      const document = await vectorStore.getVector(input.bookmarkId);
+      if (!document || document.userId !== ctx.user.id) {
+        return { bookmarkId: input.bookmarkId, vector: null };
+      }
+      return { bookmarkId: input.bookmarkId, vector: document.vector };
     }),
   searchBookmarks: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())

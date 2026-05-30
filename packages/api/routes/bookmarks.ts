@@ -202,6 +202,13 @@ const app = new Hono()
     },
   )
 
+  // GET /bookmarks/[bookmarkId]/vector
+  .get("/:bookmarkId/vector", async (c) => {
+    const bookmarkId = c.req.param("bookmarkId");
+    const vector = await c.var.api.bookmarks.getBookmarkVector({ bookmarkId });
+    return c.json(vector, 200);
+  })
+
   // GET /bookmarks/[bookmarkId]
   .get(
     "/:bookmarkId",

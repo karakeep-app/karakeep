@@ -9,7 +9,8 @@
     "./queue-restate": "./queue-restate/index.ts",
     "./ratelimit-memory": "./ratelimit-memory/index.ts",
     "./ratelimit-redis": "./ratelimit-redis/index.ts",
-    "./search-meilisearch": "./search-meilisearch/index.ts"
+    "./search-meilisearch": "./search-meilisearch/index.ts",
+    "./vectorstore-meilisearch": "./vectorstore-meilisearch/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

@@ -51,6 +51,7 @@ import {
   addLogFields,
   AssetPreprocessingQueue,
   getTracer,
+  EmbeddingsQueue,
   OpenAIQueue,
   QuotaService,
   setSpanAttributes,
@@ -2297,13 +2298,23 @@ async function runCrawler(
 
     // Enqueue openai job (if not set, assume it's true for backward compatibility)
     if (job.data.runInference !== false) {
-      await OpenAIQueue.enqueue(
-        {
-          bookmarkId,
-          type: "tag",
-        },
-        enqueueOpts,
-      );
+      if (serverConfig.embedding.enableAutoIndexing) {
+        await EmbeddingsQueue.enqueue(
+          {
+            bookmarkId,
+            type: "index",
+          },
+          enqueueOpts,
+        );
+      } else {
+        await OpenAIQueue.enqueue(
+          {
+            bookmarkId,
+            type: "tag",
+          },
+          enqueueOpts,
+        );
+      }
       await OpenAIQueue.enqueue(
         {
           bookmarkId,

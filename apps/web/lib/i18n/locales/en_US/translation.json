@@ -750,6 +750,10 @@
           "title": "Indexing Jobs",
           "description": "Search index updates"
         },
+        "embeddings": {
+          "title": "Embedding Jobs",
+          "description": "Bookmark vector embedding generation"
+        },
         "asset_preprocessing": {
           "title": "Asset Preprocessing Jobs",
           "description": "Image and document preprocessing (screenshots, text extraction, etc.)"
@@ -802,6 +806,7 @@
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
         "reindex_all_bookmarks": "Reindex All Bookmarks",
+        "regenerate_embeddings_for_all_bookmarks": "Regenerate Embeddings for All Bookmarks",
         "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
         "migrate_large_link_html_content": "Move Large Inline HTML Content to Assets",
         "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets",
@@ -871,6 +876,7 @@
       "crawled_at": "Crawled At",
       "recrawl": "Re-crawl",
       "reindex": "Re-index",
+      "regenerate_embedding": "Regenerate Embedding",
       "retag": "Re-tag",
       "resummarize": "Re-summarize",
       "bookmark_not_found": "Bookmark not found",
@@ -878,6 +884,7 @@
       "action_failed": "Action failed",
       "recrawl_queued": "Re-crawl job has been queued",
       "reindex_queued": "Re-index job has been queued",
+      "regenerate_embedding_queued": "Embedding regeneration job has been queued",
       "retag_queued": "Re-tag job has been queued",
       "resummarize_queued": "Re-summarize job has been queued",
       "view": "View",

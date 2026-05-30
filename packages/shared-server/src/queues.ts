@@ -130,6 +130,25 @@ export const OpenAIQueue = createDeferredQueue<ZOpenAIRequest>("openai_queue", {
   keepFailedJobs: false,
 });
 
+// Embeddings Worker
+export const zEmbeddingsRequestSchema = z.object({
+  bookmarkId: z.string(),
+  type: z.enum(["index", "delete"]).default("index"),
+  force: z.boolean().optional(),
+  runTaggingOnComplete: z.boolean().optional(),
+});
+export type ZEmbeddingsRequest = z.infer<typeof zEmbeddingsRequestSchema>;
+
+export const EmbeddingsQueue = createDeferredQueue<ZEmbeddingsRequest>(
+  "embeddings_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 3,
+    },
+    keepFailedJobs: false,
+  },
+);
+
 // Search Indexing Worker
 export const zSearchIndexingRequestSchema = z.object({
   bookmarkId: z.string(),

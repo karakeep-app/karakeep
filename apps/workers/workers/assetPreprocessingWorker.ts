@@ -17,6 +17,7 @@ import {
 import {
   addLogFields,
   AssetPreprocessingQueue,
+  EmbeddingsQueue,
   OpenAIQueue,
   QuotaService,
   StorageQuotaError,
@@ -461,13 +462,23 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
     groupId: bookmark.userId,
   };
   if (!isFixMode || anythingChanged) {
-    await OpenAIQueue.enqueue(
-      {
-        bookmarkId,
-        type: "tag",
-      },
-      enqueueOpts,
-    );
+    if (serverConfig.embedding.enableAutoIndexing) {
+      await EmbeddingsQueue.enqueue(
+        {
+          bookmarkId,
+          type: "index",
+        },
+        enqueueOpts,
+      );
+    } else {
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId,
+          type: "tag",
+        },
+        enqueueOpts,
+      );
+    }
     await OpenAIQueue.enqueue(
       {
         bookmarkId,
