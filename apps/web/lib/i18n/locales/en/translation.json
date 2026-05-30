@@ -187,7 +187,12 @@
         "save_hint": "Save settings for this device only or sync across all devices",
         "adjust_hint": "Adjust settings above to preview changes",
         "clear_override_hint": "Clear device override to use global setting ({{value}})",
-        "preview_inline": "(preview)"
+        "preview_inline": "(preview)",
+        "text_align": "Text Align",
+        "left": "Left",
+        "center": "Center",
+        "right": "Right",
+        "justify": "Justify"
       }
     },
     "stats": {

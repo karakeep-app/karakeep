@@ -71,7 +71,8 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
         Math.abs(
           (serverSettings.readerLineHeight ?? 0) - pendingServerSave.lineHeight,
         ) < 1e-6 &&
-        serverSettings.readerFontFamily === pendingServerSave.fontFamily;
+        serverSettings.readerFontFamily === pendingServerSave.fontFamily &&
+        serverSettings.readerTextAlign === pendingServerSave.textAlign;
       if (serverMatches) {
         setPendingServerSave(null);
       }
@@ -127,6 +128,12 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
         pendingServerSave?.fontFamily ??
         serverSettings?.readerFontFamily ??
         READER_DEFAULTS.fontFamily,
+      textAlign:
+        sessionOverrides.textAlign ??
+        localOverrides.textAlign ??
+        pendingServerSave?.textAlign ??
+        serverSettings?.readerTextAlign ??
+        READER_DEFAULTS.textAlign,
     }),
     [sessionOverrides, localOverrides, pendingServerSave, serverSettings],
   );
@@ -137,6 +144,7 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
       fontSize: serverSettings?.readerFontSize ?? undefined,
       lineHeight: serverSettings?.readerLineHeight ?? undefined,
       fontFamily: serverSettings?.readerFontFamily ?? undefined,
+      textAlign: serverSettings?.readerTextAlign ?? undefined,
     }),
     [serverSettings],
   );
@@ -178,6 +186,7 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
         fontSize: settingsToSave?.fontSize ?? settings.fontSize,
         lineHeight: settingsToSave?.lineHeight ?? settings.lineHeight,
         fontFamily: settingsToSave?.fontFamily ?? settings.fontFamily,
+        textAlign: settingsToSave?.textAlign ?? settings.textAlign,
       };
       // Set pending state to prevent flicker while server syncs
       setPendingServerSave(toSave);
@@ -185,6 +194,7 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
         readerFontSize: toSave.fontSize,
         readerLineHeight: toSave.lineHeight,
         readerFontFamily: toSave.fontFamily,
+        readerTextAlign: toSave.textAlign,
       });
     },
     [settings, saveServerSettings],
@@ -197,6 +207,7 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
         fontSize: "readerFontSize",
         lineHeight: "readerLineHeight",
         fontFamily: "readerFontFamily",
+        textAlign: "readerTextAlign",
       } as const;
       updateServerSettings({ [serverKeyMap[key]]: null });
     },
@@ -209,6 +220,7 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
       readerFontSize: null,
       readerLineHeight: null,
       readerFontFamily: null,
+      readerTextAlign: null,
     });
   }, [updateServerSettings]);
 
@@ -219,7 +231,8 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
   const hasServerDefaults =
     serverSettings?.readerFontSize != null ||
     serverSettings?.readerLineHeight != null ||
-    serverSettings?.readerFontFamily != null;
+    serverSettings?.readerFontFamily != null ||
+    serverSettings?.readerTextAlign != null;
 
   return {
     // Current effective settings (what should be displayed)

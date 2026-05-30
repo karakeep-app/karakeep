@@ -79,6 +79,9 @@ export const users = sqliteTable("user", {
   readerFontFamily: text("readerFontFamily", {
     enum: ["serif", "sans", "mono"],
   }),
+  readerTextAlign: text("readerTextAlign", {
+    enum: ["left", "center", "right", "justify"],
+  }),
 
   // AI Settings (nullable = opt-in, null means use server default)
   autoTaggingEnabled: integer("autoTaggingEnabled", { mode: "boolean" }),

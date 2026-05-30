@@ -1,11 +1,17 @@
 import { z } from "zod";
 
-import { ZReaderFontFamily, zReaderFontFamilySchema } from "./users";
+import {
+  ZReaderFontFamily,
+  zReaderFontFamilySchema,
+  ZReaderTextAlign,
+  zReaderTextAlignSchema,
+} from "./users";
 
 export const READER_DEFAULTS = {
   fontSize: 18,
   lineHeight: 1.6,
   fontFamily: "serif" as const,
+  textAlign: "left" as const,
 } as const;
 
 export const READER_FONT_FAMILIES: Record<ZReaderFontFamily, string> = {
@@ -18,6 +24,13 @@ export const READER_FONT_FAMILIES: Record<ZReaderFontFamily, string> = {
 export const READER_SETTING_CONSTRAINTS = {
   fontSize: { min: 12, max: 24, step: 1 },
   lineHeight: { min: 1.2, max: 2.5, step: 0.1 },
+} as const;
+
+export const READER_TEXT_ALIGN_OPTIONS: Record<ZReaderTextAlign, string> = {
+  left: "Left",
+  center: "Center",
+  right: "Right",
+  justify: "Justify",
 } as const;
 
 // Formatting functions for display
@@ -47,10 +60,21 @@ export function formatFontFamily(
   }
 }
 
+export function formatTextAlign(
+  value: ZReaderTextAlign,
+  t?: (key: string) => string,
+): string {
+  if (t) {
+    return t(`settings.info.reader_settings.${value}`);
+  }
+  return READER_TEXT_ALIGN_OPTIONS[value];
+}
+
 export const zReaderSettings = z.object({
   fontSize: z.number().int().min(12).max(24),
   lineHeight: z.number().min(1.2).max(2.5),
   fontFamily: zReaderFontFamilySchema,
+  textAlign: zReaderTextAlignSchema,
 });
 
 export type ReaderSettings = z.infer<typeof zReaderSettings>;
