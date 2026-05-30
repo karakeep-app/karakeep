@@ -90,6 +90,17 @@ export class AssetPreprocessingWorker {
                       eq(bookmarks.summarizationStatus, "pending"),
                     ),
                   );
+                await tx
+                  .update(bookmarks)
+                  .set({
+                    embeddingStatus: null,
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.embeddingStatus, "pending"),
+                    ),
+                  );
               });
             }
             return Promise.resolve();
