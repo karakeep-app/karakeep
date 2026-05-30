@@ -361,6 +361,13 @@ export default function BookmarkDebugger() {
                     </span>
                     {getStatusBadge(debugInfo.summarizationStatus)}
                   </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5 text-muted-foreground">
+                      <Layers className="h-3.5 w-3.5" />
+                      {t("admin.admin_tools.embedding_status")}
+                    </span>
+                    {getStatusBadge(debugInfo.embeddingStatus)}
+                  </div>
                   {debugInfo.linkInfo && (
                     <>
                       <div className="flex items-center justify-between gap-2">

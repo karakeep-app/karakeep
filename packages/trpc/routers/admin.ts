@@ -80,6 +80,8 @@ export const adminAppRouter = router({
         }),
         embeddingsStats: z.object({
           queued: z.number(),
+          pending: z.number(),
+          failed: z.number(),
         }),
         adminMaintenanceStats: z.object({
           queued: z.number(),
@@ -111,6 +113,8 @@ export const adminAppRouter = router({
 
         // Embeddings
         queuedEmbeddings,
+        [{ value: pendingEmbeddings }],
+        [{ value: failedEmbeddings }],
 
         // Inference
         queuedInferences,
@@ -149,6 +153,14 @@ export const adminAppRouter = router({
 
         // Embeddings
         EmbeddingsQueue.stats(),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarks)
+          .where(eq(bookmarks.embeddingStatus, "pending")),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarks)
+          .where(eq(bookmarks.embeddingStatus, "failure")),
 
         // Inference
         OpenAIQueue.stats(),
@@ -207,6 +219,8 @@ export const adminAppRouter = router({
         },
         embeddingsStats: {
           queued: queuedEmbeddings.pending + queuedEmbeddings.pending_retry,
+          pending: pendingEmbeddings,
+          failed: failedEmbeddings,
         },
         adminMaintenanceStats: {
           queued:
@@ -276,16 +290,36 @@ export const adminAppRouter = router({
       ),
     );
   }),
-  regenerateAllBookmarkEmbeddings: adminBookmarksProcedure.mutation(
-    async ({ ctx }) => {
-      const vectorStore = await getVectorStoreClient();
-      await vectorStore?.clearIndex();
+  regenerateAllBookmarkEmbeddings: adminBookmarksProcedure
+    .input(
+      z
+        .object({
+          status: z.enum(["failure", "pending", "all"]).default("all"),
+        })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const status = input?.status ?? "all";
 
       const bookmarkIds = await ctx.db.query.bookmarks.findMany({
         columns: {
           id: true,
         },
+        ...(status === "all"
+          ? {}
+          : { where: eq(bookmarks.embeddingStatus, status) }),
       });
+
+      const vectorStore = await getVectorStoreClient();
+      if (status === "all") {
+        await vectorStore?.clearIndex();
+        await ctx.db.update(bookmarks).set({ embeddingStatus: "pending" });
+      } else if (status === "failure") {
+        await ctx.db
+          .update(bookmarks)
+          .set({ embeddingStatus: "pending" })
+          .where(eq(bookmarks.embeddingStatus, "failure"));
+      }
 
       await Promise.all(
         bookmarkIds.map((b) =>
@@ -303,8 +337,7 @@ export const adminAppRouter = router({
           ),
         ),
       );
-    },
-  ),
+    }),
   reprocessAssetsFixMode: adminBookmarksProcedure.mutation(async ({ ctx }) => {
     const bookmarkIds = await ctx.db.query.bookmarkAssets.findMany({
       columns: {
@@ -647,6 +680,7 @@ export const adminAppRouter = router({
         summarizationStatus: z
           .enum(["pending", "failure", "success"])
           .nullable(),
+        embeddingStatus: z.enum(["pending", "failure", "success"]).nullable(),
         userId: z.string(),
         linkInfo: z
           .object({
@@ -759,6 +793,11 @@ export const adminAppRouter = router({
           message: "Bookmark not found",
         });
       }
+
+      await ctx.db
+        .update(bookmarks)
+        .set({ embeddingStatus: "pending" })
+        .where(eq(bookmarks.id, input.bookmarkId));
 
       await EmbeddingsQueue.enqueue(
         {

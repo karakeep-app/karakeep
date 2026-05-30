@@ -43,6 +43,7 @@ export class EmbeddingsWorker {
           workerStatsCounter.labels("embeddings", "completed").inc();
           const jobId = job.id;
           logger.info(`[embeddings][${jobId}] Completed successfully`);
+          await attemptMarkEmbeddingStatus(job.data, "success");
           if (shouldRunTaggingOnComplete(job.data)) {
             await enqueueTaggingAfterEmbeddings(job);
           }
@@ -55,6 +56,7 @@ export class EmbeddingsWorker {
           );
           if (job.numRetriesLeft == 0) {
             workerStatsCounter.labels("embeddings", "failed_permanent").inc();
+            await attemptMarkEmbeddingStatus(job.data, "failure");
             if (job.data && shouldRunTaggingOnComplete(job.data)) {
               await enqueueTaggingAfterEmbeddings(job);
             }
@@ -70,6 +72,29 @@ export class EmbeddingsWorker {
     );
 
     return worker;
+  }
+}
+
+async function attemptMarkEmbeddingStatus(
+  jobData: object | undefined,
+  status: "success" | "failure",
+) {
+  if (!jobData) {
+    return;
+  }
+  try {
+    const request = zEmbeddingsRequestSchema.parse(jobData);
+    if (request.type !== "index") {
+      return;
+    }
+    await db
+      .update(bookmarks)
+      .set({ embeddingStatus: status })
+      .where(eq(bookmarks.id, request.bookmarkId));
+  } catch (e) {
+    logger.error(
+      `Something went wrong when marking the embedding status: ${e}`,
+    );
   }
 }
 

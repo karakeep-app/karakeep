@@ -388,6 +388,7 @@ export class Bookmark extends BareBookmark {
       summary: bookmark.summary,
       taggingStatus: bookmark.taggingStatus,
       summarizationStatus: bookmark.summarizationStatus,
+      embeddingStatus: bookmark.embeddingStatus,
       userId: bookmark.userId,
       linkInfo,
       textInfo,

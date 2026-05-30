@@ -209,7 +209,7 @@ function JobCard({
               <Badge variant="outline">{stats.pending}</Badge>
             </div>
           )}
-          {stats.failed !== undefined && stats.failed > 0 && (
+          {stats.failed !== undefined && (
             <div className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-red-500" />
               <span className="font-medium">
@@ -467,9 +467,25 @@ function useJobActions() {
     embeddingsActions: [
       {
         label: t(
+          "admin.background_jobs.actions.regenerate_embeddings_for_pending_bookmarks_only",
+        ),
+        onClick: () => regenerateBookmarkEmbeddings({ status: "pending" }),
+        variant: "secondary" as const,
+        loading: isRegenerateEmbeddingsPending,
+      },
+      {
+        label: t(
+          "admin.background_jobs.actions.regenerate_embeddings_for_failed_bookmarks_only",
+        ),
+        onClick: () => regenerateBookmarkEmbeddings({ status: "failure" }),
+        variant: "secondary" as const,
+        loading: isRegenerateEmbeddingsPending,
+      },
+      {
+        label: t(
           "admin.background_jobs.actions.regenerate_embeddings_for_all_bookmarks",
         ),
-        onClick: () => regenerateBookmarkEmbeddings(),
+        onClick: () => regenerateBookmarkEmbeddings({ status: "all" }),
         loading: isRegenerateEmbeddingsPending,
       },
     ],
@@ -560,7 +576,7 @@ export default function BackgroundJobs() {
     {
       title: t("admin.background_jobs.jobs.embeddings.title"),
       icon: Layers,
-      stats: { queued: serverStats.embeddingsStats.queued },
+      stats: serverStats.embeddingsStats,
       description: t("admin.background_jobs.jobs.embeddings.description"),
       actions: actions.embeddingsActions,
     },

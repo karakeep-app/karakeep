@@ -794,6 +794,8 @@ export interface components {
       taggingStatus: "success" | "failure" | "pending" | null;
       /** @enum {string|null} */
       summarizationStatus: "success" | "failure" | "pending" | null;
+      /** @enum {string|null} */
+      embeddingStatus: "success" | "failure" | "pending" | null;
       note?: string | null;
       summary?: string | null;
       /** @enum {string|null} */
@@ -1328,6 +1330,8 @@ export interface operations {
             taggingStatus: "success" | "failure" | "pending" | null;
             /** @enum {string|null} */
             summarizationStatus: "success" | "failure" | "pending" | null;
+            /** @enum {string|null} */
+            embeddingStatus: "success" | "failure" | "pending" | null;
             note?: string | null;
             summary?: string | null;
             /** @enum {string|null} */
@@ -1393,6 +1397,8 @@ export interface operations {
             taggingStatus: "success" | "failure" | "pending" | null;
             /** @enum {string|null} */
             summarizationStatus: "success" | "failure" | "pending" | null;
+            /** @enum {string|null} */
+            embeddingStatus: "success" | "failure" | "pending" | null;
             note?: string | null;
             summary?: string | null;
             /** @enum {string|null} */

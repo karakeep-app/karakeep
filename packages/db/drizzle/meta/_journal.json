@@ -596,6 +596,13 @@
       "when": 1777464072035,
       "tag": "0084_rule_engine_multi_list_support",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "6",
+      "when": 1780154803212,
+      "tag": "0085_add_embedding_status",
+      "breakpoints": true
     }
   ]
 }

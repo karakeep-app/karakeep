@@ -139,6 +139,10 @@ bookmarksCmd
           "Summarization Status",
           debugInfo.summarizationStatus ?? "N/A",
         ]);
+        basicData.push([
+          "Embedding Status",
+          debugInfo.embeddingStatus ?? "N/A",
+        ]);
 
         if (debugInfo.linkInfo) {
           basicData.push(["URL", debugInfo.linkInfo.url]);
