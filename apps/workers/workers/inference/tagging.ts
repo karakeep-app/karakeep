@@ -566,7 +566,13 @@ async function getPotentiallyRelevantTags(
   const toKeep = [];
   let lengthSoFar = 0;
   for (const tag of tags) {
-    if (lengthSoFar + tag.name.length > RELEVANT_TAG_TRUNCATE_LENGTH) {
+    // Account for the ", " separator between tags in the joined prompt output
+    const separatorLen = toKeep.length > 0 ? 2 : 0;
+
+    if (
+      lengthSoFar + separatorLen + tag.name.length >
+      RELEVANT_TAG_TRUNCATE_LENGTH
+    ) {
       break;
     }
     toKeep.push(tag.name);
@@ -577,7 +583,6 @@ async function getPotentiallyRelevantTags(
     `[inference][${jobId}] Will use ${toKeep.length} potential tags (out of ${tags.length}, across ${similarBookmarkIds.length} bookmarks) for the bookmark with id ${bookmarkId}: ${toKeep.join(", ")}`,
   );
 
-  // deduplicate tags
   return [...toKeep];
 }
 
