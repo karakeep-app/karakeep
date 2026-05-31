@@ -35,6 +35,13 @@ export interface VectorSearchOptions {
   limit?: number;
 }
 
+export interface VectorSimilarSearchOptions {
+  id: string;
+  // Different filters are ANDed together
+  filter?: VectorFilterQuery[];
+  limit?: number;
+}
+
 export interface VectorSearchResponse {
   hits: VectorSearchResult[];
   processingTimeMs: number;
@@ -55,6 +62,13 @@ export interface VectorStoreClient {
    * Search for similar vectors
    */
   search(options: VectorSearchOptions): Promise<VectorSearchResponse>;
+
+  /**
+   * Search for bookmarks similar to the passed bookmarkId
+   */
+  findSimilar(
+    options: VectorSimilarSearchOptions,
+  ): Promise<VectorSearchResponse>;
 
   /**
    * Clear all vectors from the index

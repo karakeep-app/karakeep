@@ -7,6 +7,7 @@ import type {
   VectorSearchOptions,
   VectorSearchResponse,
   VectorStoreClient,
+  VectorSimilarSearchOptions,
 } from "@karakeep/shared/vectorStore";
 import serverConfig from "@karakeep/shared/config";
 import { PluginProvider } from "@karakeep/shared/plugins";
@@ -94,6 +95,28 @@ class MeiliSearchVectorClient implements VectorStoreClient {
         score: hit._rankingScore ?? 0,
       })),
       processingTimeMs: result.processingTimeMs,
+    };
+  }
+
+  async findSimilar(
+    options: VectorSimilarSearchOptions,
+  ): Promise<VectorSearchResponse> {
+    const results = await this.index.searchSimilarDocuments({
+      id: options.id,
+      filter: options.filter?.map((f) => filterToMeiliSearchFilter(f)),
+      limit: options.limit ?? 10,
+      attributesToRetrieve: ["id"],
+      showRankingScore: true,
+      embedder: "default",
+      rankingScoreThreshold: 0.75,
+    });
+
+    return {
+      hits: results.hits.map((hit) => ({
+        id: hit.id,
+        score: hit._rankingScore ?? 0,
+      })),
+      processingTimeMs: results.processingTimeMs,
     };
   }
 

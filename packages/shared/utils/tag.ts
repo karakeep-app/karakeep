@@ -35,3 +35,12 @@ export function getCuratedTagsPrompt(curatedTags?: string[]): string {
   }
   return "";
 }
+
+export function getPotentialRelevantTagsPrompt(
+  potentialRelevantTags?: string[],
+): string {
+  if (potentialRelevantTags && potentialRelevantTags.length > 0) {
+    return `- Similar bookmarks were tagged with the following tags (reuse if possible, ignore if irrelevant): ${potentialRelevantTags.join(", ")}`;
+  }
+  return "";
+}
