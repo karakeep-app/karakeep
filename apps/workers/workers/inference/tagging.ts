@@ -523,31 +523,61 @@ async function fetchBookmark(linkId: string) {
   });
 }
 
+// Matches the rankingScoreThreshold the vector store applies in findSimilar, so
+// the search({vector}) path returns comparably relevant neighbors.
+const RELEVANT_TAG_SCORE_THRESHOLD = 0.75;
+
 /**
- * Finds potentially relevant tags for the passed bookmarkId by find similar bookmarks and fetching their tags.
+ * Finds potentially relevant tags for the passed bookmarkId by finding similar
+ * bookmarks and fetching their tags.
+ *
+ * When a freshly generated `embedding` is supplied, similarity is resolved via
+ * search({vector}) — which does not require the bookmark to be indexed yet — so
+ * tagging does not have to wait for the (slow) vector index build. Otherwise it
+ * falls back to findSimilar({id}), which requires the bookmark to already be
+ * indexed (e.g. a manual re-tag).
  */
 async function getPotentiallyRelevantTags(
   jobId: string,
   bookmarkId: string,
   userId: string,
+  embedding?: number[],
 ): Promise<string[] | null> {
   const client = await getVectorStoreClient();
   if (!client) {
     return null;
   }
-  const similarBookmarkIds = await client
-    .findSimilar({
-      id: bookmarkId,
-      limit: 10,
-      filter: [
-        {
-          type: "eq",
-          field: "userId",
-          value: userId,
-        },
-      ],
-    })
-    .then((r) => r.hits.map((r) => r.id));
+  const userFilter = [
+    {
+      type: "eq" as const,
+      field: "userId" as const,
+      value: userId,
+    },
+  ];
+  const similarBookmarkIds =
+    embedding && embedding.length > 0
+      ? await client
+          .search({
+            vector: embedding,
+            // Fetch one extra so we can drop the bookmark itself if it happens
+            // to already be indexed, and still keep up to 10 neighbors.
+            limit: 11,
+            filter: userFilter,
+            rankingScoreThreshold: RELEVANT_TAG_SCORE_THRESHOLD,
+          })
+          .then((r) =>
+            r.hits
+              .filter((h) => h.id !== bookmarkId)
+              .map((h) => h.id)
+              .slice(0, 10),
+          )
+      : await client
+          .findSimilar({
+            id: bookmarkId,
+            limit: 10,
+            filter: userFilter,
+          })
+          .then((r) => r.hits.map((r) => r.id));
 
   if (similarBookmarkIds.length === 0) {
     return null;
@@ -643,6 +673,7 @@ export async function runTagging(
           jobId,
           bookmarkId,
           bookmark.userId,
+          job.data.embedding,
         )) ?? undefined;
     } catch (e) {
       logger.error(

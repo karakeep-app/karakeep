@@ -343,7 +343,7 @@ export const adminAppRouter = router({
             EmbeddingsQueue.enqueue(
               {
                 bookmarkId: id,
-                type: "index",
+                type: "embed",
                 force: true,
                 runTaggingOnComplete: false,
               },
@@ -856,7 +856,7 @@ export const adminAppRouter = router({
       await EmbeddingsQueue.enqueue(
         {
           bookmarkId: input.bookmarkId,
-          type: "index",
+          type: "embed",
           force: true,
           runTaggingOnComplete: false,
         },

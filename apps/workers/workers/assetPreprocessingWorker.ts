@@ -477,7 +477,8 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       await EmbeddingsQueue.enqueue(
         {
           bookmarkId,
-          type: "index",
+          type: "embed",
+          runTaggingOnComplete: true,
         },
         enqueueOpts,
       );

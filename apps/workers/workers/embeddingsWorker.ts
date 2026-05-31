@@ -17,7 +17,6 @@ import logger from "@karakeep/shared/logger";
 import {
   DequeuedJob,
   DequeuedJobError,
-  EnqueueOptions,
   getQueueClient,
 } from "@karakeep/shared/queueing";
 import {
@@ -44,9 +43,6 @@ export class EmbeddingsWorker {
           const jobId = job.id;
           logger.info(`[embeddings][${jobId}] Completed successfully`);
           await attemptMarkEmbeddingStatus(job.data, "success");
-          if (shouldRunTaggingOnComplete(job.data)) {
-            await enqueueTaggingAfterEmbeddings(job);
-          }
         },
         onError: async (job) => {
           workerStatsCounter.labels("embeddings", "failed").inc();
@@ -57,8 +53,10 @@ export class EmbeddingsWorker {
           if (job.numRetriesLeft == 0) {
             workerStatsCounter.labels("embeddings", "failed_permanent").inc();
             await attemptMarkEmbeddingStatus(job.data, "failure");
-            if (job.data && shouldRunTaggingOnComplete(job.data)) {
-              await enqueueTaggingAfterEmbeddings(job);
+            // If embedding generation permanently failed, still tag the bookmark
+            // (without similarity context) so it isn't left untagged.
+            if (job.data?.type === "embed" && job.data.runTaggingOnComplete) {
+              await enqueueTaggingFallback(job);
             }
           }
         },
@@ -98,11 +96,29 @@ async function attemptMarkEmbeddingStatus(
   }
 }
 
-function shouldRunTaggingOnComplete(request: ZEmbeddingsRequest) {
-  return request.type !== "delete" && request.runTaggingOnComplete !== false;
+async function enqueueTagging(
+  bookmarkId: string,
+  userId: string,
+  priority: number | undefined,
+  embedding?: number[],
+) {
+  await OpenAIQueue.enqueue(
+    {
+      bookmarkId,
+      type: "tag",
+      ...(embedding ? { embedding } : {}),
+    },
+    {
+      priority,
+      groupId: userId,
+    },
+  );
 }
 
-async function enqueueTaggingAfterEmbeddings(
+// Enqueue a vector-less tag job when the embed run produced no embedding (early
+// returns / permanent generation failure). Looks up the user since the embed
+// payload only carries the bookmark id.
+async function enqueueTaggingFallback(
   job: DequeuedJob<ZEmbeddingsRequest> | DequeuedJobError<ZEmbeddingsRequest>,
 ) {
   const bookmarkId = job.data?.bookmarkId;
@@ -121,18 +137,7 @@ async function enqueueTaggingAfterEmbeddings(
     );
     return;
   }
-
-  const enqueueOpts: EnqueueOptions = {
-    priority: job.priority,
-    groupId: bookmark.userId,
-  };
-  await OpenAIQueue.enqueue(
-    {
-      bookmarkId,
-      type: "tag",
-    },
-    enqueueOpts,
-  );
+  await enqueueTagging(bookmarkId, bookmark.userId, job.priority);
 }
 
 async function fetchBookmark(bookmarkId: string) {
@@ -332,36 +337,73 @@ async function buildEmbeddingText(
     : fullText;
 }
 
+type EmbedRequest = Extract<ZEmbeddingsRequest, { type: "embed" }>;
+
 async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
   const jobId = job.id;
-
-  const { bookmarkId, force, type: opType } = job.data;
+  const data = job.data;
+  const bookmarkId = data.bookmarkId;
   addLogFields<"embeddingsWorker.run">({
     "bookmark.id": bookmarkId,
+    "embedding.mode": data.type,
   });
-
-  if (
-    opType === "index" &&
-    !serverConfig.embedding.enableAutoIndexing &&
-    !force
-  ) {
-    logger.debug(
-      `[embeddings][${jobId}] Bookmark embedding indexing is disabled, skipping embedding generation`,
-    );
-    return;
-  }
 
   const vectorStoreClient = await getVectorStoreClient();
   if (!vectorStoreClient) {
     logger.debug(
-      `[embeddings][${jobId}] Vector store is not configured, skipping embedding ${opType}`,
+      `[embeddings][${jobId}] Vector store is not configured, skipping embedding ${data.type}`,
     );
+    // The vector cannot be stored, but the bookmark should still be tagged.
+    if (data.type === "embed" && data.runTaggingOnComplete !== false) {
+      await enqueueTaggingFallback(job);
+    }
     return;
   }
 
-  if (opType === "delete") {
-    await vectorStoreClient.deleteVectors([bookmarkId]);
-    logger.info(`[embeddings][${jobId}] Deleted embedding for ${bookmarkId}`);
+  switch (data.type) {
+    case "delete": {
+      await vectorStoreClient.deleteVectors([bookmarkId]);
+      logger.info(`[embeddings][${jobId}] Deleted embedding for ${bookmarkId}`);
+      return;
+    }
+    case "index": {
+      const document: BookmarkVectorDocument = {
+        id: bookmarkId,
+        userId: data.userId,
+        vector: data.embedding,
+      };
+      await vectorStoreClient.addVectors([document]);
+      logger.info(
+        `[embeddings][${jobId}] Indexed embedding for bookmark ${bookmarkId} with ${data.embedding.length} dimensions`,
+      );
+      return;
+    }
+    case "embed": {
+      await runEmbed(job, data);
+      return;
+    }
+  }
+}
+
+// Generates the bookmark embedding and dispatches both the tagging job (carrying
+// the vector, so tagging need not wait for indexing) and a separate "index" job
+// that persists the vector. This run never calls addVectors, so it does not
+// retry on indexing failures and therefore never re-triggers tagging.
+async function runEmbed(
+  job: DequeuedJob<ZEmbeddingsRequest>,
+  data: EmbedRequest,
+) {
+  const jobId = job.id;
+  const { bookmarkId, force } = data;
+  const shouldTag = data.runTaggingOnComplete !== false;
+
+  if (!serverConfig.embedding.enableAutoIndexing && !force) {
+    logger.debug(
+      `[embeddings][${jobId}] Bookmark embedding indexing is disabled, skipping embedding generation`,
+    );
+    if (shouldTag) {
+      await enqueueTaggingFallback(job);
+    }
     return;
   }
 
@@ -382,6 +424,9 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
     logger.debug(
       `[embeddings][${jobId}] No inference client configured, skipping embedding generation`,
     );
+    if (shouldTag) {
+      await enqueueTagging(bookmarkId, bookmark.userId, job.priority);
+    }
     return;
   }
 
@@ -390,6 +435,9 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
     logger.info(
       `[embeddings][${jobId}] No content found for bookmark ${bookmarkId}, skipping embedding generation`,
     );
+    if (shouldTag) {
+      await enqueueTagging(bookmarkId, bookmark.userId, job.priority);
+    }
     return;
   }
 
@@ -418,15 +466,27 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
     "embedding.prompt_tokens": embeddingResponse.promptTokens,
     "embedding.total_tokens": embeddingResponse.totalTokens,
   });
-  const document: BookmarkVectorDocument = {
-    id: bookmark.id,
-    userId: bookmark.userId,
-    vector: embedding,
-  };
 
-  await vectorStoreClient.addVectors([document]);
+  // Hand off persistence to a separate "index" job whose retries are isolated
+  // from tagging, then dispatch tagging last so nothing after it can throw and
+  // cause this run to retry (and double-enqueue tagging).
+  await EmbeddingsQueue.enqueue(
+    {
+      type: "index",
+      bookmarkId,
+      userId: bookmark.userId,
+      embedding,
+    },
+    {
+      priority: job.priority,
+      groupId: bookmark.userId,
+    },
+  );
+  if (shouldTag) {
+    await enqueueTagging(bookmarkId, bookmark.userId, job.priority, embedding);
+  }
 
   logger.info(
-    `[embeddings][${jobId}] Indexed embedding for bookmark ${bookmarkId} with ${embedding.length} dimensions using ${embeddingResponse.totalTokens ?? "unknown"} tokens`,
+    `[embeddings][${jobId}] Generated embedding for bookmark ${bookmarkId} with ${embedding.length} dimensions using ${embeddingResponse.totalTokens ?? "unknown"} tokens; dispatched indexing${shouldTag ? " + tagging" : ""}`,
   );
 }

@@ -81,6 +81,7 @@ type EventLogInternal =
   | {
       ["event.name"]: "embeddingsWorker.run";
       "bookmark.id"?: string;
+      "embedding.mode"?: "embed" | "index" | "delete";
       "embedding.text_size"?: number;
       "embedding.prompt_tokens"?: number;
       "embedding.total_tokens"?: number;

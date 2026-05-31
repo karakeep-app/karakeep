@@ -87,6 +87,7 @@ class MeiliSearchVectorClient implements VectorStoreClient {
       limit: options.limit ?? 10,
       attributesToRetrieve: ["id"],
       showRankingScore: true,
+      rankingScoreThreshold: options.rankingScoreThreshold,
     });
 
     return {

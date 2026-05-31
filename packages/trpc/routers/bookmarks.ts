@@ -412,7 +412,8 @@ export const bookmarksAppRouter = router({
             await EmbeddingsQueue.enqueue(
               {
                 bookmarkId: bookmark.id,
-                type: "index",
+                type: "embed",
+                runTaggingOnComplete: true,
               },
               enqueueOpts,
             );

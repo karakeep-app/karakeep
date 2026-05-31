@@ -2313,7 +2313,8 @@ async function runCrawler(
         await EmbeddingsQueue.enqueue(
           {
             bookmarkId,
-            type: "index",
+            type: "embed",
+            runTaggingOnComplete: true,
           },
           enqueueOpts,
         );
