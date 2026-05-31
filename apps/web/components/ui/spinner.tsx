@@ -18,3 +18,5 @@ export default function LoadingSpinner({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export { LoadingSpinner as Spinner };

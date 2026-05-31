@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import "@karakeep/tailwind-config/globals.css";
+import "streamdown/styles.css";
 
 import type { Viewport } from "next";
 import React from "react";
