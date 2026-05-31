@@ -149,7 +149,11 @@ export const ToolOutput = ({
       <CodeBlock code={JSON.stringify(output, null, 2)} language="json" />
     );
   } else if (typeof output === "string") {
-    Output = <CodeBlock code={output} language="json" />;
+    Output = (
+      <pre className="m-0 whitespace-pre-wrap break-words p-4 font-mono text-sm">
+        <code>{output}</code>
+      </pre>
+    );
   }
 
   return (

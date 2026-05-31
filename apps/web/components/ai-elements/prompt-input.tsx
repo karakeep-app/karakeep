@@ -560,16 +560,23 @@ export const PromptInput = ({
 
       const patterns = accept
         .split(",")
-        .map((s) => s.trim())
+        .map((s) => s.trim().toLowerCase())
         .filter(Boolean);
+      const fileName = f.name.toLowerCase();
+      const fileType = f.type.toLowerCase();
 
       return patterns.some((pattern) => {
+        if (pattern.startsWith(".")) {
+          return fileName.endsWith(pattern);
+        }
+
         if (pattern.endsWith("/*")) {
           // e.g: image/* -> image/
           const prefix = pattern.slice(0, -1);
-          return f.type.startsWith(prefix);
+          return fileType.startsWith(prefix);
         }
-        return f.type === pattern;
+
+        return fileType === pattern;
       });
     },
     [accept],

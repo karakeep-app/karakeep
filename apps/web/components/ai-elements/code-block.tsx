@@ -141,10 +141,24 @@ const tokensCache = new Map<string, TokenizedCode>();
 // Subscribers for async token updates
 const subscribers = new Map<string, Set<(result: TokenizedCode) => void>>();
 
+const HASH_MODULUS_ONE = 2_147_483_647;
+const HASH_MODULUS_TWO = 2_147_483_629;
+
+const hashCode = (code: string) => {
+  let hashOne = 0;
+  let hashTwo = 0;
+
+  for (let i = 0; i < code.length; i++) {
+    const charCode = code.charCodeAt(i);
+    hashOne = (hashOne * 31 + charCode) % HASH_MODULUS_ONE;
+    hashTwo = (hashTwo * 131 + charCode) % HASH_MODULUS_TWO;
+  }
+
+  return `${hashOne.toString(36)}:${hashTwo.toString(36)}`;
+};
+
 const getTokensCacheKey = (code: string, language: BundledLanguage) => {
-  const start = code.slice(0, 100);
-  const end = code.length > 100 ? code.slice(-100) : "";
-  return `${language}:${code.length}:${start}:${end}`;
+  return `${language}:${code.length}:${hashCode(code)}`;
 };
 
 const getHighlighter = (
