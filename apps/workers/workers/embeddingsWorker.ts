@@ -55,7 +55,10 @@ export class EmbeddingsWorker {
             await attemptMarkEmbeddingStatus(job.data, "failure");
             // If embedding generation permanently failed, still tag the bookmark
             // (without similarity context) so it isn't left untagged.
-            if (job.data?.type === "embed" && job.data.runTaggingOnComplete) {
+            if (
+              job.data?.type === "embed" &&
+              job.data.runTaggingOnComplete !== false
+            ) {
               await enqueueTaggingFallback(job);
             }
           }
@@ -82,7 +85,10 @@ async function attemptMarkEmbeddingStatus(
   }
   try {
     const request = zEmbeddingsRequestSchema.parse(jobData);
-    if (request.type !== "index") {
+    if (
+      request.type !== "index" &&
+      !(request.type === "embed" && status === "failure")
+    ) {
       return;
     }
     await db
