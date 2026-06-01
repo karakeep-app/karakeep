@@ -77,7 +77,7 @@ function FullPageArchiveSection({ link }: { link: ZBookmarkedLink }) {
 
 function ScreenshotSection({ link }: { link: ZBookmarkedLink }) {
   return (
-    <div className="relative h-full min-w-full">
+    <div className="relative h-full min-w-full overflow-y-auto overflow-x-hidden">
       <Image
         alt="screenshot"
         src={`/api/assets/${link.screenshotAssetId}`}
