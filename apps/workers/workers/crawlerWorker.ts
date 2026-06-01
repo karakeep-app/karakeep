@@ -73,6 +73,7 @@ import {
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
+import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import {
   DequeuedJob,
   DequeuedJobError,
@@ -281,7 +282,7 @@ async function startBrowserInstance() {
 
     const webUrl = new URL(serverConfig.crawler.browserWebUrl);
     const { address } = await dns.promises.lookup(webUrl.hostname);
-    webUrl.hostname = address;
+    setUrlHostnameFromResolvedAddress(webUrl, address);
     logger.info(
       `[Crawler] Successfully resolved IP address, new address: ${redactUrlCredentials(webUrl.toString())}`,
     );

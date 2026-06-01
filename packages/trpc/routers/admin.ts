@@ -30,6 +30,7 @@ import {
   zAdminCreateUserSchema,
 } from "@karakeep/shared/types/admin";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
@@ -663,7 +664,7 @@ export const adminAppRouter = router({
           if (serverConfig.crawler.browserWebUrl) {
             const webUrl = new URL(serverConfig.crawler.browserWebUrl);
             const { address } = await dns.promises.lookup(webUrl.hostname);
-            webUrl.hostname = address;
+            setUrlHostnameFromResolvedAddress(webUrl, address);
             webUrl.pathname = "/json/version";
             const response = await fetch(`${webUrl.toString()}`, {
               signal: AbortSignal.timeout(5000),
