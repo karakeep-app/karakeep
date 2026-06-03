@@ -100,8 +100,17 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
           return;
         }
 
-        sonnerToast.loading("Processing...", { id: toastId });
-        const isUrl = /^[a-z]+:\/\//i.test(contents);
+        let isUrl = false;
+        try {
+          const parsed = new URL(contents);
+          if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+            isUrl = true;
+            sonnerToast.loading("Saving URL...", { id: toastId });
+          }
+        } catch {
+          // not a valid URL — treat as text
+          sonnerToast.loading("Saving text...", { id: toastId });
+        }
 
         const resp = await (isUrl
           ? createBookmark.mutateAsync({
