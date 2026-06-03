@@ -15,6 +15,7 @@ import {
 } from "@karakeep/shared/types/highlights";
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
+import { getHighlightTextFromRange } from "./highlight-text";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
@@ -338,7 +339,7 @@ const BookmarkHTMLHighlighter = forwardRef<
       startOffset,
       endOffset,
       color,
-      text: range.toString(),
+      text: getHighlightTextFromRange(range),
     };
 
     applyHighlightByOffset(highlight);

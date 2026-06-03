@@ -69,7 +69,7 @@ export default function HighlightCard({
             HIGHLIGHT_COLOR_MAP["border-l"][highlight.color],
           )}
         >
-          <p>{highlight.text}</p>
+          <p className="whitespace-pre-wrap break-words">{highlight.text}</p>
         </blockquote>
         {highlight.note && (
           <span className="text-sm text-muted-foreground">
