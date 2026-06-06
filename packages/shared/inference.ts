@@ -140,6 +140,7 @@ export interface OpenAIInferenceConfig {
   apiKey: string;
   baseURL?: string;
   proxyUrl?: string;
+  timeoutSec?: number;
   serviceTier?: typeof serverConfig.inference.openAIServiceTier;
   textModel: string;
   imageModel: string;
@@ -173,6 +174,8 @@ export class OpenAIInferenceClient implements InferenceClient {
     this.openAI = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
+      timeout:
+        config.timeoutSec !== undefined ? config.timeoutSec * 1000 : undefined,
       defaultHeaders: {
         "X-Title": "Karakeep",
         "HTTP-Referer": "https://karakeep.app",
@@ -188,6 +191,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       apiKey: serverConfig.inference.openAIApiKey!,
       baseURL: serverConfig.inference.openAIBaseUrl,
       proxyUrl: serverConfig.inference.openAIProxyUrl,
+      timeoutSec: serverConfig.inference.openAITimeoutSec,
       serviceTier: serverConfig.inference.openAIServiceTier,
       textModel: serverConfig.inference.textModel,
       imageModel: serverConfig.inference.imageModel,

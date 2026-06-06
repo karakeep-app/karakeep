@@ -60,6 +60,7 @@ const allEnv = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_PROXY_URL: z.string().url().optional(),
+  OPENAI_TIMEOUT_SEC: z.coerce.number().positive().optional(),
   OPENAI_SERVICE_TIER: z.enum(["auto", "default", "flex"]).optional(),
   OPENAI_REASONING_EFFORT: z
     .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
@@ -309,6 +310,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       openAIApiKey: val.OPENAI_API_KEY,
       openAIBaseUrl: val.OPENAI_BASE_URL,
       openAIProxyUrl: val.OPENAI_PROXY_URL,
+      openAITimeoutSec: val.OPENAI_TIMEOUT_SEC,
       openAIServiceTier: val.OPENAI_SERVICE_TIER,
       openAIReasoningEffort: val.OPENAI_REASONING_EFFORT,
       ollamaBaseUrl: val.OLLAMA_BASE_URL,
