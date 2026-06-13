@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import useAppSettings from "@/lib/settings";
 
 import type { ZGetBookmarksRequest } from "@karakeep/shared/types/bookmarks";
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -12,11 +13,12 @@ export default function UpdatingBookmarkList({
   query,
   header,
 }: {
-  query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is not supported in mobile yet
+  query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is handled by mobile settings
   header?: React.ReactElement;
 }) {
   const api = useTRPC();
   const queryClient = useQueryClient();
+  const { settings } = useAppSettings();
   const {
     data,
     isPending,
@@ -27,7 +29,12 @@ export default function UpdatingBookmarkList({
     refetch,
   } = useInfiniteQuery(
     api.bookmarks.getBookmarks.infiniteQueryOptions(
-      { ...query, useCursorV2: true, includeContent: false },
+      {
+        ...query,
+        sortOrder: settings.bookmarkSortOrder,
+        useCursorV2: true,
+        includeContent: false,
+      },
       {
         initialCursor: null,
         getNextPageParam: (lastPage) => lastPage.nextCursor,

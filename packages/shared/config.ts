@@ -60,6 +60,7 @@ const allEnv = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_PROXY_URL: z.string().url().optional(),
+  OPENAI_TIMEOUT_SEC: z.coerce.number().positive().optional(),
   OPENAI_SERVICE_TIER: z.enum(["auto", "default", "flex"]).optional(),
   OPENAI_REASONING_EFFORT: z
     .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
@@ -70,7 +71,12 @@ const allEnv = z.object({
   INFERENCE_FETCH_TIMEOUT_SEC: z.coerce.number().default(300),
   INFERENCE_TEXT_MODEL: z.string().default("gpt-4.1-mini"),
   INFERENCE_IMAGE_MODEL: z.string().default("gpt-4o-mini"),
+  EMBEDDING_ENABLE_AUTO_INDEXING: stringBool("false"),
   EMBEDDING_TEXT_MODEL: z.string().default("text-embedding-3-small"),
+  EMBEDDING_DIMENSIONS: z.coerce.number().default(1536),
+  EMBEDDING_CONTEXT_LENGTH: z.coerce.number().int().positive().default(8000),
+  EMBEDDING_NUM_WORKERS: z.coerce.number().default(1),
+  EMBEDDING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   INFERENCE_CONTEXT_LENGTH: z.coerce.number().default(2048),
   INFERENCE_MAX_OUTPUT_TOKENS: z.coerce.number().default(2048),
   INFERENCE_USE_MAX_COMPLETION_TOKENS: stringBool("false"),
@@ -311,6 +317,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       openAIApiKey: val.OPENAI_API_KEY,
       openAIBaseUrl: val.OPENAI_BASE_URL,
       openAIProxyUrl: val.OPENAI_PROXY_URL,
+      openAITimeoutSec: val.OPENAI_TIMEOUT_SEC,
       openAIServiceTier: val.OPENAI_SERVICE_TIER,
       openAIReasoningEffort: val.OPENAI_REASONING_EFFORT,
       ollamaBaseUrl: val.OLLAMA_BASE_URL,
@@ -331,7 +338,12 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       enableAutoSummarization: val.INFERENCE_ENABLE_AUTO_SUMMARIZATION,
     },
     embedding: {
+      enableAutoIndexing: val.EMBEDDING_ENABLE_AUTO_INDEXING,
       textModel: val.EMBEDDING_TEXT_MODEL,
+      dimensions: val.EMBEDDING_DIMENSIONS,
+      contextLength: val.EMBEDDING_CONTEXT_LENGTH,
+      numWorkers: val.EMBEDDING_NUM_WORKERS,
+      jobTimeoutSec: val.EMBEDDING_JOB_TIMEOUT_SEC,
     },
     crawler: {
       numWorkers: val.CRAWLER_NUM_WORKERS,

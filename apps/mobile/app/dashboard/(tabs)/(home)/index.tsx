@@ -2,7 +2,9 @@ import { useRef, useState } from "react";
 import { Platform, PlatformColor, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
+import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
+import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import InlineSearch from "@/components/search/InlineSearch";
 import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
@@ -14,11 +16,15 @@ import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { Plus } from "lucide-react-native";
 import { toast as sonnerToast } from "sonner-native";
+import { useCreateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 function useNewBookmarkActions(openNewBookmarkModal: () => void) {
   const { settings } = useAppSettings();
   const { menuIconColor } = useMenuIconColors();
   const uploadToastIdRef = useRef<string | number | null>(null);
+  const createBookmark = useCreateBookmark();
+
   const { uploadAsset } = useUploadAsset(settings, {
     onSuccess: () => {
       if (uploadToastIdRef.current !== null) {
@@ -83,10 +89,59 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
           sonnerToast.error("Failed to open photo library");
         }
       }
+    } else if (nativeEvent.event === "clipboard") {
+      if (createBookmark.isPending) return;
+
+      const toastId = sonnerToast.loading("Reading clipboard...");
+      try {
+        const contents = (await Clipboard.getStringAsync()).trim();
+        if (!contents) {
+          sonnerToast.error("Clipboard is empty", { id: toastId });
+          return;
+        }
+
+        let isUrl = false;
+        try {
+          const parsed = new URL(contents);
+          if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+            isUrl = true;
+            sonnerToast.loading("Saving URL...", { id: toastId });
+          }
+        } catch {
+          // not a valid URL — treat as text
+          sonnerToast.loading("Saving text...", { id: toastId });
+        }
+
+        const resp = await (isUrl
+          ? createBookmark.mutateAsync({
+              type: BookmarkTypes.LINK,
+              url: new URL(contents).toString(),
+              source: "mobile",
+            })
+          : createBookmark.mutateAsync({
+              type: BookmarkTypes.TEXT,
+              text: contents,
+              source: "mobile",
+            }));
+        sonnerToast.success(resp.alreadyExists ? "Already exists" : "Saved!", {
+          id: toastId,
+        });
+      } catch (e) {
+        sonnerToast.error(
+          e instanceof Error ? e.message : "Failed to save from clipboard",
+          { id: toastId },
+        );
+      }
     }
   };
 
   const actions = [
+    {
+      id: "clipboard",
+      title: "Clipboard",
+      image: Platform.select({ ios: "clipboard" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
     {
       id: "new",
       title: "New Bookmark",
@@ -121,6 +176,7 @@ export default function Home() {
           label="Search bookmarks..."
           onPress={() => setSearchActive(true)}
           rightElement={<ProfileAvatarButton />}
+          trailingElement={<BookmarkListHeader />}
         />
       )}
       <UpdatingBookmarkList query={{ archived: false }} />

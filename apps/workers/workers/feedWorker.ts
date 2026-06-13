@@ -3,7 +3,9 @@ import { workerStatsCounter } from "metrics";
 import { fetchWithProxy } from "network";
 import cron from "node-cron";
 import { buildImpersonatingTRPCClient } from "trpc";
+import { TRPCError } from "@trpc/server";
 import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
+import { ZodError } from "zod";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -28,6 +30,29 @@ function getFeedMinuteOffset(feedId: string): number {
   }
   // Return a minute offset between 0 and 59
   return Math.abs(hash) % 60;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof TRPCError) {
+    if (error.cause instanceof ZodError) {
+      const validationMessage = error.cause.issues
+        .map((issue) => {
+          const path = issue.path.join(".");
+          return path ? `${path}: ${issue.message}` : issue.message;
+        })
+        .join("; ");
+
+      return `${error.code}: ${validationMessage}`;
+    }
+
+    return `${error.code}: ${error.message}`;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
 }
 
 export const FeedRefreshingWorker = cron.schedule(
@@ -245,6 +270,28 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
       }),
     ),
   );
+  const bookmarkCreationFailures = createdBookmarks.flatMap((bookmark, idx) =>
+    bookmark.status === "rejected"
+      ? [{ item: newEntries[idx], reason: bookmark.reason }]
+      : [],
+  );
+  const createdBookmarkCount =
+    createdBookmarks.length - bookmarkCreationFailures.length;
+  addLogFields<"feedWorker.run">({
+    "feed.bookmarks_created": createdBookmarkCount,
+    "feed.bookmarks_failed": bookmarkCreationFailures.length,
+  });
+
+  if (bookmarkCreationFailures.length > 0) {
+    logger.warn(
+      `[feed][${jobId}] Failed to create ${bookmarkCreationFailures.length}/${newEntries.length} bookmarks from feed "${feed.name}" (${feed.id}).`,
+    );
+    for (const failure of bookmarkCreationFailures.slice(0, 3)) {
+      logger.debug(
+        `[feed][${jobId}] Bookmark creation failed for feed item "${failure.item.title ?? failure.item.guid}" (${failure.item.link}): ${getErrorMessage(failure.reason)}`,
+      );
+    }
+  }
 
   // If importTags is enabled, attach categories as tags to the created bookmarks
   if (feed.importTags) {
@@ -288,7 +335,7 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
     .onConflictDoNothing();
 
   logger.info(
-    `[feed][${jobId}] Successfully imported ${newEntries.length} new enteries from feed "${feed.name}" (${feed.id}).`,
+    `[feed][${jobId}] Imported ${newEntries.length} feed entries from feed "${feed.name}" (${feed.id}); created ${createdBookmarkCount} bookmarks${bookmarkCreationFailures.length > 0 ? `, failed to create ${bookmarkCreationFailures.length}` : ""}.`,
   );
 
   return Promise.resolve();

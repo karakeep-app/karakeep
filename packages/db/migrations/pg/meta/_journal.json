@@ -15,6 +15,13 @@
       "when": 1779158088529,
       "tag": "0001_upstream_schema_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781380030092,
+      "tag": "0002_add_embedding_status",
+      "breakpoints": true
     }
   ]
 }

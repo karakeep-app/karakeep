@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { AppState, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
+import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import { isIOS26 } from "@/lib/ios";
 import { useIsLoggedIn } from "@/lib/session";
 import { focusManager } from "@tanstack/react-query";
@@ -58,6 +59,7 @@ export default function Dashboard() {
         options={{
           headerTitle: "⭐️ Favourites",
           headerBackTitle: "Back",
+          headerRight: () => <BookmarkListHeader />,
         }}
       />
       <Stack.Screen
@@ -125,6 +127,19 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="bookmarks/[slug]/highlights"
+        options={{
+          headerTitle: "Highlights",
+          headerTransparent: false,
+          headerLargeTitle: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
         name="lists/new"
         options={{
           headerTitle: "New List",
@@ -157,6 +172,7 @@ export default function Dashboard() {
         options={{
           headerTitle: "🗄️ Archive",
           headerBackTitle: "Back",
+          headerRight: () => <BookmarkListHeader />,
         }}
       />
       <Stack.Screen

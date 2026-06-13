@@ -2,6 +2,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { getBookmarkDomain } from "network";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
+import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
 import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import type {
@@ -31,6 +32,11 @@ import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
+
+/**
+ * The maximum length of the relevant tag names to avoid bloating the inference context.
+ */
+const RELEVANT_TAG_TRUNCATE_LENGTH = 1000;
 
 const openAIResponseSchema = z.object({
   tags: z.array(z.string()),
@@ -87,6 +93,7 @@ async function buildPrompt(
   tagStyle: ZTagStyle,
   inferredTagLang: string,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ): Promise<string | null> {
   const prompts = await fetchCustomPrompts(bookmark.userId, "text");
   if (bookmark.link) {
@@ -113,6 +120,7 @@ Content: ${content ?? ""}`,
       serverConfig.inference.contextLength,
       tagStyle,
       curatedTags,
+      potentialRelevantTags,
     );
   }
 
@@ -124,6 +132,7 @@ Content: ${content ?? ""}`,
       serverConfig.inference.contextLength,
       tagStyle,
       curatedTags,
+      potentialRelevantTags,
     );
   }
 
@@ -138,6 +147,7 @@ async function inferTagsFromImage(
   tagStyle: ZTagStyle,
   inferredTagLang: string,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ): Promise<InferenceResponse | null> {
   const { asset, metadata } = await readAsset({
     userId: bookmark.userId,
@@ -166,6 +176,7 @@ async function inferTagsFromImage(
       await fetchCustomPrompts(bookmark.userId, "images"),
       tagStyle,
       curatedTags,
+      potentialRelevantTags,
     ),
     metadata.contentType,
     base64,
@@ -242,6 +253,7 @@ async function inferTagsFromPDF(
   tagStyle: ZTagStyle,
   inferredTagLang: string,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ) {
   const prompt = await buildTextPrompt(
     inferredTagLang,
@@ -250,6 +262,7 @@ async function inferTagsFromPDF(
     serverConfig.inference.contextLength,
     tagStyle,
     curatedTags,
+    potentialRelevantTags,
   );
   addLogFields<"inferenceWorker.run">({
     "inference.model": serverConfig.inference.textModel,
@@ -268,12 +281,14 @@ async function inferTagsFromText(
   tagStyle: ZTagStyle,
   inferredTagLang: string,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ) {
   const prompt = await buildPrompt(
     bookmark,
     tagStyle,
     inferredTagLang,
     curatedTags,
+    potentialRelevantTags,
   );
   if (!prompt) {
     return null;
@@ -296,6 +311,7 @@ async function inferTags(
   tagStyle: ZTagStyle,
   inferredTagLang: string,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ) {
   setSpanAttributes({
     "user.id": bookmark.userId,
@@ -310,6 +326,8 @@ async function inferTags(
     "crawler.status_code": bookmark.link?.crawlStatusCode ?? undefined,
     "inference.tagging.style": tagStyle,
     "inference.tagging.lang": inferredTagLang,
+    "inference.tagging.num_potential_relevant_tags":
+      potentialRelevantTags?.length ?? 0,
   });
 
   let response: InferenceResponse | null;
@@ -321,6 +339,7 @@ async function inferTags(
       tagStyle,
       inferredTagLang,
       curatedTags,
+      potentialRelevantTags,
     );
   } else if (bookmark.asset) {
     switch (bookmark.asset.assetType) {
@@ -333,6 +352,7 @@ async function inferTags(
           tagStyle,
           inferredTagLang,
           curatedTags,
+          potentialRelevantTags,
         );
         break;
       case "pdf":
@@ -344,6 +364,7 @@ async function inferTags(
           tagStyle,
           inferredTagLang,
           curatedTags,
+          potentialRelevantTags,
         );
         break;
       default:
@@ -502,6 +523,99 @@ async function fetchBookmark(linkId: string) {
   });
 }
 
+// Matches the rankingScoreThreshold the vector store applies in findSimilar, so
+// the search({vector}) path returns comparably relevant neighbors.
+const RELEVANT_TAG_SCORE_THRESHOLD = 0.75;
+
+/**
+ * Finds potentially relevant tags for the passed bookmarkId by finding similar
+ * bookmarks and fetching their tags.
+ *
+ * When a freshly generated `embedding` is supplied, similarity is resolved via
+ * search({vector}) — which does not require the bookmark to be indexed yet — so
+ * tagging does not have to wait for the (slow) vector index build. Otherwise it
+ * falls back to findSimilar({id}), which requires the bookmark to already be
+ * indexed (e.g. a manual re-tag).
+ */
+async function getPotentiallyRelevantTags(
+  jobId: string,
+  bookmarkId: string,
+  userId: string,
+  embedding?: number[],
+): Promise<string[] | null> {
+  const client = await getVectorStoreClient();
+  if (!client) {
+    return null;
+  }
+  const userFilter = [
+    {
+      type: "eq" as const,
+      field: "userId" as const,
+      value: userId,
+    },
+  ];
+  const similarBookmarkIds =
+    embedding && embedding.length > 0
+      ? await client
+          .search({
+            vector: embedding,
+            // Fetch one extra so we can drop the bookmark itself if it happens
+            // to already be indexed, and still keep up to 10 neighbors.
+            limit: 11,
+            filter: userFilter,
+            rankingScoreThreshold: RELEVANT_TAG_SCORE_THRESHOLD,
+          })
+          .then((r) =>
+            r.hits
+              .filter((h) => h.id !== bookmarkId)
+              .map((h) => h.id)
+              .slice(0, 10),
+          )
+      : await client
+          .findSimilar({
+            id: bookmarkId,
+            limit: 10,
+            filter: userFilter,
+          })
+          .then((r) => r.hits.map((r) => r.id));
+
+  if (similarBookmarkIds.length === 0) {
+    return null;
+  }
+
+  const tags = await db
+    .selectDistinct({ name: bookmarkTags.name })
+    .from(bookmarkTags)
+    .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
+    .where(inArray(tagsOnBookmarks.bookmarkId, similarBookmarkIds))
+    .limit(100);
+
+  // Let's try to use shorter tags first
+  tags.sort((a, b) => a.name.length - b.name.length);
+
+  const toKeep = [];
+  let lengthSoFar = 0;
+  for (const tag of tags) {
+    // Account for the ", " separator between tags in the joined prompt output
+    const separatorLen = toKeep.length > 0 ? 2 : 0;
+
+    if (
+      lengthSoFar + separatorLen + tag.name.length >
+      RELEVANT_TAG_TRUNCATE_LENGTH
+    ) {
+      break;
+    }
+    toKeep.push(tag.name);
+    lengthSoFar += tag.name.length;
+  }
+
+  logger.debug(
+    `[inference][${jobId}] Will use ${toKeep.length} potential tags (out of ${tags.length}, across ${similarBookmarkIds.length} bookmarks) for the bookmark with id ${bookmarkId}: ${toKeep.join(", ")}`,
+  );
+
+  return [...toKeep];
+}
+
 export async function runTagging(
   bookmarkId: string,
   job: DequeuedJob<ZOpenAIRequest>,
@@ -541,6 +655,7 @@ export async function runTagging(
 
   // Resolve curated tag names if configured
   let curatedTagNames: string[] | undefined;
+  let potentialRelevantTags: string[] | undefined = undefined;
   if (userSettings?.curatedTagIds && userSettings.curatedTagIds.length > 0) {
     const tags = await db.query.bookmarkTags.findMany({
       where: and(
@@ -550,6 +665,21 @@ export async function runTagging(
       columns: { name: true },
     });
     curatedTagNames = tags.map((t) => t.name);
+  } else {
+    // If no curated tags are configured, try to find some potentially relevant tags
+    try {
+      potentialRelevantTags =
+        (await getPotentiallyRelevantTags(
+          jobId,
+          bookmarkId,
+          bookmark.userId,
+          job.data.embedding,
+        )) ?? undefined;
+    } catch (e) {
+      logger.error(
+        `[inference][${jobId}] Failed to find potentially relevant tags: ${e}`,
+      );
+    }
   }
 
   logger.info(
@@ -564,6 +694,7 @@ export async function runTagging(
     userSettings?.tagStyle ?? "as-generated",
     userSettings?.inferredTagLang ?? serverConfig.inference.inferredTagLang,
     curatedTagNames,
+    potentialRelevantTags,
   );
 
   if (tags === null) {

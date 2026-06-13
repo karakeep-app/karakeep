@@ -23,6 +23,7 @@ type EventLogInternal =
       "inference.tagging.style"?: string;
       "inference.tagging.lang"?: string;
       "inference.tagging.num_generated_tags"?: number;
+      "inference.tagging.num_potential_relevant_tags"?: number;
     }
   | {
       ["event.name"]: "bookmark.summarize";
@@ -40,6 +41,8 @@ type EventLogInternal =
       "feed.status_code"?: number;
       "feed.items_found"?: number;
       "feed.items_new"?: number;
+      "feed.bookmarks_created"?: number;
+      "feed.bookmarks_failed"?: number;
       "feed.skipped_quota"?: boolean;
     }
   | {
@@ -74,6 +77,14 @@ type EventLogInternal =
       "search.op"?: "index" | "delete";
       "bookmark.id"?: string;
       "search.document_size"?: number;
+    }
+  | {
+      ["event.name"]: "embeddingsWorker.run";
+      "bookmark.id"?: string;
+      "embedding.mode"?: "embed" | "index" | "delete";
+      "embedding.text_size"?: number;
+      "embedding.prompt_tokens"?: number;
+      "embedding.total_tokens"?: number;
     }
   | {
       ["event.name"]: "backupWorker.run";
