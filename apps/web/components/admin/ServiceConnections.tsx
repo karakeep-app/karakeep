@@ -45,7 +45,7 @@ function ConnectionStatus({
 
   return (
     <div
-      className={`rounded-lg border ${borderColor} bg-background p-5 shadow-sm transition-all sm:w-1/3`}
+      className={`rounded-lg border ${borderColor} bg-background p-5 shadow-sm transition-all`}
     >
       <div className="mb-3 flex items-center justify-between">
         <div>
@@ -86,11 +86,11 @@ function ConnectionsSkeleton() {
   return (
     <AdminCard>
       <div className="mb-4 h-7 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-      <div className="flex flex-col gap-4 sm:flex-row">
-        {[1, 2, 3].map((i) => (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="rounded-lg border border-gray-200 bg-background p-5 shadow-sm dark:border-gray-700 sm:w-1/3"
+            className="rounded-lg border border-gray-200 bg-background p-5 shadow-sm dark:border-gray-700"
           >
             <div className="mb-3 flex items-center justify-between">
               <div className="h-5 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
@@ -127,7 +127,7 @@ export default function ServiceConnections() {
       <p className="mb-4 text-sm text-muted-foreground">
         {t("admin.service_connections.description")}
       </p>
-      <div className="flex flex-col gap-4 sm:flex-row">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <ConnectionStatus
           label={t("admin.service_connections.search_engine")}
           configured={connections.searchEngine.configured}
@@ -148,6 +148,13 @@ export default function ServiceConnections() {
           connected={connections.queue.connected}
           pluginName={connections.queue.pluginName}
           error={connections.queue.error}
+        />
+        <ConnectionStatus
+          label={t("admin.service_connections.vector_store")}
+          configured={connections.vectorStore.configured}
+          connected={connections.vectorStore.connected}
+          pluginName={connections.vectorStore.pluginName}
+          error={connections.vectorStore.error}
         />
       </div>
     </AdminCard>

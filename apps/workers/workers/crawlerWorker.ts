@@ -51,6 +51,7 @@ import {
   addLogFields,
   AssetPreprocessingQueue,
   getTracer,
+  EmbeddingsQueue,
   OpenAIQueue,
   QuotaService,
   setSpanAttributes,
@@ -72,6 +73,7 @@ import {
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
+import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import {
   DequeuedJob,
   DequeuedJobError,
@@ -280,7 +282,7 @@ async function startBrowserInstance() {
 
     const webUrl = new URL(serverConfig.crawler.browserWebUrl);
     const { address } = await dns.promises.lookup(webUrl.hostname);
-    webUrl.hostname = address;
+    setUrlHostnameFromResolvedAddress(webUrl, address);
     logger.info(
       `[Crawler] Successfully resolved IP address, new address: ${redactUrlCredentials(webUrl.toString())}`,
     );
@@ -433,6 +435,17 @@ export class CrawlerWorker {
                   and(
                     eq(bookmarks.id, bookmarkId),
                     eq(bookmarks.summarizationStatus, "pending"),
+                  ),
+                );
+              await tx
+                .update(bookmarks)
+                .set({
+                  embeddingStatus: null,
+                })
+                .where(
+                  and(
+                    eq(bookmarks.id, bookmarkId),
+                    eq(bookmarks.embeddingStatus, "pending"),
                   ),
                 );
             });
@@ -2297,13 +2310,24 @@ async function runCrawler(
 
     // Enqueue openai job (if not set, assume it's true for backward compatibility)
     if (job.data.runInference !== false) {
-      await OpenAIQueue.enqueue(
-        {
-          bookmarkId,
-          type: "tag",
-        },
-        enqueueOpts,
-      );
+      if (serverConfig.embedding.enableAutoIndexing) {
+        await EmbeddingsQueue.enqueue(
+          {
+            bookmarkId,
+            type: "embed",
+            runTaggingOnComplete: true,
+          },
+          enqueueOpts,
+        );
+      } else {
+        await OpenAIQueue.enqueue(
+          {
+            bookmarkId,
+            type: "tag",
+          },
+          enqueueOpts,
+        );
+      }
       await OpenAIQueue.enqueue(
         {
           bookmarkId,

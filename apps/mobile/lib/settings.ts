@@ -44,6 +44,8 @@ const zSettingsSchema = z.object({
     .enum(["reader", "browser", "externalBrowser"])
     .optional()
     .default("reader"),
+  bookmarkLayout: z.enum(["card", "list"]).optional().default("list"),
+  bookmarkSortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
   showNotes: z.boolean().optional().default(false),
   keepScreenOnWhileReading: z.boolean().optional().default(false),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
@@ -78,6 +80,8 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       imageQuality: 0.2,
       theme: "system",
       defaultBookmarkView: "reader",
+      bookmarkLayout: "list",
+      bookmarkSortOrder: "desc",
       showNotes: false,
       keepScreenOnWhileReading: false,
       customHeaders: {},

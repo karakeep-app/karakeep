@@ -212,6 +212,9 @@ export const bookmarks = pgTable(
     summarizationStatus: text("summarizationStatus", {
       enum: ["pending", "failure", "success"],
     }).default("pending"),
+    embeddingStatus: text("embeddingStatus", {
+      enum: ["pending", "failure", "success"],
+    }).default("pending"),
     summary: text("summary"),
     note: text("note"),
     type: text("type", {

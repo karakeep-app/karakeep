@@ -16,6 +16,7 @@
     "utils": "@/lib/utils"
   },
   "registries": {
+    "@ai-elements": "https://elements.ai-sdk.dev/api/registry/{name}.json",
     "@ncdai": "https://chanhdai.com/r/{name}.json"
   }
 }

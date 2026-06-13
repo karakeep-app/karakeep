@@ -1,0 +1,1 @@
+ALTER TABLE "bookmarks" ADD COLUMN "embeddingStatus" text DEFAULT 'pending';

@@ -361,6 +361,10 @@ bookmarkCmd
   .option("--no-archive", "if set, the bookmark will be unarchived")
   .option("--favourite", "if set, the bookmark will be favourited")
   .option("--no-favourite", "if set, the bookmark will be unfavourited")
+  .option(
+    "--description <description>",
+    "if set, the bookmark's description will be updated",
+  )
   .argument("<id>", "the id of the bookmark to update")
   .action(async (id, opts) => {
     const api = getAPIClient();
@@ -371,6 +375,7 @@ bookmarkCmd
         favourited: opts.favourite,
         title: opts.title,
         note: opts.note,
+        description: opts.description,
       })
       .then(printObject)
       .catch(printError(`Failed to update bookmark with id "${id}"`));

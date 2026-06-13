@@ -1,6 +1,5 @@
 import type { Index } from "meilisearch";
-import { Mutex } from "async-mutex";
-import { MeiliSearch } from "meilisearch";
+import { Meilisearch } from "meilisearch";
 
 import type {
   BookmarkSearchDocument,
@@ -14,7 +13,7 @@ import serverConfig from "@karakeep/shared/config";
 import { PluginProvider } from "@karakeep/shared/plugins";
 
 import { envConfig } from "./env";
-import logger from "@karakeep/shared/logger";
+import { BatchingDocumentQueue } from "../../lib/batchingDocumentQueue";
 
 function filterToMeiliSearchFilter(filter: FilterQuery): string {
   switch (filter.type) {
@@ -29,185 +28,8 @@ function filterToMeiliSearchFilter(filter: FilterQuery): string {
   }
 }
 
-type PendingOperation =
-  | {
-      type: "add";
-      document: BookmarkSearchDocument;
-      resolve: () => void;
-      reject: (error: Error) => void;
-    }
-  | {
-      type: "delete";
-      id: string;
-      resolve: () => void;
-      reject: (error: Error) => void;
-    };
-
-class BatchingDocumentQueue {
-  private pendingOperations: PendingOperation[] = [];
-  private flushTimeout: ReturnType<typeof setTimeout> | null = null;
-  private mutex = new Mutex();
-
-  constructor(
-    private index: Index<BookmarkSearchDocument>,
-    private jobTimeoutSec: number,
-    private batchSize: number,
-    private batchTimeoutMs: number,
-  ) {}
-
-  async addDocument(document: BookmarkSearchDocument): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.pendingOperations.push({ type: "add", document, resolve, reject });
-      this.scheduleFlush();
-
-      if (this.pendingOperations.length >= this.batchSize) {
-        void this.flush();
-      }
-    });
-  }
-
-  async deleteDocument(id: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.pendingOperations.push({ type: "delete", id, resolve, reject });
-      this.scheduleFlush();
-
-      if (this.pendingOperations.length >= this.batchSize) {
-        void this.flush();
-      }
-    });
-  }
-
-  private scheduleFlush(): void {
-    if (this.flushTimeout === null) {
-      this.flushTimeout = setTimeout(() => {
-        void this.flush();
-      }, this.batchTimeoutMs);
-    }
-  }
-
-  private async flush(): Promise<void> {
-    await this.mutex.runExclusive(async () => {
-      if (this.flushTimeout) {
-        clearTimeout(this.flushTimeout);
-        this.flushTimeout = null;
-      }
-
-      if (this.pendingOperations.length === 0) return;
-
-      // Deduplicate: for each document ID, only the last operation matters.
-      // Earlier operations for the same document are resolved immediately since
-      // the final state will be achieved by the last operation.
-      const lastOpIndexByDocId = new Map<string, number>();
-      for (let i = 0; i < this.pendingOperations.length; i++) {
-        const op = this.pendingOperations[i];
-        const docId = op.type === "add" ? op.document.id : op.id;
-        lastOpIndexByDocId.set(docId, i);
-      }
-
-      const adds: Extract<PendingOperation, { type: "add" }>[] = [];
-      const deletes: Extract<PendingOperation, { type: "delete" }>[] = [];
-      const supersededByDocId = new Map<string, PendingOperation[]>();
-
-      for (let i = 0; i < this.pendingOperations.length; i++) {
-        const op = this.pendingOperations[i];
-        const docId = op.type === "add" ? op.document.id : op.id;
-
-        if (lastOpIndexByDocId.get(docId) !== i) {
-          let list = supersededByDocId.get(docId);
-          if (!list) {
-            list = [];
-            supersededByDocId.set(docId, list);
-          }
-          list.push(op);
-          continue;
-        }
-
-        // Wrap resolve/reject to also settle any superseded operations
-        // for the same document, so callers only see success/failure
-        // after the actual batch completes.
-        const superseded = supersededByDocId.get(docId) ?? [];
-        const origResolve = op.resolve;
-        const origReject = op.reject;
-        op.resolve = () => {
-          origResolve();
-          superseded.forEach((s) => s.resolve());
-        };
-        op.reject = (error: Error) => {
-          origReject(error);
-          superseded.forEach((s) => s.reject(error));
-        };
-
-        if (op.type === "add") {
-          adds.push(op as Extract<PendingOperation, { type: "add" }>);
-        } else {
-          deletes.push(op as Extract<PendingOperation, { type: "delete" }>);
-        }
-      }
-
-      this.pendingOperations = [];
-
-      // Flush all deletes first, then all adds, in batchSize chunks
-      for (let i = 0; i < deletes.length; i += this.batchSize) {
-        const batch = deletes.slice(i, i + this.batchSize);
-        logger.debug(
-          `[meilisearch] Flushing delete batch: size=${batch.length}`,
-        );
-        await this.flushDeleteBatch(batch);
-      }
-
-      for (let i = 0; i < adds.length; i += this.batchSize) {
-        const batch = adds.slice(i, i + this.batchSize);
-        logger.debug(`[meilisearch] Flushing add batch: size=${batch.length}`);
-        await this.flushAddBatch(batch);
-      }
-    });
-  }
-
-  private async flushAddBatch(
-    batch: Extract<PendingOperation, { type: "add" }>[],
-  ): Promise<void> {
-    if (batch.length === 0) return;
-
-    try {
-      const documents = batch.map((p) => p.document);
-      const task = await this.index.addDocuments(documents, {
-        primaryKey: "id",
-      });
-      await this.ensureTaskSuccess(task.taskUid);
-      batch.forEach((p) => p.resolve());
-    } catch (error) {
-      batch.forEach((p) => p.reject(error as Error));
-    }
-  }
-
-  private async flushDeleteBatch(
-    batch: Extract<PendingOperation, { type: "delete" }>[],
-  ): Promise<void> {
-    if (batch.length === 0) return;
-
-    try {
-      const ids = batch.map((p) => p.id);
-      const task = await this.index.deleteDocuments(ids);
-      await this.ensureTaskSuccess(task.taskUid);
-      batch.forEach((p) => p.resolve());
-    } catch (error) {
-      batch.forEach((p) => p.reject(error as Error));
-    }
-  }
-
-  private async ensureTaskSuccess(taskUid: number): Promise<void> {
-    const task = await this.index.waitForTask(taskUid, {
-      intervalMs: 200,
-      timeOutMs: this.jobTimeoutSec * 1000 * 0.9,
-    });
-    if (task.error) {
-      throw new Error(`Search task failed: ${task.error.message}`);
-    }
-  }
-}
-
 class MeiliSearchIndexClient implements SearchIndexClient {
-  private batchQueue: BatchingDocumentQueue;
+  private batchQueue: BatchingDocumentQueue<BookmarkSearchDocument>;
   private jobTimeoutSec: number;
 
   constructor(
@@ -222,6 +44,7 @@ class MeiliSearchIndexClient implements SearchIndexClient {
       jobTimeoutSec,
       batchSize,
       batchTimeoutMs,
+      "meilisearch",
     );
   }
 
@@ -286,9 +109,9 @@ class MeiliSearchIndexClient implements SearchIndexClient {
   }
 
   private async ensureTaskSuccess(taskUid: number): Promise<void> {
-    const task = await this.index.waitForTask(taskUid, {
-      intervalMs: 200,
-      timeOutMs: this.jobTimeoutSec * 1000 * 0.9,
+    const task = await this.index.tasks.waitForTask(taskUid, {
+      interval: 200,
+      timeout: this.jobTimeoutSec * 1000 * 0.9,
     });
     if (task.error) {
       throw new Error(`Search task failed: ${task.error.message}`);
@@ -297,14 +120,14 @@ class MeiliSearchIndexClient implements SearchIndexClient {
 }
 
 export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
-  private client: MeiliSearch | undefined;
+  private client: Meilisearch | undefined;
   private indexClient: SearchIndexClient | undefined;
   private initPromise: Promise<SearchIndexClient | null> | undefined;
   private readonly indexName = "bookmarks";
 
   constructor() {
     if (MeiliSearchProvider.isConfigured()) {
-      this.client = new MeiliSearch({
+      this.client = new Meilisearch({
         host: envConfig.MEILI_ADDR!,
         apiKey: envConfig.MEILI_MASTER_KEY,
       });
@@ -339,10 +162,11 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
     let indexFound = indices.results.find((i) => i.uid === this.indexName);
 
     if (!indexFound) {
-      const idx = await this.client.createIndex(this.indexName, {
-        primaryKey: "id",
-      });
-      await this.client.waitForTask(idx.taskUid);
+      await this.client
+        .createIndex(this.indexName, {
+          primaryKey: "id",
+        })
+        .waitTask();
       indexFound = await this.client.getIndex<BookmarkSearchDocument>(
         this.indexName,
       );
@@ -373,10 +197,9 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
       console.log(
         `[meilisearch] Updating desired filterable attributes to ${desiredFilterableAttributes} from ${settings.filterableAttributes}`,
       );
-      const taskId = await index.updateFilterableAttributes(
-        desiredFilterableAttributes,
-      );
-      await this.client!.waitForTask(taskId.taskUid);
+      await index
+        .updateFilterableAttributes(desiredFilterableAttributes)
+        .waitTask();
     }
 
     if (
@@ -386,10 +209,9 @@ export class MeiliSearchProvider implements PluginProvider<SearchIndexClient> {
       console.log(
         `[meilisearch] Updating desired sortable attributes to ${desiredSortableAttributes} from ${settings.sortableAttributes}`,
       );
-      const taskId = await index.updateSortableAttributes(
-        desiredSortableAttributes,
-      );
-      await this.client!.waitForTask(taskId.taskUid);
+      await index
+        .updateSortableAttributes(desiredSortableAttributes)
+        .waitTask();
     }
   }
 }

@@ -17,6 +17,7 @@ import {
 import {
   addLogFields,
   AssetPreprocessingQueue,
+  EmbeddingsQueue,
   OpenAIQueue,
   QuotaService,
   StorageQuotaError,
@@ -87,6 +88,17 @@ export class AssetPreprocessingWorker {
                     and(
                       eq(bookmarks.id, bookmarkId),
                       eq(bookmarks.summarizationStatus, "pending"),
+                    ),
+                  );
+                await tx
+                  .update(bookmarks)
+                  .set({
+                    embeddingStatus: null,
+                  })
+                  .where(
+                    and(
+                      eq(bookmarks.id, bookmarkId),
+                      eq(bookmarks.embeddingStatus, "pending"),
                     ),
                   );
               });
@@ -461,13 +473,24 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
     groupId: bookmark.userId,
   };
   if (!isFixMode || anythingChanged) {
-    await OpenAIQueue.enqueue(
-      {
-        bookmarkId,
-        type: "tag",
-      },
-      enqueueOpts,
-    );
+    if (serverConfig.embedding.enableAutoIndexing) {
+      await EmbeddingsQueue.enqueue(
+        {
+          bookmarkId,
+          type: "embed",
+          runTaggingOnComplete: true,
+        },
+        enqueueOpts,
+      );
+    } else {
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId,
+          type: "tag",
+        },
+        enqueueOpts,
+      );
+    }
     await OpenAIQueue.enqueue(
       {
         bookmarkId,

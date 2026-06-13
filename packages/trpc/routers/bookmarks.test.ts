@@ -24,6 +24,9 @@ vi.mock("@karakeep/shared-server", async (original) => {
     OpenAIQueue: {
       enqueue: vi.fn(),
     },
+    EmbeddingsQueue: {
+      enqueue: vi.fn(),
+    },
     SearchIndexingQueue: {
       enqueue: vi.fn(),
     },
