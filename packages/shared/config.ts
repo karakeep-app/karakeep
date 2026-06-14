@@ -133,6 +133,7 @@ const allEnv = z.object({
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   LOG_LEVEL: z.string().default("debug"),
+  DB_QUERY_LOGGING: stringBool("false"),
   NO_COLOR: stringBool("false"),
   DEMO_MODE: stringBool("false"),
   DEMO_MODE_EMAIL: z.string().optional(),
@@ -394,6 +395,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       jobTimeoutSec: val.SEARCH_JOB_TIMEOUT_SEC,
     },
     logLevel: val.LOG_LEVEL,
+    dbQueryLogging: val.DB_QUERY_LOGGING,
     logNoColor: val.NO_COLOR,
     demoMode: val.DEMO_MODE
       ? {
