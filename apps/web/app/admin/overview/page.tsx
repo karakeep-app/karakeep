@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import BasicStats from "@/components/admin/BasicStats";
 import ServiceConnections from "@/components/admin/ServiceConnections";
+import VideoConfigCard from "@/components/admin/VideoConfigCard";
 import { useTranslation } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -16,6 +17,7 @@ export default function AdminOverviewPage() {
     <div className="flex flex-col gap-6">
       <BasicStats />
       <ServiceConnections />
+      <VideoConfigCard />
     </div>
   );
 }

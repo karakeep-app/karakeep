@@ -26,6 +26,7 @@ import {
   ExpandIcon,
   FileText,
   Info,
+  Loader2,
   Video,
 } from "lucide-react";
 import { useQueryState } from "nuqs";
@@ -92,6 +93,29 @@ function ScreenshotSection({ link }: { link: ZBookmarkedLink }) {
 }
 
 function VideoSection({ link }: { link: ZBookmarkedLink }) {
+  if (!link.videoAssetId) {
+    const downloading =
+      link.videoDownloadStatus === "pending" ||
+      link.videoDownloadStatus === "downloading";
+    return (
+      <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-muted-foreground">
+        {downloading ? (
+          <>
+            <Loader2 className="h-10 w-10 animate-spin" />
+            <p className="text-sm">Downloading video…</p>
+          </>
+        ) : (
+          <>
+            <AlertTriangle className="h-10 w-10" />
+            <p className="text-sm">
+              Video download failed. Use the video capture control in the
+              sidebar to retry.
+            </p>
+          </>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="relative h-full w-full overflow-hidden">
       <div className="absolute inset-0 h-full w-full">
@@ -231,7 +255,10 @@ export default function LinkContentSection({
               </SelectItem>
               <SelectItem
                 value="video"
-                disabled={!bookmark.content.videoAssetId}
+                disabled={
+                  !bookmark.content.videoAssetId &&
+                  !bookmark.content.videoDownloadStatus
+                }
               >
                 <div className="flex items-center">
                   <Video className="mr-2 h-4 w-4" />

@@ -586,6 +586,9 @@ export const clientConfig = {
     enableAutoTagging: serverConfig.inference.enableAutoTagging,
     enableAutoSummarization: serverConfig.inference.enableAutoSummarization,
   },
+  crawler: {
+    videoDownloadEnabled: serverConfig.crawler.downloadVideo,
+  },
   legal: {
     termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,
     privacyPolicyUrl: serverConfig.legal.privacyPolicyUrl,

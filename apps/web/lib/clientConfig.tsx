@@ -18,6 +18,9 @@ export const ClientConfigCtx = createContext<ClientConfig>({
     enableAutoTagging: false,
     enableAutoSummarization: false,
   },
+  crawler: {
+    videoDownloadEnabled: false,
+  },
   legal: {
     termsOfServiceUrl: undefined,
     privacyPolicyUrl: undefined,

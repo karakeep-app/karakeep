@@ -43,6 +43,7 @@ import HighlightsBox from "./HighlightsBox";
 import LinkContentSection from "./LinkContentSection";
 import { NoteEditor } from "./NoteEditor";
 import { TextContentSection } from "./TextContentSection";
+import VideoCaptureBox from "./VideoCaptureBox";
 
 function ContentLoading() {
   const { t } = useTranslation();
@@ -224,6 +225,12 @@ export default function BookmarkPreview({
         <NoteEditor bookmark={bookmark} disabled={!isOwner} />
       </div>
       <Separator />
+      {bookmark.content.type === BookmarkTypes.LINK && (
+        <>
+          <VideoCaptureBox bookmark={bookmark} disabled={!isOwner} />
+          <Separator />
+        </>
+      )}
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
       <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
       <Separator />
