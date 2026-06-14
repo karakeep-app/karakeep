@@ -54,6 +54,9 @@ export const zBookmarkedLinkSchema = z.object({
   contentAssetId: z.string().nullish(),
   crawledAt: z.date().nullish(),
   crawlStatus: z.enum(["success", "failure", "pending"]).nullish(),
+  videoDownloadStatus: z
+    .enum(["pending", "downloading", "success", "failure"])
+    .nullish(),
   author: z.string().nullish(),
   publisher: z.string().nullish(),
   datePublished: z.date().nullish(),
@@ -106,6 +109,8 @@ export const zBareBookmarkSchema = z.object({
   title: z.string().nullish(),
   archived: z.boolean(),
   favourited: z.boolean(),
+  // Tri-state per-bookmark video capture override. null = inherit server default.
+  captureVideo: z.boolean().nullish(),
   taggingStatus: z.enum(["success", "failure", "pending"]).nullable(),
   summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),
   embeddingStatus: z.enum(["success", "failure", "pending"]).nullable(),
@@ -228,6 +233,10 @@ export const zUpdateBookmarksRequestSchema = z.object({
   bookmarkId: z.string(),
   archived: z.boolean().optional(),
   favourited: z.boolean().optional(),
+  // Tri-state per-bookmark video capture override. null = inherit server
+  // default, true = force on, false = force off. Toggling effectively-on for an
+  // already-crawled link with no video enqueues a video download.
+  captureVideo: z.boolean().nullish(),
   summary: z.string().nullish(),
   note: z.string().optional(),
   title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),

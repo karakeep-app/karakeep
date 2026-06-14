@@ -199,6 +199,10 @@ export const bookmarks = sqliteTable(
     favourited: integer("favourited", { mode: "boolean" })
       .notNull()
       .default(false),
+    // Per-bookmark video capture override (tri-state). null = inherit the
+    // server default (serverConfig.crawler.downloadVideo), true = force on,
+    // false = force off.
+    captureVideo: integer("captureVideo", { mode: "boolean" }),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -275,6 +279,10 @@ export const bookmarkLinks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     crawlStatusCode: integer("crawlStatusCode").default(200),
+    // Video download lifecycle. null = never attempted / capture off.
+    videoDownloadStatus: text("videoDownloadStatus", {
+      enum: ["pending", "downloading", "success", "failure"],
+    }),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );

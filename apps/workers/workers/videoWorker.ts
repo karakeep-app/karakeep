@@ -1,6 +1,7 @@
 import fs from "fs";
 import * as os from "os";
 import path from "path";
+import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import { workerStatsCounter } from "metrics";
 import {
@@ -11,7 +12,7 @@ import {
 import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
-import { AssetTypes } from "@karakeep/db/schema";
+import { AssetTypes, bookmarkLinks } from "@karakeep/db/schema";
 import {
   addLogFields,
   QuotaService,
@@ -29,10 +30,27 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
+import { resolveShouldCaptureVideo } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
 const TMP_FOLDER = path.join(os.tmpdir(), "video_downloads");
+
+type VideoDownloadStatus = "pending" | "downloading" | "success" | "failure";
+
+/**
+ * Records the video download lifecycle on the link so the UI can show progress.
+ * `null` clears the indicator (e.g. the URL turned out not to be a video).
+ */
+async function setVideoDownloadStatus(
+  bookmarkId: string,
+  status: VideoDownloadStatus | null,
+) {
+  await db
+    .update(bookmarkLinks)
+    .set({ videoDownloadStatus: status })
+    .where(eq(bookmarkLinks.id, bookmarkId));
+}
 
 export class VideoWorker {
   static async build() {
@@ -108,15 +126,21 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const {
     url,
     userId,
+    captureVideo,
     videoAssetId: oldVideoAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
-  if (!serverConfig.crawler.downloadVideo) {
+  if (
+    !resolveShouldCaptureVideo(captureVideo, serverConfig.crawler.downloadVideo)
+  ) {
     logger.info(
-      `[VideoCrawler][${jobId}] Skipping video download from "${url}", because it is disabled in the config.`,
+      `[VideoCrawler][${jobId}] Skipping video download from "${url}", because it is disabled.`,
     );
+    await setVideoDownloadStatus(bookmarkId, null);
     return;
   }
+
+  await setVideoDownloadStatus(bookmarkId, "downloading");
 
   const runProxy = selectRunProxies();
   let normalizedUrl: string;
@@ -133,6 +157,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
         error instanceof Error ? error.message : String(error)
       }`,
     );
+    await setVideoDownloadStatus(bookmarkId, null);
     return;
   }
 
@@ -160,6 +185,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       logger.info(
         "[VideoCrawler][${jobId}] yt-dlp didn't download anything. Skipping ...",
       );
+      await setVideoDownloadStatus(bookmarkId, null);
       return;
     }
     assetPath = downloadPath;
@@ -172,6 +198,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       logger.info(
         `[VideoCrawler][${jobId}] Skipping video download from "${normalizedUrl}", because it's not one of the supported yt-dlp URLs`,
       );
+      await setVideoDownloadStatus(bookmarkId, null);
       return;
     }
     const genericError = `[VideoCrawler][${jobId}] Failed to download a file from "${normalizedUrl}" to "${assetPath}"`;
@@ -181,6 +208,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       logger.error(genericError);
     }
     await deleteLeftOverAssetFile(jobId, videoAssetId);
+    await setVideoDownloadStatus(bookmarkId, "failure");
     return;
   }
 
@@ -222,6 +250,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       );
     });
     await silentDeleteAsset(userId, oldVideoAssetId);
+    await setVideoDownloadStatus(bookmarkId, "success");
 
     logger.info(
       `[VideoCrawler][${jobId}] Finished downloading video from "${normalizedUrl}" and adding it to the database`,
@@ -232,8 +261,10 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
         `[VideoCrawler][${jobId}] Skipping video storage due to quota exceeded: ${error.message}`,
       );
       await deleteLeftOverAssetFile(jobId, videoAssetId);
+      await setVideoDownloadStatus(bookmarkId, "failure");
       return;
     }
+    await setVideoDownloadStatus(bookmarkId, "failure");
     throw error;
   }
 }

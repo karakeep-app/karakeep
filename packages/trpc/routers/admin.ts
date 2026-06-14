@@ -559,6 +559,23 @@ export const adminAppRouter = router({
         // Unused for now
       };
     }),
+  videoConfig: adminSystemProcedure
+    .output(
+      z.object({
+        enabled: z.boolean(),
+        maxVideoDownloadSizeMb: z.number(),
+        downloadVideoTimeoutSec: z.number(),
+        ytDlpArguments: z.array(z.string()),
+      }),
+    )
+    .query(() => {
+      return {
+        enabled: serverConfig.crawler.downloadVideo,
+        maxVideoDownloadSizeMb: serverConfig.crawler.maxVideoDownloadSize,
+        downloadVideoTimeoutSec: serverConfig.crawler.downloadVideoTimeout,
+        ytDlpArguments: serverConfig.crawler.ytDlpArguments,
+      };
+    }),
   checkConnections: adminSystemProcedure
     .output(
       z.object({

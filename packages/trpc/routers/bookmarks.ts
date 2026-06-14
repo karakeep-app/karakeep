@@ -28,6 +28,7 @@ import {
   QueuePriority,
   QuotaService,
   triggerSearchReindex,
+  VideoWorkerQueue,
 } from "@karakeep/shared-server";
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
@@ -51,6 +52,7 @@ import {
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
+import { resolveShouldCaptureVideo } from "@karakeep/shared/utils/bookmarkUtils";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 import { bookmarkCreationCounter } from "../stats";
@@ -557,6 +559,7 @@ export const bookmarksAppRouter = router({
           title: string | null;
           archived: boolean;
           favourited: boolean;
+          captureVideo: boolean | null;
           note: string | null;
           summary: string | null;
           createdAt: Date;
@@ -572,6 +575,9 @@ export const bookmarksAppRouter = router({
         }
         if (input.favourited !== undefined) {
           commonUpdateData.favourited = input.favourited;
+        }
+        if (input.captureVideo !== undefined) {
+          commonUpdateData.captureVideo = input.captureVideo;
         }
         if (input.note !== undefined) {
           commonUpdateData.note = input.note;
@@ -604,6 +610,31 @@ export const bookmarksAppRouter = router({
           /* includeContent: */ false,
         )
       ).asZBookmark();
+
+      // If video capture was just toggled effectively-on for an already-crawled
+      // link that has no video yet and isn't already downloading, kick off the
+      // download now — the crawl won't re-run on its own.
+      if (
+        input.captureVideo !== undefined &&
+        updatedBookmark.content.type === BookmarkTypes.LINK &&
+        resolveShouldCaptureVideo(
+          updatedBookmark.captureVideo,
+          serverConfig.crawler.downloadVideo,
+        ) &&
+        updatedBookmark.content.crawlStatus === "success" &&
+        !updatedBookmark.content.videoAssetId &&
+        updatedBookmark.content.videoDownloadStatus !== "pending" &&
+        updatedBookmark.content.videoDownloadStatus !== "downloading"
+      ) {
+        await ctx.db
+          .update(bookmarkLinks)
+          .set({ videoDownloadStatus: "pending" })
+          .where(eq(bookmarkLinks.id, input.bookmarkId));
+        await VideoWorkerQueue.enqueue(
+          { bookmarkId: input.bookmarkId, url: updatedBookmark.content.url },
+          { groupId: ctx.user.id },
+        );
+      }
 
       if (input.archived !== undefined) {
         logEvent({

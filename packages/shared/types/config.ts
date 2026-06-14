@@ -24,6 +24,9 @@ export const zClientConfigSchema = z.object({
     enableAutoTagging: z.boolean(),
     enableAutoSummarization: z.boolean(),
   }),
+  crawler: z.object({
+    videoDownloadEnabled: z.boolean(),
+  }),
   legal: z.object({
     termsOfServiceUrl: z.string().optional(),
     privacyPolicyUrl: z.string().optional(),

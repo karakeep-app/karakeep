@@ -37,6 +37,14 @@ export function isBookmarkStillCrawling(bookmark: ZBookmark) {
   return !bookmark.content.crawledAt;
 }
 
+export function isBookmarkStillDownloadingVideo(bookmark: ZBookmark) {
+  if (bookmark.content.type != BookmarkTypes.LINK) {
+    return false;
+  }
+  const status = bookmark.content.videoDownloadStatus;
+  return status === "pending" || status === "downloading";
+}
+
 export function isBookmarkStillTagging(bookmark: ZBookmark) {
   return bookmark.taggingStatus == "pending";
 }
@@ -49,8 +57,21 @@ export function isBookmarkStillLoading(bookmark: ZBookmark) {
   return (
     isBookmarkStillTagging(bookmark) ||
     isBookmarkStillCrawling(bookmark) ||
-    isBookmarkStillSummarizing(bookmark)
+    isBookmarkStillSummarizing(bookmark) ||
+    isBookmarkStillDownloadingVideo(bookmark)
   );
+}
+
+/**
+ * Resolves whether a bookmark's video should be captured, given its tri-state
+ * per-bookmark override and the server default. null/undefined inherit the
+ * server default; true/false force the decision.
+ */
+export function resolveShouldCaptureVideo(
+  captureVideo: boolean | null | undefined,
+  serverDefault: boolean,
+): boolean {
+  return captureVideo ?? serverDefault;
 }
 
 export function getBookmarkRefreshInterval(

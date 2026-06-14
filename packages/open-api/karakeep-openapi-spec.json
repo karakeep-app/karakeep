@@ -143,6 +143,10 @@
           "favourited": {
             "type": "boolean"
           },
+          "captureVideo": {
+            "type": "boolean",
+            "nullable": true
+          },
           "taggingStatus": {
             "type": "string",
             "nullable": true,
@@ -299,6 +303,17 @@
                       "success",
                       "failure",
                       "pending",
+                      null
+                    ]
+                  },
+                  "videoDownloadStatus": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "pending",
+                      "downloading",
+                      "success",
+                      "failure",
                       null
                     ]
                   },
@@ -1383,6 +1398,10 @@
                   "favourited": {
                     "type": "boolean"
                   },
+                  "captureVideo": {
+                    "type": "boolean",
+                    "nullable": true
+                  },
                   "summary": {
                     "type": "string",
                     "nullable": true
@@ -1467,6 +1486,10 @@
                     },
                     "favourited": {
                       "type": "boolean"
+                    },
+                    "captureVideo": {
+                      "type": "boolean",
+                      "nullable": true
                     },
                     "taggingStatus": {
                       "type": "string",
@@ -1611,6 +1634,10 @@
                     },
                     "favourited": {
                       "type": "boolean"
+                    },
+                    "captureVideo": {
+                      "type": "boolean",
+                      "nullable": true
                     },
                     "taggingStatus": {
                       "type": "string",
