@@ -1,24 +1,65 @@
 import serverConfig from "./config";
 
-// Generic fetch function type that works across environments
 type FetchFunction = (
   input: RequestInfo | URL | string,
   init?: RequestInit,
 ) => Promise<Response>;
 
-// Factory function to create a custom fetch with timeout for any fetch implementation
+function mergeSignals(...signals: (AbortSignal | null | undefined)[]): AbortSignal {
+  const defined = signals.filter((s): s is AbortSignal => s != null);
+  if (defined.length === 0) return new AbortController().signal;
+  if (defined.length === 1) return defined[0];
+  if (typeof AbortSignal.any === "function") return AbortSignal.any(defined);
+  const controller = new AbortController();
+  for (const signal of defined) {
+    if (signal.aborted) { controller.abort(signal.reason); break; }
+    signal.addEventListener("abort", () => controller.abort(signal.reason), { once: true });
+  }
+  return controller.signal;
+}
+
 export function createCustomFetch(fetchImpl: FetchFunction = globalThis.fetch) {
-  return function customFetch(
+  const timeoutMs = serverConfig.inference.fetchTimeoutSec * 1000;
+
+  // Resolved once at factory time; undefined if undici isn't the http client
+  const dispatcherPromise: Promise<unknown> = import("undici")
+    .then(({ Agent }) => new Agent({ headersTimeout: timeoutMs, bodyTimeout: timeoutMs }))
+    .catch(() => undefined);
+
+  return async function customFetch(
     input: Parameters<typeof fetchImpl>[0],
     init?: Parameters<typeof fetchImpl>[1],
-  ): ReturnType<typeof fetchImpl> {
-    const timeout = serverConfig.inference.fetchTimeoutSec * 1000; // Convert to milliseconds
+  ): Promise<Response> {
+    const dispatcher = await dispatcherPromise;
+
+    const controller = new AbortController();
+    const signal = mergeSignals(controller.signal, init?.signal as AbortSignal);
+
+    const headerTimer = setTimeout(() => {
+      controller.abort(
+        new DOMException("Timed out waiting for response headers", "TimeoutError"),
+      );
+    }, timeoutMs);
+
     return fetchImpl(input, {
-      signal: AbortSignal.timeout(timeout),
       ...init,
-    });
+      ...(dispatcher ? { dispatcher } : {}),
+      signal,
+    } as RequestInit)
+      .then((response) => {
+        clearTimeout(headerTimer);
+        setTimeout(() => {
+          controller.abort(
+            new DOMException("Timed out reading response body", "TimeoutError"),
+          );
+        }, timeoutMs);
+        return response;
+      })
+      .catch((error) => {
+        clearTimeout(headerTimer);
+        throw error;
+      });
   };
 }
 
-// Default export for backward compatibility - uses global fetch
 export const customFetch = createCustomFetch();
