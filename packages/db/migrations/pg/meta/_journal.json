@@ -22,6 +22,13 @@
       "when": 1781380030092,
       "tag": "0002_add_embedding_status",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1781462854798,
+      "tag": "0003_video_first_class",
+      "breakpoints": true
     }
   ]
 }

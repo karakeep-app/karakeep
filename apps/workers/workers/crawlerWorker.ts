@@ -85,6 +85,7 @@ import {
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { resolveShouldCaptureVideo } from "@karakeep/shared/utils/bookmarkUtils";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
 import type {
@@ -2227,6 +2228,7 @@ async function runCrawler(
     fullPageArchiveAssetId: oldFullPageArchiveAssetId,
     contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
+    captureVideo,
   } = await getBookmarkDetails(bookmarkId);
 
   await checkDomainRateLimit(url, jobId);
@@ -2340,7 +2342,18 @@ async function runCrawler(
     // Update the search index
     await triggerSearchReindex(bookmarkId, enqueueOpts);
 
-    if (serverConfig.crawler.downloadVideo) {
+    if (
+      resolveShouldCaptureVideo(
+        captureVideo,
+        serverConfig.crawler.downloadVideo,
+      )
+    ) {
+      // Mark pending so the UI shows progress and keeps polling until the
+      // video worker reaches a terminal state.
+      await db
+        .update(bookmarkLinks)
+        .set({ videoDownloadStatus: "pending" })
+        .where(eq(bookmarkLinks.id, bookmarkId));
       // Trigger a potential download of a video from the URL
       await VideoWorkerQueue.enqueue(
         {

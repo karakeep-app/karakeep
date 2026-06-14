@@ -603,6 +603,13 @@
       "when": 1781380029415,
       "tag": "0085_add_embedding_status",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "6",
+      "when": 1781462844664,
+      "tag": "0086_video_first_class",
+      "breakpoints": true
     }
   ]
 }
