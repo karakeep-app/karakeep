@@ -198,6 +198,10 @@ const allEnv = z.object({
   PAID_QUOTA_ASSET_SIZE_BYTES: z.coerce.number().optional(),
   PAID_BROWSER_CRAWLING_ENABLED: optionalStringBool(),
 
+  // Reddit configuration
+  REDDIT_CLIENT_ID: z.string().optional(),
+  REDDIT_CLIENT_SECRET: z.string().optional(),
+
   // Proxy configuration
   CRAWLER_HTTP_PROXY: z
     .string()
@@ -469,6 +473,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         assetSizeBytes: val.PAID_QUOTA_ASSET_SIZE_BYTES ?? null,
         browserCrawlingEnabled: val.PAID_BROWSER_CRAWLING_ENABLED ?? null,
       },
+    },
+    reddit: {
+      clientId: val.REDDIT_CLIENT_ID,
+      clientSecret: val.REDDIT_CLIENT_SECRET,
     },
     database: {
       walMode: val.DB_WAL_MODE,
