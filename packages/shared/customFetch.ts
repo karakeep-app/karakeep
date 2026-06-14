@@ -48,12 +48,26 @@ export function createCustomFetch(fetchImpl: FetchFunction = globalThis.fetch) {
     } as RequestInit)
       .then((response) => {
         clearTimeout(headerTimer);
-        setTimeout(() => {
-          controller.abort(
-            new DOMException("Timed out reading response body", "TimeoutError"),
-          );
-        }, timeoutMs);
-        return response;
+
+        const bodyTimer = setTimeout(
+          () => controller.abort(new DOMException("Timed out reading response body", "TimeoutError")),
+          timeoutMs,
+        );
+
+        if (!response.body) {
+          clearTimeout(bodyTimer);
+          return response;
+        }
+
+        const clearBodyTimer = () => clearTimeout(bodyTimer);
+        const passthrough = new TransformStream({ flush: clearBodyTimer });
+        response.body.pipeTo(passthrough.writable).catch(clearBodyTimer);
+
+        return new Response(passthrough.readable, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers,
+        });
       })
       .catch((error) => {
         clearTimeout(headerTimer);
