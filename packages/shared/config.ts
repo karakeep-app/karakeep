@@ -246,6 +246,11 @@ const allEnv = z.object({
   DATABASE_PASSWORD: z.string().optional(),
   DATABASE_NAME: z.string().optional(),
   DB_WAL_MODE: stringBool("false"),
+  // PostgreSQL connection pool size. Connections are opened eagerly at startup
+  // (see drizzle.ts) so the per-connection establishment cost is paid at boot
+  // rather than under load — important when connecting is slow (e.g. reverse
+  // DNS on connect). Ignored for SQLite.
+  DATABASE_POOL_SIZE: z.coerce.number().int().min(1).default(10),
 
   // OpenTelemetry tracing configuration
   OTEL_TRACING_ENABLED: stringBool("false"),
@@ -488,6 +493,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       password: val.DATABASE_PASSWORD ?? null,
       name: val.DATABASE_NAME ?? null,
       walMode: val.DB_WAL_MODE,
+      poolSize: val.DATABASE_POOL_SIZE,
     },
     tracing: {
       enabled: val.OTEL_TRACING_ENABLED,

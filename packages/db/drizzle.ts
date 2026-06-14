@@ -123,6 +123,7 @@ async function createPostgresDB() {
   // the counts and sums used in this application (well within
   // Number.MAX_SAFE_INTEGER).
   const client = pgClient(connectionString, {
+    max: serverConfig.database.poolSize,
     types: {
       bigint: {
         to: 20,
@@ -166,6 +167,25 @@ async function createPostgresDB() {
         `Expected numeric .changes, got ${typeof verify.changes}. ` +
         "Pin postgres to ~3.4.9 or update the patch in drizzle.ts.",
     );
+  }
+
+  // Eagerly open all pool connections now, during startup, where latency is
+  // harmless. postgres.js opens connections lazily, so without this the first
+  // burst of concurrent requests must open several connections at once and
+  // pays the full per-connection establishment cost in series — which showed
+  // up as a ~30s stall on the first cold-cache page load when connecting to
+  // PostgreSQL is slow (e.g. reverse-DNS-on-connect). Holding `poolSize`
+  // connections simultaneously (pg_sleep) forces the pool to actually fill
+  // rather than reuse one fast slot.
+  const poolSize = serverConfig.database.poolSize;
+  try {
+    logger.info(`[db] pre-warming connection pool (${poolSize} connections)`);
+    await Promise.all(
+      Array.from({ length: poolSize }, () => client`SELECT pg_sleep(0.05)`),
+    );
+    logger.info("[db] connection pool warmed");
+  } catch (e) {
+    logger.warn(`[db] connection pool pre-warm failed (continuing): ${e}`);
   }
 
   return drizzle(client, {
