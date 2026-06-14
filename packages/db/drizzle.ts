@@ -14,6 +14,7 @@ import type {
 import type postgres from "postgres";
 
 import serverConfig, { buildPgConnectionString } from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
 
 import { instrumentSqliteDatabase } from "./instrumentation";
 import * as pgSchema from "./schema.pg";
@@ -26,6 +27,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 let _rawClient: Database.Database | ReturnType<typeof postgres> | null = null;
 
 export const dialect = serverConfig.database.dialect;
+
+// Optional SQL query logging, routed through the app logger at debug level.
+// Gated behind DB_QUERY_LOGGING (not just LOG_LEVEL) because it is high-volume
+// and may include query parameter values.  Enable it to see what the DB is
+// doing — e.g. exactly when a query fires relative to the request that issued
+// it.  When disabled it is `false`, so Drizzle never invokes it (zero cost).
+const queryLogger = serverConfig.dbQueryLogging
+  ? {
+      logQuery(query: string, params: unknown[]) {
+        logger.debug(
+          `[db] ${query}${params.length ? ` -- params: ${JSON.stringify(params)}` : ""}`,
+        );
+      },
+    }
+  : false;
 
 // The canonical schema type used for DB typing.
 // Both SQLite and PG schemas export identical table/column names, so the
@@ -65,6 +81,7 @@ async function createSqliteDB() {
     ? `${serverConfig.dataDir}/db.db`
     : "./db.db";
 
+  logger.info(`[db] opening SQLite database at ${databaseURL}`);
   const sqlite = new SqliteDatabase(databaseURL);
   _rawClient = sqlite;
 
@@ -80,7 +97,10 @@ async function createSqliteDB() {
 
   instrumentSqliteDatabase(sqlite);
 
-  return drizzle(sqlite, { schema: { ...sqliteSchema, ...relations } });
+  return drizzle(sqlite, {
+    schema: { ...sqliteSchema, ...relations },
+    logger: queryLogger,
+  });
 }
 
 async function createPostgresDB() {
@@ -92,6 +112,10 @@ async function createPostgresDB() {
   };
 
   const connectionString = buildPgConnectionString(serverConfig.database);
+
+  logger.info(
+    `[db] connecting to PostgreSQL ${serverConfig.database.host ?? "?"}:${serverConfig.database.port}/${serverConfig.database.name ?? "?"}`,
+  );
 
   // PostgreSQL COUNT/SUM return bigint (OID 20), which postgres.js delivers
   // as a string by default.  The app expects plain numbers everywhere, so
@@ -115,6 +139,7 @@ async function createPostgresDB() {
   // postgres.js uses `.count` instead.  Alias `.changes` on the Result
   // prototype so all existing call sites work without modification.
   const probe = await client`SELECT 1`;
+  logger.info("[db] PostgreSQL connection established");
   const ResultProto = Object.getPrototypeOf(probe);
   if (!("changes" in ResultProto)) {
     Object.defineProperty(ResultProto, "changes", {
@@ -143,7 +168,10 @@ async function createPostgresDB() {
     );
   }
 
-  return drizzle(client, { schema: { ...pgSchema, ...relations } });
+  return drizzle(client, {
+    schema: { ...pgSchema, ...relations },
+    logger: queryLogger,
+  });
 }
 
 // Drizzle has no shared base type between SQLite and PG — they are separate
