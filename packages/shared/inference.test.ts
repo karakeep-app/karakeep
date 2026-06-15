@@ -97,3 +97,12 @@ describe("AnthropicInferenceClient image inference", () => {
     ]);
   });
 });
+
+describe("AnthropicInferenceClient embeddings", () => {
+  it("rejects with a clear unsupported error", async () => {
+    const client = makeClient();
+    await expect(client.generateEmbeddingFromText(["x"])).rejects.toThrow(
+      /does not provide an embeddings API/,
+    );
+  });
+});
