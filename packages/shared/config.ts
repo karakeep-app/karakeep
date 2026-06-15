@@ -58,6 +58,8 @@ const allEnv = z.object({
   TURNSTILE_SITE_KEY: z.string().optional(),
   TURNSTILE_SECRET_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_BASE_URL: z.string().url().optional(),
   OPENAI_BASE_URL: z.string().url().optional(),
   OPENAI_PROXY_URL: z.string().url().optional(),
   OPENAI_TIMEOUT_SEC: z.coerce.number().positive().optional(),
@@ -316,11 +318,16 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         : undefined,
     },
     inference: {
-      isConfigured: !!val.OPENAI_API_KEY || !!val.OLLAMA_BASE_URL,
+      isConfigured:
+        !!val.OPENAI_API_KEY ||
+        !!val.ANTHROPIC_API_KEY ||
+        !!val.OLLAMA_BASE_URL,
       numWorkers: val.INFERENCE_NUM_WORKERS,
       jobTimeoutSec: val.INFERENCE_JOB_TIMEOUT_SEC,
       fetchTimeoutSec: val.INFERENCE_FETCH_TIMEOUT_SEC,
       openAIApiKey: val.OPENAI_API_KEY,
+      anthropicApiKey: val.ANTHROPIC_API_KEY,
+      anthropicBaseUrl: val.ANTHROPIC_BASE_URL,
       openAIBaseUrl: val.OPENAI_BASE_URL,
       openAIProxyUrl: val.OPENAI_PROXY_URL,
       openAITimeoutSec: val.OPENAI_TIMEOUT_SEC,
