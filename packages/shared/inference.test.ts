@@ -79,3 +79,21 @@ describe("AnthropicInferenceClient text inference", () => {
     expect(createMock.mock.calls[0][0].output_config).toBeUndefined();
   });
 });
+
+describe("AnthropicInferenceClient image inference", () => {
+  it("builds a base64 image content block with the given media type", async () => {
+    const client = makeClient({ outputSchema: "plain" });
+    await client.inferFromImage("describe", "image/png", "BASE64DATA", {
+      schema: null,
+    });
+    const body = createMock.mock.calls[0][0];
+    expect(body.model).toBe("claude-haiku-4-5");
+    expect(body.messages[0].content).toEqual([
+      { type: "text", text: "describe" },
+      {
+        type: "image",
+        source: { type: "base64", media_type: "image/png", data: "BASE64DATA" },
+      },
+    ]);
+  });
+});
