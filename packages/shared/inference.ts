@@ -158,6 +158,10 @@ export class InferenceClientFactory {
       return OpenAIInferenceClient.fromConfig();
     }
 
+    if (serverConfig.inference.anthropicApiKey) {
+      return AnthropicInferenceClient.fromConfig();
+    }
+
     if (serverConfig.inference.ollamaBaseUrl) {
       return OllamaInferenceClient.fromConfig();
     }
