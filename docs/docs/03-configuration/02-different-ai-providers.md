@@ -14,6 +14,31 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 # INFERENCE_IMAGE_MODEL=gpt-4o-mini
 ```
 
+## Anthropic (Claude)
+
+Karakeep has a native Anthropic provider (it does **not** go through Anthropic's
+OpenAI-compatibility endpoint), which means structured tagging output is enforced
+by the API.
+
+```
+ANTHROPIC_API_KEY=sk-ant-xxxxxxxxxxxxxxxxxxxxxxxx
+# Optional: point at a gateway/proxy instead of api.anthropic.com
+# ANTHROPIC_BASE_URL=https://your-gateway.example.com
+# Optional: override the default model (claude-haiku-4-5)
+INFERENCE_TEXT_MODEL=claude-haiku-4-5
+INFERENCE_IMAGE_MODEL=claude-haiku-4-5
+```
+
+Notes:
+
+- If `ANTHROPIC_API_KEY` is set, the Anthropic provider is used. If
+  `OPENAI_API_KEY` is also set, OpenAI takes precedence — unset it to use Claude.
+- The default model is `claude-haiku-4-5` (cheap and fast, suited to
+  high-volume auto-tagging). Set `INFERENCE_TEXT_MODEL` / `INFERENCE_IMAGE_MODEL`
+  to any Claude model (e.g. `claude-sonnet-4-6`) to override.
+- **Embeddings are not supported** by Anthropic. Semantic search needs a
+  separate embedding provider (OpenAI or Ollama).
+
 ## Ollama
 
 Ollama is a local LLM provider that you can use to run your own LLM server. You'll need to pass ollama's address to karakeep and you need to ensure that it's accessible from within the karakeep container (e.g. no localhost addresses).
