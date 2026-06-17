@@ -88,27 +88,33 @@ function VideoEmbed({
   let inner: React.ReactNode = null;
   if (videoAssetId) {
     inner = (
+      // eslint-disable-next-line jsx-a11y/media-has-caption -- captions not (yet) available
       <video
         controls
         preload="metadata"
         playsInline
         poster={posterUrl ?? undefined}
         className="absolute inset-0 h-full w-full object-contain"
-        src={`/api/assets/${videoAssetId}`}
       >
-        <track kind="captions" />
+        <source src={`/api/assets/${videoAssetId}`} />
       </video>
     );
   } else if (youTubeId || vimeoId) {
     const embedSrc = youTubeId
       ? `https://www.youtube-nocookie.com/embed/${youTubeId}?autoplay=1&rel=0`
       : `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
+    // YouTube has a public thumbnail CDN; Vimeo doesn't, so fall back to the
+    // bookmark's crawled image for the pre-play poster.
+    const posterImage = youTubeId
+      ? `https://i.ytimg.com/vi/${youTubeId}/hqdefault.jpg`
+      : (posterUrl ?? null);
     inner = playing ? (
       <iframe
         src={embedSrc}
         title={title ?? "video"}
         className="absolute inset-0 h-full w-full"
         allow="autoplay; encrypted-media; picture-in-picture"
+        sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-popups-to-escape-sandbox"
         allowFullScreen
       />
     ) : (
@@ -122,9 +128,9 @@ function VideoEmbed({
         className="group/play absolute inset-0 h-full w-full"
         aria-label="Play video"
       >
-        {youTubeId && (
+        {posterImage && (
           <Image
-            src={`https://i.ytimg.com/vi/${youTubeId}/hqdefault.jpg`}
+            src={posterImage}
             alt={title ?? "video thumbnail"}
             fill
             unoptimized
