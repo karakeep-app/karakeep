@@ -126,14 +126,46 @@ export interface InferenceClient {
   generateEmbeddingFromText(inputs: string[]): Promise<EmbeddingResponse>;
 }
 
-const mapInferenceOutputSchema = <
-  T,
-  S extends typeof serverConfig.inference.outputSchema,
->(
-  opts: Record<S, T>,
-  type: S,
-): T => {
-  return opts[type];
+/**
+ * Resolve the effective output schema for an inference call.
+ *
+ * `serverConfig.inference.outputSchema` is a global setting, but individual
+ * callers have different needs: tagging passes a Zod schema and needs a
+ * structured response, while summarization passes `schema: null` and needs
+ * free-form text. Forcing one global schema across both makes at least one of
+ * them fail (e.g. `json` on a summary prompt without the word "json" → 400;
+ * `structured` on a model that doesn't support zodResponseFormat → 400).
+ *
+ * Rule: if the caller provided a schema, honour the global mode (structured
+ * uses zodResponseFormat, json uses json_object, plain uses nothing). If the
+ * caller did NOT provide a schema, force plain so we never send a
+ * `response_format` that the prompt can't satisfy.
+ */
+function resolveOutputSchema(
+  globalMode: typeof serverConfig.inference.outputSchema,
+  callSchema: z.ZodSchema<unknown> | null,
+): "structured" | "json" | "plain" {
+  if (callSchema === null) {
+    return "plain";
+  }
+  return globalMode;
+}
+
+interface ResponseFormatJSONObject {
+  type: "json_object";
+}
+type ResponseFormatOption =
+  | ReturnType<typeof zodResponseFormat>
+  | ResponseFormatJSONObject
+  | undefined;
+
+const responseFormatByMode: Record<
+  "structured" | "json" | "plain",
+  ResponseFormatOption
+> = {
+  structured: undefined, // filled in per-call (depends on schema)
+  json: { type: "json_object" },
+  plain: undefined,
 };
 
 export interface OpenAIInferenceConfig {
@@ -211,6 +243,10 @@ export class OpenAIInferenceClient implements InferenceClient {
       ...defaultInferenceOptions,
       ..._opts,
     };
+    const effectiveSchema = resolveOutputSchema(
+      this.config.outputSchema,
+      optsWithDefaults.schema,
+    );
     const chatCompletion = await this.openAI.chat.completions.create(
       {
         messages: [{ role: "user", content: prompt }],
@@ -221,16 +257,10 @@ export class OpenAIInferenceClient implements InferenceClient {
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),
-        response_format: mapInferenceOutputSchema(
-          {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
-          this.config.outputSchema,
-        ),
+        response_format:
+          effectiveSchema === "structured" && optsWithDefaults.schema
+            ? zodResponseFormat(optsWithDefaults.schema, "schema")
+            : responseFormatByMode[effectiveSchema],
         reasoning_effort: this.config.reasoningEffort,
       },
       {
@@ -255,6 +285,10 @@ export class OpenAIInferenceClient implements InferenceClient {
       ...defaultInferenceOptions,
       ..._opts,
     };
+    const effectiveSchema = resolveOutputSchema(
+      this.config.outputSchema,
+      optsWithDefaults.schema,
+    );
     const chatCompletion = await this.openAI.chat.completions.create(
       {
         model: this.config.imageModel,
@@ -264,16 +298,10 @@ export class OpenAIInferenceClient implements InferenceClient {
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),
-        response_format: mapInferenceOutputSchema(
-          {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
-          this.config.outputSchema,
-        ),
+        response_format:
+          effectiveSchema === "structured" && optsWithDefaults.schema
+            ? zodResponseFormat(optsWithDefaults.schema, "schema")
+            : responseFormatByMode[effectiveSchema],
         messages: [
           {
             role: "user",
@@ -368,19 +396,19 @@ class OllamaInferenceClient implements InferenceClient {
         this.ollama.abort();
       };
     }
+    const effectiveSchema = resolveOutputSchema(
+      this.config.outputSchema,
+      optsWithDefaults.schema,
+    );
     const chatCompletion = await this.ollama.generate({
       model: model,
-      format: mapInferenceOutputSchema(
-        {
-          // Use Zod 4's native JSON Schema emitter for Ollama structured output.
-          structured: optsWithDefaults.schema
-            ? z.toJSONSchema(optsWithDefaults.schema)
+      format:
+        effectiveSchema === "structured" && optsWithDefaults.schema
+          ? // Use Zod 4's native JSON Schema emitter for Ollama structured output.
+            z.toJSONSchema(optsWithDefaults.schema)
+          : effectiveSchema === "json"
+            ? "json"
             : undefined,
-          json: "json",
-          plain: undefined,
-        },
-        this.config.outputSchema,
-      ),
       stream: true,
       keep_alive: this.config.keepAlive,
       options: {
