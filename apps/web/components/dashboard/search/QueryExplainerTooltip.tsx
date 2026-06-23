@@ -52,6 +52,17 @@ export default function QueryExplainerTooltip({
             <TableCell>{matcher.listName}</TableCell>
           </TableRow>
         );
+      case "listId":
+        return (
+          <TableRow>
+            <TableCell>
+              {matcher.inverse
+                ? t("search.is_not_in_list")
+                : t("search.is_in_list")}
+            </TableCell>
+            <TableCell>{matcher.listId}</TableCell>
+          </TableRow>
+        );
       case "dateAfter":
         return (
           <TableRow>

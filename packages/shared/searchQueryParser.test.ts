@@ -296,6 +296,53 @@ describe("Search Query Parser", () => {
         inverse: true,
       },
     });
+    // list id (cuid2 24 chars lowercase) routes through the listId matcher
+    expect(parseSearchQuery("list:kidcwffcnie6rky83n9xof8x")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listId",
+        listId: "kidcwffcnie6rky83n9xof8x",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery("-list:kidcwffcnie6rky83n9xof8x")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listId",
+        listId: "kidcwffcnie6rky83n9xof8x",
+        inverse: true,
+      },
+    });
+    expect(parseSearchQuery("!list:kidcwffcnie6rky83n9xof8x")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listId",
+        listId: "kidcwffcnie6rky83n9xof8x",
+        inverse: true,
+      },
+    });
+    // ids shorter or longer than 24 chars (or with uppercase) stay as listName
+    expect(parseSearchQuery("list:kidcwffcnie6rky83n9xof8")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listName",
+        listName: "kidcwffcnie6rky83n9xof8",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery("list:KIDCWFFCNI6RKY83N9XOF8X")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "listName",
+        listName: "KIDCWFFCNI6RKY83N9XOF8X",
+        inverse: false,
+      },
+    });
     expect(parseSearchQuery("feed:my-feed")).toEqual({
       result: "full",
       text: "",

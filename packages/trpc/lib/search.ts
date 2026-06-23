@@ -195,6 +195,48 @@ async function getIds(
           ),
         );
     }
+    case "listId": {
+      // Look up the list by its immutable id (scoped to the user).
+      const list = await db.query.bookmarkLists.findFirst({
+        where: and(
+          eq(bookmarkLists.userId, userId),
+          eq(bookmarkLists.id, matcher.listId),
+        ),
+      });
+
+      if (!list) {
+        // Unknown id — match nothing (consistent with listName when the name
+        // doesn't resolve; users with a typo shouldn't get their entire
+        // library in the inverse result).
+        return [];
+      }
+
+      const { List } = await import("../models/lists");
+      const listModel = await List.fromId(ctx, list.id);
+      const listBookmarkIds = await listModel.getBookmarkIds(visitedListIds);
+
+      if (listBookmarkIds.length === 0) {
+        if (matcher.inverse) {
+          return db
+            .selectDistinct({ id: bookmarks.id })
+            .from(bookmarks)
+            .where(eq(bookmarks.userId, userId));
+        }
+        return [];
+      }
+
+      return db
+        .selectDistinct({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            matcher.inverse
+              ? notInArray(bookmarks.id, listBookmarkIds)
+              : inArray(bookmarks.id, listBookmarkIds),
+          ),
+        );
+    }
     case "inlist": {
       const comp = matcher.inList ? exists : notExists;
       return db

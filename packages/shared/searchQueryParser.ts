@@ -219,11 +219,22 @@ MATCHER.setPattern(
               text: "",
               matcher: { type: "tagName", tagName: ident, inverse: !!minus },
             };
-          case "list:":
+          case "list:": {
+            // Karakeep list ids are cuid2 (24 lowercase alphanumeric chars by
+            // default). When the user supplies an id-shaped value, treat it as
+            // an immutable id reference (`listId`) rather than a name lookup
+            // (`listName`). This keeps Smart Lists stable across renames.
+            if (/^[a-z0-9]{24}$/.test(ident)) {
+              return {
+                text: "",
+                matcher: { type: "listId", listId: ident, inverse: !!minus },
+              };
+            }
             return {
               text: "",
               matcher: { type: "listName", listName: ident, inverse: !!minus },
             };
+          }
           case "feed:":
             return {
               text: "",

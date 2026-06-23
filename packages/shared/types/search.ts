@@ -14,6 +14,12 @@ const zListNameMatcher = z.object({
   inverse: z.boolean(),
 });
 
+const zListIdMatcher = z.object({
+  type: z.literal("listId"),
+  listId: z.string(),
+  inverse: z.boolean(),
+});
+
 const zRssFeedNameMatcher = z.object({
   type: z.literal("rssFeedName"),
   feedName: z.string(),
@@ -97,6 +103,7 @@ const zSourceMatcher = z.object({
 const zNonRecursiveMatcher = z.union([
   zTagNameMatcher,
   zListNameMatcher,
+  zListIdMatcher,
   zArchivedMatcher,
   zUrlMatcher,
   zTitleMatcher,
