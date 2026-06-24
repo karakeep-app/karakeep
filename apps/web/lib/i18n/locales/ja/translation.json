@@ -101,6 +101,10 @@
           "title": "インデックスジョブ",
           "description": "検索インデックスの更新"
         },
+        "embeddings": {
+          "title": "埋め込みジョブ",
+          "description": "ブックマークのベクトル埋め込みを生成"
+        },
         "asset_preprocessing": {
           "title": "アセットのプレ処理ジョブ",
           "description": "画像とドキュメントの前処理（スクリーンショット、テキスト抽出など）"
@@ -158,7 +162,10 @@
         "migrate_large_link_html_content": "大規模なインラインHTMLコンテンツをアセットに移動",
         "recrawl_pending_links_only": "保留中のリンクのみを再クロールする",
         "regenerate_ai_tags_for_pending_bookmarks_only": "保留中のブックマークのみを対象にAIタグを再生成する",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "保留中のブックマークのみを対象にAI要約を再生成する"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "保留中のブックマークのみを対象にAI要約を再生成する",
+        "regenerate_embeddings_for_pending_bookmarks_only": "保留中のブックマークのみ埋め込みを再生成",
+        "regenerate_embeddings_for_failed_bookmarks_only": "失敗したブックマークのみ埋め込みを再生成",
+        "regenerate_embeddings_for_all_bookmarks": "すべてのブックマークの埋め込みを再生成"
       }
     },
     "admin_settings": "管理者設定",
@@ -181,6 +188,7 @@
       "search_engine": "検索エンジン",
       "browser": "ブラウザ",
       "queue_system": "キューシステム",
+      "vector_store": "ベクトルストア",
       "status": {
         "not_configured": "未構成",
         "connected": "接続済み",
@@ -206,11 +214,13 @@
       "owner_user_id": "オーナーユーザーID",
       "tagging_status": "タギングステータス",
       "summarization_status": "要約ステータス",
+      "embedding_status": "埋め込みの状態",
       "crawl_status": "クロールステータス",
       "crawl_status_code": "HTTPステータスコード",
       "crawled_at": "クロール日時",
       "recrawl": "再クロール",
       "reindex": "再インデックス",
+      "regenerate_embedding": "埋め込みを再生成",
       "retag": "再タグ付け",
       "resummarize": "再要約",
       "bookmark_not_found": "ブックマークが見つかりません",
@@ -218,6 +228,7 @@
       "action_failed": "アクション失敗",
       "recrawl_queued": "再クロールジョブをキューに追加しました",
       "reindex_queued": "再インデックスジョブをキューに追加しました",
+      "regenerate_embedding_queued": "埋め込みの再生成ジョブをキューに追加しました",
       "retag_queued": "再タグ付けジョブをキューに追加しました",
       "resummarize_queued": "再要約ジョブをキューに追加しました",
       "view": "表示",
@@ -1042,7 +1053,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "ブックマークを削除する？",
-      "delete_confirmation_description": "このブックマークを削除してもよろしいですか？"
+      "delete_confirmation_description": "このブックマークを削除してもよろしいですか？",
+      "bulk_delete_confirmation_description": "{{count}} 件のブックマークを本当に削除しますか？"
     }
   },
   "toasts": {
@@ -1166,5 +1178,28 @@
     "download": "ダウンロード",
     "close": "閉じる",
     "generating": "作成中..."
+  },
+  "keyboard_shortcuts": {
+    "title": "キーボードショートカット",
+    "sections": {
+      "navigation": "ナビゲーション",
+      "actions": "操作",
+      "selection": "選択",
+      "other": "その他"
+    },
+    "move_left": "左に移動",
+    "move_down": "下に移動",
+    "move_up": "上に移動",
+    "move_right": "右に移動",
+    "open_bookmark": "ブックマークを開く",
+    "clear_focus": "フォーカスを解除 / 一括編集を終了",
+    "toggle_favorite": "お気に入りを切り替え",
+    "toggle_archive": "アーカイブ / アーカイブ解除",
+    "delete_bookmark": "ブックマークを削除",
+    "toggle_selection": "選択を切り替え",
+    "select_all": "全選択",
+    "deselect_all": "全ての選択を解除",
+    "show_help": "キーボードショートカットを表示",
+    "focus_search_alt": "検索にフォーカス"
   }
 }
