@@ -1,6 +1,6 @@
 # Render wrapper for the official Karakeep AIO image.
 # Adds render-entrypoint.sh so BROWSER_WEB_URL can be built from fromService host.
-FROM ghcr.io/karakeep-app/karakeep
+FROM ghcr.io/karakeep-app/karakeep:release
 
 COPY docker/render-entrypoint.sh /render-entrypoint.sh
 RUN chmod +x /render-entrypoint.sh
