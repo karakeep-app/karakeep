@@ -2,8 +2,6 @@
 #
 # Karakeep on Render — official GHCR image + Meilisearch + headless Chrome
 # Mirrors docker/docker-compose.yml: web (AIO image with workers), meilisearch, chrome.
-# Repo: https://github.com/ojusave/karakeep
-# Upstream: https://github.com/karakeep-app/karakeep
 #
 # After deploy: open the karakeep web URL, create your account, then add OPENAI_API_KEY
 # in the Dashboard if you want AI tagging (optional but recommended).
