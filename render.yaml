@@ -64,7 +64,7 @@ projects:
             runtime: image
             region: oregon
             image:
-              url: getmeili/meilisearch
+              url: getmeili/meilisearch:v1.41.0
             disk:
               name: meilisearch-data
               mountPath: /meili_data
