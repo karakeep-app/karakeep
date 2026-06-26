@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+#
+# Karakeep on Render — official GHCR image + Meilisearch + headless Chrome
+# Mirrors docker/docker-compose.yml: web (AIO image with workers), meilisearch, chrome.
+# Repo: https://github.com/ojusave/karakeep
+# Upstream: https://github.com/karakeep-app/karakeep
+#
+# After deploy: open the karakeep web URL, create your account, then add OPENAI_API_KEY
+# in the Dashboard if you want AI tagging (optional but recommended).
+
+previews:
+  generation: off
+
+envVarGroups:
+  - name: karakeep-shared
+    envVars:
+      # Same key on karakeep + meilisearch (search disabled if missing or mismatched).
+      - key: MEILI_MASTER_KEY
+        generateValue: true
+
+projects:
+  - name: karakeep
+    environments:
+      - name: production
+        services:
+          - type: web
+            name: karakeep
+            runtime: image
+            plan: standard
+            region: oregon
+            image:
+              url: ghcr.io/karakeep-app/karakeep:release
+            healthCheckPath: /api/health
+            disk:
+              name: karakeep-data
+              mountPath: /data
+              sizeGB: 5
+            envVars:
+              - fromGroup: karakeep-shared
+              - key: DATA_DIR
+                value: /data
+              - key: MEILI_ADDR
+                value: http://meilisearch:7700
+              - key: BROWSER_WEB_URL
+                value: http://chrome:9222
+              - key: DB_WAL_MODE
+                value: "true"
+              - key: NEXTAUTH_SECRET
+                generateValue: true
+              - key: NEXTAUTH_URL
+                fromService:
+                  name: karakeep
+                  type: web
+                  envVarKey: RENDER_EXTERNAL_URL
+              # Optional: enable AI tagging and summarization after deploy.
+              - key: OPENAI_API_KEY
+                sync: false
+
+          - type: pserv
+            name: meilisearch
+            runtime: image
+            plan: starter
+            region: oregon
+            image:
+              url: getmeili/meilisearch:v1.41.0
+            disk:
+              name: meilisearch-data
+              mountPath: /meili_data
+              sizeGB: 1
+            envVars:
+              - fromGroup: karakeep-shared
+              - key: MEILI_NO_ANALYTICS
+                value: "true"
+
+          - type: pserv
+            name: chrome
+            runtime: image
+            plan: starter
+            region: oregon
+            image:
+              url: gcr.io/zenika-hub/alpine-chrome:124
+            dockerCommand: --no-sandbox --disable-gpu --disable-dev-shm-usage --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222 --hide-scrollbars
