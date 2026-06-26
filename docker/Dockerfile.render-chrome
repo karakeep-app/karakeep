@@ -3,7 +3,7 @@
 #
 # Render image runtime dockerCommand is passed as a single argv and fails
 # (exit 128). Use runtime: docker with an explicit ENTRYPOINT/CMD instead.
-FROM gcr.io/zenika-hub/alpine-chrome
+FROM gcr.io/zenika-hub/alpine-chrome:124
 
 USER chrome
 
