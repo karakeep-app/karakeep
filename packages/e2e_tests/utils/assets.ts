@@ -9,3 +9,9 @@ export function createTestPdfFile(fileName = "test.pdf"): File {
     type: "application/pdf",
   });
 }
+
+export function createTestVideoFile(fileName = "test.mp4"): File {
+  return new File([new Uint8Array([0, 0, 0, 0])], fileName, {
+    type: "video/mp4",
+  });
+}
