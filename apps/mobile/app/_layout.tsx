@@ -8,12 +8,13 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
-import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
+import { ShareIntentProvider as ExpoShareIntentProvider } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
 import { StyledStack } from "@/components/navigation/stack";
 import SplashScreenController from "@/components/SplashScreenController";
 import { isIOS26 } from "@/lib/ios";
 import { Providers } from "@/lib/providers";
+import { useKarakeepShareIntent } from "@/lib/shareIntent";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
 import { NAV_THEME } from "@/theme";
@@ -33,17 +34,7 @@ Sentry.init({
 
 export default Sentry.wrap(function RootLayout() {
   useInitialAndroidBarSync();
-  const router = useRouter();
-  const { hasShareIntent } = useShareIntent();
   const { colorScheme } = useColorScheme();
-
-  useEffect(() => {
-    if (hasShareIntent) {
-      router.replace({
-        pathname: "sharing",
-      });
-    }
-  }, [hasShareIntent]);
 
   return (
     <SafeAreaProvider>
@@ -58,7 +49,10 @@ export default Sentry.wrap(function RootLayout() {
               return (
                 <GestureHandlerRootView style={{ flex: 1 }}>
                   <ShareIntentProvider>
-                    <Providers>{props.children}</Providers>
+                    <Providers>
+                      <ShareIntentRouter />
+                      {props.children}
+                    </Providers>
                   </ShareIntentProvider>
                 </GestureHandlerRootView>
               );
@@ -146,3 +140,38 @@ export default Sentry.wrap(function RootLayout() {
     </SafeAreaProvider>
   );
 });
+
+/**
+ * Detects incoming share intents and routes to the sharing screen.
+ *
+ * This component lives INSIDE the ShareIntentProvider (for iOS) so it uses
+ * the same context instance as the sharing screen. On Android, it uses our
+ * custom native module directly. This eliminates the dual-hook race condition
+ * that previously existed when useShareIntent() was called both here and
+ * inside ShareIntentProvider.
+ */
+function ShareIntentRouter() {
+  const router = useRouter();
+  const { hasShareIntent } = useKarakeepShareIntent();
+
+  useEffect(() => {
+    if (hasShareIntent) {
+      router.replace({
+        pathname: "sharing",
+      });
+    }
+  }, [hasShareIntent]);
+
+  return null;
+}
+
+/**
+ * Wraps children with ExpoShareIntentProvider on iOS (needed for expo-share-intent),
+ * and passes through directly on Android (where we use our custom module).
+ */
+function ShareIntentProvider({ children }: { children: React.ReactNode }) {
+  if (Platform.OS === "ios") {
+    return <ExpoShareIntentProvider>{children}</ExpoShareIntentProvider>;
+  }
+  return <>{children}</>;
+}
