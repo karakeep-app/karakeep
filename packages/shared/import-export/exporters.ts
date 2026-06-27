@@ -90,40 +90,84 @@ export function toExportListFormat(
   };
 }
 
-export function toNetscapeFormat(bookmarks: ZBookmark[]): string {
+export function toNetscapeFormat(
+  bookmarks: ZBookmark[],
+  lists: z.infer<typeof zExportListSchema>[] = [],
+  bookmarkListMap = new Map<string, string[]>(),
+): string {
   const header = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
 <!-- This is an automatically generated file.
      It will be read and overwritten.
      DO NOT EDIT! -->
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
 <TITLE>Bookmarks</TITLE>
-<H1>Bookmarks</H1>
-<DL><p>`;
+<H1>Bookmarks</H1>`;
 
-  const footer = `</DL><p>`;
+  // Group lists by parentId for tree traversal
+  const listChildren = new Map<
+    string | null,
+    z.infer<typeof zExportListSchema>[]
+  >();
+  for (const list of lists) {
+    const parent = list.parentId;
+    if (!listChildren.has(parent)) listChildren.set(parent, []);
+    listChildren.get(parent)!.push(list);
+  }
 
-  const bookmarkEntries = bookmarks
-    .map((bookmark) => {
-      if (bookmark.content?.type !== BookmarkTypes.LINK) {
-        return "";
-      }
-      const addDate = bookmark.createdAt
-        ? `ADD_DATE="${Math.floor(bookmark.createdAt.getTime() / 1000)}"`
-        : "";
+  // Build reverse map: listId -> bookmarks in that list
+  const bookmarkById = new Map(bookmarks.map((b) => [b.id, b]));
+  const listBookmarks = new Map<string, ZBookmark[]>();
+  for (const [bookmarkId, listIds] of bookmarkListMap) {
+    const bookmark = bookmarkById.get(bookmarkId);
+    if (!bookmark) continue;
+    for (const listId of listIds) {
+      if (!listBookmarks.has(listId)) listBookmarks.set(listId, []);
+      listBookmarks.get(listId)!.push(bookmark);
+    }
+  }
 
-      const tagNames = bookmark.tags.map((t) => t.name).join(",");
-      const tags = tagNames.length > 0 ? `TAGS="${tagNames}"` : "";
+  // Bookmarks not in any list appear at the root level
+  const bookmarksInAnyList = new Set(
+    [...bookmarkListMap.entries()]
+      .filter(([, ids]) => ids.length > 0)
+      .map(([id]) => id),
+  );
+  const rootBookmarks = bookmarks.filter((b) => !bookmarksInAnyList.has(b.id));
 
-      const encodedUrl = encodeURI(bookmark.content.url);
-      const displayTitle = bookmark.title ?? bookmark.content.url;
-      const encodedTitle = escapeHtml(displayTitle);
+  function renderBookmark(bookmark: ZBookmark, indent: string): string {
+    if (bookmark.content?.type !== BookmarkTypes.LINK) return "";
+    const addDate = bookmark.createdAt
+      ? `ADD_DATE="${Math.floor(bookmark.createdAt.getTime() / 1000)}"`
+      : "";
+    const tagNames = bookmark.tags.map((t) => t.name).join(",");
+    const tags = tagNames.length > 0 ? `TAGS="${tagNames}"` : "";
+    const encodedUrl = encodeURI(bookmark.content.url);
+    const encodedTitle = escapeHtml(bookmark.title ?? bookmark.content.url);
+    return `${indent}<DT><A HREF="${encodedUrl}" ${addDate} ${tags}>${encodedTitle}</A>\n`;
+  }
 
-      return `    <DT><A HREF="${encodedUrl}" ${addDate} ${tags}>${encodedTitle}</A>`;
-    })
-    .filter(Boolean)
-    .join("\n");
+  // Render the folders using recursion
+  function renderFolder(listId: string | null, depth: number): string {
+    const indent = "    ".repeat(depth);
+    let output = "";
 
-  return `${header}\n${bookmarkEntries}\n${footer}`;
+    const booksHere =
+      listId === null ? rootBookmarks : (listBookmarks.get(listId) ?? []);
+    for (const bookmark of booksHere) {
+      output += renderBookmark(bookmark, indent);
+    }
+
+    for (const child of listChildren.get(listId) ?? []) {
+      output += `${indent}<DT><H3>${escapeHtml(child.name)}</H3>\n`;
+      output += `${indent}<DL><p>\n`;
+      output += renderFolder(child.id, depth + 1);
+      output += `${indent}</DL><p>\n`;
+    }
+
+    return output;
+  }
+
+  return `${header}\n<DL><p>\n${renderFolder(null, 1)}</DL><p>`;
 }
 
 function escapeHtml(input: string): string {
