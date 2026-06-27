@@ -763,6 +763,66 @@ describe("Bookmark Routes", () => {
     expect(bookmark3User1.alreadyExists).toEqual(false);
   });
 
+  test<CustomTestContext>("bookmark links dedup ignores trailing slash", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    const bookmark = await api.createBookmark({
+      url: "https://example.com/page/",
+      type: BookmarkTypes.LINK,
+    });
+    expect(bookmark.alreadyExists).toEqual(false);
+
+    const duplicate = await api.createBookmark({
+      url: "https://example.com/page",
+      type: BookmarkTypes.LINK,
+    });
+
+    expect(duplicate.alreadyExists).toEqual(true);
+    expect(duplicate.id).toEqual(bookmark.id);
+  });
+
+  test<CustomTestContext>("bookmark links dedup ignores trailing slash before query string", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    const bookmark = await api.createBookmark({
+      url: "https://example.com/page/?ref=import",
+      type: BookmarkTypes.LINK,
+    });
+    expect(bookmark.alreadyExists).toEqual(false);
+
+    const duplicate = await api.createBookmark({
+      url: "https://example.com/page?ref=import",
+      type: BookmarkTypes.LINK,
+    });
+
+    expect(duplicate.alreadyExists).toEqual(true);
+    expect(duplicate.id).toEqual(bookmark.id);
+  });
+
+  test<CustomTestContext>("bookmark links dedup ignores hash fragments", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    const bookmark = await api.createBookmark({
+      url: "https://example.com/page",
+      type: BookmarkTypes.LINK,
+    });
+    expect(bookmark.alreadyExists).toEqual(false);
+
+    const duplicate = await api.createBookmark({
+      url: "https://example.com/page#section",
+      type: BookmarkTypes.LINK,
+    });
+
+    expect(duplicate.alreadyExists).toEqual(true);
+    expect(duplicate.id).toEqual(bookmark.id);
+  });
+
   // Ensure that the pagination returns all the results
   test<CustomTestContext>("pagination", async ({ apiCallers, db }) => {
     const user = await apiCallers[0].users.whoami();
@@ -1487,6 +1547,21 @@ describe("Bookmark Routes", () => {
 
       const result = await api.checkUrl({
         url: "https://example.com/page",
+      });
+      expect(result.bookmarkId).toEqual(bookmark.id);
+    });
+
+    test<CustomTestContext>("matches URL ignoring trailing slash before query string", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/page/?ref=extension",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api.checkUrl({
+        url: "https://example.com/page?ref=extension",
       });
       expect(result.bookmarkId).toEqual(bookmark.id);
     });
