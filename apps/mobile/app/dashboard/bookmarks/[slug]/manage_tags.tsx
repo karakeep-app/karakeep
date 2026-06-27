@@ -8,7 +8,7 @@ import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { Check, Plus } from "lucide-react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
 import {

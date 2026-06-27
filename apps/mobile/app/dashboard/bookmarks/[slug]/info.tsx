@@ -39,7 +39,7 @@ import {
   Star,
   Trash2,
 } from "lucide-react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 import {
   useAutoRefreshingBookmarkQuery,

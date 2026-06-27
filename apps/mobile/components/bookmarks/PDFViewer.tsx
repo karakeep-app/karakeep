@@ -99,7 +99,7 @@ export function PDFViewer({ source, headers }: PDFViewerProps) {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Pdf
-        style={StyleSheet.absoluteFillObject}
+        style={StyleSheet.absoluteFill}
         source={{ uri: `file://${localPath}`, cache: true }}
         spacing={16}
         maxScale={3}
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loadingContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1,

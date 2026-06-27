@@ -1,0 +1,17 @@
+diff --git a/Libraries/Renderer/implementations/ReactFabric-dev.js b/Libraries/Renderer/implementations/ReactFabric-dev.js
+index daab0e3..aa1a7cf 100644
+--- a/Libraries/Renderer/implementations/ReactFabric-dev.js
++++ b/Libraries/Renderer/implementations/ReactFabric-dev.js
+@@ -16783,11 +16783,7 @@ __DEV__ &&
+               console.error(error);
+             },
+       hasOwnProperty = Object.prototype.hasOwnProperty,
+-      supportsUserTiming =
+-        "undefined" !== typeof console &&
+-        "function" === typeof console.timeStamp &&
+-        "undefined" !== typeof performance &&
+-        "function" === typeof performance.measure,
++      supportsUserTiming = false,
+       currentTrack = "Blocking",
+       alreadyWarnedForDeepEquality = !1,
+       reusableComponentDevToolDetails = {

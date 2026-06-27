@@ -12,7 +12,7 @@ import {
 import Slider from "@react-native-community/slider";
 import Constants from "expo-constants";
 import { Link } from "expo-router";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { Divider } from "@/components/ui/Divider";
