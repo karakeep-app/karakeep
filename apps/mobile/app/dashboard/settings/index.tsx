@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Switch,
@@ -19,7 +20,9 @@ import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { useServerVersion } from "@/lib/hooks";
 import { useSession } from "@/lib/session";
-import useAppSettings from "@/lib/settings";
+import useAppSettings, {
+  DEFAULT_ANDROID_WIDGET_SEARCH_QUERY,
+} from "@/lib/settings";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -43,10 +46,15 @@ export default function Settings() {
   const api = useTRPC();
 
   const [imageQuality, setImageQuality] = useState<number | null>(null);
+  const [androidWidgetSearchQuery, setAndroidWidgetSearchQuery] = useState("");
 
   useEffect(() => {
     setImageQuality(settings.imageQuality * 100);
   }, [settings.imageQuality]);
+
+  useEffect(() => {
+    setAndroidWidgetSearchQuery(settings.androidWidgetSearchQuery);
+  }, [settings.androidWidgetSearchQuery]);
 
   const { data, error } = useQuery(api.users.whoami.queryOptions());
   const {
@@ -80,6 +88,28 @@ export default function Settings() {
   );
 
   const isLocalUser = data?.localUser ?? false;
+
+  const saveAndroidWidgetSearchQuery = async () => {
+    if (isSettingsLoading) return;
+    const nextQuery =
+      androidWidgetSearchQuery.trim() || DEFAULT_ANDROID_WIDGET_SEARCH_QUERY;
+    if (nextQuery === settings.androidWidgetSearchQuery) return;
+
+    await setSettings({
+      ...settings,
+      androidWidgetSearchQuery: nextQuery,
+    });
+
+    if (Platform.OS === "android") {
+      const { updateBookmarkSearchWidgets } =
+        await import("@/widgets/bookmark-search/updateBookmarkSearchWidgets");
+      updateBookmarkSearchWidgets().catch((error: unknown) => {
+        if (__DEV__) {
+          console.error("Failed to update Karakeep search widgets", error);
+        }
+      });
+    }
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -171,6 +201,30 @@ export default function Settings() {
           </Link>
         </View>
       </View>
+
+      {Platform.OS === "android" && (
+        <>
+          <SectionHeader title="Android Widget" />
+          <View
+            className="w-full rounded-xl bg-card py-2"
+            style={{ borderCurve: "continuous" }}
+          >
+            <View className="flex w-full flex-col gap-2 px-4 py-2">
+              <Text>Search query</Text>
+              <TextInput
+                className="rounded-lg border border-input bg-background px-3 py-2 text-foreground"
+                editable={!isSettingsLoading}
+                onBlur={saveAndroidWidgetSearchQuery}
+                onChangeText={setAndroidWidgetSearchQuery}
+                onSubmitEditing={saveAndroidWidgetSearchQuery}
+                placeholder={DEFAULT_ANDROID_WIDGET_SEARCH_QUERY}
+                returnKeyType="done"
+                value={androidWidgetSearchQuery}
+              />
+            </View>
+          </View>
+        </>
+      )}
 
       <SectionHeader title="Reading" />
       <View
