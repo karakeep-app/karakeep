@@ -24,6 +24,10 @@ const envSchema = z.object({
         .string()
         .optional()
         .transform((val) => (val ? parseInt(val, 10) : 2048)),
+    INFERENCE_TEMPERATURE: z
+        .string()
+        .optional()
+        .transform((val) => (val ? parseFloat(val) : 0)),
     INFERENCE_USE_MAX_COMPLETION_TOKENS: z
         .string()
         .optional()

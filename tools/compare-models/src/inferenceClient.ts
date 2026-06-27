@@ -16,6 +16,7 @@ export function createInferenceClient(modelName: string): InferenceClient {
     imageModel: modelName, // Use same model for images if needed
     contextLength: config.INFERENCE_CONTEXT_LENGTH,
     maxOutputTokens: config.INFERENCE_MAX_OUTPUT_TOKENS,
+    temperature: config.INFERENCE_TEMPERATURE,
     useMaxCompletionTokens: config.INFERENCE_USE_MAX_COMPLETION_TOKENS,
     outputSchema: "structured",
     reasoningEffort: config.INFERENCE_REASONING_EFFORT,

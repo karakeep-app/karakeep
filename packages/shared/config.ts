@@ -79,6 +79,7 @@ const allEnv = z.object({
   EMBEDDING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   INFERENCE_CONTEXT_LENGTH: z.coerce.number().default(2048),
   INFERENCE_MAX_OUTPUT_TOKENS: z.coerce.number().default(2048),
+  INFERENCE_TEMPERATURE: z.coerce.number().min(0).max(2).default(0),
   INFERENCE_USE_MAX_COMPLETION_TOKENS: stringBool("false"),
   INFERENCE_SUPPORTS_STRUCTURED_OUTPUT: optionalStringBool(),
   INFERENCE_OUTPUT_SCHEMA: z
@@ -320,6 +321,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       inferredTagLang: val.INFERENCE_LANG,
       contextLength: val.INFERENCE_CONTEXT_LENGTH,
       maxOutputTokens: val.INFERENCE_MAX_OUTPUT_TOKENS,
+      temperature: val.INFERENCE_TEMPERATURE,
       useMaxCompletionTokens: val.INFERENCE_USE_MAX_COMPLETION_TOKENS,
       outputSchema:
         val.INFERENCE_SUPPORTS_STRUCTURED_OUTPUT !== undefined
