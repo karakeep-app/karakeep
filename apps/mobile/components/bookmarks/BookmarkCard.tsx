@@ -40,7 +40,12 @@ function useLinkCardContext({
   const url = bookmark.content.url;
   const parsedUrl = new URL(url);
 
-  const imageUrl = getBookmarkLinkImageUrl(bookmark.content);
+  const rawImageUrl = getBookmarkLinkImageUrl(bookmark.content);
+  // expo-image doesn't support SVG images and will crash on Android - skip external SVG URLs
+  const imageUrl =
+    rawImageUrl && !rawImageUrl.localAsset && /\.svg(\?|$)/i.test(rawImageUrl.url)
+      ? null
+      : rawImageUrl;
 
   let contentComp;
   if (imageUrl) {

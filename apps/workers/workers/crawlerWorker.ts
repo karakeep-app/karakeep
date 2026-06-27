@@ -69,6 +69,7 @@ import {
   saveAsset,
   saveAssetFromFile,
   silentDeleteAsset,
+  SUPPORTED_ASSET_TYPES,
   SUPPORTED_UPLOAD_ASSET_TYPES,
 } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
@@ -1408,6 +1409,13 @@ async function downloadAndStoreFile(
         );
         if (!contentType) {
           throw new Error("No content type in the response");
+        }
+
+        if (!SUPPORTED_ASSET_TYPES.has(contentType)) {
+          logger.warn(
+            `[Crawler][${jobId}] Skipping download of unsupported content type "${contentType}" for ${fileType} at "${url.length > 100 ? url.slice(0, 100) + "..." : url}"`,
+          );
+          return null;
         }
 
         const assetId = newAssetId();
