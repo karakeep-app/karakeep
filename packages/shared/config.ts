@@ -16,6 +16,21 @@ const optionalStringBool = () =>
     .transform((s) => s === "true")
     .optional();
 
+// Only asymmetric algorithms are supported here because ID tokens are verified
+// against the provider's JWKS. Do not add "none" or symmetric HS* algorithms.
+const oauthIdTokenSignedResponseAlg = z.enum([
+  "RS256",
+  "RS384",
+  "RS512",
+  "PS256",
+  "PS384",
+  "PS512",
+  "ES256",
+  "ES384",
+  "ES512",
+  "EdDSA",
+]);
+
 const allEnv = z.object({
   PORT: z.coerce.number().default(3000),
   WORKERS_HOST: z.string().default("127.0.0.1"),
@@ -52,6 +67,7 @@ const allEnv = z.object({
   OAUTH_WELLKNOWN_URL: z.string().url().optional(),
   OAUTH_CLIENT_SECRET: z.string().optional(),
   OAUTH_CLIENT_ID: z.string().optional(),
+  OAUTH_ID_TOKEN_SIGNED_RESPONSE_ALG: oauthIdTokenSignedResponseAlg.optional(),
   OAUTH_TIMEOUT: z.coerce.number().optional().default(3500),
   OAUTH_SCOPE: z.string().default("openid email profile"),
   OAUTH_PROVIDER_NAME: z.string().default("Custom Provider"),
@@ -280,6 +296,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         wellKnownUrl: val.OAUTH_WELLKNOWN_URL,
         clientSecret: val.OAUTH_CLIENT_SECRET,
         clientId: val.OAUTH_CLIENT_ID,
+        idTokenSignedResponseAlg: val.OAUTH_ID_TOKEN_SIGNED_RESPONSE_ALG,
         scope: val.OAUTH_SCOPE,
         name: val.OAUTH_PROVIDER_NAME,
         timeout: val.OAUTH_TIMEOUT,
