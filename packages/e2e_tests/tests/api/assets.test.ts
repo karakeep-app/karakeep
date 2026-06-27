@@ -3,7 +3,7 @@ import { assert, beforeEach, describe, expect, inject, it } from "vitest";
 import { createKarakeepClient } from "@karakeep/sdk";
 
 import { createTestUser, uploadTestAsset } from "../../utils/api";
-import { createTestPdfFile } from "../../utils/assets";
+import { createTestPdfFile, createTestVideoFile } from "../../utils/assets";
 
 describe("Assets API", () => {
   const port = inject("karakeepPort");
@@ -47,6 +47,32 @@ describe("Assets API", () => {
     );
 
     expect(resp.status).toBe(200);
+    expect(resp.headers.get("Content-Security-Policy")).toContain("sandbox");
+  });
+
+  it("should serve video assets without sandboxing browser playback", async () => {
+    const uploadResponse = await uploadTestAsset(
+      apiKey,
+      port,
+      createTestVideoFile(),
+    );
+    expect(uploadResponse.assetId).toBeDefined();
+    expect(uploadResponse.contentType).toBe("video/mp4");
+
+    const resp = await fetch(
+      `http://localhost:${port}/api/v1/assets/${uploadResponse.assetId}`,
+      {
+        headers: {
+          authorization: `Bearer ${apiKey}`,
+        },
+      },
+    );
+
+    expect(resp.status).toBe(200);
+    expect(resp.headers.get("Content-Type")).toContain("video/mp4");
+    expect(resp.headers.get("Content-Security-Policy")).not.toContain(
+      "sandbox",
+    );
   });
 
   it("should require assets:readwrite to upload an asset", async () => {
