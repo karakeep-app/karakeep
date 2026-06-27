@@ -11,6 +11,7 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 import type { RunnerJobData, RunnerResult, SerializedError } from "./types";
 import { runnerServiceName } from "./runner";
 import { ReenqueueRequested, RestateSemaphore } from "./semaphore";
+import { envConfig } from "./env";
 
 export function buildDispatcherService<T, R>(
   queue: Queue<T>,
@@ -41,7 +42,7 @@ export function buildDispatcherService<T, R>(
     name: queue.name(),
     options: {
       inactivityTimeout: {
-        seconds: opts.timeoutSecs * 2,
+        seconds: envConfig.RESTATE_DISPATCHER_INACTIVITY_TIMEOUT_SECS,
       },
       retryPolicy: {
         maxAttempts: NUM_RETRIES,

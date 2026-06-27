@@ -64,21 +64,26 @@ jobs:
       - name: Setup
         uses: ./tooling/github/setup
 
-      - name: Shared Package Tests
-        working-directory: packages/shared
-        run: pnpm test
+      - parallel:
+        - name: Shared Package Tests
+          working-directory: packages/shared
+          run: pnpm test
 
-      - name: TRPC Tests
-        working-directory: packages/trpc
-        run: pnpm test
+        - name: TRPC Tests
+          working-directory: packages/trpc
+          run: pnpm test
 
-      - name: Workers Tests
-        working-directory: apps/workers
-        run: pnpm test
+        - name: Workers Tests
+          working-directory: apps/workers
+          run: pnpm test
 
-      - name: E2E Tests
-        working-directory: packages/e2e_tests
-        run: pnpm test
+        - name: Plugins Tests
+          working-directory: packages/plugins
+          run: pnpm test
+
+        - name: E2E Tests
+          working-directory: packages/e2e_tests
+          run: pnpm test
 
       - name: Upload Docker Logs
         if: failure()

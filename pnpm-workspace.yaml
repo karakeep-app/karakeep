@@ -29,3 +29,8 @@ patchedDependencies:
 
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
+
+minimumReleaseAgeExclude:
+  - '@restatedev/restate-sdk-clients@1.15.1'
+  - '@restatedev/restate-sdk-core@1.15.1'
+  - '@restatedev/restate-sdk@1.15.1'
