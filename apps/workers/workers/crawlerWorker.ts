@@ -529,6 +529,22 @@ async function browserlessCrawlPage(
   );
 }
 
+type NavigationCallback = (
+  activePage: Page,
+  isRunningInProxyContext: boolean,
+) => Promise<{
+  statusCode: number;
+  url: string;
+}>;
+
+interface CrawlPageResult {
+  htmlContent: string;
+  screenshot: Buffer | undefined;
+  pdf: Buffer | undefined;
+  statusCode: number | null;
+  url: string;
+}
+
 async function crawlPage(
   jobId: string,
   url: string,
@@ -536,13 +552,10 @@ async function crawlPage(
   forceStorePdf: boolean,
   abortSignal: AbortSignal,
   runProxy: RunProxyConfig,
-): Promise<{
-  htmlContent: string;
-  screenshot: Buffer | undefined;
-  pdf: Buffer | undefined;
-  statusCode: number;
-  url: string;
-}> {
+  navigationCallback: NavigationCallback,
+  browserlessFallback: () => Promise<CrawlPageResult> = () =>
+    browserlessCrawlPage(jobId, url, abortSignal, runProxy),
+): Promise<CrawlPageResult> {
   return await withSpan(
     tracer,
     "crawlerWorker.crawlPage",
@@ -568,7 +581,7 @@ async function crawlPage(
       const browserCrawlingEnabled = userData.browserCrawlingEnabled;
 
       if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
-        return browserlessCrawlPage(jobId, url, abortSignal, runProxy);
+        return browserlessFallback();
       }
 
       let browser: Browser | undefined;
@@ -588,7 +601,7 @@ async function crawlPage(
         },
       );
       if (!browser) {
-        return browserlessCrawlPage(jobId, url, abortSignal, runProxy);
+        return browserlessFallback();
       }
 
       const proxyConfig = getPlaywrightProxyConfig(runProxy);
@@ -818,51 +831,9 @@ async function crawlPage(
         // TypeScript narrowing so the rest of the try block sees `Page`.
         const activePage = page;
 
-        // Navigate to the target URL
-        const navigationValidation = await withSpan(
-          tracer,
-          "crawlerWorker.crawlPage.validateNavigationTarget",
-          {
-            attributes: {
-              "job.id": jobId,
-              "bookmark.url": url,
-              "bookmark.domain": getBookmarkDomain(url),
-            },
-          },
-          async () => validateUrl(url, isRunningInProxyContext),
-        );
-        if (!navigationValidation.ok) {
-          throw new Error(
-            `Disallowed navigation target "${truncateUrl(url)}": ${navigationValidation.reason}`,
-          );
-        }
-        const targetUrl = navigationValidation.url.toString();
-        logger.info(`[Crawler][${jobId}] Navigating to "${targetUrl}"`);
-        const response = await withSpan(
-          tracer,
-          "crawlerWorker.crawlPage.navigate",
-          {
-            attributes: {
-              "job.id": jobId,
-              "bookmark.url": targetUrl,
-              "bookmark.domain": getBookmarkDomain(targetUrl),
-            },
-          },
-          async () =>
-            raceWith(
-              activePage.goto(targetUrl, {
-                timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
-                waitUntil: "domcontentloaded",
-              }),
-              abortRaceResolve(abortSignal, null),
-            ),
-        );
-        setSpanAttributes({
-          "crawler.statusCode": response?.status() ?? 0,
-        });
-
-        logger.info(
-          `[Crawler][${jobId}] Successfully navigated to "${targetUrl}". Waiting for the page to load ...`,
+        const { statusCode, url: targetUrl } = await navigationCallback(
+          activePage,
+          isRunningInProxyContext,
         );
 
         // Wait until network is relatively idle or timeout after 5 seconds
@@ -1029,10 +1000,10 @@ async function crawlPage(
 
         return {
           htmlContent,
-          statusCode: response?.status() ?? 0,
+          statusCode,
           screenshot,
           pdf,
-          url: activePage.url(),
+          url: targetUrl,
         };
       } finally {
         await withSpan(
@@ -1835,6 +1806,113 @@ async function storeHtmlContent(
   );
 }
 
+function urlNavigationCallback(
+  jobId: string,
+  url: string,
+  abortSignal: AbortSignal,
+): NavigationCallback {
+  return async (activePage: Page, isRunningInProxyContext: boolean) => {
+    // Navigate to the target URL
+    const navigationValidation = await withSpan(
+      tracer,
+      "crawlerWorker.crawlPage.validateNavigationTarget",
+      {
+        attributes: {
+          "job.id": jobId,
+          "bookmark.url": url,
+          "bookmark.domain": getBookmarkDomain(url),
+        },
+      },
+      async () => validateUrl(url, isRunningInProxyContext),
+    );
+    if (!navigationValidation.ok) {
+      throw new Error(
+        `Disallowed navigation target "${truncateUrl(url)}": ${navigationValidation.reason}`,
+      );
+    }
+    const targetUrl = navigationValidation.url.toString();
+    logger.info(`[Crawler][${jobId}] Navigating to "${targetUrl}"`);
+    const response = await withSpan(
+      tracer,
+      "crawlerWorker.crawlPage.navigate",
+      {
+        attributes: {
+          "job.id": jobId,
+          "bookmark.url": targetUrl,
+          "bookmark.domain": getBookmarkDomain(targetUrl),
+        },
+      },
+      async () =>
+        raceWith(
+          activePage.goto(targetUrl, {
+            timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
+            waitUntil: "domcontentloaded",
+          }),
+          abortRaceResolve(abortSignal, null),
+        ),
+    );
+    setSpanAttributes({
+      "crawler.statusCode": response?.status() ?? 0,
+    });
+
+    logger.info(
+      `[Crawler][${jobId}] Successfully navigated to "${targetUrl}". Waiting for the page to load ...`,
+    );
+
+    return { statusCode: response?.status() ?? 0, url: activePage.url() };
+  };
+}
+
+function precrawlNavigationCallback(
+  jobId: string,
+  url: string,
+  htmlContent: string,
+  abortSignal: AbortSignal,
+): NavigationCallback {
+  return async (activePage: Page, _isRunningInProxyContext: boolean) => {
+    logger.info(
+      `[Crawler][${jobId}] The page has been precrawled. Will use the precrawled archive instead.`,
+    );
+    await withSpan(
+      tracer,
+      "crawlerWorker.crawlPage.validateNavigationTarget",
+      {
+        attributes: {
+          "job.id": jobId,
+          "bookmark.url": url,
+          "bookmark.domain": getBookmarkDomain(url),
+        },
+      },
+      async () =>
+        raceWith(
+          activePage.setContent(htmlContent, {
+            timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
+            waitUntil: "domcontentloaded",
+          }),
+          abortRaceResolve(abortSignal, null),
+        ),
+    );
+    return { statusCode: 200, url };
+  };
+}
+
+async function precrawledArchiveFallback(
+  jobId: string,
+  url: string,
+  htmlContent: string,
+): Promise<CrawlPageResult> {
+  logger.info(
+    `[Crawler][${jobId}] Browser crawling is unavailable. Will use the precrawled archive without rendering.`,
+  );
+  return {
+    htmlContent,
+    screenshot: undefined,
+    pdf: undefined,
+    statusCode: 200,
+    url,
+  };
+}
+
 async function crawlAndParseUrl(
   url: string,
   userId: string,
@@ -1882,20 +1960,27 @@ async function crawlAndParseUrl(
       };
 
       if (precrawledArchiveAssetId) {
-        logger.info(
-          `[Crawler][${jobId}] The page has been precrawled. Will use the precrawled archive instead.`,
-        );
         const asset = await readAsset({
           userId,
           assetId: precrawledArchiveAssetId,
         });
-        result = {
-          htmlContent: asset.asset.toString(),
-          screenshot: undefined,
-          pdf: undefined,
-          statusCode: 200,
+        const precrawledHtmlContent = asset.asset.toString();
+
+        result = await crawlPage(
+          jobId,
           url,
-        };
+          userId,
+          forceStorePdf,
+          abortSignal,
+          runProxy,
+          precrawlNavigationCallback(
+            jobId,
+            url,
+            precrawledHtmlContent,
+            abortSignal,
+          ),
+          () => precrawledArchiveFallback(jobId, url, precrawledHtmlContent),
+        );
       } else {
         result = await crawlPage(
           jobId,
@@ -1904,6 +1989,7 @@ async function crawlAndParseUrl(
           forceStorePdf,
           abortSignal,
           runProxy,
+          urlNavigationCallback(jobId, url, abortSignal),
         );
       }
       abortSignal.throwIfAborted();
