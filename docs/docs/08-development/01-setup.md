@@ -178,10 +178,10 @@ Note: Changing the code will hot reload the app. However, installing new package
 
 - `cd apps/browser-extension`
 - `pnpm dev`
-- This will generate a `dist` package
-- Go to extension settings in chrome and enable developer mode.
-- Press `Load unpacked` and point it to the `dist` directory.
-- The plugin will pop up in the plugin list.
+- This will start the extension dev server on `http://localhost:5174` and generate a `dist` package.
+- Go to `chrome://extensions` in Chrome or Brave and enable developer mode.
+- Press `Load unpacked` and point it to the `apps/browser-extension/dist` directory.
+- The extension will pop up in the extension list.
 
 In dev mode, opening and closing the plugin menu should reload the code.
 
