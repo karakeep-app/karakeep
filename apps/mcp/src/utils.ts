@@ -21,6 +21,24 @@ export function toMcpToolError(
   };
 }
 
+export function pickDefined<T extends object>(input: T): Partial<T> {
+  const out: Partial<T> = {};
+  for (const key of Object.keys(input) as (keyof T)[]) {
+    if (input[key] !== undefined) {
+      out[key] = input[key];
+    }
+  }
+  return out;
+}
+
+export function compactTag(tag: KarakeepAPISchemas["Tag"]): string {
+  const aiCount = tag.numBookmarksByAttachedType.ai ?? 0;
+  const humanCount = tag.numBookmarksByAttachedType.human ?? 0;
+  return `Tag ID: ${tag.id}
+Name: ${tag.name}
+Bookmarks: ${tag.numBookmarks} (human: ${humanCount}, ai: ${aiCount})`;
+}
+
 export function compactBookmark(
   bookmark: KarakeepAPISchemas["Bookmark"],
 ): string {
@@ -33,7 +51,8 @@ author: ${bookmark.content.author ?? ""}
 publisher: ${bookmark.content.publisher ?? ""}`;
   } else if (bookmark.content.type === "text") {
     content = `Bookmark type: text
-  Source URL: ${bookmark.content.sourceUrl ?? ""}`;
+  Source URL: ${bookmark.content.sourceUrl ?? ""}
+  Text: ${bookmark.content.text}`;
   } else if (bookmark.content.type === "asset") {
     content = `Bookmark type: media
 Asset ID: ${bookmark.content.assetId}

@@ -274,6 +274,9 @@ importers:
       '@karakeep/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
+      '@karakeep/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@modelcontextprotocol/sdk':
         specifier: ^1.29.0
         version: 1.29.0(zod@4.3.6)

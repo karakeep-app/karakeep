@@ -2,9 +2,10 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { z } from "zod";
 
 import type { KarakeepAPISchemas } from "@karakeep/sdk";
+import { zEditBookmarkListSchema } from "@karakeep/shared/types/lists";
 
 import { karakeepClient, mcpServer } from "./shared";
-import { toMcpToolError } from "./utils";
+import { pickDefined, toMcpToolError } from "./utils";
 
 function formatList(list: KarakeepAPISchemas["List"]): string {
   return `List ID: ${list.id}
@@ -12,7 +13,7 @@ Name: ${list.name}
 Icon: ${list.icon}
 Type: ${list.type}
 Description: ${list.description ?? ""}
-Parent ID: ${list.parentId}
+Parent ID: ${list.parentId ?? ""}
 Query: ${list.query ?? ""}
 Public: ${list.public}`;
 }
@@ -31,15 +32,7 @@ mcpServer.tool(
       content: [
         {
           type: "text",
-          text: res.data.lists
-            .map(
-              (list) => `List ID: ${list.id}
-Name: ${list.name}
-Icon: ${list.icon}
-Description: ${list.description ?? ""}
-Parent ID: ${list.parentId}`,
-            )
-            .join("\n\n"),
+          text: res.data.lists.map(formatList).join("\n\n"),
         },
       ],
     };
@@ -78,28 +71,25 @@ mcpServer.tool(
   getListHandler,
 );
 
+const sharedListEditShape = zEditBookmarkListSchema.omit({
+  listId: true,
+}).shape;
+
 const updateListFields = {
-  name: z.string().min(1).optional().describe(`New name for the list.`),
-  icon: z.string().min(1).optional().describe(`New emoji icon for the list.`),
-  description: z
-    .string()
-    .nullable()
-    .optional()
-    .describe(`New description for the list. Pass null to clear.`),
-  parentId: z
-    .string()
-    .nullable()
-    .optional()
-    .describe(`New parent list id. Pass null to move to the root.`),
-  query: z
-    .string()
-    .min(1)
-    .optional()
-    .describe(`New smart-list query. Only meaningful for smart lists.`),
-  public: z
-    .boolean()
-    .optional()
-    .describe(`Whether the list is publicly accessible.`),
+  name: sharedListEditShape.name.describe(`New name for the list.`),
+  icon: sharedListEditShape.icon.describe(`New emoji icon for the list.`),
+  description: sharedListEditShape.description.describe(
+    `New description for the list. Pass null to clear.`,
+  ),
+  parentId: sharedListEditShape.parentId.describe(
+    `New parent list id. Pass null to move to the root.`,
+  ),
+  query: sharedListEditShape.query.describe(
+    `New smart-list query. Only meaningful for smart lists.`,
+  ),
+  public: sharedListEditShape.public.describe(
+    `Whether the list is publicly accessible.`,
+  ),
 };
 
 export const updateListInputSchema = {
@@ -107,22 +97,16 @@ export const updateListInputSchema = {
   ...updateListFields,
 };
 
-export type UpdateListInput = {
-  listId: string;
-} & {
-  [K in keyof typeof updateListFields]?: z.infer<(typeof updateListFields)[K]>;
-};
+export type UpdateListInput = z.infer<
+  z.ZodObject<typeof updateListInputSchema>
+>;
+type UpdateListBody = Omit<UpdateListInput, "listId">;
 
 export async function updateListHandler(
   input: UpdateListInput,
 ): Promise<CallToolResult> {
   const { listId, ...rest } = input;
-  const body: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(rest)) {
-    if (value !== undefined) {
-      body[key] = value;
-    }
-  }
+  const body: UpdateListBody = pickDefined(rest);
 
   if (Object.keys(body).length === 0) {
     return toMcpToolError(
@@ -151,7 +135,7 @@ ${formatList(res.data)}`,
 
 mcpServer.tool(
   "update-list",
-  `Update a list. Only the fields you pass are changed.`,
+  `Update a list. Only the fields you pass are changed. Length caps and smart-list query rules come from the shared list schema.`,
   updateListInputSchema,
   updateListHandler,
 );
@@ -191,7 +175,7 @@ export async function deleteListHandler({
 
 mcpServer.tool(
   "delete-list",
-  `Delete a list by id. Bookmarks inside the list are not deleted.`,
+  `Delete a list by id. Bookmarks inside the list are not deleted. Child lists are NOT deleted either — they keep their parentId pointing at this list and become orphaned in the tree. Move or re-parent child lists first if that matters.`,
   deleteListInputSchema,
   deleteListHandler,
 );

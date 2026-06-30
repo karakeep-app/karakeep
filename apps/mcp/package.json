@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@karakeep/sdk": "workspace:*",
+    "@karakeep/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "turndown": "^7.2.0",
     "zod": "^4.0.0"
