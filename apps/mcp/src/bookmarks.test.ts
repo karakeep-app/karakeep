@@ -19,7 +19,7 @@ vi.mock("./shared", () => ({
   turndownService: mockTurndown,
 }));
 
-import { deleteBookmarkHandler } from "./bookmarks";
+import { deleteBookmarkHandler, getBookmarkContentHandler } from "./bookmarks";
 
 const textOf = (result: CallToolResult): string => {
   const first = result.content[0];
@@ -143,6 +143,85 @@ describe("delete-bookmark", () => {
     });
 
     const result = await deleteBookmarkHandler({ bookmarkId: "bookmark_1" });
+
+    expect(result.isError).toBe(true);
+  });
+});
+
+describe("get-bookmark-content", () => {
+  it("coerces null htmlContent to empty string before turndown (regression for #2914)", async () => {
+    mockTurndown.turndown.mockClear();
+    mockClient.GET.mockResolvedValueOnce({
+      data: {
+        ...sampleBookmark,
+        content: {
+          ...sampleBookmark.content,
+          htmlContent: null,
+        },
+      },
+      error: undefined,
+    });
+
+    const result = await getBookmarkContentHandler({
+      bookmarkId: "bookmark_1",
+    });
+
+    expect(mockTurndown.turndown).toHaveBeenCalledWith("");
+    expect(result.isError).toBeFalsy();
+    expect(textOf(result)).toBe("");
+  });
+
+  it("passes htmlContent through to turndown when it is a string", async () => {
+    mockTurndown.turndown.mockClear();
+    mockTurndown.turndown.mockReturnValueOnce("# rendered");
+    mockClient.GET.mockResolvedValueOnce({
+      data: {
+        ...sampleBookmark,
+        content: {
+          ...sampleBookmark.content,
+          htmlContent: "<h1>hello</h1>",
+        },
+      },
+      error: undefined,
+    });
+
+    const result = await getBookmarkContentHandler({
+      bookmarkId: "bookmark_1",
+    });
+
+    expect(mockTurndown.turndown).toHaveBeenCalledWith("<h1>hello</h1>");
+    expect(textOf(result)).toBe("# rendered");
+  });
+
+  it("returns text content directly for text bookmarks (no turndown call)", async () => {
+    mockTurndown.turndown.mockClear();
+    mockClient.GET.mockResolvedValueOnce({
+      data: {
+        ...sampleBookmark,
+        content: {
+          type: "text" as const,
+          text: "the stored text",
+          sourceUrl: null,
+        },
+      },
+      error: undefined,
+    });
+
+    const result = await getBookmarkContentHandler({
+      bookmarkId: "bookmark_1",
+    });
+
+    expect(mockTurndown.turndown).not.toHaveBeenCalled();
+    expect(textOf(result)).toBe("the stored text");
+  });
+
+  it("surfaces an MCP error when the bookmark is not found", async () => {
+    mockClient.GET.mockResolvedValueOnce({
+      data: undefined,
+      error: { code: "NOT_FOUND", message: "Bookmark not found" },
+    });
+
+    const result = await getBookmarkContentHandler({ bookmarkId: "missing" });
 
     expect(result.isError).toBe(true);
   });

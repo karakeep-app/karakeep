@@ -224,44 +224,48 @@ mcpServer.tool(
   },
 );
 
+export const getBookmarkContentInputSchema = {
+  bookmarkId: z.string().describe(`The bookmarkId to get content for.`),
+};
+
+export async function getBookmarkContentHandler({
+  bookmarkId,
+}: {
+  bookmarkId: string;
+}): Promise<CallToolResult> {
+  const res = await karakeepClient.GET(`/bookmarks/{bookmarkId}`, {
+    params: {
+      path: { bookmarkId },
+      query: { includeContent: true },
+    },
+  });
+  if (!res.data) {
+    return toMcpToolError(res.error);
+  }
+  let content;
+  if (res.data.content.type === "link") {
+    const htmlContent = res.data.content.htmlContent;
+    content = turndownService.turndown(htmlContent ?? "");
+  } else if (res.data.content.type === "text") {
+    content = res.data.content.text;
+  } else if (res.data.content.type === "asset") {
+    content = res.data.content.content;
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: content ?? "",
+      },
+    ],
+  };
+}
+
 mcpServer.tool(
   "get-bookmark-content",
   `Get the content of the bookmark in markdown`,
-  {
-    bookmarkId: z.string().describe(`The bookmarkId to get content for.`),
-  },
-  async ({ bookmarkId }): Promise<CallToolResult> => {
-    const res = await karakeepClient.GET(`/bookmarks/{bookmarkId}`, {
-      params: {
-        path: {
-          bookmarkId,
-        },
-        query: {
-          includeContent: true,
-        },
-      },
-    });
-    if (!res.data) {
-      return toMcpToolError(res.error);
-    }
-    let content;
-    if (res.data.content.type === "link") {
-      const htmlContent = res.data.content.htmlContent;
-      content = turndownService.turndown(htmlContent ?? "");
-    } else if (res.data.content.type === "text") {
-      content = res.data.content.text;
-    } else if (res.data.content.type === "asset") {
-      content = res.data.content.content;
-    }
-    return {
-      content: [
-        {
-          type: "text",
-          text: content ?? "",
-        },
-      ],
-    };
-  },
+  getBookmarkContentInputSchema,
+  getBookmarkContentHandler,
 );
 
 export const deleteBookmarkInputSchema = {
