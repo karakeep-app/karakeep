@@ -263,3 +263,46 @@ mcpServer.tool(
     };
   },
 );
+
+export const deleteBookmarkInputSchema = {
+  bookmarkId: z.string().min(1).describe(`The id of the bookmark to delete.`),
+};
+
+export async function deleteBookmarkHandler({
+  bookmarkId,
+}: {
+  bookmarkId: string;
+}): Promise<CallToolResult> {
+  const getRes = await karakeepClient.GET("/bookmarks/{bookmarkId}", {
+    params: { path: { bookmarkId }, query: { includeContent: false } },
+  });
+  if (!getRes.data) {
+    return toMcpToolError(getRes.error);
+  }
+  const { id } = getRes.data;
+  const titleFromContent =
+    getRes.data.content.type === "link" ? getRes.data.content.title : undefined;
+  const label = getRes.data.title ?? titleFromContent ?? id;
+
+  const delRes = await karakeepClient.DELETE("/bookmarks/{bookmarkId}", {
+    params: { path: { bookmarkId: id } },
+  });
+  if (delRes.error) {
+    return toMcpToolError(delRes.error);
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Deleted bookmark "${label}" (id: ${id}).`,
+      },
+    ],
+  };
+}
+
+mcpServer.tool(
+  "delete-bookmark",
+  `Delete a bookmark by id. This is destructive — the bookmark, its highlights, and its assets are removed.`,
+  deleteBookmarkInputSchema,
+  deleteBookmarkHandler,
+);

@@ -1,3 +1,4 @@
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockClient, mockTool } = vi.hoisted(() => ({
@@ -18,6 +19,14 @@ vi.mock("./shared", () => ({
 
 import { deleteListHandler, getListHandler, updateListHandler } from "./lists";
 
+const textOf = (result: CallToolResult): string => {
+  const first = result.content[0];
+  if (!first || first.type !== "text") {
+    throw new Error(`expected text content, got ${JSON.stringify(first)}`);
+  }
+  return first.text;
+};
+
 const sampleList = {
   id: "list_123",
   name: "Reading",
@@ -33,6 +42,8 @@ const sampleList = {
 
 beforeEach(() => {
   mockClient.GET.mockReset();
+  mockClient.POST.mockReset();
+  mockClient.PUT.mockReset();
   mockClient.PATCH.mockReset();
   mockClient.DELETE.mockReset();
 });
@@ -54,7 +65,7 @@ describe("get-list", () => {
       params: { path: { listId: "list_123" } },
     });
     expect(result.isError).toBeFalsy();
-    const text = (result.content[0] as { type: "text"; text: string }).text;
+    const text = textOf(result);
     expect(text).toContain("List ID: list_123");
     expect(text).toContain("Name: Reading");
     expect(text).toContain("Type: manual");
@@ -70,9 +81,7 @@ describe("get-list", () => {
     const result = await getListHandler({ listId: "missing" });
 
     expect(result.isError).toBe(true);
-    expect(
-      (result.content[0] as { type: "text"; text: string }).text,
-    ).toContain("NOT_FOUND");
+    expect(textOf(result)).toContain("NOT_FOUND");
   });
 });
 
@@ -92,9 +101,7 @@ describe("update-list", () => {
       body: { name: "Reading list", icon: "📖" },
     });
     expect(result.isError).toBeFalsy();
-    expect(
-      (result.content[0] as { type: "text"; text: string }).text,
-    ).toContain("List list_123 updated.");
+    expect(textOf(result)).toContain("List list_123 updated.");
   });
 
   it("preserves explicit nulls for nullable fields like parentId", async () => {
@@ -116,9 +123,7 @@ describe("update-list", () => {
 
     expect(mockClient.PATCH).not.toHaveBeenCalled();
     expect(result.isError).toBe(true);
-    expect((result.content[0] as { type: "text"; text: string }).text).toMatch(
-      /requires at least one field/i,
-    );
+    expect(textOf(result)).toMatch(/requires at least one field/i);
   });
 
   it("returns an MCP error when the list is not found", async () => {
@@ -156,7 +161,7 @@ describe("delete-list", () => {
       params: { path: { listId: "list_123" } },
     });
     expect(result.isError).toBeFalsy();
-    const text = (result.content[0] as { type: "text"; text: string }).text;
+    const text = textOf(result);
     expect(text).toContain("Reading");
     expect(text).toContain("list_123");
   });
