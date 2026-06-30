@@ -20,7 +20,8 @@
     "shx": "^0.4.0",
     "tsx": "^4.8.1",
     "vite": "^7.0.6",
-    "vite-tsconfig-paths": "^6.1.1"
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.4"
   },
   "scripts": {
     "build": "vite build && shx chmod +x dist/index.js",
@@ -29,6 +30,7 @@
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
     "format": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore --check .",
     "format:fix": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore .",
+    "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
