@@ -126,6 +126,27 @@ describe("update-list", () => {
     expect(textOf(result)).toMatch(/requires at least one field/i);
   });
 
+  it("rejects a list trying to parent itself (shared refinement)", async () => {
+    const result = await updateListHandler({
+      listId: "list_123",
+      parentId: "list_123",
+    });
+
+    expect(mockClient.PATCH).not.toHaveBeenCalled();
+    expect(result.isError).toBe(true);
+    expect(textOf(result)).toMatch(/can't be its own parent/i);
+  });
+
+  it("rejects an invalid smart-list query (shared refinement)", async () => {
+    const result = await updateListHandler({
+      listId: "list_123",
+      query: "not a valid #search query at all",
+    });
+
+    expect(mockClient.PATCH).not.toHaveBeenCalled();
+    expect(result.isError).toBe(true);
+  });
+
   it("returns an MCP error when the list is not found", async () => {
     mockClient.PATCH.mockResolvedValueOnce({
       data: undefined,

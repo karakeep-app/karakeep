@@ -2,7 +2,10 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { z } from "zod";
 
 import type { KarakeepAPISchemas } from "@karakeep/sdk";
-import { zEditBookmarkListSchema } from "@karakeep/shared/types/lists";
+import {
+  zEditBookmarkListSchema,
+  zEditBookmarkListSchemaWithValidation,
+} from "@karakeep/shared/types/lists";
 
 import { karakeepClient, mcpServer } from "./shared";
 import { pickDefined, toMcpToolError } from "./utils";
@@ -105,6 +108,12 @@ type UpdateListBody = Omit<UpdateListInput, "listId">;
 export async function updateListHandler(
   input: UpdateListInput,
 ): Promise<CallToolResult> {
+  const refined = zEditBookmarkListSchemaWithValidation.safeParse(input);
+  if (!refined.success) {
+    const issue = refined.error.issues[0];
+    return toMcpToolError(issue?.message ?? "Invalid input for update-list");
+  }
+
   const { listId, ...rest } = input;
   const body: UpdateListBody = pickDefined(rest);
 
