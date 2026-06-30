@@ -9,6 +9,9 @@ with Karakeep from other tools.
 - Adding and removing bookmarks from lists
 - Attaching and detaching tags to bookmarks
 - Creating new lists
+- Retrieving a single list (`get-list`)
+- Updating a list (`update-list`) — name, icon, description, parentId, query, public
+- Deleting a list (`delete-list`)
 - Creating text and URL bookmarks
 
 Currently, the MCP server only exposes tools (no resources).

@@ -1,8 +1,21 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { z } from "zod";
 
+import type { KarakeepAPISchemas } from "@karakeep/sdk";
+
 import { karakeepClient, mcpServer } from "./shared";
 import { toMcpToolError } from "./utils";
+
+function formatList(list: KarakeepAPISchemas["List"]): string {
+  return `List ID: ${list.id}
+Name: ${list.name}
+Icon: ${list.icon}
+Type: ${list.type}
+Description: ${list.description ?? ""}
+Parent ID: ${list.parentId}
+Query: ${list.query ?? ""}
+Public: ${list.public}`;
+}
 
 mcpServer.tool(
   "get-lists",
@@ -31,6 +44,156 @@ Parent ID: ${list.parentId}`,
       ],
     };
   },
+);
+
+export const getListInputSchema = {
+  listId: z.string().min(1).describe(`The id of the list to retrieve.`),
+};
+
+export async function getListHandler({
+  listId,
+}: {
+  listId: string;
+}): Promise<CallToolResult> {
+  const res = await karakeepClient.GET("/lists/{listId}", {
+    params: { path: { listId } },
+  });
+  if (!res.data) {
+    return toMcpToolError(res.error);
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: formatList(res.data),
+      },
+    ],
+  };
+}
+
+mcpServer.tool(
+  "get-list",
+  `Retrieve a single list by its id.`,
+  getListInputSchema,
+  getListHandler,
+);
+
+const updateListFields = {
+  name: z.string().min(1).optional().describe(`New name for the list.`),
+  icon: z.string().min(1).optional().describe(`New emoji icon for the list.`),
+  description: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(`New description for the list. Pass null to clear.`),
+  parentId: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(`New parent list id. Pass null to move to the root.`),
+  query: z
+    .string()
+    .min(1)
+    .optional()
+    .describe(`New smart-list query. Only meaningful for smart lists.`),
+  public: z
+    .boolean()
+    .optional()
+    .describe(`Whether the list is publicly accessible.`),
+};
+
+export const updateListInputSchema = {
+  listId: z.string().min(1).describe(`The id of the list to update.`),
+  ...updateListFields,
+};
+
+export type UpdateListInput = {
+  listId: string;
+} & {
+  [K in keyof typeof updateListFields]?: z.infer<(typeof updateListFields)[K]>;
+};
+
+export async function updateListHandler(
+  input: UpdateListInput,
+): Promise<CallToolResult> {
+  const { listId, ...rest } = input;
+  const body: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== undefined) {
+      body[key] = value;
+    }
+  }
+
+  if (Object.keys(body).length === 0) {
+    return toMcpToolError(
+      `update-list requires at least one field to update (name, icon, description, parentId, query, or public).`,
+    );
+  }
+
+  const res = await karakeepClient.PATCH("/lists/{listId}", {
+    params: { path: { listId } },
+    body,
+  });
+  if (!res.data) {
+    return toMcpToolError(res.error);
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: `List ${res.data.id} updated.
+
+${formatList(res.data)}`,
+      },
+    ],
+  };
+}
+
+mcpServer.tool(
+  "update-list",
+  `Update a list. Only the fields you pass are changed.`,
+  updateListInputSchema,
+  updateListHandler,
+);
+
+export const deleteListInputSchema = {
+  listId: z.string().min(1).describe(`The id of the list to delete.`),
+};
+
+export async function deleteListHandler({
+  listId,
+}: {
+  listId: string;
+}): Promise<CallToolResult> {
+  const getRes = await karakeepClient.GET("/lists/{listId}", {
+    params: { path: { listId } },
+  });
+  if (!getRes.data) {
+    return toMcpToolError(getRes.error);
+  }
+  const { id, name } = getRes.data;
+
+  const delRes = await karakeepClient.DELETE("/lists/{listId}", {
+    params: { path: { listId: id } },
+  });
+  if (delRes.error) {
+    return toMcpToolError(delRes.error);
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Deleted list "${name}" (id: ${id}).`,
+      },
+    ],
+  };
+}
+
+mcpServer.tool(
+  "delete-list",
+  `Delete a list by id. Bookmarks inside the list are not deleted.`,
+  deleteListInputSchema,
+  deleteListHandler,
 );
 
 mcpServer.tool(

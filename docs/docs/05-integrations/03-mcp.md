@@ -8,6 +8,9 @@ Karakeep comes with a Model Context Protocol server that can be used to interact
 - Adding and removing bookmarks from lists
 - Attaching and detaching tags to bookmarks
 - Creating new lists
+- Retrieving a single list (`get-list`)
+- Updating a list (`update-list`) — name, icon, description, parentId, query, public
+- Deleting a list (`delete-list`)
 - Creating text and URL bookmarks
 
 
