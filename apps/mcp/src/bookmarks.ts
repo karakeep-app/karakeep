@@ -247,7 +247,7 @@ mcpServer.tool(
     let content;
     if (res.data.content.type === "link") {
       const htmlContent = res.data.content.htmlContent;
-      content = turndownService.turndown(htmlContent);
+      content = turndownService.turndown(htmlContent ?? "");
     } else if (res.data.content.type === "text") {
       content = res.data.content.text;
     } else if (res.data.content.type === "asset") {
