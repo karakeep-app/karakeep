@@ -224,42 +224,89 @@ mcpServer.tool(
   },
 );
 
+export const getBookmarkContentInputSchema = {
+  bookmarkId: z.string().describe(`The bookmarkId to get content for.`),
+};
+
+export async function getBookmarkContentHandler({
+  bookmarkId,
+}: {
+  bookmarkId: string;
+}): Promise<CallToolResult> {
+  const res = await karakeepClient.GET(`/bookmarks/{bookmarkId}`, {
+    params: {
+      path: { bookmarkId },
+      query: { includeContent: true },
+    },
+  });
+  if (!res.data) {
+    return toMcpToolError(res.error);
+  }
+  let content;
+  if (res.data.content.type === "link") {
+    const htmlContent = res.data.content.htmlContent;
+    content = turndownService.turndown(htmlContent ?? "");
+  } else if (res.data.content.type === "text") {
+    content = res.data.content.text;
+  } else if (res.data.content.type === "asset") {
+    content = res.data.content.content;
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: content ?? "",
+      },
+    ],
+  };
+}
+
 mcpServer.tool(
   "get-bookmark-content",
   `Get the content of the bookmark in markdown`,
-  {
-    bookmarkId: z.string().describe(`The bookmarkId to get content for.`),
-  },
-  async ({ bookmarkId }): Promise<CallToolResult> => {
-    const res = await karakeepClient.GET(`/bookmarks/{bookmarkId}`, {
-      params: {
-        path: {
-          bookmarkId,
-        },
-        query: {
-          includeContent: true,
-        },
+  getBookmarkContentInputSchema,
+  getBookmarkContentHandler,
+);
+
+export const deleteBookmarkInputSchema = {
+  bookmarkId: z.string().min(1).describe(`The id of the bookmark to delete.`),
+};
+
+export async function deleteBookmarkHandler({
+  bookmarkId,
+}: {
+  bookmarkId: string;
+}): Promise<CallToolResult> {
+  const getRes = await karakeepClient.GET("/bookmarks/{bookmarkId}", {
+    params: { path: { bookmarkId }, query: { includeContent: false } },
+  });
+  if (!getRes.data) {
+    return toMcpToolError(getRes.error);
+  }
+  const { id } = getRes.data;
+  const titleFromContent =
+    getRes.data.content.type === "link" ? getRes.data.content.title : undefined;
+  const label = getRes.data.title ?? titleFromContent ?? id;
+
+  const delRes = await karakeepClient.DELETE("/bookmarks/{bookmarkId}", {
+    params: { path: { bookmarkId: id } },
+  });
+  if (delRes.error) {
+    return toMcpToolError(delRes.error);
+  }
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Deleted bookmark "${label}" (id: ${id}).`,
       },
-    });
-    if (!res.data) {
-      return toMcpToolError(res.error);
-    }
-    let content;
-    if (res.data.content.type === "link") {
-      const htmlContent = res.data.content.htmlContent;
-      content = turndownService.turndown(htmlContent);
-    } else if (res.data.content.type === "text") {
-      content = res.data.content.text;
-    } else if (res.data.content.type === "asset") {
-      content = res.data.content.content;
-    }
-    return {
-      content: [
-        {
-          type: "text",
-          text: content ?? "",
-        },
-      ],
-    };
-  },
+    ],
+  };
+}
+
+mcpServer.tool(
+  "delete-bookmark",
+  `Delete a bookmark by id. This is destructive — the bookmark, its highlights, and its assets are removed.`,
+  deleteBookmarkInputSchema,
+  deleteBookmarkHandler,
 );
