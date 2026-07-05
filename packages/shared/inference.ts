@@ -136,6 +136,24 @@ const mapInferenceOutputSchema = <
   return opts[type];
 };
 
+const mapOpenAIResponseFormat = (
+  schema: z.ZodSchema | null,
+  outputSchema: typeof serverConfig.inference.outputSchema,
+) => {
+  if (schema === null) {
+    return undefined;
+  }
+
+  return mapInferenceOutputSchema(
+    {
+      structured: zodResponseFormat(schema, "schema"),
+      json: { type: "json_object" as const },
+      plain: undefined,
+    },
+    outputSchema,
+  );
+};
+
 export interface OpenAIInferenceConfig {
   apiKey: string;
   baseURL?: string;
@@ -221,14 +239,8 @@ export class OpenAIInferenceClient implements InferenceClient {
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),
-        response_format: mapInferenceOutputSchema(
-          {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
+        response_format: mapOpenAIResponseFormat(
+          optsWithDefaults.schema,
           this.config.outputSchema,
         ),
         reasoning_effort: this.config.reasoningEffort,
@@ -264,14 +276,8 @@ export class OpenAIInferenceClient implements InferenceClient {
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),
-        response_format: mapInferenceOutputSchema(
-          {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
+        response_format: mapOpenAIResponseFormat(
+          optsWithDefaults.schema,
           this.config.outputSchema,
         ),
         messages: [

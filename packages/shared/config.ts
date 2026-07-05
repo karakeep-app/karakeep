@@ -132,6 +132,7 @@ const allEnv = z.object({
   CRAWLER_IP_VALIDATION_DNS_RESOLVER_TIMEOUT_SEC: z.coerce.number().default(1),
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
+  CRAWLER_PREFLIGHT_USER_AGENT: z.string().optional(),
   LOG_LEVEL: z.string().default("debug"),
   NO_COLOR: stringBool("false"),
   DEMO_MODE: stringBool("false"),
@@ -375,6 +376,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
               maxRequests: val.CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS,
             }
           : null,
+      preflightUserAgent: val.CRAWLER_PREFLIGHT_USER_AGENT,
     },
     ocr: {
       langs: val.OCR_LANGS,

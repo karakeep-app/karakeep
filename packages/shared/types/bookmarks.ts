@@ -1,9 +1,19 @@
 import { z } from "zod";
 
+import { isAllowedBookmarkUrl } from "../utils/url";
 import { zCursorV2 } from "./pagination";
 import { zAttachedByEnumSchema, zBookmarkTagSchema } from "./tags";
 
 export const MAX_BOOKMARK_TITLE_LENGTH = 1000;
+
+// Zod's url() accepts any scheme (javascript:, data:, ...), so restrict
+// bookmark links to schemes that are safe to reflect in exports and feeds.
+export const zBookmarkUrlSchema = z
+  .string()
+  .url()
+  .refine(isAllowedBookmarkUrl, {
+    message: "Only http and https URLs are allowed",
+  });
 
 export const enum BookmarkTypes {
   LINK = "link",
@@ -175,7 +185,7 @@ export const zNewBookmarkRequestSchema = z.intersection(
   z.discriminatedUnion("type", [
     z.object({
       type: z.literal(BookmarkTypes.LINK),
-      url: z.string().url(),
+      url: zBookmarkUrlSchema,
       precrawledArchiveId: z.string().optional(),
     }),
     z.object({
@@ -236,7 +246,7 @@ export const zUpdateBookmarksRequestSchema = z.object({
     .optional()
     .meta({ type: "string", format: "date-time" }),
   // Link specific fields (optional)
-  url: z.string().url().optional(),
+  url: zBookmarkUrlSchema.optional(),
   description: z.string().nullish(),
   author: z.string().nullish(),
   publisher: z.string().nullish(),

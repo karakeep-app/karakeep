@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { BookmarkTypes, ZBookmark } from "../types/bookmarks";
 import { ZBookmarkList } from "../types/lists";
+import { escapeHtml } from "../utils/htmlUtils";
+import { isAllowedBookmarkUrl } from "../utils/url";
 
 export const zExportListSchema = z.object({
   id: z.string(),
@@ -107,6 +109,11 @@ export function toNetscapeFormat(bookmarks: ZBookmark[]): string {
       if (bookmark.content?.type !== BookmarkTypes.LINK) {
         return "";
       }
+      // Drop unsafe schemes (javascript:, data:, ...) that may predate
+      // URL validation, so they can't execute when the export is opened.
+      if (!isAllowedBookmarkUrl(bookmark.content.url)) {
+        return "";
+      }
       const addDate = bookmark.createdAt
         ? `ADD_DATE="${Math.floor(bookmark.createdAt.getTime() / 1000)}"`
         : "";
@@ -114,7 +121,7 @@ export function toNetscapeFormat(bookmarks: ZBookmark[]): string {
       const tagNames = bookmark.tags.map((t) => t.name).join(",");
       const tags = tagNames.length > 0 ? `TAGS="${tagNames}"` : "";
 
-      const encodedUrl = encodeURI(bookmark.content.url);
+      const encodedUrl = escapeHtml(encodeURI(bookmark.content.url));
       const displayTitle = bookmark.title ?? bookmark.content.url;
       const encodedTitle = escapeHtml(displayTitle);
 
@@ -124,17 +131,4 @@ export function toNetscapeFormat(bookmarks: ZBookmark[]): string {
     .join("\n");
 
   return `${header}\n${bookmarkEntries}\n${footer}`;
-}
-
-function escapeHtml(input: string): string {
-  const escapeMap: Record<string, string> = {
-    "&": "&amp;",
-    "'": "&#x27;",
-    "`": "&#x60;",
-    '"': "&quot;",
-    "<": "&lt;",
-    ">": "&gt;",
-  };
-
-  return input.replace(/[&'`"<>]/g, (match) => escapeMap[match] || "");
 }

@@ -18,6 +18,7 @@
     "archiver": "^7.0.1",
     "async-mutex": "^0.4.1",
     "better-sqlite3": "^11.3.0",
+    "data-uri-to-buffer": "^4.0.1",
     "dompurify": "^3.2.4",
     "dotenv": "^16.4.1",
     "drizzle-orm": "^0.45.2",
