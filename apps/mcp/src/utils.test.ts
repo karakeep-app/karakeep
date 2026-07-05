@@ -1,4 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const { mockTurndown } = vi.hoisted(() => ({
+  mockTurndown: { turndown: vi.fn((s: string) => `md:${s}`) },
+}));
+
+vi.mock("./shared", () => ({
+  turndownService: mockTurndown,
+}));
 
 import { compactBookmark, compactTag, pickDefined } from "./utils";
 
@@ -71,5 +79,54 @@ describe("compactBookmark", () => {
     });
     expect(out).toContain("Bookmark type: link");
     expect(out).not.toContain("Text:");
+  });
+
+  it("appends turndown-rendered htmlContent for link bookmarks when includeContent is true", () => {
+    mockTurndown.turndown.mockClear();
+    const out = compactBookmark(
+      {
+        ...base,
+        content: {
+          type: "link",
+          url: "https://example.com",
+          htmlContent: "<p>hi</p>",
+        },
+      },
+      { includeContent: true },
+    );
+    expect(mockTurndown.turndown).toHaveBeenCalledWith("<p>hi</p>");
+    expect(out).toContain("Content: md:<p>hi</p>");
+  });
+
+  it("omits Content for link bookmarks when includeContent is false", () => {
+    mockTurndown.turndown.mockClear();
+    const out = compactBookmark({
+      ...base,
+      content: {
+        type: "link",
+        url: "https://example.com",
+        htmlContent: "<p>hi</p>",
+      },
+    });
+    expect(mockTurndown.turndown).not.toHaveBeenCalled();
+    expect(out).not.toContain("Content:");
+  });
+
+  it("appends the raw content field for asset bookmarks when includeContent is true", () => {
+    const out = compactBookmark(
+      {
+        ...base,
+        content: {
+          type: "asset",
+          assetType: "pdf",
+          assetId: "asset_1",
+          content: "extracted pdf text",
+          sourceUrl: null,
+        },
+      },
+      { includeContent: true },
+    );
+    expect(out).toContain("Bookmark type: media");
+    expect(out).toContain("Content: extracted pdf text");
   });
 });

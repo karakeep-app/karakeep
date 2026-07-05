@@ -273,9 +273,12 @@ export type GetTagBookmarksInput = z.infer<
 export async function getTagBookmarksHandler(
   input: GetTagBookmarksInput,
 ): Promise<CallToolResult> {
-  const { tagId, ...query } = input;
+  const { tagId, includeContent, ...query } = input;
   const res = await karakeepClient.GET("/tags/{tagId}/bookmarks", {
-    params: { path: { tagId }, query: pickDefined(query) },
+    params: {
+      path: { tagId },
+      query: pickDefined({ ...query, includeContent }),
+    },
   });
   if (!res.data) {
     return toMcpToolError(res.error);
@@ -287,7 +290,10 @@ export async function getTagBookmarksHandler(
     content: [
       {
         type: "text",
-        text: res.data.bookmarks.map(compactBookmark).join("\n\n") + cursorLine,
+        text:
+          res.data.bookmarks
+            .map((bm) => compactBookmark(bm, { includeContent }))
+            .join("\n\n") + cursorLine,
       },
     ],
   };

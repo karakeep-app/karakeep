@@ -184,7 +184,7 @@ export async function deleteListHandler({
 
 mcpServer.tool(
   "delete-list",
-  `Delete a list by id. Bookmarks inside the list are not deleted. Child lists are NOT deleted either — they keep their parentId pointing at this list and become orphaned in the tree. Move or re-parent child lists first if that matters.`,
+  `Delete a list by id. Bookmarks inside the list are not deleted. Child lists are also not deleted — the DB foreign key on parentId is ON DELETE SET NULL, so any child lists become root-level lists (their parentId is set to null). If that isn't the tree change you want, move or re-parent the children before calling this.`,
   deleteListInputSchema,
   deleteListHandler,
 );

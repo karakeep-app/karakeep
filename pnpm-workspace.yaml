@@ -34,3 +34,11 @@ minimumReleaseAgeExclude:
   - '@restatedev/restate-sdk-clients@1.15.1'
   - '@restatedev/restate-sdk-core@1.15.1'
   - '@restatedev/restate-sdk@1.15.1'
+
+# Pin vite so adding vitest as a direct devDep to apps/mcp doesn't hoist
+# vite 7.3.x, which surfaces a nested-vite peer mismatch inside
+# apps/browser-extension via @vitejs/plugin-react-swc. Both 7.0.6 and
+# 7.3.x were already in the lockfile before this PR; this just makes
+# 7.0.6 the workspace-wide resolution.
+overrides:
+  vite: 7.0.6

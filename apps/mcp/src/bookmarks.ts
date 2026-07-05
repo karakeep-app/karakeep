@@ -60,7 +60,7 @@ machine learning is:fav`),
         {
           type: "text",
           text: `
-${res.data.bookmarks.map(compactBookmark).join("\n\n")}
+${res.data.bookmarks.map((bm) => compactBookmark(bm)).join("\n\n")}
 
 Next cursor: ${res.data.nextCursor ? `'${res.data.nextCursor}'` : "no more pages"}
 `,
