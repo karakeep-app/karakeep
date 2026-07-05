@@ -373,6 +373,32 @@ export class CrawlerWorker {
   // adhoc crawl CLI (scripts/crawlAdhoc.ts).
   static async prepareForAdhoc(): Promise<void> {
     await CrawlerWorker.ensureInitialized();
+
+    // The adhoc CLI exists to exercise the REAL browser path. When no browser is
+    // reachable, crawlPage() silently falls back to a plain HTTP fetch
+    // (browserlessCrawlPage), which would quietly corrupt A/B results with a run
+    // that never executed JS/screenshots. Fail loudly instead. Two cases where
+    // the fallback is silent: no browser is configured at all, and a
+    // non-on-demand connection that failed to establish at init (globalBrowser
+    // stays undefined). On-demand connections throw per-crawl, so those surface
+    // as visible errors already.
+    const hasBrowserBackend =
+      !!serverConfig.crawler.browserWebUrl ||
+      !!serverConfig.crawler.browserWebSocketUrl;
+    if (!hasBrowserBackend) {
+      throw new Error(
+        "[adhoc] No browser backend configured — refusing to run. crawlPage() " +
+          "would silently fall back to a plain HTTP fetch. Set BROWSER_WEB_URL " +
+          "or BROWSER_WEBSOCKET_URL to a reachable Chrome.",
+      );
+    }
+    if (!serverConfig.crawler.browserConnectOnDemand && !globalBrowser) {
+      throw new Error(
+        "[adhoc] Browser failed to connect — refusing to run. crawlPage() would " +
+          "silently fall back to a plain HTTP fetch. Check that BROWSER_WEB_URL / " +
+          "BROWSER_WEBSOCKET_URL points at a reachable Chrome.",
+      );
+    }
   }
 
   static async build(queue: Queue<ZCrawlLinkRequest>) {

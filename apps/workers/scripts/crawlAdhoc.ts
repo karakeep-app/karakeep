@@ -1,6 +1,12 @@
 import "dotenv/config";
 
-import { appendFileSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
@@ -37,6 +43,9 @@ if (process.env.KARAKEEP_ADHOC_USE_REAL_DB !== "1") {
   process.env.DATA_DIR = scratch;
   process.env.ASSETS_DIR = path.join(scratch, "assets");
   mkdirSync(process.env.ASSETS_DIR, { recursive: true });
+  // Don't leak a throwaway dir per run. Must be synchronous — "exit" handlers
+  // can't await, so an async fs call here would never complete before exit.
+  process.on("exit", () => rmSync(scratch, { recursive: true, force: true }));
 }
 
 // Interstitial-only markers: strings that appear on an actual challenge/block
@@ -121,8 +130,11 @@ async function main() {
   const lines: string[] = [];
 
   for (const url of urls) {
+    // Slug used for both the jobId (so tracing/logs stay distinct per URL) and
+    // the screenshot filename.
+    const safeUrl = url.replace(/[^a-z0-9]+/gi, "_").slice(0, 80);
     for (let rep = 0; rep < repeats; rep++) {
-      const jobId = `adhoc-${values.arm}-${rep}`;
+      const jobId = `adhoc-${values.arm}-${safeUrl}-${rep}`;
       const abort = new AbortController();
       const timer = setTimeout(() => abort.abort(), timeoutMs);
       const startedAt = Date.now();
@@ -140,9 +152,8 @@ async function main() {
         );
         const { blocked, marker } = scoreHtml(res.statusCode, res.htmlContent);
         if (screenshotDir && res.screenshot) {
-          const safe = url.replace(/[^a-z0-9]+/gi, "_").slice(0, 80);
           writeFileSync(
-            path.join(screenshotDir, `${values.arm}-${safe}-${rep}.jpg`),
+            path.join(screenshotDir, `${values.arm}-${safeUrl}-${rep}.jpg`),
             res.screenshot,
           );
         }
