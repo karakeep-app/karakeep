@@ -277,9 +277,6 @@ importers:
       '@karakeep/sdk':
         specifier: workspace:*
         version: link:../../packages/sdk
-      '@karakeep/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       '@modelcontextprotocol/sdk':
         specifier: ^1.29.0
         version: 1.29.0(zod@4.3.6)
@@ -290,6 +287,9 @@ importers:
         specifier: ^4.0.0
         version: 4.3.6
     devDependencies:
+      '@karakeep/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
         version: link:../../tooling/typescript

@@ -14,6 +14,7 @@
     "karakeep-mcp": "dist/index.js"
   },
   "devDependencies": {
+    "@karakeep/shared": "workspace:*",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "@types/turndown": "^5.0.5",
@@ -40,7 +41,6 @@
   },
   "dependencies": {
     "@karakeep/sdk": "workspace:*",
-    "@karakeep/shared": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "turndown": "^7.2.0",
     "zod": "^4.0.0"
