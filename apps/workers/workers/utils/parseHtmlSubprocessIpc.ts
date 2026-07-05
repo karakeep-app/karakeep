@@ -4,6 +4,9 @@ export const parseSubprocessInputSchema = z.object({
   htmlContent: z.string(),
   url: z.string(),
   jobId: z.string(),
+  // When true, only run metadata extraction and skip the (expensive)
+  // readable-content extraction. `readableContent` will be null.
+  metadataOnly: z.boolean().optional(),
 });
 
 export const parseSubprocessMetadataSchema = z.looseObject({

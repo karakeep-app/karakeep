@@ -6,6 +6,17 @@ type EventLogInternal =
       "crawler.domain"?: string;
       "crawler.status_code"?: number | null;
       "crawler.proxy"?: string;
+      // Outcome of the preflight probe's metadata extraction.
+      "crawler.probe.metadata"?:
+        | "extracted"
+        | "blocked_status"
+        | "challenge_page"
+        | "reused_stored"
+        | "failed";
+      // Whether the rendered page was considered blocked (retryable status
+      // code or a detected challenge page), flipping metadata precedence to
+      // the preflight probe.
+      "crawler.render_blocked"?: boolean;
     }
   | {
       ["event.name"]: "inferenceWorker.run";

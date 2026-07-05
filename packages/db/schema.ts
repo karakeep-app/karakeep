@@ -275,6 +275,9 @@ export const bookmarkLinks = sqliteTable(
       enum: ["pending", "failure", "success"],
     }).default("pending"),
     crawlStatusCode: integer("crawlStatusCode").default(200),
+    // When the pre-crawl probe last extracted and stored this link's metadata.
+    // Lets crawl retries skip re-fetching it.
+    probeMetadataAt: integer("probeMetadataAt", { mode: "timestamp" }),
   },
   (bl) => [index("bookmarkLinks_url_idx").on(bl.url)],
 );

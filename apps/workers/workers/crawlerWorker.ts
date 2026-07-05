@@ -9,7 +9,7 @@ import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Mutex } from "async-mutex";
 import { dataUriToBuffer } from "data-uri-to-buffer";
 import type { MimeBuffer } from "data-uri-to-buffer";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { execa } from "execa";
 import { exitAbortController } from "exit";
 import {
@@ -34,7 +34,13 @@ import {
 } from "playwright";
 import { chromium } from "playwright-extra";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import { abortRace, abortRaceResolve, raceWith, timeoutRace } from "utils";
+import {
+  abortRace,
+  abortRaceResolve,
+  raceWith,
+  timeoutRace,
+  timeoutRejectRace,
+} from "utils";
 import { withWorkerTracing, withWorkerEventLog } from "workerTracing";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 import { z } from "zod";
@@ -97,6 +103,10 @@ import {
   parseSubprocessErrorSchema,
   parseSubprocessOutputSchema,
 } from "./utils/parseHtmlSubprocessIpc";
+import {
+  isLikelyChallengePage,
+  resolveMetadata,
+} from "./utils/metadataResolver";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -1167,6 +1177,7 @@ async function runParseSubprocess(
   url: string,
   jobId: string,
   abortSignal: AbortSignal,
+  opts?: { metadataOnly?: boolean },
 ): Promise<{
   metadata: ParseSubprocessOutput["metadata"];
   readableContent: { content: string } | null;
@@ -1190,7 +1201,12 @@ async function runParseSubprocess(
       const timeoutMs = serverConfig.crawler.parseTimeoutSec * 1000;
 
       const result = await execa({
-        input: JSON.stringify({ htmlContent, url, jobId }),
+        input: JSON.stringify({
+          htmlContent,
+          url,
+          jobId,
+          metadataOnly: opts?.metadataOnly,
+        }),
         cancelSignal: abortSignal,
         timeout: timeoutMs,
         reject: false,
@@ -1699,15 +1715,51 @@ async function archiveWebpage(
   );
 }
 
-async function getContentType(
+// Cap how much of the probed page we buffer for metadata extraction.
+// Preview metadata lives in <head>, so a couple of MB is plenty.
+const PROBE_MAX_BODY_BYTES = 2 * 1024 * 1024;
+
+// The content-type routing decision needs only the response headers, so it
+// keeps the tight timeout the probe always had. The body download (for
+// metadata extraction) runs alongside the browser crawl, so it gets a more
+// generous overall budget.
+const PROBE_HEADERS_TIMEOUT_MS = 5_000;
+const PROBE_TIMEOUT_MS = 30_000;
+
+const PROBE_HTML_CONTENT_TYPES = new Set<string>([
+  ASSET_TYPES.TEXT_HTML,
+  "application/xhtml+xml",
+]);
+
+interface UrlProbeResult {
+  contentType: string | null;
+  /**
+   * Resolves with the page's preview metadata (or null). The extraction runs
+   * in the background so it can overlap with the browser crawl — await it
+   * only when the metadata is actually needed. Never rejects.
+   */
+  metadata: Promise<ParseSubprocessOutput["metadata"] | null>;
+}
+
+/**
+ * Probes the URL with a plain GET to determine its content type. When the
+ * response is an HTML page, the body is also parsed (via the parse subprocess
+ * in metadata-only mode) so callers get the page's preview metadata without
+ * waiting for the full browser render. The returned promise resolves once the
+ * content type is known; the metadata extraction keeps running in the
+ * background behind `metadata`. Extraction is best-effort and never affects
+ * the returned content type.
+ */
+async function getContentTypeAndMetadata(
   url: string,
   jobId: string,
   abortSignal: AbortSignal,
   runProxy: RunProxyConfig,
-): Promise<string | null> {
+  opts?: { skipMetadataExtraction?: boolean },
+): Promise<UrlProbeResult> {
   return await withSpan(
     tracer,
-    "crawlerWorker.getContentType",
+    "crawlerWorker.getContentTypeAndMetadata",
     {
       attributes: {
         "bookmark.url": url,
@@ -1716,38 +1768,235 @@ async function getContentType(
       },
     },
     async () => {
+      // The request-level signal uses the long budget (it also governs the
+      // body read); the wait for the headers is raced separately against the
+      // short timeout so a dead host can't delay the routing decision.
+      const probeAbort = new AbortController();
+      let response;
       try {
         logger.info(
           `[Crawler][${jobId}] Attempting to determine the content-type for the url ${truncateUrl(url)}`,
         );
-        const response = await fetchWithProxy(
-          url,
-          {
-            method: "GET",
-            signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
-          },
-          runProxy,
+        response = await raceWith(
+          fetchWithProxy(
+            url,
+            {
+              method: "GET",
+              signal: AbortSignal.any([
+                AbortSignal.timeout(PROBE_TIMEOUT_MS),
+                abortSignal,
+                probeAbort.signal,
+              ]),
+              size: PROBE_MAX_BODY_BYTES,
+              headers: serverConfig.crawler.preflightUserAgent
+                ? { "User-Agent": serverConfig.crawler.preflightUserAgent }
+                : undefined,
+            },
+            runProxy,
+          ),
+          timeoutRejectRace(
+            PROBE_HEADERS_TIMEOUT_MS,
+            `Timed out after ${PROBE_HEADERS_TIMEOUT_MS}ms waiting for the response headers`,
+          ),
         );
-        setSpanAttributes({
-          "crawler.getContentType.statusCode": response.status,
-        });
-        const rawContentType = response.headers.get("content-type");
-        const contentType = normalizeContentType(rawContentType);
-        setSpanAttributes({
-          "crawler.contentType": contentType ?? undefined,
-        });
-        logger.info(
-          `[Crawler][${jobId}] Content-type for the url ${truncateUrl(url)} is "${contentType}"`,
-        );
-        return contentType;
       } catch (e) {
+        // Stop the underlying fetch if it's still in flight (header timeout).
+        probeAbort.abort();
         logger.error(
           `[Crawler][${jobId}] Failed to determine the content-type for the url ${truncateUrl(url)}: ${e}`,
         );
-        return null;
+        return { contentType: null, metadata: Promise.resolve(null) };
       }
+      setSpanAttributes({
+        "crawler.getContentType.statusCode": response.status,
+      });
+      const rawContentType = response.headers.get("content-type");
+      const contentType = normalizeContentType(rawContentType);
+      setSpanAttributes({
+        "crawler.contentType": contentType ?? undefined,
+      });
+      logger.info(
+        `[Crawler][${jobId}] Content-type for the url ${truncateUrl(url)} is "${contentType}"`,
+      );
+
+      if (!contentType || !PROBE_HTML_CONTENT_TYPES.has(contentType)) {
+        return { contentType, metadata: Promise.resolve(null) };
+      }
+
+      // A previous run already extracted and stored this page's metadata; the
+      // probe was only needed for the content-type routing decision.
+      if (opts?.skipMetadataExtraction) {
+        logger.info(
+          `[Crawler][${jobId}] Skipping metadata extraction from the content-type probe for the url ${truncateUrl(url)} as it was already fetched by a previous run`,
+        );
+        addLogFields<"crawlerWorker.run">({
+          "crawler.probe.metadata": "reused_stored",
+        });
+        return { contentType, metadata: Promise.resolve(null) };
+      }
+
+      // A blocked/retryable status usually means a challenge or error page
+      // whose metadata would be junk — don't extract it.
+      if (shouldRetryCrawlStatusCode(response.status)) {
+        logger.info(
+          `[Crawler][${jobId}] Skipping metadata extraction from the content-type probe for the url ${truncateUrl(url)} due to status code ${response.status}`,
+        );
+        addLogFields<"crawlerWorker.run">({
+          "crawler.probe.metadata": "blocked_status",
+        });
+        return { contentType, metadata: Promise.resolve(null) };
+      }
+
+      // The response is an HTML page: parse its metadata from the body we've
+      // already fetched. This is deliberately NOT awaited so it runs alongside
+      // the browser crawl. It must never reject (callers may await it late or
+      // not at all) and any failure here must not lose the content type, as
+      // that would regress the asset-vs-webpage routing decision.
+      const metadata = (async () => {
+        try {
+          const htmlContent = await response.text();
+          const { metadata: parsedMetadata } = await runParseSubprocess(
+            htmlContent,
+            response.url,
+            jobId,
+            abortSignal,
+            { metadataOnly: true },
+          );
+          if (
+            isLikelyChallengePage({ title: parsedMetadata.title, htmlContent })
+          ) {
+            logger.info(
+              `[Crawler][${jobId}] The content-type probe response for the url ${truncateUrl(url)} looks like a bot-challenge page; ignoring its metadata`,
+            );
+            addLogFields<"crawlerWorker.run">({
+              "crawler.probe.metadata": "challenge_page",
+            });
+            return null;
+          }
+          logger.info(
+            `[Crawler][${jobId}] Extracted page metadata from the content-type probe for the url ${truncateUrl(url)}`,
+          );
+          addLogFields<"crawlerWorker.run">({
+            "crawler.probe.metadata": "extracted",
+          });
+          return parsedMetadata;
+        } catch (e) {
+          logger.warn(
+            `[Crawler][${jobId}] Failed to extract page metadata from the content-type probe for the url ${truncateUrl(url)}: ${e}`,
+          );
+          addLogFields<"crawlerWorker.run">({
+            "crawler.probe.metadata": "failed",
+          });
+          return null;
+        }
+      })();
+      return { contentType, metadata };
     },
   );
+}
+
+/**
+ * Writes the preview metadata extracted by the pre-crawl probe so the bookmark
+ * gets a title/thumbnail before the (slow) browser render finishes.
+ *
+ * The write is strictly fill-only: each field is wrapped in
+ * COALESCE(NULLIF(existing, ''), new) so it can only populate fields that are
+ * currently empty and never override an existing value. This matters because
+ * the probe extraction runs detached from the crawl attempt's lifecycle — if
+ * an attempt fails early, this write can fire after a *retry* (possibly on
+ * another worker) has already stored its final metadata, and it must not
+ * clobber it. The post-render metadata write refines these values within the
+ * owning attempt.
+ */
+async function writeProbeMetadata(
+  bookmarkId: string,
+  metadata: ParseSubprocessOutput["metadata"],
+  jobId: string,
+) {
+  // Don't store data URIs as they're not valid URLs and are usually quite large
+  const image =
+    metadata.image && !metadata.image.startsWith("data:")
+      ? metadata.image
+      : null;
+  if (!metadata.title && !metadata.description && !image && !metadata.logo) {
+    return;
+  }
+  await db
+    .update(bookmarkLinks)
+    .set({
+      ...(metadata.title
+        ? {
+            title: sql`COALESCE(NULLIF(${bookmarkLinks.title}, ''), ${metadata.title})`,
+          }
+        : {}),
+      ...(metadata.description
+        ? {
+            description: sql`COALESCE(NULLIF(${bookmarkLinks.description}, ''), ${metadata.description})`,
+          }
+        : {}),
+      ...(image
+        ? {
+            imageUrl: sql`COALESCE(NULLIF(${bookmarkLinks.imageUrl}, ''), ${image})`,
+          }
+        : {}),
+      ...(metadata.logo
+        ? {
+            favicon: sql`COALESCE(NULLIF(${bookmarkLinks.favicon}, ''), ${metadata.logo})`,
+          }
+        : {}),
+      // Also record that the probe metadata has been fetched and stored, so
+      // crawl retries can skip re-fetching it (see loadStoredProbeMetadata).
+      probeMetadataAt: new Date(),
+    })
+    .where(eq(bookmarkLinks.id, bookmarkId));
+  logger.info(
+    `[Crawler][${jobId}] Wrote early metadata from the content-type probe.`,
+  );
+}
+
+/**
+ * Reloads previously stored probe metadata from the bookmark row. Used on
+ * crawl retries (where `probeMetadataAt` shows a probe already succeeded)
+ * instead of re-fetching and re-parsing the page, so the blocked-render merge
+ * protection keeps working without the extra fetch. Never rejects.
+ */
+async function loadStoredProbeMetadata(
+  bookmarkId: string,
+  jobId: string,
+): Promise<ParseSubprocessOutput["metadata"] | null> {
+  const { data: row, error } = await tryCatch(
+    db.query.bookmarkLinks.findFirst({
+      where: eq(bookmarkLinks.id, bookmarkId),
+      columns: {
+        title: true,
+        description: true,
+        imageUrl: true,
+        favicon: true,
+        author: true,
+        publisher: true,
+        datePublished: true,
+        dateModified: true,
+      },
+    }),
+  );
+  if (error || !row) {
+    if (error) {
+      logger.warn(
+        `[Crawler][${jobId}] Failed to load stored probe metadata: ${error}`,
+      );
+    }
+    return null;
+  }
+  return {
+    title: row.title,
+    description: row.description,
+    image: row.imageUrl,
+    logo: row.favicon,
+    author: row.author,
+    publisher: row.publisher,
+    datePublished: row.datePublished?.toISOString() ?? null,
+    dateModified: row.dateModified?.toISOString() ?? null,
+  };
 }
 
 /**
@@ -1932,6 +2181,7 @@ async function crawlAndParseUrl(
   numRetriesLeft: number,
   abortSignal: AbortSignal,
   runProxy: RunProxyConfig,
+  probeMetadataPromise: Promise<ParseSubprocessOutput["metadata"] | null>,
 ) {
   const sanitizedProxyUrl = redactUrlCredentials(
     runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
@@ -2021,9 +2271,32 @@ async function crawlAndParseUrl(
         );
       }
 
-      const { metadata: meta, readableContent: parsedReadableContent } =
+      const { metadata: renderMeta, readableContent: parsedReadableContent } =
         await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
       abortSignal.throwIfAborted();
+
+      // The probe metadata extraction has been running alongside the crawl;
+      // this is the point where it's needed. The promise never rejects and
+      // all its underlying work is time-bounded.
+      const probeMetadata = await probeMetadataPromise;
+      abortSignal.throwIfAborted();
+
+      // On the last retry attempt the crawl proceeds despite a blocked status
+      // code, and some bot walls serve their challenge page with a 200; in
+      // both cases don't let that page's metadata override clean values from
+      // the preflight probe.
+      const renderBlocked =
+        shouldRetryCrawlStatusCode(statusCode) ||
+        isLikelyChallengePage({ title: renderMeta.title, htmlContent });
+      addLogFields<"crawlerWorker.run">({
+        "crawler.render_blocked": renderBlocked,
+      });
+      if (renderBlocked && probeMetadata) {
+        logger.info(
+          `[Crawler][${jobId}] The rendered page looks blocked (status ${statusCode}); preferring preflight probe metadata.`,
+        );
+      }
+      const meta = resolveMetadata(renderMeta, probeMetadata, renderBlocked);
 
       const parseDate = (date: string | null | undefined) => {
         if (!date) {
@@ -2308,6 +2581,7 @@ async function runCrawler(
     fullPageArchiveAssetId: oldFullPageArchiveAssetId,
     contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
+    probeMetadataAt,
   } = await getBookmarkDetails(bookmarkId);
 
   await checkDomainRateLimit(url, jobId);
@@ -2332,9 +2606,17 @@ async function runCrawler(
       `[Crawler][${jobId}] Skipped fetching content-type for the url ${url} as precrawledArchiveAssetId exists`,
     );
   }
-  const contentType = precrawledArchiveAssetId
-    ? ASSET_TYPES.TEXT_HTML
-    : await getContentType(url, jobId, job.abortSignal, runProxy);
+  // Retry runs re-probe for the content type, but if a previous run already
+  // extracted and stored the probe metadata (probeMetadataAt), don't re-fetch
+  // it — reload it from the bookmark row instead.
+  const reuseStoredProbeMetadata =
+    job.runNumber > 0 && probeMetadataAt !== null;
+  const { contentType, metadata: probeMetadata }: UrlProbeResult =
+    precrawledArchiveAssetId
+      ? { contentType: ASSET_TYPES.TEXT_HTML, metadata: Promise.resolve(null) }
+      : await getContentTypeAndMetadata(url, jobId, job.abortSignal, runProxy, {
+          skipMetadataExtraction: reuseStoredProbeMetadata,
+        });
   job.abortSignal.throwIfAborted();
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
@@ -2365,6 +2647,31 @@ async function runCrawler(
       runProxy,
     );
   } else {
+    // Chain the early metadata write onto the (still running) probe
+    // extraction so a title/thumbnail lands as soon as it's ready, while the
+    // browser crawl proceeds in parallel. crawlAndParseUrl awaits this same
+    // promise before its own metadata write, so within this attempt the
+    // early write always precedes the final merged one. Across attempts the
+    // ordering can't be relied on (a failed attempt's write may fire after a
+    // retry finished) — that case is guarded by the write itself being
+    // fill-only (see writeProbeMetadata). On retry runs where the probe
+    // metadata was already stored, reload it from the bookmark row instead.
+    // Never rejects.
+    const probeMetadataPromise = reuseStoredProbeMetadata
+      ? loadStoredProbeMetadata(bookmarkId, jobId)
+      : probeMetadata.then(async (metadata) => {
+          if (metadata) {
+            const { error } = await tryCatch(
+              writeProbeMetadata(bookmarkId, metadata, jobId),
+            );
+            if (error) {
+              logger.warn(
+                `[Crawler][${jobId}] Failed to write early probe metadata: ${error}`,
+              );
+            }
+          }
+          return metadata;
+        });
     const archivalLogic = await crawlAndParseUrl(
       url,
       userId,
@@ -2381,6 +2688,7 @@ async function runCrawler(
       numRetriesLeft,
       job.abortSignal,
       runProxy,
+      probeMetadataPromise,
     );
 
     // Propagate priority to child jobs

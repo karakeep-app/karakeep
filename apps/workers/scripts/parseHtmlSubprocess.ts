@@ -144,7 +144,7 @@ async function main() {
   const input = parseSubprocessInputSchema.parse(
     JSON.parse(Buffer.concat(chunks).toString()),
   );
-  const { htmlContent, url, jobId } = input;
+  const { htmlContent, url, jobId, metadataOnly } = input;
 
   logger.info(
     `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
@@ -161,7 +161,7 @@ async function main() {
 
   // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
   let readableContent: { content: string } | null = null;
-  if (meta.readableContentHtml) {
+  if (!metadataOnly && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
     const purifyWindow = new JSDOM("").window;
@@ -174,7 +174,7 @@ async function main() {
     }
   }
 
-  if (!readableContent) {
+  if (!metadataOnly && !readableContent) {
     logger.info(
       `[Crawler][${jobId}] Will attempt to extract readable content ...`,
     );
