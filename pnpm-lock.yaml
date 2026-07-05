@@ -890,6 +890,9 @@ importers:
 
   apps/workers:
     dependencies:
+      '@duckduckgo/autoconsent':
+        specifier: ^16.6.0
+        version: 16.6.0
       '@ghostery/adblocker-playwright':
         specifier: ^2.5.1
         version: 2.7.0(playwright@1.59.1)
@@ -3657,6 +3660,9 @@ packages:
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
+
+  '@duckduckgo/autoconsent@16.6.0':
+    resolution: {integrity: sha512-l+OiSHuyWWYCmwoNtAuyAwyPSjfOja0bu0HNY1wYXgO1vq8LJXp1Y5H6Zj4F47i187KchJlpS3q5GnvRnbsANA==}
 
   '@egjs/hammerjs@2.0.17':
     resolution: {integrity: sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==}
@@ -16786,8 +16792,14 @@ packages:
   tldts-core@7.0.8:
     resolution: {integrity: sha512-Ze39mm8EtocSXPbH6cv5rDeBBhehp8OLxWJKZXLEyv2dKMlblJsoAw2gmA0ZaU6iOwNlCZ4LrmaTW1reUQEmJw==}
 
+  tldts-core@7.4.6:
+    resolution: {integrity: sha512-TkQNGJIhlEphpHCjKodMTSe23egUZr/g+flI2qkLgiJ/maAzSgXypSLRTNH3nCmqgayEmtcJBiLcfODSAr1xoA==}
+
   tldts-experimental@7.0.8:
     resolution: {integrity: sha512-47LInzMIelfHqD1Gx5+PRYQBl6vU3Xt5KYY6AhqITIKldzu/ctwzdUpbm7AdmsRyzxnly9YH4GLHTtXPwhQhTw==}
+
+  tldts-experimental@7.4.6:
+    resolution: {integrity: sha512-229vm2Ce4YwD/Tys0Y9WEfKG8gSAfuH9n22rntRvFqfzydJSLk/ihl1aD2kp0Q7d0dktwf1YzYhZ5FmVQwGCCQ==}
 
   tldts@7.0.19:
     resolution: {integrity: sha512-8PWx8tvC4jDB39BQw1m4x8y5MH1BcQ5xHeL2n7UVFulMPH/3Q0uiamahFJ3lXA0zO2SUyRXuVVbWSDmstlt9YA==}
@@ -21299,6 +21311,10 @@ snapshots:
       - webpack-cli
 
   '@drizzle-team/brocli@0.10.2': {}
+
+  '@duckduckgo/autoconsent@16.6.0':
+    dependencies:
+      tldts-experimental: 7.4.6
 
   '@egjs/hammerjs@2.0.17':
     dependencies:
@@ -36480,9 +36496,15 @@ snapshots:
 
   tldts-core@7.0.8: {}
 
+  tldts-core@7.4.6: {}
+
   tldts-experimental@7.0.8:
     dependencies:
       tldts-core: 7.0.8
+
+  tldts-experimental@7.4.6:
+    dependencies:
+      tldts-core: 7.4.6
 
   tldts@7.0.19:
     dependencies:

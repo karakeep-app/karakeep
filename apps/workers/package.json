@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@duckduckgo/autoconsent": "^16.6.0",
     "@ghostery/adblocker-playwright": "^2.5.1",
     "@hono/node-server": "^1.19.11",
     "@hono/prometheus": "^1.0.2",

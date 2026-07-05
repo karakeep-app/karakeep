@@ -22,6 +22,7 @@ import logger from "@karakeep/shared/logger";
 import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
+import { loadAutoconsent } from "./autoconsent";
 import { redactUrlCredentials } from "./utils";
 
 interface Cookie {
@@ -273,6 +274,7 @@ async function loadCookiesFromFile(): Promise<void> {
 export async function initializeBrowserEnvironment(): Promise<void> {
   chromium.use(StealthPlugin());
   await loadAdblocker();
+  loadAutoconsent();
   if (!serverConfig.crawler.browserConnectOnDemand) {
     await launchBrowser();
   } else {

@@ -31,6 +31,8 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
+import type { AutoconsentHandle } from "./autoconsent";
+import { installAutoconsent, waitForAutoconsent } from "./autoconsent";
 import {
   CONTEXT_CLOSE_TIMEOUT_MS,
   PAGE_CLOSE_TIMEOUT_MS,
@@ -210,12 +212,17 @@ async function installRedirectGuard(
  * Creates and configures the page: redirect guard, adblocking, dialog
  * auto-dismissal, media/SSRF request blocking, and abort wiring.
  */
+interface SetupPageResult {
+  page: Page;
+  autoconsent: AutoconsentHandle | undefined;
+}
+
 async function setupPage(
   context: BrowserContext,
   jobId: string,
   proxyConfig: BrowserContextOptions["proxy"],
   abortSignal: AbortSignal,
-): Promise<Page> {
+): Promise<SetupPageResult> {
   return await withSpan(
     tracer,
     "crawlerWorker.crawlPage.setupPage",
@@ -292,6 +299,11 @@ async function setupPage(
         await route.fallback();
       });
 
+      // Install autoconsent AFTER the redirect guard and SSRF request router
+      // are in place (conservative ordering; it injects scripts). No-op unless
+      // enabled and the bundle loaded.
+      const autoconsent = await installAutoconsent(nextPage, jobId);
+
       // On abort, immediately stop intercepting requests so that
       // in-flight route handlers don't block page/context closure.
       abortSignal.addEventListener(
@@ -307,7 +319,7 @@ async function setupPage(
         { once: true },
       );
 
-      return nextPage;
+      return { page: nextPage, autoconsent };
     },
   );
 }
@@ -651,7 +663,9 @@ export async function crawlPage(
           );
         }
 
-        page = await setupPage(context, jobId, proxyConfig, abortSignal);
+        const setup = await setupPage(context, jobId, proxyConfig, abortSignal);
+        page = setup.page;
+        const autoconsentHandle = setup.autoconsent;
 
         // page is guaranteed to be assigned here; alias to a const for
         // TypeScript narrowing so the rest of the try block sees `Page`.
@@ -731,6 +745,12 @@ export async function crawlPage(
         logger.info(
           `[Crawler][${jobId}] Finished waiting for the page to load.`,
         );
+
+        // If a consent dialog was detected, give autoconsent up to 3s to finish
+        // opting out before we capture the HTML/screenshot/PDF. No CMP → no
+        // added latency.
+        await waitForAutoconsent(autoconsentHandle, abortSignal);
+        abortSignal.throwIfAborted();
 
         const [htmlContent, screenshot, pdf] = await capturePageAssets(
           activePage,
