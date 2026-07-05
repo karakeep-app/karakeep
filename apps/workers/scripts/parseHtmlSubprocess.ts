@@ -89,9 +89,13 @@ function isPlaceholderDataImage(src: string): boolean {
   // treat every data:image/gif as a placeholder: SingleFile and some sites
   // inline real GIF assets as data URIs, and replacing those with a lazy
   // attribute URL makes the saved reader content depend on the remote image.
+  // 200 chars is a deliberately generous cutoff: a 1x1 transparent GIF/PNG
+  // placeholder is only ~60-100 chars, while a real inlined image is many KB,
+  // so anything under this limit is safely a placeholder rather than an asset.
+  const PLACEHOLDER_MAX_LENGTH = 200;
   const normalizedSrc = src.replace(/\s/g, "").toLowerCase();
   return (
-    normalizedSrc.length <= 200 &&
+    normalizedSrc.length <= PLACEHOLDER_MAX_LENGTH &&
     (normalizedSrc.startsWith("data:image/gif") ||
       normalizedSrc.startsWith("data:image/png"))
   );
