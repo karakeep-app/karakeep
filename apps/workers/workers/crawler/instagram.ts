@@ -97,11 +97,16 @@ export async function extractInstagramContent(
   runProxy: RunProxyConfig,
   abortSignal: AbortSignal,
 ): Promise<InstagramContent | null> {
+  if (!/^https?:\/\//i.test(url)) {
+    logger.warn(
+      `[Crawler][${jobId}] Refusing non-http(s) Instagram URL "${url}"`,
+    );
+    return null;
+  }
   const dir = await mkdtemp(join(tmpdir(), "karakeep-ig-"));
   try {
     const proxy = runProxy.httpsProxy ?? runProxy.httpProxy;
     const args = [
-      url,
       "--skip-download",
       "--write-info-json",
       "--write-auto-subs",
@@ -114,6 +119,8 @@ export async function extractInstagramContent(
       join(dir, "ig"),
       ...serverConfig.crawler.ytDlpArguments,
       ...(proxy ? ["--proxy", proxy] : []),
+      "--",
+      url,
     ];
     logger.info(
       `[Crawler][${jobId}] Extracting Instagram content for "${url}" via yt-dlp`,
