@@ -23,7 +23,6 @@ services:
     image: gcr.io/zenika-hub/alpine-chrome:124
     restart: unless-stopped
     command:
-      - --headless=new
       - --no-sandbox
       - --disable-gpu
       - --disable-dev-shm-usage
