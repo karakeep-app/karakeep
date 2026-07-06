@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isInstagramUrl } from "./instagram";
+import { isInstagramUrl, parseVtt } from "./instagram";
 
 describe("isInstagramUrl", () => {
   it("accepts post, reel, reels and tv URLs", () => {
@@ -17,5 +17,29 @@ describe("isInstagramUrl", () => {
       false,
     );
     expect(isInstagramUrl("not a url")).toBe(false);
+  });
+});
+
+describe("parseVtt", () => {
+  it("extracts spoken text, dropping timestamps and duplicates", () => {
+    const vtt = [
+      "WEBVTT",
+      "",
+      "00:00:00.000 --> 00:00:02.000",
+      "hello world",
+      "",
+      "00:00:02.000 --> 00:00:04.000",
+      "hello world",
+      "",
+      "00:00:04.000 --> 00:00:06.000",
+      "second line",
+      "",
+    ].join("\n");
+    expect(parseVtt(vtt)).toBe("hello world second line");
+  });
+
+  it("returns empty string for headerless or empty input", () => {
+    expect(parseVtt("")).toBe("");
+    expect(parseVtt("WEBVTT\n\n")).toBe("");
   });
 });
