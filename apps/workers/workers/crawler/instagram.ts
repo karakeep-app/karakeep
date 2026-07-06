@@ -1,5 +1,32 @@
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
+export interface InstagramContent {
+  caption: string;
+  transcript: string;
+  author: string | null;
+  date: string | null;
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+export function composeInstagramHtml(content: InstagramContent): string {
+  const parts: string[] = [];
+  if (content.caption) {
+    parts.push(`<p>${escapeHtml(content.caption)}</p>`);
+  }
+  if (content.transcript) {
+    parts.push(`<h2>Transcript</h2>`);
+    parts.push(`<p>${escapeHtml(content.transcript)}</p>`);
+  }
+  const footer = [content.author, content.date].filter(Boolean).join(" · ");
+  if (footer) {
+    parts.push(`<p><small>${escapeHtml(footer)}</small></p>`);
+  }
+  return parts.join("\n");
+}
+
 export function isInstagramUrl(url: string): boolean {
   let parsed: URL;
   try {
