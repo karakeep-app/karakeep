@@ -2,9 +2,12 @@ import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execa } from "execa";
+import { eq } from "drizzle-orm";
 import type { RunProxyConfig } from "network";
 import logger from "@karakeep/shared/logger";
 import serverConfig from "@karakeep/shared/config";
+import { db } from "@karakeep/db";
+import { bookmarkLinks } from "@karakeep/db/schema";
 
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
@@ -138,4 +141,38 @@ export async function extractInstagramContent(
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+}
+
+export async function handleInstagramBookmark(args: {
+  url: string;
+  jobId: string;
+  bookmarkId: string;
+  runProxy: RunProxyConfig;
+  abortSignal: AbortSignal;
+}): Promise<void> {
+  const { url, jobId, bookmarkId, runProxy, abortSignal } = args;
+  const content = await extractInstagramContent(
+    url,
+    jobId,
+    runProxy,
+    abortSignal,
+  );
+  if (!content) {
+    logger.warn(
+      `[Crawler][${jobId}] No Instagram content extracted for "${url}"; leaving bookmark as-is`,
+    );
+    return;
+  }
+  await db
+    .update(bookmarkLinks)
+    .set({
+      htmlContent: composeInstagramHtml(content),
+      title: content.caption ? content.caption.slice(0, 100) : null,
+      description: content.caption ? content.caption.slice(0, 300) : null,
+      author: content.author,
+      crawledAt: new Date(),
+      crawlStatusCode: 200,
+    })
+    .where(eq(bookmarkLinks.id, bookmarkId));
+  logger.info(`[Crawler][${jobId}] Stored Instagram text content for "${url}"`);
 }
