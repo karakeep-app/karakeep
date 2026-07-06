@@ -1,6 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
-import { composeInstagramHtml, isInstagramUrl, parseVtt } from "./instagram";
+import {
+  composeInstagramHtml,
+  isInstagramUrl,
+  parseInstagramDump,
+  parseVtt,
+} from "./instagram";
 
 describe("isInstagramUrl", () => {
   it("accepts post, reel, reels and tv URLs", () => {
@@ -68,5 +76,40 @@ describe("composeInstagramHtml", () => {
     });
     expect(html).toContain("just a caption");
     expect(html).not.toContain("<h2>Transcript</h2>");
+  });
+});
+
+describe("parseInstagramDump", () => {
+  let dir: string;
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "ig-test-"));
+  });
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("returns null when there is no info.json", async () => {
+    expect(await parseInstagramDump(dir)).toBeNull();
+  });
+
+  it("maps info.json fields and folds in the transcript", async () => {
+    await writeFile(
+      join(dir, "ig.info.json"),
+      JSON.stringify({
+        description: "my caption",
+        uploader: "someuser",
+        upload_date: "20260706",
+      }),
+    );
+    await writeFile(
+      join(dir, "ig.en.vtt"),
+      "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello\n",
+    );
+    expect(await parseInstagramDump(dir)).toEqual({
+      caption: "my caption",
+      transcript: "hello",
+      author: "someuser",
+      date: "20260706",
+    });
   });
 });

@@ -1,3 +1,6 @@
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
 export interface InstagramContent {
@@ -53,4 +56,32 @@ export function parseVtt(vtt: string): string {
     out.push(line);
   }
   return out.join(" ");
+}
+
+export async function parseInstagramDump(
+  dir: string,
+): Promise<InstagramContent | null> {
+  const files = await readdir(dir);
+  const infoName = files.find((f) => f.endsWith(".info.json"));
+  if (!infoName) {
+    return null;
+  }
+  const info = JSON.parse(await readFile(join(dir, infoName), "utf8")) as {
+    description?: string;
+    uploader?: string;
+    channel?: string;
+    upload_date?: string;
+  };
+
+  const vttName = files.find((f) => f.endsWith(".vtt"));
+  const transcript = vttName
+    ? parseVtt(await readFile(join(dir, vttName), "utf8"))
+    : "";
+
+  return {
+    caption: info.description ?? "",
+    transcript,
+    author: info.uploader ?? info.channel ?? null,
+    date: info.upload_date ?? null,
+  };
 }
