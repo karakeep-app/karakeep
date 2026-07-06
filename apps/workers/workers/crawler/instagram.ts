@@ -1,5 +1,10 @@
-import { readdir, readFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { execa } from "execa";
+import type { RunProxyConfig } from "network";
+import logger from "@karakeep/shared/logger";
+import serverConfig from "@karakeep/shared/config";
 
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
@@ -84,4 +89,46 @@ export async function parseInstagramDump(
     author: info.uploader ?? info.channel ?? null,
     date: info.upload_date ?? null,
   };
+}
+
+export async function extractInstagramContent(
+  url: string,
+  jobId: string,
+  runProxy: RunProxyConfig,
+  abortSignal: AbortSignal,
+): Promise<InstagramContent | null> {
+  const dir = await mkdtemp(join(tmpdir(), "karakeep-ig-"));
+  try {
+    const proxy = runProxy.httpsProxy ?? runProxy.httpProxy;
+    const args = [
+      url,
+      "--skip-download",
+      "--write-info-json",
+      "--write-auto-subs",
+      "--sub-langs",
+      "en.*",
+      "--convert-subs",
+      "vtt",
+      "--no-playlist",
+      "-o",
+      join(dir, "ig"),
+      ...serverConfig.crawler.ytDlpArguments,
+      ...(proxy ? ["--proxy", proxy] : []),
+    ];
+    logger.info(
+      `[Crawler][${jobId}] Extracting Instagram content for "${url}" via yt-dlp`,
+    );
+    await execa("yt-dlp", args, {
+      cancelSignal: abortSignal,
+      timeout: 60_000,
+    });
+    return await parseInstagramDump(dir);
+  } catch (e) {
+    logger.warn(
+      `[Crawler][${jobId}] Instagram extraction failed for "${url}": ${e}`,
+    );
+    return null;
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 }
