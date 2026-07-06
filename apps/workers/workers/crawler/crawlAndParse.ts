@@ -35,6 +35,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
+import { resolveShortenedBookmarkUrl } from "@karakeep/shared/utils/url";
 
 import type { ParseSubprocessOutput } from "../utils/parseHtmlSubprocessIpc";
 import {
@@ -51,7 +52,11 @@ import {
 } from "./assetStorage";
 import { crawlPage } from "./crawlPage";
 import { runParseSubprocess } from "./parseSubprocess";
-import { redactUrlCredentials, shouldRetryCrawlStatusCode } from "./utils";
+import {
+  redactUrlCredentials,
+  shouldRetryCrawlStatusCode,
+  truncateUrl,
+} from "./utils";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -176,7 +181,7 @@ export interface CrawlAndParseUrlArgs {
  */
 export async function crawlAndParseUrl(
   args: CrawlAndParseUrlArgs,
-): Promise<() => Promise<void>> {
+): Promise<{ runArchival: () => Promise<void>; effectiveUrl: string }> {
   const {
     url,
     userId,
@@ -329,12 +334,24 @@ export async function crawlAndParseUrl(
         }
       };
 
+      // Replace a known shortener (search.app/share.google) with its resolved
+      // destination so the bookmark reflects the real URL. See issue #2235.
+      const resolvedUrl = resolveShortenedBookmarkUrl(url, browserUrl);
+      if (resolvedUrl) {
+        logger.info(
+          `[Crawler][${jobId}] Resolved shortened URL "${truncateUrl(
+            url,
+          )}" to "${truncateUrl(resolvedUrl)}". Updating the bookmark URL.`,
+        );
+      }
+
       // Phase 1: Write metadata immediately for fast user feedback.
       // Content and asset storage happen later and can be slow (banner
       // image download, screenshot/pdf upload, etc.).
       await db
         .update(bookmarkLinks)
         .set({
+          ...(resolvedUrl ? { url: resolvedUrl } : {}),
           title: meta.title,
           description: meta.description,
           // Don't store data URIs as they're not valid URLs and are usually quite large
@@ -489,7 +506,7 @@ export async function crawlAndParseUrl(
       // Delete the old assets if any
       await Promise.all(assetDeletionTasks);
 
-      return async () => {
+      const runArchival = async () => {
         if (
           !precrawledArchiveAssetId &&
           (serverConfig.crawler.fullPageArchive || archiveFullPage)
@@ -531,6 +548,10 @@ export async function crawlAndParseUrl(
           }
         }
       };
+
+      // effectiveUrl reflects any shortener resolution so downstream jobs
+      // (e.g. video) use the real destination, not the opaque short link.
+      return { runArchival, effectiveUrl: resolvedUrl ?? url };
     },
   );
 }
