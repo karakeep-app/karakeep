@@ -29,16 +29,19 @@ function KeepScreenOn() {
 export default function BookmarkView() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { slug } = useLocalSearchParams();
+  const { slug, view } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { settings } = useAppSettings();
   const api = useTRPC();
 
+  const requestedView = Array.isArray(view) ? view[0] : view;
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
-    settings.defaultBookmarkView === "externalBrowser"
-      ? "browser"
-      : settings.defaultBookmarkView,
+    requestedView === "reader"
+      ? "reader"
+      : settings.defaultBookmarkView === "externalBrowser"
+        ? "browser"
+        : settings.defaultBookmarkView,
   );
 
   if (typeof slug !== "string") {

@@ -65,6 +65,7 @@
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "react-native": "0.81.5",
+    "react-native-android-widget": "0.20.3",
     "react-native-blob-util": "^0.21.2",
     "react-native-css-interop": "0.2.1",
     "react-native-draggable-flatlist": "4.0.3",
