@@ -128,11 +128,27 @@ export async function extractInstagramContent(
     logger.info(
       `[Crawler][${jobId}] Extracting Instagram content for "${url}" via yt-dlp`,
     );
-    await execa("yt-dlp", args, {
-      cancelSignal: abortSignal,
-      timeout: 60_000,
-    });
-    return await parseInstagramDump(dir);
+    try {
+      await execa("yt-dlp", args, {
+        cancelSignal: abortSignal,
+        timeout: 60_000,
+      });
+    } catch (e) {
+      // yt-dlp exits non-zero in cases where it still wrote a usable
+      // info.json: image-only carousels error per item ("No video formats
+      // found"), and saving the cookie jar fails on a read-only mount. Parse
+      // whatever landed on disk instead of discarding it with the exit code.
+      logger.warn(
+        `[Crawler][${jobId}] yt-dlp exited non-zero for "${url}"; parsing any partial output: ${e}`,
+      );
+    }
+    const content = await parseInstagramDump(dir);
+    if (!content) {
+      logger.warn(
+        `[Crawler][${jobId}] No Instagram content extracted for "${url}"`,
+      );
+    }
+    return content;
   } catch (e) {
     logger.warn(
       `[Crawler][${jobId}] Instagram extraction failed for "${url}": ${e}`,
