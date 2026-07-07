@@ -1,10 +1,15 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+
+vi.mock("execa", () => ({ execa: vi.fn() }));
+
+import { execa } from "execa";
 
 import {
   composeInstagramHtml,
+  extractInstagramContent,
   isInstagramUrl,
   parseInstagramDump,
   parseVtt,
@@ -111,5 +116,78 @@ describe("parseInstagramDump", () => {
       author: "someuser",
       date: "20260706",
     });
+  });
+});
+
+describe("extractInstagramContent", () => {
+  const proxy = {
+    httpProxy: undefined,
+    httpsProxy: undefined,
+    noProxy: undefined,
+  };
+  const signal = new AbortController().signal;
+
+  beforeEach(() => {
+    vi.mocked(execa).mockReset();
+  });
+
+  it("parses the dump even when yt-dlp exits non-zero", async () => {
+    // Image-only carousels error per item ("No video formats found") and a
+    // read-only cookie mount fails the cookie-jar save — in both cases yt-dlp
+    // exits non-zero yet still wrote a usable info.json. The caption must
+    // survive rather than being discarded with the exit code.
+    vi.mocked(execa).mockImplementation((async (
+      _file: string,
+      args: string[],
+    ) => {
+      const outBase = args[args.indexOf("-o") + 1];
+      await writeFile(
+        join(dirname(outBase), "ig.info.json"),
+        JSON.stringify({
+          description: "carousel caption",
+          uploader: "someuser",
+          upload_date: "20260706",
+        }),
+      );
+      throw new Error("Command failed with exit code 1");
+    }) as unknown as typeof execa);
+
+    expect(
+      await extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toEqual({
+      caption: "carousel caption",
+      transcript: "",
+      author: "someuser",
+      date: "20260706",
+    });
+  });
+
+  it("returns null when yt-dlp fails and left no dump behind", async () => {
+    vi.mocked(execa).mockRejectedValue(new Error("network unreachable"));
+    expect(
+      await extractInstagramContent(
+        "https://www.instagram.com/reel/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBeNull();
+  });
+
+  it("refuses non-http(s) URLs without invoking yt-dlp", async () => {
+    expect(
+      await extractInstagramContent(
+        "file:///etc/passwd",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBeNull();
+    expect(execa).not.toHaveBeenCalled();
   });
 });
