@@ -188,6 +188,46 @@ Example JSON file:
 
 </details>
 
+<details>
+
+  <summary>Setting up Instagram text extraction (CRAWLER_INSTAGRAM_ENABLED)</summary>
+
+With `CRAWLER_INSTAGRAM_ENABLED=true`, Instagram post and reel URLs are routed
+to yt-dlp instead of the normal browser crawl, and their caption (plus the
+auto-generated transcript for reels that have spoken English audio) is stored as
+the bookmark's content, making it searchable.
+
+Instagram serves almost nothing to logged-out clients, so you must provide your
+own session cookies:
+
+1. Log in to instagram.com in a browser and export its cookies to a
+   Netscape-format `cookies.txt` (for example with a "Get cookies.txt" browser
+   extension). Export only the `instagram.com` cookies — the file holds a live
+   session, so treat it like a password and keep it out of version control.
+2. Make the file available inside the container and point yt-dlp at it via
+   `CRAWLER_YTDLP_ARGS`. Arguments are split on `%%`, so `--cookies` and the path
+   are two separate entries:
+
+```yaml
+services:
+  karakeep:
+    environment:
+      - CRAWLER_INSTAGRAM_ENABLED=true
+      - CRAWLER_YTDLP_ARGS=--cookies%%/cookies/instagram.txt
+    volumes:
+      - ./instagram-cookies.txt:/cookies/instagram.txt:ro
+```
+
+Notes:
+
+- `--cookies-from-browser` does not work in the headless container; use a
+  `cookies.txt` file.
+- The cookie mount can be read-only (`:ro`).
+- Instagram sessions expire. If extraction starts failing, re-export the
+  cookies; using a dedicated/secondary account avoids disrupting your main login.
+
+</details>
+
 ## OCR Configs
 
 Karakeep uses [tesseract.js](https://github.com/naptha/tesseract.js) to extract text from images by default. Alternatively, you can use an LLM-based OCR by enabling the `OCR_USE_LLM` flag. LLM-based OCR uses the configured inference model (OpenAI or Ollama) to extract text from images, which can provide better results for complex images but requires a configured inference provider.
