@@ -61,7 +61,6 @@
     "add_to_list": "목록에 추가",
     "unarchive": "보관해제",
     "recrawl": "다시 가져오기",
-    "download_full_page_archive": "보관된 전체 페이지 다운로드",
     "edit_tags": "태그 수정",
     "select_all": "전체 선택",
     "unselect_all": "전체 선택해제",
@@ -203,7 +202,6 @@
     "continue_button": "계속"
   },
   "editor": {
-    "quickly_focus": "⌘ + E를 누르면 이 필드에 초점이 옮겨집니다",
     "multiple_urls_dialog_title": "URL을 분리된 북마크로 가져올까요?",
     "multiple_urls_dialog_desc": "입력에 별도의 줄에 여러 URL이 포함되어 있습니다. 별도의 북마크로 가져오시겠습니까?",
     "import_as_text": "텍스트 북마크로 가져오기",
@@ -264,7 +262,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "정말로 이 북마크를 삭제할까요?",
-      "delete_confirmation_title": "북마크를 삭제할까요?"
+      "delete_confirmation_title": "북마크를 삭제할까요?",
+      "bulk_delete_confirmation_description": "정말로 북마크 {{count}}개를 삭제할까요?"
     }
   },
   "toasts": {
@@ -705,10 +704,8 @@
       "progress": "진행률",
       "status": {
         "pending": "대기 중",
-        "in_progress": "진행 중",
         "completed": "완료됨",
         "failed": "실패함",
-        "processing": "처리 중",
         "staging": "준비 중",
         "running": "실행 중",
         "paused": "일시 중단됨"
@@ -827,18 +824,6 @@
     },
     "background_jobs": {
       "background_jobs": "백그라운드 작업",
-      "crawler_jobs": "가져오기 작업",
-      "indexing_jobs": "인덱싱 작업",
-      "inference_jobs": "추론 작업",
-      "tidy_assets_jobs": "정리 작업",
-      "job": "작업",
-      "queued": "큐에 추가됨",
-      "pending": "대기중",
-      "failed": "실패함",
-      "asset_preprocessing_jobs": "에셋 전처리 작업",
-      "feed_jobs": "RSS 피드 작업",
-      "video_jobs": "비디오 다운로드 작업",
-      "webhook_jobs": "웹훅 작업",
       "monitor_and_manage": "백그라운드 작업 대기열 및 시스템 처리 작업 모니터링 및 관리",
       "jobs": {
         "crawler": {
@@ -857,10 +842,6 @@
           "title": "자산 전처리 작업",
           "description": "이미지 및 문서 전처리 (스크린샷, 텍스트 추출 등)"
         },
-        "tidy_assets": {
-          "title": "자산 정리 작업",
-          "description": "자산 정리 및 저장소 최적화"
-        },
         "video": {
           "title": "비디오 다운로드 작업",
           "description": "비디오 추출 및 다운로드"
@@ -876,6 +857,10 @@
         "admin_maintenance": {
           "title": "관리자 유지 관리 작업",
           "description": "관리 정리 및 자산 유지 관리"
+        },
+        "embeddings": {
+          "title": "임베딩 작업",
+          "description": "북마크 벡터 임베딩 생성"
         }
       },
       "active": "활성",
@@ -909,20 +894,11 @@
         "migrate_large_link_html_content": "큰 인라인 HTML 콘텐츠를 에셋으로 옮기기",
         "recrawl_pending_links_only": "보류 중인 링크만 다시 크롤링",
         "regenerate_ai_tags_for_pending_bookmarks_only": "보류 중인 북마크에 대해서만 AI 태그 다시 생성",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "보류 중인 북마크에 대해서만 AI 요약 다시 생성"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "보류 중인 북마크에 대해서만 AI 요약 다시 생성",
+        "regenerate_embeddings_for_pending_bookmarks_only": "보류 중인 북마크에 대해서만 임베딩 다시 생성",
+        "regenerate_embeddings_for_failed_bookmarks_only": "실패한 북마크에 대해서만 임베딩 다시 생성",
+        "regenerate_embeddings_for_all_bookmarks": "모든 북마크에 대해 임베딩 다시 생성"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "실패한 링크만 다시 가져오기",
-      "recrawl_all_links": "모든 링크 다시 가져오기",
-      "without_inference": "추론하지 않기",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "실패한 북마크만 AI 태그 재생성",
-      "regenerate_ai_tags_for_all_bookmarks": "모든 북마크 AI 태그 재생성",
-      "reindex_all_bookmarks": "모든 북마크 재 인덱싱",
-      "compact_assets": "애셋 압축",
-      "reprocess_assets_fix_mode": "재작업된 자산(수정 모드)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "실패한 북마크에 대해서만 AI 요약 다시 생성",
-      "regenerate_ai_summaries_for_all_bookmarks": "모든 북마크에 대해 AI 요약 다시 생성"
     },
     "service_connections": {
       "title": "서비스 연결",
@@ -934,7 +910,8 @@
         "not_configured": "구성되지 않음",
         "connected": "연결됨",
         "disconnected": "연결 끊김"
-      }
+      },
+      "vector_store": "벡터 스토어"
     },
     "admin_tools": {
       "admin_tools": "관리자 도구",
@@ -970,7 +947,10 @@
       "retag_queued": "다시 태그 작업이 대기열에 추가됨",
       "resummarize_queued": "다시 요약 작업이 대기열에 추가됨",
       "view": "보기",
-      "fetch_error": "북마크 가져오기 오류"
+      "fetch_error": "북마크 가져오기 오류",
+      "embedding_status": "임베딩 상태",
+      "regenerate_embedding": "임베딩 재생성",
+      "regenerate_embedding_queued": "임베딩 재생성 작업이 큐에 추가되었습니다"
     }
   },
   "lists": {
@@ -1166,5 +1146,28 @@
     "download": "다운로드",
     "close": "닫기",
     "generating": "생성 중..."
+  },
+  "keyboard_shortcuts": {
+    "title": "키보드 단축키",
+    "sections": {
+      "navigation": "탐색",
+      "actions": "작업",
+      "selection": "선택",
+      "other": "기타"
+    },
+    "move_left": "왼쪽으로 이동",
+    "move_down": "아래로 이동",
+    "move_up": "위로 이동",
+    "move_right": "오른쪽으로 이동",
+    "open_bookmark": "북마크 열기",
+    "clear_focus": "포커스 해제 / 일괄 편집 종료",
+    "toggle_favorite": "즐겨찾기 전환",
+    "toggle_archive": "보관 / 보관 해제",
+    "delete_bookmark": "북마크 삭제",
+    "toggle_selection": "선택 전환",
+    "select_all": "전체 선택",
+    "deselect_all": "전체 선택 해제",
+    "show_help": "키보드 단축키 표시",
+    "focus_search_alt": "검색창에 포커스"
   }
 }
