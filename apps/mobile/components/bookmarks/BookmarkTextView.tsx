@@ -4,7 +4,9 @@ import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { shouldUseGlassPill } from "@/lib/ios";
 import { useColorScheme } from "nativewind";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -19,6 +21,7 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
   }
   const { toast } = useToast();
   const { colorScheme } = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   const [isEditing, setIsEditing] = useState(false);
   const initialText = bookmark.content.text;
@@ -55,7 +58,10 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
 
   if (isEditing) {
     return (
-      <View className="flex-1 p-4">
+      <View
+        className="flex-1 px-4 pt-4"
+        style={{ paddingBottom: shouldUseGlassPill ? 0 : insets.bottom + 8 }}
+      >
         <View className="flex-row justify-end gap-2 px-4 py-2">
           <Button
             size="sm"
