@@ -565,14 +565,27 @@ const metascraperReddit = () => {
       }
       return undefined;
     }) as unknown as RulesOptions,
-    readableContentHtml: (async ({ url }: { url: string }) => {
+    readableContentHtml: (async ({
+      url,
+      htmlDom,
+    }: {
+      url: string;
+      htmlDom: CheerioAPI;
+    }) => {
       const result = await fetchRedditPostData(url);
       if (result.post) {
         const decoded = decodeHtmlEntities(result.post.selftext_html ?? "");
         // The post has no content, return the title
         return (decoded || result.post.title) ?? null;
       }
-      return undefined;
+      // Guard: the JSON fetch failed (e.g. Reddit rate-limited us). Returning
+      // undefined here would let the generic readability pass scrape the
+      // rendered page, which on Reddit captures the cookie-consent banner as
+      // the article body and poisons tagging/summaries. Fall back to the post
+      // title from the DOM so we store something meaningful; a later re-crawl
+      // can still recover the full body once the JSON fetch succeeds.
+      const domTitle = fallbackDomTitle({ htmlDom });
+      return domTitle ?? undefined;
     }) as unknown as RulesOptions,
   };
 
