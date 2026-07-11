@@ -248,11 +248,13 @@ const solveRedditChallenge = async (
     token: token[1],
     jsc_orig_r: "",
   });
-  const submitUrl =
-    "https://www.reddit.com" + action[1] + "?" + params.toString();
+  // action may be a relative path, absolute URL, or protocol-relative URL;
+  // resolve against reddit.com so we never build a malformed submit URL.
+  const submitUrl = new URL(action[1], "https://www.reddit.com");
+  submitUrl.search = params.toString();
   try {
     await browserGet(
-      submitUrl,
+      submitUrl.toString(),
       "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       jar,
     );
@@ -262,22 +264,34 @@ const solveRedditChallenge = async (
 };
 
 const fetchRedditJson = async (
-  jsonUrl: string,
+  url: string,
   accessToken: string | null,
 ): Promise<FetchResponse> => {
   if (accessToken) {
     // Authenticated path (OAuth client credentials) - no challenge needed.
-    return fetchWithProxy(jsonUrl, {
+    const response = await fetchWithProxy(buildJsonUrl(url, true), {
       headers: {
         accept: "application/json",
         Authorization: `Bearer ${accessToken}`,
         "User-Agent": "KarakeepBot/1.0",
       },
     });
+    // A rejected token (revoked, early-expired, or insufficient scope) should
+    // not fail the crawl - drop the cached token and fall through to the
+    // anonymous challenge path, which works without credentials.
+    if (response.status !== 401 && response.status !== 403) {
+      return response;
+    }
+    logger.warn(
+      `[MetascraperReddit] OAuth request rejected (${response.status}); falling back to anonymous crawling`,
+    );
+    redditAccessToken = null;
+    redditAccessTokenExpiresAt = 0;
   }
 
   // Anonymous path: warm up on the HTML page to solve the JS challenge, then
   // reuse the clearance cookies for the JSON request.
+  const jsonUrl = buildJsonUrl(url, false);
   const jar: CookieJar = new Map();
   const htmlUrl = jsonUrl.replace(/\.json(\?.*)?$/, "$1");
   const warmup = await browserGet(
@@ -399,25 +413,13 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
 
   const promise = (async () => {
     const accessToken = await getRedditAccessToken();
-    const useOauth = !!accessToken;
-
-    let jsonUrl: string;
-    try {
-      jsonUrl = buildJsonUrl(url, useOauth);
-    } catch (error) {
-      logger.warn(
-        "[MetascraperReddit] Failed to construct Reddit JSON URL",
-        error,
-      );
-      return { fetched: false };
-    }
 
     let response;
     try {
-      response = await fetchRedditJson(jsonUrl, accessToken);
+      response = await fetchRedditJson(url, accessToken);
     } catch (error) {
       logger.warn(
-        `[MetascraperReddit] Failed to fetch Reddit JSON for ${jsonUrl}`,
+        `[MetascraperReddit] Failed to fetch Reddit JSON for ${url}`,
         error,
       );
       return { fetched: false };
@@ -430,7 +432,7 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
 
     if (!response.ok) {
       logger.warn(
-        `[MetascraperReddit] Reddit JSON request failed for ${jsonUrl} with status ${response.status}`,
+        `[MetascraperReddit] Reddit JSON request failed for ${url} with status ${response.status}`,
       );
       return { fetched: false };
     }
@@ -440,7 +442,7 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
       payload = await response.json();
     } catch (error) {
       logger.warn(
-        `[MetascraperReddit] Failed to parse Reddit JSON for ${jsonUrl}`,
+        `[MetascraperReddit] Failed to parse Reddit JSON for ${url}`,
         error,
       );
       return { fetched: false };
