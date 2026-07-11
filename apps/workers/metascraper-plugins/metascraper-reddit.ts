@@ -4,6 +4,7 @@ import { decode as decodeHtmlEntities } from "html-entities";
 import { fetchWithProxy } from "network";
 import { z } from "zod";
 
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 /**
@@ -105,14 +106,190 @@ const decodeRedditUrl = (url?: string): string | undefined => {
   return decoded || undefined;
 };
 
-const buildJsonUrl = (url: string): string => {
+let redditAccessToken: string | null = null;
+let redditAccessTokenExpiresAt: number = 0;
+let redditAccessTokenPromise: Promise<string | null> | null = null;
+
+const getRedditAccessToken = async (): Promise<string | null> => {
+  const { clientId, clientSecret } = serverConfig.reddit;
+  if (!clientId || !clientSecret) {
+    return null;
+  }
+
+  const now = Date.now();
+  if (redditAccessToken && redditAccessTokenExpiresAt > now) {
+    return redditAccessToken;
+  }
+
+  if (redditAccessTokenPromise) {
+    return redditAccessTokenPromise;
+  }
+
+  redditAccessTokenPromise = (async () => {
+    try {
+      const response = await fetchWithProxy("https://www.reddit.com/api/v1/access_token", {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+          "User-Agent": "KarakeepBot/1.0",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: "grant_type=client_credentials",
+      });
+
+      if (!response.ok) {
+        logger.warn(`[MetascraperReddit] Failed to obtain access token: ${response.status}`);
+        return null;
+      }
+
+      const data = (await response.json()) as { access_token: string; expires_in: number };
+      if (!data.access_token) {
+        return null;
+      }
+
+      redditAccessToken = data.access_token;
+      // Expire 5 minutes before the actual expiration to be safe
+      redditAccessTokenExpiresAt = now + Math.max(0, data.expires_in - 300) * 1000;
+      return redditAccessToken;
+    } catch (error) {
+      logger.warn("[MetascraperReddit] Error obtaining access token", error);
+      return null;
+    } finally {
+      redditAccessTokenPromise = null;
+    }
+  })();
+
+  return redditAccessTokenPromise;
+};
+
+const buildJsonUrl = (url: string, useOauth: boolean): string => {
   const urlObj = new URL(url);
 
   if (!urlObj.pathname.endsWith(".json")) {
     urlObj.pathname = urlObj.pathname.replace(/\/?$/, ".json");
   }
 
+  if (useOauth) {
+    urlObj.hostname = "oauth.reddit.com";
+  }
+
   return urlObj.toString();
+};
+
+// Anonymous Reddit crawling (no OAuth credentials): Reddit gates the public
+// JSON API behind a lightweight "please wait" JS challenge. A browser-like
+// User-Agent gets served the challenge page instead of a hard block; the page
+// embeds (async e=>e+e)("<seed>") so the solution is just the seed repeated
+// twice. Submitting the hidden form earns clearance cookies that carry into
+// the .json request. Implemented against fetchWithProxy (node-fetch, no cookie
+// jar) so cookies are threaded manually.
+// Technique: https://gist.github.com/Richard-Weiss/00b9cfdbd8d94ab22430d8859587db5d
+const REDDIT_BROWSER_UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0";
+
+type FetchResponse = Awaited<ReturnType<typeof fetchWithProxy>>;
+type CookieJar = Map<string, string>;
+
+const storeSetCookies = (response: FetchResponse, jar: CookieJar): void => {
+  const headers = response.headers as unknown as {
+    raw?: () => Record<string, string[]>;
+  };
+  const list =
+    typeof headers.raw === "function"
+      ? (headers.raw()["set-cookie"] ?? [])
+      : [];
+  for (const setCookie of list) {
+    const pair = setCookie.split(";")[0];
+    const eq = pair.indexOf("=");
+    if (eq > 0) {
+      jar.set(pair.slice(0, eq).trim(), pair.slice(eq + 1).trim());
+    }
+  }
+};
+
+const cookieHeader = (jar: CookieJar): string =>
+  Array.from(jar.entries())
+    .map(([name, value]) => `${name}=${value}`)
+    .join("; ");
+
+const browserGet = async (
+  url: string,
+  accept: string,
+  jar: CookieJar,
+): Promise<FetchResponse> => {
+  const headers: Record<string, string> = {
+    "User-Agent": REDDIT_BROWSER_UA,
+    Accept: accept,
+    "Accept-Language": "en-US,en;q=0.5",
+  };
+  const cookie = cookieHeader(jar);
+  if (cookie) {
+    headers["Cookie"] = cookie;
+  }
+  const response = await fetchWithProxy(url, { headers });
+  storeSetCookies(response, jar);
+  return response;
+};
+
+const solveRedditChallenge = async (
+  html: string,
+  jar: CookieJar,
+): Promise<void> => {
+  const seed = /\(async e=>e\+e\)\("([0-9a-f]+)"\)/.exec(html);
+  const token = /name="token"\s+value="([0-9a-f]+)"/.exec(html);
+  const action = /<form[^>]*action="([^"]+)"/.exec(html);
+  if (!seed || !token || !action) {
+    // Not a solvable challenge page (or the format changed) - nothing to do.
+    return;
+  }
+  const params = new URLSearchParams({
+    solution: seed[1] + seed[1],
+    js_challenge: "1",
+    token: token[1],
+    jsc_orig_r: "",
+  });
+  const submitUrl =
+    "https://www.reddit.com" + action[1] + "?" + params.toString();
+  try {
+    await browserGet(
+      submitUrl,
+      "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      jar,
+    );
+  } catch (error) {
+    logger.warn("[MetascraperReddit] Failed to submit Reddit challenge", error);
+  }
+};
+
+const fetchRedditJson = async (
+  jsonUrl: string,
+  accessToken: string | null,
+): Promise<FetchResponse> => {
+  if (accessToken) {
+    // Authenticated path (OAuth client credentials) - no challenge needed.
+    return fetchWithProxy(jsonUrl, {
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        "User-Agent": "KarakeepBot/1.0",
+      },
+    });
+  }
+
+  // Anonymous path: warm up on the HTML page to solve the JS challenge, then
+  // reuse the clearance cookies for the JSON request.
+  const jar: CookieJar = new Map();
+  const htmlUrl = jsonUrl.replace(/\.json(\?.*)?$/, "$1");
+  const warmup = await browserGet(
+    htmlUrl,
+    "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    jar,
+  );
+  const warmupBody = await warmup.text();
+  if (warmupBody.includes("js_challenge") || warmupBody.includes("e=>e+e")) {
+    await solveRedditChallenge(warmupBody, jar);
+  }
+  return browserGet(jsonUrl, "application/json, text/plain, */*", jar);
 };
 
 const extractImageFromMediaMetadata = (
@@ -221,9 +398,12 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
   }
 
   const promise = (async () => {
+    const accessToken = await getRedditAccessToken();
+    const useOauth = !!accessToken;
+
     let jsonUrl: string;
     try {
-      jsonUrl = buildJsonUrl(url);
+      jsonUrl = buildJsonUrl(url, useOauth);
     } catch (error) {
       logger.warn(
         "[MetascraperReddit] Failed to construct Reddit JSON URL",
@@ -234,9 +414,7 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
 
     let response;
     try {
-      response = await fetchWithProxy(jsonUrl, {
-        headers: { accept: "application/json" },
-      });
+      response = await fetchRedditJson(jsonUrl, accessToken);
     } catch (error) {
       logger.warn(
         `[MetascraperReddit] Failed to fetch Reddit JSON for ${jsonUrl}`,
