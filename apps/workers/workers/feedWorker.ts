@@ -267,6 +267,10 @@ async function run(req: DequeuedJob<ZFeedRequestSchema>) {
         url: item.link!,
         title: item.title,
         source: "rss",
+        // Respect the entry's published date (when present) so imported
+        // bookmarks are dated when they were published, not when the feed was
+        // fetched. Falls back to the server default when the feed omits a date.
+        createdAt: item.publishedAt,
       }),
     ),
   );
