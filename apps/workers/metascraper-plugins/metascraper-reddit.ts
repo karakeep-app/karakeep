@@ -68,17 +68,40 @@ const redditPostSchema = z.object({
 
 type RedditPostData = z.infer<typeof redditPostSchema>;
 
+// Comment children (kind "t1") carry different fields than the post; extend the
+// post schema (all-optional) so a single schema parses both listings.
+const redditChildDataSchema = redditPostSchema.extend({
+  body: z.string().nullish(),
+  body_html: z.string().nullish(),
+  score: z.number().nullish(),
+});
+
 const redditResponseSchema = z.array(
   z.object({
     data: z.object({
-      children: z.array(z.object({ data: redditPostSchema })).optional(),
+      children: z
+        .array(
+          z.object({
+            kind: z.string().optional(),
+            data: redditChildDataSchema,
+          }),
+        )
+        .optional(),
     }),
   }),
 );
 
+interface RedditComment {
+  author?: string;
+  body?: string;
+  bodyHtml?: string;
+  score: number;
+}
+
 interface RedditFetchResult {
   fetched: boolean;
   post?: RedditPostData;
+  comments?: RedditComment[];
 }
 
 const REDDIT_CACHE_TTL_MS = 60 * 1000; // 1 minute TTL to avoid stale data
@@ -401,6 +424,43 @@ const fallbackDomTitle = ({ htmlDom }: { htmlDom: CheerioAPI }) => {
   return postTitle ? postTitle.trim() : undefined;
 };
 
+// Number of top-level comments (by score) to fold into the readable content.
+// Many Reddit posts have an empty body (link/discussion posts), so the useful
+// context lives in the comments; including them gives the reader view and the
+// tagger real content to work with. Output HTML is sanitized downstream.
+const MAX_REDDIT_COMMENTS = 10;
+
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+const buildCommentsHtml = (comments?: RedditComment[]): string => {
+  if (!comments || comments.length === 0) {
+    return "";
+  }
+  const top = [...comments]
+    .filter((comment) => (comment.body ?? "").trim().length > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, MAX_REDDIT_COMMENTS);
+  if (top.length === 0) {
+    return "";
+  }
+  const items = top
+    .map((comment) => {
+      // Reddit's body_html is entity-encoded HTML; decode it like selftext_html.
+      // Fall back to the plain body (escaped) if body_html is absent.
+      const bodyHtml = comment.bodyHtml
+        ? decodeHtmlEntities(comment.bodyHtml)
+        : `<p>${escapeHtml(comment.body ?? "")}</p>`;
+      const author = escapeHtml(comment.author ?? "[deleted]");
+      return `<div class="reddit-comment"><p><strong>u/${author}</strong> (${comment.score} points)</p>${bodyHtml}</div>`;
+    })
+    .join("");
+  return `<hr /><h2>Top comments</h2>${items}`;
+};
+
 const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
   const cached = redditJsonCache.get(url);
   const now = Date.now();
@@ -461,9 +521,23 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
       (listing) => (listing.data.children?.length ?? 0) > 0,
     );
 
+    // Top-level comments (kind "t1") live in the second listing. Nested
+    // replies are under each comment's `replies`, so iterating the listings'
+    // direct children yields only top-level comments, which is what we want.
+    const comments: RedditComment[] = parsed.data
+      .flatMap((listing) => listing.data.children ?? [])
+      .filter((child) => child.kind === "t1" && !!child.data.body)
+      .map((child) => ({
+        author: child.data.author ?? undefined,
+        body: child.data.body ?? undefined,
+        bodyHtml: child.data.body_html ?? undefined,
+        score: typeof child.data.score === "number" ? child.data.score : 0,
+      }));
+
     return {
       fetched: true,
       post: firstListingWithChildren?.data.children?.[0]?.data,
+      comments,
     };
   })();
 
@@ -574,9 +648,13 @@ const metascraperReddit = () => {
     }) => {
       const result = await fetchRedditPostData(url);
       if (result.post) {
-        const decoded = decodeHtmlEntities(result.post.selftext_html ?? "");
-        // The post has no content, return the title
-        return (decoded || result.post.title) ?? null;
+        const body = decodeHtmlEntities(result.post.selftext_html ?? "");
+        const commentsHtml = buildCommentsHtml(result.comments);
+        // Combine the post body (often empty on link/discussion posts) with the
+        // top comments so the reader view and tagger have real content. Fall
+        // back to the title if the post has neither body nor comments.
+        const content = [body, commentsHtml].filter(Boolean).join("");
+        return (content || result.post.title) ?? null;
       }
       // Guard: the JSON fetch failed (e.g. Reddit rate-limited us). Returning
       // undefined here would let the generic readability pass scrape the
