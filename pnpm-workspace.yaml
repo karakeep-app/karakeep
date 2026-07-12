@@ -27,7 +27,7 @@ patchedDependencies:
   xcode@3.0.1: "patches/xcode@3.0.1.patch"
   playwright-extra@4.3.6: "patches/playwright-extra@4.3.6.patch"
   # Swift 6.2 / Xcode 26 rejects `weak let`; rewrite to `nonisolated(unsafe) weak var`.
-  expo-modules-jsi@56.0.9: patches/expo-modules-jsi@56.0.9.patch
+  expo-modules-jsi@56.0.12: patches/expo-modules-jsi@56.0.12.patch
   # RN 0.85's Appearance.setColorScheme is non-null; pass "unspecified" (not null) for system theme.
   react-native-css-interop@0.2.1: patches/react-native-css-interop@0.2.1.patch
   # Disables React 19.2's dev "component performance track" prop serialization,

@@ -20,7 +20,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@expo/metro-runtime": "~56.0.15",
+    "@expo/dom-webview": "~56.0.6",
+    "@expo/metro-runtime": "~56.0.16",
     "@expo/vector-icons": "^15.0.3",
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/shared-react": "workspace:^0.1.0",
@@ -36,25 +37,25 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",
-    "expo": "~56.0.11",
+    "expo": "~56.0.15",
     "expo-blur": "~56.0.3",
-    "expo-build-properties": "~56.0.18",
+    "expo-build-properties": "~56.0.22",
     "expo-checkbox": "~56.0.1",
     "expo-clipboard": "~56.0.4",
-    "expo-constants": "~56.0.18",
-    "expo-dev-client": "~56.0.20",
+    "expo-constants": "~56.0.20",
+    "expo-dev-client": "~56.0.22",
     "expo-file-system": "~56.0.8",
     "expo-glass-effect": "~56.0.4",
     "expo-haptics": "~56.0.3",
     "expo-image": "~56.0.11",
-    "expo-image-picker": "~56.0.17",
+    "expo-image-picker": "~56.0.20",
     "expo-keep-awake": "~56.0.3",
-    "expo-linking": "~56.0.14",
+    "expo-linking": "~56.0.15",
     "expo-navigation-bar": "~56.0.3",
-    "expo-router": "~56.2.10",
+    "expo-router": "~56.2.14",
     "expo-secure-store": "~56.0.4",
     "expo-share-intent": "^7.0.0",
-    "expo-sharing": "~56.0.17",
+    "expo-sharing": "~56.0.21",
     "expo-status-bar": "~56.0.4",
     "expo-system-ui": "~56.0.5",
     "expo-web-browser": "~56.0.5",
@@ -94,7 +95,10 @@
   },
   "expo": {
     "install": {
-      "exclude": ["@sentry/react-native", "typescript"]
+      "exclude": [
+        "@sentry/react-native",
+        "typescript"
+      ]
     }
   },
   "private": true

@@ -10,7 +10,7 @@ import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
 import FullPageError from "@/components/FullPageError";
 import ChevronRight from "@/components/ui/ChevronRight";
-import { FAB } from "@/components/ui/FAB";
+import { ANDROID_FAB_CONTENT_INSET, FAB } from "@/components/ui/FAB";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Text } from "@/components/ui/Text";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -183,7 +183,8 @@ export default function Lists() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
           gap: 6,
-          paddingBottom: 20,
+          paddingBottom:
+            Platform.OS === "android" ? ANDROID_FAB_CONTENT_INSET : 20,
           marginHorizontal: 15,
           marginBottom: 15,
         }}

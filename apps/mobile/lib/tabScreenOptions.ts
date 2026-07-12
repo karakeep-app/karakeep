@@ -8,11 +8,9 @@ import { isIOS26 } from "./ios";
  *
  * iOS: Large title with transparent/blur header (Liquid Glass on iOS 26).
  *
- * Android:
- * - `headerShown: false` — headers are rendered as inline React content
- *   (AndroidSearchBar / InlineSearch) to avoid native header z-index issues.
- * - `contentStyle.paddingBottom: 100` compensates for the native tab bar overlapping
- *   content. Should be removed when expo fixes this in SDK 55.
+ * Android headers are rendered as inline React content (AndroidSearchBar /
+ * InlineSearch) to avoid native header z-index issues. Native tabs account for
+ * their own height on SDK 56, so tab screens must not add a manual bottom inset.
  */
 export const tabScreenOptions: NativeStackNavigationOptions = {
   ...Platform.select({
@@ -26,10 +24,6 @@ export const tabScreenOptions: NativeStackNavigationOptions = {
     android: {
       headerStyle: {
         backgroundColor: "transparent",
-      },
-      contentStyle: {
-        // Manual padding to avoid the native tab bar until expo fixes this in SDK 55.
-        paddingBottom: 100,
       },
     },
   }),

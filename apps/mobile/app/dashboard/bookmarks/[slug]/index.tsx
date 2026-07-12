@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { KeyboardAvoidingView, Pressable, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useKeepAwake } from "expo-keep-awake";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import BookmarkAssetView from "@/components/bookmarks/BookmarkAssetView";
@@ -27,7 +26,6 @@ function KeepScreenOn() {
 }
 
 export default function BookmarkView() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { slug } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
@@ -87,13 +85,9 @@ export default function BookmarkView() {
   }
   return (
     <KeyboardAvoidingView
-      // On iOS 26 the toolbar is absolute-positioned so its GlassView has
-      // content behind it; its own bottomMargin handles the safe-area inset,
-      // so padding here would leave a visible gap below the glass pill.
-      style={{
-        flex: 1,
-        paddingBottom: shouldUseGlassPill ? 0 : insets.bottom + 8,
-      }}
+      // BottomActions owns the safe-area inset. Adding it to this wrapper as
+      // well leaves a visible gap below the toolbar on Android and legacy iOS.
+      style={{ flex: 1 }}
       behavior="height"
     >
       {settings.keepScreenOnWhileReading && <KeepScreenOn />}

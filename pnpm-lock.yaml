@@ -8,7 +8,7 @@ overrides:
   vite: 7.0.6
 
 patchedDependencies:
-  expo-modules-jsi@56.0.9: 25bbfeac6ce3cacb0d88c14be56e063f908a01e58961da32c2c42d98e3bb7491
+  expo-modules-jsi@56.0.12: 25bbfeac6ce3cacb0d88c14be56e063f908a01e58961da32c2c42d98e3bb7491
   playwright-extra@4.3.6: cc2a1c1903e66d7f6cea77c615cb9ae3b36a694502c1c588c3e34d28aa925aac
   react-native-css-interop@0.2.1: d6a165f45c53b03f2c390496a57bf96a4f79884fb2a0f804d896ef7acab1e12a
   react-native@0.85.3: 7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1
@@ -320,8 +320,11 @@ importers:
 
   apps/mobile:
     dependencies:
+      '@expo/dom-webview':
+        specifier: ~56.0.6
+        version: 56.0.6(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       '@expo/metro-runtime':
-        specifier: ~56.0.15
+        specifier: ~56.0.16
         version: 56.0.16(@expo/log-box@56.0.14)(expo@56.0.15)(react-dom@19.2.3(react@19.2.3))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       '@expo/vector-icons':
         specifier: ^15.0.3
@@ -369,13 +372,13 @@ importers:
         specifier: ^3.6.0
         version: 3.6.0
       expo:
-        specifier: ~56.0.11
+        specifier: ~56.0.15
         version: 56.0.15(b13258c14f5b3daa9ef39660e3360b0d)
       expo-blur:
         specifier: ~56.0.3
         version: 56.0.3(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       expo-build-properties:
-        specifier: ~56.0.18
+        specifier: ~56.0.22
         version: 56.0.22(expo@56.0.15)
       expo-checkbox:
         specifier: ~56.0.1
@@ -384,10 +387,10 @@ importers:
         specifier: ~56.0.4
         version: 56.0.4(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       expo-constants:
-        specifier: ~56.0.18
+        specifier: ~56.0.20
         version: 56.0.20(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))
       expo-dev-client:
-        specifier: ~56.0.20
+        specifier: ~56.0.22
         version: 56.0.22(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))
       expo-file-system:
         specifier: ~56.0.8
@@ -402,19 +405,19 @@ importers:
         specifier: ~56.0.11
         version: 56.0.11(expo@56.0.15)(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       expo-image-picker:
-        specifier: ~56.0.17
+        specifier: ~56.0.20
         version: 56.0.20(expo@56.0.15)
       expo-keep-awake:
         specifier: ~56.0.3
         version: 56.0.3(expo@56.0.15)(react@19.2.3)
       expo-linking:
-        specifier: ~56.0.14
+        specifier: ~56.0.15
         version: 56.0.15(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       expo-navigation-bar:
         specifier: ~56.0.3
         version: 56.0.3(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       expo-router:
-        specifier: ~56.2.10
+        specifier: ~56.2.14
         version: 56.2.14(02bb8983b1bf8a55a1df2fd1b8822fa7)
       expo-secure-store:
         specifier: ~56.0.4
@@ -423,7 +426,7 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0(expo-constants@56.0.20)(expo-linking@56.0.15)(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       expo-sharing:
-        specifier: ~56.0.17
+        specifier: ~56.0.21
         version: 56.0.21(expo@56.0.15)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       expo-status-bar:
         specifier: ~56.0.4
@@ -28416,14 +28419,14 @@ snapshots:
   expo-modules-core@56.0.20(react-native-worklets@0.8.3(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3):
     dependencies:
       '@expo/expo-modules-macros-plugin': 0.2.2
-      expo-modules-jsi: 56.0.12(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))
+      expo-modules-jsi: 56.0.12(patch_hash=25bbfeac6ce3cacb0d88c14be56e063f908a01e58961da32c2c42d98e3bb7491)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))
       invariant: 2.2.4
       react: 19.2.3
       react-native: 0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3)
     optionalDependencies:
       react-native-worklets: 0.8.3(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
 
-  expo-modules-jsi@56.0.12(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3)):
+  expo-modules-jsi@56.0.12(patch_hash=25bbfeac6ce3cacb0d88c14be56e063f908a01e58961da32c2c42d98e3bb7491)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3)):
     dependencies:
       react-native: 0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3)
 
@@ -33846,7 +33849,7 @@ snapshots:
 
   react-error-boundary@3.1.4(react@19.2.6):
     dependencies:
-      '@babel/runtime': 7.28.4
+      '@babel/runtime': 7.29.2
       react: 19.2.6
 
   react-error-boundary@5.0.0(react@19.2.6):

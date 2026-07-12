@@ -81,9 +81,9 @@ function getTRPCClient(settings: Settings) {
         },
         headers() {
           return {
-            Authorization: settings.apiKey
-              ? `Bearer ${settings.apiKey}`
-              : undefined,
+            ...(settings.apiKey
+              ? { Authorization: `Bearer ${settings.apiKey}` }
+              : {}),
             ...settings.customHeaders,
           };
         },

@@ -17,6 +17,9 @@ export default {
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
     assetBundlePatterns: ["**/*"],
+    experiments: {
+      reactCompiler: true,
+    },
     ios: {
       supportsTablet: true,
       icon: {
@@ -100,11 +103,12 @@ export default {
         {
           android: {
             usesCleartextTraffic: true,
-            targetSdkVersion: 35,
+            targetSdkVersion: 36,
             ndkVersion: "27.1.12297006",
           },
         },
       ],
+      "expo-sharing",
       "expo-web-browser",
       [
         "@sentry/react-native/expo",
