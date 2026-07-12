@@ -176,6 +176,27 @@ type EventLogInternal =
     }
   | { ["event.name"]: "bookmarks.queried" }
   | {
+      ["event.name"]: "chat.message";
+      "chat.id"?: string;
+      "chat.model"?: string;
+      "chat.provider"?: string;
+      "chat.input_tokens"?: number;
+      "chat.output_tokens"?: number;
+      "chat.cache_read_tokens"?: number;
+      "chat.cache_write_tokens"?: number;
+      "chat.total_tokens"?: number;
+      "chat.cost"?: number;
+      "chat.tool_calls"?: number;
+    }
+  | {
+      ["event.name"]: "chat.tool_call";
+      "chat.tool.name": string;
+      "chat.tool.call_id"?: string;
+      "chat.tool.success": boolean;
+      "chat.tool.duration_ms"?: number;
+      "chat.tool.error"?: string;
+    }
+  | {
       ["event.name"]: "subscription.checkout_started";
       "subscription.billing_period": "monthly" | "yearly";
     }

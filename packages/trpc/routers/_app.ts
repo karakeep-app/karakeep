@@ -1,4 +1,5 @@
 import { router } from "../index";
+import { chatAppRouter } from "./chat";
 import { adminAppRouter } from "./admin";
 import { apiKeysAppRouter } from "./apiKeys";
 import { assetsAppRouter } from "./assets";
@@ -37,6 +38,7 @@ export const appRouter = router({
   publicBookmarks: publicBookmarks,
   subscriptions: subscriptionsRouter,
   config: configAppRouter,
+  chat: chatAppRouter,
 });
 // export type definition of API
 export type AppRouter = typeof appRouter;

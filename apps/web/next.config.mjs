@@ -15,6 +15,10 @@ const nextConfig = {
       },
     },
   },
+  serverExternalPackages: [
+    "@mariozechner/pi-ai",
+    "@mariozechner/pi-agent-core",
+  ],
   webpack: (config) => {
     config.module.rules.push({
       test: /\.svg$/,

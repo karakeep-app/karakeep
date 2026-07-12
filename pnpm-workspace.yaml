@@ -21,6 +21,7 @@ allowBuilds:
   core-js-pure: false
   postman-code-generators: false
   protobufjs: false
+  '@google/genai': false
 
 patchedDependencies:
   react-tweet@3.2.2: "patches/react-tweet@3.2.2.patch"
