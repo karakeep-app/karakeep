@@ -1,8 +1,7 @@
 import { useRef } from "react";
-import { ActivityIndicator, Keyboard, Platform, View } from "react-native";
+import { ActivityIndicator, Keyboard, View } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";
 import EmptyState from "@/components/ui/EmptyState";
-import { ANDROID_FAB_CONTENT_INSET } from "@/components/ui/FAB";
 import { useScrollToTop } from "expo-router";
 import { Bookmark } from "lucide-react-native";
 
@@ -37,8 +36,7 @@ export default function BookmarkList({
       contentContainerStyle={{
         gap: 12,
         marginHorizontal: 15,
-        paddingBottom:
-          Platform.OS === "android" ? ANDROID_FAB_CONTENT_INSET : 160,
+        paddingBottom: 20,
       }}
       renderItem={(b) => <BookmarkCard bookmark={b.item} />}
       ListEmptyComponent={
