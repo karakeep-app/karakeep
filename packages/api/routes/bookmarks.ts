@@ -85,6 +85,8 @@ const app = new Hono()
         text: searchParams.q,
         cursor: searchParams.cursor,
         limit: searchParams.limit,
+        sortOrder: searchParams.sortOrder,
+        searchMode: searchParams.searchMode,
         includeContent: searchParams.includeContent,
       });
       return c.json(

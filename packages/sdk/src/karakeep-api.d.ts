@@ -37,7 +37,7 @@ export interface paths {
     };
     /**
      * Search bookmarks
-     * @description Full-text search across all bookmarks. Searches bookmark titles, content, descriptions, and notes. Results default to relevance sorting.
+     * @description Search across all bookmarks using full-text, semantic, or hybrid ranking. Full-text search covers bookmark titles, content, descriptions, and notes. Results default to full-text relevance sorting; semantic and hybrid modes support relevance sorting only.
      */
     get: operations["searchBookmarks"];
     put?: never;
@@ -1219,6 +1219,8 @@ export interface operations {
       query: {
         /** @description The search query string. */
         q: string;
+        /** @description Search strategy. 'fts' uses full-text search, 'semantic' uses bookmark embeddings, and 'hybrid' fuses a fixed candidate window from both. Hybrid falls back to full-text search when the query contains no free-text terms or when embedding infrastructure is unavailable. Semantic hits below a minimum similarity are dropped, so semantic search may return fewer results than requested. */
+        searchMode?: "fts" | "semantic" | "hybrid";
         /** @description Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting. */
         sortOrder?: "asc" | "desc" | "relevance";
         /** @description Maximum number of items to return per page. */

@@ -172,6 +172,8 @@ type EventLogInternal =
   | {
       ["event.name"]: "search.query";
       "search.has_query"?: boolean;
+      "search.mode"?: "fts" | "semantic" | "hybrid";
+      "search.degraded"?: boolean;
       "search.results_count"?: number;
     }
   | { ["event.name"]: "bookmarks.queried" }

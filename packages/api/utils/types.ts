@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-import { zSortOrder } from "@karakeep/shared/types/bookmarks";
+import {
+  zBookmarkSearchMode,
+  zSortOrder,
+} from "@karakeep/shared/types/bookmarks";
 
 export const zStringBool = z
   .string()
@@ -23,5 +26,6 @@ export const zGetBookmarkQueryParamsSchema = z
 export const zGetBookmarkSearchParamsSchema = z
   .object({
     sortOrder: zSortOrder.optional().default(zSortOrder.enum.relevance),
+    searchMode: zBookmarkSearchMode.optional().default("fts"),
   })
   .extend(zIncludeContentSearchParamsSchema.shape);

@@ -616,6 +616,17 @@ bookmarkCmd
     "relevance",
   )
   .option(
+    "--search-mode <mode>",
+    "search mode (fts, semantic, or hybrid)",
+    (val) => {
+      if (val !== "fts" && val !== "semantic" && val !== "hybrid") {
+        throw new Error("search-mode must be one of: fts, semantic, hybrid");
+      }
+      return val;
+    },
+    "fts",
+  )
+  .option(
     "--include-content",
     "include full bookmark content in results",
     false,
@@ -629,6 +640,7 @@ bookmarkCmd
       text: query,
       limit: opts.limit,
       sortOrder: opts.sortOrder as "relevance" | "asc" | "desc",
+      searchMode: opts.searchMode as "fts" | "semantic" | "hybrid",
       includeContent: opts.includeContent,
       cursor: opts.cursor
         ? JSON.parse(Buffer.from(opts.cursor, "base64").toString(), (k, v) =>

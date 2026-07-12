@@ -40,6 +40,7 @@ import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
+  MAX_NUM_BOOKMARKS_PER_PAGE,
   zBookmarkSchema,
   zBookmarkReadableContentFormatSchema,
   zBookmarkReadableContentSchema,
@@ -54,6 +55,8 @@ import {
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
+import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
+import type { VectorFilterQuery } from "@karakeep/shared/vectorStore";
 import { bookmarkCreationCounter } from "../stats";
 
 import type { AuthedContext } from "../index";
@@ -66,11 +69,20 @@ import {
 } from "../index";
 import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
+import { reciprocalRankFusion } from "../lib/searchRanking";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
 import { WebhooksService } from "../models/webhooks.service";
 
 const bookmarksProcedure = createScopedAuthedProcedure("bookmarks");
+const HYBRID_CANDIDATES_PER_SOURCE = MAX_NUM_BOOKMARKS_PER_PAGE;
+/**
+ * Vector search always returns as many hits as it's asked for, so without a
+ * floor an unrelated query still fills a whole page with noise. Vector stores
+ * normalize similarity into a 0..1 ranking score (for cosine distance that's
+ * `(1 + cosine) / 2`), so this drops anything below ~0.2 cosine similarity.
+ */
+const SEMANTIC_SCORE_THRESHOLD = 0.6;
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -843,18 +855,12 @@ export const bookmarksAppRouter = router({
     .query(async ({ input, ctx }) => {
       addLogFields<"search.query">({
         "search.has_query": input.text.length > 0,
+        "search.mode": input.searchMode,
       });
       if (!input.limit) {
         input.limit = DEFAULT_NUM_BOOKMARKS_PER_PAGE;
       }
       const sortOrder = input.sortOrder || "relevance";
-      const client = await getSearchClient();
-      if (!client) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Search functionality is not configured",
-        });
-      }
       const parsedQuery = parseSearchQuery(input.text);
 
       let filter: FilterQuery[];
@@ -876,32 +882,139 @@ export const bookmarksAppRouter = router({
        */
       const createdAtSortOrder = sortOrder === "relevance" ? "desc" : sortOrder;
 
-      const resp = await client.search({
-        query: parsedQuery.text,
-        filter,
-        sort: [{ field: "createdAt", order: createdAtSortOrder }],
-        limit: input.limit,
-        ...(input.cursor
-          ? {
-              offset: input.cursor.offset,
-            }
-          : {}),
+      const offset = input.cursor?.offset ?? 0;
+      let hits: { id: string; score: number }[];
+      let hasMore: boolean;
+      let resultCount: number;
+
+      const fullTextSearch = async (limit: number, searchOffset?: number) => {
+        const client = await getSearchClient();
+        if (!client) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Search functionality is not configured",
+          });
+        }
+        return client.search({
+          query: parsedQuery.text,
+          filter,
+          sort: [{ field: "createdAt", order: createdAtSortOrder }],
+          limit,
+          ...(searchOffset !== undefined ? { offset: searchOffset } : {}),
+        });
+      };
+
+      const fullTextPage = (
+        resp: Awaited<ReturnType<typeof fullTextSearch>>,
+      ) => ({
+        hits: resp.hits.map((hit) => ({
+          id: hit.id,
+          score: hit.score ?? 0,
+        })),
+        hasMore: offset + resp.hits.length < resp.totalHits,
+        resultCount: resp.totalHits,
       });
+
+      if (input.searchMode === "fts") {
+        ({ hits, hasMore, resultCount } = fullTextPage(
+          await fullTextSearch(input.limit, offset),
+        ));
+      } else {
+        // A query made up entirely of qualifiers (e.g. `is:fav`) has nothing to
+        // embed, so it can only be served by full-text search.
+        const hasQueryText = parsedQuery.text.trim().length > 0;
+        const inferenceClient = InferenceClientFactory.build();
+        const vectorStoreClient = await getVectorStoreClient();
+        if (!hasQueryText || !inferenceClient || !vectorStoreClient) {
+          if (input.searchMode === "semantic") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: hasQueryText
+                ? "Semantic search requires configured inference and vector store providers"
+                : "Semantic search requires a non-empty text query",
+            });
+          }
+
+          // Hybrid search remains useful when embeddings are unavailable or
+          // when there's no text to embed. It degrades to plain full-text
+          // search, which also means date sorting is supported again.
+          addLogFields<"search.query">({ "search.degraded": true });
+          ({ hits, hasMore, resultCount } = fullTextPage(
+            await fullTextSearch(input.limit, offset),
+          ));
+        } else {
+          if (sortOrder !== "relevance") {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "Semantic and hybrid search only support relevance sorting",
+            });
+          }
+
+          const vectorFilter: VectorFilterQuery[] = filter.map((item) =>
+            item.type === "eq"
+              ? { type: "eq", field: item.field, value: item.value }
+              : { type: "in", field: item.field, values: item.values },
+          );
+
+          const semanticSearch = async (limit: number) => {
+            const embeddingResponse =
+              await inferenceClient.generateEmbeddingFromText([
+                parsedQuery.text,
+              ]);
+            const vector = embeddingResponse.embeddings[0];
+            if (!vector) {
+              throw new TRPCError({
+                code: "INTERNAL_SERVER_ERROR",
+                message: "Inference provider returned no query embedding",
+              });
+            }
+            return vectorStoreClient.search({
+              vector,
+              filter: vectorFilter,
+              limit,
+              rankingScoreThreshold: SEMANTIC_SCORE_THRESHOLD,
+            });
+          };
+
+          if (input.searchMode === "semantic") {
+            const semanticLimit = offset + input.limit + 1;
+            const semanticResp = await semanticSearch(semanticLimit);
+            hits = semanticResp.hits.slice(offset, offset + input.limit);
+            hasMore = semanticResp.hits.length > offset + input.limit;
+            resultCount = semanticResp.hits.length;
+          } else {
+            // RRF can reorder earlier pages when its input window grows. Fuse a
+            // fixed window so every cursor sees the same ranked candidate pool.
+            const [ftsResp, semanticResp] = await Promise.all([
+              fullTextSearch(HYBRID_CANDIDATES_PER_SOURCE),
+              semanticSearch(HYBRID_CANDIDATES_PER_SOURCE),
+            ]);
+            const fusedHits = reciprocalRankFusion([
+              ftsResp.hits,
+              semanticResp.hits,
+            ]);
+            hits = fusedHits.slice(offset, offset + input.limit);
+            hasMore = fusedHits.length > offset + input.limit;
+            resultCount = fusedHits.length;
+          }
+        }
+      }
 
       addLogFields<"search.query">({
-        "search.results_count": resp.totalHits,
+        "search.results_count": resultCount,
       });
 
-      if (resp.hits.length == 0) {
+      if (hits.length == 0) {
         return { bookmarks: [], nextCursor: null };
       }
-      const idToRank = resp.hits.reduce<Record<string, number>>((acc, r) => {
-        acc[r.id] = r.score || 0;
+      const idToRank = hits.reduce<Record<string, number>>((acc, r) => {
+        acc[r.id] = r.score;
         return acc;
       }, {});
 
       const { bookmarks: results } = await Bookmark.loadMulti(ctx, {
-        ids: resp.hits.map((h) => h.id),
+        ids: hits.map((h) => h.id),
         includeContent: input.includeContent,
         sortOrder: "desc", // Doesn't matter, we're sorting again afterwards and the list contain all data
       });
@@ -920,13 +1033,12 @@ export const bookmarksAppRouter = router({
 
       return {
         bookmarks: results.map((b) => b.asZBookmark()),
-        nextCursor:
-          resp.hits.length + (input.cursor?.offset || 0) >= resp.totalHits
-            ? null
-            : {
-                ver: 1 as const,
-                offset: resp.hits.length + (input.cursor?.offset || 0),
-              },
+        nextCursor: hasMore
+          ? {
+              ver: 1 as const,
+              offset: offset + hits.length,
+            }
+          : null,
       };
     }),
   checkUrl: bookmarksProcedure

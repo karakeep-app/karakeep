@@ -9,6 +9,7 @@ import {
   zAssetTypesSchema,
   zBareBookmarkSchema,
   zBookmarkReadableContentFormatSchema,
+  zBookmarkSearchMode,
   zManipulatedTagSchema,
   zNewBookmarkRequestSchema,
   zSortOrder,
@@ -86,8 +87,8 @@ registry.registerPath({
   method: "get",
   path: "/bookmarks/search",
   description:
-    "Full-text search across all bookmarks. Searches bookmark titles, content, descriptions, and notes. " +
-    "Results default to relevance sorting.",
+    "Search across all bookmarks using full-text, semantic, or hybrid ranking. Full-text search covers bookmark titles, content, descriptions, and notes. " +
+    "Results default to full-text relevance sorting; semantic and hybrid modes support relevance sorting only.",
   summary: "Search bookmarks",
   tags: ["Bookmarks"],
   security: [{ [BearerAuth.name]: [] }],
@@ -95,6 +96,12 @@ registry.registerPath({
     query: z
       .object({
         q: z.string().describe("The search query string."),
+        searchMode: zBookmarkSearchMode
+          .optional()
+          .default("fts")
+          .describe(
+            "Search strategy. 'fts' uses full-text search, 'semantic' uses bookmark embeddings, and 'hybrid' fuses a fixed candidate window from both. Hybrid falls back to full-text search when the query contains no free-text terms or when embedding infrastructure is unavailable. Semantic hits below a minimum similarity are dropped, so semantic search may return fewer results than requested.",
+          ),
         sortOrder: zSortOrder
           .optional()
           .default(zSortOrder.enum.relevance)

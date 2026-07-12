@@ -23,6 +23,7 @@ import {
   deleteBookmarkHandler,
   getBookmarkContentHandler,
   getBookmarkListsHandler,
+  searchBookmarksHandler,
 } from "./bookmarks";
 
 const textOf = (result: CallToolResult): string => {
@@ -78,6 +79,35 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks();
+});
+
+describe("search-bookmarks", () => {
+  it("forwards the selected search mode", async () => {
+    mockClient.GET.mockResolvedValueOnce({
+      data: { bookmarks: [sampleBookmark], nextCursor: null },
+      error: undefined,
+    });
+
+    const result = await searchBookmarksHandler({
+      query: "async concurrency",
+      limit: 10,
+      searchMode: "semantic",
+    });
+
+    expect(mockClient.GET).toHaveBeenCalledWith("/bookmarks/search", {
+      params: {
+        query: {
+          q: "async concurrency",
+          limit: 10,
+          includeContent: false,
+          cursor: undefined,
+          sortOrder: undefined,
+          searchMode: "semantic",
+        },
+      },
+    });
+    expect(textOf(result)).toContain("Rust async book");
+  });
 });
 
 describe("get-bookmark-lists", () => {

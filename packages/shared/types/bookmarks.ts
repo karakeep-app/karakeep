@@ -307,11 +307,13 @@ export const zSearchBookmarksCursor = z.discriminatedUnion("ver", [
     offset: z.number(),
   }),
 ]);
+export const zBookmarkSearchMode = z.enum(["fts", "semantic", "hybrid"]);
 export const zSearchBookmarksRequestSchema = z.object({
   text: z.string(),
   limit: z.number().max(MAX_NUM_BOOKMARKS_PER_PAGE).optional(),
   cursor: zSearchBookmarksCursor.nullish(),
   sortOrder: zSortOrder.optional().default("relevance"),
+  searchMode: zBookmarkSearchMode.optional().default("fts"),
   includeContent: z.boolean().optional().default(false),
 });
 
