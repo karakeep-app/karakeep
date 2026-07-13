@@ -299,17 +299,22 @@ const fetchRedditJson = async (
         "User-Agent": "KarakeepBot/1.0",
       },
     });
-    // A rejected token (revoked, early-expired, or insufficient scope) should
-    // not fail the crawl - drop the cached token and fall through to the
-    // anonymous challenge path, which works without credentials.
-    if (response.status !== 401 && response.status !== 403) {
+    if (response.ok) {
       return response;
     }
+    // Any non-OK OAuth response falls through to the anonymous challenge path,
+    // which works without credentials and may succeed even when OAuth does not
+    // (e.g. a 429 rate limit or a transient 5xx from oauth.reddit.com). Only
+    // drop the cached token on an auth failure (401/403, i.e. revoked,
+    // early-expired, or insufficient scope) - a rate limit or server error
+    // does not mean the token is invalid, so keep it for later requests.
     logger.warn(
-      `[MetascraperReddit] OAuth request rejected (${response.status}); falling back to anonymous crawling`,
+      `[MetascraperReddit] OAuth request failed (${response.status}); falling back to anonymous crawling`,
     );
-    redditAccessToken = null;
-    redditAccessTokenExpiresAt = 0;
+    if (response.status === 401 || response.status === 403) {
+      redditAccessToken = null;
+      redditAccessTokenExpiresAt = 0;
+    }
   }
 
   // Anonymous path: warm up on the HTML page to solve the JS challenge, then
