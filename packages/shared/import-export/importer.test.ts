@@ -97,7 +97,7 @@ describe("importBookmarksFromFile", () => {
           finalizeImportStaging,
           createImportSession,
         },
-        onProgress: (d, t) => progress.push(d / t),
+        onProgress: (i, d, t) => progress.push(d / t),
       },
       { parsers },
     );
@@ -261,7 +261,7 @@ describe("importBookmarksFromFile", () => {
           finalizeImportStaging,
           createImportSession,
         },
-        onProgress: (d, t) => progress.push(d / t),
+        onProgress: (i, d, t) => progress.push(d / t),
       },
       { parsers },
     );
@@ -361,7 +361,7 @@ describe("importBookmarksFromFile", () => {
           finalizeImportStaging,
           createImportSession,
         },
-        onProgress: (d, t) => progress.push(d / t),
+        onProgress: (i, d, t) => progress.push(d / t),
       },
       { parsers },
     );

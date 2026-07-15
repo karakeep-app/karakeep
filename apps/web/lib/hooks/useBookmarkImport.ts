@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,9 +24,9 @@ export function useBookmarkImport() {
   const { t } = useTranslation();
   const api = useTRPC();
 
-  const [importProgress, setImportProgress] = useState<ImportProgress | null>(
-    null,
-  );
+  const [importProgress, setImportProgress] = useState<
+    Record<string, ImportProgress>
+  >({});
   const [quotaError, setQuotaError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
@@ -38,6 +38,7 @@ export function useBookmarkImport() {
   const { mutateAsync: finalizeImportStaging } = useMutation(
     api.importSessions.finalizeImportStaging.mutationOptions(),
   );
+  const currentImportIds = useRef(new Map<File, string>());
 
   const uploadBookmarkFileMutation = useMutation({
     mutationFn: async ({
@@ -90,7 +91,10 @@ export function useBookmarkImport() {
               await finalizeImportStaging({ importSessionId: sessionId });
             },
           },
-          onProgress: (done, total) => setImportProgress({ done, total }),
+          onProgress: (id, done, total) => {
+            currentImportIds.current.set(file, id);
+            setImportProgress((prev) => ({ ...prev, [id]: { done, total } }));
+          },
         },
         {
           // Use a custom parser to avoid re-parsing the file
@@ -102,7 +106,13 @@ export function useBookmarkImport() {
       return result;
     },
     onSuccess: async (result) => {
-      setImportProgress(null);
+      setImportProgress((prev) => {
+        const next = { ...prev };
+        if (result.importSessionId) {
+          delete next[result.importSessionId];
+        }
+        return next;
+      });
 
       if (result.counts.total === 0) {
         toast({ description: "No bookmarks found in the file." });
@@ -114,8 +124,17 @@ export function useBookmarkImport() {
         variant: "default",
       });
     },
-    onError: (error) => {
-      setImportProgress(null);
+    onError: (error, variables) => {
+      const id = currentImportIds.current.get(variables.file);
+      setImportProgress((prev) => {
+        const next = { ...prev };
+        if (id) {
+          delete next[id];
+        }
+        return next;
+      });
+      currentImportIds.current.delete(variables.file);
+
       toast({
         description: error.message,
         variant: "destructive",
