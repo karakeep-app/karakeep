@@ -21,7 +21,7 @@ import {
 } from "./utils/singlefile";
 import { useTRPC } from "./utils/trpc";
 import { MessageType } from "./utils/type";
-import { isHttpUrl } from "./utils/url";
+import { isHttpUrl, isLikelyDirectPdfUrl } from "./utils/url";
 
 export default function SavePage() {
   const api = useTRPC();
@@ -131,6 +131,9 @@ export default function SavePage() {
       !bookmark.precrawledArchiveId &&
       currentTabUrl !== undefined &&
       bookmark.url === currentTabUrl &&
+      // PDF viewer tabs only expose a useless HTML shell to SingleFile; let the
+      // server crawler download the real application/pdf bytes instead.
+      !isLikelyDirectPdfUrl(bookmark.url) &&
       // The `<all_urls>` host permission is optional and only granted when the
       // user opts in to client-side crawling; it may have been revoked since.
       (await hasHostPermission())

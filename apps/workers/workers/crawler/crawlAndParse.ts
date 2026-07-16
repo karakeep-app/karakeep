@@ -34,6 +34,7 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { isWeakPdfTitle } from "@karakeep/shared/utils/pdfTitle";
 
 import type { ParseSubprocessOutput } from "../utils/parseHtmlSubprocessIpc";
 import {
@@ -99,6 +100,14 @@ export async function handleAsAssetBookmark(
         return;
       }
       const fileName = path.basename(new URL(url).pathname);
+      const existing = await db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, bookmarkId),
+        columns: { title: true },
+      });
+      // Browser PDF tabs often set title to the arXiv id / filename. Clear those
+      // so asset preprocessing can fill a real title from PDF metadata/outline.
+      const clearWeakTitle =
+        assetType === "pdf" && isWeakPdfTitle(existing?.title, fileName);
       await db.transaction(async (trx) => {
         await updateAsset(
           undefined,
@@ -124,7 +133,10 @@ export async function handleAsAssetBookmark(
         // Switch the type of the bookmark from LINK to ASSET
         await trx
           .update(bookmarks)
-          .set({ type: BookmarkTypes.ASSET })
+          .set({
+            type: BookmarkTypes.ASSET,
+            ...(clearWeakTitle ? { title: null } : {}),
+          })
           .where(eq(bookmarks.id, bookmarkId));
         await trx.delete(bookmarkLinks).where(eq(bookmarkLinks.id, bookmarkId));
       });

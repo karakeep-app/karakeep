@@ -377,28 +377,35 @@ async function runCrawler(
     `[Crawler][${jobId}] Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`,
   );
 
-  if (precrawledArchiveAssetId) {
-    logger.info(
-      `[Crawler][${jobId}] Skipped fetching content-type for the url ${url} as precrawledArchiveAssetId exists`,
-    );
-  }
+  // Always resolve content-type even when a precrawled archive exists. Client-side
+  // SingleFile captures of PDF viewer tabs upload a useless HTML shell; without
+  // this check those bookmarks never become real PDF assets.
+  //
   // Retry runs re-probe for the content type, but if a previous run already
   // extracted and stored the probe metadata (probeMetadataAt), don't re-fetch
-  // it — reload it from the bookmark row instead.
+  // it - reload it from the bookmark row instead.
   const reuseStoredProbeMetadata =
     job.runNumber > 0 && probeMetadataAt !== null;
   const { contentType, metadata: probeMetadata }: UrlProbeResult =
-    precrawledArchiveAssetId
-      ? { contentType: ASSET_TYPES.TEXT_HTML, metadata: Promise.resolve(null) }
-      : await getContentTypeAndMetadata(url, jobId, job.abortSignal, runProxy, {
-          skipMetadataExtraction: reuseStoredProbeMetadata,
-        });
+    await getContentTypeAndMetadata(url, jobId, job.abortSignal, runProxy, {
+      skipMetadataExtraction: reuseStoredProbeMetadata,
+    });
   job.abortSignal.throwIfAborted();
+  if (precrawledArchiveAssetId) {
+    logger.info(
+      `[Crawler][${jobId}] Precrawled archive present; resolved content-type for ${url} as ${contentType ?? "unknown"}`,
+    );
+  }
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
   const isPdf = contentType === ASSET_TYPES.APPLICATION_PDF;
 
   if (isPdf) {
+    if (precrawledArchiveAssetId) {
+      logger.info(
+        `[Crawler][${jobId}] Ignoring precrawled HTML archive for PDF URL ${url}`,
+      );
+    }
     await handleAsAssetBookmark(
       url,
       "pdf",
@@ -413,6 +420,11 @@ async function runCrawler(
     IMAGE_ASSET_TYPES.has(contentType) &&
     SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)
   ) {
+    if (precrawledArchiveAssetId) {
+      logger.info(
+        `[Crawler][${jobId}] Ignoring precrawled HTML archive for image URL ${url}`,
+      );
+    }
     await handleAsAssetBookmark(
       url,
       "image",
