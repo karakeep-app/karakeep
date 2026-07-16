@@ -105,7 +105,7 @@ export function useBookmarkImport() {
       );
       return result;
     },
-    onSuccess: async (result) => {
+    onSuccess: async (result, variables) => {
       setImportProgress((prev) => {
         const next = { ...prev };
         if (result.importSessionId) {
@@ -113,6 +113,7 @@ export function useBookmarkImport() {
         }
         return next;
       });
+      currentImportIds.current.delete(variables.file);
 
       if (result.counts.total === 0) {
         toast({ description: "No bookmarks found in the file." });
