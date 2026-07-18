@@ -174,6 +174,13 @@ if (oauth.wellKnownUrl) {
     authorization: { params: { scope: oauth.scope } },
     clientId: oauth.clientId,
     clientSecret: oauth.clientSecret,
+    ...(oauth.idTokenSignedResponseAlg
+      ? {
+          client: {
+            id_token_signed_response_alg: oauth.idTokenSignedResponseAlg,
+          },
+        }
+      : {}),
     allowDangerousEmailAccountLinking: oauth.allowDangerousEmailAccountLinking,
     checks: ["pkce", "state"],
     httpOptions: {
