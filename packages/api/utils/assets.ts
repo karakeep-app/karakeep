@@ -5,6 +5,7 @@ import {
   createAssetReadStream,
   getAssetSize,
   readAssetMetadata,
+  VIDEO_ASSET_TYPES,
 } from "@karakeep/shared/assetdb";
 
 import { toWebReadableStream } from "./upload";
@@ -26,22 +27,24 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
   c.header("Content-type", metadata.contentType);
   c.header("X-Content-Type-Options", "nosniff");
   c.header("Cache-Control", "private, max-age=31536000, immutable");
-  c.header(
-    "Content-Security-Policy",
-    [
-      "sandbox",
-      "default-src 'none'",
-      "base-uri 'none'",
-      "form-action 'none'",
-      "img-src https: data: blob:",
-      "style-src 'unsafe-inline' https: data:",
-      "font-src https: data:",
-      "connect-src 'none'",
-      "media-src https: data: blob:",
-      "object-src 'none'",
-      "frame-src 'none'",
-    ].join("; "),
-  );
+  const contentSecurityPolicy = [
+    "default-src 'none'",
+    "base-uri 'none'",
+    "form-action 'none'",
+    "img-src https: data: blob:",
+    "style-src 'unsafe-inline' https: data:",
+    "font-src https: data:",
+    "connect-src 'none'",
+    "media-src https: data: blob:",
+    "object-src 'none'",
+    "frame-src 'none'",
+  ];
+
+  if (!VIDEO_ASSET_TYPES.has(metadata.contentType)) {
+    contentSecurityPolicy.unshift("sandbox");
+  }
+
+  c.header("Content-Security-Policy", contentSecurityPolicy.join("; "));
 
   const range = c.req.header("Range");
   if (range) {
