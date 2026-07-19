@@ -33,6 +33,12 @@ import {
   EnqueueOptions,
   getQueueClient,
 } from "@karakeep/shared/queueing";
+import {
+  isWeakPdfTitle,
+  normalizePdfTitleCandidate,
+} from "@karakeep/shared/utils/pdfTitle";
+
+import { extractPdfOutlineTitle } from "./utils/pdfOutlineTitle";
 
 export class AssetPreprocessingWorker {
   static async build() {
@@ -169,7 +175,7 @@ async function readImageTextWithLLM(
 
 async function readPDFText(buffer: Buffer): Promise<{
   text: string;
-  metadata: Record<string, object>;
+  metadata: Record<string, unknown> | undefined;
 }> {
   return new Promise((resolve, reject) => {
     const pdfParser = new PDFParser(null, true);
@@ -177,11 +183,37 @@ async function readPDFText(buffer: Buffer): Promise<{
     pdfParser.on("pdfParser_dataReady", (pdfData) => {
       resolve({
         text: pdfParser.getRawTextContent(),
-        metadata: pdfData.Meta,
+        metadata: pdfData.Meta as Record<string, unknown> | undefined,
       });
     });
     pdfParser.parseBuffer(buffer);
   });
+}
+
+function titleFromPdfMetadata(
+  metadata: Record<string, unknown> | undefined,
+): string | null {
+  if (!metadata) {
+    return null;
+  }
+  return normalizePdfTitleCandidate(
+    typeof metadata.Title === "string" ? metadata.Title : null,
+  );
+}
+
+async function resolvePdfDocumentTitle(
+  buffer: Buffer,
+  metadata: Record<string, unknown> | undefined,
+): Promise<string | null> {
+  const fromMeta = titleFromPdfMetadata(metadata);
+  if (fromMeta) {
+    return fromMeta;
+  }
+  try {
+    return await extractPdfOutlineTitle(buffer);
+  } catch {
+    return null;
+  }
 }
 
 export async function extractAndSavePDFScreenshot(
@@ -368,6 +400,23 @@ async function extractAndSavePDFText(
       metadata: pdfParse.metadata ? JSON.stringify(pdfParse.metadata) : null,
     })
     .where(eq(bookmarkAssets.id, bookmark.id));
+
+  if (isWeakPdfTitle(bookmark.title, bookmark.asset.fileName)) {
+    const extractedTitle = await resolvePdfDocumentTitle(
+      asset,
+      pdfParse.metadata,
+    );
+    if (extractedTitle) {
+      await db
+        .update(bookmarks)
+        .set({ title: extractedTitle })
+        .where(eq(bookmarks.id, bookmark.id));
+      logger.info(
+        `[assetPreprocessing][${jobId}] Set PDF bookmark title from metadata/outline: "${extractedTitle}"`,
+      );
+    }
+  }
+
   return true;
 }
 
