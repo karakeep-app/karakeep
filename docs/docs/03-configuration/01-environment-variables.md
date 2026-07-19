@@ -153,6 +153,7 @@ Either `OPENAI_API_KEY` or `OLLAMA_BASE_URL` need to be set for automatic taggin
 | CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC       | No       | 600       | How long to wait for the video download to finish                                                                                                                                                                                                                                                                                                                             |
 | CRAWLER_ENABLE_ADBLOCKER                 | No       | true      | Whether to enable an adblocker in the crawler or not. If you're facing troubles downloading the adblocking lists on worker startup, you can disable this.                                                                                                                                                                                                                     |
 | CRAWLER_YTDLP_ARGS                       | No       | []        | Include additional yt-dlp arguments to be passed at crawl time separated by %%: https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options                                                                                                                                                                                                                           |
+| CRAWLER_INSTAGRAM_ENABLED                | No       | false     | When enabled, Instagram post/reel URLs are extracted to text (caption + auto-subtitle transcript) via yt-dlp instead of the normal browser crawl. Requires Instagram cookies passed through `CRAWLER_YTDLP_ARGS` (e.g. `--cookies%%/path/to/cookies.txt`).                                                                                                                     |
 | CRAWLER_MONOLITH_TIMEOUT_SEC             | No       | 5         | How long to let monolith run when archiving the full page before timing out (in seconds). Increase this if bookmarks from slow servers frequently fail to archive. Monolith's own default is 120 seconds.                                                                                                                                                                      |
 | CRAWLER_MONOLITH_ARGS                    | No       | []        | Include additional monolith arguments to be passed when archiving a full page, separated by `%%`. For example, `--no-fonts%%--no-audio%%--no-video` to exclude web fonts, audio, and video from archives. Do not re-specify `-t`, `-b`, or `-o` as these are managed internally. See [monolith options](https://github.com/Y2Z/monolith#command-line-options).                    |
 | BROWSER_COOKIE_PATH                      | No       | Not set   | Path to a JSON file containing cookies to be loaded into the browser context. The file should be an array of cookie objects, each with name and value (required), and optional fields like domain, path, expires, httpOnly, secure, and sameSite (e.g., `[{"name": "session", "value": "xxx", "domain": ".example.com"}`]).                                                   |
@@ -186,6 +187,46 @@ Example JSON file:
   }
 ]
 ```
+
+</details>
+
+<details>
+
+  <summary>Setting up Instagram text extraction (CRAWLER_INSTAGRAM_ENABLED)</summary>
+
+With `CRAWLER_INSTAGRAM_ENABLED=true`, Instagram post and reel URLs are routed
+to yt-dlp instead of the normal browser crawl, and their caption (plus the
+auto-generated transcript for reels that have spoken English audio) is stored as
+the bookmark's content, making it searchable.
+
+Instagram serves almost nothing to logged-out clients, so you must provide your
+own session cookies:
+
+1. Log in to instagram.com in a browser and export its cookies to a
+   Netscape-format `cookies.txt` (for example with a "Get cookies.txt" browser
+   extension). Export only the `instagram.com` cookies — the file holds a live
+   session, so treat it like a password and keep it out of version control.
+2. Make the file available inside the container and point yt-dlp at it via
+   `CRAWLER_YTDLP_ARGS`. Arguments are split on `%%`, so `--cookies` and the path
+   are two separate entries:
+
+```yaml
+services:
+  karakeep:
+    environment:
+      - CRAWLER_INSTAGRAM_ENABLED=true
+      - CRAWLER_YTDLP_ARGS=--cookies%%/cookies/instagram.txt
+    volumes:
+      - ./instagram-cookies.txt:/cookies/instagram.txt:ro
+```
+
+Notes:
+
+- `--cookies-from-browser` does not work in the headless container; use a
+  `cookies.txt` file.
+- The cookie mount can be read-only (`:ro`).
+- Instagram sessions expire. If extraction starts failing, re-export the
+  cookies; using a dedicated/secondary account avoids disrupting your main login.
 
 </details>
 
