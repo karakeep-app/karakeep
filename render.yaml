@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://render.com/schema/render.yaml.json
+#
+# Karakeep on Render — official GHCR image + Meilisearch + headless Chrome
+# Mirrors docker/docker-compose.yml: web (AIO image with workers), meilisearch, chrome.
+#
+# After deploy: open the karakeep web URL, create your account, then add OPENAI_API_KEY
+# in the Dashboard if you want AI tagging (optional but recommended).
+
+previews:
+  generation: off
+
+envVarGroups:
+  - name: karakeep-shared
+    envVars:
+      # Same key on karakeep + meilisearch (search disabled if missing or mismatched).
+      - key: MEILI_MASTER_KEY
+        generateValue: true
+
+projects:
+  - name: karakeep
+    environments:
+      - name: production
+        services:
+          - type: web
+            name: karakeep
+            runtime: docker
+            region: oregon
+            dockerfilePath: ./docker/Dockerfile.render-karakeep
+            dockerContext: .
+            healthCheckPath: /api/health
+            disk:
+              name: karakeep-data
+              mountPath: /data
+              sizeGB: 5
+            envVars:
+              - fromGroup: karakeep-shared
+              - key: DATA_DIR
+                value: /data
+              - key: MEILI_ADDR
+                value: http://meilisearch:7700
+              # Render private DNS host (slug), wired via fromService in entrypoint.
+              - key: BROWSER_WEB_HOST
+                fromService:
+                  name: chrome
+                  type: pserv
+                  property: host
+              - key: BROWSER_WEB_PORT
+                value: "9222"
+              - key: DB_WAL_MODE
+                value: "true"
+              - key: NEXTAUTH_SECRET
+                generateValue: true
+              - key: NEXTAUTH_URL
+                fromService:
+                  name: karakeep
+                  type: web
+                  envVarKey: RENDER_EXTERNAL_URL
+              # Optional: enable AI tagging and summarization after deploy.
+              - key: OPENAI_API_KEY
+                sync: false
+
+          - type: pserv
+            name: meilisearch
+            runtime: image
+            region: oregon
+            image:
+              url: getmeili/meilisearch:v1.41.0
+            disk:
+              name: meilisearch-data
+              mountPath: /meili_data
+              sizeGB: 1
+            envVars:
+              - fromGroup: karakeep-shared
+              - key: MEILI_NO_ANALYTICS
+                value: "true"
+
+          # dockerCommand on runtime:image is passed as one argv (exit 128).
+          # Build from docker/Dockerfile.render-chrome instead.
+          - type: pserv
+            name: chrome
+            runtime: docker
+            region: oregon
+            dockerfilePath: ./docker/Dockerfile.render-chrome
+            dockerContext: .
