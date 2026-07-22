@@ -106,20 +106,57 @@ export const ensureBookmarkAccess = experimental_trpcMiddleware<{
   });
 });
 
+function normalizeUrlForDedup(url: string): string {
+  const normalized = new URL(url.trim());
+  normalized.hash = "";
+  if (normalized.pathname.endsWith("/") && normalized.pathname !== "/") {
+    normalized.pathname = normalized.pathname.slice(0, -1);
+  }
+  return normalized.toString();
+}
+
+function urlDedupSearchCandidates(url: string): string[] {
+  const normalized = new URL(normalizeUrlForDedup(url));
+  const candidates = new Set([normalized.toString()]);
+
+  if (normalized.pathname !== "/" && !normalized.pathname.endsWith("/")) {
+    normalized.pathname = `${normalized.pathname}/`;
+    candidates.add(normalized.toString());
+  }
+
+  return [...candidates];
+}
+
 async function attemptToDedupLink(ctx: AuthedContext, url: string) {
+  const normalizedUrl = normalizeUrlForDedup(url);
+  const candidates = urlDedupSearchCandidates(url);
   const result = await ctx.db
     .select({
       id: bookmarkLinks.id,
+      url: bookmarkLinks.url,
     })
     .from(bookmarkLinks)
     .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
-    .where(and(eq(bookmarkLinks.url, url), eq(bookmarks.userId, ctx.user.id)));
+    .where(
+      and(
+        eq(bookmarks.userId, ctx.user.id),
+        or(
+          ...candidates.map((candidate) =>
+            like(bookmarkLinks.url, `${candidate}%`),
+          ),
+        ),
+      ),
+    );
 
-  if (result.length == 0) {
+  const existing = result.find(
+    (bookmark) => normalizeUrlForDedup(bookmark.url) === normalizedUrl,
+  );
+
+  if (!existing) {
     return null;
   }
   return (
-    await Bookmark.fromId(ctx, result[0].id, /* includeContent: */ false)
+    await Bookmark.fromId(ctx, existing.id, /* includeContent: */ false)
   ).asZBookmark();
 }
 
@@ -924,20 +961,8 @@ export const bookmarksAppRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
-      // Normalize and compare URLs (ignoring hash fragment and trailing slash)
-      function normalizeUrl(url: string): string {
-        const u = new URL(url);
-        u.hash = "";
-        let pathname = u.pathname;
-        if (pathname.endsWith("/") && pathname !== "/") {
-          pathname = pathname.slice(0, -1);
-        }
-        u.pathname = pathname;
-        return u.toString();
-      }
-
-      // Strip hash before querying so the LIKE clause can match
-      const normalizedInput = normalizeUrl(input.url);
+      const normalizedInput = normalizeUrlForDedup(input.url);
+      const candidates = urlDedupSearchCandidates(input.url);
 
       const results = await ctx.db
         .select({ id: bookmarkLinks.id, url: bookmarkLinks.url })
@@ -946,7 +971,11 @@ export const bookmarksAppRouter = router({
         .where(
           and(
             eq(bookmarks.userId, ctx.user.id),
-            like(bookmarkLinks.url, `${normalizedInput}%`),
+            or(
+              ...candidates.map((candidate) =>
+                like(bookmarkLinks.url, `${candidate}%`),
+              ),
+            ),
           ),
         );
 
@@ -955,7 +984,7 @@ export const bookmarksAppRouter = router({
       }
 
       const exactMatch = results.find(
-        (r) => r.url && normalizeUrl(r.url) === normalizedInput,
+        (r) => r.url && normalizeUrlForDedup(r.url) === normalizedInput,
       );
 
       return { bookmarkId: exactMatch?.id ?? null };
