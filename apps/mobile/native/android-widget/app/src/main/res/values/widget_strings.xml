@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">Karakeep Bookmarks</string>
+    <string name="widget_description">Display your Karakeep bookmarks on the home screen</string>
+</resources>
