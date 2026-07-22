@@ -15,7 +15,7 @@ services:
       MEILI_ADDR: http://meilisearch:7700
       BROWSER_WEB_URL: http://chrome:9222
       CRAWLER_NUM_WORKERS: 6
-      CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+      CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx,search.app
       CRAWLER_VIDEO_DOWNLOAD: "true"
       CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: -1
       OPENAI_API_KEY: aimock-test-key
@@ -44,6 +44,11 @@ services:
   nginx:
     image: nginx:alpine
     restart: unless-stopped
+    networks:
+      # Alias so the crawler can reach a "known link shortener" host in tests.
+      default:
+        aliases:
+          - search.app
     volumes:
       - ./setup/html:/usr/share/nginx/html
       - ./setup/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro

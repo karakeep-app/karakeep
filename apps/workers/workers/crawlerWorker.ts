@@ -39,6 +39,7 @@ import {
 } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { tryCatch } from "@karakeep/shared/tryCatch";
+import { resolveShortenedBookmarkUrl } from "@karakeep/shared/utils/url";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
 import {
@@ -387,20 +388,32 @@ async function runCrawler(
   // it — reload it from the bookmark row instead.
   const reuseStoredProbeMetadata =
     job.runNumber > 0 && probeMetadataAt !== null;
-  const { contentType, metadata: probeMetadata }: UrlProbeResult =
-    precrawledArchiveAssetId
-      ? { contentType: ASSET_TYPES.TEXT_HTML, metadata: Promise.resolve(null) }
-      : await getContentTypeAndMetadata(url, jobId, job.abortSignal, runProxy, {
-          skipMetadataExtraction: reuseStoredProbeMetadata,
-        });
+  const {
+    contentType,
+    finalUrl,
+    metadata: probeMetadata,
+  }: UrlProbeResult = precrawledArchiveAssetId
+    ? {
+        contentType: ASSET_TYPES.TEXT_HTML,
+        finalUrl: url,
+        metadata: Promise.resolve(null),
+      }
+    : await getContentTypeAndMetadata(url, jobId, job.abortSignal, runProxy, {
+        skipMetadataExtraction: reuseStoredProbeMetadata,
+      });
   job.abortSignal.throwIfAborted();
+
+  // For asset bookmarks the shortener is resolved via the content-type probe's
+  // redirect target (there's no browser crawl to derive it from). The HTML path
+  // resolves separately inside crawlAndParseUrl via the browser URL.
+  const assetUrl = resolveShortenedBookmarkUrl(url, finalUrl) ?? url;
 
   // Link bookmarks get transformed into asset bookmarks if they point to a supported asset instead of a webpage
   const isPdf = contentType === ASSET_TYPES.APPLICATION_PDF;
 
   if (isPdf) {
     await handleAsAssetBookmark(
-      url,
+      assetUrl,
       "pdf",
       userId,
       jobId,
@@ -414,7 +427,7 @@ async function runCrawler(
     SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)
   ) {
     await handleAsAssetBookmark(
-      url,
+      assetUrl,
       "image",
       userId,
       jobId,
@@ -448,7 +461,7 @@ async function runCrawler(
           }
           return metadata;
         });
-    const archivalLogic = await crawlAndParseUrl({
+    const { runArchival, effectiveUrl } = await crawlAndParseUrl({
       url,
       userId,
       jobId,
@@ -469,10 +482,10 @@ async function runCrawler(
       probeMetadataPromise,
     });
 
-    await enqueuePostCrawlJobs(job, bookmarkId, userId, url);
+    await enqueuePostCrawlJobs(job, bookmarkId, userId, effectiveUrl);
 
     // Do the archival as a separate last step as it has the potential for failure
-    await archivalLogic();
+    await runArchival();
   }
 
   // Record the latency from bookmark creation to crawl completion.
