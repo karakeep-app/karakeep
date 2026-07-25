@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
 import serverConfig from "@karakeep/shared/config";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -15,6 +15,9 @@ const searchMocks = vi.hoisted(() => ({
   getRateLimitClient: vi.fn(),
   checkRateLimit: vi.fn(),
 }));
+const originalSemanticSearchFeature =
+  serverConfig.experimentalFeatures.semanticSearch;
+const originalEmbeddingAutoIndexing = serverConfig.embedding.enableAutoIndexing;
 
 vi.mock("@karakeep/shared/inference", () => ({
   InferenceClientFactory: {
@@ -49,6 +52,14 @@ beforeEach<CustomTestContext>(async (context) => {
     search: searchMocks.vectorSearch,
   });
   searchMocks.getRateLimitClient.mockResolvedValue(null);
+  serverConfig.experimentalFeatures.semanticSearch = true;
+  serverConfig.embedding.enableAutoIndexing = true;
+});
+
+afterAll(() => {
+  serverConfig.experimentalFeatures.semanticSearch =
+    originalSemanticSearchFeature;
+  serverConfig.embedding.enableAutoIndexing = originalEmbeddingAutoIndexing;
 });
 
 function mockEmbeddingInfra() {
@@ -64,6 +75,23 @@ function mockEmbeddingInfra() {
 }
 
 describe("bookmark search modes", () => {
+  test<CustomTestContext>("rejects semantic modes when the experimental feature is disabled", async ({
+    apiCallers,
+  }) => {
+    serverConfig.experimentalFeatures.semanticSearch = false;
+
+    await expect(
+      apiCallers[0].bookmarks.searchBookmarks({
+        text: "query",
+        searchMode: "semantic",
+      }),
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "Semantic search is not enabled",
+    });
+    expect(searchMocks.vectorSearch).not.toHaveBeenCalled();
+  });
+
   test.each(["semantic", "hybrid"] as const)(
     "rate limits %s search",
     async (searchMode) => {

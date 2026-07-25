@@ -890,6 +890,17 @@ export const bookmarksAppRouter = router({
       const sortOrder = input.sortOrder || "relevance";
       const parsedQuery = parseSearchQuery(input.text);
 
+      if (
+        input.searchMode !== "fts" &&
+        (!serverConfig.experimentalFeatures.semanticSearch ||
+          !serverConfig.embedding.enableAutoIndexing)
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Semantic search is not enabled",
+        });
+      }
+
       let filter: FilterQuery[];
       if (parsedQuery.matcher) {
         const bookmarkIds = await getBookmarkIdsFromMatcher(

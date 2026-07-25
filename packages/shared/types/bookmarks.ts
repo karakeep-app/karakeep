@@ -308,6 +308,7 @@ export const zSearchBookmarksCursor = z.discriminatedUnion("ver", [
   }),
 ]);
 export const zBookmarkSearchMode = z.enum(["fts", "semantic", "hybrid"]);
+export type ZBookmarkSearchMode = z.infer<typeof zBookmarkSearchMode>;
 export const zSearchBookmarksRequestSchema = z.object({
   text: z.string(),
   limit: z.number().max(MAX_NUM_BOOKMARKS_PER_PAGE).optional(),

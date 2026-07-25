@@ -69,6 +69,7 @@ const allEnv = z.object({
   OLLAMA_KEEP_ALIVE: z.string().optional(),
   CHAT_ENABLED: stringBool("false"),
   CHAT_MODEL: z.string().optional(),
+  SEMANTIC_SEARCH_ENABLED: stringBool("true"),
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   INFERENCE_FETCH_TIMEOUT_SEC: z.coerce.number().default(300),
   INFERENCE_TEXT_MODEL: z.string().default("gpt-4.1-mini"),
@@ -337,6 +338,9 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     chat: {
       enabled: val.CHAT_ENABLED,
     },
+    experimentalFeatures: {
+      semanticSearch: val.SEMANTIC_SEARCH_ENABLED,
+    },
     embedding: {
       enableAutoIndexing: val.EMBEDDING_ENABLE_AUTO_INDEXING,
       textModel: val.EMBEDDING_TEXT_MODEL,
@@ -551,6 +555,12 @@ export const clientConfig = {
   },
   chat: {
     enabled: serverConfig.chat.enabled,
+  },
+  search: {
+    semanticSearchEnabled:
+      serverConfig.experimentalFeatures.semanticSearch &&
+      serverConfig.embedding.enableAutoIndexing &&
+      serverConfig.inference.isConfigured,
   },
   stripe: {
     isConfigured: serverConfig.stripe.isConfigured,

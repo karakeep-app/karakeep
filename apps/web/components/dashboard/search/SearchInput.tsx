@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -21,15 +22,24 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useClientConfig } from "@/lib/clientConfig";
 import { useDoBookmarkSearch } from "@/lib/hooks/bookmark-search";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
+import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 
 import { EditListModal } from "../lists/EditListModal";
 import QueryExplainerTooltip from "./QueryExplainerTooltip";
+import { SearchModeSelector } from "./SearchModeSelector";
 import { useSearchAutocomplete } from "./useSearchAutocomplete";
+
+const SEARCH_PLACEHOLDERS = {
+  fts: "search.keyword_placeholder",
+  hybrid: "search.hybrid_placeholder",
+  semantic: "search.semantic_placeholder",
+} as const;
 
 function useFocusSearchOnKeyPress(
   inputRef: React.RefObject<HTMLInputElement | null>,
@@ -69,11 +79,13 @@ const SearchInput = React.forwardRef<
   React.HTMLAttributes<HTMLInputElement> & { loading?: boolean }
 >(({ className, ...props }, ref) => {
   const { t } = useTranslation();
+  const { semanticSearchEnabled } = useClientConfig().search;
   const {
     debounceSearch,
     searchQuery,
     doSearch,
-    parsedSearchQuery,
+    setSearchMode,
+    searchMode,
     isInSearchPage,
   } = useDoBookmarkSearch();
   const { addTerm, history } = useSearchHistory({
@@ -168,6 +180,13 @@ const SearchInput = React.forwardRef<
     setIsPopoverOpen(false);
   }, [value, addTerm]);
 
+  // Parse what's currently in the input rather than the query that's being
+  // searched: the two diverge while typing, and when navigating away from the
+  // search page the input is cleared but the last search query is kept around.
+  const parsedValue = useMemo(() => parseSearchQuery(value), [value]);
+  const canSaveSearch =
+    parsedValue.result === "full" && parsedValue.text.length === 0;
+
   return (
     <div className={cn("relative flex-1", className)}>
       <EditListModal
@@ -178,24 +197,31 @@ const SearchInput = React.forwardRef<
           query: value,
         }}
       />
-      <Link
-        href="https://docs.karakeep.app/Guides/search-query-language"
-        target="_blank"
-        className="-translate-1/2 absolute right-1.5 top-2 z-50 stroke-foreground px-0.5"
-      >
-        <QueryExplainerTooltip parsedSearchQuery={parsedSearchQuery} />
-      </Link>
-      {parsedSearchQuery.result === "full" &&
-        parsedSearchQuery.text.length == 0 && (
+      <div className="absolute inset-y-0 right-1.5 z-50 flex items-center gap-1">
+        {semanticSearchEnabled ? (
+          <SearchModeSelector
+            value={searchMode}
+            onValueChange={(mode) => setSearchMode(mode, value)}
+          />
+        ) : null}
+        {canSaveSearch ? (
           <Button
             onClick={() => setNewNestedListModalOpen(true)}
             size="none"
             variant="secondary"
-            className="absolute right-10 top-2 z-50 px-2 py-1 text-xs"
+            className="h-7 px-2 text-xs"
           >
             {t("actions.save")}
           </Button>
-        )}
+        ) : null}
+        <Link
+          href="https://docs.karakeep.app/Guides/search-query-language"
+          target="_blank"
+          className="flex size-7 shrink-0 items-center justify-center rounded-md stroke-foreground transition-colors hover:bg-background/80"
+        >
+          <QueryExplainerTooltip parsedSearchQuery={parsedValue} />
+        </Link>
+      </div>
       <Command
         shouldFilter={false}
         className="relative rounded-md bg-transparent"
@@ -206,14 +232,20 @@ const SearchInput = React.forwardRef<
             <div className="relative">
               <CommandInput
                 ref={inputRef}
-                placeholder={t("common.search")}
+                placeholder={t(SEARCH_PLACEHOLDERS[searchMode])}
                 value={value}
                 onValueChange={handleValueChange}
                 onCompositionStart={handleCompositionStart}
                 onCompositionEnd={handleCompositionEnd}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
-                className={cn("h-10", className)}
+                className={cn(
+                  "h-10",
+                  semanticSearchEnabled ? "pr-20 sm:pr-36" : "pr-10",
+                  canSaveSearch &&
+                    (semanticSearchEnabled ? "pr-32 sm:pr-48" : "pr-24"),
+                  className,
+                )}
                 {...props}
               />
             </div>

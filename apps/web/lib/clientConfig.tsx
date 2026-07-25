@@ -21,6 +21,9 @@ export const ClientConfigCtx = createContext<ClientConfig>({
   chat: {
     enabled: false,
   },
+  search: {
+    semanticSearchEnabled: false,
+  },
   stripe: {
     isConfigured: false,
   },

@@ -963,7 +963,18 @@
     "tags": "Tags",
     "lists": "Lists",
     "feeds": "Feeds",
-    "no_suggestions": "No suggestions"
+    "no_suggestions": "No suggestions",
+    "mode_label": "Search mode",
+    "mode_label_description": "Choose how Karakeep finds matching bookmarks.",
+    "mode_keyword": "Keyword",
+    "mode_keyword_description": "Match exact words in titles, content, URLs, and notes. Almost instant.",
+    "mode_hybrid": "Hybrid",
+    "mode_hybrid_description": "Blend exact matches with related ideas for the best balance. Slower than keyword search.",
+    "mode_semantic": "Semantic",
+    "mode_semantic_description": "Find conceptually similar bookmarks, even without shared words. Slower than keyword search.",
+    "keyword_placeholder": "Search titles, text, URLs, and tags…",
+    "hybrid_placeholder": "Search by words or meaning…",
+    "semantic_placeholder": "Describe what you remember…"
   },
   "preview": {
     "view_original": "View Original",
