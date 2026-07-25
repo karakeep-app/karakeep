@@ -8,14 +8,8 @@ import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 
 function SearchComp() {
-  const {
-    data,
-    error,
-    effectiveSearchMode,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useBookmarkSearch();
+  const { data, error, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useBookmarkSearch();
 
   const { setInSearchPage } = useInSearchPageStore();
 
@@ -24,7 +18,7 @@ function SearchComp() {
   useEffect(() => {
     // also see related cleanup code in SortOrderToggle.tsx
     setSortOrder("relevance");
-  }, [effectiveSearchMode, setSortOrder]);
+  }, [setSortOrder]);
 
   useEffect(() => {
     setInSearchPage(true);

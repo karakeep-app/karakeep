@@ -167,7 +167,6 @@ export function useBookmarkSearch() {
   return {
     error,
     data,
-    effectiveSearchMode,
     isPending,
     isPlaceholderData,
     hasNextPage,
