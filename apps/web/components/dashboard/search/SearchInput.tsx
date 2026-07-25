@@ -198,12 +198,6 @@ const SearchInput = React.forwardRef<
         }}
       />
       <div className="absolute inset-y-0 right-1.5 z-50 flex items-center gap-1">
-        {semanticSearchEnabled ? (
-          <SearchModeSelector
-            value={searchMode}
-            onValueChange={(mode) => setSearchMode(mode, value)}
-          />
-        ) : null}
         {canSaveSearch ? (
           <Button
             onClick={() => setNewNestedListModalOpen(true)}
@@ -219,8 +213,17 @@ const SearchInput = React.forwardRef<
           target="_blank"
           className="flex size-7 shrink-0 items-center justify-center rounded-md stroke-foreground transition-colors hover:bg-background/80"
         >
-          <QueryExplainerTooltip parsedSearchQuery={parsedValue} />
+          <QueryExplainerTooltip
+            parsedSearchQuery={parsedValue}
+            className="text-muted-foreground"
+          />
         </Link>
+        {semanticSearchEnabled ? (
+          <SearchModeSelector
+            value={searchMode}
+            onValueChange={(mode) => setSearchMode(mode, value)}
+          />
+        ) : null}
       </div>
       <Command
         shouldFilter={false}
