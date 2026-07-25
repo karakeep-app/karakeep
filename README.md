@@ -1,3 +1,5 @@
+[![MCP Toplist](https://mcptoplist.com/badge/glama%2Fkarakeep-app%2Fkarakeep.svg)](https://mcptoplist.com/server/glama%2Fkarakeep-app%2Fkarakeep)
+
 <div align="center">
     <a href="https://github.com/karakeep-app/karakeep/actions/workflows/ci.yml">
         <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/karakeep-app/karakeep/ci.yml" />
