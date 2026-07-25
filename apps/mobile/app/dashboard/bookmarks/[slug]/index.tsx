@@ -9,9 +9,12 @@ import BookmarkLinkTypeSelector, {
 import BookmarkLinkView from "@/components/bookmarks/BookmarkLinkView";
 import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
-import FullPageError from "@/components/FullPageError";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import QueryPageState from "@/components/QueryPageState";
 import { shouldUseGlassPill } from "@/lib/ios";
+import {
+  getOfflineLibraryScope,
+  useOfflineArticle,
+} from "@/lib/offlineLibrary";
 import useAppSettings from "@/lib/settings";
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react-native";
@@ -44,6 +47,11 @@ export default function BookmarkView() {
     throw new Error("Unexpected param type");
   }
 
+  const offlineArticle = useOfflineArticle(
+    getOfflineLibraryScope(settings),
+    slug,
+  );
+
   const {
     data: bookmark,
     error,
@@ -63,34 +71,31 @@ export default function BookmarkView() {
       },
     ),
   );
+  const displayedBookmark = bookmark ?? offlineArticle?.bookmark;
 
-  if (error) {
-    return <FullPageError error={error.message} onRetry={refetch} />;
-  }
-
-  if (!bookmark) {
-    return <FullPageSpinner />;
+  if (!displayedBookmark) {
+    return <QueryPageState error={error} onRetry={refetch} />;
   }
 
   let comp;
   let title = null;
-  switch (bookmark.content.type) {
+  switch (displayedBookmark.content.type) {
     case BookmarkTypes.LINK:
-      title = bookmark.title ?? bookmark.content.title;
+      title = displayedBookmark.title ?? displayedBookmark.content.title;
       comp = (
         <BookmarkLinkView
-          bookmark={bookmark}
+          bookmark={displayedBookmark}
           bookmarkPreviewType={bookmarkLinkType}
         />
       );
       break;
     case BookmarkTypes.TEXT:
-      title = bookmark.title;
-      comp = <BookmarkTextView bookmark={bookmark} />;
+      title = displayedBookmark.title;
+      comp = <BookmarkTextView bookmark={displayedBookmark} />;
       break;
     case BookmarkTypes.ASSET:
-      title = bookmark.title ?? bookmark.content.fileName;
-      comp = <BookmarkAssetView bookmark={bookmark} />;
+      title = displayedBookmark.title ?? displayedBookmark.content.fileName;
+      comp = <BookmarkAssetView bookmark={displayedBookmark} />;
       break;
   }
   return (
@@ -112,7 +117,7 @@ export default function BookmarkView() {
           },
           headerTintColor: isDark ? "#fff" : "#000",
           headerRight: () =>
-            bookmark.content.type === BookmarkTypes.LINK ? (
+            displayedBookmark.content.type === BookmarkTypes.LINK ? (
               <View
                 className={`flex-row items-center gap-3${shouldUseGlassPill ? " px-2" : ""}`}
               >
@@ -128,7 +133,7 @@ export default function BookmarkView() {
                 <BookmarkLinkTypeSelector
                   type={bookmarkLinkType}
                   onChange={(type) => setBookmarkLinkType(type)}
-                  bookmark={bookmark}
+                  bookmark={displayedBookmark}
                 />
               </View>
             ) : undefined,
@@ -137,10 +142,10 @@ export default function BookmarkView() {
       {comp}
       {shouldUseGlassPill ? (
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
-          <BottomActions bookmark={bookmark} />
+          <BottomActions bookmark={displayedBookmark} />
         </View>
       ) : (
-        <BottomActions bookmark={bookmark} />
+        <BottomActions bookmark={displayedBookmark} />
       )}
     </KeyboardAvoidingView>
   );

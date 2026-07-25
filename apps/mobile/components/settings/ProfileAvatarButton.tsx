@@ -1,5 +1,6 @@
 import { Pressable } from "react-native";
 import { useRouter } from "expo-router";
+import { ConnectionStatusIndicator } from "@/components/ConnectionStatusIndicator";
 import { Avatar } from "@/components/ui/Avatar";
 import { useQuery } from "@tanstack/react-query";
 
@@ -22,8 +23,10 @@ export function ProfileAvatarButton() {
       hitSlop={(HIT_TARGET - AVATAR_SIZE) / 2}
       accessibilityLabel="Open profile settings"
       accessibilityRole="button"
+      className="relative"
     >
       <Avatar image={data?.image} name={data?.name} size={AVATAR_SIZE} />
+      <ConnectionStatusIndicator />
     </Pressable>
   );
 }

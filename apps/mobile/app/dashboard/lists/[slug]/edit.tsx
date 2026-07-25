@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import QueryPageState from "@/components/QueryPageState";
 import { Button } from "@/components/ui/Button";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Input } from "@/components/ui/Input";
@@ -42,7 +43,11 @@ const EditListPage = () => {
     throw new Error("Unexpected param type");
   }
 
-  const { data: list, isLoading: fetchIsPending } = useQuery(
+  const {
+    data: list,
+    error,
+    refetch,
+  } = useQuery(
     api.lists.get.queryOptions({
       listId,
     }),
@@ -79,11 +84,13 @@ const EditListPage = () => {
     });
   };
 
-  const isPending = fetchIsPending || editIsPending;
+  if (!list) {
+    return <QueryPageState error={error} onRetry={() => refetch()} />;
+  }
 
   return (
     <>
-      {isPending ? (
+      {editIsPending ? (
         <FullPageSpinner />
       ) : (
         <View className="gap-3 px-4">
@@ -143,7 +150,7 @@ const EditListPage = () => {
             </View>
           )}
 
-          <Button disabled={isPending} onPress={onSubmit}>
+          <Button disabled={editIsPending} onPress={onSubmit}>
             <Text>Save</Text>
           </Button>
         </View>

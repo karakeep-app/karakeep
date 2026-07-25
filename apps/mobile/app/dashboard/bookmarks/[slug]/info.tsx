@@ -15,9 +15,8 @@ import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
 import TagPill from "@/components/bookmarks/TagPill";
-import FullPageError from "@/components/FullPageError";
+import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import {
   GroupedSection,
   NavigationRow,
@@ -471,7 +470,7 @@ const ViewBookmarkPage = () => {
 
   const {
     data: bookmark,
-    isPending,
+    error,
     refetch,
   } = useAutoRefreshingBookmarkQuery({
     bookmarkId: slug,
@@ -495,14 +494,8 @@ const ViewBookmarkPage = () => {
     }
   };
 
-  if (isPending) {
-    return <FullPageSpinner />;
-  }
-
   if (!bookmark) {
-    return (
-      <FullPageError error="Bookmark not found" onRetry={() => refetch()} />
-    );
+    return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
   const handleDeleteBookmark = () => {

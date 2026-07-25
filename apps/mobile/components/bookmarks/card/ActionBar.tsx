@@ -1,7 +1,8 @@
+import { useOfflineAvailability } from "@/components/bookmarks/useOfflineAvailability";
 import useAppSettings from "@/lib/settings";
 import { shareBookmark } from "@/lib/shareBookmark";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
-import { MenuView } from "@react-native-menu/menu";
+import { MenuAction, MenuView } from "@react-native-menu/menu";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
@@ -19,6 +20,7 @@ import {
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { useToast } from "../../ui/Toast";
 
@@ -33,9 +35,13 @@ export default function ActionBar({
   const { settings } = useAppSettings();
   const { data: currentUser } = useWhoAmI();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
+  const offlineAvailability = useOfflineAvailability(bookmark.id);
 
   // Check if the current user owns this bookmark
   const isOwner = currentUser?.id === bookmark.userId;
+  const supportsOfflineReading =
+    bookmark.content.type === BookmarkTypes.LINK ||
+    bookmark.content.type === BookmarkTypes.TEXT;
 
   const onError = () => {
     toast({
@@ -88,7 +94,7 @@ export default function ActionBar({
   const handleShare = () => shareBookmark(bookmark, settings, toast);
 
   // Build actions array based on ownership
-  const menuActions = [];
+  const menuActions: MenuAction[] = [];
   if (isOwner) {
     menuActions.push(
       {
@@ -131,20 +137,88 @@ export default function ActionBar({
           ios: menuIconColor,
         }),
       },
-      {
-        id: "delete",
-        title: "Delete",
-        attributes: {
-          destructive: true,
-        },
+    );
+  }
+
+  if (supportsOfflineReading) {
+    if (offlineAvailability.isAvailableOffline) {
+      menuActions.push({
+        id: "offline-group",
+        title: "Available offline",
         image: Platform.select({
-          ios: "trash",
+          ios: "checkmark.circle",
         }),
         imageColor: Platform.select({
-          ios: destructiveMenuIconColor,
+          ios: menuIconColor,
         }),
+        subactions: [
+          {
+            id: "update-offline-copy",
+            title: offlineAvailability.isSaving
+              ? "Saving offline copy..."
+              : "Update offline copy",
+            image: Platform.select({
+              ios: "arrow.clockwise",
+            }),
+            imageColor: Platform.select({
+              ios: menuIconColor,
+            }),
+            attributes: {
+              ...(offlineAvailability.isSaving && {
+                disabled: true,
+              }),
+            },
+          },
+          {
+            id: "remove-offline-copy",
+            title: "Remove offline copy",
+            attributes: {
+              destructive: true,
+            },
+            image: Platform.select({
+              ios: "trash",
+            }),
+            imageColor: Platform.select({
+              ios: destructiveMenuIconColor,
+            }),
+          },
+        ],
+      });
+    } else {
+      menuActions.push({
+        id: "make-available-offline",
+        title: offlineAvailability.isSaving
+          ? "Saving offline copy..."
+          : "Make available offline",
+        image: Platform.select({
+          ios: "arrow.down.circle",
+        }),
+        imageColor: Platform.select({
+          ios: menuIconColor,
+        }),
+        attributes: {
+          ...(offlineAvailability.isSaving && {
+            disabled: true,
+          }),
+        },
+      });
+    }
+  }
+
+  if (isOwner) {
+    menuActions.push({
+      id: "delete",
+      title: "Delete",
+      attributes: {
+        destructive: true,
       },
-    );
+      image: Platform.select({
+        ios: "trash",
+      }),
+      imageColor: Platform.select({
+        ios: destructiveMenuIconColor,
+      }),
+    });
   }
 
   return (
@@ -177,11 +251,18 @@ export default function ActionBar({
         <ShareIcon color="gray" size={compact ? 20 : 24} />
       </Pressable>
 
-      {isOwner && menuActions.length > 0 && (
+      {menuActions.length > 0 && (
         <MenuView
           onPressAction={({ nativeEvent }) => {
             Haptics.selectionAsync();
-            if (nativeEvent.event === "delete") {
+            if (
+              nativeEvent.event === "make-available-offline" ||
+              nativeEvent.event === "update-offline-copy"
+            ) {
+              void offlineAvailability.save();
+            } else if (nativeEvent.event === "remove-offline-copy") {
+              offlineAvailability.confirmRemove();
+            } else if (nativeEvent.event === "delete") {
               deleteBookmarkAlert();
             } else if (nativeEvent.event === "archive") {
               archiveBookmark({

@@ -1,6 +1,5 @@
-import FullPageError from "@/components/FullPageError";
 import HighlightList from "@/components/highlights/HighlightList";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import QueryPageState from "@/components/QueryPageState";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -26,12 +25,8 @@ export default function Highlights() {
     ),
   );
 
-  if (error) {
-    return <FullPageError error={error.message} onRetry={() => refetch()} />;
-  }
-
-  if (isPending || !data) {
-    return <FullPageSpinner />;
+  if (!data) {
+    return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
   const onRefresh = () => {

@@ -95,12 +95,14 @@ function getTRPCClient(settings: Settings) {
 
 export function TRPCSettingsProvider({
   settings,
+  queryClient: providedQueryClient,
   children,
 }: {
   settings: Settings;
+  queryClient?: QueryClient;
   children: React.ReactNode;
 }) {
-  const queryClient = getQueryClient();
+  const queryClient = providedQueryClient ?? getQueryClient();
   const trpcClient = useMemo(() => getTRPCClient(settings), [settings]);
 
   return (

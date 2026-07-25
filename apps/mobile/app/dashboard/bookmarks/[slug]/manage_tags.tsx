@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import QueryPageState from "@/components/QueryPageState";
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
@@ -39,7 +39,11 @@ const TagPickerPage = () => {
 
   const searchQueryDebounced = useDebounce(search, 200);
 
-  const { data: allTags, isLoading: isAllTagsPending } = useTagAutocomplete({
+  const {
+    data: allTags,
+    error: tagsError,
+    refetch: refetchTags,
+  } = useTagAutocomplete({
     nameContains: searchQueryDebounced,
     select: (data) =>
       data.tags.map((tag) => ({
@@ -49,7 +53,11 @@ const TagPickerPage = () => {
       })),
   });
 
-  const { data: bookmark } = useAutoRefreshingBookmarkQuery({
+  const {
+    data: bookmark,
+    error: bookmarkError,
+    refetch: refetchBookmark,
+  } = useAutoRefreshingBookmarkQuery({
     bookmarkId,
   });
   const existingTags = bookmark?.tags;
@@ -177,8 +185,16 @@ const TagPickerPage = () => {
     });
   };
 
-  if (isAllTagsPending) {
-    return <FullPageSpinner />;
+  if (!allTags || !bookmark) {
+    return (
+      <QueryPageState
+        error={tagsError ?? bookmarkError}
+        onRetry={() => {
+          void refetchTags();
+          void refetchBookmark();
+        }}
+      />
+    );
   }
 
   return (

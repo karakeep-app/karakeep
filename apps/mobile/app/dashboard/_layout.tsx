@@ -213,6 +213,14 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="settings/offline"
+        options={{
+          title: "Offline Content",
+          headerTitle: "Offline Content",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen
         name="settings/toolbar-settings"
         options={{
           title: "Toolbar Buttons",

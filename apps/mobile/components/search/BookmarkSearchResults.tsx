@@ -1,7 +1,6 @@
 import { FlatList, Pressable, View } from "react-native";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
-import FullPageError from "@/components/FullPageError";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import QueryPageState from "@/components/QueryPageState";
 import { Text } from "@/components/ui/Text";
 
 import type { BookmarkSearchState } from "@/lib/useBookmarkSearchState";
@@ -30,10 +29,6 @@ export default function BookmarkSearchResults({
     isFetchingNextPage,
     onRefresh,
   } = state;
-
-  if (error) {
-    return <FullPageError error={error.message} onRetry={() => refetch()} />;
-  }
 
   const renderHistoryItem = ({ item }: { item: string }) => (
     <Pressable
@@ -73,21 +68,17 @@ export default function BookmarkSearchResults({
     );
   }
 
-  if (isPending) {
-    return <FullPageSpinner />;
+  if (!data) {
+    return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
-  if (data) {
-    return (
-      <BookmarkList
-        bookmarks={data.pages.flatMap((p) => p.bookmarks)}
-        fetchNextPage={fetchNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-        onRefresh={onRefresh}
-        isRefreshing={isPending}
-      />
-    );
-  }
-
-  return null;
+  return (
+    <BookmarkList
+      bookmarks={data.pages.flatMap((p) => p.bookmarks)}
+      fetchNextPage={fetchNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      onRefresh={onRefresh}
+      isRefreshing={isPending}
+    />
+  );
 }
