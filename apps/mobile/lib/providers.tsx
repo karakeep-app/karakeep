@@ -10,6 +10,7 @@ import {
   dehydrateOptions,
   makeMobileQueryClient,
   queryPersister,
+  setupCachePersistence,
   setupOnlineManager,
 } from "./offlineCache";
 import { ConnectionStatusProvider } from "./useConnectionStatus";
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     load();
     setupOnlineManager();
+    return setupCachePersistence();
   }, []);
 
   const buster = `${settings.address}|${settings.apiKeyId ?? "anon"}`;

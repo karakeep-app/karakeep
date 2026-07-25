@@ -72,6 +72,8 @@ export default function BookmarkView() {
     ),
   );
   const displayedBookmark = bookmark ?? offlineArticle?.bookmark;
+  const displayedBookmarkLinkType: BookmarkLinkType =
+    !bookmark && offlineArticle ? "reader" : bookmarkLinkType;
 
   if (!displayedBookmark) {
     return <QueryPageState error={error} onRetry={refetch} />;
@@ -85,7 +87,7 @@ export default function BookmarkView() {
       comp = (
         <BookmarkLinkView
           bookmark={displayedBookmark}
-          bookmarkPreviewType={bookmarkLinkType}
+          bookmarkPreviewType={displayedBookmarkLinkType}
         />
       );
       break;
@@ -121,7 +123,7 @@ export default function BookmarkView() {
               <View
                 className={`flex-row items-center gap-3${shouldUseGlassPill ? " px-2" : ""}`}
               >
-                {bookmarkLinkType === "reader" && (
+                {displayedBookmarkLinkType === "reader" && (
                   <Pressable
                     onPress={() =>
                       router.push("/dashboard/settings/reader-settings")
@@ -131,7 +133,7 @@ export default function BookmarkView() {
                   </Pressable>
                 )}
                 <BookmarkLinkTypeSelector
-                  type={bookmarkLinkType}
+                  type={displayedBookmarkLinkType}
                   onChange={(type) => setBookmarkLinkType(type)}
                   bookmark={displayedBookmark}
                 />

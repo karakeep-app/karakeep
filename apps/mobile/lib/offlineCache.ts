@@ -8,6 +8,7 @@ import {
   onlineManager,
   QueryClient,
 } from "@tanstack/react-query";
+import { AppState } from "react-native";
 import * as Network from "expo-network";
 import { createMMKV } from "react-native-mmkv";
 import superjson from "superjson";
@@ -164,6 +165,9 @@ let pendingClient: PersistedClient | undefined;
 let flushTimer: ReturnType<typeof setTimeout> | undefined;
 
 function flushPendingClient() {
+  if (flushTimer) {
+    clearTimeout(flushTimer);
+  }
   flushTimer = undefined;
   const client = pendingClient;
   pendingClient = undefined;
@@ -256,6 +260,19 @@ export const queryPersister: Persister = {
 
 export function clearPersistedCache() {
   discardPersistedCache();
+}
+
+export function setupCachePersistence() {
+  const subscription = AppState.addEventListener("change", (state) => {
+    if (state !== "active") {
+      flushPendingClient();
+    }
+  });
+
+  return () => {
+    subscription.remove();
+    flushPendingClient();
+  };
 }
 
 // The persister keys by query, but a query's own value is still written whole.
