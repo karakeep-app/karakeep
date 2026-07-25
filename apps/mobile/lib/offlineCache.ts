@@ -28,12 +28,10 @@ export function makeMobileQueryClient() {
 }
 
 type DehydratedQuery = DehydratedState["queries"][number];
-type DehydratedMutation = DehydratedState["mutations"][number];
 
 interface PersistedIndex {
   timestamp: number;
   buster: string;
-  mutations: DehydratedMutation[];
   hashes: string[];
 }
 
@@ -87,16 +85,6 @@ function isDehydratedQuery(value: unknown): value is DehydratedQuery {
   );
 }
 
-function isDehydratedMutation(value: unknown): value is DehydratedMutation {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "state" in value &&
-    typeof value.state === "object" &&
-    value.state !== null
-  );
-}
-
 function parseIndex(value: unknown): PersistedIndex | undefined {
   if (
     typeof value !== "object" ||
@@ -105,8 +93,6 @@ function parseIndex(value: unknown): PersistedIndex | undefined {
     typeof value.timestamp !== "number" ||
     !("buster" in value) ||
     typeof value.buster !== "string" ||
-    !("mutations" in value) ||
-    !Array.isArray(value.mutations) ||
     !("hashes" in value) ||
     !Array.isArray(value.hashes)
   ) {
@@ -116,7 +102,6 @@ function parseIndex(value: unknown): PersistedIndex | undefined {
   return {
     timestamp: value.timestamp,
     buster: value.buster,
-    mutations: value.mutations.filter(isDehydratedMutation),
     hashes: value.hashes.filter(
       (hash: unknown): hash is string => typeof hash === "string",
     ),
@@ -153,7 +138,6 @@ function writeClient(client: PersistedClient) {
   const index: PersistedIndex = {
     timestamp: client.timestamp,
     buster: client.buster,
-    mutations: client.clientState.mutations,
     hashes,
   };
   // Written last: a torn save leaves unreferenced shards, which the next
@@ -251,7 +235,7 @@ export const queryPersister: Persister = {
     return {
       timestamp: index.timestamp,
       buster: index.buster,
-      clientState: { mutations: index.mutations, queries },
+      clientState: { mutations: [], queries },
     };
   },
 
@@ -292,6 +276,9 @@ function fetchesArticleContent(queryKey: readonly unknown[]) {
 }
 
 export const dehydrateOptions = {
+  // Mutation functions are not serializable, and this app does not register
+  // resumable mutation defaults after hydration.
+  shouldDehydrateMutation: () => false,
   shouldDehydrateQuery: (query: Query) =>
     defaultShouldDehydrateQuery(query) &&
     !fetchesArticleContent(query.queryKey),

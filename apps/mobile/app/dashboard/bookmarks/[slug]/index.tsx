@@ -16,6 +16,7 @@ import {
   useOfflineArticle,
 } from "@/lib/offlineLibrary";
 import useAppSettings from "@/lib/settings";
+import { useConnectionStatus } from "@/lib/useConnectionStatus";
 import { useQuery } from "@tanstack/react-query";
 import { Settings } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
@@ -35,6 +36,7 @@ export default function BookmarkView() {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { settings } = useAppSettings();
+  const connectionStatus = useConnectionStatus();
   const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
@@ -72,8 +74,11 @@ export default function BookmarkView() {
     ),
   );
   const displayedBookmark = bookmark ?? offlineArticle?.bookmark;
+  const isOffline =
+    connectionStatus === "device-offline" ||
+    connectionStatus === "server-unreachable";
   const displayedBookmarkLinkType: BookmarkLinkType =
-    !bookmark && offlineArticle ? "reader" : bookmarkLinkType;
+    isOffline && offlineArticle ? "reader" : bookmarkLinkType;
 
   if (!displayedBookmark) {
     return <QueryPageState error={error} onRetry={refetch} />;
