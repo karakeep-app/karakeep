@@ -31,6 +31,7 @@ import {
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
+import logger from "@karakeep/shared/logger";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
@@ -138,6 +139,11 @@ async function attemptToDedupLink(ctx: AuthedContext, url: string) {
 }
 
 const BOOKMARKS_QUERIED_WINDOW_MS = 10 * 60 * 1000;
+const semanticSearchRateLimitConfig = {
+  name: "bookmarks.searchBookmarks.semantic",
+  windowMs: 60 * 1000,
+  maxRequests: 300,
+} as const;
 
 function createBookmarksQueriedMiddleware<T>() {
   return async function bookmarksQueriedMiddleware(opts: {
@@ -151,6 +157,28 @@ function createBookmarksQueriedMiddleware<T>() {
       { "user.id": opts.ctx.user.id },
     );
     return opts.next();
+  };
+}
+
+export function createSemanticSearchRateLimitMiddleware<T>() {
+  const rateLimitMiddleware = createRateLimitMiddleware<T>(
+    semanticSearchRateLimitConfig,
+  );
+  return function semanticSearchRateLimitMiddleware(opts: {
+    path: string;
+    ctx: {
+      req: { ip: string | null };
+      user: { id: string };
+    };
+    input: {
+      searchMode: "fts" | "semantic" | "hybrid";
+    };
+    next: () => Promise<T>;
+  }) {
+    if (opts.input.searchMode === "fts") {
+      return opts.next();
+    }
+    return rateLimitMiddleware(opts);
   };
 }
 
@@ -846,6 +874,7 @@ export const bookmarksAppRouter = router({
     .use(createBookmarksQueriedMiddleware())
     .use(createEventLogMiddleware("search.query"))
     .input(zSearchBookmarksRequestSchema)
+    .use(createSemanticSearchRateLimitMiddleware())
     .output(
       z.object({
         bookmarks: z.array(zBookmarkSchema),
@@ -857,9 +886,7 @@ export const bookmarksAppRouter = router({
         "search.has_query": input.text.length > 0,
         "search.mode": input.searchMode,
       });
-      if (!input.limit) {
-        input.limit = DEFAULT_NUM_BOOKMARKS_PER_PAGE;
-      }
+      const limit = input.limit ?? DEFAULT_NUM_BOOKMARKS_PER_PAGE;
       const sortOrder = input.sortOrder || "relevance";
       const parsedQuery = parseSearchQuery(input.text);
 
@@ -915,16 +942,38 @@ export const bookmarksAppRouter = router({
         resultCount: resp.totalHits,
       });
 
+      const degradeToFullTextSearch = async (error?: unknown) => {
+        addLogFields<"search.query">({ "search.degraded": true });
+        if (error) {
+          const message = error instanceof Error ? error.message : `${error}`;
+          logger.warn(
+            `Hybrid semantic search failed; falling back to full-text search: ${message}`,
+          );
+        }
+        return fullTextPage(await fullTextSearch(limit, offset));
+      };
+
       if (input.searchMode === "fts") {
         ({ hits, hasMore, resultCount } = fullTextPage(
-          await fullTextSearch(input.limit, offset),
+          await fullTextSearch(limit, offset),
         ));
       } else {
         // A query made up entirely of qualifiers (e.g. `is:fav`) has nothing to
         // embed, so it can only be served by full-text search.
         const hasQueryText = parsedQuery.text.trim().length > 0;
-        const inferenceClient = InferenceClientFactory.build();
-        const vectorStoreClient = await getVectorStoreClient();
+        let semanticInfraError: unknown;
+        const semanticClients = await (async () => ({
+          inferenceClient: InferenceClientFactory.build(),
+          vectorStoreClient: await getVectorStoreClient(),
+        }))().catch((error: unknown) => {
+          if (input.searchMode === "semantic") {
+            throw error;
+          }
+          semanticInfraError = error;
+          return null;
+        });
+        const inferenceClient = semanticClients?.inferenceClient;
+        const vectorStoreClient = semanticClients?.vectorStoreClient;
         if (!hasQueryText || !inferenceClient || !vectorStoreClient) {
           if (input.searchMode === "semantic") {
             throw new TRPCError({
@@ -938,10 +987,8 @@ export const bookmarksAppRouter = router({
           // Hybrid search remains useful when embeddings are unavailable or
           // when there's no text to embed. It degrades to plain full-text
           // search, which also means date sorting is supported again.
-          addLogFields<"search.query">({ "search.degraded": true });
-          ({ hits, hasMore, resultCount } = fullTextPage(
-            await fullTextSearch(input.limit, offset),
-          ));
+          ({ hits, hasMore, resultCount } =
+            await degradeToFullTextSearch(semanticInfraError));
         } else {
           if (sortOrder !== "relevance") {
             throw new TRPCError({
@@ -978,25 +1025,34 @@ export const bookmarksAppRouter = router({
           };
 
           if (input.searchMode === "semantic") {
-            const semanticLimit = offset + input.limit + 1;
+            const semanticLimit = offset + limit + 1;
             const semanticResp = await semanticSearch(semanticLimit);
-            hits = semanticResp.hits.slice(offset, offset + input.limit);
-            hasMore = semanticResp.hits.length > offset + input.limit;
+            hits = semanticResp.hits.slice(offset, offset + limit);
+            hasMore = semanticResp.hits.length > offset + limit;
             resultCount = semanticResp.hits.length;
           } else {
             // RRF can reorder earlier pages when its input window grows. Fuse a
             // fixed window so every cursor sees the same ranked candidate pool.
-            const [ftsResp, semanticResp] = await Promise.all([
+            const [ftsResult, semanticResult] = await Promise.allSettled([
               fullTextSearch(HYBRID_CANDIDATES_PER_SOURCE),
               semanticSearch(HYBRID_CANDIDATES_PER_SOURCE),
             ]);
-            const fusedHits = reciprocalRankFusion([
-              ftsResp.hits,
-              semanticResp.hits,
-            ]);
-            hits = fusedHits.slice(offset, offset + input.limit);
-            hasMore = fusedHits.length > offset + input.limit;
-            resultCount = fusedHits.length;
+            if (ftsResult.status === "rejected") {
+              throw ftsResult.reason;
+            }
+            if (semanticResult.status === "rejected") {
+              ({ hits, hasMore, resultCount } = await degradeToFullTextSearch(
+                semanticResult.reason,
+              ));
+            } else {
+              const fusedHits = reciprocalRankFusion([
+                ftsResult.value.hits,
+                semanticResult.value.hits,
+              ]);
+              hits = fusedHits.slice(offset, offset + limit);
+              hasMore = fusedHits.length > offset + limit;
+              resultCount = fusedHits.length;
+            }
           }
         }
       }

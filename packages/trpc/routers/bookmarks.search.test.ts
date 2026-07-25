@@ -1,15 +1,19 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
+import serverConfig from "@karakeep/shared/config";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
+import { createSemanticSearchRateLimitMiddleware } from "./bookmarks";
 
 const searchMocks = vi.hoisted(() => ({
   search: vi.fn(),
   vectorSearch: vi.fn(),
   buildInferenceClient: vi.fn(),
   getVectorStoreClient: vi.fn(),
+  getRateLimitClient: vi.fn(),
+  checkRateLimit: vi.fn(),
 }));
 
 vi.mock("@karakeep/shared/inference", () => ({
@@ -28,15 +32,23 @@ vi.mock("@karakeep/shared/vectorStore", async (original) => ({
   getVectorStoreClient: searchMocks.getVectorStoreClient,
 }));
 
+vi.mock("@karakeep/shared/ratelimiting", async (original) => ({
+  ...(await original<typeof import("@karakeep/shared/ratelimiting")>()),
+  getRateLimitClient: searchMocks.getRateLimitClient,
+}));
+
 beforeEach<CustomTestContext>(async (context) => {
   await defaultBeforeEach(true)(context);
   searchMocks.search.mockReset();
   searchMocks.vectorSearch.mockReset();
   searchMocks.buildInferenceClient.mockReset();
   searchMocks.getVectorStoreClient.mockReset();
+  searchMocks.getRateLimitClient.mockReset();
+  searchMocks.checkRateLimit.mockReset();
   searchMocks.getVectorStoreClient.mockResolvedValue({
     search: searchMocks.vectorSearch,
   });
+  searchMocks.getRateLimitClient.mockResolvedValue(null);
 });
 
 function mockEmbeddingInfra() {
@@ -52,6 +64,66 @@ function mockEmbeddingInfra() {
 }
 
 describe("bookmark search modes", () => {
+  test.each(["semantic", "hybrid"] as const)(
+    "rate limits %s search",
+    async (searchMode) => {
+      const next = vi.fn().mockResolvedValue("ok");
+      searchMocks.checkRateLimit.mockResolvedValue({ allowed: true });
+      searchMocks.getRateLimitClient.mockResolvedValue({
+        checkRateLimit: searchMocks.checkRateLimit,
+      });
+      const wasRateLimitingEnabled = serverConfig.rateLimiting.enabled;
+      serverConfig.rateLimiting.enabled = true;
+
+      try {
+        const result = await createSemanticSearchRateLimitMiddleware<string>()({
+          path: "bookmarks.searchBookmarks",
+          ctx: {
+            req: { ip: "127.0.0.1" },
+            user: { id: "user-123" },
+          },
+          input: { searchMode },
+          next,
+        });
+
+        expect(result).toBe("ok");
+        expect(searchMocks.checkRateLimit).toHaveBeenCalledWith(
+          {
+            name: "bookmarks.searchBookmarks.semantic",
+            windowMs: 60_000,
+            maxRequests: 300,
+          },
+          "127.0.0.1:user:user-123:bookmarks.searchBookmarks",
+        );
+      } finally {
+        serverConfig.rateLimiting.enabled = wasRateLimitingEnabled;
+      }
+    },
+  );
+
+  test("does not apply the semantic search rate limit to full-text search", async () => {
+    const next = vi.fn().mockResolvedValue("ok");
+    const wasRateLimitingEnabled = serverConfig.rateLimiting.enabled;
+    serverConfig.rateLimiting.enabled = true;
+
+    try {
+      const result = await createSemanticSearchRateLimitMiddleware<string>()({
+        path: "bookmarks.searchBookmarks",
+        ctx: {
+          req: { ip: "127.0.0.1" },
+          user: { id: "user-123" },
+        },
+        input: { searchMode: "fts" },
+        next,
+      });
+
+      expect(result).toBe("ok");
+      expect(searchMocks.getRateLimitClient).not.toHaveBeenCalled();
+    } finally {
+      serverConfig.rateLimiting.enabled = wasRateLimitingEnabled;
+    }
+  });
+
   test<CustomTestContext>("defaults to full-text search", async ({
     apiCallers,
   }) => {
@@ -158,6 +230,96 @@ describe("bookmark search modes", () => {
     );
   });
 
+  test<CustomTestContext>("falls back when the hybrid vector store fails to initialize", async ({
+    apiCallers,
+  }) => {
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "vector initialization fallback",
+    });
+    mockEmbeddingInfra();
+    searchMocks.getVectorStoreClient.mockRejectedValue(
+      new Error("vector store unavailable"),
+    );
+    searchMocks.search.mockResolvedValue({
+      hits: [{ id: bookmark.id, score: 1 }],
+      totalHits: 1,
+      processingTimeMs: 1,
+    });
+
+    const result = await apiCallers[0].bookmarks.searchBookmarks({
+      text: "fallback",
+      searchMode: "hybrid",
+    });
+
+    expect(result.bookmarks.map((item) => item.id)).toEqual([bookmark.id]);
+    expect(searchMocks.search).toHaveBeenCalledWith(
+      expect.objectContaining({ limit: 20, offset: 0 }),
+    );
+  });
+
+  test<CustomTestContext>("falls back to a correctly paginated full-text page when hybrid vector search fails", async ({
+    apiCallers,
+  }) => {
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "runtime fallback",
+    });
+    mockEmbeddingInfra();
+    searchMocks.vectorSearch.mockRejectedValue(
+      new Error("vector query unavailable"),
+    );
+    searchMocks.search.mockResolvedValue({
+      hits: [{ id: bookmark.id, score: 1 }],
+      totalHits: 41,
+      processingTimeMs: 1,
+    });
+
+    const result = await apiCallers[0].bookmarks.searchBookmarks({
+      text: "fallback",
+      searchMode: "hybrid",
+      limit: 10,
+      cursor: { ver: 1, offset: 40 },
+    });
+
+    expect(result.bookmarks.map((item) => item.id)).toEqual([bookmark.id]);
+    expect(searchMocks.search).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ limit: 100 }),
+    );
+    expect(searchMocks.search).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ limit: 10, offset: 40 }),
+    );
+  });
+
+  test<CustomTestContext>("falls back when hybrid embedding generation fails", async ({
+    apiCallers,
+  }) => {
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "embedding fallback",
+    });
+    const generateEmbeddingFromText = mockEmbeddingInfra();
+    generateEmbeddingFromText.mockRejectedValue(
+      new Error("embedding provider unavailable"),
+    );
+    searchMocks.search.mockResolvedValue({
+      hits: [{ id: bookmark.id, score: 1 }],
+      totalHits: 1,
+      processingTimeMs: 1,
+    });
+
+    const result = await apiCallers[0].bookmarks.searchBookmarks({
+      text: "fallback",
+      searchMode: "hybrid",
+    });
+
+    expect(result.bookmarks.map((item) => item.id)).toEqual([bookmark.id]);
+    expect(searchMocks.search).toHaveBeenCalledTimes(2);
+    expect(searchMocks.vectorSearch).not.toHaveBeenCalled();
+  });
+
   test<CustomTestContext>("falls back to full-text search for filter-only hybrid queries", async ({
     apiCallers,
   }) => {
@@ -211,6 +373,23 @@ describe("bookmark search modes", () => {
         searchMode: "semantic",
       }),
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  test<CustomTestContext>("preserves semantic search runtime failures", async ({
+    apiCallers,
+  }) => {
+    mockEmbeddingInfra();
+    searchMocks.vectorSearch.mockRejectedValue(
+      new Error("vector query unavailable"),
+    );
+
+    await expect(
+      apiCallers[0].bookmarks.searchBookmarks({
+        text: "semantic query",
+        searchMode: "semantic",
+      }),
+    ).rejects.toThrow("vector query unavailable");
+    expect(searchMocks.search).not.toHaveBeenCalled();
   });
 
   test<CustomTestContext>("rejects date sorting for semantic and hybrid search", async ({
