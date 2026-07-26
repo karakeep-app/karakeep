@@ -556,7 +556,7 @@ export class Bookmark extends BareBookmark {
       );
     } else {
       // PATH: No list/tag/rssFeed filter - query bookmarks directly
-      // Uses composite index: bookmarks_userId_createdAt_id_idx (or archived/favourited variants)
+      // Uses composite index: bookmarks_userId_lastSavedAt_id_idx (or archived/favourited variants)
       sq = ctx.db.$with("bookmarksSq").as(
         ctx.db
           .select()

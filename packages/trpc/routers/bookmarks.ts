@@ -205,7 +205,7 @@ const highBookmarkCreationRateLimitConfig = {
 // Automated bulk flows rely on the dedup path for idempotency, so hitting an
 // existing bookmark from them must stay a no-op instead of unarchiving it and
 // bumping it to the top of the list.
-const SOURCES_THAT_DONT_RESAVE: ReadonlySet<ZBookmarkSource> = new Set([
+const RESAVE_EXEMPT_SOURCES: ReadonlySet<ZBookmarkSource> = new Set([
   "rss",
   "import",
 ]);
@@ -276,15 +276,27 @@ export const bookmarksAppRouter = router({
             "bookmark.id": alreadyExists.id,
             "bookmark.already_existed": true,
           });
-          if (input.source && SOURCES_THAT_DONT_RESAVE.has(input.source)) {
+          if (input.source && RESAVE_EXEMPT_SOURCES.has(input.source)) {
             return { ...alreadyExists, alreadyExists: true };
           }
           const now = new Date();
-          const createdAt = input.createdAt ?? now;
-          const archived = input.archived ?? false;
+          // Re-saving always restores the bookmark and bumps it back to the top
+          // of the list. The rest of the metadata is only overwritten when the
+          // caller actually supplied it, so a bare re-save doesn't wipe the
+          // title or the note that are already on the existing bookmark.
+          const resaved = {
+            createdAt: input.createdAt ?? now,
+            archived: input.archived ?? false,
+            ...(input.title !== undefined ? { title: input.title } : {}),
+            ...(input.favourited !== undefined
+              ? { favourited: input.favourited }
+              : {}),
+            ...(input.note !== undefined ? { note: input.note } : {}),
+            ...(input.summary !== undefined ? { summary: input.summary } : {}),
+          };
           await ctx.db
             .update(bookmarks)
-            .set({ createdAt, modifiedAt: now, archived })
+            .set({ ...resaved, modifiedAt: now })
             .where(
               and(
                 eq(bookmarks.userId, ctx.user.id),
@@ -307,8 +319,7 @@ export const bookmarksAppRouter = router({
 
           return {
             ...alreadyExists,
-            archived,
-            createdAt,
+            ...resaved,
             modifiedAt: now,
             alreadyExists: true,
           };

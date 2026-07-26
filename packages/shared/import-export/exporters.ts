@@ -64,6 +64,8 @@ export function toExportFormat(
     // Exclude asset types for now
   }
   return {
+    // Deliberately the last saved date rather than `firstCreatedAt`, so that
+    // re-importing an export preserves the ordering the user sees in the app.
     createdAt: Math.floor(bookmark.createdAt.getTime() / 1000),
     title:
       bookmark.title ??

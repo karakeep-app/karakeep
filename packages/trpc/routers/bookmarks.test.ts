@@ -897,6 +897,111 @@ describe("Bookmark Routes", () => {
     }
   });
 
+  test<CustomTestContext>("re-saving a link only overwrites the metadata it was given", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    const original = await api.createBookmark({
+      url: "https://example.com/resave-metadata",
+      type: BookmarkTypes.LINK,
+      title: "Original title",
+      note: "Original note",
+      favourited: true,
+    });
+
+    const bareResave = await api.createBookmark({
+      url: "https://example.com/resave-metadata",
+      type: BookmarkTypes.LINK,
+    });
+    expect(bareResave).toMatchObject({
+      id: original.id,
+      alreadyExists: true,
+      title: "Original title",
+      note: "Original note",
+      favourited: true,
+    });
+
+    const resaveWithMetadata = await api.createBookmark({
+      url: "https://example.com/resave-metadata",
+      type: BookmarkTypes.LINK,
+      title: "New title",
+      favourited: false,
+    });
+    expect(resaveWithMetadata).toMatchObject({
+      id: original.id,
+      alreadyExists: true,
+      title: "New title",
+      note: "Original note",
+      favourited: false,
+    });
+
+    const persisted = await api.getBookmark({ bookmarkId: original.id });
+    expect(persisted).toMatchObject({
+      title: "New title",
+      note: "Original note",
+      favourited: false,
+    });
+  });
+
+  test<CustomTestContext>("re-saving a link from an exempt source stays a no-op", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const triggerWebhookSpy = vi
+      .spyOn(WebhooksService.prototype, "triggerWebhook")
+      .mockResolvedValue();
+    const originallySavedAt = new Date("2026-01-01T00:00:00.000Z");
+    const resavedAt = new Date("2026-01-02T00:00:00.000Z");
+
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(originallySavedAt);
+      const original = await api.createBookmark({
+        url: "https://example.com/resave-exempt",
+        type: BookmarkTypes.LINK,
+        source: "rss",
+      });
+      await api.updateBookmark({
+        bookmarkId: original.id,
+        archived: true,
+      });
+
+      triggerWebhookSpy.mockClear();
+      vi.setSystemTime(resavedAt);
+
+      const duplicate = await api.createBookmark({
+        url: "https://example.com/resave-exempt",
+        type: BookmarkTypes.LINK,
+        source: "rss",
+      });
+      expect(duplicate).toMatchObject({
+        id: original.id,
+        alreadyExists: true,
+        archived: true,
+        createdAt: originallySavedAt,
+      });
+
+      const [afterResave] = await db
+        .select({
+          createdAt: bookmarks.createdAt,
+          archived: bookmarks.archived,
+        })
+        .from(bookmarks)
+        .where(eq(bookmarks.id, original.id));
+      assert(afterResave);
+      expect(afterResave).toMatchObject({
+        archived: true,
+        createdAt: originallySavedAt,
+      });
+      expect(triggerWebhookSpy).not.toHaveBeenCalled();
+    } finally {
+      triggerWebhookSpy.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
   // Ensure that the pagination returns all the results
   test<CustomTestContext>("pagination", async ({ apiCallers, db }) => {
     const user = await apiCallers[0].users.whoami();

@@ -17,7 +17,7 @@ import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-function createdAtField(colName: string | undefined = "createdAt") {
+function createdAtField(colName = "createdAt") {
   return integer(colName, { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date());
@@ -208,6 +208,14 @@ export const bookmarks = sqliteTable(
       .notNull()
       .primaryKey()
       .$defaultFn(() => createId()),
+    // The `createdAt` field and the `createdAt` column intentionally don't
+    // match. Re-saving an existing bookmark bumps it back to the top of the
+    // list, so the timestamp everything sorts and filters on is now "when was
+    // this last saved" and lives in the `lastSavedAt` column. It keeps the
+    // `createdAt` field name because that's what the API has always exposed and
+    // what every query already orders by. The immutable "when did this row
+    // first appear" timestamp stays in the original `createdAt` column, and is
+    // exposed to clients as `firstCreatedAt`.
     dbCreatedAt: createdAtField(),
     createdAt: createdAtField("lastSavedAt"),
     modifiedAt: modifiedAtField(),
