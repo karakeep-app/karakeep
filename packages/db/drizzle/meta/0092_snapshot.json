@@ -1038,6 +1038,15 @@
           ],
           "isUnique": false
         },
+        "bookmarks_userId_createdAt_id_idx": {
+          "name": "bookmarks_userId_createdAt_id_idx",
+          "columns": [
+            "userId",
+            "createdAt",
+            "id"
+          ],
+          "isUnique": false
+        },
         "bookmarks_userId_lastSavedAt_id_idx": {
           "name": "bookmarks_userId_lastSavedAt_id_idx",
           "columns": [

@@ -254,6 +254,7 @@ export const bookmarks = sqliteTable(
   },
   (b) => [
     index("bookmarks_createdAt_idx").on(b.createdAt),
+    index("bookmarks_userId_createdAt_id_idx").on(b.userId, b.createdAt, b.id),
     // Composite indexes for optimized pagination queries
     index("bookmarks_userId_lastSavedAt_id_idx").on(
       b.userId,

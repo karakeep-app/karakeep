@@ -141,8 +141,13 @@ async function attemptToDedupLink(ctx: AuthedContext, url: string) {
   ).asZBookmark();
 }
 
-function shouldRefreshExistingBookmark(source: ZBookmark["source"]) {
-  return source !== "import" && source !== "rss";
+function shouldRefreshExistingBookmark(
+  source: ZBookmark["source"],
+  lastSavedAt: Date | undefined,
+) {
+  // Explicit historical timestamps are supplied by migrations/import-like
+  // clients and must not turn a destination duplicate into a user re-save.
+  return lastSavedAt === undefined && source !== "import" && source !== "rss";
 }
 
 const BOOKMARKS_QUERIED_WINDOW_MS = 10 * 60 * 1000;
@@ -273,7 +278,7 @@ export const bookmarksAppRouter = router({
             "bookmark.id": alreadyExists.id,
             "bookmark.already_existed": true,
           });
-          if (!shouldRefreshExistingBookmark(input.source)) {
+          if (!shouldRefreshExistingBookmark(input.source, input.lastSavedAt)) {
             return { ...alreadyExists, alreadyExists: true };
           }
 

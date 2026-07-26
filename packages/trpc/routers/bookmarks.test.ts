@@ -954,6 +954,29 @@ describe("Bookmark Routes", () => {
       expect(duplicate.archived).toEqual(true);
       expect(duplicate.lastSavedAt).toEqual(lastSavedAt);
     }
+
+    const migrated = await api.createBookmark({
+      url: "https://example.com/migrated",
+      type: BookmarkTypes.LINK,
+      source: "web",
+    });
+    const destinationLastSavedAt = new Date("2024-02-01T00:00:00Z");
+    await db
+      .update(bookmarks)
+      .set({ archived: true, lastSavedAt: destinationLastSavedAt })
+      .where(eq(bookmarks.id, migrated.id));
+
+    const duplicateFromMigration = await api.createBookmark({
+      url: "https://example.com/migrated",
+      type: BookmarkTypes.LINK,
+      source: "web",
+      createdAt: new Date("2023-01-01T00:00:00Z"),
+      lastSavedAt: new Date("2023-02-01T00:00:00Z"),
+    });
+
+    expect(duplicateFromMigration.alreadyExists).toEqual(true);
+    expect(duplicateFromMigration.archived).toEqual(true);
+    expect(duplicateFromMigration.lastSavedAt).toEqual(destinationLastSavedAt);
   });
 
   // Ensure that the pagination returns all the results
@@ -988,7 +1011,10 @@ describe("Bookmark Routes", () => {
 
     const inserted = await db.insert(bookmarks).values(values).returning();
 
-    const validateWithLimit = async (limit: number) => {
+    const validateWithLimit = async (
+      limit: number,
+      sortOrder: "asc" | "desc",
+    ) => {
       const results: string[] = [];
       let cursor = undefined;
 
@@ -1000,6 +1026,7 @@ describe("Bookmark Routes", () => {
           limit,
           cursor,
           useCursorV2: true,
+          sortOrder,
         });
         results.push(...res.bookmarks.map((b) => b.id));
         cursor = res.nextCursor;
@@ -1009,11 +1036,13 @@ describe("Bookmark Routes", () => {
       expect(results.sort()).toEqual(inserted.map((b) => b.id).sort());
     };
 
-    await validateWithLimit(1);
-    await validateWithLimit(2);
-    await validateWithLimit(3);
-    await validateWithLimit(10);
-    await validateWithLimit(100);
+    for (const sortOrder of ["asc", "desc"] as const) {
+      await validateWithLimit(1, sortOrder);
+      await validateWithLimit(2, sortOrder);
+      await validateWithLimit(3, sortOrder);
+      await validateWithLimit(10, sortOrder);
+      await validateWithLimit(100, sortOrder);
+    }
   });
 
   test<CustomTestContext>("getBookmark", async ({ apiCallers }) => {

@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { BookmarkTypes, ZBookmark } from "../types/bookmarks";
-import { toNetscapeFormat } from "./exporters";
+import { toExportFormat, toNetscapeFormat } from "./exporters";
 
 function linkBookmark(url: string, title = "title"): ZBookmark {
   return {
     id: "id1",
     createdAt: new Date(1700000000000),
-    lastSavedAt: new Date(1700000000000),
+    lastSavedAt: new Date(1800000000000),
     modifiedAt: null,
     title,
     archived: false,
@@ -28,6 +28,16 @@ function linkBookmark(url: string, title = "title"): ZBookmark {
   };
 }
 
+describe("toExportFormat", () => {
+  it("preserves the original creation timestamp after a bookmark is re-saved", () => {
+    const bookmark = linkBookmark("https://example.com/page");
+
+    expect(toExportFormat(bookmark).createdAt).toBe(
+      Math.floor(bookmark.createdAt.getTime() / 1000),
+    );
+  });
+});
+
 describe("toNetscapeFormat", () => {
   it("exports http and https links", () => {
     const out = toNetscapeFormat([
@@ -36,6 +46,15 @@ describe("toNetscapeFormat", () => {
     ]);
     expect(out).toContain('HREF="https://example.com/page"');
     expect(out).toContain('HREF="http://example.com/other"');
+  });
+
+  it("preserves the original creation timestamp after a bookmark is re-saved", () => {
+    const bookmark = linkBookmark("https://example.com/page");
+    const out = toNetscapeFormat([bookmark]);
+
+    expect(out).toContain(
+      `ADD_DATE="${Math.floor(bookmark.createdAt.getTime() / 1000)}"`,
+    );
   });
 
   it("drops links with unsafe schemes", () => {

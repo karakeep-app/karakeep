@@ -1,4 +1,3 @@
-DROP INDEX `bookmarks_userId_createdAt_id_idx`;--> statement-breakpoint
 DROP INDEX `bookmarks_userId_archived_createdAt_id_idx`;--> statement-breakpoint
 DROP INDEX `bookmarks_userId_favourited_createdAt_id_idx`;--> statement-breakpoint
 ALTER TABLE `bookmarks` ADD `lastSavedAt` integer NOT NULL DEFAULT 0;--> statement-breakpoint
