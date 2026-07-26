@@ -143,6 +143,56 @@ describe("Crawler Tests", () => {
     expect(bookmark.content.htmlContent).toBeNull();
   });
 
+  it("resolves a known link-shortener URL to its destination", async () => {
+    // search.app is aliased to the nginx container and allow-listed as a
+    // known shortener, so /shortlink 302s to the real hello.html page.
+    let { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "link",
+        url: "http://search.app/shortlink",
+      },
+    });
+    assert(bookmark);
+
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      assert(data.content.type === "link");
+      return data.content.crawledAt !== null;
+    }, "Shortened bookmark is crawled");
+
+    bookmark = await getBookmark(bookmark.id);
+    assert(bookmark && bookmark.content.type === "link");
+    // The stored URL should now be the resolved destination, not the short link.
+    expect(bookmark.content.url).not.toContain("search.app");
+    expect(bookmark.content.url).toContain("hello.html");
+    expect(bookmark.content.htmlContent).toContain("Hello World");
+  });
+
+  it("resolves a shortener that points directly to an asset", async () => {
+    let { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "link",
+        url: "http://search.app/shortlink-image",
+      },
+    });
+    assert(bookmark);
+
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      return data.content.type === "asset";
+    }, "Shortened asset bookmark is converted to an image");
+
+    bookmark = await getBookmark(bookmark.id);
+    assert(bookmark && bookmark.content.type === "asset");
+    expect(bookmark.content.assetType).toBe("image");
+    // sourceUrl should be the resolved destination, not the short link.
+    expect(bookmark.content.sourceUrl).not.toContain("search.app");
+    expect(bookmark.content.sourceUrl).toContain("image.png");
+    expect(bookmark.content.fileName).toBe("image.png");
+  });
+
   it("image lings jobs be converted into images", async () => {
     let { data: bookmark } = await client.POST("/bookmarks", {
       body: {
