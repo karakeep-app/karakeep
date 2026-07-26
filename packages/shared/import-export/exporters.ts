@@ -64,7 +64,7 @@ export function toExportFormat(
     // Exclude asset types for now
   }
   return {
-    createdAt: Math.floor(bookmark.createdAt.getTime() / 1000),
+    createdAt: Math.floor(bookmark.lastSavedAt.getTime() / 1000),
     title:
       bookmark.title ??
       (bookmark.content.type === BookmarkTypes.LINK
@@ -114,9 +114,9 @@ export function toNetscapeFormat(bookmarks: ZBookmark[]): string {
       if (!isAllowedBookmarkUrl(bookmark.content.url)) {
         return "";
       }
-      const addDate = bookmark.createdAt
-        ? `ADD_DATE="${Math.floor(bookmark.createdAt.getTime() / 1000)}"`
-        : "";
+      const addDate = `ADD_DATE="${Math.floor(
+        bookmark.lastSavedAt.getTime() / 1000,
+      )}"`;
 
       const tagNames = bookmark.tags.map((t) => t.name).join(",");
       const tags = tagNames.length > 0 ? `TAGS="${tagNames}"` : "";

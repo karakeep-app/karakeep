@@ -38,7 +38,7 @@ import {
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import BookmarkActionBar from "./BookmarkActionBar";
-import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
+import BookmarkFormattedLastSavedAt from "./BookmarkFormattedLastSavedAt";
 import BookmarkOwnerIcon from "./BookmarkOwnerIcon";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
 import { NotePreview } from "./NotePreview";
@@ -71,7 +71,7 @@ function BottomRow({
           href={`/dashboard/preview/${bookmark.id}`}
           suppressHydrationWarning
         >
-          <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
+          <BookmarkFormattedLastSavedAt lastSavedAt={bookmark.lastSavedAt} />
         </Link>
       </div>
       <BookmarkActionBar bookmark={bookmark} />
@@ -456,7 +456,7 @@ function CompactView({
             suppressHydrationWarning
             className="shrink-0 gap-2 text-gray-500"
           >
-            <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
+            <BookmarkFormattedLastSavedAt lastSavedAt={bookmark.lastSavedAt} />
           </Link>
         </div>
         <BookmarkActionBar bookmark={bookmark} />

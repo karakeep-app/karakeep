@@ -7,6 +7,7 @@ function linkBookmark(url: string, title = "title"): ZBookmark {
   return {
     id: "id1",
     createdAt: new Date(1700000000000),
+    lastSavedAt: new Date(1700000000000),
     modifiedAt: null,
     title,
     archived: false,

@@ -13,13 +13,13 @@ export interface paths {
     };
     /**
      * Get all bookmarks
-     * @description Retrieve a paginated list of all bookmarks for the authenticated user. Supports filtering by archived/favourited status and sorting by date.
+     * @description Retrieve a paginated list of all bookmarks for the authenticated user. Supports filtering by archived/favourited status and sorting by last saved date.
      */
     get: operations["listBookmarks"];
     put?: never;
     /**
      * Create a new bookmark
-     * @description Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, the existing bookmark is returned with a 200 status.
+     * @description Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, user-initiated saves unarchive it and move it to the top of chronological views; import and RSS duplicates leave it unchanged. The existing bookmark is returned with a 200 status.
      */
     post: operations["createBookmark"];
     delete?: never;
@@ -833,6 +833,8 @@ export interface components {
       /** Format: date-time */
       createdAt: string;
       /** Format: date-time */
+      lastSavedAt: string;
+      /** Format: date-time */
       modifiedAt: string | null;
       title?: string | null;
       archived: boolean;
@@ -1083,7 +1085,7 @@ export interface operations {
         archived?: boolean;
         /** @description Filter by favourited status. */
         favourited?: boolean;
-        /** @description Sort order by creation date. Defaults to 'desc'. */
+        /** @description Sort order by last saved date. Defaults to 'desc'. */
         sortOrder?: "asc" | "desc";
         /** @description Maximum number of items to return per page. */
         limit?: number;
@@ -1136,6 +1138,8 @@ export interface operations {
           summary?: string;
           /** Format: date-time */
           createdAt?: string;
+          /** Format: date-time */
+          lastSavedAt?: string;
           /** @enum {string} */
           crawlPriority?: "low" | "normal";
           importSessionId?: string;
@@ -1176,7 +1180,7 @@ export interface operations {
       };
     };
     responses: {
-      /** @description A bookmark with this URL already exists. The existing bookmark is returned. */
+      /** @description A bookmark with this URL already exists. User-initiated saves refresh and unarchive it; import and RSS duplicates leave it unchanged. */
       200: {
         headers: {
           [name: string]: unknown;
@@ -1221,7 +1225,7 @@ export interface operations {
         q: string;
         /** @description Search strategy. 'fts' uses full-text search, 'semantic' uses bookmark embeddings, and 'hybrid' fuses a fixed candidate window from both. Hybrid falls back to full-text search when the query contains no free-text terms or when embedding infrastructure is unavailable. Semantic hits below a minimum similarity are dropped, so semantic search may return fewer results than requested. */
         searchMode?: "fts" | "semantic" | "hybrid";
-        /** @description Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting. */
+        /** @description Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' to sort by last saved date. */
         sortOrder?: "asc" | "desc" | "relevance";
         /** @description Maximum number of items to return per page. */
         limit?: number;
@@ -1395,6 +1399,8 @@ export interface operations {
           title?: string | null;
           /** Format: date-time */
           createdAt?: string;
+          /** Format: date-time */
+          lastSavedAt?: string;
           /** Format: uri */
           url?: string;
           description?: string | null;
@@ -1420,6 +1426,8 @@ export interface operations {
             id: string;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
+            lastSavedAt: string;
             /** Format: date-time */
             modifiedAt: string | null;
             title?: string | null;
@@ -1556,6 +1564,8 @@ export interface operations {
             id: string;
             /** Format: date-time */
             createdAt: string;
+            /** Format: date-time */
+            lastSavedAt: string;
             /** Format: date-time */
             modifiedAt: string | null;
             title?: string | null;
@@ -2200,7 +2210,7 @@ export interface operations {
   getListBookmarks: {
     parameters: {
       query?: {
-        /** @description Sort order by creation date. Defaults to 'desc'. */
+        /** @description Sort order by last saved date. Defaults to 'desc'. */
         sortOrder?: "asc" | "desc";
         /** @description Maximum number of items to return per page. */
         limit?: number;
@@ -2550,7 +2560,7 @@ export interface operations {
   getTagBookmarks: {
     parameters: {
       query?: {
-        /** @description Sort order by creation date. Defaults to 'desc'. */
+        /** @description Sort order by last saved date. Defaults to 'desc'. */
         sortOrder?: "asc" | "desc";
         /** @description Maximum number of items to return per page. */
         limit?: number;

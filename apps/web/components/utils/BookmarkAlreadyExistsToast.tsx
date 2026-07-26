@@ -8,7 +8,7 @@ export default function BookmarkAlreadyExistsToast({
 }) {
   return (
     <div className="flex items-center gap-1">
-      Bookmark already exists.
+      Bookmark saved again.
       <Link
         className="flex underline-offset-4 hover:underline"
         href={`/dashboard/preview/${bookmarkId}`}

@@ -48,7 +48,10 @@ import {
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
-import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
+import {
+  getBookmarkLastSavedAt,
+  isBookmarkStillTagging,
+} from "@karakeep/shared/utils/bookmarkUtils";
 
 // --- Section Components ---
 
@@ -497,6 +500,7 @@ const ViewBookmarkPage = () => {
   if (!bookmark) {
     return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
+  const lastSavedAt = getBookmarkLastSavedAt(bookmark);
 
   const handleDeleteBookmark = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
@@ -600,10 +604,10 @@ const ViewBookmarkPage = () => {
         )}
         <View className="items-center gap-1 pt-2">
           <Text variant="caption1" color="tertiary" selectable>
-            Created {bookmark.createdAt.toLocaleString()}
+            Saved {lastSavedAt.toLocaleString()}
           </Text>
           {bookmark.modifiedAt &&
-            bookmark.modifiedAt.getTime() !== bookmark.createdAt.getTime() && (
+            bookmark.modifiedAt.getTime() !== lastSavedAt.getTime() && (
               <Text variant="caption1" color="tertiary" selectable>
                 Modified {bookmark.modifiedAt.toLocaleString()}
               </Text>

@@ -37,6 +37,7 @@ const textOf = (result: CallToolResult): string => {
 const sampleBookmark = {
   id: "bookmark_1",
   createdAt: "2026-01-01T00:00:00Z",
+  lastSavedAt: "2026-01-01T00:00:00Z",
   modifiedAt: "2026-01-01T00:00:00Z",
   title: "Rust async book",
   archived: false,

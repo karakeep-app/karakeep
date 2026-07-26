@@ -109,6 +109,7 @@ Source URL: ${bookmark.content.sourceUrl ?? ""}`;
 
   return `Bookmark ID: ${bookmark.id}
   Created at: ${bookmark.createdAt}
+  Last saved at: ${bookmark.lastSavedAt}
   Modified at: ${bookmark.modifiedAt ?? ""}
   Title: ${
     bookmark.title

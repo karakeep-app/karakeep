@@ -50,6 +50,7 @@ import { BookmarkTagsEditor } from "./BookmarkTagsEditor";
 
 const formSchema = zUpdateBookmarksRequestSchema.extend({
   createdAt: z.date().optional(),
+  lastSavedAt: z.date().optional(),
   datePublished: z.date().nullish(),
   dateModified: z.date().nullish(),
 });
@@ -88,7 +89,8 @@ export function EditBookmarkDialog({
     summary: bookmark.summary,
     note: bookmark.note === null ? undefined : bookmark.note,
     title: getBookmarkTitle(bookmark),
-    createdAt: bookmark.createdAt ?? new Date(),
+    createdAt: bookmark.createdAt,
+    lastSavedAt: bookmark.lastSavedAt,
     // Link specific defaults (only if bookmark is a link)
     url:
       bookmark.content.type === BookmarkTypes.LINK
@@ -118,6 +120,8 @@ export function EditBookmarkDialog({
     resolver: zodResolver(formSchema),
     defaultValues: bookmarkToDefault(bookmark),
   });
+  const showLastSavedAt =
+    bookmark.createdAt.getTime() !== bookmark.lastSavedAt.getTime();
 
   const { mutate: updateBookmarkMutate, isPending: isUpdatingBookmark } =
     useUpdateBookmark({
@@ -333,7 +337,11 @@ export function EditBookmarkDialog({
                 name="createdAt"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>{t("common.created_at")}</FormLabel>
+                    <FormLabel>
+                      {t("common.created_at", {
+                        defaultValue: "Created At",
+                      })}
+                    </FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -368,6 +376,53 @@ export function EditBookmarkDialog({
                   </FormItem>
                 )}
               />
+
+              {showLastSavedAt && (
+                <FormField
+                  control={form.control}
+                  name="lastSavedAt"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>
+                        {t("common.last_saved_at", {
+                          defaultValue: "Last Saved At",
+                        })}
+                      </FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground",
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP")
+                              ) : (
+                                <span>{t("bookmark_editor.pick_a_date")}</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {isLink && (
                 <FormField

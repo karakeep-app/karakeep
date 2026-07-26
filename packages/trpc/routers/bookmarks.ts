@@ -37,7 +37,10 @@ import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
-import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
+import type {
+  ZBookmark,
+  ZBookmarkContent,
+} from "@karakeep/shared/types/bookmarks";
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
@@ -138,6 +141,10 @@ async function attemptToDedupLink(ctx: AuthedContext, url: string) {
   ).asZBookmark();
 }
 
+function shouldRefreshExistingBookmark(source: ZBookmark["source"]) {
+  return source !== "import" && source !== "rss";
+}
+
 const BOOKMARKS_QUERIED_WINDOW_MS = 10 * 60 * 1000;
 const semanticSearchRateLimitConfig = {
   name: "bookmarks.searchBookmarks.semantic",
@@ -235,7 +242,8 @@ export const bookmarksAppRouter = router({
     .use(createEventLogMiddleware("bookmark.create"))
     .input(zNewBookmarkRequestSchema)
     .output(
-      zBookmarkSchema.merge(
+      z.intersection(
+        zBookmarkSchema,
         z.object({
           alreadyExists: z.boolean().optional().default(false),
         }),
@@ -265,7 +273,46 @@ export const bookmarksAppRouter = router({
             "bookmark.id": alreadyExists.id,
             "bookmark.already_existed": true,
           });
-          return { ...alreadyExists, alreadyExists: true };
+          if (!shouldRefreshExistingBookmark(input.source)) {
+            return { ...alreadyExists, alreadyExists: true };
+          }
+
+          const resavedAt = new Date();
+          await ctx.db
+            .update(bookmarks)
+            .set({
+              archived: false,
+              lastSavedAt: resavedAt,
+              modifiedAt: resavedAt,
+            })
+            .where(
+              and(
+                eq(bookmarks.id, alreadyExists.id),
+                eq(bookmarks.userId, ctx.user.id),
+              ),
+            );
+
+          await Promise.all([
+            triggerSearchReindex(alreadyExists.id, {
+              groupId: ctx.user.id,
+            }),
+            new WebhooksService(ctx.db).triggerWebhook(
+              alreadyExists.id,
+              "edited",
+              ctx.user.id,
+              {
+                groupId: ctx.user.id,
+              },
+            ),
+          ]);
+          const refreshedBookmark = (
+            await Bookmark.fromId(
+              ctx,
+              alreadyExists.id,
+              /* includeContent: */ false,
+            )
+          ).asZBookmark();
+          return { ...refreshedBookmark, alreadyExists: true };
         }
       }
 
@@ -282,6 +329,8 @@ export const bookmarksAppRouter = router({
               message: quotaResult.error,
             });
           }
+          const createdAt = input.createdAt ?? new Date();
+          const lastSavedAt = input.lastSavedAt ?? createdAt;
           const bookmark = (
             await tx
               .insert(bookmarks)
@@ -293,7 +342,8 @@ export const bookmarksAppRouter = router({
                 favourited: input.favourited,
                 note: input.note,
                 summary: input.summary,
-                createdAt: input.createdAt,
+                createdAt,
+                lastSavedAt,
                 source: input.source,
                 // Only links currently support summarization. Let's set the status to null for other types for now.
                 summarizationStatus:
@@ -600,6 +650,7 @@ export const bookmarksAppRouter = router({
           note: string | null;
           summary: string | null;
           createdAt: Date;
+          lastSavedAt: Date;
           modifiedAt: Date; // Always update modifiedAt
         }> = {
           modifiedAt: new Date(),
@@ -619,8 +670,18 @@ export const bookmarksAppRouter = router({
         if (input.summary !== undefined) {
           commonUpdateData.summary = input.summary;
         }
+        let effectiveLastSavedAt = input.lastSavedAt;
         if (input.createdAt !== undefined) {
           commonUpdateData.createdAt = input.createdAt;
+          if (effectiveLastSavedAt === undefined) {
+            effectiveLastSavedAt = ctx.bookmark.lastSavedAt;
+          }
+          if (effectiveLastSavedAt < input.createdAt) {
+            effectiveLastSavedAt = input.createdAt;
+          }
+        }
+        if (effectiveLastSavedAt !== undefined) {
+          commonUpdateData.lastSavedAt = effectiveLastSavedAt;
         }
 
         if (Object.keys(commonUpdateData).length > 1 || somethingChanged) {
@@ -1091,10 +1152,14 @@ export const bookmarksAppRouter = router({
           results.sort((a, b) => idToRank[b.id] - idToRank[a.id]);
           break;
         case sortOrder === "desc":
-          results.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+          results.sort(
+            (a, b) => b.lastSavedAt.getTime() - a.lastSavedAt.getTime(),
+          );
           break;
         case sortOrder === "asc":
-          results.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+          results.sort(
+            (a, b) => a.lastSavedAt.getTime() - b.lastSavedAt.getTime(),
+          );
           break;
       }
 
@@ -1379,6 +1444,7 @@ export const bookmarksAppRouter = router({
             isCrawlingFailure: z.boolean(),
             crawledAt: z.date().nullable(),
             createdAt: z.date().nullable(),
+            lastSavedAt: z.date().nullable(),
           }),
         ),
       }),
@@ -1392,6 +1458,7 @@ export const bookmarksAppRouter = router({
           crawlingStatus: bookmarkLinks.crawlStatus,
           crawledAt: bookmarkLinks.crawledAt,
           createdAt: bookmarks.createdAt,
+          lastSavedAt: bookmarks.lastSavedAt,
         })
         .from(bookmarkLinks)
         .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
@@ -1413,6 +1480,7 @@ export const bookmarksAppRouter = router({
           isCrawlingFailure: b.crawlingStatus === "failure",
           crawledAt: b.crawledAt,
           createdAt: b.createdAt,
+          lastSavedAt: b.lastSavedAt,
         })),
       };
     }),

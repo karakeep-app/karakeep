@@ -735,6 +735,7 @@ export const adminAppRouter = router({
           ])
           .nullable(),
         createdAt: z.date(),
+        lastSavedAt: z.date(),
         modifiedAt: z.date().nullable(),
         title: z.string().nullable(),
         summary: z.string().nullable(),

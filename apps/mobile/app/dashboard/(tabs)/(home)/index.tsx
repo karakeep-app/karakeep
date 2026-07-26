@@ -123,7 +123,7 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
               text: contents,
               source: "mobile",
             }));
-        sonnerToast.success(resp.alreadyExists ? "Already exists" : "Saved!", {
+        sonnerToast.success(resp.alreadyExists ? "Saved again!" : "Saved!", {
           id: toastId,
         });
       } catch (e) {

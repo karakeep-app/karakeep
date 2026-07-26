@@ -53,6 +53,14 @@ export function isBookmarkStillLoading(bookmark: ZBookmark) {
   );
 }
 
+export function getBookmarkLastSavedAt(
+  bookmark: Pick<ZBookmark, "createdAt"> & {
+    lastSavedAt?: Date;
+  },
+) {
+  return bookmark.lastSavedAt ?? bookmark.createdAt;
+}
+
 export function getBookmarkRefreshInterval(
   bookmark: ZBookmark,
 ): number | false {
@@ -60,21 +68,20 @@ export function getBookmarkRefreshInterval(
     return false;
   }
 
+  const lastSavedAt = getBookmarkLastSavedAt(bookmark);
+
   // For the first 30 seconds, we'll refresh the bookmark every second
-  if (Date.now().valueOf() - bookmark.createdAt.valueOf() < 30 * 1000) {
+  if (Date.now().valueOf() - lastSavedAt.valueOf() < 30 * 1000) {
     return 1000;
   }
 
   // Then, we'll refresh it every 10 seconds after than for 10mins
-  if (Date.now().valueOf() - bookmark.createdAt.valueOf() < 10 * 60 * 1000) {
+  if (Date.now().valueOf() - lastSavedAt.valueOf() < 10 * 60 * 1000) {
     return 10_000;
   }
 
   // Then, we'll refresh it every minute after than for 6hrs
-  if (
-    Date.now().valueOf() - bookmark.createdAt.valueOf() <
-    6 * 60 * 60 * 1000
-  ) {
+  if (Date.now().valueOf() - lastSavedAt.valueOf() < 6 * 60 * 60 * 1000) {
     return 60_000;
   }
 

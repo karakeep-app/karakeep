@@ -14,6 +14,10 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import type { APICallerType, CustomTestContext } from "../testUtils";
 import { defaultBeforeEach, getApiKeyCallerForPlainKey } from "../testUtils";
 
+const { triggerWebhookMock } = vi.hoisted(() => ({
+  triggerWebhookMock: vi.fn(),
+}));
+
 vi.mock("@karakeep/shared-server", async (original) => {
   const mod = (await original()) as typeof import("@karakeep/shared-server");
   return {
@@ -36,6 +40,12 @@ vi.mock("@karakeep/shared-server", async (original) => {
     triggerSearchReindex: vi.fn(),
   };
 });
+
+vi.mock("../models/webhooks.service", () => ({
+  WebhooksService: class {
+    triggerWebhook = triggerWebhookMock;
+  },
+}));
 
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
@@ -71,6 +81,8 @@ describe("Bookmark Routes", () => {
     expect(res.content.url).toEqual("https://google.com");
     expect(res.favourited).toEqual(false);
     expect(res.archived).toEqual(false);
+    expect(res.lastSavedAt).toBeInstanceOf(Date);
+    expect(res.createdAt).toBeInstanceOf(Date);
     expect(res.content.type).toEqual(BookmarkTypes.LINK);
   });
 
@@ -261,6 +273,45 @@ describe("Bookmark Routes", () => {
     expect(res.content.publisher).toEqual("New Publisher");
     expect(res.content.datePublished).toEqual(linkUpdateDate);
     expect(res.content.dateModified).toEqual(linkUpdateDate);
+  });
+
+  test<CustomTestContext>("updating createdAt keeps lastSavedAt at or after it", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const initialCreatedAt = new Date("2024-01-01T00:00:00Z");
+    const initialLastSavedAt = new Date("2025-01-01T00:00:00Z");
+    const bookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Test bookmark",
+      createdAt: initialCreatedAt,
+      lastSavedAt: initialLastSavedAt,
+    });
+
+    const earlierCreatedAt = new Date("2024-06-01T00:00:00Z");
+    let updated = await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      createdAt: earlierCreatedAt,
+    });
+    expect(updated.createdAt).toEqual(earlierCreatedAt);
+    expect(updated.lastSavedAt).toEqual(initialLastSavedAt);
+
+    const laterCreatedAt = new Date("2026-01-01T00:00:00Z");
+    updated = await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      createdAt: laterCreatedAt,
+    });
+    expect(updated.createdAt).toEqual(laterCreatedAt);
+    expect(updated.lastSavedAt).toEqual(laterCreatedAt);
+
+    const newestCreatedAt = new Date("2027-01-01T00:00:00Z");
+    updated = await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      createdAt: newestCreatedAt,
+      lastSavedAt: initialCreatedAt,
+    });
+    expect(updated.createdAt).toEqual(newestCreatedAt);
+    expect(updated.lastSavedAt).toEqual(newestCreatedAt);
   });
 
   test<CustomTestContext>("update bookmark - non-link type error", async ({
@@ -807,6 +858,104 @@ describe("Bookmark Routes", () => {
     expect(bookmark3User1.alreadyExists).toEqual(false);
   });
 
+  test<CustomTestContext>("re-saving a bookmark refreshes it and emits an edited webhook without changing its creation time", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const original = await api.createBookmark({
+      url: "https://example.com/original",
+      type: BookmarkTypes.LINK,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+    });
+    const newer = await api.createBookmark({
+      url: "https://example.com/newer",
+      type: BookmarkTypes.LINK,
+      createdAt: new Date("2025-01-01T00:00:00Z"),
+    });
+    const originalRow = await db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, original.id),
+    });
+    expect(originalRow).toBeDefined();
+    const originalCreatedAt = originalRow!.createdAt;
+    const originalModifiedAt = new Date("2024-06-01T00:00:00Z");
+    await db
+      .update(bookmarks)
+      .set({
+        archived: true,
+        lastSavedAt: original.lastSavedAt,
+        modifiedAt: originalModifiedAt,
+      })
+      .where(eq(bookmarks.id, original.id));
+
+    triggerWebhookMock.mockClear();
+
+    const resaved = await api.createBookmark({
+      url: "https://example.com/original",
+      type: BookmarkTypes.LINK,
+      source: "web",
+    });
+
+    expect(resaved.alreadyExists).toEqual(true);
+    expect(resaved.id).toEqual(original.id);
+    expect(resaved.archived).toEqual(false);
+    expect(resaved.modifiedAt).not.toBeNull();
+    expect(resaved.modifiedAt).toEqual(resaved.lastSavedAt);
+    expect(resaved.modifiedAt!.getTime()).toBeGreaterThan(
+      originalModifiedAt.getTime(),
+    );
+    expect(resaved.lastSavedAt.getTime()).toBeGreaterThan(
+      newer.lastSavedAt.getTime(),
+    );
+    const resavedRow = await db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, resaved.id),
+    });
+    expect(resavedRow?.createdAt).toEqual(originalCreatedAt);
+    expect(triggerWebhookMock).toHaveBeenCalledWith(
+      original.id,
+      "edited",
+      original.userId,
+      {
+        groupId: original.userId,
+      },
+    );
+
+    const bookmarksPage = await api.getBookmarks({ archived: false });
+    expect(bookmarksPage.bookmarks.map((bookmark) => bookmark.id)).toEqual([
+      original.id,
+      newer.id,
+    ]);
+  });
+
+  test<CustomTestContext>("import and RSS duplicates do not refresh or unarchive bookmarks", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    for (const source of ["import", "rss"] as const) {
+      const original = await api.createBookmark({
+        url: `https://example.com/${source}`,
+        type: BookmarkTypes.LINK,
+      });
+      const lastSavedAt = new Date("2024-01-01T00:00:00Z");
+      await db
+        .update(bookmarks)
+        .set({ archived: true, lastSavedAt })
+        .where(eq(bookmarks.id, original.id));
+
+      const duplicate = await api.createBookmark({
+        url: `https://example.com/${source}`,
+        type: BookmarkTypes.LINK,
+        source,
+      });
+
+      expect(duplicate.alreadyExists).toEqual(true);
+      expect(duplicate.archived).toEqual(true);
+      expect(duplicate.lastSavedAt).toEqual(lastSavedAt);
+    }
+  });
+
   // Ensure that the pagination returns all the results
   test<CustomTestContext>("pagination", async ({ apiCallers, db }) => {
     const user = await apiCallers[0].users.whoami();
@@ -815,6 +964,7 @@ describe("Bookmark Routes", () => {
     const bookmarkWithDate = (date_ms: number) => ({
       userId: user.id,
       createdAt: new Date(date_ms),
+      lastSavedAt: new Date(date_ms),
       type: BookmarkTypes.TEXT as const,
     });
 

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
 
 import { getInMemoryDB } from "@karakeep/db/drizzle";
 import {
@@ -45,6 +46,7 @@ beforeEach(async () => {
       archived: false,
       favourited: false,
       createdAt: new Date("2024-01-01"),
+      lastSavedAt: new Date("2024-01-01"),
       title: null,
     },
     {
@@ -54,6 +56,7 @@ beforeEach(async () => {
       archived: true,
       favourited: true,
       createdAt: new Date("2024-01-02"),
+      lastSavedAt: new Date("2024-01-02"),
       title: "example domain page",
     },
     {
@@ -63,6 +66,7 @@ beforeEach(async () => {
       archived: true,
       favourited: false,
       createdAt: new Date("2024-01-03"),
+      lastSavedAt: new Date("2024-01-03"),
       title: "third bookmark",
     },
     {
@@ -72,6 +76,7 @@ beforeEach(async () => {
       archived: false,
       favourited: true,
       createdAt: new Date("2024-01-04"),
+      lastSavedAt: new Date("2024-01-04"),
       title: "another example page",
     },
     {
@@ -81,6 +86,7 @@ beforeEach(async () => {
       archived: false,
       favourited: false,
       createdAt: new Date("2024-01-05"),
+      lastSavedAt: new Date("2024-01-05"),
       title: "fifth text",
     },
     {
@@ -90,6 +96,7 @@ beforeEach(async () => {
       archived: true,
       favourited: false,
       createdAt: new Date("2024-01-06"),
+      lastSavedAt: new Date("2024-01-06"),
       title: "example asset",
     },
   ]);
@@ -361,13 +368,18 @@ describe("getBookmarkIdsFromMatcher", () => {
   });
 
   it("should handle dateAfter matcher", async () => {
+    await mockCtx.db
+      .update(bookmarks)
+      .set({ lastSavedAt: new Date("2024-01-07") })
+      .where(eq(bookmarks.id, "b1"));
+
     const matcher: Matcher = {
       type: "dateAfter",
       dateAfter: new Date("2024-01-02"),
       inverse: false,
     };
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
-    expect(result).toEqual(["b2", "b3", "b4", "b5", "b6"]);
+    expect(result.sort()).toEqual(["b1", "b2", "b3", "b4", "b5", "b6"]);
   });
 
   it("should handle dateAfter matcher with inverse=true", async () => {

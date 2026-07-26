@@ -137,6 +137,7 @@ export type ZBookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
 export const zBareBookmarkSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
+  lastSavedAt: z.date(),
   modifiedAt: z.date().nullable(),
   title: z.string().nullish(),
   archived: z.boolean(),
@@ -152,13 +153,30 @@ export const zBareBookmarkSchema = z.object({
 
 export type ZBareBookmark = z.infer<typeof zBareBookmarkSchema>;
 
-export const zBookmarkSchema = zBareBookmarkSchema.extend(
+const zBookmarkObjectSchema = zBareBookmarkSchema.extend(
   z.object({
     tags: z.array(zBookmarkTagSchema),
     content: zBookmarkContentSchema,
     assets: z.array(zAssetSchema),
   }).shape,
 );
+
+// New clients can connect to servers that predate lastSavedAt. Accept the old
+// response shape at parsing boundaries, but normalize it immediately so
+// application code can continue treating lastSavedAt as required.
+export const zBookmarkSchema = z.preprocess((value) => {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return value;
+  }
+  const bookmark = value as Record<string, unknown>;
+  if (bookmark.lastSavedAt === undefined && bookmark.createdAt !== undefined) {
+    return {
+      ...bookmark,
+      lastSavedAt: bookmark.createdAt,
+    };
+  }
+  return value;
+}, zBookmarkObjectSchema);
 export type ZBookmark = z.infer<typeof zBookmarkSchema>;
 
 const zBookmarkTypeLinkSchema = zBareBookmarkSchema.extend(
@@ -197,6 +215,10 @@ export const zNewBookmarkRequestSchema = z.intersection(
     note: z.string().optional(),
     summary: z.string().optional(),
     createdAt: z.coerce
+      .date()
+      .optional()
+      .meta({ type: "string", format: "date-time" }),
+    lastSavedAt: z.coerce
       .date()
       .optional()
       .meta({ type: "string", format: "date-time" }),
@@ -270,6 +292,10 @@ export const zUpdateBookmarksRequestSchema = z.object({
     .date()
     .optional()
     .meta({ type: "string", format: "date-time" }),
+  lastSavedAt: z.coerce
+    .date()
+    .optional()
+    .meta({ type: "string", format: "date-time" }),
   // Link specific fields (optional)
   url: zBookmarkUrlSchema.optional(),
   description: z.string().nullish(),
@@ -321,6 +347,7 @@ export const zSearchBookmarksRequestSchema = z.object({
 export const zPublicBookmarkSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
+  lastSavedAt: z.date(),
   modifiedAt: z.date().nullable(),
   title: z.string().nullish(),
   tags: z.array(z.string()),

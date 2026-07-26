@@ -251,7 +251,12 @@ mcpServer.tool(
       .string()
       .datetime()
       .optional()
-      .describe(`Override the bookmark's createdAt timestamp (ISO 8601).`),
+      .describe(`Override the bookmark's creation timestamp (ISO 8601).`),
+    lastSavedAt: z
+      .string()
+      .datetime()
+      .optional()
+      .describe(`Override the bookmark's last-saved timestamp (ISO 8601).`),
   },
   async ({ bookmarkId, ...fields }): Promise<CallToolResult> => {
     const patchRes = await karakeepClient.PATCH(`/bookmarks/{bookmarkId}`, {

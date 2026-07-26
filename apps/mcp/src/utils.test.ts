@@ -41,7 +41,8 @@ describe("compactTag", () => {
 describe("compactBookmark", () => {
   const base = {
     id: "bookmark_1",
-    createdAt: "2026-01-01T00:00:00Z",
+    createdAt: "2025-01-01T00:00:00Z",
+    lastSavedAt: "2026-01-01T00:00:00Z",
     modifiedAt: "2026-01-01T00:00:00Z",
     title: null,
     archived: false,
@@ -66,6 +67,8 @@ describe("compactBookmark", () => {
       },
     });
     expect(out).toContain("Bookmark type: text");
+    expect(out).toContain("Created at: 2025-01-01T00:00:00Z");
+    expect(out).toContain("Last saved at: 2026-01-01T00:00:00Z");
     expect(out).toContain("Text: the actual stored text");
     expect(out).toContain("Archived: false");
     expect(out).toContain("Favourited: false");

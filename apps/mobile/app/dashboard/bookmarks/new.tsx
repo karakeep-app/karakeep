@@ -22,7 +22,7 @@ const NoteEditorPage = () => {
     onSuccess: (resp) => {
       if (resp.alreadyExists) {
         toast({
-          message: "Bookmark already exists",
+          message: "Bookmark saved again",
         });
       }
       setText("");

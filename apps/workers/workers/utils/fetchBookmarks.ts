@@ -29,7 +29,7 @@ export async function fetchAllBookmarksForUser(
       asset: true,
       assets: true,
     },
-    orderBy: [asc(bookmarks.createdAt)],
+    orderBy: [asc(bookmarks.lastSavedAt)],
   });
 
   // Transform to ZBookmark format
@@ -72,6 +72,7 @@ export async function fetchAllBookmarksForUser(
       id: bookmark.id,
       title: bookmark.title || null,
       createdAt: bookmark.createdAt,
+      lastSavedAt: bookmark.lastSavedAt,
       archived: bookmark.archived,
       favourited: bookmark.favourited,
       taggingStatus: bookmark.taggingStatus || "pending",

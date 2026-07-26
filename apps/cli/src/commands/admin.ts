@@ -127,6 +127,10 @@ bookmarksCmd
           new Date(debugInfo.createdAt).toISOString(),
         ]);
         basicData.push([
+          "Last Saved At",
+          new Date(debugInfo.lastSavedAt).toISOString(),
+        ]);
+        basicData.push([
           "Modified At",
           debugInfo.modifiedAt
             ? new Date(debugInfo.modifiedAt).toISOString()

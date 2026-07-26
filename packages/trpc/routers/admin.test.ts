@@ -99,6 +99,8 @@ describe("Admin Routes", () => {
 
       expect(debugInfo.id).toEqual(bookmark.id);
       expect(debugInfo.type).toEqual(BookmarkTypes.LINK);
+      expect(debugInfo.createdAt).toEqual(bookmark.createdAt);
+      expect(debugInfo.lastSavedAt).toEqual(bookmark.lastSavedAt);
       expect(debugInfo.linkInfo).toBeDefined();
       assert(debugInfo.linkInfo);
       expect(debugInfo.linkInfo.url).toEqual("https://example.com");

@@ -41,6 +41,12 @@ function modifiedAtMsField() {
     .$onUpdate(() => new Date());
 }
 
+function lastSavedAtField() {
+  return integer("lastSavedAt", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date());
+}
+
 export const users = sqliteTable("user", {
   id: text("id")
     .notNull()
@@ -209,6 +215,7 @@ export const bookmarks = sqliteTable(
       .primaryKey()
       .$defaultFn(() => createId()),
     createdAt: createdAtField(),
+    lastSavedAt: lastSavedAtField(),
     modifiedAt: modifiedAtField(),
     title: text("title"),
     archived: integer("archived", { mode: "boolean" }).notNull().default(false),
@@ -248,17 +255,21 @@ export const bookmarks = sqliteTable(
   (b) => [
     index("bookmarks_createdAt_idx").on(b.createdAt),
     // Composite indexes for optimized pagination queries
-    index("bookmarks_userId_createdAt_id_idx").on(b.userId, b.createdAt, b.id),
-    index("bookmarks_userId_archived_createdAt_id_idx").on(
+    index("bookmarks_userId_lastSavedAt_id_idx").on(
       b.userId,
-      b.archived,
-      b.createdAt,
+      b.lastSavedAt,
       b.id,
     ),
-    index("bookmarks_userId_favourited_createdAt_id_idx").on(
+    index("bookmarks_userId_archived_lastSavedAt_id_idx").on(
+      b.userId,
+      b.archived,
+      b.lastSavedAt,
+      b.id,
+    ),
+    index("bookmarks_userId_favourited_lastSavedAt_id_idx").on(
       b.userId,
       b.favourited,
-      b.createdAt,
+      b.lastSavedAt,
       b.id,
     ),
   ],

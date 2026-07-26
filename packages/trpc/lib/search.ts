@@ -340,7 +340,7 @@ async function getIds(
         .where(
           and(
             eq(bookmarks.userId, userId),
-            comp(bookmarks.createdAt, matcher.dateAfter),
+            comp(bookmarks.lastSavedAt, matcher.dateAfter),
           ),
         );
     }
@@ -352,7 +352,7 @@ async function getIds(
         .where(
           and(
             eq(bookmarks.userId, userId),
-            comp(bookmarks.createdAt, matcher.dateBefore),
+            comp(bookmarks.lastSavedAt, matcher.dateBefore),
           ),
         );
     }
@@ -364,7 +364,7 @@ async function getIds(
         .where(
           and(
             eq(bookmarks.userId, userId),
-            comp(bookmarks.createdAt, toAbsoluteDate(matcher.relativeDate)),
+            comp(bookmarks.lastSavedAt, toAbsoluteDate(matcher.relativeDate)),
           ),
         );
     }

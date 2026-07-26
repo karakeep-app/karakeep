@@ -82,7 +82,11 @@ export default function BrokenLinksPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("common.url")}</TableHead>
-                <TableHead>{t("common.created_at")}</TableHead>
+                <TableHead>
+                  {t("common.last_saved_at", {
+                    defaultValue: "Last Saved At",
+                  })}
+                </TableHead>
                 <TableHead>
                   {t("settings.broken_links.last_crawled_at")}
                 </TableHead>
@@ -97,7 +101,7 @@ export default function BrokenLinksPage() {
                 <TableRow key={b.id}>
                   <TableCell>{b.url}</TableCell>
                   <TableCell>
-                    <FormattedDate date={b.createdAt} />
+                    <FormattedDate date={b.lastSavedAt} />
                   </TableCell>
                   <TableCell>
                     <FormattedDate date={b.crawledAt} />

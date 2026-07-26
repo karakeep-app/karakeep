@@ -63,6 +63,7 @@ function printBookmarkDetail(b: ZBookmark) {
   if (b.archived) console.log(`  Archived:    yes`);
   if (b.favourited) console.log(`  Favourited:  yes`);
   console.log(`  Created:     ${b.createdAt.toISOString()}`);
+  console.log(`  Last saved:  ${b.lastSavedAt.toISOString()}`);
   if (b.modifiedAt) console.log(`  Modified:    ${b.modifiedAt.toISOString()}`);
   if (b.source) console.log(`  Source:      ${b.source}`);
   if (b.note) console.log(`  Note:        ${b.note}`);
@@ -139,6 +140,7 @@ function printBookmarkCard(b: ZBookmark) {
       : b.content.type;
   console.log(chalk.dim(`  Type: ${type}`));
   console.log(chalk.dim(`  Created: ${b.createdAt.toISOString()}`));
+  console.log(chalk.dim(`  Last saved: ${b.lastSavedAt.toISOString()}`));
   if (url) console.log(`  URL:  ${chalk.cyan(url)}`);
   if (b.content.type === BookmarkTypes.LINK) {
     if (b.content.author) console.log(`  Author: ${b.content.author}`);

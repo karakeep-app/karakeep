@@ -9,6 +9,7 @@
     "action": "Action",
     "actions": "Actions",
     "created_at": "Created At",
+    "last_saved_at": "Last Saved At",
     "updated_at": "Updated At",
     "last_used": "Last Used",
     "key": "Key",

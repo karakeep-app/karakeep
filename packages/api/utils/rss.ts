@@ -36,7 +36,7 @@ export function toRSS(
     )
     .forEach((bookmark) => {
       feed.item({
-        date: bookmark.createdAt,
+        date: bookmark.lastSavedAt,
         title: bookmark.title ?? "",
         url:
           bookmark.content.type === BookmarkTypes.LINK

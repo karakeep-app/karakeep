@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
-import BookmarkFormattedCreatedAt from "@/components/dashboard/bookmarks/BookmarkFormattedCreatedAt";
+import BookmarkFormattedLastSavedAt from "@/components/dashboard/bookmarks/BookmarkFormattedLastSavedAt";
 import { BookmarkMarkdownComponent } from "@/components/dashboard/bookmarks/BookmarkMarkdownComponent";
 import FooterLinkURL from "@/components/dashboard/bookmarks/FooterLinkURL";
 import { ActionButton } from "@/components/ui/action-button";
@@ -164,7 +164,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
                 <span>•</span>
               </>
             )}
-            <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
+            <BookmarkFormattedLastSavedAt lastSavedAt={bookmark.lastSavedAt} />
           </div>
         </div>
       </CardContent>

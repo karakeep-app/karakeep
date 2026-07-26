@@ -101,8 +101,8 @@ export class BareBookmark {
     return this.bareBookmark.id;
   }
 
-  get createdAt() {
-    return this.bareBookmark.createdAt;
+  get lastSavedAt() {
+    return this.bareBookmark.lastSavedAt;
   }
 
   get userId() {
@@ -395,6 +395,7 @@ export class Bookmark extends BareBookmark {
       type: bookmark.type,
       source: bookmark.source,
       createdAt: bookmark.createdAt,
+      lastSavedAt: bookmark.lastSavedAt,
       modifiedAt: bookmark.modifiedAt,
       title: bookmark.title,
       summary: bookmark.summary,
@@ -448,26 +449,23 @@ export class Bookmark extends BareBookmark {
 
     // Build cursor condition for pagination
     const buildCursorCondition = (
-      createdAtCol: typeof bookmarks.createdAt,
+      sortAtCol: typeof bookmarks.lastSavedAt,
       idCol: typeof bookmarks.id,
     ): SQL | undefined => {
       if (!input.cursor) return undefined;
 
       if (input.sortOrder === "asc") {
         return or(
-          gt(createdAtCol, input.cursor.createdAt),
+          gt(sortAtCol, input.cursor.createdAt),
           and(
-            eq(createdAtCol, input.cursor.createdAt),
+            eq(sortAtCol, input.cursor.createdAt),
             gte(idCol, input.cursor.id),
           ),
         );
       }
       return or(
-        lt(createdAtCol, input.cursor.createdAt),
-        and(
-          eq(createdAtCol, input.cursor.createdAt),
-          lte(idCol, input.cursor.id),
-        ),
+        lt(sortAtCol, input.cursor.createdAt),
+        and(eq(sortAtCol, input.cursor.createdAt), lte(idCol, input.cursor.id)),
       );
     };
 
@@ -486,8 +484,8 @@ export class Bookmark extends BareBookmark {
     const buildOrderBy = () =>
       [
         input.sortOrder === "asc"
-          ? asc(bookmarks.createdAt)
-          : desc(bookmarks.createdAt),
+          ? asc(bookmarks.lastSavedAt)
+          : desc(bookmarks.lastSavedAt),
         desc(bookmarks.id),
       ] as const;
 
@@ -507,7 +505,7 @@ export class Bookmark extends BareBookmark {
             and(
               eq(bookmarksInLists.listId, input.listId),
               ...buildCommonFilters(),
-              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+              buildCursorCondition(bookmarks.lastSavedAt, bookmarks.id),
             ),
           )
           .limit(input.limit + 1)
@@ -525,7 +523,7 @@ export class Bookmark extends BareBookmark {
               eq(tagsOnBookmarks.tagId, input.tagId),
               eq(bookmarks.userId, ctx.user.id), // Access control
               ...buildCommonFilters(),
-              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+              buildCursorCondition(bookmarks.lastSavedAt, bookmarks.id),
             ),
           )
           .limit(input.limit + 1)
@@ -546,7 +544,7 @@ export class Bookmark extends BareBookmark {
               eq(rssFeedImportsTable.rssFeedId, input.rssFeedId),
               eq(bookmarks.userId, ctx.user.id), // Access control
               ...buildCommonFilters(),
-              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+              buildCursorCondition(bookmarks.lastSavedAt, bookmarks.id),
             ),
           )
           .limit(input.limit + 1)
@@ -554,7 +552,7 @@ export class Bookmark extends BareBookmark {
       );
     } else {
       // PATH: No list/tag/rssFeed filter - query bookmarks directly
-      // Uses composite index: bookmarks_userId_createdAt_id_idx (or archived/favourited variants)
+      // Uses the lastSavedAt pagination indexes (including archived/favourited variants).
       sq = ctx.db.$with("bookmarksSq").as(
         ctx.db
           .select()
@@ -563,7 +561,7 @@ export class Bookmark extends BareBookmark {
             and(
               eq(bookmarks.userId, ctx.user.id),
               ...buildCommonFilters(),
-              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+              buildCursorCondition(bookmarks.lastSavedAt, bookmarks.id),
             ),
           )
           .limit(input.limit + 1)
@@ -583,7 +581,7 @@ export class Bookmark extends BareBookmark {
       .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, sq.id))
       .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, sq.id))
       .leftJoin(assets, eq(assets.bookmarkId, sq.id))
-      .orderBy(desc(sq.createdAt), desc(sq.id));
+      .orderBy(desc(sq.lastSavedAt), desc(sq.id));
 
     const bookmarksRes = results.reduce<Record<string, ZBookmark>>(
       (acc, row) => {
@@ -733,10 +731,10 @@ export class Bookmark extends BareBookmark {
     }
 
     bookmarksArr.sort((a, b) => {
-      if (a.createdAt != b.createdAt) {
+      if (a.lastSavedAt.getTime() !== b.lastSavedAt.getTime()) {
         return input.sortOrder === "asc"
-          ? a.createdAt.getTime() - b.createdAt.getTime()
-          : b.createdAt.getTime() - a.createdAt.getTime();
+          ? a.lastSavedAt.getTime() - b.lastSavedAt.getTime()
+          : b.lastSavedAt.getTime() - a.lastSavedAt.getTime();
       } else {
         return b.id.localeCompare(a.id);
       }
@@ -753,7 +751,8 @@ export class Bookmark extends BareBookmark {
       const nextItem = bookmarksArr.pop()!;
       nextCursor = {
         id: nextItem.id,
-        createdAt: nextItem.createdAt,
+        // This compatibility field carries the active last-saved sort time.
+        createdAt: nextItem.lastSavedAt,
       };
     }
 
@@ -906,6 +905,7 @@ export class Bookmark extends BareBookmark {
     return {
       id: this.bookmark.id,
       createdAt: this.bookmark.createdAt,
+      lastSavedAt: this.bookmark.lastSavedAt,
       modifiedAt: this.bookmark.modifiedAt,
       title: getBookmarkTitle(this.bookmark),
       tags: this.bookmark.tags.map((t) => t.name),

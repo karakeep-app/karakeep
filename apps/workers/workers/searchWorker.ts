@@ -114,7 +114,9 @@ async function runIndex(
     note: bookmark.note,
     summary: bookmark.summary,
     title: bookmark.title,
-    createdAt: bookmark.createdAt.toISOString(),
+    // The search interface keeps the existing field name for compatibility,
+    // but chronological ordering follows the bookmark's latest explicit save.
+    createdAt: bookmark.lastSavedAt.toISOString(),
     tags: bookmark.tagsOnBookmarks.map((t) => t.tag.name),
   };
 

@@ -56,9 +56,12 @@ function ContentLoading() {
   );
 }
 
-function CreationTime({ createdAt }: { createdAt: Date }) {
+function SavedTime({ lastSavedAt }: { lastSavedAt: Date }) {
   const { i18n } = useTranslation();
-  const { fromNow, localCreatedAt } = useRelativeTime(createdAt, i18n.language);
+  const { fromNow, localCreatedAt: localSavedAt } = useRelativeTime(
+    lastSavedAt,
+    i18n.language,
+  );
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>
@@ -67,7 +70,7 @@ function CreationTime({ createdAt }: { createdAt: Date }) {
         </span>
       </TooltipTrigger>
       <TooltipPortal>
-        <TooltipContent>{localCreatedAt}</TooltipContent>
+        <TooltipContent>{localSavedAt}</TooltipContent>
       </TooltipPortal>
     </Tooltip>
   );
@@ -85,7 +88,7 @@ function BookmarkMetadata({ bookmark }: { bookmark: ZBookmark }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <CreationTime createdAt={bookmark.createdAt} />
+      <SavedTime lastSavedAt={bookmark.lastSavedAt} />
       {author && (
         <div className="flex w-fit items-center gap-2 text-sm text-muted-foreground">
           <User size={16} />

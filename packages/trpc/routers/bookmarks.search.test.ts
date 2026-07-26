@@ -1,5 +1,7 @@
+import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 
+import { bookmarks } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
@@ -171,6 +173,49 @@ describe("bookmark search modes", () => {
 
     expect(result.bookmarks.map((item) => item.id)).toEqual([bookmark.id]);
     expect(searchMocks.vectorSearch).not.toHaveBeenCalled();
+  });
+
+  test<CustomTestContext>("sorts chronological search results by last saved time", async ({
+    apiCallers,
+    db,
+  }) => {
+    const older = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "older",
+      lastSavedAt: new Date("2024-01-01T00:00:00Z"),
+    });
+    const newer = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "newer",
+      lastSavedAt: new Date("2025-01-01T00:00:00Z"),
+    });
+    await db
+      .update(bookmarks)
+      .set({ lastSavedAt: new Date("2026-01-01T00:00:00Z") })
+      .where(eq(bookmarks.id, older.id));
+    searchMocks.search.mockResolvedValue({
+      hits: [
+        { id: newer.id, score: 1 },
+        { id: older.id, score: 1 },
+      ],
+      totalHits: 2,
+      processingTimeMs: 1,
+    });
+
+    const result = await apiCallers[0].bookmarks.searchBookmarks({
+      text: "result",
+      sortOrder: "desc",
+    });
+
+    expect(result.bookmarks.map((bookmark) => bookmark.id)).toEqual([
+      older.id,
+      newer.id,
+    ]);
+    expect(searchMocks.search).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sort: [{ field: "createdAt", order: "desc" }],
+      }),
+    );
   });
 
   test<CustomTestContext>("fuses full-text and semantic rankings", async ({

@@ -349,7 +349,7 @@ async function runCrawler(
   const {
     url,
     userId,
-    createdAt,
+    lastSavedAt,
     crawledAt,
     screenshotAssetId: oldScreenshotAssetId,
     pdfAssetId: oldPdfAssetId,
@@ -475,10 +475,10 @@ async function runCrawler(
     await archivalLogic();
   }
 
-  // Record the latency from bookmark creation to crawl completion.
+  // Record the latency from the bookmark save to crawl completion.
   // Only for first-time, high-priority crawls (excludes recrawls and imports).
   if (crawledAt === null && job.priority === 0) {
-    const latencySeconds = (Date.now() - createdAt.getTime()) / 1000;
+    const latencySeconds = (Date.now() - lastSavedAt.getTime()) / 1000;
     bookmarkCrawlLatencyHistogram.observe(latencySeconds);
   }
 

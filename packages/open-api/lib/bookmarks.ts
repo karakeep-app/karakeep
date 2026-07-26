@@ -48,7 +48,7 @@ registry.registerPath({
   path: "/bookmarks",
   description:
     "Retrieve a paginated list of all bookmarks for the authenticated user. " +
-    "Supports filtering by archived/favourited status and sorting by date.",
+    "Supports filtering by archived/favourited status and sorting by last saved date.",
   summary: "Get all bookmarks",
   tags: ["Bookmarks"],
   security: [{ [BearerAuth.name]: [] }],
@@ -64,7 +64,7 @@ registry.registerPath({
           .exclude(["relevance"])
           .optional()
           .default(zSortOrder.enum.desc)
-          .describe("Sort order by creation date. Defaults to 'desc'."),
+          .describe("Sort order by last saved date. Defaults to 'desc'."),
       })
       .extend(PaginationSchema.shape)
       .extend(IncludeContentSearchParamSchema.shape),
@@ -106,7 +106,7 @@ registry.registerPath({
           .optional()
           .default(zSortOrder.enum.relevance)
           .describe(
-            "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting.",
+            "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' to sort by last saved date.",
           ),
       })
       .extend(PaginationSchema.shape)
@@ -166,7 +166,7 @@ registry.registerPath({
   path: "/bookmarks",
   description:
     "Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. " +
-    "For link bookmarks, if the URL already exists, the existing bookmark is returned with a 200 status.",
+    "For link bookmarks, if the URL already exists, user-initiated saves unarchive it and move it to the top of chronological views; import and RSS duplicates leave it unchanged. The existing bookmark is returned with a 200 status.",
   summary: "Create a new bookmark",
   tags: ["Bookmarks"],
   security: [{ [BearerAuth.name]: [] }],
@@ -183,7 +183,7 @@ registry.registerPath({
   responses: {
     200: {
       description:
-        "A bookmark with this URL already exists. The existing bookmark is returned.",
+        "A bookmark with this URL already exists. User-initiated saves refresh and unarchive it; import and RSS duplicates leave it unchanged.",
       content: {
         "application/json": {
           schema: BookmarkSchema,

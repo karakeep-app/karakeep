@@ -529,6 +529,7 @@ describe("User Routes", () => {
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
     const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const overOneYearAgo = new Date(now.getTime() - 400 * 24 * 60 * 60 * 1000);
 
     // Insert bookmarks directly with specific timestamps
     await db
@@ -538,6 +539,7 @@ describe("User Routes", () => {
           userId: user.id,
           type: BookmarkTypes.LINK,
           createdAt: now,
+          lastSavedAt: now,
           archived: false,
           favourited: false,
         },
@@ -545,6 +547,7 @@ describe("User Routes", () => {
           userId: user.id,
           type: BookmarkTypes.LINK,
           createdAt: oneDayAgo,
+          lastSavedAt: oneDayAgo,
           archived: false,
           favourited: false,
         },
@@ -552,13 +555,15 @@ describe("User Routes", () => {
           userId: user.id,
           type: BookmarkTypes.LINK,
           createdAt: oneWeekAgo,
+          lastSavedAt: oneWeekAgo,
           archived: false,
           favourited: false,
         },
         {
           userId: user.id,
           type: BookmarkTypes.LINK,
-          createdAt: oneMonthAgo,
+          createdAt: overOneYearAgo,
+          lastSavedAt: oneMonthAgo,
           archived: false,
           favourited: false,
         },
@@ -570,7 +575,8 @@ describe("User Routes", () => {
     // Verify activity counts based on time periods
     expect(stats.bookmarkingActivity.thisWeek).toBeGreaterThanOrEqual(2); // now + oneDayAgo
     expect(stats.bookmarkingActivity.thisMonth).toBeGreaterThanOrEqual(3); // now + oneDayAgo + oneWeekAgo
-    expect(stats.bookmarkingActivity.thisYear).toBe(4); // All bookmarks
+    // The recently re-saved bookmark remains outside this year's creation stats.
+    expect(stats.bookmarkingActivity.thisYear).toBe(3);
 
     // Verify that hour and day arrays have proper structure
     expect(

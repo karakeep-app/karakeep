@@ -694,6 +694,7 @@ async function migrateBookmarks(
           note: b.note ?? undefined,
           summary: b.summary ?? undefined,
           createdAt: b.createdAt,
+          lastSavedAt: b.lastSavedAt,
           crawlPriority: "low" as const,
           source: b.source === null ? undefined : b.source,
         };

@@ -128,6 +128,10 @@
             "type": "string",
             "format": "date-time"
           },
+          "lastSavedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "modifiedAt": {
             "type": "string",
             "nullable": true,
@@ -446,6 +450,7 @@
         "required": [
           "id",
           "createdAt",
+          "lastSavedAt",
           "modifiedAt",
           "archived",
           "favourited",
@@ -888,7 +893,7 @@
     "/bookmarks": {
       "get": {
         "operationId": "listBookmarks",
-        "description": "Retrieve a paginated list of all bookmarks for the authenticated user. Supports filtering by archived/favourited status and sorting by date.",
+        "description": "Retrieve a paginated list of all bookmarks for the authenticated user. Supports filtering by archived/favourited status and sorting by last saved date.",
         "summary": "Get all bookmarks",
         "tags": [
           "Bookmarks"
@@ -927,10 +932,10 @@
                 "desc"
               ],
               "default": "desc",
-              "description": "Sort order by creation date. Defaults to 'desc'."
+              "description": "Sort order by last saved date. Defaults to 'desc'."
             },
             "required": false,
-            "description": "Sort order by creation date. Defaults to 'desc'.",
+            "description": "Sort order by last saved date. Defaults to 'desc'.",
             "name": "sortOrder",
             "in": "query"
           },
@@ -991,7 +996,7 @@
       },
       "post": {
         "operationId": "createBookmark",
-        "description": "Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, the existing bookmark is returned with a 200 status.",
+        "description": "Create a new bookmark. The bookmark type (link, text, or asset) is determined by the `type` field in the request body. For link bookmarks, if the URL already exists, user-initiated saves unarchive it and move it to the top of chronological views; import and RSS duplicates leave it unchanged. The existing bookmark is returned with a 200 status.",
         "summary": "Create a new bookmark",
         "tags": [
           "Bookmarks"
@@ -1028,6 +1033,10 @@
                         "type": "string"
                       },
                       "createdAt": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "lastSavedAt": {
                         "type": "string",
                         "format": "date-time"
                       },
@@ -1142,7 +1151,7 @@
         },
         "responses": {
           "200": {
-            "description": "A bookmark with this URL already exists. The existing bookmark is returned.",
+            "description": "A bookmark with this URL already exists. User-initiated saves refresh and unarchive it; import and RSS duplicates leave it unchanged.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1234,10 +1243,10 @@
                 "relevance"
               ],
               "default": "relevance",
-              "description": "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting."
+              "description": "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' to sort by last saved date."
             },
             "required": false,
-            "description": "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' for date-based sorting.",
+            "description": "Sort order for results. Defaults to 'relevance'. Use 'asc' or 'desc' to sort by last saved date.",
             "name": "sortOrder",
             "in": "query"
           },
@@ -1510,6 +1519,10 @@
                     "type": "string",
                     "format": "date-time"
                   },
+                  "lastSavedAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
                   "url": {
                     "type": "string",
                     "format": "uri"
@@ -1561,6 +1574,10 @@
                       "type": "string"
                     },
                     "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "lastSavedAt": {
                       "type": "string",
                       "format": "date-time"
                     },
@@ -1639,6 +1656,7 @@
                   "required": [
                     "id",
                     "createdAt",
+                    "lastSavedAt",
                     "modifiedAt",
                     "archived",
                     "favourited",
@@ -1818,6 +1836,10 @@
                       "type": "string",
                       "format": "date-time"
                     },
+                    "lastSavedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
                     "modifiedAt": {
                       "type": "string",
                       "nullable": true,
@@ -1893,6 +1915,7 @@
                   "required": [
                     "id",
                     "createdAt",
+                    "lastSavedAt",
                     "modifiedAt",
                     "archived",
                     "favourited",
