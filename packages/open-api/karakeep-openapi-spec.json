@@ -124,6 +124,10 @@
           "id": {
             "type": "string"
           },
+          "firstCreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -1560,6 +1564,10 @@
                     "id": {
                       "type": "string"
                     },
+                    "firstCreatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -1813,6 +1821,10 @@
                   "properties": {
                     "id": {
                       "type": "string"
+                    },
+                    "firstCreatedAt": {
+                      "type": "string",
+                      "format": "date-time"
                     },
                     "createdAt": {
                       "type": "string",

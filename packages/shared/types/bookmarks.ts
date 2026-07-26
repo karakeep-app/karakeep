@@ -136,6 +136,8 @@ export type ZBookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
 
 export const zBareBookmarkSchema = z.object({
   id: z.string(),
+  // This is optional for backwards compatibility
+  firstCreatedAt: z.date().optional(),
   createdAt: z.date(),
   modifiedAt: z.date().nullable(),
   title: z.string().nullish(),

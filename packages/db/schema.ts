@@ -17,8 +17,8 @@ import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-function createdAtField() {
-  return integer("createdAt", { mode: "timestamp" })
+function createdAtField(colName: string | undefined = "createdAt") {
+  return integer(colName, { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date());
 }
@@ -208,7 +208,8 @@ export const bookmarks = sqliteTable(
       .notNull()
       .primaryKey()
       .$defaultFn(() => createId()),
-    createdAt: createdAtField(),
+    dbCreatedAt: createdAtField(),
+    createdAt: createdAtField("lastSavedAt"),
     modifiedAt: modifiedAtField(),
     title: text("title"),
     archived: integer("archived", { mode: "boolean" }).notNull().default(false),
@@ -246,16 +247,20 @@ export const bookmarks = sqliteTable(
     }),
   },
   (b) => [
-    index("bookmarks_createdAt_idx").on(b.createdAt),
+    index("bookmarks_lastSavedAt_idx").on(b.createdAt),
     // Composite indexes for optimized pagination queries
-    index("bookmarks_userId_createdAt_id_idx").on(b.userId, b.createdAt, b.id),
-    index("bookmarks_userId_archived_createdAt_id_idx").on(
+    index("bookmarks_userId_lastSavedAt_id_idx").on(
+      b.userId,
+      b.createdAt,
+      b.id,
+    ),
+    index("bookmarks_userId_archived_lastSavedAt_id_idx").on(
       b.userId,
       b.archived,
       b.createdAt,
       b.id,
     ),
-    index("bookmarks_userId_favourited_createdAt_id_idx").on(
+    index("bookmarks_userId_favourited_lastSavedAt_id_idx").on(
       b.userId,
       b.favourited,
       b.createdAt,

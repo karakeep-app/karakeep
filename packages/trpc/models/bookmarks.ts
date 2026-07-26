@@ -238,6 +238,7 @@ export class Bookmark extends BareBookmark {
         assetType: mapDBAssetTypeToUserType(a.assetType),
         fileName: a.fileName,
       })),
+      firstCreatedAt: bookmark.dbCreatedAt,
       ...rest,
     };
   }
@@ -394,6 +395,7 @@ export class Bookmark extends BareBookmark {
       id: bookmark.id,
       type: bookmark.type,
       source: bookmark.source,
+      firstCreatedAt: bookmark.dbCreatedAt,
       createdAt: bookmark.createdAt,
       modifiedAt: bookmark.modifiedAt,
       title: bookmark.title,
@@ -636,6 +638,7 @@ export class Bookmark extends BareBookmark {
           }
           acc[bookmarkId] = {
             ...row.bookmarksSq,
+            firstCreatedAt: row.bookmarksSq.dbCreatedAt,
             content,
             tags: [],
             assets: [],

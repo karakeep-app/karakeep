@@ -37,7 +37,10 @@ import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
-import type { ZBookmarkContent } from "@karakeep/shared/types/bookmarks";
+import type {
+  ZBookmarkContent,
+  ZBookmarkSource,
+} from "@karakeep/shared/types/bookmarks";
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
@@ -199,6 +202,14 @@ const highBookmarkCreationRateLimitConfig = {
   maxRequests: 30,
 } as const;
 
+// Automated bulk flows rely on the dedup path for idempotency, so hitting an
+// existing bookmark from them must stay a no-op instead of unarchiving it and
+// bumping it to the top of the list.
+const SOURCES_THAT_DONT_RESAVE: ReadonlySet<ZBookmarkSource> = new Set([
+  "rss",
+  "import",
+]);
+
 async function shouldUseLowPriorityQueues(
   ctx: AuthedContext,
 ): Promise<boolean> {
@@ -265,7 +276,42 @@ export const bookmarksAppRouter = router({
             "bookmark.id": alreadyExists.id,
             "bookmark.already_existed": true,
           });
-          return { ...alreadyExists, alreadyExists: true };
+          if (input.source && SOURCES_THAT_DONT_RESAVE.has(input.source)) {
+            return { ...alreadyExists, alreadyExists: true };
+          }
+          const now = new Date();
+          const createdAt = input.createdAt ?? now;
+          const archived = input.archived ?? false;
+          await ctx.db
+            .update(bookmarks)
+            .set({ createdAt, modifiedAt: now, archived })
+            .where(
+              and(
+                eq(bookmarks.userId, ctx.user.id),
+                eq(bookmarks.id, alreadyExists.id),
+              ),
+            );
+          await Promise.all([
+            triggerSearchReindex(alreadyExists.id, {
+              groupId: ctx.user.id,
+            }),
+            new WebhooksService(ctx.db).triggerWebhook(
+              alreadyExists.id,
+              "edited",
+              ctx.user.id,
+              {
+                groupId: ctx.user.id,
+              },
+            ),
+          ]);
+
+          return {
+            ...alreadyExists,
+            archived,
+            createdAt,
+            modifiedAt: now,
+            alreadyExists: true,
+          };
         }
       }
 

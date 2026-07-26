@@ -150,19 +150,17 @@ export default function Sharing() {
           entering={FadeIn.duration(200)}
           className="items-center gap-6"
         >
-          <SuccessAnimation isAlreadyExists={mode.type === "alreadyExists"} />
+          <SuccessAnimation />
 
           <Animated.View
             entering={FadeIn.delay(400).duration(300)}
             className="items-center gap-2"
           >
             <Text variant="title1" className="font-semibold text-foreground">
-              {mode.type === "alreadyExists" ? "Already Hoarded!" : "Hoarded!"}
+              {mode.type === "alreadyExists" ? "Hoarded again!" : "Hoarded!"}
             </Text>
             <Text variant="body" className="text-muted-foreground">
-              {mode.type === "alreadyExists"
-                ? "This item was saved before"
-                : "Saved to your collection"}
+              Saved to your collection
             </Text>
           </Animated.View>
 

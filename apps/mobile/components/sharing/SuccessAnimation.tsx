@@ -56,28 +56,16 @@ function Particle({ angle, delay, color }: ParticleProps) {
   return <Animated.View style={particleStyle} />;
 }
 
-interface SuccessAnimationProps {
-  isAlreadyExists: boolean;
-}
-
-export default function SuccessAnimation({
-  isAlreadyExists,
-}: SuccessAnimationProps) {
+export default function SuccessAnimation() {
   const checkScale = useSharedValue(0);
   const checkOpacity = useSharedValue(0);
   const ringScale = useSharedValue(0.8);
   const ringOpacity = useSharedValue(0);
 
-  const particleColor = isAlreadyExists
-    ? "rgb(255, 180, 0)"
-    : "rgb(0, 200, 100)";
+  const particleColor = "rgb(0, 200, 100)";
 
   useEffect(() => {
-    Haptics.notificationAsync(
-      isAlreadyExists
-        ? Haptics.NotificationFeedbackType.Warning
-        : Haptics.NotificationFeedbackType.Success,
-    );
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     ringScale.value = withSequence(
       withTiming(1.2, { duration: 400, easing: Easing.out(Easing.ease) }),
@@ -97,7 +85,7 @@ export default function SuccessAnimation({
       }),
     );
     checkOpacity.value = withDelay(150, withTiming(1, { duration: 200 }));
-  }, [isAlreadyExists]);
+  }, []);
 
   const ringStyle = useAnimatedStyle(() => ({
     transform: [{ scale: ringScale.value }],
@@ -122,16 +110,12 @@ export default function SuccessAnimation({
 
       <Animated.View
         style={ringStyle}
-        className={`absolute h-28 w-28 rounded-full ${
-          isAlreadyExists ? "bg-yellow-500/20" : "bg-green-500/20"
-        }`}
+        className="absolute h-28 w-28 rounded-full bg-green-500/20"
       />
 
       <Animated.View
         style={checkStyle}
-        className={`h-24 w-24 items-center justify-center rounded-full ${
-          isAlreadyExists ? "bg-yellow-500" : "bg-green-500"
-        }`}
+        className="h-24 w-24 items-center justify-center rounded-full bg-green-500"
       >
         <Check size={48} color="white" strokeWidth={3} />
       </Animated.View>
