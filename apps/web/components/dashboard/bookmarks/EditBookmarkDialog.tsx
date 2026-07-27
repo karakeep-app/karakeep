@@ -37,7 +37,10 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
+import {
+  useUpdateBookmark,
+  useUpdateBookmarkTags,
+} from "@karakeep/shared-react/hooks/bookmarks";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   BookmarkTypes,
@@ -46,7 +49,13 @@ import {
 } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
-import { BookmarkTagsEditor } from "./BookmarkTagsEditor";
+import {
+  createEmptyDeferredTagChanges,
+  persistBookmarkEdits,
+  stageTagAttachment,
+  stageTagDetachment,
+} from "./deferredBookmarkTags";
+import { TagsEditor } from "./TagsEditor";
 
 const formSchema = zUpdateBookmarksRequestSchema.extend({
   createdAt: z.date().optional(),
@@ -119,31 +128,65 @@ export function EditBookmarkDialog({
     defaultValues: bookmarkToDefault(bookmark),
   });
 
-  const { mutate: updateBookmarkMutate, isPending: isUpdatingBookmark } =
-    useUpdateBookmark({
-      onSuccess: (updatedBookmark) => {
-        toast({ description: "Bookmark details updated successfully!" });
-        // Close the dialog after successful detail update
-        setOpen(false);
-        // Reset form with potentially updated data
-        form.reset(bookmarkToDefault(updatedBookmark));
-      },
-      onError: (error) => {
-        toast({
-          variant: "destructive",
-          title: "Failed to update bookmark",
-          description: error.message,
-        });
-      },
-    });
+  const [deferredTagChanges, setDeferredTagChanges] = React.useState(
+    createEmptyDeferredTagChanges,
+  );
+  const [tagEditorSession, setTagEditorSession] = React.useState(0);
+  const initialTagsRef = React.useRef(bookmark.tags);
+  const previousOpenRef = React.useRef(open);
 
-  function onSubmit(values: BookmarkFormValues) {
+  React.useEffect(() => {
+    if (open && !previousOpenRef.current) {
+      initialTagsRef.current = bookmark.tags;
+      setDeferredTagChanges(createEmptyDeferredTagChanges());
+      setTagEditorSession((session) => session + 1);
+    }
+    previousOpenRef.current = open;
+  }, [bookmark.tags, open]);
+
+  const { mutateAsync: updateBookmarkMutate, isPending: isUpdatingBookmark } =
+    useUpdateBookmark();
+  const { mutateAsync: updateTagsMutate, isPending: isUpdatingTags } =
+    useUpdateBookmarkTags();
+  const isUpdating = isUpdatingBookmark || isUpdatingTags;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setDeferredTagChanges(createEmptyDeferredTagChanges());
+      setTagEditorSession((session) => session + 1);
+    }
+    setOpen(nextOpen);
+  };
+
+  async function onSubmit(values: BookmarkFormValues) {
     // Ensure optional fields that are empty strings are sent as null/undefined if appropriate
     const payload = {
       ...values,
       title: values.title ?? null,
     };
-    updateBookmarkMutate(payload);
+
+    try {
+      const updatedBookmark = await persistBookmarkEdits({
+        saveDetails: () => updateBookmarkMutate(payload),
+        saveTags: (changes) =>
+          updateTagsMutate({
+            bookmarkId: bookmark.id,
+            ...changes,
+          }),
+        tagChanges: deferredTagChanges,
+      });
+
+      toast({ description: "Bookmark details updated successfully!" });
+      handleOpenChange(false);
+      form.reset(bookmarkToDefault(updatedBookmark));
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to update bookmark",
+        description:
+          error instanceof Error ? error.message : "Something went wrong",
+      });
+    }
   }
 
   // Reset form only when dialog is initially opened to preserve unsaved changes
@@ -162,7 +205,7 @@ export function EditBookmarkDialog({
   const isAsset = bookmark.content.type === BookmarkTypes.ASSET;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
@@ -418,7 +461,20 @@ export function EditBookmarkDialog({
             <FormItem>
               <FormLabel>{t("common.tags")}</FormLabel>
               <FormControl>
-                <BookmarkTagsEditor bookmark={bookmark} />
+                <TagsEditor
+                  key={tagEditorSession}
+                  tags={bookmark.tags}
+                  onAttach={(tag) => {
+                    setDeferredTagChanges((changes) =>
+                      stageTagAttachment(changes, initialTagsRef.current, tag),
+                    );
+                  }}
+                  onDetach={(tag) => {
+                    setDeferredTagChanges((changes) =>
+                      stageTagDetachment(changes, initialTagsRef.current, tag),
+                    );
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -427,12 +483,12 @@ export function EditBookmarkDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
-                disabled={isUpdatingBookmark}
+                onClick={() => handleOpenChange(false)}
+                disabled={isUpdating}
               >
                 {t("actions.cancel")}
               </Button>
-              <ActionButton type="submit" loading={isUpdatingBookmark}>
+              <ActionButton type="submit" loading={isUpdating}>
                 {t("bookmark_editor.save_changes")}
               </ActionButton>
             </DialogFooter>
