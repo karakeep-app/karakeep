@@ -9,6 +9,24 @@ export function isHttpUrl(url: string) {
 }
 
 /**
+ * Heuristic for direct PDF URLs where SingleFile would only capture the
+ * browser PDF viewer shell (e.g. arXiv `/pdf/<id>` with no `.pdf` suffix).
+ */
+export function isLikelyDirectPdfUrl(url: string): boolean {
+  try {
+    const { pathname } = new URL(url);
+    const lower = pathname.toLowerCase();
+    if (lower.endsWith(".pdf")) {
+      return true;
+    }
+    // arXiv and similar: /pdf/2301.04104 or /pdf/2301.04104v1
+    return /\/pdf\/[^/]+$/i.test(pathname);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Normalize a URL by removing the hash and trailing slash.
  * @param url The URL to process.
  * @param base Optional base URL for relative URLs.
