@@ -25,7 +25,7 @@ describe("deferred bookmark tag changes", () => {
       detach: [],
     });
 
-    const detached = stageTagDetachment(attached, initialTags, {
+    const detached = stageTagDetachment(attached, {
       tagId: "temp-1",
       tagName: "later",
     });
@@ -34,11 +34,10 @@ describe("deferred bookmark tag changes", () => {
   });
 
   it("cancels a pending detachment when the original tag is restored", () => {
-    const detached = stageTagDetachment(
-      createEmptyDeferredTagChanges(),
-      initialTags,
-      { tagId: "tag-1", tagName: "news" },
-    );
+    const detached = stageTagDetachment(createEmptyDeferredTagChanges(), {
+      tagId: "tag-1",
+      tagName: "news",
+    });
     expect(detached).toEqual({
       attach: [],
       detach: [{ tagId: "tag-1" }],
@@ -50,6 +49,18 @@ describe("deferred bookmark tag changes", () => {
     });
 
     expect(restored).toEqual(createEmptyDeferredTagChanges());
+  });
+
+  it("stages removal of a tag introduced after the editor opened", () => {
+    const detached = stageTagDetachment(createEmptyDeferredTagChanges(), {
+      tagId: "tag-2",
+      tagName: "refreshed",
+    });
+
+    expect(detached).toEqual({
+      attach: [],
+      detach: [{ tagId: "tag-2" }],
+    });
   });
 
   it("saves details before applying tag changes", async () => {

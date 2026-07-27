@@ -131,13 +131,14 @@ export function EditBookmarkDialog({
   const [deferredTagChanges, setDeferredTagChanges] = React.useState(
     createEmptyDeferredTagChanges,
   );
+  // Query refreshes must not overwrite tag changes staged in this edit session.
+  const [initialTags, setInitialTags] = React.useState(bookmark.tags);
   const [tagEditorSession, setTagEditorSession] = React.useState(0);
-  const initialTagsRef = React.useRef(bookmark.tags);
   const previousOpenRef = React.useRef(open);
 
   React.useEffect(() => {
     if (open && !previousOpenRef.current) {
-      initialTagsRef.current = bookmark.tags;
+      setInitialTags(bookmark.tags);
       setDeferredTagChanges(createEmptyDeferredTagChanges());
       setTagEditorSession((session) => session + 1);
     }
@@ -463,15 +464,15 @@ export function EditBookmarkDialog({
               <FormControl>
                 <TagsEditor
                   key={tagEditorSession}
-                  tags={bookmark.tags}
+                  tags={initialTags}
                   onAttach={(tag) => {
                     setDeferredTagChanges((changes) =>
-                      stageTagAttachment(changes, initialTagsRef.current, tag),
+                      stageTagAttachment(changes, initialTags, tag),
                     );
                   }}
                   onDetach={(tag) => {
                     setDeferredTagChanges((changes) =>
-                      stageTagDetachment(changes, initialTagsRef.current, tag),
+                      stageTagDetachment(changes, tag),
                     );
                   }}
                 />

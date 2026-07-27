@@ -48,7 +48,6 @@ export function stageTagAttachment(
 
 export function stageTagDetachment(
   changes: DeferredTagChanges,
-  initialTags: readonly ZBookmarkTags[],
   tag: DeferredTag & { tagId: string },
 ): DeferredTagChanges {
   const pendingAttachment = changes.attach.find((pending) =>
@@ -62,10 +61,6 @@ export function stageTagDetachment(
       ),
       detach: changes.detach,
     };
-  }
-
-  if (!initialTags.some((initial) => initial.id === tag.tagId)) {
-    return changes;
   }
 
   if (changes.detach.some(({ tagId }) => tagId === tag.tagId)) {
