@@ -124,7 +124,12 @@ export default function LinkContentSection({
   const { settings } = useReaderSettings();
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   const defaultSection =
-    availableRenderers.length > 0 ? availableRenderers[0].id : "cached";
+    availableRenderers.length > 0
+      ? availableRenderers[0].id
+      : bookmark.content.type === BookmarkTypes.LINK &&
+          bookmark.content.videoAssetId
+        ? "video"
+        : "cached";
   const [section, setSection] = useQueryState("section", {
     defaultValue: defaultSection,
   });
