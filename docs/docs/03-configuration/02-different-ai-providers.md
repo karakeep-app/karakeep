@@ -14,7 +14,9 @@ OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 # INFERENCE_IMAGE_MODEL=gpt-4o-mini
 # EMBEDDING_TEXT_MODEL=text-embedding-3-small
 # EMBEDDING_DIMENSIONS=1536
+# EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE=1536
 ```
+
 
 ## Ollama
 
@@ -153,6 +155,20 @@ EMBEDDING_DIMENSIONS=
 EMBEDDING_CONTEXT_LENGTH=
 ```
 
+
+Embeddings can use a different OpenAI-compatible provider. Set either override independently; any unset value falls back to its corresponding `OPENAI_*` setting.
+
+```
+EMBEDDING_OPENAI_API_KEY=embedding-provider-api-key
+EMBEDDING_OPENAI_BASE_URL=https://embedding-provider.example.com/v1
+```
+
+For embedding models that support multiple output sizes, set `EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE` to pass the requested dimensions to the provider. Its value must match `EMBEDDING_DIMENSIONS`, which configures the vector store, or Karakeep will fail to start:
+
+```
+EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE=768
+EMBEDDING_DIMENSIONS=768
+```
 
 Once you've configured an embedding model, you'll also want to enable auto-embedding generation for your bookmarks by:
 

@@ -91,7 +91,14 @@ const allEnv = z.object({
   INFERENCE_TEXT_MODEL: z.string().default("gpt-4.1-mini"),
   INFERENCE_IMAGE_MODEL: z.string().default("gpt-4o-mini"),
   EMBEDDING_ENABLE_AUTO_INDEXING: optionalStringBool(),
+  EMBEDDING_OPENAI_API_KEY: z.string().optional(),
+  EMBEDDING_OPENAI_BASE_URL: z.string().url().optional(),
   EMBEDDING_TEXT_MODEL: z.string().default("text-embedding-3-small"),
+  EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE: z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional(),
   EMBEDDING_DIMENSIONS: z.coerce.number().default(1536),
   EMBEDDING_CONTEXT_LENGTH: z.coerce.number().int().positive().default(8000),
   EMBEDDING_NUM_WORKERS: z.coerce.number().default(1),
@@ -365,7 +372,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           ? // Enabled by default if using the default inference configuration (based on OpenAI models)
             !val.OLLAMA_BASE_URL && !val.OPENAI_BASE_URL && !!val.OPENAI_API_KEY
           : val.EMBEDDING_ENABLE_AUTO_INDEXING,
+      openAIApiKey: val.EMBEDDING_OPENAI_API_KEY,
+      openAIBaseUrl: val.EMBEDDING_OPENAI_BASE_URL,
       textModel: val.EMBEDDING_TEXT_MODEL,
+      textModelDimensionOverride: val.EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE,
       dimensions: val.EMBEDDING_DIMENSIONS,
       contextLength: val.EMBEDDING_CONTEXT_LENGTH,
       numWorkers: val.EMBEDDING_NUM_WORKERS,
@@ -544,6 +554,19 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       code: z.ZodIssueCode.custom,
       message:
         "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is required when OTEL_EVENT_LOGS_EXPORT_ENABLED is true",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
+  if (
+    obj.embedding.textModelDimensionOverride !== undefined &&
+    obj.embedding.textModelDimensionOverride !== obj.embedding.dimensions
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE must match EMBEDDING_DIMENSIONS",
+      path: ["EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE"],
       fatal: true,
     });
     return z.NEVER;

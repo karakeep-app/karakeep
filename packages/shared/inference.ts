@@ -112,7 +112,11 @@ const defaultInferenceOptions: InferenceOptions = {
   schema: null,
 };
 
-export interface InferenceClient {
+export interface EmbeddingClient {
+  generateEmbeddingFromText(inputs: string[]): Promise<EmbeddingResponse>;
+}
+
+export interface InferenceClient extends EmbeddingClient {
   inferFromText(
     prompt: string,
     opts: Partial<InferenceOptions>,
@@ -123,7 +127,6 @@ export interface InferenceClient {
     image: string,
     opts: Partial<InferenceOptions>,
   ): Promise<InferenceResponse>;
-  generateEmbeddingFromText(inputs: string[]): Promise<EmbeddingResponse>;
 }
 
 const mapInferenceOutputSchema = <
@@ -169,6 +172,28 @@ export interface OpenAIInferenceConfig {
   outputSchema: "structured" | "json" | "plain";
 }
 
+export interface OpenAIEmbeddingConfig {
+  apiKey: string;
+  baseURL?: string;
+  proxyUrl?: string;
+  timeoutSec?: number;
+}
+
+const buildOpenAIClient = (config: OpenAIEmbeddingConfig) =>
+  new OpenAI({
+    apiKey: config.apiKey,
+    baseURL: config.baseURL,
+    timeout:
+      config.timeoutSec !== undefined ? config.timeoutSec * 1000 : undefined,
+    defaultHeaders: {
+      "X-Title": "Karakeep",
+      "HTTP-Referer": "https://karakeep.app",
+    },
+    fetchOptions: config.proxyUrl
+      ? { dispatcher: new undici.ProxyAgent(config.proxyUrl) }
+      : undefined,
+  });
+
 export class InferenceClientFactory {
   static build(): InferenceClient | null {
     if (serverConfig.inference.openAIApiKey) {
@@ -182,6 +207,60 @@ export class InferenceClientFactory {
   }
 }
 
+export class EmbeddingClientFactory {
+  static build(): EmbeddingClient | null {
+    if (
+      serverConfig.embedding.openAIApiKey ||
+      serverConfig.embedding.openAIBaseUrl
+    ) {
+      const apiKey =
+        serverConfig.embedding.openAIApiKey ??
+        serverConfig.inference.openAIApiKey;
+      if (!apiKey) {
+        logger.error(
+          "EMBEDDING_OPENAI_API_KEY or OPENAI_API_KEY must be set when using EMBEDDING_OPENAI_BASE_URL",
+        );
+        return null;
+      }
+      return new OpenAIEmbeddingClient({
+        apiKey,
+        baseURL:
+          serverConfig.embedding.openAIBaseUrl ??
+          serverConfig.inference.openAIBaseUrl,
+        proxyUrl: serverConfig.inference.openAIProxyUrl,
+        timeoutSec: serverConfig.inference.openAITimeoutSec,
+      });
+    }
+
+    return InferenceClientFactory.build();
+  }
+}
+
+export class OpenAIEmbeddingClient implements EmbeddingClient {
+  private openAI: OpenAI;
+
+  constructor(config: OpenAIEmbeddingConfig) {
+    this.openAI = buildOpenAIClient(config);
+  }
+
+  async generateEmbeddingFromText(
+    inputs: string[],
+  ): Promise<EmbeddingResponse> {
+    const embedResponse = await this.openAI.embeddings.create({
+      model: serverConfig.embedding.textModel,
+      input: inputs,
+      ...(serverConfig.embedding.textModelDimensionOverride !== undefined
+        ? {
+            dimensions: serverConfig.embedding.textModelDimensionOverride,
+          }
+        : {}),
+    });
+    const embeddings = parseEmbeddingResponse(embedResponse);
+    const usage = parseEmbeddingUsage(embedResponse);
+    return { embeddings, ...usage };
+  }
+}
+
 export class OpenAIInferenceClient implements InferenceClient {
   openAI: OpenAI;
   private config: OpenAIInferenceConfig;
@@ -189,19 +268,7 @@ export class OpenAIInferenceClient implements InferenceClient {
   constructor(config: OpenAIInferenceConfig) {
     this.config = config;
 
-    this.openAI = new OpenAI({
-      apiKey: config.apiKey,
-      baseURL: config.baseURL,
-      timeout:
-        config.timeoutSec !== undefined ? config.timeoutSec * 1000 : undefined,
-      defaultHeaders: {
-        "X-Title": "Karakeep",
-        "HTTP-Referer": "https://karakeep.app",
-      },
-      fetchOptions: config.proxyUrl
-        ? { dispatcher: new undici.ProxyAgent(config.proxyUrl) }
-        : undefined,
-    });
+    this.openAI = buildOpenAIClient(config);
   }
 
   static fromConfig(): OpenAIInferenceClient {
@@ -315,6 +382,11 @@ export class OpenAIInferenceClient implements InferenceClient {
     const embedResponse = await this.openAI.embeddings.create({
       model: model,
       input: inputs,
+      ...(serverConfig.embedding.textModelDimensionOverride !== undefined
+        ? {
+            dimensions: serverConfig.embedding.textModelDimensionOverride,
+          }
+        : {}),
     });
     const embedding2D = parseEmbeddingResponse(embedResponse);
     const usage = parseEmbeddingUsage(embedResponse);

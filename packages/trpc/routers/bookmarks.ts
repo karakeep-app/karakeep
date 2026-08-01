@@ -30,7 +30,10 @@ import {
 } from "@karakeep/shared-server";
 import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
-import { InferenceClientFactory } from "@karakeep/shared/inference";
+import {
+  EmbeddingClientFactory,
+  InferenceClientFactory,
+} from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
 import { buildSummaryPrompt } from "@karakeep/shared/prompts.server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
@@ -1031,7 +1034,7 @@ export const bookmarksAppRouter = router({
         const hasQueryText = parsedQuery.text.trim().length > 0;
         let semanticInfraError: unknown;
         const semanticClients = await (async () => ({
-          inferenceClient: InferenceClientFactory.build(),
+          embeddingClient: EmbeddingClientFactory.build(),
           vectorStoreClient: await getVectorStoreClient(),
         }))().catch((error: unknown) => {
           if (input.searchMode === "semantic") {
@@ -1040,14 +1043,14 @@ export const bookmarksAppRouter = router({
           semanticInfraError = error;
           return null;
         });
-        const inferenceClient = semanticClients?.inferenceClient;
+        const embeddingClient = semanticClients?.embeddingClient;
         const vectorStoreClient = semanticClients?.vectorStoreClient;
-        if (!hasQueryText || !inferenceClient || !vectorStoreClient) {
+        if (!hasQueryText || !embeddingClient || !vectorStoreClient) {
           if (input.searchMode === "semantic") {
             throw new TRPCError({
               code: "BAD_REQUEST",
               message: hasQueryText
-                ? "Semantic search requires configured inference and vector store providers"
+                ? "Semantic search requires configured embedding and vector store providers"
                 : "Semantic search requires a non-empty text query",
             });
           }
@@ -1074,14 +1077,14 @@ export const bookmarksAppRouter = router({
 
           const semanticSearch = async (limit: number) => {
             const embeddingResponse =
-              await inferenceClient.generateEmbeddingFromText([
+              await embeddingClient.generateEmbeddingFromText([
                 parsedQuery.text,
               ]);
             const vector = embeddingResponse.embeddings[0];
             if (!vector) {
               throw new TRPCError({
                 code: "INTERNAL_SERVER_ERROR",
-                message: "Inference provider returned no query embedding",
+                message: "Embedding provider returned no query embedding",
               });
             }
             return vectorStoreClient.search({

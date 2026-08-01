@@ -10,7 +10,7 @@ import { createSemanticSearchRateLimitMiddleware } from "./bookmarks";
 const searchMocks = vi.hoisted(() => ({
   search: vi.fn(),
   vectorSearch: vi.fn(),
-  buildInferenceClient: vi.fn(),
+  buildEmbeddingClient: vi.fn(),
   getVectorStoreClient: vi.fn(),
   getRateLimitClient: vi.fn(),
   checkRateLimit: vi.fn(),
@@ -20,8 +20,8 @@ const originalSemanticSearchFeature =
 const originalEmbeddingAutoIndexing = serverConfig.embedding.enableAutoIndexing;
 
 vi.mock("@karakeep/shared/inference", () => ({
-  InferenceClientFactory: {
-    build: searchMocks.buildInferenceClient,
+  EmbeddingClientFactory: {
+    build: searchMocks.buildEmbeddingClient,
   },
 }));
 
@@ -44,7 +44,7 @@ beforeEach<CustomTestContext>(async (context) => {
   await defaultBeforeEach(true)(context);
   searchMocks.search.mockReset();
   searchMocks.vectorSearch.mockReset();
-  searchMocks.buildInferenceClient.mockReset();
+  searchMocks.buildEmbeddingClient.mockReset();
   searchMocks.getVectorStoreClient.mockReset();
   searchMocks.getRateLimitClient.mockReset();
   searchMocks.checkRateLimit.mockReset();
@@ -68,7 +68,7 @@ function mockEmbeddingInfra() {
     promptTokens: 1,
     totalTokens: 1,
   }));
-  searchMocks.buildInferenceClient.mockReturnValue({
+  searchMocks.buildEmbeddingClient.mockReturnValue({
     generateEmbeddingFromText,
   });
   return generateEmbeddingFromText;
@@ -238,7 +238,7 @@ describe("bookmark search modes", () => {
       type: BookmarkTypes.TEXT,
       text: "fallback result",
     });
-    searchMocks.buildInferenceClient.mockReturnValue(null);
+    searchMocks.buildEmbeddingClient.mockReturnValue(null);
     searchMocks.getVectorStoreClient.mockResolvedValue(null);
     searchMocks.search.mockResolvedValue({
       hits: [{ id: bookmark.id, score: 1 }],
@@ -392,7 +392,7 @@ describe("bookmark search modes", () => {
   test<CustomTestContext>("rejects semantic search when its infrastructure is unavailable", async ({
     apiCallers,
   }) => {
-    searchMocks.buildInferenceClient.mockReturnValue(null);
+    searchMocks.buildEmbeddingClient.mockReturnValue(null);
     searchMocks.getVectorStoreClient.mockResolvedValue(null);
 
     await expect(
