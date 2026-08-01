@@ -367,6 +367,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       semanticSearch: val.SEMANTIC_SEARCH_ENABLED,
     },
     embedding: {
+      isConfigured:
+        !!val.OPENAI_API_KEY ||
+        !!val.OLLAMA_BASE_URL ||
+        !!val.EMBEDDING_OPENAI_BASE_URL,
       enableAutoIndexing:
         val.EMBEDDING_ENABLE_AUTO_INDEXING === undefined
           ? // Enabled by default if using the default inference configuration (based on OpenAI models)
@@ -606,7 +610,7 @@ export const clientConfig = {
     semanticSearchEnabled:
       serverConfig.experimentalFeatures.semanticSearch &&
       serverConfig.embedding.enableAutoIndexing &&
-      serverConfig.inference.isConfigured,
+      serverConfig.embedding.isConfigured,
   },
   stripe: {
     isConfigured: serverConfig.stripe.isConfigured,
