@@ -5,7 +5,7 @@ import type {
   ZReaderViewStatus,
 } from "@karakeep/shared/types/bookmarks";
 
-export const READER_VIEW_CLASSIFIER_VERSION = 2;
+export const READER_VIEW_CLASSIFIER_VERSION = 3;
 
 export interface ReaderViewAssessment {
   status: ZReaderViewStatus;
@@ -20,7 +20,7 @@ const NON_ARTICLE_SCHEMA_PATTERN =
   /"@type"\s*:\s*(?:\[[^\]]*)?"(?:Product|WebApplication|SearchResultsPage|ItemList)"/i;
 const CHALLENGE_PATTERN =
   /(?:verify (?:that )?you are human|checking your browser|captcha|access denied|enable javascript and cookies|security challenge)/i;
-const SENTENCE_END_PATTERN = /[.!?。！？](?:\s|$)/gu;
+const SENTENCE_END_PATTERN = /(?:[.!?](?:\s|$)|[。！？])/gu;
 
 function normalizedText(document: Document): string {
   return (document.body?.textContent ?? "").replace(/\s+/g, " ").trim();

@@ -17,6 +17,12 @@ export function getPreferredLinkPreview({
   crawlStatusCode,
   hasScreenshot,
 }: LinkPreviewSignals): ZPreferredLinkPreview {
+  const capturedChallengePage =
+    readerViewReasons?.includes("challenge_page") ?? false;
+  if (capturedChallengePage) {
+    return "overview";
+  }
+
   if (!readerViewStatus || readerViewStatus === "readable") {
     return "reader_view";
   }
@@ -24,10 +30,8 @@ export function getPreferredLinkPreview({
   const crawlSucceeded =
     crawlStatusCode === null ||
     (crawlStatusCode >= 200 && crawlStatusCode <= 299);
-  const capturedChallengePage =
-    readerViewReasons?.includes("challenge_page") ?? false;
 
-  if (hasScreenshot && crawlSucceeded && !capturedChallengePage) {
+  if (hasScreenshot && crawlSucceeded) {
     return "screenshot";
   }
 

@@ -130,7 +130,7 @@ describe("reader view assessment", () => {
       status: "unavailable",
       score: 0,
       reasons: ["no_extracted_content"],
-      classifierVersion: 2,
+      classifierVersion: 3,
     });
   });
 });
