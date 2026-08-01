@@ -4,8 +4,10 @@ import { AppState, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
+import { getFormSheetSurfaceOptions } from "@/lib/form-sheet-options";
 import { isIOS26 } from "@/lib/ios";
 import { useIsLoggedIn } from "@/lib/session";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { focusManager } from "@tanstack/react-query";
 
 function onAppStateChange(status: AppStateStatus) {
@@ -16,6 +18,8 @@ function onAppStateChange(status: AppStateStatus) {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { colors } = useColorScheme();
+  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
 
   const isLoggedIn = useIsLoggedIn();
   useEffect(() => {
@@ -73,6 +77,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="bookmarks/new"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "New Bookmark",
           headerBackTitle: "Back",
           headerTransparent: false,
@@ -88,6 +93,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="bookmarks/[slug]/manage_tags"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "Manage Tags",
           headerTransparent: false,
           headerLargeTitle: false,
@@ -102,6 +108,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="bookmarks/[slug]/manage_lists"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "Manage Lists",
           headerTransparent: false,
           headerLargeTitle: false,
@@ -116,6 +123,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="bookmarks/[slug]/info"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "Edit Bookmark",
           headerTransparent: false,
           headerLargeTitle: false,
@@ -129,6 +137,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="bookmarks/[slug]/highlights"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "Highlights",
           headerTransparent: false,
           headerLargeTitle: false,
@@ -142,6 +151,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="lists/new"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "New List",
           headerBackTitle: "Back",
           headerLargeTitle: false,
@@ -156,6 +166,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="lists/[slug]/edit"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "Edit List",
           headerBackTitle: "Back",
           headerLargeTitle: false,
@@ -178,6 +189,7 @@ export default function Dashboard() {
       <Stack.Screen
         name="settings/index"
         options={{
+          ...formSheetSurfaceOptions,
           headerTitle: "Settings",
           headerTransparent: false,
           headerLargeTitle: false,
@@ -209,6 +221,14 @@ export default function Dashboard() {
         options={{
           title: "Reader Settings",
           headerTitle: "Reader Settings",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen
+        name="settings/offline"
+        options={{
+          title: "Offline Content",
+          headerTitle: "Offline Content",
           headerBackTitle: "Back",
         }}
       />

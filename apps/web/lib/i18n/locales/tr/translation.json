@@ -332,6 +332,10 @@
           "users": {
             "label": "Yönetici: kullanıcılar",
             "description": "Yönetici kullanıcı yönetimine erişin."
+          },
+          "subscriptions": {
+            "label": "Yönetici: abonelikler",
+            "description": "Kullanıcı abonelik katmanlarını yönetin."
           }
         }
       }
@@ -522,7 +526,8 @@
         "processing": "İşleniyor",
         "staging": "Hazırlanıyor",
         "running": "Çalışıyor",
-        "paused": "Durduruldu"
+        "paused": "Durduruldu",
+        "archived": "Arşivlendi"
       },
       "badges": {
         "pending": "{{count}} beklemede",
@@ -559,7 +564,8 @@
         "no_results": "Bu filtre için sonuç bulunamadı.",
         "view_bookmark": "Yer işaretini görüntüle",
         "load_more": "Daha Fazla Yükle",
-        "no_title": "Başlık yok"
+        "no_title": "Başlık yok",
+        "archived_results": "Arşivlenen içe aktarma oturumları için tekil yer işareti sonuçları artık tutulmaz."
       },
       "finalize_dialog_title": "İçe Aktarma Oturumunu Sonlandır",
       "finalize_dialog_description": "\"{{name}}\" arka plan işlemi için kuyruğa alınsın mı? Hazırlanan yer işaretleri içe aktarılmaya başlanacak.",
@@ -673,6 +679,10 @@
         "admin_maintenance": {
           "title": "Yönetici Bakım İşleri",
           "description": "Yönetimsel temizlik ve varlık bakımı"
+        },
+        "embeddings": {
+          "title": "Yerleştirme İşleri",
+          "description": "Yer imi vektör yerleştirme oluşturma"
         }
       },
       "monitor_and_manage": "Arka plan iş kuyruklarını ve sistem işleme görevlerini izleyin ve yönetin",
@@ -707,7 +717,10 @@
         "migrate_large_link_html_content": "Büyük Satır İçi HTML İçeriğini Varlıklara Taşı",
         "recrawl_pending_links_only": "Sadece Bekleyen Bağlantıları Yeniden Tara",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Sadece Bekleyen Yer İşaretleri için Yapay Zeka Etiketlerini Yeniden Oluştur",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Sadece Bekleyen Yer İşaretleri için Yapay Zeka Özetlerini Yeniden Oluştur"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Sadece Bekleyen Yer İşaretleri için Yapay Zeka Özetlerini Yeniden Oluştur",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Yalnızca Bekleyen Yer İmleri İçin Yerleştirmeleri Yeniden Oluştur",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Yalnızca Başarısız Yer İmleri İçin Yerleştirmeleri Yeniden Oluştur",
+        "regenerate_embeddings_for_all_bookmarks": "Tüm Yer İmleri İçin Yerleştirmeleri Yeniden Oluştur"
       }
     },
     "actions": {
@@ -745,7 +758,8 @@
         "not_configured": "Yapılandırılmamış",
         "connected": "Bağlı",
         "disconnected": "Bağlantı Kesildi"
-      }
+      },
+      "vector_store": "Vektör Deposu"
     },
     "admin_tools": {
       "admin_tools": "Yönetici Araçları",
@@ -781,7 +795,10 @@
       "retag_queued": "Yeniden etiketleme işi sıraya alındı",
       "resummarize_queued": "Yeniden özetleme işi sıraya alındı",
       "view": "Görüntüle",
-      "fetch_error": "Yer işareti alınırken hata oluştu"
+      "fetch_error": "Yer işareti alınırken hata oluştu",
+      "embedding_status": "Yerleştirme Durumu",
+      "regenerate_embedding": "Yerleştirmeyi Yeniden Oluştur",
+      "regenerate_embedding_queued": "Yerleştirme yeniden oluşturma işi sıraya alındı"
     }
   },
   "options": {
@@ -1072,12 +1089,24 @@
     "lists": "Listeler",
     "feeds": "Akışlar",
     "is_from_source": "Kaynak",
-    "is_not_from_source": "Kaynak değil"
+    "is_not_from_source": "Kaynak değil",
+    "mode_label": "Arama modu",
+    "mode_label_description": "Karakeep'in eşleşen yer işaretlerini nasıl bulacağını seçin.",
+    "mode_keyword": "Anahtar kelime",
+    "mode_keyword_description": "Başlıklarda, içerikte, URL'lerde ve notlarda tam kelimeleri eşleştirin. Neredeyse anlık.",
+    "mode_hybrid": "Hibrit",
+    "mode_hybrid_description": "En iyi denge için tam eşleşmeleri ilgili fikirlerle harmanlayın. Anahtar kelime aramasından daha yavaştır.",
+    "mode_semantic": "Anlamsal",
+    "mode_semantic_description": "Ortak kelimeler olmasa bile kavramsal olarak benzer yer işaretlerini bulun. Anahtar kelime aramasından daha yavaştır.",
+    "keyword_placeholder": "Başlıklarda, metinlerde, URL'lerde ve etiketlerde ara…",
+    "hybrid_placeholder": "Kelimelere veya anlama göre ara…",
+    "semantic_placeholder": "Hatırladıklarınızı açıklayın…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "Bu yer işaretini silmek istediğinden emin misin?",
-      "delete_confirmation_title": "Yer İşaretini Silmek İstiyor Musun?"
+      "delete_confirmation_title": "Yer İşaretini Silmek İstiyor Musun?",
+      "bulk_delete_confirmation_description": "{{count}} yer imleğini silmek istediğinizden emin misiniz?"
     }
   },
   "banners": {
@@ -1166,5 +1195,28 @@
     "download": "İndir",
     "close": "Kapat",
     "generating": "Oluşturuluyor..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Klavye Kısayolları",
+    "sections": {
+      "navigation": "Gezinti",
+      "actions": "İşlemler",
+      "selection": "Seçim",
+      "other": "Diğer"
+    },
+    "move_left": "Sola taşı",
+    "move_down": "Aşağı taşı",
+    "move_up": "Yukarı taşı",
+    "move_right": "Sağa taşı",
+    "open_bookmark": "Yer imini aç",
+    "clear_focus": "Odağı temizle / toplu düzenlemeden çık",
+    "toggle_favorite": "Favorilere ekle/çıkar",
+    "toggle_archive": "Arşivle / Arşivden çıkar",
+    "delete_bookmark": "Yer imini sil",
+    "toggle_selection": "Seçimi değiştir",
+    "select_all": "Tümünü seç",
+    "deselect_all": "Seçimi kaldır",
+    "show_help": "Klavye kısayollarını göster",
+    "focus_search_alt": "Aramaya odaklan"
   }
 }

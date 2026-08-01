@@ -1,13 +1,14 @@
 import React from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
+import QueryPageState from "@/components/QueryPageState";
 import { RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react-native";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
@@ -36,7 +37,11 @@ const ListPickerPage = () => {
     });
   };
 
-  const { data: existingLists } = useQuery(
+  const {
+    data: existingLists,
+    error: existingListsError,
+    refetch: refetchExistingLists,
+  } = useQuery(
     api.lists.getListsOfBookmark.queryOptions(
       { bookmarkId },
       {
@@ -46,7 +51,7 @@ const ListPickerPage = () => {
     ),
   );
 
-  const { data } = useBookmarkLists();
+  const { data, error: listsError, refetch: refetchLists } = useBookmarkLists();
 
   const {
     mutate: addToList,
@@ -84,6 +89,18 @@ const ListPickerPage = () => {
   const filteredPaths = allPaths
     ?.filter((path) => path[path.length - 1].userRole !== "viewer")
     .filter((path) => path[path.length - 1].type !== "smart");
+
+  if (!existingLists || !data) {
+    return (
+      <QueryPageState
+        error={existingListsError ?? listsError}
+        onRetry={() => {
+          void refetchExistingLists();
+          void refetchLists();
+        }}
+      />
+    );
+  }
 
   return (
     <>

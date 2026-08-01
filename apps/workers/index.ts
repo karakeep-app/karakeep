@@ -6,6 +6,7 @@ import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
   BackupQueue,
+  EmbeddingsQueue,
   FeedQueue,
   initEventLogger,
   initTracing,
@@ -30,6 +31,7 @@ import { AdminMaintenanceWorker } from "./workers/adminMaintenanceWorker";
 import { AssetPreprocessingWorker } from "./workers/assetPreprocessingWorker";
 import { BackupSchedulingWorker, BackupWorker } from "./workers/backupWorker";
 import { CrawlerWorker } from "./workers/crawlerWorker";
+import { EmbeddingsWorker } from "./workers/embeddingsWorker";
 import { FeedRefreshingWorker, FeedWorker } from "./workers/feedWorker";
 import { ImportWorker } from "./workers/importWorker";
 import { OpenAiWorker } from "./workers/inference/inferenceWorker";
@@ -46,6 +48,10 @@ const workerBuilders = {
   lowPriorityCrawler: async () => {
     await LowPriorityCrawlerQueue.ensureInit();
     return CrawlerWorker.build(LowPriorityCrawlerQueue);
+  },
+  embeddings: async () => {
+    await EmbeddingsQueue.ensureInit();
+    return EmbeddingsWorker.build();
   },
   inference: async () => {
     await OpenAIQueue.ensureInit();

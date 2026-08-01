@@ -392,18 +392,22 @@ describe("getBookmarkIdsFromMatcher", () => {
 
   it("should handle type matcher", async () => {
     expect(
-      await getBookmarkIdsFromMatcher(mockCtx, {
-        type: "type",
-        typeName: BookmarkTypes.LINK,
-        inverse: false,
-      }),
+      (
+        await getBookmarkIdsFromMatcher(mockCtx, {
+          type: "type",
+          typeName: BookmarkTypes.LINK,
+          inverse: false,
+        })
+      ).sort(),
     ).toEqual(["b1", "b2", "b4"]);
     expect(
-      await getBookmarkIdsFromMatcher(mockCtx, {
-        type: "type",
-        typeName: BookmarkTypes.TEXT,
-        inverse: false,
-      }),
+      (
+        await getBookmarkIdsFromMatcher(mockCtx, {
+          type: "type",
+          typeName: BookmarkTypes.TEXT,
+          inverse: false,
+        })
+      ).sort(),
     ).toEqual(["b3", "b5"]);
     expect(
       await getBookmarkIdsFromMatcher(mockCtx, {
@@ -416,25 +420,31 @@ describe("getBookmarkIdsFromMatcher", () => {
 
   it("should handle type matcher with inverse=true", async () => {
     expect(
-      await getBookmarkIdsFromMatcher(mockCtx, {
-        type: "type",
-        typeName: BookmarkTypes.LINK,
-        inverse: true,
-      }),
+      (
+        await getBookmarkIdsFromMatcher(mockCtx, {
+          type: "type",
+          typeName: BookmarkTypes.LINK,
+          inverse: true,
+        })
+      ).sort(),
     ).toEqual(["b3", "b5", "b6"]);
     expect(
-      await getBookmarkIdsFromMatcher(mockCtx, {
-        type: "type",
-        typeName: BookmarkTypes.TEXT,
-        inverse: true,
-      }),
+      (
+        await getBookmarkIdsFromMatcher(mockCtx, {
+          type: "type",
+          typeName: BookmarkTypes.TEXT,
+          inverse: true,
+        })
+      ).sort(),
     ).toEqual(["b1", "b2", "b4", "b6"]);
     expect(
-      await getBookmarkIdsFromMatcher(mockCtx, {
-        type: "type",
-        typeName: BookmarkTypes.ASSET,
-        inverse: true,
-      }),
+      (
+        await getBookmarkIdsFromMatcher(mockCtx, {
+          type: "type",
+          typeName: BookmarkTypes.ASSET,
+          inverse: true,
+        })
+      ).sort(),
     ).toEqual(["b1", "b2", "b3", "b4", "b5"]);
   });
 

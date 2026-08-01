@@ -1,7 +1,6 @@
 import { FlatList, Pressable, View } from "react-native";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
-import FullPageError from "@/components/FullPageError";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import QueryPageState from "@/components/QueryPageState";
 import { Text } from "@/components/ui/Text";
 
 import type { BookmarkSearchState } from "@/lib/useBookmarkSearchState";
@@ -11,12 +10,14 @@ interface BookmarkSearchResultsProps {
   isInputFocused: boolean;
   state: BookmarkSearchState;
   onSelectHistory: (term: string) => void;
+  header?: React.ReactElement;
 }
 
 export default function BookmarkSearchResults({
   rawSearch,
   state,
   onSelectHistory,
+  header,
 }: BookmarkSearchResultsProps) {
   const {
     history,
@@ -30,10 +31,6 @@ export default function BookmarkSearchResults({
     isFetchingNextPage,
     onRefresh,
   } = state;
-
-  if (error) {
-    return <FullPageError error={error.message} onRetry={() => refetch()} />;
-  }
 
   const renderHistoryItem = ({ item }: { item: string }) => (
     <Pressable
@@ -52,15 +49,18 @@ export default function BookmarkSearchResults({
         renderItem={renderHistoryItem}
         keyExtractor={(item, index) => `${item}-${index}`}
         ListHeaderComponent={
-          <View className="flex-row items-center justify-between p-3">
-            <Text className="text-sm font-bold text-gray-500">
-              Recent Searches
-            </Text>
-            {history.length > 0 && (
-              <Pressable onPress={clearHistory}>
-                <Text className="text-sm text-blue-500">Clear</Text>
-              </Pressable>
-            )}
+          <View>
+            {header}
+            <View className="flex-row items-center justify-between p-3">
+              <Text className="text-sm font-bold text-gray-500">
+                Recent Searches
+              </Text>
+              {history.length > 0 && (
+                <Pressable onPress={clearHistory}>
+                  <Text className="text-sm text-blue-500">Clear</Text>
+                </Pressable>
+              )}
+            </View>
           </View>
         }
         ListEmptyComponent={
@@ -73,21 +73,18 @@ export default function BookmarkSearchResults({
     );
   }
 
-  if (isPending) {
-    return <FullPageSpinner />;
+  if (!data) {
+    return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
-  if (data) {
-    return (
-      <BookmarkList
-        bookmarks={data.pages.flatMap((p) => p.bookmarks)}
-        fetchNextPage={fetchNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-        onRefresh={onRefresh}
-        isRefreshing={isPending}
-      />
-    );
-  }
-
-  return null;
+  return (
+    <BookmarkList
+      bookmarks={data.pages.flatMap((p) => p.bookmarks)}
+      fetchNextPage={fetchNextPage}
+      isFetchingNextPage={isFetchingNextPage}
+      onRefresh={onRefresh}
+      isRefreshing={isPending}
+      header={header}
+    />
+  );
 }

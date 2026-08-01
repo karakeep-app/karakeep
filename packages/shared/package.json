@@ -6,14 +6,15 @@
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1014.0",
+    "cheerio": "^1.2.0",
     "glob": "^11.0.0",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
-    "nodemailer": "^7.0.4",
+    "nodemailer": "^7.0.13",
     "ollama": "^0.5.14",
     "openai": "^6.34.0",
     "typescript-parsec": "^0.3.4",
-    "undici": "^6.23.0",
+    "undici": "^6.28.0",
     "winston": "^3.11.0",
     "zod": "^4.0.0"
   },

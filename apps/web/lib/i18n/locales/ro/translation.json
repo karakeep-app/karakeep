@@ -1,0 +1,1190 @@
+{
+  "common": {
+    "id": "ID",
+    "url": "URL",
+    "default": "Implicit",
+    "name": "Nume",
+    "email": "Email",
+    "password": "Parolă",
+    "action": "Acțiune",
+    "actions": "Acțiuni",
+    "created_at": "Creat la",
+    "updated_at": "Actualizat la",
+    "last_used": "Ultima utilizare",
+    "key": "Cheie",
+    "role": "Rol",
+    "type": "Tip",
+    "size": "Dimensiune",
+    "roles": {
+      "user": "Utilizator",
+      "admin": "Administrator"
+    },
+    "something_went_wrong": "Ceva nu a mers bine",
+    "experimental": "Experimental",
+    "search": "Căutare",
+    "tags": "Etichete",
+    "note": "Notă",
+    "attachments": "Atașamente",
+    "highlights": "Evidențieri",
+    "source": "Sursă",
+    "screenshot": "Captură de ecran",
+    "pdf": "PDF arhivat",
+    "video": "Video",
+    "archive": "Arhivă",
+    "home": "Acasă",
+    "title": "Titlu",
+    "description": "Descriere",
+    "summary": "Rezumat",
+    "bookmark_types": {
+      "title": "Tip semn de carte",
+      "link": "Link",
+      "text": "Text",
+      "media": "Media"
+    },
+    "quota": "Cotă",
+    "bookmarks": "Semne de carte",
+    "storage": "Stocare"
+  },
+  "layouts": {
+    "masonry": "Carduri",
+    "grid": "Grilă",
+    "list": "Listă",
+    "compact": "Compact"
+  },
+  "view_options": {
+    "title": "Opțiuni Afișare",
+    "layout": "Aspect",
+    "columns": "Coloane",
+    "display_options": "Opțiuni Afișare",
+    "show_note_previews": "Afișare note",
+    "show_tags": "Afișare etichete",
+    "show_title": "Afișare titlu",
+    "image_options": "Opțiuni imagini",
+    "image_fit_cover": "Acoperire (Umplere)",
+    "image_fit_contain": "Încadrare (Potrivire)"
+  },
+  "actions": {
+    "change_layout": "Schimbă aspectul",
+    "archive": "Arhivează",
+    "unarchive": "Dezarhivează",
+    "favorite": "Adaugă la favorite",
+    "unfavorite": "Elimină din favorite",
+    "delete": "Șterge",
+    "toggle_show_archived": "Afișează arhivate",
+    "refresh": "Actualizare",
+    "recrawl": "Reindexare",
+    "offline_copies": "Copii offline",
+    "preserve_offline_archive": "Păstrează arhiva offline",
+    "download_full_page_archive_file": "Descarcă fișierul arhivat",
+    "preserve_as_pdf": "Păstrează ca PDF",
+    "download_pdf_file": "Descarcă fișierul PDF",
+    "edit_tags": "Editează etichetele",
+    "edit_notes": "Editează notele",
+    "add_to_list": "Adaugă în listă",
+    "select_all": "Selectează tot",
+    "unselect_all": "Deselectează tot",
+    "copy_link": "Copiază linkul",
+    "close_bulk_edit": "Închide editarea în masă",
+    "bulk_edit": "Editare în masă",
+    "manage_lists": "Gestionați listele",
+    "remove_from_list": "Elimină din listă",
+    "save": "Salvează",
+    "add": "Adaugă",
+    "remove": "Elimină",
+    "edit": "Editează",
+    "rename": "Redenumește",
+    "confirm": "Confirmă",
+    "open_editor": "Deschide editorul",
+    "create": "Creează",
+    "fetch_now": "Preia acum",
+    "summarize_with_ai": "Rezumat cu AI",
+    "edit_title": "Editează titlul",
+    "sign_out": "Deconectare",
+    "close": "Închide",
+    "merge": "Îmbină",
+    "cancel": "Anulează",
+    "regenerate": "Regenerează",
+    "apply_all": "Aplică tot",
+    "ignore": "Ignoră",
+    "more": "Mai multe",
+    "replace_banner": "Înlocuiește bannerul",
+    "add_banner": "Adaugă banner",
+    "download": "Descarcă",
+    "sort": {
+      "title": "Sortare",
+      "relevant_first": "Cele mai relevante primele",
+      "newest_first": "Cele mai noi primele",
+      "oldest_first": "Cele mai vechi primele"
+    },
+    "load_more": "Încarcă mai multe"
+  },
+  "highlights": {
+    "no_highlights": "Nu ai încă nicio evidențiere."
+  },
+  "settings": {
+    "back_to_app": "Înapoi la aplicație",
+    "user_settings": "Setări utilizator",
+    "info": {
+      "user_info": "Informații utilizator",
+      "basic_details": "Detalii de bază",
+      "change_password": "Schimbă parola",
+      "current_password": "Parola curentă",
+      "new_password": "Parolă nouă",
+      "confirm_new_password": "Confirmă parola nouă",
+      "options": "Opțiuni",
+      "interface_lang": "Limba interfeței",
+      "avatar": {
+        "title": "Avatar",
+        "description": "Încarcă o imagine pătrată pentru a o folosi ca avatar.",
+        "upload": "Încarcă avatarul",
+        "change": "Schimbă avatarul",
+        "remove": "Elimină avatarul",
+        "remove_confirm_title": "Elimini avatarul?",
+        "remove_confirm_description": "Această acțiune va șterge fotografia actuală de profil.",
+        "updated": "Avatar actualizat",
+        "removed": "Avatar eliminat"
+      },
+      "user_settings": {
+        "user_settings_updated": "Setările utilizatorului au fost actualizate!",
+        "bookmark_click_action": {
+          "title": "Acțiune la clic pe semn de carte",
+          "open_external_url": "Deschide URL-ul original",
+          "open_bookmark_details": "Deschide detaliile semnului de carte"
+        },
+        "archive_display_behaviour": {
+          "title": "Semne de carte arhivate",
+          "show": "Afișează semnele de carte arhivate în etichete și liste",
+          "hide": "Ascunde semnele de carte arhivate în etichete și liste"
+        }
+      },
+      "reader_settings": {
+        "title": "Setări cititor",
+        "description": "Configurează setările implicite de text pentru modul de citire. Aceste setări se sincronizează pe toate dispozitivele tale.",
+        "font_family": "Familie font",
+        "font_size": "Dimensiune font",
+        "line_height": "Înălțime rând",
+        "save_as_default": "Salvează ca implicit",
+        "clear_defaults": "Șterge toate valorile implicite",
+        "not_set": "Nespecificat",
+        "using_default": "Se folosește setarea implicită a clientului",
+        "preview": "Previzualizare",
+        "preview_text": "Vulpea maronie cea rapidă sare peste câinele cel leneș. Așa va apărea textul în modul de citire.",
+        "defaults_cleared": "Setările implicite pentru citire au fost șterse",
+        "local_overrides_title": "Setări specifice dispozitivului active",
+        "local_overrides_description": "Acest dispozitiv are setări de citire care diferă de setările tale globale implicite:",
+        "local_overrides_cleared": "Setările specifice dispozitivului au fost șterse",
+        "clear_local_overrides": "Șterge setările dispozitivului",
+        "serif": "Serif",
+        "sans": "Sans Serif",
+        "mono": "Monospace",
+        "tooltip_default": "Setări de citire",
+        "tooltip_preview": "Modificări de previzualizare nesalvate",
+        "tooltip_local": "Setările dispozitivului diferă de cele globale",
+        "tooltip_preview_and_local": "Modificări de previzualizare nesalvate; setările dispozitivului diferă de cele globale",
+        "reset_preview": "Resetează previzualizarea",
+        "save_to_device": "Acest dispozitiv",
+        "save_to_all_devices": "Toate dispozitivele",
+        "save_hint": "Salvează setările doar pentru acest dispozitiv sau sincronizează-le pe toate dispozitivele",
+        "adjust_hint": "Ajustează setările de mai sus pentru a previzualiza modificările",
+        "clear_override_hint": "Șterge ignorarea dispozitivului pentru a utiliza setarea globală ({{value}})",
+        "preview_inline": "(previzualizare)"
+      }
+    },
+    "stats": {
+      "usage_statistics": "Statistici de utilizare",
+      "insights_description": "Informații despre obiceiurile tale de marcare și colecția ta",
+      "failed_to_load": "Încărcarea statisticilor a eșuat",
+      "overview": {
+        "total_bookmarks": "Total semne de carte",
+        "all_saved_items": "Toate elementele salvate",
+        "favorites": "Favorite",
+        "starred_bookmarks": "Semne de carte cu stea",
+        "archived": "Arhivate",
+        "archived_items": "Elemente arhivate",
+        "tags": "Etichete",
+        "unique_tags_created": "Etichete unice create",
+        "lists": "Liste",
+        "bookmark_collections": "Colecții de semne de carte",
+        "highlights": "Sublinieri",
+        "text_highlights": "Sublinieri de text",
+        "storage_used": "Spațiu de stocare utilizat",
+        "total_asset_storage": "Total stocare fișiere",
+        "this_month": "Luna aceasta",
+        "bookmarks_added": "Semne de carte adăugate"
+      },
+      "bookmark_types": {
+        "title": "Tipuri de semne de carte",
+        "links": "Linkuri",
+        "text_notes": "Notițe text",
+        "assets": "Fișiere"
+      },
+      "recent_activity": {
+        "title": "Activitate recentă",
+        "this_week": "Săptămâna aceasta",
+        "this_month": "Luna aceasta",
+        "this_year": "Anul acesta"
+      },
+      "top_domains": {
+        "title": "Domenii de top",
+        "no_domains_found": "Nu s-au găsit domenii"
+      },
+      "most_used_tags": {
+        "title": "Cele mai utilizate etichete",
+        "no_tags_found": "Nu s-au găsit etichete"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "Activitate pe oră",
+        "activity_by_day": "Activitate pe zi"
+      },
+      "storage_breakdown": {
+        "title": "Analiza stocării"
+      },
+      "bookmark_sources": {
+        "title": "Surse semne de carte",
+        "empty": "Nu sunt disponibile date despre surse"
+      }
+    },
+    "ai": {
+      "ai_settings": "Setări AI",
+      "auto_tagging": "Etichetare automată",
+      "auto_tagging_description": "Generează automat etichete pentru semnele tale de carte folosind AI.",
+      "auto_summarization": "Rezumat automat",
+      "auto_summarization_description": "Generează automat rezumate pentru semnele tale de carte folosind AI.",
+      "tagging_rules": "Reguli de etichetare",
+      "tagging_rule_description": "Prompturile pe care le adăugați aici vor fi incluse ca reguli pentru model în timpul generării etichetelor. Puteți vizualiza prompturile finale în secțiunea de previzualizare a promptului.",
+      "prompt_preview": "Previzualizare Prompt",
+      "text_prompt": "Prompt Text",
+      "images_prompt": "Prompt Imagine",
+      "summarization_prompt": "Prompt Rezumat",
+      "all_tagging": "Toate etichetările",
+      "text_tagging": "Etichetare text",
+      "image_tagging": "Etichetare imagine",
+      "summarization": "Rezumat",
+      "tag_style": "Stil etichetă",
+      "tag_style_description": "Alegeți modul în care doriți să fie formatate etichetele generate automat.",
+      "lowercase_hyphens": "Litere mici cu cratime",
+      "lowercase_spaces": "Litere mici cu spații",
+      "lowercase_underscores": "Litere mici cu sublinieri",
+      "titlecase_spaces": "Scris cu majuscule și spații",
+      "titlecase_hyphens": "Scris cu majuscule și cratime",
+      "camelCase": "camelCase",
+      "no_preference": "Nicio preferință",
+      "inference_language": "Limba de inferență",
+      "inference_language_description": "Alegeți limba pentru etichetele și rezumatele generate de AI.",
+      "curated_tags": "Etichete selectate",
+      "curated_tags_description": "Opțional, restricționați etichetarea AI pentru a utiliza doar etichete din această listă. Când nu sunt selectate etichete, AI-ul generează etichete liber.",
+      "curated_tags_updated": "Etichetele selectate au fost actualizate cu succes!",
+      "curated_tags_update_failed": "Actualizarea etichetelor selectate a eșuat"
+    },
+    "webhooks": {
+      "description": "Puteți utiliza webhook-uri pentru a declanșa acțiuni atunci când semnele de carte sunt create, modificate sau parcurse.",
+      "webhooks": "Webhook-uri",
+      "events": {
+        "title": "Evenimente",
+        "crawled": "Parcurs",
+        "created": "Creat",
+        "edited": "Editat"
+      },
+      "auth_token": "Token de autentificare",
+      "add_auth_token": "Adăugați token de autentificare",
+      "edit_auth_token": "Editare jeton de autentificare",
+      "create_webhook": "Creare Webhook",
+      "delete_webhook": "Ștergere Webhook",
+      "delete_webhook_confirmation": "Sigur doriți să ștergeți acest webhook?",
+      "edit_webhook": "Editare Webhook",
+      "webhook_url": "URL Webhook"
+    },
+    "feeds": {
+      "rss_subscriptions": "Abonamente RSS",
+      "add_a_subscription": "Adăugați un abonament",
+      "feed_enabled": "Flux RSS activat",
+      "feed_disabled": "Flux RSS dezactivat"
+    },
+    "import": {
+      "import_export": "Import / Export",
+      "import_export_bookmarks": "Import / Export semne de carte",
+      "import_bookmarks_from_html_file": "Import semne de carte din fișier HTML",
+      "import_bookmarks_from_pocket_export": "Import semne de carte din export Pocket",
+      "import_bookmarks_from_matter_export": "Import semne de carte din export Matter",
+      "import_bookmarks_from_omnivore_export": "Import semne de carte din export Omnivore",
+      "import_bookmarks_from_linkwarden_export": "Import semne de carte din export Linkwarden",
+      "import_bookmarks_from_karakeep_export": "Import semne de carte din export Karakeep",
+      "import_bookmarks_from_tab_session_manager_export": "Import semne de carte din Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "Import semne de carte din export mymind",
+      "import_bookmarks_from_instapaper_export": "Import semne de carte din export Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "Import semne de carte din export Readwise Reader",
+      "import_bookmarks_from_onetab_export": "Import semne de carte din export OneTab",
+      "export_links_and_notes": "Export linkuri și note",
+      "imported_bookmarks": "Semne de carte importate"
+    },
+    "api_keys": {
+      "api_keys": "Chei API",
+      "new_api_key": "Cheie API nouă",
+      "new_api_key_desc": "Oferiți cheii API un nume unic",
+      "key_success": "Cheia a fost creată cu succes",
+      "key_success_please_copy": "Vă rugăm să copiați cheia și să o stocați într-un loc sigur. După ce închideți dialogul, nu o veți mai putea accesa.",
+      "regenerate_api_key": "Regenerare cheie API",
+      "key_regenerated": "Cheia a fost regenerată cu succes",
+      "key_regenerated_please_copy": "Vă rugăm să copiați noua cheie și să o stocați într-un loc sigur. Vechea cheie a fost revocată și nu va mai funcționa.",
+      "regenerate_warning": "Sigur doriți să regenerați cheia API „{{name}}”?",
+      "regenerate_confirmation": "Această acțiune va revoca cheia actuală și va genera una nouă. Orice aplicație care utilizează cheia actuală va înceta să funcționeze.",
+      "scopes": {
+        "scopes": "Domenii de acces",
+        "choose_at_least_one": "Alegeți cel puțin un domeniu de acces sau selectați acces complet.",
+        "scope_details": "Detalii domeniu {{scope}}",
+        "access": {
+          "none": "Niciunul",
+          "read": "Citire",
+          "readwrite": "Citire/scriere"
+        },
+        "full_access": {
+          "label": "Acces complet",
+          "description": "Accesează toate operațiunile API acceptate."
+        },
+        "limited_scopes": {
+          "label": "Domenii limitate",
+          "description": "Alege tipurile de resurse pe care această cheie le poate accesa."
+        },
+        "resources": {
+          "assets": {
+            "label": "Fișiere",
+            "description": "Accesează fișierele și alt conținut stocat al semnelor de carte."
+          },
+          "backups": {
+            "label": "Copiile de rezervă",
+            "description": "Gestionează copiile de rezervă ale contului."
+          },
+          "bookmarks": {
+            "label": "Semne de carte",
+            "description": "Accesează și gestionează semnele de carte."
+          },
+          "feeds": {
+            "label": "Fluxuri",
+            "description": "Gestionează fluxurile RSS și datele conexe acestora."
+          },
+          "highlights": {
+            "label": "Evidențieri",
+            "description": "Gestionează evidențierile salvate ale semnelor de carte."
+          },
+          "lists": {
+            "label": "Liste",
+            "description": "Gestionează listele și apartenența la liste."
+          },
+          "prompts": {
+            "label": "Instrucțiuni",
+            "description": "Gestionează configurația salvată a instrucțiunilor AI."
+          },
+          "rules": {
+            "label": "Reguli",
+            "description": "Accesează regulile de automatizare."
+          },
+          "tags": {
+            "label": "Etichete",
+            "description": "Accesează și modifică etichetele."
+          },
+          "users": {
+            "label": "Cont utilizator",
+            "description": "Accesează profilul și setările contului."
+          },
+          "webhooks": {
+            "label": "Webhook-uri",
+            "description": "Accesează configurarea webhook-urilor."
+          },
+          "subscriptions": {
+            "label": "Abonamente",
+            "description": "Accesează gestionarea abonamentelor."
+          },
+          "importSessions": {
+            "label": "Sesiuni de import",
+            "description": "Accesează sesiunile de import."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "Admin: semne de carte",
+            "description": "Accesează instrumentele administrative pentru semne de carte."
+          },
+          "jobs": {
+            "label": "Admin: sarcini",
+            "description": "Accesează comenzile pentru sarcinile de fundal."
+          },
+          "subscriptions": {
+            "label": "Admin: abonamente",
+            "description": "Gestionează nivelurile de abonament ale utilizatorilor."
+          },
+          "system": {
+            "label": "Admin: sistem",
+            "description": "Accesează starea sistemului și diagnosticarea."
+          },
+          "users": {
+            "label": "Admin: utilizatori",
+            "description": "Accesează gestionarea administrativă a utilizatorilor."
+          }
+        }
+      }
+    },
+    "broken_links": {
+      "broken_links": "Linkuri nefuncționale",
+      "last_crawled_at": "Ultima scanare la",
+      "crawling_status": "Stare scanare",
+      "crawling_failed": "Indexarea a eșuat"
+    },
+    "manage_assets": {
+      "manage_assets": "Gestionare active",
+      "no_assets": "Nu aveți încă niciun activ.",
+      "asset_type": "Tip activ",
+      "bookmark_link": "Link semn de carte",
+      "asset_link": "Link activ",
+      "delete_asset": "Șterge activul",
+      "delete_asset_confirmation": "Sigur doriți să ștergeți acest activ?"
+    },
+    "rules": {
+      "rules": "Motor de reguli",
+      "rule_name": "Nume regulă",
+      "description": "Puteți utiliza reguli pentru a declanșa acțiuni atunci când are loc un eveniment.",
+      "ceate_rule": "Creare regulă",
+      "edit_rule": "Editare regulă",
+      "save_rule": "Salvare regulă",
+      "delete_rule": "Șterge regula",
+      "delete_rule_confirmation": "Sigur doriți să ștergeți această regulă?",
+      "whenever": "Ori de câte ori...",
+      "if": "Dacă...",
+      "enter_rule_name": "Introduceți numele regulii",
+      "describe_what_this_rule_does": "Descrieți ce face această regulă",
+      "rule_has_been_created": "Regula a fost creată!",
+      "rule_has_been_updated": "Regula a fost actualizată!",
+      "rule_has_been_deleted": "Regula a fost ștearsă!",
+      "no_rules_created_yet": "Nu a fost creată nicio regulă încă",
+      "create_your_first_rule": "Creați prima regulă pentru a vă automatiza fluxul de lucru",
+      "conditions_types": {
+        "always": "Întotdeauna",
+        "url_contains": "URL-ul conține",
+        "url_does_not_contain": "URL-ul nu conține",
+        "title_contains": "Titlul conține",
+        "title_does_not_contain": "Titlul nu conține",
+        "imported_from_feed": "Importat din flux",
+        "bookmark_type_is": "Tipul semnului de carte este",
+        "bookmark_source_is": "Sursa semnului de carte este",
+        "has_tag": "Are etichetă",
+        "is_favourited": "Este la favorite",
+        "is_archived": "Este arhivat",
+        "and": "Toate următoarele sunt adevărate",
+        "or": "Oricare dintre următoarele sunt adevărate"
+      },
+      "actions_types": {
+        "add_tag": "Adăugare etichetă",
+        "remove_tag": "Eliminare etichetă",
+        "add_to_list": "Adaugă la listă",
+        "remove_from_list": "Elimină din listă",
+        "download_full_page_archive": "Descarcă arhiva paginii complete",
+        "favourite_bookmark": "Adaugă semnul de carte la favorite",
+        "archive_bookmark": "Arhivează semnul de carte"
+      },
+      "events_types": {
+        "bookmark_added": "Un semn de carte este adăugat",
+        "tag_added": "Această etichetă este adăugată la un semn de carte",
+        "tag_removed": "Această etichetă este eliminată dintr-un semn de carte",
+        "added_to_list": "Un semn de carte este adăugat la această listă",
+        "removed_from_list": "Un semn de carte este eliminat din această listă",
+        "favourited": "Un semn de carte este adăugat la favorite",
+        "archived": "Un semn de carte este arhivat"
+      }
+    },
+    "subscription": {
+      "subscription": "Abonament",
+      "manage_subscription": "Gestionați abonamentul și informațiile de facturare",
+      "current_plan": "Plan curent",
+      "billing_period": "Perioadă de facturare",
+      "paid_plan": "Plan plătit",
+      "unlock_bigger_quota": "Deblocați o cotă mai mare și susțineți proiectul",
+      "subscribe_now": "Abonează-te acum",
+      "manage_billing": "Gestionare facturare",
+      "subscription_canceled": "Abonamentul tău a fost anulat și se va încheia la data de {{date}}. Te poți reabona oricând.",
+      "usage_quotas": "Utilizare și cote",
+      "track_usage": "Urmărește utilizarea curentă în raport cu limitele planului tău",
+      "total_bookmarks_saved": "Total semne de carte salvate",
+      "assets_file_storage": "Active și stocare fișiere",
+      "unlimited_usage": "Utilizare nelimitată",
+      "quota_limit_reached": "Limită de cotă atinsă",
+      "approaching_quota_limit": "Aproape de limita cotei",
+      "loading_usage": "Se încarcă informațiile despre utilizare...",
+      "free": "Gratuit",
+      "paid": "Plătit",
+      "monthly": "Lunar",
+      "yearly": "Anual",
+      "per_month": "lună",
+      "per_year": "an",
+      "excl_vat": "fără TVA",
+      "yearly_savings": "Economisește {{percent}}%",
+      "pro_feature_bookmarks": "50.000 de semne de carte",
+      "pro_feature_storage": "50 GB stocare",
+      "pro_feature_ai_tagging": "Etichetare asistată de AI",
+      "pro_feature_full_text_search": "Căutare în text integral"
+    },
+    "import_sessions": {
+      "title": "Sesiuni de import",
+      "description": "Vizualizați și gestionați sesiunile de import în masă. Sesiunile sunt create automat atunci când importați semne de carte.",
+      "load_error": "Încărcarea sesiunilor de import a eșuat",
+      "no_sessions": "Nu există încă sesiuni de import",
+      "no_sessions_detail": "Sesiunile de import vor apărea aici automat atunci când importați semne de carte",
+      "created_at": "Creat la {{time}}",
+      "progress": "Progres",
+      "status": {
+        "staging": "Pregătire",
+        "pending": "În așteptare",
+        "running": "În desfășurare",
+        "paused": "Întrerupt",
+        "completed": "Finalizat",
+        "failed": "Eșuat",
+        "archived": "Arhivat"
+      },
+      "badges": {
+        "pending": "{{count}} în așteptare",
+        "processing": "{{count}} în procesare",
+        "completed": "{{count}} finalizate",
+        "failed": "{{count}} eșuate"
+      },
+      "imported_to": "Importat în:",
+      "view_list": "Vizualizare listă",
+      "delete_dialog_title": "Ștergere sesiune de import",
+      "delete_dialog_description": "Sigur doriți să ștergeți „{{name}}”? Această acțiune nu poate fi anulată. Semnele de carte propriu-zise nu vor fi șterse.",
+      "finalize_dialog_title": "Finalizare sesiune de import",
+      "finalize_dialog_description": "Adăugați „{{name}}” în coada de procesare în fundal? Semnele de carte pregătite vor începe să fie importate.",
+      "delete_session": "Ștergere sesiune",
+      "finalize_staging": "Finalizare",
+      "pause_session": "Pauză",
+      "resume_session": "Reluare",
+      "view_details": "Vizualizare detalii",
+      "detail": {
+        "page_title": "Detalii sesiune de import",
+        "back_to_import": "Înapoi la import",
+        "filter_all": "Toate",
+        "filter_accepted": "Acceptate",
+        "filter_rejected": "Respinse",
+        "filter_duplicates": "Duplicate",
+        "filter_pending": "În așteptare",
+        "table_title": "Titlu / URL",
+        "table_type": "Tip",
+        "table_result": "Rezultat",
+        "table_reason": "Motiv",
+        "table_bookmark": "Semn de carte",
+        "result_accepted": "Acceptat",
+        "result_rejected": "Respins",
+        "result_skipped_duplicate": "Duplicat",
+        "result_pending": "În așteptare",
+        "result_processing": "Se procesează",
+        "no_results": "Nu au fost găsite rezultate pentru acest filtru.",
+        "archived_results": "Rezultatele individuale pentru semnele de carte nu mai sunt păstrate pentru sesiunile de import arhivate.",
+        "view_bookmark": "Vizualizează semn de carte",
+        "load_more": "Încarcă mai multe",
+        "no_title": "Fără titlu"
+      }
+    },
+    "backups": {
+      "backups": "Copii de rezervă",
+      "page_title": "Copii de rezervă",
+      "page_description": "Creează și gestionează automat copii de rezervă ale semnelor tale de carte. Copiile de rezervă sunt comprimate și stocate în siguranță.",
+      "configuration": {
+        "title": "Configurare copie de rezervă",
+        "enable_automatic_backups": "Activează copiile de rezervă automate",
+        "enable_automatic_backups_description": "Creează automat copii de rezervă ale semnelor tale de carte",
+        "backup_frequency": "Frecvența copiilor de rezervă",
+        "backup_frequency_description": "Cât de des ar trebui create copiile de rezervă",
+        "retention_period": "Perioadă de retenție (zile)",
+        "retention_period_description": "Câte zile să fie păstrate copiile de rezervă înainte de a fi șterse",
+        "frequency": {
+          "daily": "Zilnic",
+          "weekly": "Săptămânal"
+        },
+        "select_frequency": "Selectați frecvența",
+        "save_settings": "Salvează setările"
+      },
+      "list": {
+        "title": "Copiile tale de rezervă",
+        "create_backup_now": "Creează copie de rezervă acum",
+        "no_backups": "Nu aveți încă nicio copie de rezervă. Activați copiile de rezervă automate sau creați una manual.",
+        "table": {
+          "created_at": "Creat la",
+          "bookmarks": "Semne de carte",
+          "size": "Dimensiune",
+          "status": "Stare",
+          "actions": "Acțiuni"
+        },
+        "status": {
+          "success": "Succes",
+          "failed": "Eșuat",
+          "pending": "În așteptare"
+        },
+        "actions": {
+          "download_backup": "Descarcă copia de rezervă",
+          "delete_backup": "Șterge copia de rezervă"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "Ștergeți copia de rezervă?",
+        "delete_backup_description": "Sigur doriți să ștergeți această copie de rezervă? Această acțiune nu poate fi anulată."
+      },
+      "toasts": {
+        "backup_queued": "Sarcina de rezervă a fost adăugată în coadă! Va fi procesată în scurt timp.",
+        "backup_deleted": "Copia de rezervă a fost ștearsă!"
+      }
+    }
+  },
+  "admin": {
+    "admin_settings": "Setări administrator",
+    "server_stats": {
+      "server_stats": "Statistici server",
+      "total_users": "Total utilizatori",
+      "total_bookmarks": "Total semne de carte",
+      "server_version": "Versiune server"
+    },
+    "service_connections": {
+      "title": "Conexiuni servicii",
+      "description": "Monitorizați starea de sănătate și conectivitatea dependențelor sistemelor externe",
+      "search_engine": "Motor de căutare",
+      "browser": "Browser",
+      "queue_system": "Sistem de cozi",
+      "vector_store": "Vector Store",
+      "status": {
+        "not_configured": "Neconfigurat",
+        "connected": "Conectat",
+        "disconnected": "Deconectat"
+      }
+    },
+    "background_jobs": {
+      "jobs": {
+        "crawler": {
+          "title": "Sarcini crawler",
+          "description": "Indexarea web și extragerea conținutului din URL-uri"
+        },
+        "inference": {
+          "title": "Sarcini de inferență",
+          "description": "Etichetare și sumarizare a conținutului asistate de AI"
+        },
+        "indexing": {
+          "title": "Sarcini de indexare",
+          "description": "Actualizări ale indexului de căutare"
+        },
+        "embeddings": {
+          "title": "Sarcini de embedding",
+          "description": "Generarea vectorilor de embedding pentru semne de carte"
+        },
+        "asset_preprocessing": {
+          "title": "Sarcini de preprocesare a activelor",
+          "description": "Preprocesare de imagini și documente (capturi de ecran, extragere de text etc.)"
+        },
+        "admin_maintenance": {
+          "title": "Sarcini de mentenanță admin",
+          "description": "Curățare administrativă și mentenanță active"
+        },
+        "video": {
+          "title": "Sarcini de descărcare video",
+          "description": "Extragere și descărcare video"
+        },
+        "webhook": {
+          "title": "Sarcini Webhook",
+          "description": "Notificări webhook externe"
+        },
+        "feed": {
+          "title": "Sarcini fluxuri RSS",
+          "description": "Procesare fluxuri RSS și actualizări de conținut"
+        }
+      },
+      "background_jobs": "Sarcini de fundal",
+      "monitor_and_manage": "Monitorizați și gestionați cozile de sarcini de fundal și sarcinile de procesare a sistemului",
+      "active": "Active",
+      "available_actions": "Acțiuni disponibile",
+      "status": {
+        "title": "Înțelegerea stărilor sarcinilor",
+        "queued": {
+          "title": "În așteptare",
+          "description": "Sarcini care așteaptă la rând să fie procesate. Acestea vor începe automat când resursele devin disponibile."
+        },
+        "unprocessed": {
+          "title": "Neprocesate",
+          "description": "Semne de carte care nu au fost încă procesate. Cel mai probabil sunt deja adăugate în coadă pentru procesare; dacă nu, ar putea fi necesar să le reintroduceți manual în coadă."
+        },
+        "failed": {
+          "title": "Eșuate",
+          "description": "Semne de carte care au întâmpinat erori în timpul procesării. Acestea pot necesita atenție manuală."
+        }
+      },
+      "actions": {
+        "recrawl_pending_links_only": "Re-indexează doar linkurile în așteptare",
+        "recrawl_failed_links_only": "Re-indexează doar linkurile eșuate",
+        "recrawl_all_links": "Re-indexează toate linkurile",
+        "without_inference": "Fără inferență",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerează etichetele AI doar pentru semnele de carte în așteptare",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerează etichetele AI doar pentru semnele de carte eșuate",
+        "regenerate_ai_tags_for_all_bookmarks": "Regenerează etichetele AI pentru toate semnele de carte",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerează rezumatele AI doar pentru semnele de carte în așteptare",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerează rezumatele AI doar pentru semnele de carte eșuate",
+        "regenerate_ai_summaries_for_all_bookmarks": "Regenerează rezumatele AI pentru toate semnele de carte",
+        "reindex_all_bookmarks": "Reindexează toate semnele de carte",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Regenerează embedding-urile doar pentru semnele de carte în așteptare",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Regenerează embedding-urile doar pentru semnele de carte eșuate",
+        "regenerate_embeddings_for_all_bookmarks": "Regenerează embedding-urile pentru toate semnele de carte",
+        "clean_assets": "Curățare active orfane și resincronizare metadate",
+        "migrate_large_link_html_content": "Mutare conținut HTML inline mare în active",
+        "reprocess_assets_fix_mode": "Reprocesare active neprocesate"
+      }
+    },
+    "users_list": {
+      "users_list": "Listă utilizatori",
+      "create_user": "Creare utilizator",
+      "change_role": "Schimbare rol",
+      "reset_password": "Resetare parolă",
+      "delete_user": "Ștergere utilizator",
+      "delete_user_confirm_description": "Sigur doriți să ștergeți utilizatorul „{{name}}”?",
+      "num_bookmarks": "Nr. semne de carte",
+      "asset_sizes": "Dimensiuni active",
+      "local_user": "Utilizator local",
+      "confirm_password": "Confirmare parolă",
+      "unlimited": "Nelimitat"
+    },
+    "admin_tools": {
+      "admin_tools": "Instrumente administrare",
+      "bookmark_debugger": "Depanator semne de carte",
+      "bookmark_id": "ID semn de carte",
+      "bookmark_id_placeholder": "Introduceți ID-ul semnului de carte",
+      "lookup": "Căutare",
+      "debug_info": "Informații depanare",
+      "basic_info": "Informații de bază",
+      "status": "Stare",
+      "content": "Conținut",
+      "html_preview": "Previzualizare HTML (primele 1000 caractere)",
+      "summary": "Rezumat",
+      "url": "URL",
+      "source_url": "URL sursă",
+      "asset_type": "Tip element",
+      "file_name": "Nume fișier",
+      "owner_user_id": "ID utilizator proprietar",
+      "tagging_status": "Stare etichetare",
+      "summarization_status": "Stare rezumare",
+      "embedding_status": "Stare încorporare (embedding)",
+      "crawl_status": "Stare colectare (crawl)",
+      "crawl_status_code": "Cod stare HTTP",
+      "crawled_at": "Colectat la",
+      "recrawl": "Recoletare (re-crawl)",
+      "reindex": "Reindexare",
+      "regenerate_embedding": "Regenerare încorporare (embedding)",
+      "retag": "Reetichetare",
+      "resummarize": "Re-rezumare",
+      "bookmark_not_found": "Semnul de carte nu a fost găsit",
+      "action_success": "Acțiune finalizată cu succes",
+      "action_failed": "Acțiune eșuată",
+      "recrawl_queued": "Sarcina de re-scanare a fost adăugată în coadă",
+      "reindex_queued": "Sarcina de re-indexare a fost adăugată în coadă",
+      "regenerate_embedding_queued": "Sarcina de regenerare a embedding-ului a fost adăugată în coadă",
+      "retag_queued": "Sarcina de re-etichetare a fost adăugată în coadă",
+      "resummarize_queued": "Sarcina de re-rezumare a fost adăugată în coadă",
+      "view": "Vizualizare",
+      "fetch_error": "Eroare la preluarea semnului de carte"
+    }
+  },
+  "options": {
+    "dark_mode": "Mod întunecat",
+    "light_mode": "Mod luminos",
+    "apps_extensions": "Aplicații și extensii",
+    "documentation": "Documentație",
+    "follow_us_on_x": "Urmărește-ne pe X"
+  },
+  "lists": {
+    "all_lists": "Toate listele",
+    "favourites": "Favorite",
+    "shared": "Partajate",
+    "shared_lists": "Liste partajate",
+    "privacy": {
+      "public": "Public",
+      "shared": "Partajat",
+      "private": "Privat"
+    },
+    "new_list": "Listă nouă",
+    "edit_list": "Editează lista",
+    "share_list": "Partajează lista",
+    "new_nested_list": "Listă imbricată nouă",
+    "merge_list": "Fuzionează lista",
+    "destination_list": "Listă de destinație",
+    "delete_after_merge": "Șterge lista originală după fuzionare",
+    "no_destination": "Fără destinație",
+    "parent_list": "Listă părinte",
+    "no_parent": "Fără părinte",
+    "list_type": "Tip listă",
+    "manual_list": "Listă manuală",
+    "smart_list": "Listă inteligentă",
+    "search_query": "Interogare de căutare",
+    "search_query_help": "Aflați mai multe despre limbajul interogărilor de căutare.",
+    "description": "Descriere (Opțional)",
+    "delete_list": {
+      "title": "Șterge lista",
+      "description": "Ștergerea unei liste nu șterge semnele de carte din acea listă.",
+      "delete_children": "Șterge listele copil (recursiv)",
+      "delete_children_description": "Dacă nu este bifat, toate listele copil directe vor deveni liste rădăcină"
+    },
+    "rss": {
+      "title": "Flux RSS",
+      "description": "Activează un flux RSS pentru această listă",
+      "feed_url": "URL flux RSS"
+    },
+    "public_list": {
+      "title": "Listă publică",
+      "description": "Permite altora să vizualizeze această listă",
+      "share_link": "Link de partajare"
+    },
+    "collaborators": {
+      "manage": "Gestionare colaboratori",
+      "view": "Vizualizare colaboratori",
+      "collaborators": "Colaboratori",
+      "enter_email": "Introdu adresa de e-mail",
+      "please_enter_email": "Te rugăm să introduci o adresă de e-mail",
+      "added_successfully": "Colaborator adăugat cu succes",
+      "invitation_sent": "Invitație trimisă cu succes",
+      "add": "Adăugare colaborator",
+      "current": "Colaboratori actuali",
+      "failed_to_add": "Eșec la adăugarea colaboratorului",
+      "removed": "Colaborator eliminat",
+      "failed_to_remove": "Eliminarea colaboratorului a eșuat",
+      "role_updated": "Rol actualizat",
+      "failed_to_update_role": "Actualizarea rolului a eșuat",
+      "invitation_revoked": "Invitație revocată",
+      "failed_to_revoke": "Revocarea invitației a eșuat",
+      "viewer": "Vizualizator",
+      "editor": "Editor",
+      "owner": "Proprietar",
+      "pending": "În așteptare",
+      "revoke": "Revocă",
+      "declined": "Refuzat",
+      "viewer_description": "Poate vizualiza semnele de carte din listă",
+      "editor_description": "Poate adăuga și elimina semne de carte",
+      "no_collaborators": "Nu există colaboratori încă. Adaugă pe cineva pentru a începe colaborarea!",
+      "no_collaborators_readonly": "Nu există colaboratori pentru această listă.",
+      "people_with_access": "Persoane care au acces la această listă",
+      "add_or_remove": "Adaugă sau elimină persoane care pot accesa această listă"
+    },
+    "invitations": {
+      "pending": "Invitații în așteptare",
+      "description": "Revizuiește și răspunde la invitațiile de colaborare la listă",
+      "invited_by": "Invitat de",
+      "accept": "Acceptă",
+      "decline": "Refuză",
+      "accepted": "Invitație acceptată",
+      "declined": "Invitație refuzată",
+      "failed_to_accept": "Eroare la acceptarea invitației",
+      "failed_to_decline": "Eroare la refuzarea invitației"
+    },
+    "leave_list": {
+      "title": "Părăsește lista",
+      "confirm_message": "Sigur dorești să părăsești {{icon}} {{name}}?",
+      "warning": "Nu vei mai putea vizualiza sau accesa semnele de carte din această listă. Proprietarul listei te poate adăuga din nou dacă este necesar.",
+      "action": "Părăsește lista",
+      "success": "Ai părăsit „{{icon}} {{name}}”"
+    },
+    "summary_list_one": "{{count}} listă",
+    "summary_list_other": "{{count}} liste",
+    "summary_bookmark_one": "{{count}} semn de carte",
+    "summary_bookmark_other": "{{count}} semne de carte",
+    "items_count_one": "{{count}} element",
+    "items_count_other": "{{count}} elemente"
+  },
+  "tags": {
+    "all_tags": "Toate etichetele",
+    "your_tags": "Etichetele tale",
+    "your_tags_info": "Etichete care au fost atașate cel puțin o dată de tine",
+    "ai_tags": "Etichete AI",
+    "rename_tag": "Redenumire etichetă",
+    "items_count": "{{count}} elemente",
+    "attached_by_you": "{{count}} de către tine",
+    "attached_by_ai": "{{count}} de către AI",
+    "ai_tags_info": "Etichete care au fost atașate doar automat (de către AI)",
+    "unused_tags": "Etichete neutilizate",
+    "unused_tags_info": "Etichete care nu sunt atașate niciunui semn de carte",
+    "delete_all_unused_tags": "Șterge toate etichetele neutilizate",
+    "drag_and_drop_merging": "Fuzionare prin Drag & Drop",
+    "drag_and_drop_merging_info": "Trage și lasă etichetele una peste alta pentru a le fuziona",
+    "sort_by_name": "Sortare după nume",
+    "sort_by_usage": "Sortare după utilizare",
+    "sort_by_relevance": "Sortare după relevanță",
+    "create_tag": "Creare etichetă",
+    "create_tag_description": "Creează o etichetă nouă fără a o atașa unui semn de carte",
+    "tag_name": "Nume etichetă",
+    "enter_tag_name": "Introdu numele etichetei",
+    "search_placeholder": "Caută etichete...",
+    "search_or_create_placeholder": "Caută sau creează etichete...",
+    "no_custom_tags": "Nicio etichetă personalizată încă",
+    "no_ai_tags": "Nicio etichetă AI încă",
+    "no_unused_tags": "Nu aveți nicio etichetă neutilizată",
+    "no_unused_tags_match_your_search": "Nicio etichetă neutilizată nu corespunde căutării dumneavoastră",
+    "no_tags_match_your_search": "Nicio etichetă nu corespunde căutării dumneavoastră"
+  },
+  "search": {
+    "is_favorited": "Este la favorite",
+    "is_not_favorited": "Nu este la favorite",
+    "is_archived": "Este arhivat",
+    "is_not_archived": "Nu este arhivat",
+    "has_any_tag": "Are orice etichetă",
+    "has_no_tags": "Nu are nicio etichetă",
+    "is_in_any_list": "Este în orice listă",
+    "is_not_in_any_list": "Nu este în nicio listă",
+    "created_on_or_after": "Creat pe sau după",
+    "not_created_on_or_after": "Nu este creat pe sau după",
+    "created_on_or_before": "Creat pe sau înainte de",
+    "not_created_on_or_before": "Nu este creat pe sau înainte de",
+    "created_within": "Creat în intervalul",
+    "created_earlier_than": "Creat mai devreme de",
+    "day_s": " Zi(le)",
+    "week_s": " Săptămână/i",
+    "month_s": " Lună/i",
+    "year_s": " An(i)",
+    "day_s_ago": " Zi(le) în urmă",
+    "week_s_ago": " Săptămână/i în urmă",
+    "month_s_ago": " Lună/i în urmă",
+    "year_s_ago": " An(i) în urmă",
+    "url_contains": "URL-ul conține",
+    "url_does_not_contain": "URL-ul nu conține",
+    "title_contains": "Titlul conține",
+    "title_does_not_contain": "Titlul nu conține",
+    "is_in_list": "Este în listă",
+    "is_not_in_list": "Nu este în listă",
+    "has_tag": "Are etichetă",
+    "does_not_have_tag": "Nu are etichetă",
+    "full_text_search": "Căutare în text integral",
+    "type_is": "Tipul este",
+    "type_is_not": "Tipul nu este",
+    "is_from_feed": "Este din flux RSS",
+    "is_not_from_feed": "Nu este din flux RSS",
+    "is_from_source": "Sursa este",
+    "is_not_from_source": "Sursa nu este",
+    "is_broken_link": "Are link nefuncțional",
+    "is_not_broken_link": "Are link funcțional",
+    "and": "Și",
+    "or": "Sau",
+    "history": "Căutări recente",
+    "filters": "Filtre",
+    "tags": "Etichete",
+    "lists": "Liste",
+    "feeds": "Fluxuri",
+    "no_suggestions": "Nicio sugestie",
+    "mode_label": "Mod căutare",
+    "mode_label_description": "Alege modul în care Karakeep găsește semne de carte potrivite.",
+    "mode_keyword": "Cuvânt cheie",
+    "mode_keyword_description": "Potrivește cuvinte exacte în titluri, conținut, URL-uri și note. Aproape instantaneu.",
+    "mode_hybrid": "Hibrid",
+    "mode_hybrid_description": "Combină potrivirile exacte cu idei conexe pentru cel mai bun echilibru. Mai lent decât căutarea prin cuvinte cheie.",
+    "mode_semantic": "Semantică",
+    "mode_semantic_description": "Găsește semne de carte similare conceptual, chiar și fără cuvinte comune. Mai lent decât căutarea prin cuvinte cheie.",
+    "keyword_placeholder": "Caută în titluri, text, URL-uri și etichete…",
+    "hybrid_placeholder": "Caută după cuvinte sau înțeles…",
+    "semantic_placeholder": "Descrie ce îți amintești…"
+  },
+  "preview": {
+    "view_original": "Vezi originalul",
+    "cached_content": "Conținut stocat în cache",
+    "reader_view": "Vizualizare cititor",
+    "archive_info": "Arhivele s-ar putea să nu fie redate corect în pagină dacă necesită Javascript. Pentru rezultate optime, <1>descarcă fișierul și deschide-l în browser</1>.",
+    "fetch_error_title": "Conținut indisponibil",
+    "fetch_error_description": "Nu am putut prelua conținutul pentru acest link. Pagina poate fi protejată, poate necesita autentificare sau este temporar indisponibilă.",
+    "crawling_in_progress": "Se preia conținutul paginii…",
+    "continue_reading": "Continuă de unde ai rămas",
+    "continue_reading_percent": "Continuă de unde ai rămas ({{percent}}%)",
+    "continue_button": "Continuă",
+    "tabs": {
+      "content": "Conținut",
+      "details": "Detalii"
+    }
+  },
+  "editor": {
+    "multiple_urls_dialog_title": "Importați URL-urile ca semne de carte separate?",
+    "multiple_urls_dialog_desc": "Datele introduse conțin mai multe URL-uri pe linii separate. Doriți să le importați ca semne de carte separate?",
+    "import_as_text": "Importă ca semn de carte text",
+    "import_as_separate_bookmarks": "Importă ca semne de carte separate",
+    "placeholder": "Lipește un link sau o imagine, scrie o notă sau trage o imagine aici…",
+    "placeholder_v2": "Lipește un link, scrie o notă sau plasează o imagine…",
+    "new_item": "ELEMENT NOU",
+    "disabled_submissions": "Trimiterile sunt dezactivate",
+    "text_toolbar": {
+      "undo": "Anulează",
+      "redo": "Refă",
+      "bold": "Aldin",
+      "italic": "Cursiv",
+      "underline": "Subliniat",
+      "strikethrough": "Tăiat",
+      "code": "Cod",
+      "highlight": "Evidențiere",
+      "align_left": "Aliniere la stânga",
+      "align_center": "Aliniere centrală",
+      "align_right": "Aliniere la dreapta",
+      "markdown_shortcuts": {
+        "label": "Scurtături Markdown",
+        "heading": {
+          "label": "Titlu",
+          "example": "# H1, ## H2, ### H3"
+        },
+        "bold": {
+          "label": "Aldin",
+          "example": "**text** sau CTRL+b"
+        },
+        "italic": {
+          "label": "Cursiv",
+          "example": "*Cursiv* sau _Cursiv_ sau CTRL+i"
+        },
+        "blockquote": {
+          "label": "Citat",
+          "example": "> Citat"
+        },
+        "ordered_list": {
+          "label": "Listă ordonată",
+          "example": "1. Element listă"
+        },
+        "unordered_list": {
+          "label": "Listă neordonată",
+          "example": "- Element listă"
+        },
+        "inline_code": {
+          "label": "Cod în linie",
+          "example": "`Cod`"
+        },
+        "block_code": {
+          "label": "Bloc de cod",
+          "example": "``` + spațiu"
+        }
+      }
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "delete_from_list": "Semnul de carte a fost șters din listă",
+      "clipboard_copied": "Linkul a fost adăugat în clipboard!",
+      "update_banner": "Bannerul a fost actualizat!",
+      "uploading_banner": "Se încarcă bannerul...",
+      "updated": "Semnul de carte a fost actualizat!",
+      "deleted": "Semnul de carte a fost șters!",
+      "refetch": "Recuperarea a fost pusă la coadă!",
+      "full_page_archive": "Crearea arhivei complete a paginii a fost declanșată",
+      "preserve_pdf": "Păstrarea PDF a fost declanșată"
+    },
+    "lists": {
+      "created": "Lista a fost creată!",
+      "updated": "Lista a fost actualizată!",
+      "merged": "Lista a fost fuzionată!",
+      "deleted": "Lista a fost ștearsă!"
+    },
+    "tags": {
+      "created": "Eticheta a fost creată!",
+      "failed_to_create": "Crearea etichetei a eșuat",
+      "updated": "Eticheta a fost actualizată!",
+      "failed_to_update": "Actualizarea etichetei a eșuat"
+    }
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "Ștergeți semnul de carte?",
+      "delete_confirmation_description": "Sigur doriți să ștergeți acest semn de carte?",
+      "bulk_delete_confirmation_description": "Sigur doriți să ștergeți {{count}} semne de carte?"
+    }
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "Niciun semn de carte încă",
+      "description": "Salvează articole, linkuri și pagini interesante pentru a le accesa rapid mai târziu."
+    }
+  },
+  "cleanups": {
+    "cleanups": "Curățări",
+    "duplicate_tags": {
+      "title": "Etichete duplicate",
+      "merge_all_suggestions": "Fuzionați toate sugestiile?"
+    }
+  },
+  "bookmark_editor": {
+    "title": "Editare semn de carte",
+    "subtitle": "Modifică detaliile semnului de carte. Apasă pe salvează când ai terminat.",
+    "author": "Autor",
+    "publisher": "Publicat de",
+    "date_published": "Data publicării",
+    "pick_a_date": "Alegeți o dată",
+    "save_changes": "Salvează modificările",
+    "extracted_content": "Conținut extras"
+  },
+  "version": {
+    "new_release_available": "Note de lansare noi disponibile",
+    "whats_new_title": "Ce este nou în v{{version}}",
+    "release_notes_description": "Iată cele mai recente actualizări preluate din notele de lansare de pe GitHub.",
+    "loading_release_notes": "Se încarcă notele de lansare…",
+    "unable_to_load_release_notes": "Notele de lansare nu au putut fi încărcate momentan. Vă rugăm să încercați din nou mai târziu.",
+    "no_release_notes": "Nu au fost publicate note de lansare pentru această versiune.",
+    "release_notes_synced": "Notele de lansare sunt sincronizate de pe GitHub.",
+    "view_on_github": "Vezi pe GitHub"
+  },
+  "wrapped": {
+    "title": "{{year}} Wrapped",
+    "subtitle": "Un an în Karakeep",
+    "banner": {
+      "title": "Wrapped 2025 este gata!",
+      "description": "Vezi anul tău în semne de carte",
+      "view_now": "Vezi acum"
+    },
+    "button": "Wrapped 2025",
+    "loading": "Se încarcă Wrapped-ul tău...",
+    "failed_to_load": "Eroare la încărcarea statisticilor Wrapped",
+    "sections": {
+      "total_saves": {
+        "prefix": "Ai salvat",
+        "suffix": "elemente anul acesta",
+        "suffix_singular": "element anul acesta"
+      },
+      "first_bookmark": {
+        "title": "Călătoria ta a început",
+        "description": "Prima salvare din {{year}}:"
+      },
+      "top_domains": "Site-urile tale de top",
+      "top_tags": "Etichetele tale de top",
+      "monthly_activity": "Anul tău în salvări",
+      "most_active_day": "Cea mai activă zi a ta",
+      "peak_times": {
+        "title": "Când salvezi",
+        "peak_hour": "Ora de vârf",
+        "peak_day": "Ziua de vârf"
+      },
+      "how_you_save": "Cum salvezi",
+      "what_you_saved": "Ce ai salvat",
+      "summary": {
+        "favorites": "Favorite",
+        "tags_created": "Etichete create",
+        "highlights": "Evidențieri"
+      },
+      "types": {
+        "links": "Linkuri",
+        "notes": "Notițe",
+        "assets": "Resurse"
+      }
+    },
+    "footer": "Creat cu Karakeep",
+    "share": "Distribuie",
+    "download": "Descarcă",
+    "close": "Închide",
+    "generating": "Se generează..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Scurtături de tastatură",
+    "sections": {
+      "navigation": "Navigare",
+      "actions": "Acțiuni",
+      "selection": "Selecție",
+      "other": "Altele"
+    },
+    "move_left": "Mută la stânga",
+    "move_down": "Mută în jos",
+    "move_up": "Mută în sus",
+    "move_right": "Mută la dreapta",
+    "open_bookmark": "Deschide semnul de carte",
+    "clear_focus": "Anulează focalizarea / ieși din editarea în masă",
+    "toggle_favorite": "Comută favorit",
+    "toggle_archive": "Arhivează / Dezarhivează",
+    "delete_bookmark": "Șterge semnul de carte",
+    "toggle_selection": "Comută selecția",
+    "select_all": "Selectează tot",
+    "deselect_all": "Deselectează tot",
+    "show_help": "Afișează scurtăturile de tastatură",
+    "focus_search_alt": "Focalizează căutarea"
+  }
+}

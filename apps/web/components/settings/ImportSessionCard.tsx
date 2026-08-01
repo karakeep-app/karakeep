@@ -17,6 +17,7 @@ import { useTranslation } from "@/lib/i18n/client";
 import { formatDistanceToNow } from "date-fns";
 import {
   AlertCircle,
+  Archive,
   CheckCircle2,
   ClipboardList,
   Clock,
@@ -50,6 +51,8 @@ function getStatusColor(status: string) {
       return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
     case "completed":
       return "bg-green-500/10 text-green-700 dark:text-green-400";
+    case "archived":
+      return "bg-muted text-muted-foreground";
     case "failed":
       return "bg-destructive/10 text-destructive";
     default:
@@ -69,6 +72,8 @@ function getStatusIcon(status: string) {
       return <Pause className="h-4 w-4" />;
     case "completed":
       return <CheckCircle2 className="h-4 w-4" />;
+    case "archived":
+      return <Archive className="h-4 w-4" />;
     case "failed":
       return <AlertCircle className="h-4 w-4" />;
     default:
@@ -92,6 +97,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
       paused: t("settings.import_sessions.status.paused"),
       completed: t("settings.import_sessions.status.completed"),
       failed: t("settings.import_sessions.status.failed"),
+      archived: t("settings.import_sessions.status.archived"),
     });
 
   // Use live stats if available, otherwise fallback to session stats
@@ -106,6 +112,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const canDelete =
     stats.status === "staging" ||
     stats.status === "completed" ||
+    stats.status === "archived" ||
     stats.status === "failed" ||
     stats.status === "paused";
 
@@ -245,12 +252,14 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {/* Actions */}
           <div className="flex items-center justify-end pt-2">
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/settings/import/${session.id}`}>
-                  <ExternalLink className="mr-1 h-4 w-4" />
-                  {t("settings.import_sessions.view_details")}
-                </Link>
-              </Button>
+              {stats.status !== "archived" && (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/settings/import/${session.id}`}>
+                    <ExternalLink className="mr-1 h-4 w-4" />
+                    {t("settings.import_sessions.view_details")}
+                  </Link>
+                </Button>
+              )}
               {canPause && (
                 <Button
                   variant="outline"

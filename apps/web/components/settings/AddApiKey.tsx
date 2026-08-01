@@ -33,6 +33,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -191,9 +192,17 @@ function AddApiKeyForm({
     resolver: zodResolver(formSchema),
   });
 
-  const scopeOptions = isAdmin
-    ? [...API_KEY_SCOPE_OPTIONS, ...API_KEY_ADMIN_SCOPE_OPTIONS]
-    : API_KEY_SCOPE_OPTIONS;
+  const clientConfig = useClientConfig();
+  const scopeOptions = (
+    isAdmin
+      ? [...API_KEY_SCOPE_OPTIONS, ...API_KEY_ADMIN_SCOPE_OPTIONS]
+      : API_KEY_SCOPE_OPTIONS
+  ).map((option) =>
+    // Subscription tiers can only be managed when Stripe is configured
+    option.id === "admin:subscriptions" && !clientConfig.stripe.isConfigured
+      ? { ...option, hidden: true }
+      : option,
+  );
 
   function selectedScopes(): ZApiKeyScope[] {
     if (useFullAccess) {

@@ -350,6 +350,10 @@
           "users": {
             "label": "المسؤول: المستخدمون",
             "description": "الوصول إلى الإدارة الإدارية للمستخدمين."
+          },
+          "subscriptions": {
+            "label": "المسؤول: الاشتراكات",
+            "description": "إدارة فئات اشتراك المستخدمين."
           }
         }
       }
@@ -522,7 +526,8 @@
         "processing": "جارٍ المعالجة",
         "staging": "التجهيز",
         "running": "قيد التشغيل",
-        "paused": "متوقف مؤقتًا"
+        "paused": "متوقف مؤقتًا",
+        "archived": "مؤرشف"
       },
       "badges": {
         "pending": "{{count}} معلّق",
@@ -559,7 +564,8 @@
         "no_results": "لم يتم العثور على نتائج لهذا الفلتر.",
         "view_bookmark": "عرض الإشارة المرجعية",
         "load_more": "تحميل المزيد",
-        "no_title": "لا يوجد عنوان"
+        "no_title": "لا يوجد عنوان",
+        "archived_results": "لم يعد يتم الاحتفاظ بنتائج الإشارات المرجعية الفردية لجلسات الاستيراد المؤرشفة."
       },
       "finalize_dialog_title": "إنهاء جلسة الاستيراد",
       "finalize_dialog_description": "هل تريد وضع \"{{name}}\" في قائمة الانتظار للمعالجة الخلفية؟ سيبدأ استيراد العلامات المرجعية المُجهزة.",
@@ -673,6 +679,10 @@
         "admin_maintenance": {
           "title": "مهام صيانة المسؤول",
           "description": "تنظيف إداري وصيانة للأصول"
+        },
+        "embeddings": {
+          "title": "وظائف التضمين",
+          "description": "توليد تضمين المتجهات للإشارات المرجعية"
         }
       },
       "monitor_and_manage": "مراقبة وإدارة قوائم انتظار الوظائف الخلفية ومهام معالجة النظام",
@@ -707,7 +717,10 @@
         "migrate_large_link_html_content": "نقل محتوى HTML كبير مضمّن إلى الأصول",
         "recrawl_pending_links_only": "إعادة فهرسة الروابط المعلّقة فقط",
         "regenerate_ai_tags_for_pending_bookmarks_only": "إعادة إنشاء وسوم الذكاء الاصطناعي للإشارات المرجعية المعلّقة فقط",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "إعادة إنشاء ملخصات الذكاء الاصطناعي للإشارات المرجعية المعلّقة فقط"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "إعادة إنشاء ملخصات الذكاء الاصطناعي للإشارات المرجعية المعلّقة فقط",
+        "regenerate_embeddings_for_pending_bookmarks_only": "إعادة توليد التضمينات للإشارات المرجعية المعلقة فقط",
+        "regenerate_embeddings_for_failed_bookmarks_only": "إعادة توليد التضمينات للإشارات المرجعية الفاشلة فقط",
+        "regenerate_embeddings_for_all_bookmarks": "إعادة توليد التضمينات لجميع الإشارات المرجعية"
       }
     },
     "actions": {
@@ -745,7 +758,8 @@
         "not_configured": "غير مهيأ",
         "connected": "متصل",
         "disconnected": "قطع الاتصال"
-      }
+      },
+      "vector_store": "مخزن المتجهات"
     },
     "admin_tools": {
       "admin_tools": "أدوات المشرف",
@@ -781,7 +795,10 @@
       "retag_queued": "تمت إضافة مهمة إعادة وضع العلامات إلى قائمة الانتظار",
       "resummarize_queued": "تمت إضافة مهمة إعادة التلخيص إلى قائمة الانتظار",
       "view": "عرض",
-      "fetch_error": "خطأ في جلب الإشارة المرجعية"
+      "fetch_error": "خطأ في جلب الإشارة المرجعية",
+      "embedding_status": "حالة التضمين",
+      "regenerate_embedding": "إعادة توليد التضمين",
+      "regenerate_embedding_queued": "تم وضع وظيفة إعادة توليد التضمين في قائمة الانتظار"
     }
   },
   "options": {
@@ -965,7 +982,18 @@
     "lists": "القوائم",
     "feeds": "خلاصات الأخبار",
     "is_from_source": "المصدر هو",
-    "is_not_from_source": "المصدر ليس"
+    "is_not_from_source": "المصدر ليس",
+    "mode_label": "وسيلة البحث",
+    "mode_label_description": "اختر كيف يجد Karakeep الإشارات المرجعية المطابقَة.",
+    "mode_keyword": "كلمة مفتاحية",
+    "mode_keyword_description": "مطابقة الكلمات الدقيقة في العناوين، والمحتوى، والروابط، والملحوظات. فوري تقريباً.",
+    "mode_hybrid": "هجين",
+    "mode_hybrid_description": "دمج المطابقات الدقيقة مع الأفكار ذات الصلة لتحقيق أفضل توازن. أبطأ من البحث بالكلمات المفتاحية.",
+    "mode_semantic": "دلالي",
+    "mode_semantic_description": "العثور على إشارات مرجعية متشابهة مفاهيمياً، حتى دون كلمات مشتركة. أبطأ من البحث بالكلمات المفتاحية.",
+    "keyword_placeholder": "البحث في العناوين، والنصوص، والروابط، والوسوم…",
+    "hybrid_placeholder": "البحث بالكلمات أو المعنى…",
+    "semantic_placeholder": "صف ما تتذكره…"
   },
   "preview": {
     "view_original": "عرض النسخة الأصلية",
@@ -1045,7 +1073,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "حذف الإشارة المرجعية؟",
-      "delete_confirmation_description": "هل أنت متأكد من رغبتك في حذف هذه الإشارة المرجعية؟"
+      "delete_confirmation_description": "هل أنت متأكد من رغبتك في حذف هذه الإشارة المرجعية؟",
+      "bulk_delete_confirmation_description": "هل أنت متأكد من رغبتك في حذف {{count}} من الإشارات المرجعية؟"
     }
   },
   "toasts": {
@@ -1166,5 +1195,28 @@
     "download": "تنزيل",
     "close": "إغلاق",
     "generating": "جارٍ الإنشاء..."
+  },
+  "keyboard_shortcuts": {
+    "title": "اختصارات لوحة المفاتيح",
+    "sections": {
+      "navigation": "التنقل",
+      "actions": "الإجراءات",
+      "selection": "التحديد",
+      "other": "أخرى"
+    },
+    "move_left": "تحريك لليسار",
+    "move_down": "تحريك للأسفل",
+    "move_up": "تحريك للأعلى",
+    "move_right": "تحريك لليمين",
+    "open_bookmark": "فتح الإشارة المرجعية",
+    "clear_focus": "إلغاء التركيز / إنهاء التحرير الجماعي",
+    "toggle_favorite": "تبديل المفضلة",
+    "toggle_archive": "أرشفة / إلغاء الأرشفة",
+    "delete_bookmark": "حذف الإشارة المرجعية",
+    "toggle_selection": "تبديل التحديد",
+    "select_all": "تحديد الكل",
+    "deselect_all": "إلغاء تحديد الكل",
+    "show_help": "إظهار اختصارات لوحة المفاتيح",
+    "focus_search_alt": "التركيز على البحث"
   }
 }

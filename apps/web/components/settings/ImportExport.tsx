@@ -347,18 +347,18 @@ export function ImportExportRow() {
         </ImportCard>
         <ExportButton />
       </div>
-      {importProgress && (
-        <div className="flex flex-col gap-2">
-          <p className="shrink-0 text-sm">
-            Processed {importProgress.done} of {importProgress.total} bookmarks
-          </p>
-          <div className="w-full">
-            <Progress
-              value={(importProgress.done * 100) / importProgress.total}
-            />
+      {Object.entries(importProgress).map(([id, progress]) => {
+        return (
+          <div key={id} className="flex flex-col gap-2">
+            <p className="shrink-0 text-sm">
+              Processed {progress.done} of {progress.total} bookmarks
+            </p>
+            <div className="w-full">
+              <Progress value={(progress.done * 100) / progress.total} />
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 }

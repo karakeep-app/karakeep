@@ -2,6 +2,10 @@ import { useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BookmarkSearchResults from "@/components/search/BookmarkSearchResults";
+import {
+  SearchModeSelector,
+  SEARCH_MODE_PLACEHOLDERS,
+} from "@/components/search/SearchModeSelector";
 import { useBookmarkSearchState } from "@/lib/useBookmarkSearchState";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { SearchInput } from "@/components/ui/SearchInput";
@@ -42,7 +46,7 @@ export default function InlineSearch({
         <View className="flex-1">
           <SearchInput
             ref={inputRef}
-            placeholder="Search bookmarks..."
+            placeholder={SEARCH_MODE_PLACEHOLDERS[state.searchMode]}
             value={search}
             onChangeText={setSearch}
             onFocus={() => setIsInputFocused(true)}
@@ -71,6 +75,10 @@ export default function InlineSearch({
           />
         </Pressable>
       </View>
+      <SearchModeSelector
+        value={state.searchMode}
+        onValueChange={state.setSearchMode}
+      />
       <BookmarkSearchResults
         rawSearch={search}
         isInputFocused={isInputFocused}

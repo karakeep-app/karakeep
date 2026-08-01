@@ -36,8 +36,6 @@ Karakeep (previously Hoarder) is an open source "Bookmark Everything" app that u
 - 🔄 Automatic sync with browser bookmarks via [floccus](https://floccus.org/).
 - [Planned] Offline reading on mobile, semantic search across bookmarks, ...
 
-**⚠️ This app is under heavy development.**
-
 
 ## Demo
 

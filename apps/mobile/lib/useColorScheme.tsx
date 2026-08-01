@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Platform } from "react-native";
-import * as NavigationBar from "expo-navigation-bar";
+import { NavigationBar } from "expo-navigation-bar";
 import useAppSettings from "@/lib/settings";
 import { COLORS } from "@/theme/colors";
 import { useColorScheme as useNativewindColorScheme } from "nativewind";
@@ -17,9 +17,7 @@ function useColorScheme() {
 
   React.useEffect(() => {
     if (Platform.OS === "android") {
-      setNavigationBar(colorScheme ?? "light").catch((error) => {
-        console.error('useColorScheme.tsx", "setColorScheme', error);
-      });
+      setNavigationBar(colorScheme ?? "light");
     }
   }, [colorScheme]);
 
@@ -37,16 +35,12 @@ function useInitialAndroidBarSync() {
   const { colorScheme } = useColorScheme();
   React.useEffect(() => {
     if (Platform.OS !== "android") return;
-    setNavigationBar(colorScheme).catch((error) => {
-      console.error('useColorScheme.tsx", "useInitialColorScheme', error);
-    });
+    setNavigationBar(colorScheme);
   }, []);
 }
 
 export { useColorScheme, useInitialAndroidBarSync };
 
 function setNavigationBar(colorScheme: "light" | "dark") {
-  return NavigationBar.setButtonStyleAsync(
-    colorScheme === "dark" ? "light" : "dark",
-  );
+  NavigationBar.setStyle(colorScheme === "dark" ? "light" : "dark");
 }

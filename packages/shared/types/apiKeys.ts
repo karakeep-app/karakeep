@@ -21,6 +21,7 @@ export const API_KEY_SCOPE_RESOURCES = [
 export const API_KEY_ADMIN_SCOPE_RESOURCES = [
   "bookmarks",
   "jobs",
+  "subscriptions",
   "system",
   "users",
 ] as const;

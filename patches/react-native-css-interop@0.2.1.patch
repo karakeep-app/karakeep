@@ -1,0 +1,13 @@
+diff --git a/dist/runtime/native/appearance-observables.js b/dist/runtime/native/appearance-observables.js
+index b860320..ffafc5d 100644
+--- a/dist/runtime/native/appearance-observables.js
++++ b/dist/runtime/native/appearance-observables.js
+@@ -10,7 +10,7 @@ const colorSchemeObservable = (0, observable_1.observable)(undefined);
+ exports.colorScheme = {
+     set(value) {
+         if (value === "system") {
+-            appearance.setColorScheme(null);
++            appearance.setColorScheme("unspecified");
+         }
+         else {
+             appearance.setColorScheme(value);

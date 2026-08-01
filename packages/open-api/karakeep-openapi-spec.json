@@ -124,6 +124,10 @@
           "id": {
             "type": "string"
           },
+          "firstCreatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -154,6 +158,16 @@
             ]
           },
           "summarizationStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              null
+            ]
+          },
+          "embeddingStatus": {
             "type": "string",
             "nullable": true,
             "enum": [
@@ -276,6 +290,33 @@
                   "contentAssetId": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "readerViewStatus": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "readable",
+                      "not_readable",
+                      "uncertain",
+                      "unavailable",
+                      null
+                    ]
+                  },
+                  "readerViewScore": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "preferredPreview": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "reader_view",
+                      "screenshot",
+                      "overview",
+                      null
+                    ]
                   },
                   "crawledAt": {
                     "type": "string",
@@ -441,6 +482,7 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
+          "embeddingStatus",
           "userId",
           "tags",
           "content",
@@ -466,6 +508,77 @@
         "required": [
           "code",
           "message"
+        ]
+      },
+      "BookmarkReadableContent": {
+        "type": "object",
+        "properties": {
+          "bookmarkId": {
+            "type": "string"
+          },
+          "bookmarkType": {
+            "type": "string",
+            "enum": [
+              "link",
+              "text",
+              "asset"
+            ]
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "markdown",
+              "text"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "contentVersion": {
+            "type": "string",
+            "description": "A hash identifying the rendered content version used by this cursor."
+          },
+          "range": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "integer",
+                "description": "Zero-based start offset in Unicode characters, inclusive."
+              },
+              "end": {
+                "type": "integer",
+                "description": "Zero-based end offset in Unicode characters, exclusive."
+              },
+              "total": {
+                "type": "integer",
+                "description": "Total number of Unicode characters in the rendered content."
+              }
+            },
+            "required": [
+              "start",
+              "end",
+              "total"
+            ]
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "Cursor for the next chunk, or null when all content has been returned."
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "Whether more readable content remains after this chunk."
+          }
+        },
+        "required": [
+          "bookmarkId",
+          "bookmarkType",
+          "format",
+          "content",
+          "contentVersion",
+          "range",
+          "nextCursor",
+          "truncated"
         ]
       },
       "List": {
@@ -654,6 +767,30 @@
           "contentType",
           "size",
           "fileName"
+        ]
+      },
+      "SignedAssetUrl": {
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "description": "The unique identifier of the asset."
+          },
+          "signedUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "The temporary URL for downloading the asset."
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the signed URL expires, in ISO 8601 format."
+          }
+        },
+        "required": [
+          "assetId",
+          "signedUrl",
+          "expiresAt"
         ]
       },
       "Feed": {
@@ -1082,7 +1219,7 @@
     "/bookmarks/search": {
       "get": {
         "operationId": "searchBookmarks",
-        "description": "Full-text search across all bookmarks. Searches bookmark titles, content, descriptions, and notes. Results default to relevance sorting.",
+        "description": "Search across all bookmarks using full-text, semantic, or hybrid ranking. Full-text search covers bookmark titles, content, descriptions, and notes. Results default to full-text relevance sorting; semantic and hybrid modes support relevance sorting only.",
         "summary": "Search bookmarks",
         "tags": [
           "Bookmarks"
@@ -1101,6 +1238,22 @@
             "required": true,
             "description": "The search query string.",
             "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "fts",
+                "semantic",
+                "hybrid"
+              ],
+              "default": "fts",
+              "description": "Search strategy. 'fts' uses full-text search, 'semantic' uses bookmark embeddings, and 'hybrid' fuses a fixed candidate window from both. Hybrid falls back to full-text search when the query contains no free-text terms or when embedding infrastructure is unavailable. Semantic hits below a minimum similarity are dropped, so semantic search may return fewer results than requested."
+            },
+            "required": false,
+            "description": "Search strategy. 'fts' uses full-text search, 'semantic' uses bookmark embeddings, and 'hybrid' fuses a fixed candidate window from both. Hybrid falls back to full-text search when the query contains no free-text terms or when embedding infrastructure is unavailable. Semantic hits below a minimum similarity are dropped, so semantic search may return fewer results than requested.",
+            "name": "searchMode",
             "in": "query"
           },
           {
@@ -1438,6 +1591,10 @@
                     "id": {
                       "type": "string"
                     },
+                    "firstCreatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -1468,6 +1625,16 @@
                       ]
                     },
                     "summarizationStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending",
+                        null
+                      ]
+                    },
+                    "embeddingStatus": {
                       "type": "string",
                       "nullable": true,
                       "enum": [
@@ -1512,6 +1679,7 @@
                     "favourited",
                     "taggingStatus",
                     "summarizationStatus",
+                    "embeddingStatus",
                     "userId"
                   ]
                 }
@@ -1531,6 +1699,116 @@
           },
           "404": {
             "description": "Bookmark not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookmarks/{bookmarkId}/content": {
+      "get": {
+        "operationId": "getBookmarkReadableContent",
+        "description": "Retrieve a bounded chunk of an agent-readable bookmark representation. Link content is rendered from extracted HTML; text and media bookmarks use their stored or extracted text. Continue reading by passing the opaque `nextCursor` from the previous response.",
+        "summary": "Get readable bookmark content",
+        "tags": [
+          "Bookmarks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/BookmarkId"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "markdown",
+                "text"
+              ],
+              "description": "The readable representation. If omitted with a cursor, the cursor's format is used; otherwise defaults to markdown."
+            },
+            "required": false,
+            "description": "The readable representation. If omitted with a cursor, the cursor's format is used; otherwise defaults to markdown.",
+            "name": "format",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50000,
+              "default": 12000,
+              "description": "Maximum number of Unicode characters to return. The chunk may end earlier at a paragraph or line boundary."
+            },
+            "required": false,
+            "description": "Maximum number of Unicode characters to return. The chunk may end earlier at a paragraph or line boundary.",
+            "name": "maxChars",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Opaque continuation cursor returned as `nextCursor` by a previous response."
+            },
+            "required": false,
+            "description": "Opaque continuation cursor returned as `nextCursor` by a previous response.",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A bounded chunk of readable bookmark content.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkReadableContent"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — the cursor is malformed, mismatched, or outside the content.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Bookmark not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The bookmark content changed after the supplied cursor was issued.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1571,6 +1849,10 @@
                     "id": {
                       "type": "string"
                     },
+                    "firstCreatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -1601,6 +1883,16 @@
                       ]
                     },
                     "summarizationStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending",
+                        null
+                      ]
+                    },
+                    "embeddingStatus": {
                       "type": "string",
                       "nullable": true,
                       "enum": [
@@ -1645,6 +1937,7 @@
                     "favourited",
                     "taggingStatus",
                     "summarizationStatus",
+                    "embeddingStatus",
                     "userId"
                   ]
                 }
@@ -3955,6 +4248,49 @@
         }
       }
     },
+    "/assets/{assetId}/signed-url": {
+      "get": {
+        "operationId": "getAssetSignedUrl",
+        "description": "Generate a temporary signed URL that can be used to download an asset without sending an API key.",
+        "summary": "Get a signed asset URL",
+        "tags": [
+          "Assets"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AssetId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A temporary signed URL for downloading the asset and its expiration time.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedAssetUrl"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "Unauthorized"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/users/{userId}": {
       "put": {
         "operationId": "adminUpdateUser",
@@ -4087,7 +4423,7 @@
     "/admin/jobs/trigger/recrawl": {
       "post": {
         "operationId": "adminTriggerRecrawl",
-        "description": "Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks (e.g., only failed ones). Optionally run AI inference after crawling. Requires admin role.",
+        "description": "Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks (e.g., only failed ones) and by how recently they were modified. Optionally run AI inference after crawling. Requires admin role.",
         "summary": "Trigger recrawl of links (admin)",
         "tags": [
           "Admin"
@@ -4119,11 +4455,18 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Whether to run AI inference after crawling."
+                  },
+                  "modifiedWithinSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Only process bookmarks modified within this many seconds. Omit to process all matching bookmarks."
                   }
                 },
                 "example": {
                   "crawlStatus": "failure",
-                  "runInference": false
+                  "runInference": false,
+                  "modifiedWithinSeconds": 3600
                 }
               }
             }
@@ -4186,7 +4529,7 @@
     "/admin/jobs/trigger/reindex": {
       "post": {
         "operationId": "adminTriggerReindex",
-        "description": "Trigger a reindex of all bookmarks in the search engine. This clears the existing index and re-queues all bookmarks for indexing. Requires admin role.",
+        "description": "Trigger a reindex of bookmarks in the search engine. Without modifiedWithinSeconds, this clears the existing index and re-queues all bookmarks. When set, only bookmarks modified within that many seconds are re-queued and the existing index is preserved. Requires admin role.",
         "summary": "Trigger reindex of all bookmarks (admin)",
         "tags": [
           "Admin"
@@ -4196,6 +4539,27 @@
             "bearerAuth": []
           }
         ],
+        "requestBody": {
+          "description": "Optional time window for the reindex job.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "modifiedWithinSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Only process bookmarks modified within this many seconds. Omit to process all matching bookmarks."
+                  }
+                },
+                "example": {
+                  "modifiedWithinSeconds": 3600
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Reindex jobs triggered successfully.",
@@ -4243,7 +4607,7 @@
     "/admin/jobs/trigger/inference": {
       "post": {
         "operationId": "adminTriggerInference",
-        "description": "Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status to target specific bookmarks (e.g., only failed ones). Requires admin role.",
+        "description": "Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status and by how recently bookmarks were modified. Requires admin role.",
         "summary": "Trigger AI inference on bookmarks (admin)",
         "tags": [
           "Admin"
@@ -4279,6 +4643,12 @@
                     ],
                     "default": "all",
                     "description": "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones."
+                  },
+                  "modifiedWithinSeconds": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": true,
+                    "description": "Only process bookmarks modified within this many seconds. Omit to process all matching bookmarks."
                   }
                 },
                 "required": [
@@ -4286,7 +4656,8 @@
                 ],
                 "example": {
                   "type": "tag",
-                  "status": "failure"
+                  "status": "failure",
+                  "modifiedWithinSeconds": 3600
                 }
               }
             }

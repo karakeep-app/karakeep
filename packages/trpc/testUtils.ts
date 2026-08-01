@@ -7,6 +7,21 @@ import type { Context } from "./index";
 import { createCallerFactory } from "./index";
 import { appRouter } from "./routers/_app";
 
+const testQueueMocks = vi.hoisted(() => ({
+  assetPreprocessingEnqueue: vi.fn(),
+  embeddingsEnqueue: vi.fn(),
+  linkCrawlerEnqueue: vi.fn(),
+  lowPriorityCrawlerEnqueue: vi.fn(),
+  openAIEnqueue: vi.fn(),
+  ruleEngineEnqueue: vi.fn(),
+  searchIndexingEnqueue: vi.fn(),
+  triggerSearchReindex: vi.fn(),
+}));
+
+export function getTestQueueMocks() {
+  return testQueueMocks;
+}
+
 export function getTestDB() {
   return getInMemoryDB(true);
 }
@@ -105,19 +120,28 @@ export function defaultBeforeEach(seedDB = true) {
         (await original()) as typeof import("@karakeep/shared-server");
       return {
         ...mod,
+        AssetPreprocessingQueue: {
+          enqueue: testQueueMocks.assetPreprocessingEnqueue,
+        },
         LinkCrawlerQueue: {
-          enqueue: vi.fn(),
+          enqueue: testQueueMocks.linkCrawlerEnqueue,
+        },
+        LowPriorityCrawlerQueue: {
+          enqueue: testQueueMocks.lowPriorityCrawlerEnqueue,
         },
         OpenAIQueue: {
-          enqueue: vi.fn(),
+          enqueue: testQueueMocks.openAIEnqueue,
+        },
+        EmbeddingsQueue: {
+          enqueue: testQueueMocks.embeddingsEnqueue,
         },
         SearchIndexingQueue: {
-          enqueue: vi.fn(),
+          enqueue: testQueueMocks.searchIndexingEnqueue,
         },
         RuleEngineQueue: {
-          enqueue: vi.fn(),
+          enqueue: testQueueMocks.ruleEngineEnqueue,
         },
-        triggerSearchReindex: vi.fn(),
+        triggerSearchReindex: testQueueMocks.triggerSearchReindex,
       };
     });
     Object.assign(context, await buildTestContext(seedDB));

@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 import {
   bookmarkLinks,
   bookmarks,
   bookmarkTexts,
+  importSessionBookmarks,
+  importSessions,
   importStagingBookmarks,
 } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -15,6 +18,7 @@ import {
 } from "@karakeep/shared/types/importSessions";
 import { zNewBookmarkListSchema } from "@karakeep/shared/types/lists";
 
+import { ImportSessionsService } from "../models/importSessions.service";
 import type { APICallerType, CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
 
@@ -114,6 +118,102 @@ describe("ImportSessions Routes", () => {
       failedBookmarks: 0,
       processingBookmarks: 0,
     });
+  });
+
+  test<CustomTestContext>("archives completed sessions while retaining stats", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].importSessions;
+    const session = await api.createImportSession({
+      name: "Completed Import Session",
+    });
+    const user = (await db.query.users.findFirst())!;
+    const [legacyBookmark] = await db
+      .insert(bookmarks)
+      .values({ userId: user.id, type: BookmarkTypes.TEXT })
+      .returning();
+    await db.insert(importSessionBookmarks).values({
+      importSessionId: session.id,
+      bookmarkId: legacyBookmark.id,
+    });
+
+    await db.insert(importStagingBookmarks).values([
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "Imported bookmark 1",
+        status: "completed",
+      },
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "Imported bookmark 2",
+        status: "completed",
+      },
+      {
+        importSessionId: session.id,
+        type: "text",
+        content: "Rejected bookmark",
+        status: "failed",
+      },
+    ]);
+    await db
+      .update(importSessions)
+      .set({
+        status: "completed",
+        completedAt: new Date("2026-01-01T00:00:00.000Z"),
+      })
+      .where(eq(importSessions.id, session.id));
+
+    const recentSession = await api.createImportSession({
+      name: "Recent Completed Import Session",
+    });
+    await db.insert(importStagingBookmarks).values({
+      importSessionId: recentSession.id,
+      type: "text",
+      content: "Recent imported bookmark",
+      status: "completed",
+    });
+    await db
+      .update(importSessions)
+      .set({
+        status: "completed",
+        completedAt: new Date("2026-01-02T00:00:00.000Z"),
+      })
+      .where(eq(importSessions.id, recentSession.id));
+
+    const archivedCount = await new ImportSessionsService(
+      db,
+    ).archiveCompletedSystem(new Date("2026-01-01T00:00:00.000Z"));
+
+    expect(archivedCount).toBe(1);
+    await expect(
+      db.query.importStagingBookmarks.findMany({
+        where: eq(importStagingBookmarks.importSessionId, session.id),
+      }),
+    ).resolves.toHaveLength(0);
+    await expect(
+      db.query.importSessionBookmarks.findMany({
+        where: eq(importSessionBookmarks.importSessionId, session.id),
+      }),
+    ).resolves.toHaveLength(0);
+    await expect(
+      api.getImportSessionStats({ importSessionId: session.id }),
+    ).resolves.toMatchObject({
+      status: "archived",
+      totalBookmarks: 3,
+      completedBookmarks: 2,
+      failedBookmarks: 1,
+      pendingBookmarks: 0,
+      processingBookmarks: 0,
+    });
+    await expect(
+      api.getImportSessionResults({ importSessionId: session.id }),
+    ).resolves.toMatchObject({ items: [], nextCursor: null });
+    await expect(
+      api.getImportSessionStats({ importSessionId: recentSession.id }),
+    ).resolves.toMatchObject({ status: "completed", totalBookmarks: 1 });
   });
 
   test<CustomTestContext>("stats reflect crawl and tagging status for completed staging bookmarks", async ({

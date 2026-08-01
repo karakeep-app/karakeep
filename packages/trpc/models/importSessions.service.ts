@@ -153,6 +153,16 @@ export class ImportSessionsService {
     await this.repo.updateStatus(session.id, "pending");
   }
 
+  /**
+   * System-level operation that archives completed sessions across ALL users.
+   * Intended for background workers only — must never be exposed through a
+   * tRPC router, as it bypasses the per-user authorization the other methods
+   * on this service enforce via `Authorized<ImportSessionRow>`.
+   */
+  async archiveCompletedSystem(cutoff: Date): Promise<number> {
+    return await this.repo.archiveCompleted(cutoff);
+  }
+
   async getStagingBookmarks(
     session: Authorized<ImportSessionRow>,
     filter?: "all" | "accepted" | "rejected" | "skipped_duplicate" | "pending",
@@ -170,6 +180,17 @@ export class ImportSessionsService {
   private async buildStats(
     session: ImportSessionRow,
   ): Promise<ZImportSessionWithStats> {
+    if (session.status === "archived") {
+      return {
+        ...session,
+        totalBookmarks: session.totalBookmarks,
+        completedBookmarks: session.completedBookmarks,
+        failedBookmarks: session.failedBookmarks,
+        pendingBookmarks: session.pendingBookmarks,
+        processingBookmarks: session.processingBookmarks,
+      };
+    }
+
     const statusCounts = await this.repo.getStatusCounts(session.id);
 
     const stats = {

@@ -70,6 +70,10 @@
         "admin_maintenance": {
           "title": "Poslovi održavanja administratora",
           "description": "Administrativno čišćenje i održavanje imovine"
+        },
+        "embeddings": {
+          "title": "Zadaci ugradnje",
+          "description": "Generiranje vektorskih ugradnji oznaka"
         }
       },
       "monitor_and_manage": "Prati i upravljaj redovima pozadinskih poslova i zadacima obrade sustava",
@@ -104,7 +108,10 @@
         "migrate_large_link_html_content": "Premjesti veliki Inline HTML sadržaj u resurse",
         "recrawl_pending_links_only": "Ponovno indeksiraj samo poveznice na čekanju",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Generiraj AI oznake samo za knjižne oznake na čekanju",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generiraj AI sažetke samo za knjižne oznake na čekanju"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Generiraj AI sažetke samo za knjižne oznake na čekanju",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Ponovno generiraj ugradnje samo za oznake na čekanju",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Ponovno generiraj ugradnje samo za neuspjele oznake",
+        "regenerate_embeddings_for_all_bookmarks": "Ponovno generiraj ugradnje za sve oznake"
       }
     },
     "actions": {
@@ -129,7 +136,8 @@
         "not_configured": "Nije konfigurirano",
         "connected": "Spojeno",
         "disconnected": "Odspojeno"
-      }
+      },
+      "vector_store": "Vektorska pohrana"
     },
     "admin_tools": {
       "admin_tools": "Admin Alati",
@@ -165,7 +173,10 @@
       "retag_queued": "Posao ponovnog označavanja je u redu čekanja",
       "resummarize_queued": "Posao ponovnog sažimanja je u redu čekanja",
       "view": "Prikaži",
-      "fetch_error": "Greška pri dohvaćanju oznake"
+      "fetch_error": "Greška pri dohvaćanju oznake",
+      "embedding_status": "Status ugradnje",
+      "regenerate_embedding": "Ponovno generiraj ugradnju",
+      "regenerate_embedding_queued": "Zadatak ponovnog generiranja ugradnje stavljen je u red čekanja"
     }
   },
   "layouts": {
@@ -436,6 +447,10 @@
           "users": {
             "label": "Admin: korisnici",
             "description": "Pristup administrativnom upravljanju korisnicima."
+          },
+          "subscriptions": {
+            "label": "Administrator: pretplate",
+            "description": "Upravljanje razinama korisničkih pretplata."
           }
         }
       }
@@ -632,7 +647,8 @@
         "processing": "Obrada",
         "staging": "Priprema",
         "running": "U tijeku",
-        "paused": "Pauzirano"
+        "paused": "Pauzirano",
+        "archived": "Arhivirano"
       },
       "badges": {
         "pending": "{{count}} na čekanju",
@@ -669,7 +685,8 @@
         "no_results": "Nema rezultata za ovaj filtar.",
         "view_bookmark": "Pogledaj oznaku",
         "load_more": "Učitaj više",
-        "no_title": "Bez naslova"
+        "no_title": "Bez naslova",
+        "archived_results": "Pojedinačni rezultati knjižnih oznaka više se ne pohranjuju za arhivirane sesije uvoza."
       },
       "finalize_dialog_title": "Dovrši sesiju uvoza",
       "finalize_dialog_description": "Staviti „{{name}}“ u red čekanja za pozadinsku obradu? Pripremljene oznake počet će se uvoziti.",
@@ -1072,12 +1089,24 @@
     "lists": "Popisi",
     "feeds": "Kanali",
     "is_from_source": "Izvor je",
-    "is_not_from_source": "Izvor nije"
+    "is_not_from_source": "Izvor nije",
+    "mode_label": "Način pretraživanja",
+    "mode_label_description": "Odaberite kako Karakeep pronalazi podudarne knjižne oznake.",
+    "mode_keyword": "Ključna riječ",
+    "mode_keyword_description": "Podudaranje točnih riječi u naslovima, sadržaju, URL-ovima i bilješkama. Gotovo trenutno.",
+    "mode_hybrid": "Hibridno",
+    "mode_hybrid_description": "Kombinirajte točna podudaranja s povezanim idejama za najbolju ravnotežu. Sporije od pretraživanja po ključnim riječima.",
+    "mode_semantic": "Semantičko",
+    "mode_semantic_description": "Pronađite konceptualno slične knjižne oznake, čak i bez zajedničkih riječi. Sporije od pretraživanja po ključnim riječima.",
+    "keyword_placeholder": "Pretraži naslove, tekst, URL-ove i oznake…",
+    "hybrid_placeholder": "Pretraži po riječima ili značenju…",
+    "semantic_placeholder": "Opišite čega se sjećate…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Izbrisati oznaku?",
-      "delete_confirmation_description": "Jesi siguran da želiš izbrisati ovu oznaku?"
+      "delete_confirmation_description": "Jesi siguran da želiš izbrisati ovu oznaku?",
+      "bulk_delete_confirmation_description": "Jeste li sigurni da želite obrisati {{count}} oznaka?"
     }
   },
   "banners": {
@@ -1166,5 +1195,28 @@
     "download": "Preuzmi",
     "close": "Zatvori",
     "generating": "Generiram..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Prečice na tipkovnici",
+    "sections": {
+      "navigation": "Navigacija",
+      "actions": "Radnje",
+      "selection": "Odabir",
+      "other": "Ostalo"
+    },
+    "move_left": "Pomakni lijevo",
+    "move_down": "Pomakni dolje",
+    "move_up": "Pomakni gore",
+    "move_right": "Pomakni desno",
+    "open_bookmark": "Otvori oznaku",
+    "clear_focus": "Ukloni fokus / izađi iz grupnog uređivanja",
+    "toggle_favorite": "Označi kao omiljeno / ukloni iz omiljenih",
+    "toggle_archive": "Arhiviraj / vrati iz arhive",
+    "delete_bookmark": "Obriši oznaku",
+    "toggle_selection": "Uključi/isključi odabir",
+    "select_all": "Odaberi sve",
+    "deselect_all": "Poništi odabir",
+    "show_help": "Prikaži prečice na tipkovnici",
+    "focus_search_alt": "Fokusiraj pretraživanje"
   }
 }

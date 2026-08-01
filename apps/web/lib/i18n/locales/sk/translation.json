@@ -432,6 +432,10 @@
           "users": {
             "label": "Admin: používatelia",
             "description": "Prístup k administratívnej správe používateľov."
+          },
+          "subscriptions": {
+            "label": "Administrácia: odbery",
+            "description": "Spravovať úrovne predplatného používateľov."
           }
         }
       }
@@ -610,7 +614,8 @@
         "processing": "Spracováva sa",
         "staging": "Príprava",
         "running": "Beží",
-        "paused": "Pozastavené"
+        "paused": "Pozastavené",
+        "archived": "Archivované"
       },
       "badges": {
         "pending": "{{count}} čaká",
@@ -647,7 +652,8 @@
         "no_results": "Pre tento filter sa nenašli žiadne výsledky.",
         "view_bookmark": "Zobraziť záložku",
         "load_more": "Načítať viac",
-        "no_title": "Bez názvu"
+        "no_title": "Bez názvu",
+        "archived_results": "Výsledky jednotlivých záložiek sa už pre archivované relácie importu neuchovávajú."
       },
       "finalize_dialog_title": "Dokončiť reláciu importu",
       "finalize_dialog_description": "Zaradiť „{{name}}“ do frontu na spracovanie na pozadí? Pripravené záložky sa začnú importovať.",
@@ -750,7 +756,18 @@
     "lists": "Zoznamy",
     "feeds": "Kanály",
     "is_from_source": "Zdroj je",
-    "is_not_from_source": "Zdroj nie je"
+    "is_not_from_source": "Zdroj nie je",
+    "mode_label": "Režim vyhľadávania",
+    "mode_label_description": "Vyberte si, ako Karakeep hľadá zodpovedajúce záložky.",
+    "mode_keyword": "Kľúčové slovo",
+    "mode_keyword_description": "Vyhľadať presné slová v názvoch, obsahu, adresách URL a poznámkach. Takmer okamžité.",
+    "mode_hybrid": "Hybridný",
+    "mode_hybrid_description": "Kombinuje presné zhody so súvisiacimi nápadmi pre najlepšiu rovnováhu. Pomalšie ako vyhľadávanie podľa kľúčových slov.",
+    "mode_semantic": "Sémantický",
+    "mode_semantic_description": "Nájsť koncepčne podobné záložky, a to aj bez spoločných slov. Pomalšie ako vyhľadávanie podľa kľúčových slov.",
+    "keyword_placeholder": "Hľadať v názvoch, texte, adresách URL a značkách…",
+    "hybrid_placeholder": "Hľadať podľa slov alebo významu…",
+    "semantic_placeholder": "Popíšte, čo si pamätáte…"
   },
   "layouts": {
     "masonry": "Dlaždice",
@@ -835,6 +852,10 @@
         "admin_maintenance": {
           "title": "Úlohy údržby správcu",
           "description": "Administratívne čistenie a údržba aktív"
+        },
+        "embeddings": {
+          "title": "Úlohy vkladania (embedding)",
+          "description": "Generovanie vektorových vkladov pre záložky"
         }
       },
       "monitor_and_manage": "Monitoruj a spravuj fronty úloh na pozadí a systémové úlohy spracovania",
@@ -869,7 +890,10 @@
         "migrate_large_link_html_content": "Presuň rozsiahly vložený HTML obsah do assetov.",
         "recrawl_pending_links_only": "Znova prehľadať len čakajúce odkazy",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Znova vygenerovať AI značky len pre čakajúce záložky",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Znova vygenerovať AI súhrny len pre čakajúce záložky"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Znova vygenerovať AI súhrny len pre čakajúce záložky",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Pregenerovať vklady iba pre čakajúce záložky",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Pregenerovať vklady iba pre zlyhané záložky",
+        "regenerate_embeddings_for_all_bookmarks": "Pregenerovať vklady pre všetky záložky"
       }
     },
     "server_stats": {
@@ -888,7 +912,8 @@
         "not_configured": "Nenakonfigurované",
         "connected": "Pripojené",
         "disconnected": "Odpojené"
-      }
+      },
+      "vector_store": "Vektorové úložisko"
     },
     "admin_tools": {
       "admin_tools": "Nástroje pre správcov",
@@ -924,7 +949,10 @@
       "retag_queued": "Úloha pretagovania bola zaradená do frontu",
       "resummarize_queued": "Úloha prezhrnutia bola zaradená do frontu",
       "view": "Zobraziť",
-      "fetch_error": "Chyba pri načítavaní záložky"
+      "fetch_error": "Chyba pri načítavaní záložky",
+      "embedding_status": "Stav vkladania (embedding)",
+      "regenerate_embedding": "Pregenerovať vklad",
+      "regenerate_embedding_queued": "Úloha pregenerovania vkladov bola zaradená do frontu"
     }
   },
   "options": {
@@ -1077,7 +1105,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "Naozaj chceš vymazať túto záložku?",
-      "delete_confirmation_title": "Odstrániť záložku?"
+      "delete_confirmation_title": "Odstrániť záložku?",
+      "bulk_delete_confirmation_description": "Naozaj chcete odstrániť {{count}} záložiek?"
     }
   },
   "banners": {
@@ -1166,5 +1195,28 @@
     "download": "Stiahnuť",
     "close": "Zavrieť",
     "generating": "Vytváram..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Klávesové skratky",
+    "sections": {
+      "navigation": "Navigácia",
+      "actions": "Akcie",
+      "selection": "Výber",
+      "other": "Ostatné"
+    },
+    "move_left": "Posunúť doľava",
+    "move_down": "Posunúť nadol",
+    "move_up": "Posunúť nahor",
+    "move_right": "Posunúť doprava",
+    "open_bookmark": "Otvoriť záložku",
+    "clear_focus": "Zrušiť zameranie / ukončiť hromadnú úpravu",
+    "toggle_favorite": "Prepnúť obľúbené",
+    "toggle_archive": "Archivovať / Obnoviť z archívu",
+    "delete_bookmark": "Odstrániť záložku",
+    "toggle_selection": "Prepnúť výber",
+    "select_all": "Vybrať všetko",
+    "deselect_all": "Zrušiť výber všetkého",
+    "show_help": "Zobraziť klávesové skratky",
+    "focus_search_alt": "Zamerať vyhľadávanie"
   }
 }

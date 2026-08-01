@@ -28,6 +28,11 @@ import {
   parseSubprocessInputSchema,
   parseSubprocessOutputSchema,
 } from "../workers/utils/parseHtmlSubprocessIpc";
+import {
+  assessReaderView,
+  ReaderViewAssessment,
+  unavailableReaderViewAssessment,
+} from "../workers/utils/readerViewAssessment";
 
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
@@ -84,16 +89,32 @@ const LAZY_SRC_ATTRS = [
   "data-url",
 ];
 
+function isPlaceholderDataImage(src: string): boolean {
+  // Tiny data-URI images are commonly used as lazy-load placeholders. Do not
+  // treat every data:image/gif as a placeholder: SingleFile and some sites
+  // inline real GIF assets as data URIs, and replacing those with a lazy
+  // attribute URL makes the saved reader content depend on the remote image.
+  // 200 chars is a deliberately generous cutoff: a 1x1 transparent GIF/PNG
+  // placeholder is only ~60-100 chars, while a real inlined image is many KB,
+  // so anything under this limit is safely a placeholder rather than an asset.
+  const PLACEHOLDER_MAX_LENGTH = 200;
+  const normalizedSrc = src.replace(/\s/g, "").toLowerCase();
+  return (
+    normalizedSrc.length <= PLACEHOLDER_MAX_LENGTH &&
+    (normalizedSrc.startsWith("data:image/gif") ||
+      normalizedSrc.startsWith("data:image/png"))
+  );
+}
+
 function normalizeLazyLoadImages(document: Document): void {
   const images = document.querySelectorAll("img");
   for (const img of images) {
-    // Only fill in src if it is absent or a known placeholder (blank / data:)
+    // Only fill in src if it is absent or a known tiny placeholder. Real
+    // inlined GIF/PNG data URIs must be preserved so archived content keeps
+    // the saved image rather than falling back to a remote lazy-load URL.
     const currentSrc = img.getAttribute("src") ?? "";
     const needsSrc =
-      !currentSrc ||
-      currentSrc === "#" ||
-      currentSrc.startsWith("data:image/gif") ||
-      currentSrc.startsWith("data:image/png");
+      !currentSrc || currentSrc === "#" || isPlaceholderDataImage(currentSrc);
 
     if (!needsSrc) {
       continue;
@@ -112,21 +133,40 @@ function normalizeLazyLoadImages(document: Document): void {
 function extractReadableContent(
   htmlContent: string,
   url: string,
-): { content: string } | null {
+): {
+  readableContent: { content: string } | null;
+  readerViewAssessment: ReaderViewAssessment;
+} {
   const virtualConsole = new VirtualConsole();
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
   try {
     normalizeLazyLoadImages(dom.window.document);
-    const readableContent = new Readability(dom.window.document).parse();
+    const documentClone = dom.window.document.cloneNode(true) as Document;
+    const readableContent = new Readability(documentClone).parse();
     if (!readableContent || typeof readableContent.content !== "string") {
-      return null;
+      return {
+        readableContent: null,
+        readerViewAssessment: unavailableReaderViewAssessment(),
+      };
     }
 
     const purifyWindow = new JSDOM("").window;
     try {
       const purify = DOMPurify(purifyWindow);
       const purifiedHTML = purify.sanitize(readableContent.content);
-      return { content: purifiedHTML };
+      const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
+      try {
+        return {
+          readableContent: { content: purifiedHTML },
+          readerViewAssessment: assessReaderView(
+            dom.window.document,
+            extractedDom.window.document,
+            url,
+          ),
+        };
+      } finally {
+        extractedDom.window.close();
+      }
     } finally {
       purifyWindow.close();
     }
@@ -144,7 +184,7 @@ async function main() {
   const input = parseSubprocessInputSchema.parse(
     JSON.parse(Buffer.concat(chunks).toString()),
   );
-  const { htmlContent, url, jobId } = input;
+  const { htmlContent, url, jobId, metadataOnly } = input;
 
   logger.info(
     `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
@@ -161,7 +201,8 @@ async function main() {
 
   // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
   let readableContent: { content: string } | null = null;
-  if (meta.readableContentHtml) {
+  let readerViewAssessment: ReaderViewAssessment | null = null;
+  if (!metadataOnly && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
     const purifyWindow = new JSDOM("").window;
@@ -169,25 +210,40 @@ async function main() {
       const purify = DOMPurify(purifyWindow);
       const purifiedHTML = purify.sanitize(meta.readableContentHtml);
       readableContent = { content: purifiedHTML };
+      const sourceDom = new JSDOM(htmlContent, { url });
+      const extractedDom = new JSDOM(purifiedHTML, { url });
+      try {
+        readerViewAssessment = assessReaderView(
+          sourceDom.window.document,
+          extractedDom.window.document,
+          url,
+        );
+      } finally {
+        sourceDom.window.close();
+        extractedDom.window.close();
+      }
     } finally {
       purifyWindow.close();
     }
   }
 
-  if (!readableContent) {
+  if (!metadataOnly && !readableContent) {
     logger.info(
       `[Crawler][${jobId}] Will attempt to extract readable content ...`,
     );
-    readableContent = extractReadableContent(
+    const extractionResult = extractReadableContent(
       meta.contentHtml ?? htmlContent,
       url,
     );
+    readableContent = extractionResult.readableContent;
+    readerViewAssessment = extractionResult.readerViewAssessment;
     logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
   }
 
   const output = parseSubprocessOutputSchema.parse({
     metadata: meta,
     readableContent,
+    readerViewAssessment,
   });
 
   // Write the result as JSON to stdout

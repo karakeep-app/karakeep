@@ -9,6 +9,7 @@ interface BookmarkState {
   visibleBookmarks: ZBookmark[];
   isBulkEditEnabled: boolean;
   setIsBulkEditEnabled: (isEnabled: boolean) => void;
+  enableBulkEditForBookmark: (bookmarkId: string) => void;
   toggleBookmark: (bookmarkId: string) => void;
   setSelectedBookmarkIds: (bookmarkIds: string[]) => void;
   setVisibleBookmarks: (visibleBookmarks: ZBookmark[]) => void;
@@ -34,10 +35,12 @@ const useBulkActionsStore = create<BookmarkState>((set, get) => ({
     const selectedBookmarkIds = get().selectedBookmarkIds;
     const isBookmarkAlreadySelected = selectedBookmarkIds.includes(bookmarkId);
     if (isBookmarkAlreadySelected) {
+      const remainingBookmarkIds = selectedBookmarkIds.filter(
+        (id) => id !== bookmarkId,
+      );
       set({
-        selectedBookmarkIds: selectedBookmarkIds.filter(
-          (id) => id !== bookmarkId,
-        ),
+        selectedBookmarkIds: remainingBookmarkIds,
+        isBulkEditEnabled: remainingBookmarkIds.length > 0,
       });
     } else {
       set({ selectedBookmarkIds: [...selectedBookmarkIds, bookmarkId] });
@@ -45,14 +48,17 @@ const useBulkActionsStore = create<BookmarkState>((set, get) => ({
   },
 
   setSelectedBookmarkIds: (bookmarkIds: string[]) => {
-    set({ selectedBookmarkIds: bookmarkIds });
+    set({
+      selectedBookmarkIds: bookmarkIds,
+      ...(bookmarkIds.length === 0 && { isBulkEditEnabled: false }),
+    });
   },
 
   selectAll: () => {
     set({ selectedBookmarkIds: get().visibleBookmarks.map((b) => b.id) });
   },
   unSelectAll: () => {
-    set({ selectedBookmarkIds: [] });
+    set({ selectedBookmarkIds: [], isBulkEditEnabled: false });
   },
 
   isBookmarkSelected: (bookmarkId: string) => {
@@ -84,6 +90,9 @@ const useBulkActionsStore = create<BookmarkState>((set, get) => ({
       return;
     }
     set({ isBulkEditEnabled: isEnabled, selectedBookmarkIds: [] });
+  },
+  enableBulkEditForBookmark: (bookmarkId) => {
+    set({ isBulkEditEnabled: true, selectedBookmarkIds: [bookmarkId] });
   },
 
   setVisibleBookmarks: (visibleBookmarks: ZBookmark[]) => {

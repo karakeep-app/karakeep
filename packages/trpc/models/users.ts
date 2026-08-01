@@ -305,9 +305,16 @@ export class User {
         });
       });
 
-      await sendPasswordResetEmail(email, user.name, token);
+      // Deliberately not awaited. Delivery latency is only incurred for real
+      // accounts, so awaiting it makes this endpoint a timing oracle for which
+      // emails are registered -- and a hard oracle whenever SMTP is unhealthy,
+      // since only real accounts could reach the throw below (500 for a user
+      // that exists, 200 for one that doesn't).
+      void sendPasswordResetEmail(email, user.name, token).catch((error) => {
+        console.error("Failed to send password reset email:", error);
+      });
     } catch (error) {
-      console.error("Failed to send password reset email:", error);
+      console.error("Failed to create password reset token:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to send password reset email",

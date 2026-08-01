@@ -3,23 +3,17 @@ import KarakeepLogo from "@/components/KarakeepIcon";
 import ResetPasswordForm from "@/components/signin/ResetPasswordForm";
 import { getServerAuthSession } from "@/server/auth";
 
-interface ResetPasswordPageProps {
-  searchParams: {
-    token?: string;
-  };
-}
-
 export default async function ResetPasswordPage({
   searchParams,
-}: ResetPasswordPageProps) {
+}: PageProps<"/reset-password">) {
   const session = await getServerAuthSession();
   if (session) {
     redirect("/");
   }
 
-  const { token } = searchParams;
+  const { token } = await searchParams;
 
-  if (!token) {
+  if (typeof token !== "string" || !token) {
     redirect("/signin");
   }
 

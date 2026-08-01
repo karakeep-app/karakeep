@@ -108,6 +108,11 @@ const ADMIN_RESOURCE_TRANSLATION_KEYS = {
     labelKey: "settings.api_keys.scopes.admin_resources.jobs.label",
     descriptionKey: "settings.api_keys.scopes.admin_resources.jobs.description",
   },
+  subscriptions: {
+    labelKey: "settings.api_keys.scopes.admin_resources.subscriptions.label",
+    descriptionKey:
+      "settings.api_keys.scopes.admin_resources.subscriptions.description",
+  },
   system: {
     labelKey: "settings.api_keys.scopes.admin_resources.system.label",
     descriptionKey:

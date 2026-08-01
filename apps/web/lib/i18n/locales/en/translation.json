@@ -408,6 +408,10 @@
             "label": "Admin: jobs",
             "description": "Access background job controls."
           },
+          "subscriptions": {
+            "label": "Admin: subscriptions",
+            "description": "Manage user subscription tiers."
+          },
           "system": {
             "label": "Admin: system",
             "description": "Access system status and diagnostics."
@@ -531,7 +535,8 @@
         "running": "Running",
         "paused": "Paused",
         "completed": "Completed",
-        "failed": "Failed"
+        "failed": "Failed",
+        "archived": "Archived"
       },
       "badges": {
         "pending": "{{count}} pending",
@@ -569,6 +574,7 @@
         "result_pending": "Pending",
         "result_processing": "Processing",
         "no_results": "No results found for this filter.",
+        "archived_results": "Individual bookmark results are no longer retained for archived import sessions.",
         "view_bookmark": "View Bookmark",
         "load_more": "Load More",
         "no_title": "No title"
@@ -638,6 +644,7 @@
       "search_engine": "Search Engine",
       "browser": "Browser",
       "queue_system": "Queue System",
+      "vector_store": "Vector Store",
       "status": {
         "not_configured": "Not Configured",
         "connected": "Connected",
@@ -657,6 +664,10 @@
         "indexing": {
           "title": "Indexing Jobs",
           "description": "Search index updates"
+        },
+        "embeddings": {
+          "title": "Embedding Jobs",
+          "description": "Bookmark vector embedding generation"
         },
         "asset_preprocessing": {
           "title": "Asset Preprocessing Jobs",
@@ -710,6 +721,9 @@
         "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
         "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks",
         "reindex_all_bookmarks": "Reindex All Bookmarks",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Regenerate Embeddings for Pending Bookmarks Only",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Regenerate Embeddings for Failed Bookmarks Only",
+        "regenerate_embeddings_for_all_bookmarks": "Regenerate Embeddings for All Bookmarks",
         "clean_assets": "Clean Dangling Assets & Re-sync Metadata",
         "migrate_large_link_html_content": "Move Large Inline HTML Content to Assets",
         "reprocess_assets_fix_mode": "Reprocess Unprocessed Assets"
@@ -747,11 +761,13 @@
       "owner_user_id": "Owner User ID",
       "tagging_status": "Tagging Status",
       "summarization_status": "Summarization Status",
+      "embedding_status": "Embedding Status",
       "crawl_status": "Crawl Status",
       "crawl_status_code": "HTTP Status Code",
       "crawled_at": "Crawled At",
       "recrawl": "Re-crawl",
       "reindex": "Re-index",
+      "regenerate_embedding": "Regenerate Embedding",
       "retag": "Re-tag",
       "resummarize": "Re-summarize",
       "bookmark_not_found": "Bookmark not found",
@@ -759,6 +775,7 @@
       "action_failed": "Action failed",
       "recrawl_queued": "Re-crawl job has been queued",
       "reindex_queued": "Re-index job has been queued",
+      "regenerate_embedding_queued": "Embedding regeneration job has been queued",
       "retag_queued": "Re-tag job has been queued",
       "resummarize_queued": "Re-summarize job has been queued",
       "view": "View",
@@ -946,12 +963,26 @@
     "tags": "Tags",
     "lists": "Lists",
     "feeds": "Feeds",
-    "no_suggestions": "No suggestions"
+    "no_suggestions": "No suggestions",
+    "mode_label": "Search mode",
+    "mode_label_description": "Choose how Karakeep finds matching bookmarks.",
+    "mode_keyword": "Keyword",
+    "mode_keyword_description": "Match exact words in titles, content, URLs, and notes. Almost instant.",
+    "mode_hybrid": "Hybrid",
+    "mode_hybrid_description": "Blend exact matches with related ideas for the best balance. Slower than keyword search.",
+    "mode_semantic": "Semantic",
+    "mode_semantic_description": "Find conceptually similar bookmarks, even without shared words. Slower than keyword search.",
+    "keyword_placeholder": "Search titles, text, URLs, and tags…",
+    "hybrid_placeholder": "Search by words or meaning…",
+    "semantic_placeholder": "Describe what you remember…"
   },
   "preview": {
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "page_overview": "Page Overview",
+    "try_reader_view": "Try Reader View",
+    "archived_page": "Archived Page",
     "archive_info": "Archives may not render correctly inline if they require Javascript. For best results, <1>download it and open in your browser</1>.",
     "fetch_error_title": "Content Unavailable",
     "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",

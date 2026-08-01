@@ -2,6 +2,10 @@ import { useCallback, useRef, useState } from "react";
 import { Stack, useFocusEffect } from "expo-router";
 import type { SearchBarCommands } from "react-native-screens";
 import BookmarkSearchResults from "@/components/search/BookmarkSearchResults";
+import {
+  SearchModeSelector,
+  SEARCH_MODE_PLACEHOLDERS,
+} from "@/components/search/SearchModeSelector";
 import { useBookmarkSearchState } from "@/lib/useBookmarkSearchState";
 
 export default function SearchTab() {
@@ -35,7 +39,7 @@ export default function SearchTab() {
         options={{
           headerSearchBarOptions: {
             ref: searchBarRef,
-            placeholder: "Search bookmarks...",
+            placeholder: SEARCH_MODE_PLACEHOLDERS[state.searchMode],
             onChangeText: (event) => setSearch(event.nativeEvent.text),
             onFocus: () => setIsSearchFocused(true),
             onBlur: () => {
@@ -54,6 +58,13 @@ export default function SearchTab() {
         isInputFocused={isSearchFocused}
         state={state}
         onSelectHistory={handleSearchSubmit}
+        header={
+          <SearchModeSelector
+            value={state.searchMode}
+            onValueChange={state.setSearchMode}
+            className="px-4"
+          />
+        }
       />
     </>
   );

@@ -6,18 +6,18 @@ import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { ThemeProvider as NavThemeProvider, useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
 import { StyledStack } from "@/components/navigation/stack";
 import SplashScreenController from "@/components/SplashScreenController";
+import { getFormSheetSurfaceOptions } from "@/lib/form-sheet-options";
 import { isIOS26 } from "@/lib/ios";
 import { Providers } from "@/lib/providers";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
 import { NAV_THEME } from "@/theme";
-import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
 import * as Sentry from "@sentry/react-native";
 
 Sentry.init({
@@ -35,7 +35,8 @@ export default Sentry.wrap(function RootLayout() {
   useInitialAndroidBarSync();
   const router = useRouter();
   const { hasShareIntent } = useShareIntent();
-  const { colorScheme } = useColorScheme();
+  const { colorScheme, colors } = useColorScheme();
+  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
 
   useEffect(() => {
     if (hasShareIntent) {
@@ -116,6 +117,7 @@ export default Sentry.wrap(function RootLayout() {
             <Stack.Screen
               name="server-address"
               options={{
+                ...formSheetSurfaceOptions,
                 title: "Server Address",
                 headerShown: true,
                 headerTransparent: false,
@@ -129,6 +131,7 @@ export default Sentry.wrap(function RootLayout() {
             <Stack.Screen
               name="test-connection"
               options={{
+                ...formSheetSurfaceOptions,
                 title: "Test Connection",
                 headerShown: true,
                 headerTransparent: false,

@@ -1,13 +1,16 @@
 import { useCallback } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
+import { clearPersistedCache } from "./offlineCache";
+import { clearOfflineLibrary } from "./offlineLibrary";
 import useAppSettings from "./settings";
 
 export function useSession() {
   const { settings, setSettings } = useAppSettings();
   const api = useTRPC();
+  const queryClient = useQueryClient();
 
   const { mutate: deleteKey } = useMutation(
     api.apiKeys.revoke.mutationOptions(),
@@ -18,7 +21,10 @@ export function useSession() {
       deleteKey({ id: settings.apiKeyId });
     }
     setSettings({ ...settings, apiKey: undefined, apiKeyId: undefined });
-  }, [settings, setSettings]);
+    queryClient.clear();
+    clearPersistedCache();
+    clearOfflineLibrary();
+  }, [deleteKey, queryClient, settings, setSettings]);
 
   return {
     logout,

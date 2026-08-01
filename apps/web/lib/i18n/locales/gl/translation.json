@@ -391,6 +391,10 @@
           "users": {
             "label": "Admin: usuarios",
             "description": "Acceder á xestión administrativa de usuarios."
+          },
+          "subscriptions": {
+            "label": "Admin: subscricións",
+            "description": "Xestionar os niveis de subscrición dos usuarios."
           }
         }
       }
@@ -581,7 +585,8 @@
         "processing": "Procesando",
         "staging": "Preparando",
         "running": "Executando",
-        "paused": "En pausa"
+        "paused": "En pausa",
+        "archived": "Arquivado"
       },
       "badges": {
         "pending": "{{count}} pendentes",
@@ -618,7 +623,8 @@
         "no_results": "Non se atoparon resultados para este filtro.",
         "view_bookmark": "Ver o marcador",
         "load_more": "Cargar máis",
-        "no_title": "Sen título"
+        "no_title": "Sen título",
+        "archived_results": "Os resultados individuais dos marcadores xa non se conservan para as sesións de importación arquivadas."
       },
       "finalize_dialog_title": "Finalizar sesión de importación",
       "finalize_dialog_description": "Quere engadir \"{{name}}\" á cola para o procesamento en segundo plano? Os marcadores preparados comezarán a importarse.",
@@ -735,6 +741,10 @@
         "admin_maintenance": {
           "title": "Traballos de mantemento do administrador",
           "description": "Limpeza administrativa e mantemento de activos"
+        },
+        "embeddings": {
+          "title": "Traballos de incrustación",
+          "description": "Xeración de incrustacións vectoriais de marcadores"
         }
       },
       "monitor_and_manage": "Supervisar e xestionar as colas de traballos en segundo plano e as tarefas de procesamento do sistema",
@@ -769,7 +779,10 @@
         "migrate_large_link_html_content": "Mover o contido HTML en liña grande aos recursos",
         "recrawl_pending_links_only": "Volver a rastrexar só as ligazóns pendentes",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Volver a xerar as etiquetas de intelixencia artificial só para os marcadores pendentes",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Só volver a xerar os resumos de IA para os marcadores pendentes"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Só volver a xerar os resumos de IA para os marcadores pendentes",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Rexenerar incrustacións só para marcadores pendentes",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Rexenerar incrustacións só para marcadores fallidos",
+        "regenerate_embeddings_for_all_bookmarks": "Rexenerar incrustacións para todos os marcadores"
       }
     },
     "actions": {
@@ -807,7 +820,8 @@
         "not_configured": "Sen configurar",
         "connected": "Conectado",
         "disconnected": "Desconectado"
-      }
+      },
+      "vector_store": "Almacenamento de vectores"
     },
     "admin_tools": {
       "admin_tools": "Ferramentas de administración",
@@ -843,7 +857,10 @@
       "retag_queued": "O traballo de volver etiquetar foi posto en cola",
       "resummarize_queued": "O traballo de volver resumir foi posto en cola",
       "view": "Ver",
-      "fetch_error": "Erro ao obter o marcador"
+      "fetch_error": "Erro ao obter o marcador",
+      "embedding_status": "Estado da incrustación",
+      "regenerate_embedding": "Rexenerar incrustación",
+      "regenerate_embedding_queued": "O traballo de rexeneración de incrustacións engadiuse á cola"
     }
   },
   "options": {
@@ -1072,12 +1089,24 @@
     "lists": "Listas",
     "feeds": "Fontes",
     "is_from_source": "Orixe é",
-    "is_not_from_source": "A orixe non é"
+    "is_not_from_source": "A orixe non é",
+    "mode_label": "Modo de busca",
+    "mode_label_description": "Escolla como Karakeep atopa marcadores coincidentes.",
+    "mode_keyword": "Palabra clave",
+    "mode_keyword_description": "Busca palabras exactas en títulos, contido, enderezos URL e notas. Case instantánea.",
+    "mode_hybrid": "Híbrida",
+    "mode_hybrid_description": "Combina coincidencias exactas con ideas relacionadas para o mellor equilibrio. Máis lenta que a busca por palabra clave.",
+    "mode_semantic": "Semántica",
+    "mode_semantic_description": "Atope marcadores conceptualmente similares, mesmo sen palabras compartidas. Máis lenta que a busca por palabra clave.",
+    "keyword_placeholder": "Buscar títulos, texto, enderezos URL e etiquetas…",
+    "hybrid_placeholder": "Buscar por palabras ou significado…",
+    "semantic_placeholder": "Describa o que lembra…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Queres eliminar o marcador?",
-      "delete_confirmation_description": "Seguro que queres borrar este marcador?"
+      "delete_confirmation_description": "Seguro que queres borrar este marcador?",
+      "bulk_delete_confirmation_description": "Está seguro de que quere eliminar {{count}} marcadores?"
     }
   },
   "banners": {
@@ -1166,5 +1195,28 @@
     "download": "Descargar",
     "close": "Pechar",
     "generating": "Xerando..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Atallos de teclado",
+    "sections": {
+      "navigation": "Navegación",
+      "actions": "Accións",
+      "selection": "Selección",
+      "other": "Outros"
+    },
+    "move_left": "Mover á esquerda",
+    "move_down": "Mover abaixo",
+    "move_up": "Mover arriba",
+    "move_right": "Mover á dereita",
+    "open_bookmark": "Abrir marcador",
+    "clear_focus": "Limpar o foco / saír da edición masiva",
+    "toggle_favorite": "Alternar favorito",
+    "toggle_archive": "Arquivar / Desarquivar",
+    "delete_bookmark": "Eliminar marcador",
+    "toggle_selection": "Alternar selección",
+    "select_all": "Seleccionar todo",
+    "deselect_all": "Deseleccionar todo",
+    "show_help": "Mostrar atallos de teclado",
+    "focus_search_alt": "Enfocar a busca"
   }
 }

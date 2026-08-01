@@ -94,3 +94,43 @@ registry.registerPath({
     401: UnauthorizedResponse,
   },
 });
+
+registry.registerPath({
+  operationId: "getAssetSignedUrl",
+  method: "get",
+  path: "/assets/{assetId}/signed-url",
+  description:
+    "Generate a temporary signed URL that can be used to download an asset without sending an API key.",
+  summary: "Get a signed asset URL",
+  tags: ["Assets"],
+  security: [{ [BearerAuth.name]: [] }],
+  request: {
+    params: z.object({ assetId: AssetIdSchema }),
+  },
+  responses: {
+    200: {
+      description:
+        "A temporary signed URL for downloading the asset and its expiration time.",
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              assetId: z
+                .string()
+                .describe("The unique identifier of the asset."),
+              signedUrl: z
+                .string()
+                .url()
+                .describe("The temporary URL for downloading the asset."),
+              expiresAt: z
+                .string()
+                .datetime()
+                .describe("When the signed URL expires, in ISO 8601 format."),
+            })
+            .openapi("SignedAssetUrl"),
+        },
+      },
+    },
+    401: UnauthorizedResponse,
+  },
+});

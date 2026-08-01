@@ -329,6 +329,10 @@
           "users": {
             "label": "Admin : utilisateurs",
             "description": "Accéder à la gestion administrative des utilisateurs."
+          },
+          "subscriptions": {
+            "label": "Admin : abonnements",
+            "description": "Gérer les niveaux d'abonnement des utilisateurs."
           }
         }
       }
@@ -519,7 +523,8 @@
         "processing": "Traitement",
         "staging": "Préparation",
         "running": "En cours d’exécution",
-        "paused": "En pause"
+        "paused": "En pause",
+        "archived": "Archivé"
       },
       "badges": {
         "pending": "{{count}} en attente",
@@ -556,7 +561,8 @@
         "no_results": "Aucun résultat trouvé pour ce filtre.",
         "view_bookmark": "Voir le marque-page",
         "load_more": "Charger plus",
-        "no_title": "Pas de titre"
+        "no_title": "Pas de titre",
+        "archived_results": "Les résultats de favoris individuels ne sont plus conservés pour les sessions d'importation archivées."
       },
       "finalize_dialog_title": "Finaliser la session d'importation",
       "finalize_dialog_description": "Mettre en file d'attente « {{name}} » pour le traitement en arrière-plan ? L'importation des signets préparés va commencer.",
@@ -670,6 +676,10 @@
         "admin_maintenance": {
           "title": "Tâches de maintenance de l’administrateur",
           "description": "Nettoyage administratif et maintenance des actifs"
+        },
+        "embeddings": {
+          "title": "Tâches d'indexation vectorielle",
+          "description": "Génération d'indexation vectorielle de signets"
         }
       },
       "monitor_and_manage": "Surveiller et gérer les files d'attente des tâches en arrière-plan et les tâches de traitement du système",
@@ -704,7 +714,10 @@
         "migrate_large_link_html_content": "Bouger du Grand Contenu HTML En Ligne vers les Ressources",
         "recrawl_pending_links_only": "Recréer l'index des liens en attente uniquement",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Régénérer les étiquettes d'IA pour les favoris en attente uniquement",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Régénérer les résumés d'IA pour les favoris en attente uniquement"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Régénérer les résumés d'IA pour les favoris en attente uniquement",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Régénérer les indexations uniquement pour les signets en attente",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Régénérer les indexations uniquement pour les signets échoués",
+        "regenerate_embeddings_for_all_bookmarks": "Régénérer les indexations pour tous les signets"
       }
     },
     "actions": {
@@ -742,7 +755,8 @@
         "not_configured": "Non configuré",
         "connected": "Connecté",
         "disconnected": "Déconnecté"
-      }
+      },
+      "vector_store": "Base de vecteurs"
     },
     "admin_tools": {
       "admin_tools": "Outils d’administration",
@@ -778,7 +792,10 @@
       "retag_queued": "La tâche de ré-étiquetage a été mise en file d'attente",
       "resummarize_queued": "La tâche de nouveau résumé a été mise en file d'attente",
       "view": "Afficher",
-      "fetch_error": "Erreur lors de la récupération du favori"
+      "fetch_error": "Erreur lors de la récupération du favori",
+      "embedding_status": "État de l'indexation vectorielle",
+      "regenerate_embedding": "Régénérer l'indexation vectorielle",
+      "regenerate_embedding_queued": "La tâche de régénération de l'indexation vectorielle a été mise en file d'attente"
     }
   },
   "options": {
@@ -1069,12 +1086,24 @@
     "lists": "Listes",
     "feeds": "Flux",
     "is_from_source": "La source est",
-    "is_not_from_source": "La source n'est pas"
+    "is_not_from_source": "La source n'est pas",
+    "mode_label": "Mode de recherche",
+    "mode_label_description": "Choisissez comment Karakeep trouve les favoris correspondants.",
+    "mode_keyword": "Mot-clé",
+    "mode_keyword_description": "Faites correspondre des mots exacts dans les titres, le contenu, les URL et les notes. Presque instantané.",
+    "mode_hybrid": "Hybride",
+    "mode_hybrid_description": "Mélangez les correspondances exactes avec des idées liées pour le meilleur équilibre. Plus lent que la recherche par mots-clés.",
+    "mode_semantic": "Sémantique",
+    "mode_semantic_description": "Trouvez des favoris conceptuellement similaires, même sans mots communs. Plus lent que la recherche par mots-clés.",
+    "keyword_placeholder": "Rechercher dans les titres, le texte, les URL et les étiquettes…",
+    "hybrid_placeholder": "Rechercher par mots ou par sens…",
+    "semantic_placeholder": "Décrivez ce dont vous vous souvenez…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Supprimer le signet ?",
-      "delete_confirmation_description": "Êtes-vous sûr de vouloir supprimer ce marque-page ?"
+      "delete_confirmation_description": "Êtes-vous sûr de vouloir supprimer ce marque-page ?",
+      "bulk_delete_confirmation_description": "Êtes-vous sûr de vouloir supprimer {{count}} signets ?"
     }
   },
   "highlights": {
@@ -1166,5 +1195,28 @@
     "download": "Télécharger",
     "close": "Fermer",
     "generating": "Génération en cours..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Raccourcis clavier",
+    "sections": {
+      "navigation": "Navigation",
+      "actions": "Actions",
+      "selection": "Sélection",
+      "other": "Autre"
+    },
+    "move_left": "Déplacer vers la gauche",
+    "move_down": "Déplacer vers le bas",
+    "move_up": "Déplacer vers le haut",
+    "move_right": "Déplacer vers la droite",
+    "open_bookmark": "Ouvrir le signet",
+    "clear_focus": "Retirer le focus / quitter l'édition en bloc",
+    "toggle_favorite": "Basculer en favori",
+    "toggle_archive": "Archiver / Désarchiver",
+    "delete_bookmark": "Supprimer le signet",
+    "toggle_selection": "Basculer la sélection",
+    "select_all": "Tout sélectionner",
+    "deselect_all": "Tout désélectionner",
+    "show_help": "Afficher les raccourcis clavier",
+    "focus_search_alt": "Placer le focus sur la recherche"
   }
 }

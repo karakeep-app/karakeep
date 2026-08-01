@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Linking, Pressable, TouchableOpacity, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import WebView from "react-native-webview";
@@ -7,9 +7,15 @@ import {
   WebViewSourceUri,
 } from "react-native-webview/lib/WebViewTypes";
 import * as WebBrowser from "expo-web-browser";
+import QueryPageState from "@/components/QueryPageState";
 import { Text } from "@/components/ui/Text";
 import { useAssetUrl } from "@/lib/hooks";
+import {
+  getOfflineLibraryScope,
+  useOfflineArticleContent,
+} from "@/lib/offlineLibrary";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
+import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react-native";
@@ -23,8 +29,6 @@ import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progres
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-import FullPageError from "../FullPageError";
-import FullPageSpinner from "../ui/FullPageSpinner";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
@@ -107,12 +111,16 @@ export function BookmarkLinkReaderPreview({
 }) {
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
+  const { settings } = useAppSettings();
   const api = useTRPC();
+  const offlineHtmlContent = useOfflineArticleContent(
+    getOfflineLibraryScope(settings),
+    bookmark.id,
+  );
 
   const {
     data: bookmarkWithContent,
     error,
-    isLoading,
     refetch,
   } = useQuery(
     api.bookmarks.getBookmark.queryOptions({
@@ -120,6 +128,23 @@ export function BookmarkLinkReaderPreview({
       includeContent: true,
     }),
   );
+  // The offline body is stored on its own, so fold it back into the bookmark
+  // this component was already handed rather than reading the saved metadata.
+  const displayedBookmarkWithContent = useMemo(() => {
+    if (bookmarkWithContent) {
+      return bookmarkWithContent;
+    }
+    if (
+      offlineHtmlContent === undefined ||
+      bookmark.content.type !== BookmarkTypes.LINK
+    ) {
+      return undefined;
+    }
+    return {
+      ...bookmark,
+      content: { ...bookmark.content, htmlContent: offlineHtmlContent },
+    };
+  }, [bookmark, bookmarkWithContent, offlineHtmlContent]);
 
   const { data: highlights } = useQuery(
     api.highlights.getForBookmark.queryOptions({
@@ -155,15 +180,11 @@ export function BookmarkLinkReaderPreview({
     setViewingImage(src);
   }, []);
 
-  if (isLoading) {
-    return <FullPageSpinner />;
+  if (!displayedBookmarkWithContent) {
+    return <QueryPageState error={error} onRetry={refetch} />;
   }
 
-  if (error) {
-    return <FullPageError error={error.message} onRetry={refetch} />;
-  }
-
-  if (bookmarkWithContent?.content.type !== BookmarkTypes.LINK) {
+  if (displayedBookmarkWithContent.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
   }
 
@@ -207,8 +228,9 @@ export function BookmarkLinkReaderPreview({
         </View>
       )}
       <BookmarkHtmlHighlighterDom
-        htmlContent={bookmarkWithContent.content.htmlContent ?? ""}
+        htmlContent={displayedBookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
+        isDark={isDark}
         highlights={highlights?.highlights ?? []}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}

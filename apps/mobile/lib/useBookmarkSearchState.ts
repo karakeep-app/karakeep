@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   keepPreviousData,
@@ -9,12 +9,24 @@ import {
 import { useSearchHistory } from "@karakeep/shared-react/hooks/search-history";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
+
+import type { ZBookmarkSearchMode } from "@karakeep/shared/types/bookmarks";
+
+import { useClientConfig } from "./client-config";
 
 const MAX_DISPLAY_SUGGESTIONS = 5;
 const DEBOUNCE_MS = 10;
 
 export function useBookmarkSearchState(rawSearch: string) {
   const query = useDebounce(rawSearch, DEBOUNCE_MS);
+  const { semanticSearchEnabled } = useClientConfig().search;
+  const [searchMode, setSearchMode] = useState<ZBookmarkSearchMode>("fts");
+  const parsedQuery = useMemo(() => parseSearchQuery(query), [query]);
+  const effectiveSearchMode =
+    semanticSearchEnabled && parsedQuery.text.trim().length > 0
+      ? searchMode
+      : "fts";
 
   const { history, addTerm, clearHistory } = useSearchHistory({
     getItem: (k: string) => AsyncStorage.getItem(k),
@@ -32,7 +44,7 @@ export function useBookmarkSearchState(rawSearch: string) {
   const { data, error, refetch, isPending, fetchNextPage, isFetchingNextPage } =
     useInfiniteQuery(
       api.bookmarks.searchBookmarks.infiniteQueryOptions(
-        { text: query },
+        { text: query, searchMode: effectiveSearchMode },
         {
           enabled: query.trim().length > 0,
           placeholderData: keepPreviousData,
@@ -61,6 +73,9 @@ export function useBookmarkSearchState(rawSearch: string) {
 
   return {
     query,
+    searchMode,
+    setSearchMode,
+    semanticSearchEnabled,
     history,
     filteredHistory,
     addTerm,

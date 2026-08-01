@@ -2,6 +2,7 @@
 
 import type { QueueClient } from "./queueing";
 import type { RateLimitClient } from "./ratelimiting";
+import type { VectorStoreClient } from "./vectorStore";
 import logger from "./logger";
 import { SearchIndexClient } from "./search";
 
@@ -9,12 +10,14 @@ export enum PluginType {
   Search = "search",
   Queue = "queue",
   RateLimit = "ratelimit",
+  VectorStore = "vectorstore",
 }
 
 interface PluginTypeMap {
   [PluginType.Search]: SearchIndexClient;
   [PluginType.Queue]: QueueClient;
   [PluginType.RateLimit]: RateLimitClient;
+  [PluginType.VectorStore]: VectorStoreClient;
 }
 
 export interface TPlugin<T extends PluginType> {
@@ -30,21 +33,44 @@ export interface PluginProvider<T> {
 // Preserve the key-dependent value type: for K, store TPlugin<K>[]
 type ProviderMap = { [K in PluginType]: TPlugin<K>[] };
 
-export class PluginManager {
-  private static providers: ProviderMap = {
+const pluginProvidersKey = "__karakeep_plugins_providers__";
+
+function createProviderMap(): ProviderMap {
+  return {
     [PluginType.Search]: [],
     [PluginType.Queue]: [],
     [PluginType.RateLimit]: [],
+    [PluginType.VectorStore]: [],
   };
+}
+
+const globalPluginState = globalThis as typeof globalThis & {
+  [pluginProvidersKey]?: ProviderMap;
+};
+
+export class PluginManager {
+  private static providers: ProviderMap = (globalPluginState[
+    pluginProvidersKey
+  ] ??= createProviderMap());
+
+  private static providersFor<T extends PluginType>(type: T): TPlugin<T>[] {
+    PluginManager.providers[type] ??= [] as ProviderMap[T];
+    return PluginManager.providers[type] as TPlugin<T>[];
+  }
 
   static register<T extends PluginType>(plugin: TPlugin<T>): void {
-    PluginManager.providers[plugin.type].push(plugin);
+    const providers = PluginManager.providersFor(plugin.type);
+    const existingProvider = providers.findIndex((p) => p.name === plugin.name);
+    if (existingProvider >= 0) {
+      return;
+    }
+    providers.push(plugin);
   }
 
   static async getClient<T extends PluginType>(
     type: T,
   ): Promise<PluginTypeMap[T] | null> {
-    const providers: TPlugin<T>[] = PluginManager.providers[type];
+    const providers = PluginManager.providersFor(type);
     if (providers.length === 0) {
       return null;
     }
@@ -52,11 +78,11 @@ export class PluginManager {
   }
 
   static isRegistered<T extends PluginType>(type: T): boolean {
-    return PluginManager.providers[type].length > 0;
+    return PluginManager.providersFor(type).length > 0;
   }
 
   static getPluginName<T extends PluginType>(type: T): string | null {
-    const providers: TPlugin<T>[] = PluginManager.providers[type];
+    const providers = PluginManager.providersFor(type);
     if (providers.length === 0) {
       return null;
     }

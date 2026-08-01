@@ -329,6 +329,10 @@
           "users": {
             "label": "管理：使用者",
             "description": "訪問管理使用者管理。"
+          },
+          "subscriptions": {
+            "label": "管理：訂閱",
+            "description": "管理使用者訂閱方案。"
           }
         }
       }
@@ -519,7 +523,8 @@
         "processing": "處理中",
         "staging": "預備",
         "running": "執行中",
-        "paused": "已暫停"
+        "paused": "已暫停",
+        "archived": "已封存"
       },
       "badges": {
         "pending": "{{count}} 等待中",
@@ -556,7 +561,8 @@
         "no_results": "這個篩選器沒有找到任何結果。",
         "view_bookmark": "檢視書籤",
         "load_more": "載入更多",
-        "no_title": "無標題"
+        "no_title": "無標題",
+        "archived_results": "目前不再為封存的匯入會話保留個別書籤結果。"
       },
       "finalize_dialog_title": "完成匯入工作階段",
       "finalize_dialog_description": "將「{{name}}」放入背景處理佇列？暫存的書籤將開始匯入。",
@@ -670,6 +676,10 @@
         "admin_maintenance": {
           "title": "管理員維護工作",
           "description": "管理清理與資產維護"
+        },
+        "embeddings": {
+          "title": "嵌入工作",
+          "description": "書籤向量嵌入生成"
         }
       },
       "monitor_and_manage": "監控和管理背景任務佇列和系統處理任務",
@@ -704,7 +714,10 @@
         "migrate_large_link_html_content": "將大型內嵌 HTML 內容移至資產",
         "recrawl_pending_links_only": "僅重新檢索待處理的連結",
         "regenerate_ai_tags_for_pending_bookmarks_only": "僅針對待處理的書籤重新產生 AI 標籤",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "僅針對待處理的書籤重新產生 AI 摘要"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "僅針對待處理的書籤重新產生 AI 摘要",
+        "regenerate_embeddings_for_pending_bookmarks_only": "僅為待處理書籤重新生成嵌入",
+        "regenerate_embeddings_for_failed_bookmarks_only": "僅為失敗書籤重新生成嵌入",
+        "regenerate_embeddings_for_all_bookmarks": "為所有書籤重新生成嵌入"
       }
     },
     "actions": {
@@ -742,7 +755,8 @@
         "not_configured": "未配置",
         "connected": "已連線",
         "disconnected": "已中斷連線"
-      }
+      },
+      "vector_store": "向量儲存"
     },
     "admin_tools": {
       "admin_tools": "管理員工具",
@@ -778,7 +792,10 @@
       "retag_queued": "重新標記作業已排入佇列",
       "resummarize_queued": "重新摘要作業已排入佇列",
       "view": "檢視",
-      "fetch_error": "擷取書籤時發生錯誤"
+      "fetch_error": "擷取書籤時發生錯誤",
+      "embedding_status": "嵌入狀態",
+      "regenerate_embedding": "重新生成嵌入",
+      "regenerate_embedding_queued": "嵌入重新生成工作已排入隊列"
     }
   },
   "options": {
@@ -1069,12 +1086,24 @@
     "lists": "清單",
     "feeds": "動態饋給",
     "is_from_source": "來源是",
-    "is_not_from_source": "來源不是"
+    "is_not_from_source": "來源不是",
+    "mode_label": "搜尋模式",
+    "mode_label_description": "選擇 Karakeep 尋找匹配書籤的方式。",
+    "mode_keyword": "關鍵字",
+    "mode_keyword_description": "匹配標題、內容、URL 和筆記中的精確字詞。幾乎是瞬間完成。",
+    "mode_hybrid": "混合",
+    "mode_hybrid_description": "結合精確匹配與相關概念以達到最佳平衡。比關鍵字搜尋慢。",
+    "mode_semantic": "語義",
+    "mode_semantic_description": "尋找概念相似的書籤，即使沒有共同的字詞。比關鍵字搜尋慢。",
+    "keyword_placeholder": "搜尋標題、內容、URL 和標籤…",
+    "hybrid_placeholder": "按字詞或含義搜尋…",
+    "semantic_placeholder": "描述您記得的內容…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "刪除書籤？",
-      "delete_confirmation_description": "您確定要刪除這個書籤嗎？"
+      "delete_confirmation_description": "您確定要刪除這個書籤嗎？",
+      "bulk_delete_confirmation_description": "您確定要刪除 {{count}} 個書籤嗎？"
     }
   },
   "highlights": {
@@ -1166,5 +1195,28 @@
     "download": "下載",
     "close": "關閉",
     "generating": "正在產生..."
+  },
+  "keyboard_shortcuts": {
+    "title": "鍵盤快捷鍵",
+    "sections": {
+      "navigation": "導覽",
+      "actions": "操作",
+      "selection": "選取",
+      "other": "其他"
+    },
+    "move_left": "向左移動",
+    "move_down": "向下移動",
+    "move_up": "向上移動",
+    "move_right": "向右移動",
+    "open_bookmark": "開啟書籤",
+    "clear_focus": "清除焦點 / 退出批量編輯",
+    "toggle_favorite": "切換收藏",
+    "toggle_archive": "封存 / 取消封存",
+    "delete_bookmark": "刪除書籤",
+    "toggle_selection": "切換選取",
+    "select_all": "全選",
+    "deselect_all": "取消全選",
+    "show_help": "顯示鍵盤快捷鍵",
+    "focus_search_alt": "聚焦搜尋"
   }
 }

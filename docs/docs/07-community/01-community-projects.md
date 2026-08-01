@@ -101,3 +101,11 @@ _By [@bercribe](https://github.com/bercribe)._
 A terminal user interface for Karakeep. Supports keyboard driven tag and list management of bookmarks, with suggestions populated from your server.
 
 Get it [here](https://github.com/bercribe/karatui)
+
+### wdoc
+
+_By [@thiswillbeyourgithub](https://github.com/thiswillbeyourgithub/)_
+
+Ask questions about your Karakeep bookmarks. wdoc is a Retrieval-Augmented Generation tool (CLI and Python library) that turns your saved content into a searchable, queryable knowledge base, with recently added native Karakeep support on top of 20+ other filetypes.
+
+Get it [here](https://github.com/thiswillbeyourgithub/wdoc/).

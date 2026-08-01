@@ -15,8 +15,11 @@ import { Separator } from "@/components/ui/separator";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useSession } from "@/lib/auth/client";
 import { useTranslation } from "@/lib/i18n/client";
+import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
+import { useKeyboardNavigationStore } from "@/lib/store/useKeyboardNavigationStore";
 import {
   BookOpen,
+  Keyboard,
   LogOut,
   Moon,
   Paintbrush,
@@ -59,6 +62,12 @@ export default function SidebarProfileOptions() {
   const { data: session } = useSession();
   const { data: whoami } = useWhoAmI();
   const router = useRouter();
+  const inBookmarkGrid = useInBookmarkGridStore(
+    (state) => state.inBookmarkGrid,
+  );
+  const setShortcutsDialogOpen = useKeyboardNavigationStore(
+    (state) => state.setShortcutsDialogOpen,
+  );
 
   const avatarImage = whoami?.image ?? null;
   const avatarUrl = useMemo(() => avatarImage ?? null, [avatarImage]);
@@ -121,6 +130,12 @@ export default function SidebarProfileOptions() {
         <DropdownMenuItem onClick={toggleTheme}>
           <DarkModeToggle />
         </DropdownMenuItem>
+        {inBookmarkGrid && (
+          <DropdownMenuItem onClick={() => setShortcutsDialogOpen(true)}>
+            <Keyboard className="mr-2 size-4" />
+            {t("keyboard_shortcuts.title")}
+          </DropdownMenuItem>
+        )}
         <Separator className="my-2" />
         <DropdownMenuItem asChild>
           <a href="https://karakeep.app/apps" target="_blank" rel="noreferrer">

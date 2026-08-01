@@ -111,6 +111,8 @@ export default function CredentialsForm() {
                 <FormControl>
                   <Input
                     type="email"
+                    autoComplete="email"
+                    spellCheck={false}
                     placeholder="Enter your email"
                     {...field}
                   />
@@ -129,6 +131,7 @@ export default function CredentialsForm() {
                 <FormControl>
                   <Input
                     type="password"
+                    autoComplete="current-password"
                     placeholder="Enter your password"
                     {...field}
                   />

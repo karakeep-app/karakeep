@@ -18,6 +18,14 @@ export const updateUserSchema = z.object({
   browserCrawlingEnabled: z.boolean().nullable().optional(),
 });
 
+export const zAdminJobModifiedWithinSecondsSchema = z
+  .number()
+  .int()
+  .positive()
+  .describe(
+    "Only process bookmarks modified within this many seconds. Omit to process all matching bookmarks.",
+  );
+
 export const resetPasswordSchema = z
   .object({
     userId: z.string(),

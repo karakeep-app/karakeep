@@ -1,4 +1,7 @@
 import dns from "node:dns/promises";
+import http from "node:http";
+import https from "node:https";
+import type { LookupFunction } from "node:net";
 import { Readable } from "node:stream";
 import type { HeadersInit, RequestInit, Response } from "node-fetch";
 import { HttpProxyAgent } from "http-proxy-agent";
@@ -97,7 +100,7 @@ export function getBookmarkDomain(url?: string | null): string | undefined {
 }
 
 export type UrlValidationResult =
-  | { ok: true; url: URL }
+  | { ok: true; url: URL; resolvedAddresses?: string[] }
   | { ok: false; reason: string };
 
 function hostnameMatchesAnyPattern(
@@ -219,7 +222,62 @@ export async function validateUrl(
     }
   }
 
-  return { ok: true, url: parsedUrl } as const;
+  return { ok: true, url: parsedUrl, resolvedAddresses: records } as const;
+}
+
+/**
+ * Builds a socket lookup function from the addresses that validateUrl already
+ * checked. Returning one of those addresses directly to the HTTP agent avoids
+ * resolving the hostname again between validation and connection (a DNS
+ * rebinding/TOCTOU vulnerability).
+ */
+export function createPinnedLookup(addresses: string[]): LookupFunction {
+  // validateUrl already rejects the entire result set if any address is
+  // forbidden. Keep the socket boundary defensive as well, so a future caller
+  // cannot accidentally pin a connection to an unchecked address.
+  const lookupAddresses = addresses
+    .filter((address) => !isAddressForbidden(address))
+    .map((address) => ({
+      address,
+      family: ipaddr.parse(address).kind() === "ipv4" ? 4 : 6,
+    }));
+
+  return (_hostname, options, callback) => {
+    const requestedFamily =
+      options.family === 4 || options.family === "IPv4"
+        ? 4
+        : options.family === 6 || options.family === "IPv6"
+          ? 6
+          : undefined;
+    const matchingAddresses = requestedFamily
+      ? lookupAddresses.filter(({ family }) => family === requestedFamily)
+      : lookupAddresses;
+
+    if (matchingAddresses.length === 0) {
+      const error = new Error(
+        requestedFamily
+          ? `Validated DNS lookup returned no allowed IPv${requestedFamily} addresses`
+          : "Validated DNS lookup returned no allowed addresses",
+      ) as NodeJS.ErrnoException;
+      error.code = "ENOTFOUND";
+      callback(error, "", requestedFamily);
+      return;
+    }
+
+    if (options.all) {
+      callback(null, matchingAddresses);
+    } else {
+      const selectedAddress = matchingAddresses[0];
+      callback(null, selectedAddress.address, selectedAddress.family);
+    }
+  };
+}
+
+function getPinnedDnsAgent(url: URL, addresses: string[]) {
+  const options = { lookup: createPinnedLookup(addresses) };
+  return url.protocol === "https:"
+    ? new https.Agent(options)
+    : new http.Agent(options);
 }
 
 export function getRandomProxy(proxyList: string[]): string {
@@ -434,14 +492,19 @@ export const fetchWithProxy = async (
   let currentBody = preparedBody;
 
   while (true) {
-    const agent = getProxyAgent(currentUrl, runProxy);
+    const proxyAgent = getProxyAgent(currentUrl, runProxy);
 
-    const validation = await validateUrl(currentUrl, !!agent);
+    const validation = await validateUrl(currentUrl, !!proxyAgent);
     if (!validation.ok) {
       throw new Error(validation.reason);
     }
     const requestUrl = validation.url;
     currentUrl = requestUrl.toString();
+    const agent =
+      proxyAgent ??
+      (validation.resolvedAddresses
+        ? getPinnedDnsAgent(requestUrl, validation.resolvedAddresses)
+        : undefined);
 
     const response = await fetch(
       currentUrl,
@@ -508,14 +571,19 @@ export async function resolveValidatedRedirectUrl(
           options.signal as globalThis.AbortSignal,
         ])
       : AbortSignal.timeout(5000);
-    const agent = getProxyAgent(currentUrl, runProxy);
-    const validation = await validateUrl(currentUrl, !!agent);
+    const proxyAgent = getProxyAgent(currentUrl, runProxy);
+    const validation = await validateUrl(currentUrl, !!proxyAgent);
     if (!validation.ok) {
       throw new Error(validation.reason);
     }
 
     const requestUrl = validation.url;
     currentUrl = requestUrl.toString();
+    const agent =
+      proxyAgent ??
+      (validation.resolvedAddresses
+        ? getPinnedDnsAgent(requestUrl, validation.resolvedAddresses)
+        : undefined);
 
     const response = await fetch(
       currentUrl,

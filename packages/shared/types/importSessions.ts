@@ -7,6 +7,7 @@ export const zImportSessionStatusSchema = z.enum([
   "paused",
   "completed",
   "failed",
+  "archived",
 ]);
 export type ZImportSessionStatus = z.infer<typeof zImportSessionStatusSchema>;
 

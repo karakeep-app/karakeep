@@ -3,17 +3,15 @@ import InviteAcceptForm from "@/components/invite/InviteAcceptForm";
 import KarakeepLogo from "@/components/KarakeepIcon";
 import { getServerAuthSession } from "@/server/auth";
 
-interface InvitePageProps {
-  params: {
-    token: string;
-  };
-}
-
-export default async function InvitePage({ params }: InvitePageProps) {
+export default async function InvitePage({
+  params,
+}: PageProps<"/invite/[token]">) {
   const session = await getServerAuthSession();
   if (session) {
     redirect("/");
   }
+
+  const { token } = await params;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
@@ -21,7 +19,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
         <div className="flex items-center justify-center">
           <KarakeepLogo height={80} />
         </div>
-        <InviteAcceptForm token={params.token} />
+        <InviteAcceptForm token={token} />
       </div>
     </div>
   );

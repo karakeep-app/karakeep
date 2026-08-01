@@ -1,0 +1,1190 @@
+{
+  "common": {
+    "default": "ברירת מחדל",
+    "id": "מזהה",
+    "url": "URL",
+    "name": "שם",
+    "email": "אימייל",
+    "password": "סיסמה",
+    "action": "פעולה",
+    "actions": "פעולות",
+    "created_at": "נוצר ב-",
+    "updated_at": "עודכן ב-",
+    "last_used": "שימוש אחרון",
+    "key": "מפתח",
+    "role": "תפקיד",
+    "type": "סוג",
+    "size": "גודל",
+    "roles": {
+      "user": "משתמש",
+      "admin": "מנהל מערכת"
+    },
+    "something_went_wrong": "משהו השתבש",
+    "experimental": "ניסיוני",
+    "search": "חיפוש",
+    "tags": "תגיות",
+    "note": "הערה",
+    "attachments": "קבצים מצורפים",
+    "highlights": "הדגשות",
+    "source": "מקור",
+    "screenshot": "צילום מסך",
+    "pdf": "PDF בארכיון",
+    "video": "וידאו",
+    "archive": "ארכיון",
+    "home": "בית",
+    "title": "כותרת",
+    "description": "תיאור",
+    "summary": "סיכום",
+    "bookmark_types": {
+      "title": "סוג סימנייה",
+      "link": "קישור",
+      "text": "טקסט",
+      "media": "מדיה"
+    },
+    "quota": "מכסה",
+    "bookmarks": "סימניות",
+    "storage": "אחסון"
+  },
+  "layouts": {
+    "masonry": "פסיפס",
+    "grid": "רשת",
+    "list": "רשימה",
+    "compact": "דחוס"
+  },
+  "view_options": {
+    "title": "אפשרויות תצוגה",
+    "layout": "פריסה",
+    "columns": "עמודות",
+    "display_options": "אפשרויות הצגה",
+    "show_note_previews": "הצג הערות",
+    "show_tags": "הצג תגיות",
+    "show_title": "הצג כותרת",
+    "image_options": "אפשרויות תמונה",
+    "image_fit_cover": "מילוי (Cover)",
+    "image_fit_contain": "התאמה (Contain)"
+  },
+  "actions": {
+    "change_layout": "שינוי פריסה",
+    "archive": "ארכיון",
+    "unarchive": "ביטול ארכיון",
+    "favorite": "מועדף",
+    "unfavorite": "הסרה ממועדפים",
+    "delete": "מחיקה",
+    "toggle_show_archived": "הצגת פריטים שנשמרו בארכיון",
+    "refresh": "רענון",
+    "recrawl": "סריקה מחדש",
+    "offline_copies": "עותקים לא מקוונים",
+    "preserve_offline_archive": "שימור ארכיון לא מקוון",
+    "download_full_page_archive_file": "הורדת קובץ ארכיון",
+    "preserve_as_pdf": "שמירה כ-PDF",
+    "download_pdf_file": "הורדת קובץ PDF",
+    "edit_tags": "עריכת תגיות",
+    "edit_notes": "עריכת הערות",
+    "add_to_list": "הוספה לרשימה",
+    "select_all": "בחירת הכל",
+    "unselect_all": "ביטול בחירת הכל",
+    "copy_link": "העתקת קישור",
+    "close_bulk_edit": "סגירת עריכה מרוכזת",
+    "bulk_edit": "עריכה מרוכזת",
+    "manage_lists": "ניהול רשימות",
+    "remove_from_list": "הסרה מהרשימה",
+    "save": "שמירה",
+    "add": "הוספה",
+    "remove": "הסרה",
+    "edit": "עריכה",
+    "rename": "שינוי שם",
+    "confirm": "אישור",
+    "open_editor": "פתיחת העורך",
+    "create": "יצירה",
+    "fetch_now": "אחזור כעת",
+    "summarize_with_ai": "סיכום באמצעות AI",
+    "edit_title": "עריכת כותרת",
+    "sign_out": "התנתקות",
+    "close": "סגירה",
+    "merge": "מיזוג",
+    "cancel": "ביטול",
+    "regenerate": "ייצור מחדש",
+    "apply_all": "החלה על הכל",
+    "ignore": "התעלמות",
+    "more": "עוד",
+    "replace_banner": "החלפת באנר",
+    "add_banner": "הוספת באנר",
+    "download": "הורדה",
+    "sort": {
+      "title": "מיון",
+      "relevant_first": "הכי רלוונטיים תחילה",
+      "newest_first": "החדשים ביותר תחילה",
+      "oldest_first": "הישנים ביותר תחילה"
+    },
+    "load_more": "טען עוד"
+  },
+  "highlights": {
+    "no_highlights": "עדיין אין לך הדגשות."
+  },
+  "settings": {
+    "back_to_app": "חזרה לאפליקציה",
+    "user_settings": "הגדרות משתמש",
+    "info": {
+      "user_info": "פרטי משתמש",
+      "basic_details": "פרטים בסיסיים",
+      "change_password": "שינוי סיסמה",
+      "current_password": "סיסמה נוכחית",
+      "new_password": "סיסמה חדשה",
+      "confirm_new_password": "אישור סיסמה חדשה",
+      "options": "אפשרויות",
+      "interface_lang": "שפת ממשק",
+      "avatar": {
+        "title": "תמונת פרופיל",
+        "description": "העלה תמונה ריבועית שתשמש כאווטאר שלך.",
+        "upload": "העלאת אווטאר",
+        "change": "שינוי אווטאר",
+        "remove": "הסרת תמונת פרופיל",
+        "remove_confirm_title": "להסיר את תמונת הפרופיל?",
+        "remove_confirm_description": "פעולה זו תמחק את תמונת הפרופיל הנוכחית שלך.",
+        "updated": "תמונת הפרופיל עודכנה",
+        "removed": "תמונת הפרופיל הוסרה"
+      },
+      "user_settings": {
+        "user_settings_updated": "הגדרות המשתמש עודכנו בהצלחה!",
+        "bookmark_click_action": {
+          "title": "פעולת לחיצה על סימנייה",
+          "open_external_url": "פתיחת כתובת ה-URL המקורית",
+          "open_bookmark_details": "פתיחת פרטי הסימנייה"
+        },
+        "archive_display_behaviour": {
+          "title": "סימניות בארכיון",
+          "show": "הצגת סימניות מהארכיון בתגיות וברשימות",
+          "hide": "הסתרת סימניות מהארכיון בתגיות וברשימות"
+        }
+      },
+      "reader_settings": {
+        "title": "הגדרות תצוגת קריאה",
+        "description": "הגדרת ברירת המחדל של הטקסט עבור תצוגת הקריאה. הגדרות אלו מסתנכרנות בין כל המכשירים שלך.",
+        "font_family": "גופן",
+        "font_size": "גודל גופן",
+        "line_height": "גובה שורה",
+        "save_as_default": "שמירה כברירת מחדל",
+        "clear_defaults": "ניקוי כל ברירות המחדל",
+        "not_set": "לא מוגדר",
+        "using_default": "משתמש בברירת המחדל של הלקוח",
+        "preview": "תצוגה מקדימה",
+        "preview_text": "השועל החום המהיר קופץ מעל הכלב העצלן. כך ייראה הטקסט בתצוגת הקורא שלך.",
+        "defaults_cleared": "הגדרות ברירת המחדל של הקורא נוקו",
+        "local_overrides_title": "הגדרות ספציפיות למכשיר פעילות",
+        "local_overrides_description": "למכשיר זה יש הגדרות קורא השונות מהגדרות ברירת המחדל הגלובליות שלך:",
+        "local_overrides_cleared": "הגדרות ספציפיות למכשיר נוקו",
+        "clear_local_overrides": "נקה הגדרות מכשיר",
+        "serif": "סריף (Serif)",
+        "sans": "סנס-סריף (Sans Serif)",
+        "mono": "מונוספייס (Monospace)",
+        "tooltip_default": "הגדרות קריאה",
+        "tooltip_preview": "שינויי תצוגה מקדימה שלא נשמרו",
+        "tooltip_local": "הגדרות המכשיר שונות מהגדרות גלובליות",
+        "tooltip_preview_and_local": "שינויי תצוגה מקדימה שלא נשמרו; הגדרות המכשיר שונות מהגדרות גלובליות",
+        "reset_preview": "איפוס תצוגה מקדימה",
+        "save_to_device": "מכשיר זה",
+        "save_to_all_devices": "כל המכשירים",
+        "save_hint": "שמור הגדרות למכשיר זה בלבד או סנכרן בין כל המכשירים",
+        "adjust_hint": "התאם את ההגדרות למעלה כדי לצפות בשינויים",
+        "clear_override_hint": "נקה את דריסת המכשיר כדי להשתמש בהגדרה הגלובלית ({{value}})",
+        "preview_inline": "(תצוגה מקדימה)"
+      }
+    },
+    "stats": {
+      "usage_statistics": "סטטיסטיקת שימוש",
+      "insights_description": "תובנות לגבי הרגלי הסימניות והאוסף שלך",
+      "failed_to_load": "טעינת הסטטיסטיקה נכשלה",
+      "overview": {
+        "total_bookmarks": "סה\"כ סימניות",
+        "all_saved_items": "כל הפריטים שנשמרו",
+        "favorites": "מועדפים",
+        "starred_bookmarks": "סימניות עם כוכב",
+        "archived": "בארכיון",
+        "archived_items": "פריטים שבארכיון",
+        "tags": "תגיות",
+        "unique_tags_created": "תגיות ייחודיות שנוצרו",
+        "lists": "רשימות",
+        "bookmark_collections": "אוספי סימניות",
+        "highlights": "הדגשות",
+        "text_highlights": "הדגשות טקסט",
+        "storage_used": "שטח אחסון בשימוש",
+        "total_asset_storage": "סה\"כ שטח אחסון לנכסים",
+        "this_month": "החודש",
+        "bookmarks_added": "סימניות שנוספו"
+      },
+      "bookmark_types": {
+        "title": "סוגי סימניות",
+        "links": "קישורים",
+        "text_notes": "הערות טקסט",
+        "assets": "נכסים"
+      },
+      "recent_activity": {
+        "title": "פעילות אחרונה",
+        "this_week": "השבוע",
+        "this_month": "החודש",
+        "this_year": "השנה"
+      },
+      "top_domains": {
+        "title": "דומיינים מובילים",
+        "no_domains_found": "לא נמצאו דומיינים"
+      },
+      "most_used_tags": {
+        "title": "תגיות בשימוש רב",
+        "no_tags_found": "לא נמצאו תגיות"
+      },
+      "activity_patterns": {
+        "activity_by_hour": "פעילות לפי שעה",
+        "activity_by_day": "פעילות לפי יום"
+      },
+      "storage_breakdown": {
+        "title": "פירוט אחסון"
+      },
+      "bookmark_sources": {
+        "title": "מקורות סימניות",
+        "empty": "אין נתוני מקור זמינים"
+      }
+    },
+    "ai": {
+      "ai_settings": "הגדרות AI",
+      "auto_tagging": "תיוג אוטומטי",
+      "auto_tagging_description": "צור תגים עבור הסימניות שלך באופן אוטומטי באמצעות בינה מלאכותית.",
+      "auto_summarization": "סיכום אוטומטי",
+      "auto_summarization_description": "צור סיכומים עבור הסימניות שלך באופן אוטומטי באמצעות בינה מלאכותית.",
+      "tagging_rules": "כללי תיוג",
+      "tagging_rule_description": "הנחיות שתוסיף כאן ייכללו ככללים עבור המודל במהלך יצירת התגים. תוכל לצפות בהנחיות הסופיות בסעיף תצוגה מקדימה של ההנחיה.",
+      "prompt_preview": "תצוגה מקדימה של ההנחיה",
+      "text_prompt": "הנחיית טקסט",
+      "images_prompt": "הנחיית תמונה",
+      "summarization_prompt": "הנחיית סיכום",
+      "all_tagging": "כל סוגי התיוג",
+      "text_tagging": "תיוג טקסט",
+      "image_tagging": "תיוג תמונות",
+      "summarization": "סיכום",
+      "tag_style": "סגנון תגים",
+      "tag_style_description": "בחר כיצד התגים שנוצרו אוטומטית יעוצבו.",
+      "lowercase_hyphens": "אותיות קטנות עם מקפים",
+      "lowercase_spaces": "אותיות קטנות עם רווחים",
+      "lowercase_underscores": "אותיות קטנות עם קווים תחתיים",
+      "titlecase_spaces": "אות ראשונה גדולה עם רווחים",
+      "titlecase_hyphens": "אות ראשונה גדולה עם מקפים",
+      "camelCase": "camelCase",
+      "no_preference": "ללא עדיפות",
+      "inference_language": "שפת הסקת מסקנות",
+      "inference_language_description": "בחירת השפה עבור תגיות וסיכומים שנוצרים על ידי בינה מלאכותית.",
+      "curated_tags": "תגיות שנבחרו",
+      "curated_tags_description": "אפשרות להגביל את התיוג של הבינה המלאכותית לשימוש בתגיות מרשימה זו בלבד. כאשר לא נבחרו תגיות, הבינה המלאכותית יוצרת תגיות באופן חופשי.",
+      "curated_tags_updated": "התגיות שנבחרו עודכנו בהצלחה!",
+      "curated_tags_update_failed": "עדכון התגיות שנבחרו נכשל"
+    },
+    "feeds": {
+      "rss_subscriptions": "מינויי RSS",
+      "add_a_subscription": "הוספת מינוי",
+      "feed_enabled": "פיד ה-RSS הופעל",
+      "feed_disabled": "פיד ה-RSS הושבת"
+    },
+    "webhooks": {
+      "webhooks": "Webhooks",
+      "description": "ניתן להשתמש ב-webhooks כדי להפעיל פעולות כאשר סימניות נוצרות, משתנות או נסרקות.",
+      "events": {
+        "title": "אירועים",
+        "crawled": "נסרק",
+        "created": "נוצר",
+        "edited": "נערך"
+      },
+      "auth_token": "אסימון אימות (Auth Token)",
+      "add_auth_token": "הוספת אסימון אימות",
+      "edit_auth_token": "עריכת אסימון אימות",
+      "create_webhook": "יצירת Webhook",
+      "delete_webhook": "מחיקת Webhook",
+      "delete_webhook_confirmation": "האם אתה בטוח שברצונך למחוק את ה-webhook הזה?",
+      "edit_webhook": "עריכת Webhook",
+      "webhook_url": "כתובת URL של Webhook"
+    },
+    "import": {
+      "import_export": "ייבוא / ייצוא",
+      "import_export_bookmarks": "ייבוא / ייצוא סימניות",
+      "import_bookmarks_from_html_file": "ייבוא סימניות מקובץ HTML",
+      "import_bookmarks_from_pocket_export": "ייבוא סימניות מייצוא של Pocket",
+      "import_bookmarks_from_matter_export": "ייבוא סימניות מייצוא של Matter",
+      "import_bookmarks_from_omnivore_export": "ייבוא סימניות מייצוא של Omnivore",
+      "import_bookmarks_from_linkwarden_export": "ייבוא סימניות מייצוא של Linkwarden",
+      "import_bookmarks_from_karakeep_export": "ייבוא סימניות מייצוא של Karakeep",
+      "import_bookmarks_from_tab_session_manager_export": "ייבוא סימניות מ-Tab Session Manager",
+      "import_bookmarks_from_mymind_export": "ייבוא סימניות מייצוא של mymind",
+      "import_bookmarks_from_instapaper_export": "ייבוא סימניות מייצוא של Instapaper",
+      "import_bookmarks_from_readwise_reader_export": "ייבוא סימניות מייצוא של Readwise Reader",
+      "import_bookmarks_from_onetab_export": "ייבוא סימניות מייצוא של OneTab",
+      "export_links_and_notes": "ייצוא קישורים והערות",
+      "imported_bookmarks": "סימניות שיובאו"
+    },
+    "api_keys": {
+      "api_keys": "מפתחות API",
+      "new_api_key": "מפתח API חדש",
+      "new_api_key_desc": "תנו למפתח ה-API שלכם שם ייחודי",
+      "key_success": "המפתח נוצר בהצלחה",
+      "key_success_please_copy": "אנא העתיקו את המפתח ושמרו אותו במקום בטוח. לאחר שתסגרו את תיבת הדו-שיח, לא תוכלו לגשת אליו שוב.",
+      "regenerate_api_key": "הפקה מחדש של מפתח API",
+      "key_regenerated": "המפתח הופק מחדש בהצלחה",
+      "key_regenerated_please_copy": "אנא העתיקו את המפתח החדש ושמרו אותו במקום בטוח. המפתח הישן בוטל ולא יעבוד יותר.",
+      "regenerate_warning": "האם אתם בטוחים שברצונכם להפיק מחדש את מפתח ה-API \"{{name}}\"?",
+      "regenerate_confirmation": "פעולה זו תבטל את המפתח הנוכחי ותפיק מפתח חדש. כל האפליקציות שמשתמשות במפתח הנוכחי יפסיקו לעבוד.",
+      "scopes": {
+        "scopes": "הרשאות (Scopes)",
+        "choose_at_least_one": "בחרו לפחות הרשאה אחת או בחרו בגישה מלאה.",
+        "scope_details": "פרטי הרשאת {{scope}}",
+        "access": {
+          "none": "ללא",
+          "read": "קריאה",
+          "readwrite": "קריאה/כתיבה"
+        },
+        "full_access": {
+          "label": "גישה מלאה",
+          "description": "גישה לכל פעולות ה-API הנתמכות."
+        },
+        "limited_scopes": {
+          "label": "הרשאות מוגבלות",
+          "description": "בחר את סוגי המשאבים שמפתח זה יכול לגשת אליהם."
+        },
+        "resources": {
+          "assets": {
+            "label": "נכסים",
+            "description": "גישה לקבצים ותוכן סימניות מאוחסן אחר."
+          },
+          "backups": {
+            "label": "גיבויים",
+            "description": "ניהול גיבויי חשבון."
+          },
+          "bookmarks": {
+            "label": "סימניות",
+            "description": "גישה וניהול סימניות."
+          },
+          "feeds": {
+            "label": "פידים",
+            "description": "ניהול פידי RSS ונתוני פיד קשורים."
+          },
+          "highlights": {
+            "label": "הדגשות",
+            "description": "ניהול הדגשות סימניות שמורות."
+          },
+          "lists": {
+            "label": "רשימות",
+            "description": "ניהול רשימות וחברות ברשימות."
+          },
+          "prompts": {
+            "label": "פרומפטים",
+            "description": "ניהול תצורת פרומפטים שמורה של AI."
+          },
+          "rules": {
+            "label": "כללים",
+            "description": "גישה לכללי אוטומציה."
+          },
+          "tags": {
+            "label": "תגיות",
+            "description": "גישה ושינוי תגיות."
+          },
+          "users": {
+            "label": "חשבון משתמש",
+            "description": "גישה לפרופיל החשבון ולהגדרות."
+          },
+          "webhooks": {
+            "label": "Webhooks",
+            "description": "גישה לתצורת webhook."
+          },
+          "subscriptions": {
+            "label": "מינויים",
+            "description": "גישה לניהול מינויים."
+          },
+          "importSessions": {
+            "label": "ייבוא סבבי שימוש",
+            "description": "גישה לייבוא סבבי שימוש."
+          }
+        },
+        "admin_resources": {
+          "bookmarks": {
+            "label": "ניהול: סימניות",
+            "description": "גישה לכלי סימניות ניהוליים."
+          },
+          "jobs": {
+            "label": "ניהול: עבודות",
+            "description": "גישה לבקרות עבודות רקע."
+          },
+          "system": {
+            "label": "ניהול: מערכת",
+            "description": "גישה לסטטוס מערכת ואבחון."
+          },
+          "users": {
+            "label": "ניהול: משתמשים",
+            "description": "גישה לניהול משתמשים ניהולי."
+          },
+          "subscriptions": {
+            "label": "ניהול: מנויים",
+            "description": "ניהול דרגות מנוי של משתמשים."
+          }
+        }
+      }
+    },
+    "broken_links": {
+      "broken_links": "קישורים שבורים",
+      "last_crawled_at": "נסרק לאחרונה ב-",
+      "crawling_status": "סטטוס סריקה",
+      "crawling_failed": "הסריקה נכשלה"
+    },
+    "manage_assets": {
+      "manage_assets": "ניהול נכסים",
+      "no_assets": "אין לך עדיין נכסים.",
+      "asset_type": "סוג נכס",
+      "bookmark_link": "קישור סימניה",
+      "asset_link": "קישור נכס",
+      "delete_asset": "מחיקת נכס",
+      "delete_asset_confirmation": "האם אתה בטוח שברצונך למחוק נכס זה?"
+    },
+    "rules": {
+      "rules": "מנוע חוקים",
+      "rule_name": "שם החוק",
+      "description": "ניתן להשתמש בחוקים כדי להפעיל פעולות כאשר אירוע מתרחש.",
+      "ceate_rule": "יצירת חוק",
+      "edit_rule": "עריכת חוק",
+      "save_rule": "שמירת חוק",
+      "delete_rule": "מחיקת חוק",
+      "delete_rule_confirmation": "האם אתה בטוח שברצונך למחוק חוק זה?",
+      "whenever": "בכל פעם ש...",
+      "if": "אם...",
+      "enter_rule_name": "הזן שם חוק",
+      "describe_what_this_rule_does": "תאר מה החוק הזה עושה",
+      "rule_has_been_created": "החוק נוצר!",
+      "rule_has_been_updated": "החוק עודכן!",
+      "rule_has_been_deleted": "הכלל נמחק!",
+      "no_rules_created_yet": "טרם נוצרו כללים",
+      "create_your_first_rule": "צרו את הכלל הראשון שלכם כדי לאוטומט את זרימת העבודה שלכם",
+      "conditions_types": {
+        "always": "תמיד",
+        "url_contains": "כתובת ה-URL מכילה",
+        "url_does_not_contain": "כתובת ה-URL אינה מכילה",
+        "title_contains": "הכותרת מכילה",
+        "title_does_not_contain": "הכותרת אינה מכילה",
+        "imported_from_feed": "יובא מפיד",
+        "bookmark_type_is": "סוג הסימנייה הוא",
+        "bookmark_source_is": "מקור הסימנייה הוא",
+        "has_tag": "בעל תגית",
+        "is_favourited": "נוסף למועדפים",
+        "is_archived": "הועבר לארכיון",
+        "and": "כל התנאים הבאים מתקיימים",
+        "or": "אחד מהתנאים הבאים מתקיים"
+      },
+      "actions_types": {
+        "add_tag": "הוספת תגית",
+        "remove_tag": "הסרת תגית",
+        "add_to_list": "הוספה לרשימה",
+        "remove_from_list": "הסרה מרשימה",
+        "download_full_page_archive": "הורד ארכיון דף מלא",
+        "favourite_bookmark": "הוסף סימניה למועדפים",
+        "archive_bookmark": "העבר סימניה לארכיון"
+      },
+      "events_types": {
+        "bookmark_added": "סימניה נוספה",
+        "tag_added": "תגית זו נוספה לסימניה",
+        "tag_removed": "תגית זו הוסרה מסימניה",
+        "added_to_list": "סימניה נוספה לרשימה זו",
+        "removed_from_list": "סימניה הוסרה מרשימה זו",
+        "favourited": "סימניה נוספה למועדפים",
+        "archived": "סימניה הועברה לארכיון"
+      }
+    },
+    "subscription": {
+      "subscription": "מנוי",
+      "manage_subscription": "נהל את פרטי המנוי והחיוב שלך",
+      "current_plan": "תוכנית נוכחית",
+      "billing_period": "מחזור חיוב",
+      "paid_plan": "תוכנית בתשלום",
+      "unlock_bigger_quota": "פתחו מכסה גדולה יותר ותמכו בפרויקט",
+      "subscribe_now": "הירשם עכשיו",
+      "manage_billing": "נהל חיוב",
+      "subscription_canceled": "המנוי שלך בוטל ויסתיים בתאריך {{date}}. ניתן להירשם מחדש בכל עת.",
+      "usage_quotas": "שימוש ומכסות",
+      "track_usage": "עקוב אחר השימוש הנוכחי שלך ביחס למגבלות התוכנית",
+      "total_bookmarks_saved": "סה\"כ סימניות שנשמרו",
+      "assets_file_storage": "נכסים ואחסון קבצים",
+      "unlimited_usage": "שימוש ללא הגבלה",
+      "quota_limit_reached": "הגעת למגבלת המכסה",
+      "approaching_quota_limit": "מתקרב למגבלת המכסה",
+      "loading_usage": "טוען מידע על שימוש...",
+      "free": "חינם",
+      "paid": "בתשלום",
+      "monthly": "חודשי",
+      "yearly": "שנתי",
+      "per_month": "חודש",
+      "per_year": "שנה",
+      "excl_vat": "ללא מע\"מ",
+      "yearly_savings": "חסוך {{percent}}%",
+      "pro_feature_bookmarks": "50,000 סימניות",
+      "pro_feature_storage": "50GB אחסון",
+      "pro_feature_ai_tagging": "תיוג מבוסס בינה מלאכותית",
+      "pro_feature_full_text_search": "חיפוש בטקסט מלא"
+    },
+    "import_sessions": {
+      "title": "ייבוא סשנים",
+      "description": "הצג ונהל את הפעולות של ייבוא כמותי. הפעולות נוצרות באופן אוטומטי בעת ייבוא סימניות.",
+      "load_error": "טעינת פעולות הייבוא נכשלה",
+      "no_sessions": "אין עדיין פעולות ייבוא",
+      "no_sessions_detail": "פעולות ייבוא יופיעו כאן באופן אוטומטי בעת ייבוא סימניות",
+      "created_at": "נוצר ב-{{time}}",
+      "progress": "התקדמות",
+      "status": {
+        "staging": "הכנה",
+        "pending": "ממתין",
+        "running": "פועל",
+        "paused": "מושהה",
+        "completed": "הושלם",
+        "failed": "נכשל",
+        "archived": "בארכיון"
+      },
+      "badges": {
+        "pending": "{{count}} בהמתנה",
+        "processing": "{{count}} בעיבוד",
+        "completed": "{{count}} הושלמו",
+        "failed": "{{count}} נכשלו"
+      },
+      "imported_to": "יובא אל:",
+      "view_list": "הצג רשימה",
+      "delete_dialog_title": "מחיקת פעולת ייבוא",
+      "delete_dialog_description": "האם אתה בטוח שברצונך למחוק את \"{{name}}\"? לא ניתן לבטל פעולה זו. הסימניות עצמן לא יימחקו.",
+      "finalize_dialog_title": "סיום סשן ייבוא",
+      "finalize_dialog_description": "להוסיף את \"{{name}}\" לתור לעיבוד ברקע? סימניות שהוכנו יתחילו לעבור ייבוא.",
+      "delete_session": "מחיקת סשן",
+      "finalize_staging": "סיום",
+      "pause_session": "השהיה",
+      "resume_session": "המשך",
+      "view_details": "צפייה בפרטים",
+      "detail": {
+        "page_title": "פרטי סשן ייבוא",
+        "back_to_import": "חזרה לייבוא",
+        "filter_all": "הכל",
+        "filter_accepted": "התקבלו",
+        "filter_rejected": "נדחו",
+        "filter_duplicates": "כפילויות",
+        "filter_pending": "ממתינים",
+        "table_title": "כותרת / URL",
+        "table_type": "סוג",
+        "table_result": "תוצאה",
+        "table_reason": "סיבה",
+        "table_bookmark": "סימניה",
+        "result_accepted": "התקבל",
+        "result_rejected": "נדחה",
+        "result_skipped_duplicate": "כפילות",
+        "result_pending": "בהמתנה",
+        "result_processing": "בביצוע",
+        "no_results": "לא נמצאו תוצאות עבור מסנן זה.",
+        "view_bookmark": "צפייה בסימנייה",
+        "load_more": "טען עוד",
+        "no_title": "ללא כותרת",
+        "archived_results": "תוצאות סימניות בודדות אינן נשמרות עוד עבור סבבי ייבוא שבארכיון."
+      }
+    },
+    "backups": {
+      "backups": "גיבויים",
+      "page_title": "גיבויים",
+      "page_description": "יצירה וניהול אוטומטיים של גיבויים עבור הסימניות שלך. הגיבויים נדחסים ומאוחסנים בצורה מאובטחת.",
+      "configuration": {
+        "title": "תצורת גיבוי",
+        "enable_automatic_backups": "הפעל גיבויים אוטומטיים",
+        "enable_automatic_backups_description": "צור גיבויים של הסימניות שלך באופן אוטומטי",
+        "backup_frequency": "תדירות גיבוי",
+        "backup_frequency_description": "באיזו תדירות יש ליצור גיבויים",
+        "retention_period": "תקופת שמירה (ימים)",
+        "retention_period_description": "כמה ימים לשמור גיבויים לפני מחיקתם",
+        "frequency": {
+          "daily": "יומי",
+          "weekly": "שבועי"
+        },
+        "select_frequency": "בחר תדירות",
+        "save_settings": "שמירת הגדרות"
+      },
+      "list": {
+        "title": "הגיבויים שלך",
+        "create_backup_now": "צור גיבוי כעת",
+        "no_backups": "אין לך עדיין גיבויים. הפעל גיבויים אוטומטיים או צור אחד ידנית.",
+        "table": {
+          "created_at": "נוצר ב-",
+          "bookmarks": "סימניות",
+          "size": "גודל",
+          "status": "סטטוס",
+          "actions": "פעולות"
+        },
+        "status": {
+          "success": "הצליח",
+          "failed": "נכשל",
+          "pending": "בהמתנה"
+        },
+        "actions": {
+          "download_backup": "הורד גיבוי",
+          "delete_backup": "מחק גיבוי"
+        }
+      },
+      "dialogs": {
+        "delete_backup_title": "למחוק את הגיבוי?",
+        "delete_backup_description": "האם אתה בטוח שברצונך למחוק את הגיבוי הזה? לא ניתן לבטל פעולה זו."
+      },
+      "toasts": {
+        "backup_queued": "משימת הגיבוי נוספה לתור! היא תעובד בקרוב.",
+        "backup_deleted": "הגיבוי נמחק!"
+      }
+    }
+  },
+  "admin": {
+    "admin_settings": "הגדרות מנהל",
+    "server_stats": {
+      "server_stats": "סטטיסטיקת שרת",
+      "total_users": "סה\"כ משתמשים",
+      "total_bookmarks": "סה\"כ סימניות",
+      "server_version": "גרסת שרת"
+    },
+    "service_connections": {
+      "title": "חיבורי שירות",
+      "description": "ניטור התקינות והקישוריות של תלותי מערכת חיצוניים",
+      "search_engine": "מנוע חיפוש",
+      "browser": "דפדפן",
+      "queue_system": "מערכת תורים",
+      "vector_store": "מאגר וקטורי",
+      "status": {
+        "not_configured": "לא מוגדר",
+        "connected": "מחובר",
+        "disconnected": "מנותק"
+      }
+    },
+    "background_jobs": {
+      "jobs": {
+        "crawler": {
+          "title": "משימות סורק",
+          "description": "סריקת אתרים ומיצוי תוכן מכתובות URL"
+        },
+        "inference": {
+          "title": "משימות הסקה",
+          "description": "תיוג וסיכום תוכן מבוססי בינה מלאכותית"
+        },
+        "indexing": {
+          "title": "משימות אינדוקס",
+          "description": "עדכוני אינדקס חיפוש"
+        },
+        "embeddings": {
+          "title": "משימות שיבוץ",
+          "description": "יצירת וקטורי שיבוץ עבור סימניות"
+        },
+        "asset_preprocessing": {
+          "title": "משימות עיבוד מקדים של נכסים",
+          "description": "עיבוד מקדים של תמונות ומסמכים (צילומי מסך, חילוץ טקסט וכו')"
+        },
+        "admin_maintenance": {
+          "title": "משימות תחזוקת מנהל",
+          "description": "ניקוי אדמיניסטרטיבי ותחזוקת נכסים"
+        },
+        "video": {
+          "title": "משימות הורדת וידאו",
+          "description": "חילוץ והורדת וידאו"
+        },
+        "webhook": {
+          "title": "משימות Webhook",
+          "description": "התראות Webhook חיצוניות"
+        },
+        "feed": {
+          "title": "משימות פיד RSS",
+          "description": "עיבוד פיד RSS ועדכוני תוכן"
+        }
+      },
+      "background_jobs": "משימות רקע",
+      "monitor_and_manage": "ניטור וניהול תורי משימות רקע ומשימות עיבוד מערכת",
+      "active": "פעיל",
+      "available_actions": "פעולות זמינות",
+      "status": {
+        "title": "הבנת מצבי משימות",
+        "queued": {
+          "title": "בתור",
+          "description": "משימות הממתינות בתור לעיבוד. הן יתחילו באופן אוטומטי כאשר משאבים יהיו זמינים."
+        },
+        "unprocessed": {
+          "title": "טרם עובדו",
+          "description": "סימניות שטרם עובדו. רוב הסיכויים שהן כבר ממתינות בתור לעיבוד; אם לא, ייתכן שיהיה עליך להוסיף אותן לתור ידנית שוב."
+        },
+        "failed": {
+          "title": "נכשל",
+          "description": "סימניות שבהן אירעו שגיאות במהלך העיבוד. אלו עשויות לדרוש תשומת לב ידנית."
+        }
+      },
+      "actions": {
+        "recrawl_pending_links_only": "סריקה מחדש של קישורים ממתינים בלבד",
+        "recrawl_failed_links_only": "סריקה מחדש של קישורים שנכשלו בלבד",
+        "recrawl_all_links": "סריקה מחדש של כל הקישורים",
+        "without_inference": "ללא הסקת מסקנות (inference)",
+        "regenerate_ai_tags_for_pending_bookmarks_only": "יצירה מחדש של תגיות AI עבור סימניות ממתינות בלבד",
+        "regenerate_ai_tags_for_failed_bookmarks_only": "יצירה מחדש של תגיות AI עבור סימניות שנכשלו בלבד",
+        "regenerate_ai_tags_for_all_bookmarks": "יצירה מחדש של תגיות AI עבור כל הסימניות",
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "יצירה מחדש של סיכומי AI עבור סימניות ממתינות בלבד",
+        "regenerate_ai_summaries_for_failed_bookmarks_only": "יצירה מחדש של סיכומי AI עבור סימניות שנכשלו בלבד",
+        "regenerate_ai_summaries_for_all_bookmarks": "יצירה מחדש של סיכומי AI עבור כל הסימניות",
+        "reindex_all_bookmarks": "אינדוקס מחדש של כל הסימניות",
+        "regenerate_embeddings_for_pending_bookmarks_only": "יצירה מחדש של Embeddings עבור סימניות ממתינות בלבד",
+        "regenerate_embeddings_for_failed_bookmarks_only": "יצירה מחדש של Embeddings עבור סימניות שנכשלו בלבד",
+        "regenerate_embeddings_for_all_bookmarks": "יצירה מחדש של Embeddings עבור כל הסימניות",
+        "clean_assets": "ניקוי נכסים תלויים וסנכרון מחדש של מטא-נתונים",
+        "migrate_large_link_html_content": "העברת תוכן HTML פנימי גדול לנכסים",
+        "reprocess_assets_fix_mode": "עיבוד מחדש של נכסים שלא עובדו"
+      }
+    },
+    "users_list": {
+      "users_list": "רשימת משתמשים",
+      "create_user": "יצירת משתמש",
+      "change_role": "שינוי תפקיד",
+      "reset_password": "איפוס סיסמה",
+      "delete_user": "מחיקת משתמש",
+      "delete_user_confirm_description": "האם אתה בטוח שברצונך למחוק את המשתמש \"{{name}}\"?",
+      "num_bookmarks": "מספר סימניות",
+      "asset_sizes": "גדלי נכסים",
+      "local_user": "משתמש מקומי",
+      "confirm_password": "אימות סיסמה",
+      "unlimited": "ללא הגבלה"
+    },
+    "admin_tools": {
+      "admin_tools": "כלי ניהול",
+      "bookmark_debugger": "מאתר באגים בסימניות",
+      "bookmark_id": "מזהה סימניה",
+      "bookmark_id_placeholder": "הזן מזהה סימניה",
+      "lookup": "חיפוש",
+      "debug_info": "מידע לניפוי באגים",
+      "basic_info": "מידע בסיסי",
+      "status": "סטטוס",
+      "content": "תוכן",
+      "html_preview": "תצוגה מקדימה של HTML (1000 תווים ראשונים)",
+      "summary": "סיכום",
+      "url": "URL",
+      "source_url": "URL מקור",
+      "asset_type": "סוג נכס",
+      "file_name": "שם קובץ",
+      "owner_user_id": "מזהה משתמש בעלים",
+      "tagging_status": "סטטוס תיוג",
+      "summarization_status": "סטטוס סיכום",
+      "embedding_status": "סטטוס הטמעה",
+      "crawl_status": "סטטוס סריקה",
+      "crawl_status_code": "קוד סטטוס HTTP",
+      "crawled_at": "נסרק ב-",
+      "recrawl": "סריקה מחדש",
+      "reindex": "אינדוקס מחדש",
+      "regenerate_embedding": "יצירה מחדש של הטמעה",
+      "retag": "תיוג מחדש",
+      "resummarize": "סיכום מחדש",
+      "bookmark_not_found": "סימנייה לא נמצאה",
+      "action_success": "הפעולה הושלמה בהצלחה",
+      "action_failed": "הפעולה נכשלה",
+      "recrawl_queued": "משימת סריקה מחדש נוספה לתור",
+      "reindex_queued": "משימת אינדוקס מחדש נוספה לתור",
+      "regenerate_embedding_queued": "משימת יצירה מחדש של שיבוצים (Embeddings) נוספה לתור",
+      "retag_queued": "משימת תיוג מחדש נוספה לתור",
+      "resummarize_queued": "משימת סיכום מחדש נוספה לתור",
+      "view": "תצוגה",
+      "fetch_error": "שגיאה באחזור הסימנייה"
+    }
+  },
+  "options": {
+    "dark_mode": "מצב כהה",
+    "light_mode": "מצב בהיר",
+    "apps_extensions": "אפליקציות ותוספים",
+    "documentation": "תיעוד",
+    "follow_us_on_x": "עקבו אחרינו ב-X"
+  },
+  "lists": {
+    "all_lists": "כל הרשימות",
+    "favourites": "מועדפים",
+    "shared": "משותף",
+    "shared_lists": "רשימות משותפות",
+    "privacy": {
+      "public": "ציבורי",
+      "shared": "משותף",
+      "private": "פרטי"
+    },
+    "new_list": "רשימה חדשה",
+    "edit_list": "עריכת רשימה",
+    "share_list": "שיתוף רשימה",
+    "new_nested_list": "רשימה מקוננת חדשה",
+    "merge_list": "מיזוג רשימה",
+    "destination_list": "רשימת יעד",
+    "delete_after_merge": "מחיקת הרשימה המקורית לאחר המיזוג",
+    "no_destination": "אין יעד",
+    "parent_list": "רשימת אב",
+    "no_parent": "ללא אב",
+    "list_type": "סוג רשימה",
+    "manual_list": "רשימה ידנית",
+    "smart_list": "רשימה חכמה",
+    "search_query": "שאילתת חיפוש",
+    "search_query_help": "מידע נוסף על שפת שאילתות החיפוש.",
+    "description": "תיאור (אופציונלי)",
+    "delete_list": {
+      "title": "מחיקת רשימה",
+      "description": "מחיקת רשימה אינה מוחקת את הסימניות שבאותה רשימה.",
+      "delete_children": "מחיקת רשימות צאצאים (באופן רקורסיבי)",
+      "delete_children_description": "אם לא מסומן, כל רשימות הצאצאים הישירות יהפכו לרשימות שורש"
+    },
+    "rss": {
+      "title": "פיד RSS",
+      "description": "אפשר הזנת RSS עבור רשימה זו",
+      "feed_url": "כתובת URL של הזנת RSS"
+    },
+    "public_list": {
+      "title": "רשימה ציבורית",
+      "description": "אפשר לאחרים לצפות ברשימה זו",
+      "share_link": "קישור שיתוף"
+    },
+    "collaborators": {
+      "manage": "ניהול שותפי עריכה",
+      "view": "הצגת שותפי עריכה",
+      "collaborators": "שותפי עריכה",
+      "add": "הוספת שותף עריכה",
+      "current": "שותפי עריכה נוכחיים",
+      "enter_email": "הזן כתובת אימייל",
+      "please_enter_email": "אנא הזן כתובת אימייל",
+      "added_successfully": "שותף העריכה נוסף בהצלחה",
+      "invitation_sent": "ההזמנה נשלחה בהצלחה",
+      "failed_to_add": "הוספת שותף העריכה נכשלה",
+      "removed": "שותף העריכה הוסר",
+      "failed_to_remove": "הסרת שותף העריכה נכשלה",
+      "role_updated": "התפקיד עודכן",
+      "failed_to_update_role": "עדכון התפקיד נכשל",
+      "invitation_revoked": "ההזמנה בוטלה",
+      "failed_to_revoke": "ביטול ההזמנה נכשל",
+      "viewer": "צופה",
+      "editor": "עורך",
+      "owner": "בעלים",
+      "pending": "ממתין",
+      "revoke": "ביטול",
+      "declined": "נדחה",
+      "viewer_description": "יכול לצפות בסימניות ברשימה",
+      "editor_description": "יכול להוסיף ולהסיר סימניות",
+      "no_collaborators": "אין עדיין משתפי פעולה. הוסיפו מישהו כדי להתחיל לשתף פעולה!",
+      "no_collaborators_readonly": "אין משתפי פעולה לרשימה זו.",
+      "people_with_access": "אנשים שיש להם גישה לרשימה זו",
+      "add_or_remove": "הוספה או הסרה של אנשים שיכולים לגשת לרשימה זו"
+    },
+    "invitations": {
+      "pending": "הזמנות ממתינות",
+      "description": "סקירה ומענה להזמנות לשיתוף פעולה ברשימות",
+      "invited_by": "הוזמן על ידי",
+      "accept": "אישור",
+      "decline": "דחייה",
+      "accepted": "ההזמנה התקבלה",
+      "declined": "ההזמנה נדחתה",
+      "failed_to_accept": "קבלת ההזמנה נכשלה",
+      "failed_to_decline": "דחיית ההזמנה נכשלה"
+    },
+    "leave_list": {
+      "title": "עזיבת רשימה",
+      "confirm_message": "האם אתה בטוח שברצונך לעזוב את {{icon}} {{name}}?",
+      "warning": "לא תוכל עוד לצפות או לגשת לסימניות ברשימה זו. בעל הרשימה יוכל להוסיף אותך שוב במידת הצורך.",
+      "action": "עזיבת רשימה",
+      "success": "עזבת את \"{{icon}} {{name}}\""
+    },
+    "summary_list_one": "רשימה {{count}}",
+    "summary_list_other": "{{count}} רשימות",
+    "summary_bookmark_one": "סימנייה {{count}}",
+    "summary_bookmark_other": "{{count}} סימניות",
+    "items_count_one": "פריט {{count}}",
+    "items_count_other": "{{count}} פריטים"
+  },
+  "tags": {
+    "all_tags": "כל התגיות",
+    "your_tags": "התגיות שלך",
+    "your_tags_info": "תגיות שצורפו לפחות פעם אחת על ידיך",
+    "ai_tags": "תגיות בינה מלאכותית",
+    "rename_tag": "שינוי שם תגית",
+    "items_count": "{{count}} פריטים",
+    "attached_by_you": "{{count}} על ידיך",
+    "attached_by_ai": "{{count}} על ידי בינה מלאכותית",
+    "ai_tags_info": "תגיות שצורפו באופן אוטומטי בלבד (על ידי בינה מלאכותית)",
+    "unused_tags": "תגיות ללא שימוש",
+    "unused_tags_info": "תגיות שאינן משויכות לאף סימניה",
+    "delete_all_unused_tags": "מחיקת כל התגיות ללא שימוש",
+    "drag_and_drop_merging": "מיזוג בגרירה ושחרור",
+    "drag_and_drop_merging_info": "גרור ושחרר תגיות זו על גבי זו כדי למזג אותן",
+    "sort_by_name": "מיון לפי שם",
+    "sort_by_usage": "מיון לפי שימוש",
+    "sort_by_relevance": "מיון לפי רלוונטיות",
+    "create_tag": "יצירת תגית",
+    "create_tag_description": "יצירת תגית חדשה מבלי לשייך אותה לאף סימניה",
+    "tag_name": "שם תגית",
+    "enter_tag_name": "הזן שם תגית",
+    "search_placeholder": "חיפוש תגיות...",
+    "search_or_create_placeholder": "חיפוש או יצירת תגיות...",
+    "no_custom_tags": "אין עדיין תגיות מותאמות אישית",
+    "no_ai_tags": "אין עדיין תגיות בינה מלאכותית",
+    "no_unused_tags": "אין לך תגיות ללא שימוש",
+    "no_unused_tags_match_your_search": "אין תגיות ללא שימוש התואמות את החיפוש שלך",
+    "no_tags_match_your_search": "אין תגיות התואמות לחיפוש שלך"
+  },
+  "search": {
+    "is_favorited": "מועדף",
+    "is_not_favorited": "לא מועדף",
+    "is_archived": "בארכיון",
+    "is_not_archived": "לא בארכיון",
+    "has_any_tag": "בעל תגית כלשהי",
+    "has_no_tags": "ללא תגיות",
+    "is_in_any_list": "נמצא ברשימה כלשהי",
+    "is_not_in_any_list": "לא נמצא באף רשימה",
+    "created_on_or_after": "נוצר בתאריך או אחרי",
+    "not_created_on_or_after": "לא נוצר בתאריך או אחרי",
+    "created_on_or_before": "נוצר בתאריך או לפני",
+    "not_created_on_or_before": "לא נוצר בתאריך או לפני",
+    "created_within": "נוצר בטווח של",
+    "created_earlier_than": "נוצר לפני יותר מ-",
+    "day_s": " ימים",
+    "week_s": " שבועות",
+    "month_s": " חודשים",
+    "year_s": " שנים",
+    "day_s_ago": " ימים לפני",
+    "week_s_ago": " לפני שבוע(ות)",
+    "month_s_ago": " לפני חודש(ים)",
+    "year_s_ago": " לפני שנה(נים)",
+    "url_contains": "כתובת ה-URL מכילה",
+    "url_does_not_contain": "כתובת ה-URL אינה מכילה",
+    "title_contains": "הכותרת מכילה",
+    "title_does_not_contain": "הכותרת אינה מכילה",
+    "is_in_list": "נמצא ברשימה",
+    "is_not_in_list": "אינו נמצא ברשימה",
+    "has_tag": "בעל תגית",
+    "does_not_have_tag": "ללא תגית",
+    "full_text_search": "חיפוש בטקסט מלא",
+    "type_is": "הסוג הוא",
+    "type_is_not": "הסוג אינו",
+    "is_from_feed": "מגיע מערוץ RSS",
+    "is_not_from_feed": "אינו מגיע מערוץ RSS",
+    "is_from_source": "המקור הוא",
+    "is_not_from_source": "המקור אינו",
+    "is_broken_link": "מכיל קישור שבור",
+    "is_not_broken_link": "מכיל קישור תקין",
+    "and": "וגם",
+    "or": "או",
+    "history": "חיפושים אחרונים",
+    "filters": "מסננים",
+    "tags": "תגיות",
+    "lists": "רשימות",
+    "feeds": "פידים",
+    "no_suggestions": "אין הצעות",
+    "mode_label": "מצב חיפוש",
+    "mode_label_description": "בחרו כיצד Karakeep מוצא סימניות תואמות.",
+    "mode_keyword": "מילת מפתח",
+    "mode_keyword_description": "התאמת מילים מדויקות בכותרות, תכנים, כתובות URL והערות. כמעט מיידי.",
+    "mode_hybrid": "היברידי",
+    "mode_hybrid_description": "שילוב בין התאמות מדויקות לרעיונות קשורים לאיזון המיטבי. איטי יותר מחיפוש לפי מילת מפתח.",
+    "mode_semantic": "סמנטי",
+    "mode_semantic_description": "חיפוש סימניות דומות מבחינה רעיונית, גם ללא מילים משותפות. איטי יותר מחיפוש לפי מילת מפתח.",
+    "keyword_placeholder": "חיפוש בכותרות, טקסט, כתובות URL ותגיות…",
+    "hybrid_placeholder": "חיפוש לפי מילים או משמעות…",
+    "semantic_placeholder": "תארו את מה שאתם זוכרים…"
+  },
+  "preview": {
+    "view_original": "הצג מקור",
+    "cached_content": "תוכן שנשמר במטמון",
+    "reader_view": "תצוגת קורא",
+    "archive_info": "ייתכן שארכיונים לא יוצגו כראוי אם הם דורשים Javascript. לקבלת התוצאות הטובות ביותר, <1>הורד אותו ופתח בדפדפן שלך</1>.",
+    "fetch_error_title": "תוכן לא זמין",
+    "fetch_error_description": "לא הצלחנו לאחזר את התוכן עבור קישור זה. ייתכן שהדף מוגן, דורש אימות, או שאינו זמין זמנית.",
+    "crawling_in_progress": "מאחזר תוכן דף…",
+    "continue_reading": "המשך מאיפה שהפסקת",
+    "continue_reading_percent": "המשך מאיפה שהפסקת ({{percent}}%)",
+    "continue_button": "המשך",
+    "tabs": {
+      "content": "תוכן",
+      "details": "פרטים"
+    }
+  },
+  "editor": {
+    "multiple_urls_dialog_title": "ייבוא כתובות אתרים כסימניות נפרדות?",
+    "multiple_urls_dialog_desc": "הקלט מכיל מספר כתובות אתרים בשורות נפרדות. האם ברצונך לייבוא אותן כסימניות נפרדות?",
+    "import_as_text": "ייבוא כסימניית טקסט",
+    "import_as_separate_bookmarks": "ייבוא כסימניות נפרדות",
+    "placeholder": "הדבק קישור או תמונה, כתוב הערה או גרור ושחרר תמונה לכאן…",
+    "placeholder_v2": "הדבק קישור, כתוב הערה או שחרר תמונה…",
+    "new_item": "פריט חדש",
+    "disabled_submissions": "הגשות מושבתות",
+    "text_toolbar": {
+      "undo": "ביטול פעולה",
+      "redo": "ביצוע שוב",
+      "bold": "מודגש",
+      "italic": "נטוי",
+      "underline": "קו תחתי",
+      "strikethrough": "קו חוצה",
+      "code": "קוד",
+      "highlight": "הדגשה",
+      "align_left": "יישור לשמאל",
+      "align_center": "יישור למרכז",
+      "align_right": "יישור לימין",
+      "markdown_shortcuts": {
+        "label": "קיצורי דרך של Markdown",
+        "heading": {
+          "label": "כותרת",
+          "example": "# H1, ## H2, ### H3"
+        },
+        "bold": {
+          "label": "מודגש",
+          "example": "**טקסט** או CTRL+b"
+        },
+        "italic": {
+          "label": "נטוי",
+          "example": "*נטוי* או _נטוי_ או CTRL+i"
+        },
+        "blockquote": {
+          "label": "ציטוט",
+          "example": "> ציטוט"
+        },
+        "ordered_list": {
+          "label": "רשימה ממוספרת",
+          "example": "1. פריט ברשימה"
+        },
+        "unordered_list": {
+          "label": "רשימת תבליטים",
+          "example": "- פריט ברשימה"
+        },
+        "inline_code": {
+          "label": "קוד בתוך השורה",
+          "example": "`קוד`"
+        },
+        "block_code": {
+          "label": "בלוק קוד",
+          "example": "``` + רווח"
+        }
+      }
+    }
+  },
+  "dialogs": {
+    "bookmarks": {
+      "delete_confirmation_title": "למחוק סימנייה?",
+      "delete_confirmation_description": "האם אתה בטוח שברצונך למחוק סימנייה זו?",
+      "bulk_delete_confirmation_description": "האם אתה בטוח שברצונך למחוק {{count}} סימניות?"
+    }
+  },
+  "toasts": {
+    "bookmarks": {
+      "updated": "הסימנייה עודכנה!",
+      "deleted": "הסימנייה נמחקה!",
+      "refetch": "בקשת רענון נוספה לתור!",
+      "full_page_archive": "יצירת ארכיון עמוד מלא הופעלה",
+      "preserve_pdf": "שימור כקובץ PDF הופעל",
+      "delete_from_list": "הסימנייה נמחקה מהרשימה",
+      "clipboard_copied": "הקישור נוסף ללוח הגזירים!",
+      "update_banner": "הבאנר עודכן!",
+      "uploading_banner": "מעלה באנר..."
+    },
+    "lists": {
+      "created": "הרשימה נוצרה!",
+      "updated": "הרשימה עודכנה!",
+      "merged": "הרשימה מוזגה!",
+      "deleted": "הרשימה נמחקה!"
+    },
+    "tags": {
+      "created": "התגית נוצרה!",
+      "failed_to_create": "יצירת התגית נכשלה",
+      "updated": "התגית עודכנה!",
+      "failed_to_update": "עדכון התגית נכשל"
+    }
+  },
+  "banners": {
+    "no_bookmarks": {
+      "title": "אין עדיין סימניות",
+      "description": "שמור מאמרים, קישורים ודפים מעניינים כדי לגשת אליהם במהירות מאוחר יותר."
+    }
+  },
+  "cleanups": {
+    "cleanups": "ניקויים",
+    "duplicate_tags": {
+      "title": "תגיות כפולות",
+      "merge_all_suggestions": "למזג את כל ההצעות?"
+    }
+  },
+  "bookmark_editor": {
+    "title": "עריכת סימנייה",
+    "subtitle": "בצעו שינויים בפרטי הסימנייה. לחצו על שמירה בסיום.",
+    "author": "מחבר",
+    "publisher": "מוציא לאור",
+    "date_published": "תאריך פרסום",
+    "pick_a_date": "בחירת תאריך",
+    "save_changes": "שמירת שינויים",
+    "extracted_content": "תוכן שחולץ"
+  },
+  "version": {
+    "new_release_available": "זמינות הערות גרסה חדשות",
+    "whats_new_title": "מה חדש ב-v{{version}}",
+    "release_notes_description": "להלן העדכונים האחרונים שנשמרו מהערות הגרסה ב-GitHub.",
+    "loading_release_notes": "טוען הערות גרסה…",
+    "unable_to_load_release_notes": "לא ניתן לטעון הערות גרסה כרגע. אנא נסו שוב מאוחר יותר.",
+    "no_release_notes": "לא פורסמו הערות גרסה עבור גרסה זו.",
+    "release_notes_synced": "הערות הגרסה מסונכרנות מ-GitHub.",
+    "view_on_github": "לצפייה ב-GitHub"
+  },
+  "wrapped": {
+    "title": "סיכום שנת {{year}} שלך",
+    "subtitle": "שנה ב-Karakeep",
+    "banner": {
+      "title": "סיכום שנת 2025 שלך מוכן!",
+      "description": "ראו את השנה שלכם בסימניות",
+      "view_now": "צפו עכשיו"
+    },
+    "button": "סיכום שנת 2025",
+    "loading": "טוען את הסיכום שלך...",
+    "failed_to_load": "טעינת נתוני הסיכום נכשלה",
+    "sections": {
+      "total_saves": {
+        "prefix": "שמרת",
+        "suffix": "פריטים השנה",
+        "suffix_singular": "פריט השנה"
+      },
+      "first_bookmark": {
+        "title": "המסע שלך התחיל",
+        "description": "שמירה ראשונה לשנת {{year}}:"
+      },
+      "top_domains": "האתרים המובילים שלך",
+      "top_tags": "התגיות המובילות שלך",
+      "monthly_activity": "השנה שלך בשמירות",
+      "most_active_day": "היום הפעיל ביותר שלך",
+      "peak_times": {
+        "title": "מתי שמרת",
+        "peak_hour": "שעת שיא",
+        "peak_day": "יום שיא"
+      },
+      "how_you_save": "איך שמרת",
+      "what_you_saved": "מה שמרת",
+      "summary": {
+        "favorites": "מועדפים",
+        "tags_created": "תגיות שנוצרו",
+        "highlights": "הדגשות"
+      },
+      "types": {
+        "links": "קישורים",
+        "notes": "הערות",
+        "assets": "נכסים"
+      }
+    },
+    "footer": "נעשה באמצעות Karakeep",
+    "share": "שיתוף",
+    "download": "הורדה",
+    "close": "סגירה",
+    "generating": "מייצר..."
+  },
+  "keyboard_shortcuts": {
+    "title": "קיצורי מקלדת",
+    "sections": {
+      "navigation": "ניווט",
+      "actions": "פעולות",
+      "selection": "בחירה",
+      "other": "אחר"
+    },
+    "move_left": "הזזה שמאלה",
+    "move_down": "הזזה למטה",
+    "move_up": "הזזה למעלה",
+    "move_right": "הזזה ימינה",
+    "open_bookmark": "פתיחת סימנייה",
+    "clear_focus": "ביטול מיקוד / יציאה מעריכה מרוכזת",
+    "toggle_favorite": "שינוי מצב מועדף",
+    "toggle_archive": "ארכוב / ביטול ארכוב",
+    "delete_bookmark": "מחיקת סימנייה",
+    "toggle_selection": "שינוי מצב בחירה",
+    "select_all": "בחירת הכל",
+    "deselect_all": "ביטול בחירת הכל",
+    "show_help": "הצגת קיצורי מקלדת",
+    "focus_search_alt": "מיקוד בחיפוש"
+  }
+}

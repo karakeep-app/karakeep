@@ -22,8 +22,10 @@ describe("useBulkActionsStore", () => {
     useBulkActionsStore.getState().toggleBookmark("a");
     expect(useBulkActionsStore.getState().selectedBookmarkIds).toEqual(["a"]);
 
+    useBulkActionsStore.setState({ isBulkEditEnabled: true });
     useBulkActionsStore.getState().toggleBookmark("a");
     expect(useBulkActionsStore.getState().selectedBookmarkIds).toEqual([]);
+    expect(useBulkActionsStore.getState().isBulkEditEnabled).toBe(false);
   });
 
   it("selects and unselects all visible bookmarks", () => {
@@ -38,9 +40,22 @@ describe("useBulkActionsStore", () => {
     ]);
     expect(useBulkActionsStore.getState().isEverythingSelected()).toBe(true);
 
+    useBulkActionsStore.setState({ isBulkEditEnabled: true });
     useBulkActionsStore.getState().unSelectAll();
     expect(useBulkActionsStore.getState().selectedBookmarkIds).toEqual([]);
     expect(useBulkActionsStore.getState().isEverythingSelected()).toBe(false);
+    expect(useBulkActionsStore.getState().isBulkEditEnabled).toBe(false);
+  });
+
+  it("exits bulk edit when selection is cleared directly", () => {
+    useBulkActionsStore.setState({
+      isBulkEditEnabled: true,
+      selectedBookmarkIds: ["a"],
+    });
+
+    useBulkActionsStore.getState().setSelectedBookmarkIds([]);
+
+    expect(useBulkActionsStore.getState().isBulkEditEnabled).toBe(false);
   });
 
   it("clears selection when bulk edit mode changes", () => {
@@ -61,6 +76,18 @@ describe("useBulkActionsStore", () => {
     });
 
     useBulkActionsStore.getState().setIsBulkEditEnabled(true);
+    expect(useBulkActionsStore.getState().selectedBookmarkIds).toEqual(["a"]);
+  });
+
+  it("enables bulk editing with the initiating bookmark selected", () => {
+    useBulkActionsStore.setState({
+      isBulkEditEnabled: false,
+      selectedBookmarkIds: ["previous"],
+    });
+
+    useBulkActionsStore.getState().enableBulkEditForBookmark("a");
+
+    expect(useBulkActionsStore.getState().isBulkEditEnabled).toBe(true);
     expect(useBulkActionsStore.getState().selectedBookmarkIds).toEqual(["a"]);
   });
 

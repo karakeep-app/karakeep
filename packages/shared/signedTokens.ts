@@ -88,9 +88,13 @@ export function verifySignedToken<T>(
     const expectedSignature = crypto
       .createHmac("sha256", secret)
       .update(JSON.stringify(payload))
-      .digest("hex");
+      .digest();
+    const actualSignature = Buffer.from(signature, "hex");
 
-    if (signature !== expectedSignature) {
+    if (
+      actualSignature.length !== expectedSignature.length ||
+      !crypto.timingSafeEqual(actualSignature, expectedSignature)
+    ) {
       return null;
     }
     // Check expiry

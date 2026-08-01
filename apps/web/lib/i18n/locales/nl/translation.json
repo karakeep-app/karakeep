@@ -261,6 +261,10 @@
           "users": {
             "label": "Admin: gebruikers",
             "description": "Toegang tot het administratieve gebruikersbeheer."
+          },
+          "subscriptions": {
+            "label": "Beheer: abonnementen",
+            "description": "Beheer abonnementsvormen van gebruikers."
           }
         }
       }
@@ -519,7 +523,8 @@
         "processing": "Verwerken",
         "staging": "Voorbereiding",
         "running": "Actief",
-        "paused": "Gepauzeerd"
+        "paused": "Gepauzeerd",
+        "archived": "Gearchiveerd"
       },
       "badges": {
         "pending": "{{count}} in behandeling",
@@ -556,7 +561,8 @@
         "no_results": "Geen resultaten gevonden voor dit filter.",
         "view_bookmark": "Bladwijzer bekijken",
         "load_more": "Meer laden",
-        "no_title": "Geen titel"
+        "no_title": "Geen titel",
+        "archived_results": "Individuele bladwijzerresultaten worden niet langer bewaard voor gearchiveerde import-sessies."
       },
       "finalize_dialog_title": "Import-sessie afronden",
       "finalize_dialog_description": "Zet \"{{name}}\" in de wachtrij voor verwerking op de achtergrond? Voorbereide bladwijzers worden geïmporteerd.",
@@ -669,6 +675,10 @@
         "admin_maintenance": {
           "title": "Admin onderhoudstaken",
           "description": "Administratieve opschoon en asset onderhoud"
+        },
+        "embeddings": {
+          "title": "Embedding-taken",
+          "description": "Genereren van bladwijzer-vector-embeddings"
         }
       },
       "monitor_and_manage": "Monitor en beheer achtergrondtaakwachtrijen en systeemverwerkingstaken",
@@ -703,7 +713,10 @@
         "migrate_large_link_html_content": "Verplaats grote inline HTML-content naar assets.",
         "recrawl_pending_links_only": "Alleen in behandeling zijnde links opnieuw crawlen",
         "regenerate_ai_tags_for_pending_bookmarks_only": "AI-tags opnieuw genereren, maar dan alleen voor bladwijzers die in behandeling zijn",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "AI-samenvattingen opnieuw genereren, maar dan alleen voor bladwijzers die in behandeling zijn"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "AI-samenvattingen opnieuw genereren, maar dan alleen voor bladwijzers die in behandeling zijn",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Embeddings alleen regenereren voor openstaande bladwijzers",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Embeddings alleen regenereren voor mislukte bladwijzers",
+        "regenerate_embeddings_for_all_bookmarks": "Embeddings regenereren voor alle bladwijzers"
       }
     },
     "users_list": {
@@ -742,7 +755,8 @@
         "not_configured": "Niet geconfigureerd",
         "connected": "Verbonden",
         "disconnected": "Niet verbonden"
-      }
+      },
+      "vector_store": "Vectoropslag"
     },
     "admin_tools": {
       "admin_tools": "Beheertools",
@@ -778,7 +792,10 @@
       "retag_queued": "Opdracht voor opnieuw taggen is in de wachtrij geplaatst",
       "resummarize_queued": "Opdracht voor opnieuw samenvatten is in de wachtrij geplaatst",
       "view": "Bekijken",
-      "fetch_error": "Fout bij ophalen bladwijzer"
+      "fetch_error": "Fout bij ophalen bladwijzer",
+      "embedding_status": "Embedding-status",
+      "regenerate_embedding": "Embedding regenereren",
+      "regenerate_embedding_queued": "Taak voor het regenereren van embeddings is in de wachtrij geplaatst"
     }
   },
   "tags": {
@@ -1037,12 +1054,24 @@
     "lists": "Lijsten",
     "feeds": "Feeds",
     "is_from_source": "Bron is",
-    "is_not_from_source": "Bron is niet"
+    "is_not_from_source": "Bron is niet",
+    "mode_label": "Zoekmodus",
+    "mode_label_description": "Kies hoe Karakeep naar overeenkomende bladwijzers zoekt.",
+    "mode_keyword": "Trefwoord",
+    "mode_keyword_description": "Zoek op exacte woorden in titels, inhoud, URL's en notities. Vrijwel onmiddellijk.",
+    "mode_hybrid": "Hybride",
+    "mode_hybrid_description": "Combineer exacte resultaten met gerelateerde ideeën voor de beste balans. Langzamer dan zoeken op trefwoord.",
+    "mode_semantic": "Semantisch",
+    "mode_semantic_description": "Vind conceptueel vergelijkbare bladwijzers, zelfs zonder gedeelde woorden. Langzamer dan zoeken op trefwoord.",
+    "keyword_placeholder": "Zoek in titels, tekst, URL's en tags…",
+    "hybrid_placeholder": "Zoek op woorden of betekenis…",
+    "semantic_placeholder": "Beschrijf wat u zich herinnert…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "Weet je zeker dat je dit bladwijzer wilt verwijderen?",
-      "delete_confirmation_title": "Bladwijzer verwijderen?"
+      "delete_confirmation_title": "Bladwijzer verwijderen?",
+      "bulk_delete_confirmation_description": "Weet u zeker dat u {{count}} bladwijzers wilt verwijderen?"
     }
   },
   "toasts": {
@@ -1166,5 +1195,28 @@
     "download": "Downloaden",
     "close": "Sluiten",
     "generating": "Bezig met genereren..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Sneltoetsen",
+    "sections": {
+      "navigation": "Navigatie",
+      "actions": "Acties",
+      "selection": "Selectie",
+      "other": "Overig"
+    },
+    "move_left": "Naar links verplaatsen",
+    "move_down": "Naar beneden verplaatsen",
+    "move_up": "Omhoog verplaatsen",
+    "move_right": "Naar rechts verplaatsen",
+    "open_bookmark": "Bladwijzer openen",
+    "clear_focus": "Focus wissen / bulkbewerking afsluiten",
+    "toggle_favorite": "Favoriet in-/uitschakelen",
+    "toggle_archive": "Archiveren / Dearchiveren",
+    "delete_bookmark": "Bladwijzer verwijderen",
+    "toggle_selection": "Selectie in-/uitschakelen",
+    "select_all": "Alles selecteren",
+    "deselect_all": "Alles deselecteren",
+    "show_help": "Sneltoetsen tonen",
+    "focus_search_alt": "Focus op zoeken"
   }
 }

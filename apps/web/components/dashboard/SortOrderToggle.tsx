@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useBookmarkSearchState } from "@/lib/hooks/bookmark-search";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
@@ -15,7 +16,8 @@ import { Check, ListFilter, SortAsc, SortDesc } from "lucide-react";
 
 export default function SortOrderToggle() {
   const { t } = useTranslation();
-  const isInSearchPage = useInSearchPageStore();
+  const isInSearchPage = useInSearchPageStore((state) => state.inSearchPage);
+  const { effectiveSearchMode } = useBookmarkSearchState();
 
   const { sortOrder: currentSort, setSortOrder } = useSortOrderStore();
 
@@ -26,7 +28,11 @@ export default function SortOrderToggle() {
       // reset to default sort order
       setSortOrder("desc");
     }
-  }, [isInSearchPage, currentSort]);
+  }, [isInSearchPage, currentSort, setSortOrder]);
+
+  if (isInSearchPage && effectiveSearchMode !== "fts") {
+    return null;
+  }
 
   return (
     <DropdownMenu>

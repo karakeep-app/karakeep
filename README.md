@@ -46,8 +46,6 @@ Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a 
 - 🔄 Automatic sync with browser bookmarks via [floccus](https://floccus.org/).
 - [Planned] Offline reading on mobile, semantic search across bookmarks, ...
 
-**⚠️ This app is under heavy development.**
-
 ## Documentation
 
 - [Installation](https://docs.karakeep.app/Installation/docker)

@@ -11,8 +11,13 @@ import {
 import * as sharedServer from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import { WebhooksService } from "../models/webhooks.service";
 import type { APICallerType, CustomTestContext } from "../testUtils";
-import { defaultBeforeEach, getApiKeyCallerForPlainKey } from "../testUtils";
+import {
+  defaultBeforeEach,
+  getApiKeyCallerForPlainKey,
+  getTestQueueMocks,
+} from "../testUtils";
 
 vi.mock("@karakeep/shared-server", async (original) => {
   const mod = (await original()) as typeof import("@karakeep/shared-server");
@@ -22,6 +27,9 @@ vi.mock("@karakeep/shared-server", async (original) => {
       enqueue: vi.fn(),
     },
     OpenAIQueue: {
+      enqueue: vi.fn(),
+    },
+    EmbeddingsQueue: {
       enqueue: vi.fn(),
     },
     SearchIndexingQueue: {
@@ -71,6 +79,44 @@ describe("Bookmark Routes", () => {
     expect(res.content.type).toEqual(BookmarkTypes.LINK);
   });
 
+  test<CustomTestContext>("get readable bookmark content as markdown or text", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const bookmark = await api.createBookmark({
+      url: "https://example.com/article",
+      type: BookmarkTypes.LINK,
+    });
+    await db
+      .update(bookmarkLinks)
+      .set({
+        htmlContent:
+          '<h1>Hello</h1><p>Read <a href="https://example.com/docs">the docs</a>.</p>',
+      })
+      .where(eq(bookmarkLinks.id, bookmark.id));
+
+    const markdown = await api.getBookmarkReadableContent({
+      bookmarkId: bookmark.id,
+      format: "markdown",
+    });
+    expect(markdown).toMatchObject({
+      bookmarkId: bookmark.id,
+      bookmarkType: BookmarkTypes.LINK,
+      format: "markdown",
+      content: "# Hello\n\nRead [the docs](https://example.com/docs).",
+    });
+    expect(markdown.contentVersion).toMatch(/^sha256:[a-f0-9]{64}$/);
+
+    const text = await api.getBookmarkReadableContent({
+      bookmarkId: bookmark.id,
+      format: "text",
+    });
+    expect(text.content).toContain("HELLO");
+    expect(text.content).toContain("Read the docs");
+    expect(text.contentVersion).not.toBe(markdown.contentVersion);
+  });
+
   test<CustomTestContext>("api key with read scope can read bookmarks but not write", async ({
     apiCallers,
     db,
@@ -88,6 +134,12 @@ describe("Bookmark Routes", () => {
 
     const bookmarks = await apiKeyCaller.bookmarks.getBookmarks({});
     expect(bookmarks.bookmarks).toHaveLength(1);
+    await expect(
+      apiKeyCaller.bookmarks.getBookmarkReadableContent({
+        bookmarkId: bookmarks.bookmarks[0].id,
+        format: "markdown",
+      }),
+    ).resolves.toMatchObject({ content: "seed bookmark" });
 
     await expect(() =>
       apiKeyCaller.bookmarks.createBookmark({
@@ -758,6 +810,196 @@ describe("Bookmark Routes", () => {
       type: BookmarkTypes.LINK,
     });
     expect(bookmark3User1.alreadyExists).toEqual(false);
+  });
+
+  test<CustomTestContext>("re-saving a link restores and refreshes the existing bookmark", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const user = await apiCallers[0].users.whoami();
+    const triggerSearchReindexMock = getTestQueueMocks().triggerSearchReindex;
+    const triggerWebhookSpy = vi
+      .spyOn(WebhooksService.prototype, "triggerWebhook")
+      .mockResolvedValue();
+    const originallySavedAt = new Date("2026-01-01T00:00:00.000Z");
+    const resavedAt = new Date("2026-01-02T00:00:00.000Z");
+
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(originallySavedAt);
+      const original = await api.createBookmark({
+        url: "https://example.com/resave",
+        type: BookmarkTypes.LINK,
+      });
+      await api.updateBookmark({
+        bookmarkId: original.id,
+        archived: true,
+      });
+
+      const [beforeResave] = await db
+        .select({
+          dbCreatedAt: bookmarks.dbCreatedAt,
+          createdAt: bookmarks.createdAt,
+        })
+        .from(bookmarks)
+        .where(eq(bookmarks.id, original.id));
+      assert(beforeResave);
+
+      triggerSearchReindexMock.mockClear();
+      triggerWebhookSpy.mockClear();
+      vi.setSystemTime(resavedAt);
+
+      const duplicate = await api.createBookmark({
+        url: "https://example.com/resave",
+        type: BookmarkTypes.LINK,
+      });
+
+      expect(duplicate).toMatchObject({
+        id: original.id,
+        alreadyExists: true,
+        archived: false,
+        createdAt: resavedAt,
+        modifiedAt: resavedAt,
+      });
+
+      const [afterResave] = await db
+        .select({
+          dbCreatedAt: bookmarks.dbCreatedAt,
+          createdAt: bookmarks.createdAt,
+          modifiedAt: bookmarks.modifiedAt,
+          archived: bookmarks.archived,
+        })
+        .from(bookmarks)
+        .where(eq(bookmarks.id, original.id));
+      assert(afterResave);
+
+      expect(afterResave).toMatchObject({
+        archived: false,
+        createdAt: resavedAt,
+        modifiedAt: resavedAt,
+      });
+      expect(afterResave.dbCreatedAt).toEqual(beforeResave.dbCreatedAt);
+      expect(triggerSearchReindexMock).toHaveBeenCalledWith(original.id, {
+        groupId: user.id,
+      });
+      expect(triggerWebhookSpy).toHaveBeenCalledWith(
+        original.id,
+        "edited",
+        user.id,
+        {
+          groupId: user.id,
+        },
+      );
+    } finally {
+      triggerWebhookSpy.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  test<CustomTestContext>("re-saving a link only overwrites the metadata it was given", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+
+    const original = await api.createBookmark({
+      url: "https://example.com/resave-metadata",
+      type: BookmarkTypes.LINK,
+      title: "Original title",
+      note: "Original note",
+      favourited: true,
+    });
+
+    const bareResave = await api.createBookmark({
+      url: "https://example.com/resave-metadata",
+      type: BookmarkTypes.LINK,
+    });
+    expect(bareResave).toMatchObject({
+      id: original.id,
+      alreadyExists: true,
+      title: "Original title",
+      note: "Original note",
+      favourited: true,
+    });
+
+    const resaveWithMetadata = await api.createBookmark({
+      url: "https://example.com/resave-metadata",
+      type: BookmarkTypes.LINK,
+      title: "New title",
+      favourited: false,
+    });
+    expect(resaveWithMetadata).toMatchObject({
+      id: original.id,
+      alreadyExists: true,
+      title: "New title",
+      note: "Original note",
+      favourited: false,
+    });
+
+    const persisted = await api.getBookmark({ bookmarkId: original.id });
+    expect(persisted).toMatchObject({
+      title: "New title",
+      note: "Original note",
+      favourited: false,
+    });
+  });
+
+  test<CustomTestContext>("re-saving a link from an exempt source stays a no-op", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const triggerWebhookSpy = vi
+      .spyOn(WebhooksService.prototype, "triggerWebhook")
+      .mockResolvedValue();
+    const originallySavedAt = new Date("2026-01-01T00:00:00.000Z");
+    const resavedAt = new Date("2026-01-02T00:00:00.000Z");
+
+    vi.useFakeTimers();
+    try {
+      vi.setSystemTime(originallySavedAt);
+      const original = await api.createBookmark({
+        url: "https://example.com/resave-exempt",
+        type: BookmarkTypes.LINK,
+        source: "rss",
+      });
+      await api.updateBookmark({
+        bookmarkId: original.id,
+        archived: true,
+      });
+
+      triggerWebhookSpy.mockClear();
+      vi.setSystemTime(resavedAt);
+
+      const duplicate = await api.createBookmark({
+        url: "https://example.com/resave-exempt",
+        type: BookmarkTypes.LINK,
+        source: "rss",
+      });
+      expect(duplicate).toMatchObject({
+        id: original.id,
+        alreadyExists: true,
+        archived: true,
+        createdAt: originallySavedAt,
+      });
+
+      const [afterResave] = await db
+        .select({
+          createdAt: bookmarks.createdAt,
+          archived: bookmarks.archived,
+        })
+        .from(bookmarks)
+        .where(eq(bookmarks.id, original.id));
+      assert(afterResave);
+      expect(afterResave).toMatchObject({
+        archived: true,
+        createdAt: originallySavedAt,
+      });
+      expect(triggerWebhookSpy).not.toHaveBeenCalled();
+    } finally {
+      triggerWebhookSpy.mockRestore();
+      vi.useRealTimers();
+    }
   });
 
   // Ensure that the pagination returns all the results

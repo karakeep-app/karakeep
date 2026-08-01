@@ -49,6 +49,36 @@ describe("Assets API", () => {
     expect(resp.status).toBe(200);
   });
 
+  it("should create a signed URL that retrieves an asset", async () => {
+    const uploadResponse = await uploadTestAsset(
+      apiKey,
+      port,
+      createTestPdfFile(),
+    );
+
+    const { data, response } = await client.GET(
+      "/assets/{assetId}/signed-url",
+      {
+        params: {
+          path: {
+            assetId: uploadResponse.assetId,
+          },
+        },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(data?.assetId).toBe(uploadResponse.assetId);
+    expect(data?.signedUrl).toContain(
+      `/api/public/assets/${uploadResponse.assetId}?token=`,
+    );
+    expect(new Date(data!.expiresAt).getTime()).toBeGreaterThan(Date.now());
+
+    const assetResponse = await fetch(data!.signedUrl);
+    expect(assetResponse.status).toBe(200);
+    expect(assetResponse.headers.get("content-type")).toBe("application/pdf");
+  });
+
   it("should require assets:readwrite to upload an asset", async () => {
     const scopedApiKey = await createTestUser(["assets:read"]);
     const formData = new FormData();

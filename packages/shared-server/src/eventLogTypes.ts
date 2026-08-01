@@ -6,6 +6,17 @@ type EventLogInternal =
       "crawler.domain"?: string;
       "crawler.status_code"?: number | null;
       "crawler.proxy"?: string;
+      // Outcome of the preflight probe's metadata extraction.
+      "crawler.probe.metadata"?:
+        | "extracted"
+        | "blocked_status"
+        | "challenge_page"
+        | "reused_stored"
+        | "failed";
+      // Whether the rendered page was considered blocked (retryable status
+      // code or a detected challenge page), flipping metadata precedence to
+      // the preflight probe.
+      "crawler.render_blocked"?: boolean;
     }
   | {
       ["event.name"]: "inferenceWorker.run";
@@ -23,6 +34,7 @@ type EventLogInternal =
       "inference.tagging.style"?: string;
       "inference.tagging.lang"?: string;
       "inference.tagging.num_generated_tags"?: number;
+      "inference.tagging.num_potential_relevant_tags"?: number;
     }
   | {
       ["event.name"]: "bookmark.summarize";
@@ -40,6 +52,8 @@ type EventLogInternal =
       "feed.status_code"?: number;
       "feed.items_found"?: number;
       "feed.items_new"?: number;
+      "feed.bookmarks_created"?: number;
+      "feed.bookmarks_failed"?: number;
       "feed.skipped_quota"?: boolean;
     }
   | {
@@ -74,6 +88,14 @@ type EventLogInternal =
       "search.op"?: "index" | "delete";
       "bookmark.id"?: string;
       "search.document_size"?: number;
+    }
+  | {
+      ["event.name"]: "embeddingsWorker.run";
+      "bookmark.id"?: string;
+      "embedding.mode"?: "embed" | "index" | "delete";
+      "embedding.text_size"?: number;
+      "embedding.prompt_tokens"?: number;
+      "embedding.total_tokens"?: number;
     }
   | {
       ["event.name"]: "backupWorker.run";
@@ -150,6 +172,8 @@ type EventLogInternal =
   | {
       ["event.name"]: "search.query";
       "search.has_query"?: boolean;
+      "search.mode"?: "fts" | "semantic" | "hybrid";
+      "search.degraded"?: boolean;
       "search.results_count"?: number;
     }
   | { ["event.name"]: "bookmarks.queried" }
@@ -165,7 +189,7 @@ type EventLogInternal =
       "subscription.status"?: string;
       "subscription.prev_tier"?: string;
       "subscription.prev_status"?: string;
-      "subscription.sync_skipped_reason"?: "unknown_customer";
+      "subscription.sync_skipped_reason"?: "unknown_customer" | "manual_tier";
       "subscription.cancel_at_period_end"?: boolean;
       "subscription.transition"?:
         | "upgrade"

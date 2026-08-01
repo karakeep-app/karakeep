@@ -61,7 +61,19 @@ describe("signed tokens", () => {
     const decoded: SignedTokenPayload = JSON.parse(
       Buffer.from(token, "base64").toString(),
     );
-    decoded.signature = "tampered" + decoded.signature;
+    decoded.signature = `${decoded.signature[0] === "0" ? "1" : "0"}${decoded.signature.slice(1)}`;
+    const tampered = Buffer.from(JSON.stringify(decoded)).toString("base64");
+    const verified = verifySignedToken(tampered, SECRET, testSchema);
+    expect(verified).toBeNull();
+  });
+
+  it("should return null for a malformed signature", () => {
+    const token = createSignedToken(testPayload, SECRET);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const decoded: SignedTokenPayload = JSON.parse(
+      Buffer.from(token, "base64").toString(),
+    );
+    decoded.signature = "not-a-hex-signature";
     const tampered = Buffer.from(JSON.stringify(decoded)).toString("base64");
     const verified = verifySignedToken(tampered, SECRET, testSchema);
     expect(verified).toBeNull();

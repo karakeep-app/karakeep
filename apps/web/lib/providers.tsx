@@ -12,12 +12,12 @@ import superjson from "superjson";
 
 import type { ClientConfig } from "@karakeep/shared/config";
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
+import { ClientConfigProvider } from "@karakeep/shared-react/providers/client-config-provider";
 import {
   TRPC_MAX_URL_LENGTH_INTERNAL,
   TRPCProvider,
 } from "@karakeep/shared-react/trpc";
 
-import { ClientConfigCtx } from "./clientConfig";
 import CustomI18nextProvider from "./i18n/provider";
 
 function makeQueryClient() {
@@ -80,7 +80,7 @@ export default function Providers({
   );
 
   return (
-    <ClientConfigCtx.Provider value={clientConfig}>
+    <ClientConfigProvider value={clientConfig}>
       <UserLocalSettingsCtx.Provider value={userLocalSettings}>
         <SessionProvider session={session}>
           <QueryClientProvider client={queryClient}>
@@ -101,6 +101,6 @@ export default function Providers({
           </QueryClientProvider>
         </SessionProvider>
       </UserLocalSettingsCtx.Provider>
-    </ClientConfigCtx.Provider>
+    </ClientConfigProvider>
   );
 }

@@ -1,7 +1,10 @@
 import { OpenAPIRegistry } from "@asteasolutions/zod-to-openapi";
 import * as z from "zod";
 
-import { updateUserSchema } from "@karakeep/shared/types/admin";
+import {
+  updateUserSchema,
+  zAdminJobModifiedWithinSecondsSchema,
+} from "@karakeep/shared/types/admin";
 
 import { BearerAuth } from "./common";
 import { ErrorSchema, UnauthorizedResponse } from "./errors";
@@ -98,7 +101,8 @@ registry.registerPath({
   path: "/admin/jobs/trigger/recrawl",
   description:
     "Trigger a recrawl of link bookmarks. You can filter by crawl status to target specific bookmarks " +
-    "(e.g., only failed ones). Optionally run AI inference after crawling. Requires admin role.",
+    "(e.g., only failed ones) and by how recently they were modified. Optionally run AI inference " +
+    "after crawling. Requires admin role.",
   summary: "Trigger recrawl of links (admin)",
   tags: ["Admin"],
   security: [{ [BearerAuth.name]: [] }],
@@ -119,11 +123,14 @@ registry.registerPath({
                 .boolean()
                 .default(false)
                 .describe("Whether to run AI inference after crawling."),
+              modifiedWithinSeconds:
+                zAdminJobModifiedWithinSecondsSchema.optional(),
             })
             .openapi({
               example: {
                 crawlStatus: "failure",
                 runInference: false,
+                modifiedWithinSeconds: 3600,
               },
             }),
         },
@@ -157,11 +164,31 @@ registry.registerPath({
   method: "post",
   path: "/admin/jobs/trigger/reindex",
   description:
-    "Trigger a reindex of all bookmarks in the search engine. This clears the existing index and " +
-    "re-queues all bookmarks for indexing. Requires admin role.",
+    "Trigger a reindex of bookmarks in the search engine. Without modifiedWithinSeconds, this " +
+    "clears the existing index and re-queues all bookmarks. When set, only bookmarks modified " +
+    "within that many seconds are re-queued and the existing index is preserved. Requires admin role.",
   summary: "Trigger reindex of all bookmarks (admin)",
   tags: ["Admin"],
   security: [{ [BearerAuth.name]: [] }],
+  request: {
+    body: {
+      description: "Optional time window for the reindex job.",
+      content: {
+        "application/json": {
+          schema: z
+            .object({
+              modifiedWithinSeconds:
+                zAdminJobModifiedWithinSecondsSchema.optional(),
+            })
+            .openapi({
+              example: {
+                modifiedWithinSeconds: 3600,
+              },
+            }),
+        },
+      },
+    },
+  },
   responses: {
     200: {
       description: "Reindex jobs triggered successfully.",
@@ -182,7 +209,7 @@ registry.registerPath({
   path: "/admin/jobs/trigger/inference",
   description:
     "Trigger AI inference (tagging or summarization) on bookmarks. You can filter by status " +
-    "to target specific bookmarks (e.g., only failed ones). Requires admin role.",
+    "and by how recently bookmarks were modified. Requires admin role.",
   summary: "Trigger AI inference on bookmarks (admin)",
   tags: ["Admin"],
   security: [{ [BearerAuth.name]: [] }],
@@ -205,11 +232,14 @@ registry.registerPath({
                 .describe(
                   "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones.",
                 ),
+              modifiedWithinSeconds:
+                zAdminJobModifiedWithinSecondsSchema.optional(),
             })
             .openapi({
               example: {
                 type: "tag",
                 status: "failure",
+                modifiedWithinSeconds: 3600,
               },
             }),
         },

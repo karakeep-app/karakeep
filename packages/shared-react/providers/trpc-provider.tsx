@@ -81,9 +81,9 @@ function getTRPCClient(settings: Settings) {
         },
         headers() {
           return {
-            Authorization: settings.apiKey
-              ? `Bearer ${settings.apiKey}`
-              : undefined,
+            ...(settings.apiKey
+              ? { Authorization: `Bearer ${settings.apiKey}` }
+              : {}),
             ...settings.customHeaders,
           };
         },
@@ -95,12 +95,14 @@ function getTRPCClient(settings: Settings) {
 
 export function TRPCSettingsProvider({
   settings,
+  queryClient: providedQueryClient,
   children,
 }: {
   settings: Settings;
+  queryClient?: QueryClient;
   children: React.ReactNode;
 }) {
-  const queryClient = getQueryClient();
+  const queryClient = providedQueryClient ?? getQueryClient();
   const trpcClient = useMemo(() => getTRPCClient(settings), [settings]);
 
   return (

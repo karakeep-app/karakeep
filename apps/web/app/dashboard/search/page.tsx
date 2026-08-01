@@ -8,7 +8,7 @@ import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 
 function SearchComp() {
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } =
+  const { data, error, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useBookmarkSearch();
 
   const { setInSearchPage } = useInSearchPageStore();
@@ -18,12 +18,16 @@ function SearchComp() {
   useEffect(() => {
     // also see related cleanup code in SortOrderToggle.tsx
     setSortOrder("relevance");
-  }, []);
+  }, [setSortOrder]);
 
   useEffect(() => {
     setInSearchPage(true);
     return () => setInSearchPage(false);
   }, [setInSearchPage]);
+
+  if (error) {
+    throw error;
+  }
 
   return (
     <div className="flex flex-col gap-3">

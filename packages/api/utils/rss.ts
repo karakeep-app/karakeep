@@ -6,6 +6,7 @@ import {
   ZPublicBookmark,
 } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
+import { isAllowedBookmarkUrl } from "@karakeep/shared/utils/url";
 
 export function toRSS(
   params: {
@@ -27,7 +28,10 @@ export function toRSS(
   bookmarks
     .filter(
       (b) =>
-        b.content.type === BookmarkTypes.LINK ||
+        // Drop links with unsafe schemes (javascript:, data:, ...) that may
+        // predate URL validation, so feed readers can't follow them.
+        (b.content.type === BookmarkTypes.LINK &&
+          isAllowedBookmarkUrl(b.content.url)) ||
         b.content.type === BookmarkTypes.ASSET,
     )
     .forEach((bookmark) => {

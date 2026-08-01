@@ -4,7 +4,10 @@ import { z } from "zod";
 
 import {
   BookmarkTypes,
+  DEFAULT_READABLE_CONTENT_MAX_CHARS,
+  MAX_READABLE_CONTENT_MAX_CHARS,
   zAssetSchema,
+  zBookmarkReadableContentFormatSchema,
   zManipulatedTagSchema,
   zNewBookmarkRequestSchema,
   zUpdateBookmarksRequestSchema,
@@ -13,6 +16,10 @@ import {
 import { apiKeyScopeMiddleware } from "../middlewares/apiKeyScopes";
 import { authMiddleware } from "../middlewares/auth";
 import { adaptPagination, zPagination } from "../utils/pagination";
+import {
+  chunkReadableContent,
+  decodeReadableContentCursor,
+} from "../utils/readableContent";
 import {
   zGetBookmarkQueryParamsSchema,
   zGetBookmarkSearchParamsSchema,
@@ -78,6 +85,8 @@ const app = new Hono()
         text: searchParams.q,
         cursor: searchParams.cursor,
         limit: searchParams.limit,
+        sortOrder: searchParams.sortOrder,
+        searchMode: searchParams.searchMode,
         includeContent: searchParams.includeContent,
       });
       return c.json(
@@ -199,6 +208,94 @@ const app = new Hono()
       } else {
         return c.json(bookmark, 201);
       }
+    },
+  )
+
+  // GET /bookmarks/[bookmarkId]/content
+  .get(
+    "/:bookmarkId/content",
+    zValidator(
+      "query",
+      z.object({
+        format: zBookmarkReadableContentFormatSchema.optional(),
+        maxChars: z.coerce
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_READABLE_CONTENT_MAX_CHARS)
+          .optional()
+          .default(DEFAULT_READABLE_CONTENT_MAX_CHARS),
+        cursor: z.string().optional(),
+      }),
+    ),
+    async (c) => {
+      const bookmarkId = c.req.param("bookmarkId");
+      const query = c.req.valid("query");
+      const cursor = query.cursor
+        ? decodeReadableContentCursor(query.cursor)
+        : null;
+
+      if (query.cursor && !cursor) {
+        return c.json(
+          { code: "INVALID_CURSOR", message: "The cursor is invalid." },
+          400,
+        );
+      }
+
+      const format = query.format ?? cursor?.format ?? "markdown";
+      if (
+        cursor &&
+        (cursor.bookmarkId !== bookmarkId || cursor.format !== format)
+      ) {
+        return c.json(
+          {
+            code: "INVALID_CURSOR",
+            message: "The cursor does not match this bookmark or format.",
+          },
+          400,
+        );
+      }
+
+      const readableContent =
+        await c.var.api.bookmarks.getBookmarkReadableContent({
+          bookmarkId,
+          format,
+        });
+
+      if (cursor && cursor.contentVersion !== readableContent.contentVersion) {
+        return c.json(
+          {
+            code: "CONTENT_CHANGED",
+            message:
+              "The bookmark content changed after this cursor was issued. Restart from the first page.",
+          },
+          409,
+        );
+      }
+
+      const chunk = chunkReadableContent({
+        bookmarkId,
+        content: readableContent.content,
+        contentVersion: readableContent.contentVersion,
+        format,
+        maxChars: query.maxChars,
+        start: cursor?.offset,
+      });
+      if (!chunk) {
+        return c.json(
+          {
+            code: "INVALID_CURSOR",
+            message: "The cursor points beyond the bookmark content.",
+          },
+          400,
+        );
+      }
+
+      c.header("ETag", `"${readableContent.contentVersion}"`);
+      return c.json({
+        ...readableContent,
+        ...chunk,
+      });
     },
   )
 

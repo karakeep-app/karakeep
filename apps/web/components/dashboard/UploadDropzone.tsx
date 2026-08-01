@@ -12,14 +12,14 @@ import { useCreateBookmarkWithPostHook } from "@karakeep/shared-react/hooks/book
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import LoadingSpinner from "../ui/spinner";
-import BookmarkAlreadyExistsToast from "../utils/BookmarkAlreadyExistsToast";
+import BookmarkSavedToast from "../utils/BookmarkSavedToast";
 
 export function useUploadAsset() {
   const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook({
     onSuccess: (resp) => {
       if (resp.alreadyExists) {
         toast({
-          description: <BookmarkAlreadyExistsToast bookmarkId={resp.id} />,
+          description: <BookmarkSavedToast bookmarkId={resp.id} />,
           variant: "default",
         });
       } else {

@@ -11,6 +11,7 @@ import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgr
 export default function BookmarkHtmlHighlighterDom({
   htmlContent,
   contentStyle,
+  isDark,
   highlights,
   readOnly,
   onHighlight,
@@ -26,6 +27,7 @@ export default function BookmarkHtmlHighlighterDom({
 }: {
   htmlContent: string;
   contentStyle?: React.CSSProperties;
+  isDark: boolean;
   highlights?: Highlight[];
   readOnly?: boolean;
   onHighlight?: (highlight: Highlight) => void;
@@ -117,7 +119,10 @@ export default function BookmarkHtmlHighlighterDom({
     return () => document.removeEventListener("click", handleClick);
   }, [onLinkPress, onImagePress]);
   return (
-    <div style={{ maxWidth: "100vw", overflowX: "hidden" }}>
+    <div
+      className={isDark ? "dark" : undefined}
+      style={{ maxWidth: "100vw", overflowX: "hidden" }}
+    >
       <ScrollProgressTracker
         onSavePosition={onSavePosition}
         onScrollPositionChange={onScrollPositionChange}
@@ -128,6 +133,7 @@ export default function BookmarkHtmlHighlighterDom({
         progressBarStyle={{ position: "fixed" }}
       >
         <BookmarkHTMLHighlighter
+          className="dark:[&_*]:!text-inherit dark:[&_[data-highlight]]:!text-gray-600 dark:[&_a]:!text-[var(--tw-prose-links)]"
           htmlContent={htmlContent}
           highlights={highlights}
           readOnly={readOnly}

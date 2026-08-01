@@ -1,13 +1,21 @@
 import * as dns from "dns";
 import { TRPCError } from "@trpc/server";
-import { count, eq, or, sum } from "drizzle-orm";
+import { and, asc, count, eq, gt, gte, inArray, or, sum } from "drizzle-orm";
 import { z } from "zod";
 
-import { assets, bookmarkLinks, bookmarks, users } from "@karakeep/db/schema";
+import {
+  assets,
+  bookmarkAssets,
+  bookmarkLinks,
+  bookmarks,
+  subscriptions,
+  users,
+} from "@karakeep/db/schema";
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
   buildCrawlIdempotencyKey,
+  EmbeddingsQueue,
   FeedQueue,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
@@ -27,18 +35,31 @@ import {
   resetPasswordSchema,
   updateUserSchema,
   zAdminCreateUserSchema,
+  zAdminJobModifiedWithinSecondsSchema,
 } from "@karakeep/shared/types/admin";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
+import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { createAdminScopedProcedure, router } from "../index";
 import { Bookmark } from "../models/bookmarks";
 import { User } from "../models/users";
+import { syncStripeDataToDatabase } from "./subscriptions";
 
 const adminBookmarksProcedure = createAdminScopedProcedure("bookmarks");
 const adminJobsProcedure = createAdminScopedProcedure("jobs");
 const adminSystemProcedure = createAdminScopedProcedure("system");
 const adminUsersProcedure = createAdminScopedProcedure("users");
+
+function modifiedWithin(modifiedWithinSeconds?: number) {
+  return modifiedWithinSeconds === undefined
+    ? undefined
+    : gte(
+        bookmarks.modifiedAt,
+        new Date(Date.now() - modifiedWithinSeconds * 1000),
+      );
+}
 
 export const adminAppRouter = router({
   stats: adminSystemProcedure
@@ -76,6 +97,11 @@ export const adminAppRouter = router({
         indexingStats: z.object({
           queued: z.number(),
         }),
+        embeddingsStats: z.object({
+          queued: z.number(),
+          pending: z.number(),
+          failed: z.number(),
+        }),
         adminMaintenanceStats: z.object({
           queued: z.number(),
         }),
@@ -103,6 +129,11 @@ export const adminAppRouter = router({
 
         // Indexing
         queuedIndexing,
+
+        // Embeddings
+        queuedEmbeddings,
+        [{ value: pendingEmbeddings }],
+        [{ value: failedEmbeddings }],
 
         // Inference
         queuedInferences,
@@ -138,6 +169,17 @@ export const adminAppRouter = router({
 
         // Indexing
         SearchIndexingQueue.stats(),
+
+        // Embeddings
+        EmbeddingsQueue.stats(),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarks)
+          .where(eq(bookmarks.embeddingStatus, "pending")),
+        ctx.db
+          .select({ value: count() })
+          .from(bookmarks)
+          .where(eq(bookmarks.embeddingStatus, "failure")),
 
         // Inference
         OpenAIQueue.stats(),
@@ -194,6 +236,11 @@ export const adminAppRouter = router({
         indexingStats: {
           queued: queuedIndexing.pending + queuedIndexing.pending_retry,
         },
+        embeddingsStats: {
+          queued: queuedEmbeddings.pending + queuedEmbeddings.pending_retry,
+          pending: pendingEmbeddings,
+          failed: failedEmbeddings,
+        },
         adminMaintenanceStats: {
           queued:
             queuedAdminMaintenance.pending +
@@ -220,17 +267,22 @@ export const adminAppRouter = router({
       z.object({
         crawlStatus: z.enum(["success", "failure", "pending", "all"]),
         runInference: z.boolean(),
+        modifiedWithinSeconds: zAdminJobModifiedWithinSecondsSchema.optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const bookmarkIds = await ctx.db.query.bookmarkLinks.findMany({
-        columns: {
-          id: true,
-        },
-        ...(input.crawlStatus === "all"
-          ? {}
-          : { where: eq(bookmarkLinks.crawlStatus, input.crawlStatus) }),
-      });
+      const bookmarkIds = await ctx.db
+        .select({ id: bookmarkLinks.id })
+        .from(bookmarkLinks)
+        .innerJoin(bookmarks, eq(bookmarkLinks.id, bookmarks.id))
+        .where(
+          and(
+            input.crawlStatus === "all"
+              ? undefined
+              : eq(bookmarkLinks.crawlStatus, input.crawlStatus),
+            modifiedWithin(input.modifiedWithinSeconds),
+          ),
+        );
 
       await Promise.all(
         bookmarkIds.map((b) => {
@@ -245,67 +297,160 @@ export const adminAppRouter = router({
         }),
       );
     }),
-  reindexAllBookmarks: adminBookmarksProcedure.mutation(async ({ ctx }) => {
-    const searchIdx = await getSearchClient();
-    await searchIdx?.clearIndex();
-    const bookmarkIds = await ctx.db.query.bookmarks.findMany({
-      columns: {
-        id: true,
-      },
-    });
+  reindexAllBookmarks: adminBookmarksProcedure
+    .input(
+      z
+        .object({
+          modifiedWithinSeconds:
+            zAdminJobModifiedWithinSecondsSchema.optional(),
+        })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input?.modifiedWithinSeconds === undefined) {
+        const searchIdx = await getSearchClient();
+        await searchIdx?.clearIndex();
+      }
+      const bookmarkIds = await ctx.db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(modifiedWithin(input?.modifiedWithinSeconds));
 
-    await Promise.all(
-      bookmarkIds.map((b) =>
-        triggerSearchReindex(b.id, {
-          priority: QueuePriority.Low,
-        }),
-      ),
-    );
-  }),
-  reprocessAssetsFixMode: adminBookmarksProcedure.mutation(async ({ ctx }) => {
-    const bookmarkIds = await ctx.db.query.bookmarkAssets.findMany({
-      columns: {
-        id: true,
-      },
-    });
-
-    await Promise.all(
-      bookmarkIds.map((b) =>
-        AssetPreprocessingQueue.enqueue(
-          {
-            bookmarkId: b.id,
-            fixMode: true,
-          },
-          {
+      await Promise.all(
+        bookmarkIds.map((b) =>
+          triggerSearchReindex(b.id, {
             priority: QueuePriority.Low,
-          },
+          }),
         ),
-      ),
-    );
-  }),
+      );
+    }),
+  regenerateAllBookmarkEmbeddings: adminBookmarksProcedure
+    .input(
+      z
+        .object({
+          status: z.enum(["failure", "pending", "all"]).default("all"),
+          modifiedWithinSeconds:
+            zAdminJobModifiedWithinSecondsSchema.optional(),
+        })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const status = input?.status ?? "all";
+      const modifiedAtFilter = modifiedWithin(input?.modifiedWithinSeconds);
+
+      if (status === "all" && input?.modifiedWithinSeconds === undefined) {
+        const vectorStore = await getVectorStoreClient();
+        await vectorStore?.clearIndex();
+      }
+
+      // Stream through the matching bookmarks in keyset-paginated batches so we
+      // never load every id into memory at once. For "all"/"failure" we flip the
+      // page to "pending" before enqueueing (avoids overwriting a worker-set
+      // status), which also consumes the "failure" filter as we advance.
+      const PAGE_SIZE = 1000;
+      let cursor: string | undefined = undefined;
+      for (;;) {
+        const page = await ctx.db
+          .select({ id: bookmarks.id })
+          .from(bookmarks)
+          .where(
+            and(
+              status === "all"
+                ? undefined
+                : eq(bookmarks.embeddingStatus, status),
+              modifiedAtFilter,
+              cursor ? gt(bookmarks.id, cursor) : undefined,
+            ),
+          )
+          .orderBy(asc(bookmarks.id))
+          .limit(PAGE_SIZE);
+        if (page.length === 0) {
+          break;
+        }
+
+        const ids = page.map((b) => b.id);
+        if (status !== "pending") {
+          await ctx.db
+            .update(bookmarks)
+            .set({ embeddingStatus: "pending" })
+            .where(inArray(bookmarks.id, ids));
+        }
+
+        await Promise.all(
+          ids.map((id) =>
+            EmbeddingsQueue.enqueue(
+              {
+                bookmarkId: id,
+                type: "embed",
+                force: true,
+                runTaggingOnComplete: false,
+              },
+              {
+                priority: QueuePriority.Low,
+                groupId: "admin",
+              },
+            ),
+          ),
+        );
+
+        cursor = ids[ids.length - 1];
+        if (page.length < PAGE_SIZE) {
+          break;
+        }
+      }
+    }),
+  reprocessAssetsFixMode: adminBookmarksProcedure
+    .input(
+      z
+        .object({
+          modifiedWithinSeconds:
+            zAdminJobModifiedWithinSecondsSchema.optional(),
+        })
+        .optional(),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const bookmarkIds = await ctx.db
+        .select({ id: bookmarkAssets.id })
+        .from(bookmarkAssets)
+        .innerJoin(bookmarks, eq(bookmarkAssets.id, bookmarks.id))
+        .where(modifiedWithin(input?.modifiedWithinSeconds));
+
+      await Promise.all(
+        bookmarkIds.map((b) =>
+          AssetPreprocessingQueue.enqueue(
+            {
+              bookmarkId: b.id,
+              fixMode: true,
+            },
+            {
+              priority: QueuePriority.Low,
+            },
+          ),
+        ),
+      );
+    }),
   reRunInferenceOnAllBookmarks: adminBookmarksProcedure
     .input(
       z.object({
         type: z.enum(["tag", "summarize"]),
         status: z.enum(["success", "failure", "pending", "all"]),
+        modifiedWithinSeconds: zAdminJobModifiedWithinSecondsSchema.optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      const bookmarkIds = await ctx.db.query.bookmarks.findMany({
-        columns: {
-          id: true,
-        },
-        ...{
-          tag:
-            input.status === "all"
-              ? {}
-              : { where: eq(bookmarks.taggingStatus, input.status) },
-          summarize:
-            input.status === "all"
-              ? {}
-              : { where: eq(bookmarks.summarizationStatus, input.status) },
-        }[input.type],
-      });
+      const statusFilter =
+        input.status === "all"
+          ? undefined
+          : eq(
+              input.type === "tag"
+                ? bookmarks.taggingStatus
+                : bookmarks.summarizationStatus,
+              input.status,
+            );
+      const bookmarkIds = await ctx.db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(and(statusFilter, modifiedWithin(input.modifiedWithinSeconds)));
 
       await Promise.all(
         bookmarkIds.map((b) =>
@@ -480,6 +625,12 @@ export const adminAppRouter = router({
           pluginName: z.string().optional(),
           error: z.string().optional(),
         }),
+        vectorStore: z.object({
+          configured: z.boolean(),
+          connected: z.boolean(),
+          pluginName: z.string().optional(),
+          error: z.string().optional(),
+        }),
       }),
     )
     .query(async () => {
@@ -502,21 +653,52 @@ export const adminAppRouter = router({
         error?: string;
       } = { configured: true, connected: false };
 
-      const searchClient = await getSearchClient();
-      searchEngineStatus.configured = searchClient !== null;
+      const vectorStoreStatus: {
+        configured: boolean;
+        connected: boolean;
+        pluginName?: string;
+        error?: string;
+      } = { configured: false, connected: false };
 
-      if (searchClient) {
-        const pluginName = PluginManager.getPluginName(PluginType.Search);
-        if (pluginName) {
-          searchEngineStatus.pluginName = pluginName;
-        }
-        try {
+      // Resolving a client can itself throw (the provider connects lazily on
+      // first use), so it has to be inside the try as well -- otherwise one
+      // unreachable backend takes down this whole endpoint instead of just
+      // reporting itself as disconnected.
+      const searchPluginName = PluginManager.getPluginName(PluginType.Search);
+      if (searchPluginName) {
+        searchEngineStatus.pluginName = searchPluginName;
+      }
+      try {
+        const searchClient = await getSearchClient();
+        searchEngineStatus.configured = searchClient !== null;
+        if (searchClient) {
           await searchClient.search({ query: "", limit: 1 });
           searchEngineStatus.connected = true;
-        } catch (error) {
-          searchEngineStatus.error =
-            error instanceof Error ? error.message : "Unknown error";
         }
+      } catch (error) {
+        // A provider is registered (that's the only way getClient can throw),
+        // so it is configured -- it just can't be reached right now.
+        searchEngineStatus.configured = true;
+        searchEngineStatus.error =
+          error instanceof Error ? error.message : "Unknown error";
+      }
+
+      const vectorStorePluginName = PluginManager.getPluginName(
+        PluginType.VectorStore,
+      );
+      if (vectorStorePluginName) {
+        vectorStoreStatus.pluginName = vectorStorePluginName;
+      }
+      try {
+        const vectorStoreClient = await getVectorStoreClient();
+        vectorStoreStatus.configured = vectorStoreClient !== null;
+        if (vectorStoreClient) {
+          vectorStoreStatus.connected = await vectorStoreClient.getHealth();
+        }
+      } catch (error) {
+        vectorStoreStatus.configured = true;
+        vectorStoreStatus.error =
+          error instanceof Error ? error.message : "Unknown error";
       }
 
       browserStatus.configured =
@@ -534,7 +716,7 @@ export const adminAppRouter = router({
           if (serverConfig.crawler.browserWebUrl) {
             const webUrl = new URL(serverConfig.crawler.browserWebUrl);
             const { address } = await dns.promises.lookup(webUrl.hostname);
-            webUrl.hostname = address;
+            setUrlHostnameFromResolvedAddress(webUrl, address);
             webUrl.pathname = "/json/version";
             const response = await fetch(`${webUrl.toString()}`, {
               signal: AbortSignal.timeout(5000),
@@ -572,6 +754,7 @@ export const adminAppRouter = router({
         searchEngine: searchEngineStatus,
         browser: browserStatus,
         queue: queueStatus,
+        vectorStore: vectorStoreStatus,
       };
     }),
   getBookmarkDebugInfo: adminBookmarksProcedure
@@ -604,6 +787,7 @@ export const adminAppRouter = router({
         summarizationStatus: z
           .enum(["pending", "failure", "success"])
           .nullable(),
+        embeddingStatus: z.enum(["pending", "failure", "success"]).nullable(),
         userId: z.string(),
         linkInfo: z
           .object({
@@ -702,6 +886,39 @@ export const adminAppRouter = router({
         groupId: "admin",
       });
     }),
+  adminRegenerateBookmarkEmbedding: adminBookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Verify bookmark exists
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+      });
+
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      await ctx.db
+        .update(bookmarks)
+        .set({ embeddingStatus: "pending" })
+        .where(eq(bookmarks.id, input.bookmarkId));
+
+      await EmbeddingsQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+          type: "embed",
+          force: true,
+          runTaggingOnComplete: false,
+        },
+        {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+        },
+      );
+    }),
   adminRetagBookmark: adminBookmarksProcedure
     .input(z.object({ bookmarkId: z.string() }))
     .mutation(async ({ input, ctx }) => {
@@ -760,5 +977,24 @@ export const adminAppRouter = router({
           groupId: "admin",
         },
       );
+    }),
+  forceStripeSync: adminSystemProcedure
+    .input(z.object({ userId: z.string() }))
+    .output(z.object({ success: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      const subscription = await ctx.db.query.subscriptions.findFirst({
+        where: eq(subscriptions.userId, input.userId),
+      });
+
+      if (!subscription?.stripeCustomerId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "No Stripe customer found for the given user",
+        });
+      }
+
+      await syncStripeDataToDatabase(subscription.stripeCustomerId, ctx.db);
+
+      return { success: true };
     }),
 });

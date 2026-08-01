@@ -201,6 +201,10 @@
           "users": {
             "label": "Quản trị viên: người dùng",
             "description": "Truy cập quản lý người dùng hành chính."
+          },
+          "subscriptions": {
+            "label": "Quản trị: các gói đăng ký",
+            "description": "Quản lý các cấp độ đăng ký của người dùng."
           }
         }
       }
@@ -473,7 +477,8 @@
         "processing": "Đang xử lý",
         "staging": "Đang dàn dựng",
         "running": "Đang chạy",
-        "paused": "Đang tạm dừng"
+        "paused": "Đang tạm dừng",
+        "archived": "Đã lưu trữ"
       },
       "badges": {
         "pending": "{{count}} đang chờ xử lý",
@@ -510,7 +515,8 @@
         "no_results": "Không tìm thấy kết quả nào cho bộ lọc này.",
         "view_bookmark": "Xem dấu trang",
         "load_more": "Tải thêm",
-        "no_title": "Không có tiêu đề"
+        "no_title": "Không có tiêu đề",
+        "archived_results": "Kết quả dấu trang riêng lẻ không còn được giữ lại cho các phiên nhập đã lưu trữ."
       },
       "finalize_dialog_title": "Hoàn tất Phiên Nhập",
       "finalize_dialog_description": "Thêm \"{{name}}\" vào hàng đợi để xử lý trong nền? Các dấu trang đã chuẩn bị sẽ bắt đầu được nhập.",
@@ -623,6 +629,10 @@
         "admin_maintenance": {
           "title": "Công việc bảo trì quản trị",
           "description": "Dọn dẹp hành chính và bảo trì tài sản"
+        },
+        "embeddings": {
+          "title": "Công việc nhúng",
+          "description": "Tạo bản nhúng vector cho dấu trang"
         }
       },
       "monitor_and_manage": "Theo dõi và quản lý hàng đợi công việc nền và các tác vụ xử lý hệ thống",
@@ -657,7 +667,10 @@
         "migrate_large_link_html_content": "Chuyển Nội Dung HTML Lớn Nội Tuyến sang Tài Sản",
         "recrawl_pending_links_only": "Chỉ thu thập lại các liên kết đang chờ xử lý",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Chỉ tạo lại thẻ AI cho các dấu trang đang chờ xử lý",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Chỉ tạo lại tóm tắt AI cho các dấu trang đang chờ xử lý"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Chỉ tạo lại tóm tắt AI cho các dấu trang đang chờ xử lý",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Chỉ tạo lại bản nhúng cho các dấu trang đang chờ xử lý",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Chỉ tạo lại bản nhúng cho các dấu trang bị lỗi",
+        "regenerate_embeddings_for_all_bookmarks": "Tạo lại bản nhúng cho tất cả dấu trang"
       }
     },
     "admin_settings": "Cài đặt quản trị viên",
@@ -696,7 +709,8 @@
         "not_configured": "Chưa Cấu hình",
         "connected": "Đã kết nối",
         "disconnected": "Đã ngắt kết nối"
-      }
+      },
+      "vector_store": "Kho lưu trữ Vector"
     },
     "admin_tools": {
       "admin_tools": "Công cụ quản trị",
@@ -732,7 +746,10 @@
       "retag_queued": "Đã xếp hàng chờ việc gắn thẻ lại",
       "resummarize_queued": "Đã xếp hàng chờ việc tóm tắt lại",
       "view": "Xem",
-      "fetch_error": "Lỗi khi tìm nạp dấu trang"
+      "fetch_error": "Lỗi khi tìm nạp dấu trang",
+      "embedding_status": "Trạng thái nhúng",
+      "regenerate_embedding": "Tạo lại bản nhúng",
+      "regenerate_embedding_queued": "Công việc tạo lại bản nhúng đã được đưa vào hàng đợi"
     }
   },
   "common": {
@@ -928,7 +945,18 @@
     "lists": "Danh sách",
     "feeds": "Nguồn cấp dữ liệu",
     "is_from_source": "Nguồn là",
-    "is_not_from_source": "Nguồn không phải là"
+    "is_not_from_source": "Nguồn không phải là",
+    "mode_label": "Chế độ tìm kiếm",
+    "mode_label_description": "Chọn cách Karakeep tìm kiếm các dấu trang phù hợp.",
+    "mode_keyword": "Từ khóa",
+    "mode_keyword_description": "Khớp chính xác các từ trong tiêu đề, nội dung, URL và ghi chú. Gần như tức thì.",
+    "mode_hybrid": "Hỗn hợp",
+    "mode_hybrid_description": "Kết hợp các kết quả khớp chính xác với các ý tưởng liên quan để có sự cân bằng tốt nhất. Chậm hơn tìm kiếm theo từ khóa.",
+    "mode_semantic": "Ngữ nghĩa",
+    "mode_semantic_description": "Tìm các dấu trang có nội dung tương tự, ngay cả khi không có từ ngữ chung. Chậm hơn tìm kiếm theo từ khóa.",
+    "keyword_placeholder": "Tìm kiếm tiêu đề, văn bản, URL và thẻ…",
+    "hybrid_placeholder": "Tìm kiếm theo từ ngữ hoặc ý nghĩa…",
+    "semantic_placeholder": "Mô tả những gì bạn nhớ…"
   },
   "tags": {
     "all_tags": "Tất cả nhãn",
@@ -1036,7 +1064,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Xóa dấu trang?",
-      "delete_confirmation_description": "Bạn có chắc chắn muốn xóa dấu trang này không?"
+      "delete_confirmation_description": "Bạn có chắc chắn muốn xóa dấu trang này không?",
+      "bulk_delete_confirmation_description": "Bạn có chắc chắn muốn xóa {{count}} dấu trang không?"
     }
   },
   "toasts": {
@@ -1166,5 +1195,28 @@
     "button": "Tổng Kết Năm 2025",
     "loading": "Đang tải Tổng Kết của bạn...",
     "failed_to_load": "Không tải được thống kê Tổng Kết của bạn"
+  },
+  "keyboard_shortcuts": {
+    "title": "Phím tắt",
+    "sections": {
+      "navigation": "Điều hướng",
+      "actions": "Hành động",
+      "selection": "Lựa chọn",
+      "other": "Khác"
+    },
+    "move_left": "Di chuyển sang trái",
+    "move_down": "Di chuyển xuống",
+    "move_up": "Di chuyển lên",
+    "move_right": "Di chuyển sang phải",
+    "open_bookmark": "Mở dấu trang",
+    "clear_focus": "Xóa tiêu điểm / thoát chỉnh sửa hàng loạt",
+    "toggle_favorite": "Chuyển đổi yêu thích",
+    "toggle_archive": "Lưu trữ / Hủy lưu trữ",
+    "delete_bookmark": "Xóa dấu trang",
+    "toggle_selection": "Chuyển đổi lựa chọn",
+    "select_all": "Chọn tất cả",
+    "deselect_all": "Bỏ chọn tất cả",
+    "show_help": "Hiển thị phím tắt",
+    "focus_search_alt": "Tiêu điểm tìm kiếm"
   }
 }

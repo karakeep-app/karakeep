@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { addToList } from "@/commands/lists";
 import { getGlobalOptions } from "@/lib/globals";
+import { getResponseError } from "@/lib/http";
 import {
   printError,
   printObject,
@@ -15,8 +16,10 @@ import chalk from "chalk";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import {
   BookmarkTypes,
+  MAX_READABLE_CONTENT_MAX_CHARS,
   MAX_NUM_BOOKMARKS_PER_PAGE,
 } from "@karakeep/shared/types/bookmarks";
+import type { ZBookmarkReadableContentFormat } from "@karakeep/shared/types/bookmarks";
 
 export const bookmarkCmd = new Command()
   .name("bookmarks")
@@ -80,13 +83,19 @@ function printBookmarkDetail(b: ZBookmark) {
     console.log(b.content.text);
   }
 
+  if (b.content.type === BookmarkTypes.ASSET) {
+    console.log(chalk.dim(`  Asset Id:    ${b.content.assetId}`));
+  }
+
   if (b.assets.length > 0) {
     const serverAddr = getGlobalOptions().serverAddr;
     console.log(`  Attachments:`);
     for (const asset of b.assets) {
       const name = asset.fileName ?? asset.assetType;
       const assetUrl = `${serverAddr}/api/assets/${asset.id}`;
-      console.log(`    - ${name} ${chalk.cyan(assetUrl)}`);
+      console.log(`    - ${name}`);
+      console.log(chalk.dim(`      Id:  ${asset.id}`));
+      console.log(`      URL: ${chalk.cyan(assetUrl)}`);
     }
   }
   console.log();
@@ -310,6 +319,107 @@ bookmarkCmd
       .catch(printError(`Failed to get the bookmark with id "${id}"`));
   });
 
+interface ReadableContentResponse {
+  bookmarkId: string;
+  bookmarkType: "link" | "text" | "asset";
+  format: ZBookmarkReadableContentFormat;
+  content: string;
+  contentVersion: string;
+  range: {
+    start: number;
+    end: number;
+    total: number;
+  };
+  nextCursor: string | null;
+  truncated: boolean;
+}
+
+function parseReadableContentFormat(
+  value: string,
+): ZBookmarkReadableContentFormat {
+  if (value !== "markdown" && value !== "text") {
+    throw new Error("format must be one of: markdown, text");
+  }
+  return value;
+}
+
+function parseMaxChars(value: string): number {
+  const maxChars = Number(value);
+  if (
+    !Number.isInteger(maxChars) ||
+    maxChars < 1 ||
+    maxChars > MAX_READABLE_CONTENT_MAX_CHARS
+  ) {
+    throw new Error(
+      `max-chars must be an integer between 1 and ${MAX_READABLE_CONTENT_MAX_CHARS}`,
+    );
+  }
+  return maxChars;
+}
+
+bookmarkCmd
+  .command("content")
+  .description("fetch a bounded chunk of readable bookmark content")
+  .argument("<id>", "the id of the bookmark")
+  .option(
+    "--format <format>",
+    "content format (markdown or text)",
+    parseReadableContentFormat,
+  )
+  .option(
+    "--max-chars <count>",
+    `maximum Unicode characters to fetch (max ${MAX_READABLE_CONTENT_MAX_CHARS})`,
+    parseMaxChars,
+  )
+  .option("--cursor <cursor>", "continuation cursor from a previous response")
+  .action(async (id, opts) => {
+    const globals = getGlobalOptions();
+    const url = new URL(
+      `${globals.serverAddr}/api/v1/bookmarks/${encodeURIComponent(id)}/content`,
+    );
+    if (opts.format) {
+      url.searchParams.set("format", opts.format);
+    }
+    if (opts.maxChars) {
+      url.searchParams.set("maxChars", opts.maxChars.toString());
+    }
+    if (opts.cursor) {
+      url.searchParams.set("cursor", opts.cursor);
+    }
+
+    try {
+      const response = await fetch(url, {
+        headers: {
+          authorization: `Bearer ${globals.apiKey}`,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(await getResponseError(response));
+      }
+
+      const result = (await response.json()) as ReadableContentResponse;
+      if (globals.json) {
+        printObject(result);
+      } else {
+        process.stdout.write(result.content);
+        if (result.content && !result.content.endsWith("\n")) {
+          process.stdout.write("\n");
+        }
+        if (result.nextCursor) {
+          console.error(`Next cursor: ${result.nextCursor}`);
+        }
+      }
+    } catch (error) {
+      printStatusMessage(
+        false,
+        `Failed to fetch readable content for bookmark "${id}". Reason: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      process.exitCode = 1;
+    }
+  });
+
 function printTagMessage(
   tags: { tagName: string }[],
   bookmarkId: string,
@@ -361,6 +471,10 @@ bookmarkCmd
   .option("--no-archive", "if set, the bookmark will be unarchived")
   .option("--favourite", "if set, the bookmark will be favourited")
   .option("--no-favourite", "if set, the bookmark will be unfavourited")
+  .option(
+    "--description <description>",
+    "if set, the bookmark's description will be updated",
+  )
   .argument("<id>", "the id of the bookmark to update")
   .action(async (id, opts) => {
     const api = getAPIClient();
@@ -371,6 +485,7 @@ bookmarkCmd
         favourited: opts.favourite,
         title: opts.title,
         note: opts.note,
+        description: opts.description,
       })
       .then(printObject)
       .catch(printError(`Failed to update bookmark with id "${id}"`));
@@ -501,6 +616,17 @@ bookmarkCmd
     "relevance",
   )
   .option(
+    "--search-mode <mode>",
+    "search mode (fts, semantic, or hybrid)",
+    (val) => {
+      if (val !== "fts" && val !== "semantic" && val !== "hybrid") {
+        throw new Error("search-mode must be one of: fts, semantic, hybrid");
+      }
+      return val;
+    },
+    "fts",
+  )
+  .option(
     "--include-content",
     "include full bookmark content in results",
     false,
@@ -514,6 +640,7 @@ bookmarkCmd
       text: query,
       limit: opts.limit,
       sortOrder: opts.sortOrder as "relevance" | "asc" | "desc",
+      searchMode: opts.searchMode as "fts" | "semantic" | "hybrid",
       includeContent: opts.includeContent,
       cursor: opts.cursor
         ? JSON.parse(Buffer.from(opts.cursor, "base64").toString(), (k, v) =>

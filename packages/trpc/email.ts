@@ -2,6 +2,7 @@ import { createTransport } from "nodemailer";
 
 import { getTracer, withSpan } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
+import { escapeHtml } from "@karakeep/shared/utils/htmlUtils";
 
 const tracer = getTracer("@karakeep/trpc");
 
@@ -68,7 +69,7 @@ export const sendVerificationEmail = withTracing(
       subject: "Verify your email address",
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Welcome to Karakeep, ${name}!</h2>
+        <h2>Welcome to Karakeep, ${escapeHtml(name)}!</h2>
         <p>Please verify your email address by clicking the link below:</p>
         <p>
           <a href="${verificationUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
@@ -114,7 +115,7 @@ export const sendInviteEmail = withTracing(
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>You've been invited to join Karakeep!</h2>
-        <p>${inviterName} has invited you to join Karakeep, the bookmark everything app.</p>
+        <p>${escapeHtml(inviterName)} has invited you to join Karakeep, the bookmark everything app.</p>
         <p>Click the link below to accept your invitation and create your account:</p>
         <p>
           <a href="${inviteUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
@@ -162,7 +163,7 @@ export const sendPasswordResetEmail = withTracing(
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Password Reset Request</h2>
-        <p>Hi ${name},</p>
+        <p>Hi ${escapeHtml(name)},</p>
         <p>You requested to reset your password for your Karakeep account. Click the link below to reset your password:</p>
         <p>
           <a href="${resetUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">
@@ -209,7 +210,7 @@ export const sendListInvitationEmail = withTracing(
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>You've been invited to collaborate on a list!</h2>
-        <p>${inviterName} has invited you to collaborate on the list <strong>"${listName}"</strong> in Karakeep.</p>
+        <p>${escapeHtml(inviterName)} has invited you to collaborate on the list <strong>"${escapeHtml(listName)}"</strong> in Karakeep.</p>
         <p>Click the link below to view and accept or decline the invitation:</p>
         <p>
           <a href="${inviteUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">

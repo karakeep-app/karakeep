@@ -20,10 +20,14 @@ services:
       CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: -1
       OPENAI_API_KEY: aimock-test-key
       OPENAI_BASE_URL: http://aimock:4010/v1
+      EMBEDDING_DIMENSIONS: 96
+      EMBEDDING_ENABLE_AUTO_INDEXING: "true"
       INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
   meilisearch:
     image: getmeili/meilisearch:v1.41.0
     restart: unless-stopped
+    ports:
+      - "${MEILI_PORT:-7700}:7700"
     environment:
       MEILI_NO_ANALYTICS: "true"
       MEILI_MASTER_KEY: dummy

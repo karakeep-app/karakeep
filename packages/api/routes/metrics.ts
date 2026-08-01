@@ -8,11 +8,20 @@ import { register } from "prom-client";
 
 import serverConfig from "@karakeep/shared/config";
 
-export const { printMetrics, registerMetrics } = prometheus({
-  registry: register,
-  prefix: "karakeep_",
-  collectDefaultMetrics: true,
-});
+type PrometheusHandlers = ReturnType<typeof prometheus>;
+
+const globalForPrometheus = globalThis as typeof globalThis & {
+  __karakeepApiPrometheus?: PrometheusHandlers;
+};
+
+const prometheusHandlers = (globalForPrometheus.__karakeepApiPrometheus ??=
+  prometheus({
+    registry: register,
+    prefix: "karakeep_",
+    collectDefaultMetrics: true,
+  }));
+
+export const { printMetrics, registerMetrics } = prometheusHandlers;
 
 const app = new Hono().get(
   "/",

@@ -19,7 +19,10 @@ import type {
   RunnerOptions,
 } from "@karakeep/shared/queueing";
 import serverConfig from "@karakeep/shared/config";
-import { QueueRetryAfterError } from "@karakeep/shared/queueing";
+import {
+  QueueRetryAfterError,
+  queueOptionsEqual,
+} from "@karakeep/shared/queueing";
 
 class LitequeQueueWrapper<T> implements Queue<T> {
   constructor(
@@ -75,8 +78,12 @@ class LitequeQueueClient implements QueueClient {
   }
 
   createQueue<T>(name: string, options: QueueOptions): Queue<T> {
-    if (this.queues.has(name)) {
-      throw new Error(`Queue ${name} already exists`);
+    const existing = this.queues.get(name);
+    if (existing) {
+      if (!queueOptionsEqual(existing.opts, options)) {
+        throw new Error(`Queue ${name} already exists with different options`);
+      }
+      return existing as LitequeQueueWrapper<T>;
     }
     const lq = new LQ<T>(name, this.db, {
       defaultJobArgs: { numRetries: options.defaultJobArgs.numRetries },

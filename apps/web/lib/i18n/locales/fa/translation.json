@@ -401,6 +401,10 @@
           "users": {
             "label": "مدیریت: کاربران",
             "description": "دسترسی به مدیریت کاربران اداری."
+          },
+          "subscriptions": {
+            "label": "مدیریت: اشتراک‌ها",
+            "description": "مدیریت سطوح اشتراک کاربران."
           }
         }
       }
@@ -519,7 +523,8 @@
         "processing": "در حال پردازش",
         "staging": "در حال آماده سازی",
         "running": "در حال اجرا",
-        "paused": "متوقف شده"
+        "paused": "متوقف شده",
+        "archived": "آرشیو شده"
       },
       "badges": {
         "pending": "{{count}} مورد در انتظار",
@@ -556,7 +561,8 @@
         "no_results": "هیچ نتیجه‌ای برای این فیلتر یافت نشد.",
         "view_bookmark": "مشاهدهٔ نشانک",
         "load_more": "بارگذاری بیشتر",
-        "no_title": "بدون عنوان"
+        "no_title": "بدون عنوان",
+        "archived_results": "نتایج تک‌تک نشانک‌ها دیگر برای جلسات واردکردن آرشیو شده نگهداری نمی‌شوند."
       },
       "finalize_dialog_title": "نهایی‌سازی نشست واردات",
       "finalize_dialog_description": "صف‌بندی «{{name}}» برای پردازش پس‌زمینه؟ وارد کردن نشانک‌های آماده‌سازی شده آغاز خواهد شد.",
@@ -633,7 +639,8 @@
         "not_configured": "پیکربندی نشده",
         "connected": "متصل شد",
         "disconnected": "قطع شده"
-      }
+      },
+      "vector_store": "ذخیره‌ساز برداری"
     },
     "background_jobs": {
       "jobs": {
@@ -672,6 +679,10 @@
         "admin_maintenance": {
           "title": "کارهای تعمیر و نگهداری ادمین",
           "description": "پاکسازی مدیریتی و نگهداری دارایی"
+        },
+        "embeddings": {
+          "title": "کارهای جاسازی",
+          "description": "تولیدِ جاسازی برداری برای نشانک"
         }
       },
       "background_jobs": "وظایف پس زمینه",
@@ -706,7 +717,10 @@
         "migrate_large_link_html_content": "انتقال محتوای بزرگ HTML درون‌خطی به دارایی‌ها",
         "recrawl_pending_links_only": "بازخزش فقط لینک‌های در انتظار",
         "regenerate_ai_tags_for_pending_bookmarks_only": "تولید مجدد برچسب‌های هوش مصنوعی فقط برای نشانک‌های در انتظار",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "تولید مجدد خلاصه‌های هوش مصنوعی فقط برای نشانک‌های در انتظار"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "تولید مجدد خلاصه‌های هوش مصنوعی فقط برای نشانک‌های در انتظار",
+        "regenerate_embeddings_for_pending_bookmarks_only": "بازتولید جاسازی‌ها فقط برای نشانک‌های در انتظار",
+        "regenerate_embeddings_for_failed_bookmarks_only": "بازتولید جاسازی‌ها فقط برای نشانک‌های ناموفق",
+        "regenerate_embeddings_for_all_bookmarks": "بازتولید جاسازی‌ها برای همه نشانک‌ها"
       },
       "available_actions": "اقدامات موجود"
     },
@@ -757,7 +771,10 @@
       "retag_queued": "وظیفه برچسب‌گذاری مجدد در صف قرار گرفته است",
       "resummarize_queued": "وظیفه خلاصه‌سازی مجدد در صف قرار گرفته است",
       "view": "مشاهده",
-      "fetch_error": "خطا در دریافت نشانک"
+      "fetch_error": "خطا در دریافت نشانک",
+      "embedding_status": "وضعیت جاسازی",
+      "regenerate_embedding": "بازتولید جاسازی",
+      "regenerate_embedding_queued": "فرآیند بازتولید جاسازی در صف قرار گرفت"
     }
   },
   "options": {
@@ -941,7 +958,18 @@
     "lists": "فهرست‌ها",
     "feeds": "فیدها",
     "is_from_source": "از منبع است",
-    "is_not_from_source": "از منبع نیست"
+    "is_not_from_source": "از منبع نیست",
+    "mode_label": "حالت جستجو",
+    "mode_label_description": "نحوه یافتن نشانک‌های منطبق توسط Karakeep را انتخاب کنید.",
+    "mode_keyword": "کلمه کلیدی",
+    "mode_keyword_description": "انطباق دقیق کلمات در عناوین، محتوا، نشانی‌ها و یادداشت‌ها. تقریباً فوری.",
+    "mode_hybrid": "ترکیبی (Hybrid)",
+    "mode_hybrid_description": "ترکیب انطباقات دقیق با ایده‌های مرتبط برای ایجاد بهترین تعادل. کندتر از جستجوی کلمه کلیدی.",
+    "mode_semantic": "معنایی (Semantic)",
+    "mode_semantic_description": "یافتن نشانک‌های مفهومی مشابه، حتی بدون کلمات مشترک. کندتر از جستجوی کلمه کلیدی.",
+    "keyword_placeholder": "جستجو در عناوین، متون، نشانی‌ها و برچسب‌ها…",
+    "hybrid_placeholder": "جستجو بر اساس کلمات یا معنا…",
+    "semantic_placeholder": "آنچه را که به یاد دارید توصیف کنید…"
   },
   "preview": {
     "view_original": "مشاهدهٔ اصلی",
@@ -1021,7 +1049,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "حذف نشانک؟",
-      "delete_confirmation_description": "آیا مطمئن هستید که می‌خواهید این نشانک را حذف کنید؟"
+      "delete_confirmation_description": "آیا مطمئن هستید که می‌خواهید این نشانک را حذف کنید؟",
+      "bulk_delete_confirmation_description": "آیا مطمئن هستید که می‌خواهید {{count}} نشانک را پاک کنید؟"
     }
   },
   "toasts": {
@@ -1142,5 +1171,28 @@
     "download": "بارگیری",
     "close": "بستن",
     "generating": "درحال تولید..."
+  },
+  "keyboard_shortcuts": {
+    "title": "میان‌برهای صفحه‌کلید",
+    "sections": {
+      "navigation": "ناوبری",
+      "actions": "عملیات‌ها",
+      "selection": "انتخاب",
+      "other": "سایر"
+    },
+    "move_left": "انتقال به چپ",
+    "move_down": "انتقال به پایین",
+    "move_up": "انتقال به بالا",
+    "move_right": "انتقال به راست",
+    "open_bookmark": "باز کردن نشانک",
+    "clear_focus": "پاک کردن تمرکز / خروج از ویرایش دسته‌جمعی",
+    "toggle_favorite": "تغییر وضعیت علاقه‌مندی",
+    "toggle_archive": "بایگانی / بازگردانی از بایگانی",
+    "delete_bookmark": "حذف نشانک",
+    "toggle_selection": "تغییر وضعیت انتخاب",
+    "select_all": "انتخاب همه",
+    "deselect_all": "لغو انتخاب همه",
+    "show_help": "نمایش میان‌برهای صفحه‌کلید",
+    "focus_search_alt": "تمرکز روی جستجو"
   }
 }

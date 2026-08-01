@@ -329,6 +329,10 @@
           "users": {
             "label": "管理员：用户",
             "description": "访问管理用户管理。"
+          },
+          "subscriptions": {
+            "label": "管理：订阅",
+            "description": "管理用户订阅层级。"
           }
         }
       }
@@ -519,7 +523,8 @@
         "processing": "正在处理",
         "staging": "正在暂存",
         "running": "正在运行",
-        "paused": "已暂停"
+        "paused": "已暂停",
+        "archived": "已归档"
       },
       "badges": {
         "pending": "{{count}} 待定",
@@ -556,7 +561,8 @@
         "no_results": "没有找到符合此过滤器的结果。",
         "view_bookmark": "查看书签",
         "load_more": "加载更多",
-        "no_title": "没有标题"
+        "no_title": "没有标题",
+        "archived_results": "不再为已归档的导入会话保留单个书签结果。"
       },
       "finalize_dialog_title": "完成导入会话",
       "finalize_dialog_description": "将“{{name}}”加入后台处理队列吗？暂存的书签将开始导入。",
@@ -670,6 +676,10 @@
         "admin_maintenance": {
           "title": "管理员维护任务",
           "description": "管理清理和资产维护"
+        },
+        "embeddings": {
+          "title": "嵌入任务",
+          "description": "书签向量嵌入生成"
         }
       },
       "monitor_and_manage": "监控和管理后台任务队列和系统处理任务",
@@ -704,7 +714,10 @@
         "migrate_large_link_html_content": "将大型内联 HTML 内容移动到 Assets",
         "recrawl_pending_links_only": "仅重新抓取待处理的链接",
         "regenerate_ai_tags_for_pending_bookmarks_only": "仅为待处理的书签重新生成 AI 标签",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "仅为待处理的书签重新生成 AI 摘要"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "仅为待处理的书签重新生成 AI 摘要",
+        "regenerate_embeddings_for_pending_bookmarks_only": "仅为待处理书签重新生成嵌入",
+        "regenerate_embeddings_for_failed_bookmarks_only": "仅为失败的书签重新生成嵌入",
+        "regenerate_embeddings_for_all_bookmarks": "为所有书签重新生成嵌入"
       }
     },
     "actions": {
@@ -742,7 +755,8 @@
         "not_configured": "未配置",
         "connected": "已连接",
         "disconnected": "已断开连接"
-      }
+      },
+      "vector_store": "向量存储"
     },
     "admin_tools": {
       "admin_tools": "管理工具",
@@ -778,7 +792,10 @@
       "retag_queued": "重新标记任务已进入队列",
       "resummarize_queued": "重新总结任务已在队列中",
       "view": "查看",
-      "fetch_error": "获取书签时出错"
+      "fetch_error": "获取书签时出错",
+      "embedding_status": "嵌入状态",
+      "regenerate_embedding": "重新生成嵌入",
+      "regenerate_embedding_queued": "嵌入重新生成任务已进入队列"
     }
   },
   "options": {
@@ -1069,12 +1086,24 @@
     "lists": "列表",
     "feeds": "订阅",
     "is_from_source": "来源是",
-    "is_not_from_source": "来源不是"
+    "is_not_from_source": "来源不是",
+    "mode_label": "搜索模式",
+    "mode_label_description": "选择 Karakeep 查找匹配书签的方式。",
+    "mode_keyword": "关键词",
+    "mode_keyword_description": "匹配标题、内容、URL 和备注中的精确词汇。几乎瞬间完成。",
+    "mode_hybrid": "混合",
+    "mode_hybrid_description": "将精确匹配与相关概念相结合，以获得最佳平衡。比关键词搜索慢。",
+    "mode_semantic": "语义",
+    "mode_semantic_description": "即使没有共同的词汇，也能找到概念相似的书签。比关键词搜索慢。",
+    "keyword_placeholder": "搜索标题、文本、URL 和标签…",
+    "hybrid_placeholder": "按词汇或含义搜索…",
+    "semantic_placeholder": "描述你记忆中的内容…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "删除书签？",
-      "delete_confirmation_description": "是否确定要删除此标签？"
+      "delete_confirmation_description": "是否确定要删除此标签？",
+      "bulk_delete_confirmation_description": "您确定要删除 {{count}} 个书签吗？"
     }
   },
   "highlights": {
@@ -1166,5 +1195,28 @@
     "download": "下载",
     "close": "关闭",
     "generating": "正在生成..."
+  },
+  "keyboard_shortcuts": {
+    "title": "键盘快捷键",
+    "sections": {
+      "navigation": "导航",
+      "actions": "操作",
+      "selection": "选择",
+      "other": "其他"
+    },
+    "move_left": "向左移动",
+    "move_down": "向下移动",
+    "move_up": "向上移动",
+    "move_right": "向右移动",
+    "open_bookmark": "打开书签",
+    "clear_focus": "取消焦点 / 退出批量编辑",
+    "toggle_favorite": "切换收藏状态",
+    "toggle_archive": "归档 / 取消归档",
+    "delete_bookmark": "删除书签",
+    "toggle_selection": "切换选择状态",
+    "select_all": "全选",
+    "deselect_all": "取消全选",
+    "show_help": "显示键盘快捷键",
+    "focus_search_alt": "聚焦搜索"
   }
 }

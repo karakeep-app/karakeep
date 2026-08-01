@@ -341,6 +341,10 @@
           "users": {
             "label": "Admin: usuários",
             "description": "Acesse o gerenciamento administrativo de usuários."
+          },
+          "subscriptions": {
+            "label": "Admin: assinaturas",
+            "description": "Gerenciar níveis de assinatura de usuários."
           }
         }
       }
@@ -513,7 +517,8 @@
         "processing": "Processando",
         "staging": "Em Preparação",
         "running": "Executando",
-        "paused": "Pausado"
+        "paused": "Pausado",
+        "archived": "Arquivado"
       },
       "badges": {
         "pending": "{{count}} pendentes",
@@ -550,7 +555,8 @@
         "no_results": "Nenhum resultado encontrado para este filtro.",
         "view_bookmark": "Ver Marcador",
         "load_more": "Carregar mais",
-        "no_title": "Sem título"
+        "no_title": "Sem título",
+        "archived_results": "Resultados de favoritos individuais não são mais retidos para sessões de importação arquivadas."
       },
       "finalize_dialog_title": "Finalizar sessão de importação",
       "finalize_dialog_description": "Colocar \"{{name}}\" na fila para processamento em segundo plano? Os favoritos preparados começarão a ser importados.",
@@ -673,6 +679,10 @@
         "admin_maintenance": {
           "title": "Tarefas de Manutenção do Administrador",
           "description": "Limpeza administrativa e manutenção de ativos"
+        },
+        "embeddings": {
+          "title": "Trabalhos de Incorporação",
+          "description": "Geração de incorporação vetorial para favoritos"
         }
       },
       "monitor_and_manage": "Monitore e gerencie filas de tarefas em segundo plano e tarefas de processamento do sistema",
@@ -707,7 +717,10 @@
         "migrate_large_link_html_content": "Mover Conteúdo HTML Grande Inline para Ativos",
         "recrawl_pending_links_only": "Rastrear novamente apenas links pendentes",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerar tags de IA apenas para favoritos pendentes",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerar resumos de IA apenas para favoritos pendentes"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerar resumos de IA apenas para favoritos pendentes",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Regenerar incorporações apenas para favoritos pendentes",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Regenerar incorporações apenas para favoritos que falharam",
+        "regenerate_embeddings_for_all_bookmarks": "Regenerar incorporações para todos os favoritos"
       }
     },
     "actions": {
@@ -745,7 +758,8 @@
         "not_configured": "Não configurado",
         "connected": "Conectado",
         "disconnected": "Desconectado"
-      }
+      },
+      "vector_store": "Armazenamento de Vetores"
     },
     "admin_tools": {
       "admin_tools": "Ferramentas de administração",
@@ -781,7 +795,10 @@
       "retag_queued": "O trabalho de reetiquetagem foi enfileirado",
       "resummarize_queued": "O trabalho de resumir novamente foi enfileirado",
       "view": "Visualizar",
-      "fetch_error": "Erro ao buscar marcador"
+      "fetch_error": "Erro ao buscar marcador",
+      "embedding_status": "Status da Incorporação",
+      "regenerate_embedding": "Regenerar Incorporação",
+      "regenerate_embedding_queued": "O trabalho de regeneração de incorporação foi enfileirado"
     }
   },
   "options": {
@@ -965,7 +982,18 @@
     "lists": "Listas",
     "feeds": "Feeds",
     "is_from_source": "Fonte é",
-    "is_not_from_source": "A fonte não é"
+    "is_not_from_source": "A fonte não é",
+    "mode_label": "Modo de busca",
+    "mode_label_description": "Escolha como o Karakeep encontra favoritos correspondentes.",
+    "mode_keyword": "Palavra-chave",
+    "mode_keyword_description": "Corresponder palavras exatas em títulos, conteúdo, URLs e notas. Quase instantâneo.",
+    "mode_hybrid": "Híbrido",
+    "mode_hybrid_description": "Misture correspondências exatas com ideias relacionadas para o melhor equilíbrio. Mais lento que a busca por palavra-chave.",
+    "mode_semantic": "Semântico",
+    "mode_semantic_description": "Encontre favoritos conceitualmente semelhantes, mesmo sem palavras compartilhadas. Mais lento que a busca por palavra-chave.",
+    "keyword_placeholder": "Buscar títulos, texto, URLs e etiquetas…",
+    "hybrid_placeholder": "Buscar por palavras ou significado…",
+    "semantic_placeholder": "Descreva o que você lembra…"
   },
   "preview": {
     "view_original": "Ver Original",
@@ -1045,7 +1073,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Excluir favorito?",
-      "delete_confirmation_description": "Tem certeza de que deseja excluir este favorito?"
+      "delete_confirmation_description": "Tem certeza de que deseja excluir este favorito?",
+      "bulk_delete_confirmation_description": "Tem certeza de que deseja excluir {{count}} favoritos?"
     }
   },
   "toasts": {
@@ -1166,5 +1195,28 @@
     "download": "Baixar",
     "close": "Fechar",
     "generating": "Gerando..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Atalhos de teclado",
+    "sections": {
+      "navigation": "Navegação",
+      "actions": "Ações",
+      "selection": "Seleção",
+      "other": "Outros"
+    },
+    "move_left": "Mover para a esquerda",
+    "move_down": "Mover para baixo",
+    "move_up": "Mover para cima",
+    "move_right": "Mover para a direita",
+    "open_bookmark": "Abrir favorito",
+    "clear_focus": "Limpar foco / Sair da edição em lote",
+    "toggle_favorite": "Alternar favorito",
+    "toggle_archive": "Arquivar / Desarquivar",
+    "delete_bookmark": "Excluir favorito",
+    "toggle_selection": "Alternar seleção",
+    "select_all": "Selecionar tudo",
+    "deselect_all": "Desmarcar tudo",
+    "show_help": "Mostrar atalhos de teclado",
+    "focus_search_alt": "Focar na busca"
   }
 }

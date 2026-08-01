@@ -8,10 +8,9 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
-import FullPageError from "@/components/FullPageError";
+import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { FAB } from "@/components/ui/FAB";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Text } from "@/components/ui/Text";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
@@ -100,12 +99,8 @@ export default function Lists() {
     setRefreshing(isPending);
   }, [isPending]);
 
-  if (error) {
-    return <FullPageError error={error.message} onRetry={() => refetch()} />;
-  }
-
   if (!lists) {
-    return <FullPageSpinner />;
+    return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
   const onRefresh = () => {

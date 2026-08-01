@@ -53,7 +53,7 @@ export function useImportSessionStats(importSessionId: string) {
       {
         refetchInterval: (q) =>
           !q.state.data ||
-          !["completed", "failed"].includes(q.state.data.status)
+          !["completed", "failed", "archived"].includes(q.state.data.status)
             ? 5000
             : false, // Refetch every 5 seconds to show progress
         enabled: !!importSessionId,
@@ -183,12 +183,16 @@ export function useResumeImportSession() {
 export function useImportSessionResults(
   importSessionId: string,
   filter: "all" | "accepted" | "rejected" | "skipped_duplicate" | "pending",
+  enabled = true,
 ) {
   const api = useTRPC();
   return useInfiniteQuery(
     api.importSessions.getImportSessionResults.infiniteQueryOptions(
       { importSessionId, filter, limit: 50 },
-      { getNextPageParam: (lastPage) => lastPage.nextCursor },
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        enabled: !!importSessionId && enabled,
+      },
     ),
   );
 }

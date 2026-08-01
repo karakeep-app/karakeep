@@ -6,7 +6,7 @@ RUN apt-get update \
         libssl-dev \
         pkg-config \
     && rm -rf /var/lib/apt/lists/* \
-    && cargo install monolith
+    && cargo install monolith --locked
 
 ################# Base Builder ##############
 FROM node:24-slim AS base
@@ -122,7 +122,6 @@ RUN apt-get update \
         curl \
         graphicsmagick \
         ghostscript \
-        libjemalloc2 \
         ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
@@ -153,14 +152,6 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
 
-# Create symlink for jemalloc based on architecture
-ARG TARGETARCH
-RUN if [ "$TARGETARCH" = "arm64" ]; then \
-        ln -s /usr/lib/aarch64-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so; \
-    else \
-        ln -s /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so; \
-    fi
-
 COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
 COPY --from=base /app/apps/web/public ./apps/web/public
 COPY --from=base /db_migrations /db_migrations
@@ -187,7 +178,7 @@ RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/init-db-migration \
     /etc/s6-overlay/s6-rc.d/user/contents.d/svc-web \
     /etc/s6-overlay/s6-rc.d/user/contents.d/svc-workers
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT:-3000}/api/health" || exit 1
 
 ################# The web container ##############
 
@@ -197,7 +188,7 @@ RUN touch /etc/s6-overlay/s6-rc.d/user/contents.d/init-db-migration \
     /etc/s6-overlay/s6-rc.d/user/contents.d/svc-web
 ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/api/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 CMD wget --no-verbose --tries=1 --spider "http://127.0.0.1:${PORT:-3000}/api/health" || exit 1
 
 ################# The workers container ##############
 

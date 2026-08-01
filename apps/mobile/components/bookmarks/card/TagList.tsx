@@ -7,18 +7,21 @@ import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
 import { Skeleton } from "../../ui/Skeleton";
 import TagPill from "../TagPill";
 
+function TagListSkeleton() {
+  return (
+    <View className="w-full">
+      <Skeleton className="h-[18px] w-full rounded-full" />
+    </View>
+  );
+}
+
 export default function TagList({ bookmark }: { bookmark: ZBookmark }) {
   const tags = bookmark.tags;
   const { data: currentUser } = useWhoAmI();
   const isOwner = currentUser?.id === bookmark.userId;
 
   if (isBookmarkStillTagging(bookmark)) {
-    return (
-      <>
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-full" />
-      </>
-    );
+    return <TagListSkeleton />;
   }
 
   return (

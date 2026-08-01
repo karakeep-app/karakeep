@@ -3,7 +3,9 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 import { mcpServer } from "./shared";
 
+import "./assets.ts";
 import "./bookmarks.ts";
+import "./highlights.ts";
 import "./lists.ts";
 import "./tags.ts";
 

@@ -23,8 +23,47 @@ allowBuilds:
   protobufjs: false
 
 patchedDependencies:
+  react-tweet@3.2.2: "patches/react-tweet@3.2.2.patch"
   xcode@3.0.1: "patches/xcode@3.0.1.patch"
   playwright-extra@4.3.6: "patches/playwright-extra@4.3.6.patch"
+  # Swift 6.2 / Xcode 26 rejects `weak let`; rewrite to `nonisolated(unsafe) weak var`.
+  expo-modules-jsi@56.0.12: patches/expo-modules-jsi@56.0.12.patch
+  # RN 0.85's Appearance.setColorScheme is non-null; pass "unspecified" (not null) for system theme.
+  react-native-css-interop@0.2.1: patches/react-native-css-interop@0.2.1.patch
+  # Disables React 19.2's dev "component performance track" prop serialization,
+  # which crashes when a changed prop is a tRPC proxy (RN 0.85 + new arch).
+  react-native@0.85.3: patches/react-native@0.85.3.patch
 
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
+
+minimumReleaseAgeExclude:
+  - '@restatedev/restate-sdk-clients@1.15.1'
+  - '@restatedev/restate-sdk-core@1.15.1'
+  - '@restatedev/restate-sdk@1.15.1'
+  - '@next/bundle-analyzer@16.2.12'
+  - '@next/env@16.2.12'
+  - '@next/swc-darwin-arm64@16.2.12'
+  - '@next/swc-darwin-x64@16.2.12'
+  - '@next/swc-linux-arm64-gnu@16.2.12'
+  - '@next/swc-linux-arm64-musl@16.2.12'
+  - '@next/swc-linux-x64-gnu@16.2.12'
+  - '@next/swc-linux-x64-musl@16.2.12'
+  - '@next/swc-win32-arm64-msvc@16.2.12'
+  - '@next/swc-win32-x64-msvc@16.2.12'
+  - next@16.2.12
+
+# Pin vite so adding vitest as a direct devDep to apps/mcp doesn't hoist
+# vite 7.3.x, which surfaces a nested-vite peer mismatch inside
+# apps/browser-extension via @vitejs/plugin-react-swc. Both 7.0.6 and
+# 7.3.x were already in the lockfile before this PR; this just makes
+# 7.0.6 the workspace-wide resolution.
+overrides:
+  i18next-fs-backend: 2.6.6
+  shell-quote: 1.8.4
+  vite: 7.0.6
+  # React Native vendors a renderer built against one exact React version and
+  # asserts on it at runtime, so the whole workspace has to agree. Keep this in
+  # sync with `react` in expo/bundledNativeModules.json when bumping Expo.
+  react: 19.2.3
+  react-dom: 19.2.3

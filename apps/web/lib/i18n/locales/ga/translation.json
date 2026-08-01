@@ -250,6 +250,10 @@
           "users": {
             "label": "Riarthóir: úsáideoirí",
             "description": "Faigh rochtain ar bhainistíocht úsáideoirí riaracháin."
+          },
+          "subscriptions": {
+            "label": "Riarthóir: síntiús",
+            "description": "Bainistigh sraitheanna síntiúis úsáideoirí."
           }
         }
       }
@@ -512,7 +516,8 @@
         "processing": "Próiseáil",
         "staging": "Stáitsiú",
         "running": "Ag rith",
-        "paused": "Ar sos"
+        "paused": "Ar sos",
+        "archived": "Cartlannaithe"
       },
       "badges": {
         "pending": "{{count}} ar feitheamh",
@@ -550,7 +555,8 @@
         "no_results": "Níor aimsíodh aon torthaí don scagaire seo.",
         "view_bookmark": "Féach ar Leabharmharc",
         "load_more": "Luchtaigh Tuilleadh",
-        "no_title": "Gan teideal"
+        "no_title": "Gan teideal",
+        "archived_results": "Ní choinnítear torthaí leabharmharcanna aonair a thuilleadh le haghaidh seisiún iompurtála cartlannaithe."
       },
       "finalize_dialog_title": "Seisiún Iompórtála a Thabhairt chun Críche",
       "finalize_dialog_description": "Ar mhaith leat \"{{name}}\" a chur sa scuaine le haghaidh próiseáil chúlra? Tosófar ar leabharmharcanna atá ullmhaithe a iompórtáil.",
@@ -780,7 +786,18 @@
     "lists": "Liostaí",
     "feeds": "Fothaí",
     "is_from_source": "Ní foinse é foinse",
-    "is_not_from_source": "Ní foinse é foinse ní"
+    "is_not_from_source": "Ní foinse é foinse ní",
+    "mode_label": "Mód cuardaigh",
+    "mode_label_description": "Roghnaigh an chaoi a bhfaigheann Karakeep leabharmharcanna comheala.",
+    "mode_keyword": "Eochairfhocal",
+    "mode_keyword_description": "Meaitseáil focail bheacht i dteidil, in ábhar, in URLanna, agus i nótaí. Beagnach an mheandar.",
+    "mode_hybrid": "Hibrideach",
+    "mode_hybrid_description": "Cumasc meaitseanna beachta le smaointe gaolmhara le haghaidh an chothromaíocht is fearr. Níos moille ná cuardach eochairfhocal.",
+    "mode_semantic": "Seimeantach",
+    "mode_semantic_description": "Faigh leabharmharcanna atá cosúil ó thaobh coincheapa de, fiú gan focail chomhroinnte. Níos moille ná cuardach eochairfhocal.",
+    "keyword_placeholder": "Cuardaigh teidil, téacs, URLanna, agus clibeanna…",
+    "hybrid_placeholder": "Cuardaigh de réir focal nó brí…",
+    "semantic_placeholder": "Déan cur síos ar na rudaí is cuimhin leat…"
   },
   "editor": {
     "disabled_submissions": "Tá aighneachtaí díchumasaithe",
@@ -923,6 +940,10 @@
         "admin_maintenance": {
           "title": "Tascanna Cothabhála Riaracháin",
           "description": "Glanadh riaracháin agus cothabháil sócmhainní"
+        },
+        "embeddings": {
+          "title": "Poist Leabaithe",
+          "description": "Giniúint leabaithe veicteora do leabharmharcaí"
         }
       },
       "monitor_and_manage": "Déan monatóireacht agus bainistigh scuainí post cúlra agus tascanna próiseála córais",
@@ -957,7 +978,10 @@
         "migrate_large_link_html_content": "Bog an HTML Mór Inlíne go Sócmhainní",
         "recrawl_pending_links_only": "Ath-rianasca na Naisc atá ar Feitheamh Amháin",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Athghin Clibeanna AI le haghaidh Leabharmharcanna atá ar Feitheamh Amháin",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Athghin Achoimrí AI le haghaidh Leabharmharcanna atá ar Feitheamh Amháin"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Athghin Achoimrí AI le haghaidh Leabharmharcanna atá ar Feitheamh Amháin",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Athghin Leabuithe do Leabharmharcaí ar Feitheamh Amháin",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Athghin Leabuithe do Leabharmharcaí ar Theip orthu Amháin",
+        "regenerate_embeddings_for_all_bookmarks": "Athghin Leabuithe do Gach Leabharmharc"
       }
     },
     "admin_settings": "Socruithe Riaracháin",
@@ -996,7 +1020,8 @@
         "not_configured": "Níl sé Cumraithe",
         "connected": "Ceangailte",
         "disconnected": "Dícheangailte"
-      }
+      },
+      "vector_store": "Stóras Veicteoirí"
     },
     "admin_tools": {
       "admin_tools": "Uirlisí Riaracháin",
@@ -1032,7 +1057,10 @@
       "retag_queued": "Cuireadh post ath-chlibeála i scuaine",
       "resummarize_queued": "Cuireadh post ath-achoimrithe i scuaine",
       "view": "Féach",
-      "fetch_error": "Earráid agus leabharmharc á fháil"
+      "fetch_error": "Earráid agus leabharmharc á fháil",
+      "embedding_status": "Stádas Leabaithe",
+      "regenerate_embedding": "Athghin Leabú",
+      "regenerate_embedding_queued": "Cuireadh an post athghinte leabaithe sa scuaine"
     }
   },
   "bookmark_editor": {
@@ -1080,7 +1108,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Scrios Leabharmharc?",
-      "delete_confirmation_description": "An bhfuil tú cinnte gur mhaith leat an leabhar marcála seo a scriosadh?"
+      "delete_confirmation_description": "An bhfuil tú cinnte gur mhaith leat an leabhar marcála seo a scriosadh?",
+      "bulk_delete_confirmation_description": "An bhfuil tú cinnte gur mhaith leat {{count}} leabharmharc a scriosadh?"
     }
   },
   "banners": {
@@ -1166,5 +1195,28 @@
     "download": "Íoslódáil",
     "close": "Dún",
     "generating": "Ag giniúint..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Aicearraí Méarchláir",
+    "sections": {
+      "navigation": "Nascleanúint",
+      "actions": "Gníomhartha",
+      "selection": "Roghnú",
+      "other": "Eile"
+    },
+    "move_left": "Bog ar chlé",
+    "move_down": "Bog síos",
+    "move_up": "Bog suas",
+    "move_right": "Bog ar dheis",
+    "open_bookmark": "Oscail leabharmharc",
+    "clear_focus": "Glan an fócas / scoir an mór-eagarthóireacht",
+    "toggle_favorite": "Scoránaigh an ceanán",
+    "toggle_archive": "Cartlannaigh / Dí-chartlannaigh",
+    "delete_bookmark": "Scrios leabharmharc",
+    "toggle_selection": "Scoránaigh an roghnú",
+    "select_all": "Roghnaigh uile",
+    "deselect_all": "Díroghnaigh uile",
+    "show_help": "Taispeáin aicearraí méarchláir",
+    "focus_search_alt": "Fócas ar an gcuardach"
   }
 }

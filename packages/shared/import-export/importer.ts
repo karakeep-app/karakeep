@@ -65,7 +65,7 @@ export async function importBookmarksFromFile(
     source: ImportSource;
     rootListName: string;
     deps: ImportDeps;
-    onProgress?: (done: number, total: number) => void;
+    onProgress?: (id: string, done: number, total: number) => void;
   },
   options: ImportOptions = {},
 ): Promise<ImportResult> {
@@ -91,7 +91,7 @@ export async function importBookmarksFromFile(
     rootListId: rootList.id,
   });
 
-  onProgress?.(0, parsedBookmarks.length);
+  onProgress?.(session.id, 0, parsedBookmarks.length);
 
   const externalListIdToCreatedListId: Record<string, string> = {};
   if (parsedLists.length > 0) {
@@ -268,7 +268,7 @@ export async function importBookmarksFromFile(
       bookmarks: batch,
     });
     staged += batch.length;
-    onProgress?.(staged, parsedBookmarks.length);
+    onProgress?.(session.id, staged, parsedBookmarks.length);
   }
 
   // Finalize staging - marks session as "pending" for worker pickup

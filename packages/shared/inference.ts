@@ -15,6 +15,91 @@ export interface InferenceResponse {
 
 export interface EmbeddingResponse {
   embeddings: number[][];
+  totalTokens: number | undefined;
+  promptTokens: number | undefined;
+}
+
+function isNumberArray(value: unknown): value is number[] {
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "number")
+  );
+}
+
+function isNumberArray2D(value: unknown): value is number[][] {
+  return Array.isArray(value) && value.every(isNumberArray);
+}
+
+function parseEmbeddingResponse(response: unknown): number[][] {
+  if (!response || typeof response !== "object") {
+    throw new Error(`Got invalid embedding response from inference provider`);
+  }
+
+  if ("data" in response && Array.isArray(response.data)) {
+    const embeddings = response.data.map((item) => {
+      if (
+        item &&
+        typeof item === "object" &&
+        "embedding" in item &&
+        isNumberArray(item.embedding)
+      ) {
+        return item.embedding;
+      }
+      throw new Error(
+        `Got embedding response item without a numeric embedding array`,
+      );
+    });
+    return embeddings;
+  }
+
+  if ("embeddings" in response && isNumberArray2D(response.embeddings)) {
+    return response.embeddings;
+  }
+
+  if ("embedding" in response && isNumberArray(response.embedding)) {
+    return [response.embedding];
+  }
+
+  const keys = Object.keys(response).join(", ");
+  throw new Error(
+    `Got embedding response with unsupported shape from inference provider. Keys: ${keys}`,
+  );
+}
+
+function getNumericField(
+  value: Record<string, unknown>,
+  field: string,
+): number | undefined {
+  const raw = value[field];
+  return typeof raw === "number" && Number.isFinite(raw) ? raw : undefined;
+}
+
+function parseEmbeddingUsage(response: unknown): {
+  promptTokens: number | undefined;
+  totalTokens: number | undefined;
+} {
+  if (!response || typeof response !== "object") {
+    return { promptTokens: undefined, totalTokens: undefined };
+  }
+
+  const responseObj = response as Record<string, unknown>;
+  const usage = responseObj.usage;
+  if (usage && typeof usage === "object") {
+    const usageObj = usage as Record<string, unknown>;
+    return {
+      promptTokens: getNumericField(usageObj, "prompt_tokens"),
+      totalTokens: getNumericField(usageObj, "total_tokens"),
+    };
+  }
+
+  const promptTokens =
+    getNumericField(responseObj, "prompt_eval_count") ??
+    getNumericField(responseObj, "prompt_tokens");
+  const totalTokens =
+    getNumericField(responseObj, "total_tokens") ??
+    getNumericField(responseObj, "eval_count") ??
+    promptTokens;
+
+  return { promptTokens, totalTokens };
 }
 
 export interface InferenceOptions {
@@ -51,10 +136,29 @@ const mapInferenceOutputSchema = <
   return opts[type];
 };
 
+const mapOpenAIResponseFormat = (
+  schema: z.ZodSchema | null,
+  outputSchema: typeof serverConfig.inference.outputSchema,
+) => {
+  if (schema === null) {
+    return undefined;
+  }
+
+  return mapInferenceOutputSchema(
+    {
+      structured: zodResponseFormat(schema, "schema"),
+      json: { type: "json_object" as const },
+      plain: undefined,
+    },
+    outputSchema,
+  );
+};
+
 export interface OpenAIInferenceConfig {
   apiKey: string;
   baseURL?: string;
   proxyUrl?: string;
+  timeoutSec?: number;
   serviceTier?: typeof serverConfig.inference.openAIServiceTier;
   textModel: string;
   imageModel: string;
@@ -88,6 +192,8 @@ export class OpenAIInferenceClient implements InferenceClient {
     this.openAI = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL,
+      timeout:
+        config.timeoutSec !== undefined ? config.timeoutSec * 1000 : undefined,
       defaultHeaders: {
         "X-Title": "Karakeep",
         "HTTP-Referer": "https://karakeep.app",
@@ -103,6 +209,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       apiKey: serverConfig.inference.openAIApiKey!,
       baseURL: serverConfig.inference.openAIBaseUrl,
       proxyUrl: serverConfig.inference.openAIProxyUrl,
+      timeoutSec: serverConfig.inference.openAITimeoutSec,
       serviceTier: serverConfig.inference.openAIServiceTier,
       textModel: serverConfig.inference.textModel,
       imageModel: serverConfig.inference.imageModel,
@@ -132,14 +239,8 @@ export class OpenAIInferenceClient implements InferenceClient {
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),
-        response_format: mapInferenceOutputSchema(
-          {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
+        response_format: mapOpenAIResponseFormat(
+          optsWithDefaults.schema,
           this.config.outputSchema,
         ),
         reasoning_effort: this.config.reasoningEffort,
@@ -175,14 +276,8 @@ export class OpenAIInferenceClient implements InferenceClient {
         ...(this.config.useMaxCompletionTokens
           ? { max_completion_tokens: this.config.maxOutputTokens }
           : { max_tokens: this.config.maxOutputTokens }),
-        response_format: mapInferenceOutputSchema(
-          {
-            structured: optsWithDefaults.schema
-              ? zodResponseFormat(optsWithDefaults.schema, "schema")
-              : undefined,
-            json: { type: "json_object" },
-            plain: undefined,
-          },
+        response_format: mapOpenAIResponseFormat(
+          optsWithDefaults.schema,
           this.config.outputSchema,
         ),
         messages: [
@@ -221,10 +316,9 @@ export class OpenAIInferenceClient implements InferenceClient {
       model: model,
       input: inputs,
     });
-    const embedding2D: number[][] = embedResponse.data.map(
-      (embedding: OpenAI.Embedding) => embedding.embedding,
-    );
-    return { embeddings: embedding2D };
+    const embedding2D = parseEmbeddingResponse(embedResponse);
+    const usage = parseEmbeddingUsage(embedResponse);
+    return { embeddings: embedding2D, ...usage };
   }
 }
 
@@ -379,6 +473,7 @@ class OllamaInferenceClient implements InferenceClient {
       // in the future we want to add a way to split the input into multiple parts.
       truncate: true,
     });
-    return { embeddings: embedding.embeddings };
+    const usage = parseEmbeddingUsage(embedding);
+    return { embeddings: embedding.embeddings, ...usage };
   }
 }

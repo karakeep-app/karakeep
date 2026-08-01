@@ -3,6 +3,8 @@ import TurndownService from "turndown";
 
 import { createKarakeepClient } from "@karakeep/sdk";
 
+import packageJson from "../package.json";
+
 const addr = process.env.KARAKEEP_API_ADDR;
 const apiKey = process.env.KARAKEEP_API_KEY;
 
@@ -28,7 +30,7 @@ export const karakeepClient = createKarakeepClient({
 
 export const mcpServer = new McpServer({
   name: "Karakeep",
-  version: "0.23.0",
+  version: packageJson.version,
 });
 
 export const turndownService = new TurndownService();

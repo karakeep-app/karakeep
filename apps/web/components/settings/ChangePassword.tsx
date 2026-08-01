@@ -89,6 +89,7 @@ export function ChangePassword() {
                     <Input
                       id="current-password"
                       type={showCurrentPassword ? "text" : "password"}
+                      autoComplete="current-password"
                       placeholder={t("settings.info.current_password")}
                       className="h-11 pr-10"
                       {...field}
@@ -99,6 +100,10 @@ export function ChangePassword() {
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    aria-label={
+                      showCurrentPassword ? "Hide password" : "Show password"
+                    }
+                    aria-controls="current-password"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   >
                     {showCurrentPassword ? (
@@ -130,6 +135,7 @@ export function ChangePassword() {
                       <Input
                         id="new-password"
                         type={showNewPassword ? "text" : "password"}
+                        autoComplete="new-password"
                         placeholder={t("settings.info.new_password")}
                         className="h-11 pr-10"
                         {...field}
@@ -140,6 +146,10 @@ export function ChangePassword() {
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      aria-label={
+                        showNewPassword ? "Hide password" : "Show password"
+                      }
+                      aria-controls="new-password"
                       onClick={() => setShowNewPassword(!showNewPassword)}
                     >
                       {showNewPassword ? (
@@ -170,6 +180,7 @@ export function ChangePassword() {
                       <Input
                         id="confirm-password"
                         type={showConfirmPassword ? "text" : "password"}
+                        autoComplete="new-password"
                         placeholder={t("settings.info.confirm_new_password")}
                         className="h-11 pr-10"
                         {...field}
@@ -180,6 +191,10 @@ export function ChangePassword() {
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      aria-label={
+                        showConfirmPassword ? "Hide password" : "Show password"
+                      }
+                      aria-controls="confirm-password"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
@@ -199,7 +214,7 @@ export function ChangePassword() {
 
           <div className="flex justify-end">
             <ActionButton type="submit" loading={mutator.isPending}>
-              {t("actions.save")}
+              {t("settings.info.change_password")}
             </ActionButton>
           </div>
         </form>

@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { FlatList, Pressable, View } from "react-native";
 import { Link } from "expo-router";
-import FullPageError from "@/components/FullPageError";
+import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
 import EmptyState from "@/components/ui/EmptyState";
-import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
 import { useQueryClient } from "@tanstack/react-query";
@@ -49,12 +48,8 @@ export default function Tags() {
     setRefreshing(isPending);
   }, [isPending]);
 
-  if (error) {
-    return <FullPageError error={error.message} onRetry={() => refetch()} />;
-  }
-
   if (!data) {
-    return <FullPageSpinner />;
+    return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
   const onRefresh = () => {

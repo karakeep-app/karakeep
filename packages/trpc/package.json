@@ -20,11 +20,12 @@
     "bcryptjs": "^2.4.3",
     "deep-equal": "^2.2.3",
     "drizzle-orm": "^0.45.2",
-    "nodemailer": "^7.0.4",
+    "nodemailer": "^7.0.13",
     "prom-client": "^15.1.3",
     "stripe": "^20.3.1",
     "superjson": "^2.2.1",
     "tiny-invariant": "^1.3.3",
+    "turndown": "^7.2.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
@@ -32,6 +33,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/deep-equal": "^1.0.4",
     "@types/nodemailer": "^6.4.17",
+    "@types/turndown": "^5.0.5",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^3.2.4"
   }

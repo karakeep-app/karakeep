@@ -86,17 +86,29 @@
   }
 
   .sidebar-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.15);
+    background: transparent;
     border-radius: 3px;
+    transition: background-color 150ms ease;
   }
 
-  .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  .sidebar-scrollbar:hover::-webkit-scrollbar-thumb,
+  .sidebar-scrollbar:focus-within::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.15);
+  }
+
+  .sidebar-scrollbar:hover::-webkit-scrollbar-thumb:hover,
+  .sidebar-scrollbar:focus-within::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.25);
   }
 
   /* Firefox scrollbar for sidebar */
   .sidebar-scrollbar {
     scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .sidebar-scrollbar:hover,
+  .sidebar-scrollbar:focus-within {
     scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
   }
 }

@@ -1,3 +1,4 @@
+import BookmarkContentLoading from "@/components/bookmarks/BookmarkContentLoading";
 import {
   BookmarkLinkArchivePreview,
   BookmarkLinkBrowserPreview,
@@ -7,6 +8,7 @@ import {
 } from "@/components/bookmarks/BookmarkLinkPreview";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { isBookmarkStillCrawling } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLinkType } from "./BookmarkLinkTypeSelector";
 
@@ -21,6 +23,12 @@ export default function BookmarkLinkView({
 }: BookmarkLinkViewProps) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
+  }
+
+  // Every view but the browser one renders crawled content, so there's nothing
+  // to show until the crawl is done.
+  if (bookmarkPreviewType !== "browser" && isBookmarkStillCrawling(bookmark)) {
+    return <BookmarkContentLoading />;
   }
 
   switch (bookmarkPreviewType) {

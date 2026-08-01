@@ -325,6 +325,10 @@
           "users": {
             "label": "Администратор: пользователи",
             "description": "Доступ к административному управлению пользователями."
+          },
+          "subscriptions": {
+            "label": "Администрирование: подписки",
+            "description": "Управление уровнями подписки пользователей."
           }
         }
       }
@@ -554,7 +558,8 @@
         "processing": "Обработка",
         "staging": "Подготовка",
         "running": "Запущено",
-        "paused": "Приостановлено"
+        "paused": "Приостановлено",
+        "archived": "Архивировано"
       },
       "badges": {
         "pending": "{{count}} в ожидании",
@@ -591,7 +596,8 @@
         "no_results": "По этому фильтру ничего не найдено.",
         "view_bookmark": "Посмотреть закладку",
         "load_more": "Загрузить еще",
-        "no_title": "Без названия"
+        "no_title": "Без названия",
+        "archived_results": "Результаты отдельных закладок больше не сохраняются для архивированных сеансов импорта."
       },
       "finalize_dialog_title": "Завершить сеанс импорта",
       "finalize_dialog_description": "Добавить «{{name}}» в очередь для фоновой обработки? Начнется импорт подготовленных закладок.",
@@ -810,7 +816,10 @@
         "migrate_large_link_html_content": "Переместить большой встроенный HTML-контент в ресурсы",
         "recrawl_pending_links_only": "Переиндексировать только отложенные ссылки",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Заново сгенерировать AI-теги только для отложенных закладок",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Заново сгенерировать AI-резюме только для отложенных закладок"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Заново сгенерировать AI-резюме только для отложенных закладок",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Перегенерировать внедрения только для ожидающих закладок",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Перегенерировать внедрения только для неудачных закладок",
+        "regenerate_embeddings_for_all_bookmarks": "Перегенерировать внедрения для всех закладок"
       },
       "jobs": {
         "crawler": {
@@ -848,6 +857,10 @@
         "admin_maintenance": {
           "title": "Административное обслуживание",
           "description": "Административная очистка и обслуживание ресурсов"
+        },
+        "embeddings": {
+          "title": "Задачи внедрения",
+          "description": "Генерация векторных внедрений для закладок"
         }
       },
       "monitor_and_manage": "Мониторинг и управление очередями фоновых задач и задачами системной обработки",
@@ -892,7 +905,8 @@
         "not_configured": "Не настроено",
         "connected": "Подключено",
         "disconnected": "Отключено"
-      }
+      },
+      "vector_store": "Векторное хранилище"
     },
     "admin_tools": {
       "admin_tools": "Инструменты админа",
@@ -928,7 +942,10 @@
       "retag_queued": "Задача переметки тегами поставлена в очередь",
       "resummarize_queued": "Задача пересоздания сводки поставлена в очередь",
       "view": "Вид",
-      "fetch_error": "Ошибка при получении закладки"
+      "fetch_error": "Ошибка при получении закладки",
+      "embedding_status": "Статус внедрения",
+      "regenerate_embedding": "Перегенерировать внедрение",
+      "regenerate_embedding_queued": "Задача на регенерацию внедрений поставлена в очередь"
     }
   },
   "layouts": {
@@ -1069,12 +1086,24 @@
     "lists": "Списки",
     "feeds": "Ленты",
     "is_from_source": "Источник:",
-    "is_not_from_source": "Источника нет"
+    "is_not_from_source": "Источника нет",
+    "mode_label": "Режим поиска",
+    "mode_label_description": "Выберите, как Karakeep находит подходящие закладки.",
+    "mode_keyword": "Ключевые слова",
+    "mode_keyword_description": "Поиск точных совпадений слов в заголовках, контенте, URL-адресах и заметках. Почти мгновенно.",
+    "mode_hybrid": "Гибридный",
+    "mode_hybrid_description": "Сочетает точные совпадения с похожими идеями для лучшего баланса. Медленнее, чем поиск по ключевым словам.",
+    "mode_semantic": "Семантический",
+    "mode_semantic_description": "Поиск концептуально похожих закладок, даже без общих слов. Медленнее, чем поиск по ключевым словам.",
+    "keyword_placeholder": "Поиск по заголовкам, тексту, URL-адресам и тегам…",
+    "hybrid_placeholder": "Поиск по словам или смыслу…",
+    "semantic_placeholder": "Опишите то, что вы помните…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Удалить закладку?",
-      "delete_confirmation_description": "Вы уверены, что хотите удалить эту закладку?"
+      "delete_confirmation_description": "Вы уверены, что хотите удалить эту закладку?",
+      "bulk_delete_confirmation_description": "Вы уверены, что хотите удалить {{count}} закладок?"
     }
   },
   "highlights": {
@@ -1166,5 +1195,28 @@
     "download": "Скачать",
     "close": "Закрыть",
     "generating": "Генерируется..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Горячие клавиши",
+    "sections": {
+      "navigation": "Навигация",
+      "actions": "Действия",
+      "selection": "Выбор",
+      "other": "Другое"
+    },
+    "move_left": "Переместить влево",
+    "move_down": "Переместить вниз",
+    "move_up": "Переместить вверх",
+    "move_right": "Переместить вправо",
+    "open_bookmark": "Открыть закладку",
+    "clear_focus": "Снять фокус / выйти из массового редактирования",
+    "toggle_favorite": "Добавить в избранное / удалить из избранного",
+    "toggle_archive": "Архивировать / Разархивировать",
+    "delete_bookmark": "Удалить закладку",
+    "toggle_selection": "Выбрать / Отменить выбор",
+    "select_all": "Выбрать все",
+    "deselect_all": "Снять выделение",
+    "show_help": "Показать горячие клавиши",
+    "focus_search_alt": "Фокус на поиск"
   }
 }

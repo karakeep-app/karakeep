@@ -71,6 +71,67 @@ describe("Bookmarks API", () => {
     expect(retrievedBookmark!.content.text).toBe("This is a test bookmark");
   });
 
+  it("should page through readable bookmark content and reject stale cursors", async () => {
+    const firstParagraph = "a".repeat(80);
+    const secondParagraph = "b".repeat(80);
+    const text = `${firstParagraph}\n\n${secondParagraph}`;
+    const { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        text,
+      },
+    });
+
+    const { data: firstPage, response: firstResponse } = await client.GET(
+      "/bookmarks/{bookmarkId}/content",
+      {
+        params: {
+          path: { bookmarkId: bookmark!.id },
+          query: { maxChars: 100 },
+        },
+      },
+    );
+
+    expect(firstResponse.status).toBe(200);
+    expect(firstPage?.format).toBe("markdown");
+    expect(firstPage?.content).toBe(`${firstParagraph}\n\n`);
+    expect(firstPage?.range).toEqual({ start: 0, end: 82, total: 162 });
+    expect(firstPage?.nextCursor).not.toBeNull();
+
+    const { data: secondPage } = await client.GET(
+      "/bookmarks/{bookmarkId}/content",
+      {
+        params: {
+          path: { bookmarkId: bookmark!.id },
+          query: {
+            maxChars: 100,
+            cursor: firstPage!.nextCursor!,
+          },
+        },
+      },
+    );
+    expect(firstPage!.content + secondPage!.content).toBe(text);
+    expect(secondPage?.nextCursor).toBeNull();
+
+    await client.PATCH("/bookmarks/{bookmarkId}", {
+      params: { path: { bookmarkId: bookmark!.id } },
+      body: { text: `${text}\nchanged` },
+    });
+    const { response: staleResponse, error } = await client.GET(
+      "/bookmarks/{bookmarkId}/content",
+      {
+        params: {
+          path: { bookmarkId: bookmark!.id },
+          query: {
+            cursor: firstPage!.nextCursor!,
+          },
+        },
+      },
+    );
+    expect(staleResponse.status).toBe(409);
+    expect(error).toEqual(expect.objectContaining({ code: "CONTENT_CHANGED" }));
+  });
+
   it("should update a bookmark", async () => {
     // Create a new bookmark
     const { data: createdBookmark, error: createError } = await client.POST(

@@ -22,6 +22,7 @@ export const langNameMappings: Record<string, string> = {
   pl: "Polish",
   pt: "Portuguese",
   pt_BR: "Portuguese (Brazil)",
+  ro: "Romanian",
   ru: "Russian",
   sk: "Slovak",
   sl: "Slovenian",

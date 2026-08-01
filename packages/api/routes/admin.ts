@@ -2,7 +2,10 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
-import { updateUserSchema } from "@karakeep/shared/types/admin";
+import {
+  updateUserSchema,
+  zAdminJobModifiedWithinSecondsSchema,
+} from "@karakeep/shared/types/admin";
 
 import { adminAuthMiddleware } from "../middlewares/auth";
 
@@ -32,6 +35,7 @@ const app = new Hono()
           .enum(["success", "failure", "pending", "all"])
           .default("all"),
         runInference: z.boolean().default(false),
+        modifiedWithinSeconds: zAdminJobModifiedWithinSecondsSchema.optional(),
       }),
     ),
     async (c) => {
@@ -42,10 +46,20 @@ const app = new Hono()
   )
 
   // POST /admin/jobs/trigger/reindex
-  .post("/jobs/trigger/reindex", async (c) => {
-    await c.var.api.admin.reindexAllBookmarks();
-    return c.json({ success: true }, 200);
-  })
+  .post(
+    "/jobs/trigger/reindex",
+    zValidator(
+      "json",
+      z.object({
+        modifiedWithinSeconds: zAdminJobModifiedWithinSecondsSchema.optional(),
+      }),
+    ),
+    async (c) => {
+      const body = c.req.valid("json");
+      await c.var.api.admin.reindexAllBookmarks(body);
+      return c.json({ success: true }, 200);
+    },
+  )
 
   // POST /admin/jobs/trigger/inference
   .post(
@@ -55,6 +69,7 @@ const app = new Hono()
       z.object({
         type: z.enum(["tag", "summarize"]),
         status: z.enum(["success", "failure", "pending", "all"]).default("all"),
+        modifiedWithinSeconds: zAdminJobModifiedWithinSecondsSchema.optional(),
       }),
     ),
     async (c) => {

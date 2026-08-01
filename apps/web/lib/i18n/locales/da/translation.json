@@ -282,6 +282,10 @@
           "users": {
             "label": "Admin: brugere",
             "description": "Få adgang til administrativ brugerstyring."
+          },
+          "subscriptions": {
+            "label": "Admin: abonnementer",
+            "description": "Administrer abonnementstyper for brugere."
           }
         }
       }
@@ -467,7 +471,8 @@
         "processing": "Behandler",
         "staging": "Forberedelse",
         "running": "Kører",
-        "paused": "Sat på pause"
+        "paused": "Sat på pause",
+        "archived": "Arkiveret"
       },
       "badges": {
         "pending": "{{count}} afventer",
@@ -504,7 +509,8 @@
         "no_results": "Ingen resultater fundet for dette filter.",
         "view_bookmark": "Vis bogmærke",
         "load_more": "Indlæs mere",
-        "no_title": "Ingen titel"
+        "no_title": "Ingen titel",
+        "archived_results": "Individuelle bogmærkeresultater opbevares ikke længere for arkiverede importsessioner."
       },
       "finalize_dialog_title": "Færdiggør importsession",
       "finalize_dialog_description": "Sæt \"{{name}}\" i kø til baggrundsbehandling? De klargjorte bogmærker vil begynde at blive importeret.",
@@ -623,6 +629,10 @@
         "admin_maintenance": {
           "title": "Admin vedligeholdelsesjob",
           "description": "Administrativ oprydning og aktivvedligeholdelse"
+        },
+        "embeddings": {
+          "title": "Embedding-jobs",
+          "description": "Bogmærkevektor-embedding-generering"
         }
       },
       "monitor_and_manage": "Overvåg og administrer baggrundsjobkøer og systembehandlingsopgaver",
@@ -657,7 +667,10 @@
         "migrate_large_link_html_content": "Flyt stort inline HTML-indhold til aktiver",
         "recrawl_pending_links_only": "Gennemsøg kun ventende links igen",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Gendan AI-tags kun for ventende bogmærker",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Gendan AI-resumeer kun for ventende bogmærker"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Gendan AI-resumeer kun for ventende bogmærker",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Regenerer kun embeddings for afventende bogmærker",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Regenerer kun embeddings for mislykkede bogmærker",
+        "regenerate_embeddings_for_all_bookmarks": "Regenerer embeddings for alle bogmærker"
       }
     },
     "server_stats": {
@@ -690,7 +703,8 @@
         "not_configured": "Ikke konfigureret",
         "connected": "Forbundet",
         "disconnected": "Afbrudt"
-      }
+      },
+      "vector_store": "Vectorlager"
     },
     "admin_tools": {
       "admin_tools": "Administrationsværktøjer",
@@ -726,7 +740,10 @@
       "retag_queued": "Gen-tag job er blevet sat i kø",
       "resummarize_queued": "Genopsummeringsjob er blevet sat i kø",
       "view": "Vis",
-      "fetch_error": "Fejl ved hentning af bogmærke"
+      "fetch_error": "Fejl ved hentning af bogmærke",
+      "embedding_status": "Embedding-status",
+      "regenerate_embedding": "Regenerer embedding",
+      "regenerate_embedding_queued": "Job til regenerering af embedding er sat i kø"
     }
   },
   "tags": {
@@ -1072,12 +1089,24 @@
     "lists": "Lister",
     "feeds": "Feeds",
     "is_from_source": "Kilde er",
-    "is_not_from_source": "Kilden er ikke"
+    "is_not_from_source": "Kilden er ikke",
+    "mode_label": "Søgetilstand",
+    "mode_label_description": "Vælg hvordan Karakeep finder matchende bogmærker.",
+    "mode_keyword": "Nøgleord",
+    "mode_keyword_description": "Match eksakte ord i titler, indhold, URL'er og noter. Næsten øjeblikkeligt.",
+    "mode_hybrid": "Hybrid",
+    "mode_hybrid_description": "Bland eksakte matches med relaterede idéer for den bedste balance. Langsommere end nøgleordssøgning.",
+    "mode_semantic": "Semantisk",
+    "mode_semantic_description": "Find konceptuelt lignende bogmærker, selv uden fælles ord. Langsommere end nøgleordssøgning.",
+    "keyword_placeholder": "Søg i titler, tekst, URL'er og tags…",
+    "hybrid_placeholder": "Søg efter ord eller betydning…",
+    "semantic_placeholder": "Beskriv hvad du husker…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_title": "Slet bogmærke?",
-      "delete_confirmation_description": "Er du sikker på, at du vil slette dette bogmærke?"
+      "delete_confirmation_description": "Er du sikker på, at du vil slette dette bogmærke?",
+      "bulk_delete_confirmation_description": "Er du sikker på, at du vil slette {{count}} bogmærker?"
     }
   },
   "banners": {
@@ -1166,5 +1195,28 @@
     "download": "Hent",
     "close": "Luk",
     "generating": "Genererer..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Tastaturgenveje",
+    "sections": {
+      "navigation": "Navigation",
+      "actions": "Handlinger",
+      "selection": "Valg",
+      "other": "Andet"
+    },
+    "move_left": "Flyt til venstre",
+    "move_down": "Flyt ned",
+    "move_up": "Flyt op",
+    "move_right": "Flyt til højre",
+    "open_bookmark": "Åbn bogmærke",
+    "clear_focus": "Ryd fokus / afslut masseredigering",
+    "toggle_favorite": "Slå favorit til/fra",
+    "toggle_archive": "Arkiver / Gendan fra arkiv",
+    "delete_bookmark": "Slet bogmærke",
+    "toggle_selection": "Markering til/fra",
+    "select_all": "Vælg alle",
+    "deselect_all": "Fravælg alle",
+    "show_help": "Vis tastaturgenveje",
+    "focus_search_alt": "Fokusér på søgning"
   }
 }

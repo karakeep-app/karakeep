@@ -329,6 +329,10 @@
           "users": {
             "label": "Admin: utenti",
             "description": "Accedi alla gestione amministrativa degli utenti."
+          },
+          "subscriptions": {
+            "label": "Amministratore: abbonamenti",
+            "description": "Gestisci i livelli di abbonamento degli utenti."
           }
         }
       }
@@ -513,7 +517,8 @@
         "processing": "Elaborazione",
         "staging": "In preparazione",
         "running": "In esecuzione",
-        "paused": "In pausa"
+        "paused": "In pausa",
+        "archived": "Archiviato"
       },
       "badges": {
         "pending": "{{count}} in sospeso",
@@ -550,7 +555,8 @@
         "no_results": "Nessun risultato trovato per questo filtro.",
         "view_bookmark": "Visualizza segnalibro",
         "load_more": "Carica altro",
-        "no_title": "Nessun titolo"
+        "no_title": "Nessun titolo",
+        "archived_results": "I risultati dei singoli segnalibri non vengono più mantenuti per le sessioni di importazione archiviate."
       },
       "finalize_dialog_title": "Finalizza sessione di importazione",
       "finalize_dialog_description": "Accodare \"{{name}}\" per l'elaborazione in background? I segnalibri preparati verranno importati.",
@@ -729,6 +735,10 @@
         "admin_maintenance": {
           "title": "Lavori di manutenzione dell'amministratore",
           "description": "Pulizia amministrativa e manutenzione degli asset"
+        },
+        "embeddings": {
+          "title": "Processi di embedding",
+          "description": "Generazione di embedding vettoriali per i segnalibri"
         }
       },
       "monitor_and_manage": "Monitora e gestisci le code dei processi in background e le attività di elaborazione del sistema",
@@ -763,7 +773,10 @@
         "migrate_large_link_html_content": "Sposta grandi contenuti HTML incorporati negli asset",
         "recrawl_pending_links_only": "Nuova scansione solo dei link in sospeso",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Rigenera i tag AI solo per i segnalibri in sospeso",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Rigenera i riassunti AI solo per i segnalibri in sospeso"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Rigenera i riassunti AI solo per i segnalibri in sospeso",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Rigenera embedding solo per i segnalibri in sospeso",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Rigenera embedding solo per i segnalibri non riusciti",
+        "regenerate_embeddings_for_all_bookmarks": "Rigenera embedding per tutti i segnalibri"
       }
     },
     "actions": {
@@ -801,7 +814,8 @@
         "not_configured": "Non configurato",
         "connected": "Connesso",
         "disconnected": "Disconnesso"
-      }
+      },
+      "vector_store": "Vector Store"
     },
     "admin_tools": {
       "admin_tools": "Strumenti di amministrazione",
@@ -837,7 +851,10 @@
       "retag_queued": "Il processo di ri-etichettatura è stato accodato",
       "resummarize_queued": "Il processo di ri-sommarizzazione è stato accodato",
       "view": "Visualizza",
-      "fetch_error": "Errore durante il recupero del segnalibro"
+      "fetch_error": "Errore durante il recupero del segnalibro",
+      "embedding_status": "Stato embedding",
+      "regenerate_embedding": "Rigenera embedding",
+      "regenerate_embedding_queued": "Il processo di rigenerazione dell'embedding è stato messo in coda"
     }
   },
   "options": {
@@ -1069,12 +1086,24 @@
     "lists": "Elenchi",
     "feeds": "Feed",
     "is_from_source": "L'origine è",
-    "is_not_from_source": "L'origine non è"
+    "is_not_from_source": "L'origine non è",
+    "mode_label": "Modalità di ricerca",
+    "mode_label_description": "Scegli come Karakeep trova i segnalibri corrispondenti.",
+    "mode_keyword": "Parola chiave",
+    "mode_keyword_description": "Corrispondenza di parole esatte in titoli, contenuti, URL e note. Quasi istantaneo.",
+    "mode_hybrid": "Ibrida",
+    "mode_hybrid_description": "Combina corrispondenze esatte con concetti correlati per il miglior equilibrio. Più lenta della ricerca per parola chiave.",
+    "mode_semantic": "Semantica",
+    "mode_semantic_description": "Trova segnalibri concettualmente simili, anche senza parole condivise. Più lenta della ricerca per parola chiave.",
+    "keyword_placeholder": "Cerca tra titoli, testi, URL e tag…",
+    "hybrid_placeholder": "Cerca per parole o significato…",
+    "semantic_placeholder": "Descrivi ciò che ricordi…"
   },
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "Sei sicuro di voler eliminare questo segnalibro?",
-      "delete_confirmation_title": "Eliminare il segnalibro?"
+      "delete_confirmation_title": "Eliminare il segnalibro?",
+      "bulk_delete_confirmation_description": "Sei sicuro di voler eliminare {{count}} segnalibri?"
     }
   },
   "highlights": {
@@ -1166,5 +1195,28 @@
     "download": "Scarica",
     "close": "Chiudi",
     "generating": "Generazione in corso..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "sections": {
+      "navigation": "Navigazione",
+      "actions": "Azioni",
+      "selection": "Selezione",
+      "other": "Altro"
+    },
+    "move_left": "Sposta a sinistra",
+    "move_down": "Sposta in basso",
+    "move_up": "Sposta in alto",
+    "move_right": "Sposta a destra",
+    "open_bookmark": "Apri segnalibro",
+    "clear_focus": "Cancella focus / esci dalla modifica di massa",
+    "toggle_favorite": "Attiva/disattiva preferito",
+    "toggle_archive": "Archivia / Ripristina",
+    "delete_bookmark": "Elimina segnalibro",
+    "toggle_selection": "Attiva/disattiva selezione",
+    "select_all": "Seleziona tutto",
+    "deselect_all": "Deseleziona tutto",
+    "show_help": "Mostra scorciatoie da tastiera",
+    "focus_search_alt": "Sposta focus sulla ricerca"
   }
 }

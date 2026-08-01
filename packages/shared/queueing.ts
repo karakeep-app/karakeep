@@ -31,6 +31,16 @@ export interface QueueOptions {
   keepFailedJobs: boolean;
 }
 
+export function queueOptionsEqual(
+  left: QueueOptions,
+  right: QueueOptions,
+): boolean {
+  return (
+    left.defaultJobArgs.numRetries === right.defaultJobArgs.numRetries &&
+    left.keepFailedJobs === right.keepFailedJobs
+  );
+}
+
 export interface DequeuedJob<T> {
   id: string;
   data: T;

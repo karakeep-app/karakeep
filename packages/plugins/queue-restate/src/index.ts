@@ -12,6 +12,7 @@ import type {
   RunnerOptions,
 } from "@karakeep/shared/queueing";
 import logger from "@karakeep/shared/logger";
+import { queueOptionsEqual } from "@karakeep/shared/queueing";
 
 import { envConfig } from "./env";
 import { idProvider } from "./idProvider";
@@ -173,8 +174,12 @@ class RestateQueueClient implements QueueClient {
   }
 
   createQueue<T>(name: string, opts: QueueOptions): Queue<T> {
-    if (this.queues.has(name)) {
-      throw new Error(`Queue ${name} already exists`);
+    const existing = this.queues.get(name);
+    if (existing) {
+      if (!queueOptionsEqual(existing.opts, opts)) {
+        throw new Error(`Queue ${name} already exists with different options`);
+      }
+      return existing as RestateQueueWrapper<T>;
     }
     const wrapper = new RestateQueueWrapper<T>(name, this.client, opts);
     this.queues.set(name, wrapper);

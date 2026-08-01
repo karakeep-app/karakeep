@@ -19,7 +19,6 @@ import {
   Link,
   List,
   ListMinus,
-  Pencil,
   RotateCw,
   Trash2,
   X,
@@ -242,13 +241,6 @@ export default function BulkBookmarksAction() {
       action: () => setIsBulkEditEnabled(false),
       alwaysEnable: true,
       hidden: !isBulkEditEnabled,
-    },
-    {
-      name: t("actions.bulk_edit"),
-      icon: <Pencil size={18} />,
-      action: () => setIsBulkEditEnabled(true),
-      alwaysEnable: true,
-      hidden: isBulkEditEnabled,
     },
   ];
 

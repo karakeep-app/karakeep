@@ -12,12 +12,16 @@ import {
 import Slider from "@react-native-community/slider";
 import Constants from "expo-constants";
 import { Link } from "expo-router";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { useServerVersion } from "@/lib/hooks";
+import {
+  getOfflineLibraryScope,
+  useOfflineLibrary,
+} from "@/lib/offlineLibrary";
 import { useSession } from "@/lib/session";
 import useAppSettings from "@/lib/settings";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -41,6 +45,7 @@ export default function Settings() {
     isLoading: isSettingsLoading,
   } = useAppSettings();
   const api = useTRPC();
+  const offlineLibrary = useOfflineLibrary(getOfflineLibraryScope(settings));
 
   const [imageQuality, setImageQuality] = useState<number | null>(null);
 
@@ -237,6 +242,20 @@ export default function Settings() {
               });
             }}
           />
+        </View>
+        <Divider orientation="horizontal" className="mx-6 my-1" />
+        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
+          <Link asChild href="/dashboard/settings/offline" className="flex-1">
+            <Pressable className="flex flex-row items-center">
+              <Text className="mr-2 flex-1" numberOfLines={1}>
+                Offline content
+              </Text>
+              <Text className="mr-1 text-muted-foreground">
+                {offlineLibrary.length}
+              </Text>
+              <ChevronRight />
+            </Pressable>
+          </Link>
         </View>
       </View>
 

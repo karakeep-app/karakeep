@@ -98,6 +98,10 @@
           "users": {
             "label": "Administrator: uporabniki",
             "description": "Dostop do administrativnega upravljanja uporabnikov."
+          },
+          "subscriptions": {
+            "label": "Skrbnik: naročnine",
+            "description": "Upravljanje nivojev naročnin uporabnikov."
           }
         }
       }
@@ -411,7 +415,8 @@
         "processing": "Obdelava",
         "staging": "Priprava",
         "running": "Izvajanje",
-        "paused": "Začasno ustavljeno"
+        "paused": "Začasno ustavljeno",
+        "archived": "Arhivirano"
       },
       "badges": {
         "pending": "{{count}} čaka",
@@ -448,7 +453,8 @@
         "no_results": "Za ta filter ni bilo najdenih rezultatov.",
         "view_bookmark": "Prikaži zaznamek",
         "load_more": "Naloži več",
-        "no_title": "Brez naslova"
+        "no_title": "Brez naslova",
+        "archived_results": "Posamezni rezultati zaznamkov za arhivirane seje uvoza niso več shranjeni."
       },
       "finalize_dialog_title": "Dokončaj sejo uvoza",
       "finalize_dialog_description": "Želite dodati »{{name}}« v čakalno vrsto za obdelavo v ozadju? Začel se bo uvoz pripravljenih zaznamkov.",
@@ -574,6 +580,10 @@
         "admin_maintenance": {
           "title": "Administrativna vzdrževalna dela",
           "description": "Administrativno čiščenje in vzdrževanje sredstev"
+        },
+        "embeddings": {
+          "title": "Opravila vdelovanja",
+          "description": "Ustvarjanje vektorskih vdelav za zaznamke"
         }
       },
       "monitor_and_manage": "Spremljaj in upravljaj čakalne vrste opravil v ozadju ter sistemske naloge obdelave",
@@ -608,7 +618,10 @@
         "migrate_large_link_html_content": "Premakni veliko vdelano HTML-ovo kodo v sredstva.",
         "recrawl_pending_links_only": "Ponovno indeksiraj samo povezave, ki čakajo na obdelavo",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Zgolj za zaznamke, ki čakajo na obdelavo, ponovno ustvari oznake, ustvarjene z umetno inteligenco",
-        "regenerate_ai_summaries_for_pending_bookmarks_only": "Zgolj za zaznamke, ki čakajo na obdelavo, ponovno ustvari povzetke, ustvarjene z umetno inteligenco"
+        "regenerate_ai_summaries_for_pending_bookmarks_only": "Zgolj za zaznamke, ki čakajo na obdelavo, ponovno ustvari povzetke, ustvarjene z umetno inteligenco",
+        "regenerate_embeddings_for_pending_bookmarks_only": "Ponovno ustvari vdelave samo za čakajoče zaznamke",
+        "regenerate_embeddings_for_failed_bookmarks_only": "Ponovno ustvari vdelave samo za neuspešne zaznamke",
+        "regenerate_embeddings_for_all_bookmarks": "Ponovno ustvari vdelave za vse zaznamke"
       }
     },
     "admin_settings": "Administratorske nastavitve",
@@ -634,7 +647,8 @@
         "not_configured": "Ni konfigurirano",
         "connected": "Povezano",
         "disconnected": "Odklopljeno"
-      }
+      },
+      "vector_store": "Vektorska shramba"
     },
     "admin_tools": {
       "admin_tools": "Admin orodja",
@@ -670,7 +684,10 @@
       "retag_queued": "Ponovno označevanje je bilo dodano v čakalno vrsto",
       "resummarize_queued": "Ponovno povzemanje je bilo dodano v čakalno vrsto",
       "view": "Poglej",
-      "fetch_error": "Napaka pri pridobivanju zaznamka"
+      "fetch_error": "Napaka pri pridobivanju zaznamka",
+      "embedding_status": "Stanje vdelovanja",
+      "regenerate_embedding": "Ponovno ustvari vdelavo",
+      "regenerate_embedding_queued": "Opravilo za ponovno ustvarjanje vdelave je bilo dodano v čakalno vrsto"
     }
   },
   "search": {
@@ -720,7 +737,18 @@
     "lists": "Seznami",
     "feeds": "Viri",
     "is_from_source": "Vir je",
-    "is_not_from_source": "Vir ni"
+    "is_not_from_source": "Vir ni",
+    "mode_label": "Način iskanja",
+    "mode_label_description": "Izberite, kako Karakeep išče ujemajoče se zaznamke.",
+    "mode_keyword": "Ključna beseda",
+    "mode_keyword_description": "Iskanje natančnih besed v naslovih, vsebini, URL-jih in opombah. Skoraj trenutno.",
+    "mode_hybrid": "Hibridno",
+    "mode_hybrid_description": "Združevanje natančnih ujemanj s sorodnimi idejami za najboljše ravnovesje. Počasneje od iskanja po ključnih besedah.",
+    "mode_semantic": "Semantično",
+    "mode_semantic_description": "Iskanje konceptualno podobnih zaznamkov, tudi brez skupnih besed. Počasneje od iskanja po ključnih besedah.",
+    "keyword_placeholder": "Iskanje po naslovih, besedilu, URL-jih in oznakah…",
+    "hybrid_placeholder": "Iskanje po besedah ali pomenu…",
+    "semantic_placeholder": "Opišite, česa se spomnite…"
   },
   "tags": {
     "your_tags_info": "Oznake, ki si jih dodelil/a vsaj enkrat",
@@ -1051,7 +1079,8 @@
   "dialogs": {
     "bookmarks": {
       "delete_confirmation_description": "Si prepričan, sa želiš izbrisati ta zaznamek?",
-      "delete_confirmation_title": "Izbriši zaznamek?"
+      "delete_confirmation_title": "Izbriši zaznamek?",
+      "bulk_delete_confirmation_description": "Ali ste prepričani, da želite izbrisati {{count}} zaznamkov?"
     }
   },
   "cleanups": {
@@ -1166,5 +1195,28 @@
     "download": "Prenesi",
     "close": "Zapri",
     "generating": "Ustvarjam ..."
+  },
+  "keyboard_shortcuts": {
+    "title": "Bližnjice na tipkovnici",
+    "sections": {
+      "navigation": "Navigacija",
+      "actions": "Dejanja",
+      "selection": "Izbira",
+      "other": "Drugo"
+    },
+    "move_left": "Premik levo",
+    "move_down": "Premik navzdol",
+    "move_up": "Premik navzgor",
+    "move_right": "Premik desno",
+    "open_bookmark": "Odpri zaznamek",
+    "clear_focus": "Počisti fokus / izhod iz množičnega urejanja",
+    "toggle_favorite": "Preklopi med priljubljenimi",
+    "toggle_archive": "Arhiviraj / odarhiviraj",
+    "delete_bookmark": "Izbriši zaznamek",
+    "toggle_selection": "Preklopi izbiro",
+    "select_all": "Izberi vse",
+    "deselect_all": "Počisti vso izbiro",
+    "show_help": "Prikaži bližnjice na tipkovnici",
+    "focus_search_alt": "Fokus na iskanje"
   }
 }

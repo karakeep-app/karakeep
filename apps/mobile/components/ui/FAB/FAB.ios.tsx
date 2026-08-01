@@ -7,6 +7,7 @@ import { isIOS26, isIPad } from "@/lib/ios";
 
 const shouldUseGlass = isIOS26 && isGlassEffectAPIAvailable();
 const SIZE = 62;
+const TAB_BAR_GAP = 8;
 
 export function FAB({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
@@ -16,7 +17,7 @@ export function FAB({ children }: { children: ReactNode }) {
       style={[
         styles.container,
         {
-          bottom: insets.bottom + (isIPad ? 0 : isIOS26 ? 57 : 60),
+          bottom: insets.bottom + (isIPad ? 0 : TAB_BAR_GAP),
           right: isIOS26 ? 21 : 16,
         },
       ]}

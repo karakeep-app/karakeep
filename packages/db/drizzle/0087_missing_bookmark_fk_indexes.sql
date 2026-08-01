@@ -1,0 +1,2 @@
+CREATE INDEX `importStaging_resultBookmarkId_idx` ON `importStagingBookmarks` (`resultBookmarkId`);--> statement-breakpoint
+CREATE INDEX `rssFeedImports_bookmarkId_idx` ON `rssFeedImports` (`bookmarkId`);

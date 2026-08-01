@@ -2,7 +2,7 @@ import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
-import { useIsFocused } from "@react-navigation/core";
+import { useIsFocused } from "expo-router";
 import { Search } from "lucide-react-native";
 
 export default function AndroidSearchBar({

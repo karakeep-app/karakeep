@@ -91,12 +91,18 @@ export default function SubscriptionSettings() {
     }).format(date);
   };
 
-  const getStatusBadge = (status: "free" | "paid") => {
+  const getStatusBadge = (status: "free" | "custom" | "paid") => {
     switch (status) {
       case "paid":
         return (
           <Badge variant="default" className="bg-green-500">
             {t("settings.subscription.paid")}
+          </Badge>
+        );
+      case "custom":
+        return (
+          <Badge variant="secondary">
+            {subscriptionStatus?.manualTierName}
           </Badge>
         );
       case "free":

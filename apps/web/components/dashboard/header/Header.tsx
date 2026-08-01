@@ -15,7 +15,7 @@ export default async function Header() {
   return (
     <header className="sticky left-0 right-0 top-0 z-50 flex h-16 items-center justify-between overflow-x-auto overflow-y-hidden bg-background p-4 shadow">
       <div className="hidden items-center sm:flex">
-        <Link href={"/dashboard/bookmarks"} className="w-56">
+        <Link href={"/dashboard/bookmarks"} className="w-56 xl:w-[17rem]">
           <KarakeepLogo height={38} />
         </Link>
       </div>
