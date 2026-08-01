@@ -6,11 +6,11 @@
 //
 // Integration follows autoconsent's headless guide (docs/puppeteer.md): the
 // bundled content script is injected via addInitScript and talks to Node over
-// an exposeFunction bridge; Node replies with the config + rule bundle.
+// an exposed binding; Node replies with the config + rule bundle.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
-import type { Page } from "playwright";
+import type { Frame, Page } from "playwright";
 import { abortRaceResolve, raceWith, timeoutRace } from "utils";
 import { z } from "zod";
 
@@ -144,8 +144,8 @@ export async function installAutoconsent(
     resolveDone = resolve;
   });
 
-  const sendToPage = (message: unknown) =>
-    page
+  const sendToFrame = (frame: Frame, message: unknown) =>
+    frame
       .evaluate((msg) => {
         const receive = globalThis.autoconsentReceiveMessage;
         return receive ? receive(msg) : undefined;
@@ -155,9 +155,9 @@ export async function installAutoconsent(
       });
 
   try {
-    await page.exposeFunction(
+    await page.exposeBinding(
       "autoconsentSendMessage",
-      async (raw: unknown): Promise<unknown> => {
+      async ({ frame }, raw: unknown): Promise<unknown> => {
         const parsed = autoconsentMessageSchema.safeParse(raw);
         if (!parsed.success) {
           return undefined;
@@ -165,7 +165,7 @@ export async function installAutoconsent(
         const message = parsed.data;
         switch (message.type) {
           case "init":
-            return sendToPage({
+            return sendToFrame(frame, {
               type: "initResp",
               config: autoconsentConfig,
               rules, // must include rules or no CMPs will be detected
@@ -174,8 +174,8 @@ export async function installAutoconsent(
             if (typeof message.code !== "string") {
               return undefined;
             }
-            const result = await page.evaluate(message.code).catch(() => null);
-            return sendToPage({
+            const result = await frame.evaluate(message.code).catch(() => null);
+            return sendToFrame(frame, {
               type: "evalResp",
               id: message.id,
               result,
