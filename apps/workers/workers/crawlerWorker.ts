@@ -49,6 +49,7 @@ import {
   crawlAndParseUrl,
   handleAsAssetBookmark,
 } from "./crawler/crawlAndParse";
+import { handleInstagramBookmark, isInstagramUrl } from "./crawler/instagram";
 import {
   getContentTypeAndMetadata,
   loadStoredProbeMetadata,
@@ -376,6 +377,21 @@ async function runCrawler(
   logger.info(
     `[Crawler][${jobId}] Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`,
   );
+
+  // Instagram posts hide behind a login wall, so a normal browser crawl yields
+  // an empty shell. When enabled, extract caption + transcript via yt-dlp
+  // instead, then run the same downstream jobs (inference, search, video).
+  if (serverConfig.crawler.instagramEnabled && isInstagramUrl(url)) {
+    await handleInstagramBookmark({
+      url,
+      jobId,
+      bookmarkId,
+      runProxy,
+      abortSignal: job.abortSignal,
+    });
+    await enqueuePostCrawlJobs(job, bookmarkId, userId, url);
+    return { status: "completed" };
+  }
 
   if (precrawledArchiveAssetId) {
     logger.info(
