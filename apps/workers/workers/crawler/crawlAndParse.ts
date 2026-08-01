@@ -34,6 +34,7 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
 
 import type { ParseSubprocessOutput } from "../utils/parseHtmlSubprocessIpc";
 import {
@@ -273,8 +274,11 @@ export async function crawlAndParseUrl(
         );
       }
 
-      const { metadata: renderMeta, readableContent: parsedReadableContent } =
-        await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
+      const {
+        metadata: renderMeta,
+        readableContent: parsedReadableContent,
+        readerViewAssessment,
+      } = await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
       abortSignal.throwIfAborted();
 
       // The probe metadata extraction has been running alongside the crawl;
@@ -287,9 +291,12 @@ export async function crawlAndParseUrl(
       // code, and some bot walls serve their challenge page with a 200; in
       // both cases don't let that page's metadata override clean values from
       // the preflight probe.
+      const renderIsChallengePage = isLikelyChallengePage({
+        title: renderMeta.title,
+        htmlContent,
+      });
       const renderBlocked =
-        shouldRetryCrawlStatusCode(statusCode) ||
-        isLikelyChallengePage({ title: renderMeta.title, htmlContent });
+        shouldRetryCrawlStatusCode(statusCode) || renderIsChallengePage;
       addLogFields<"crawlerWorker.run">({
         "crawler.render_blocked": renderBlocked,
       });
@@ -299,6 +306,12 @@ export async function crawlAndParseUrl(
         );
       }
       const meta = resolveMetadata(renderMeta, probeMetadata, renderBlocked);
+      const readerViewReasons: ZReaderViewReason[] | null = readerViewAssessment
+        ? renderIsChallengePage &&
+          !readerViewAssessment.reasons.includes("challenge_page")
+          ? [...readerViewAssessment.reasons, "challenge_page"]
+          : readerViewAssessment.reasons
+        : null;
 
       const parseDate = (date: string | null | undefined) => {
         if (!date) {
@@ -390,6 +403,11 @@ export async function crawlAndParseUrl(
               htmlContentAssetInfo.result === "stored"
                 ? htmlContentAssetInfo.assetId
                 : null,
+            readerViewStatus: readerViewAssessment?.status ?? null,
+            readerViewScore: readerViewAssessment?.score ?? null,
+            readerViewReasons,
+            readerViewClassifierVersion:
+              readerViewAssessment?.classifierVersion ?? null,
           })
           .where(eq(bookmarkLinks.id, bookmarkId));
 

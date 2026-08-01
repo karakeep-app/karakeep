@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  zReaderViewReasonSchema,
+  zReaderViewStatusSchema,
+} from "@karakeep/shared/types/bookmarks";
+
 export const parseSubprocessInputSchema = z.object({
   htmlContent: z.string(),
   url: z.string(),
@@ -23,6 +28,14 @@ export const parseSubprocessMetadataSchema = z.looseObject({
 export const parseSubprocessOutputSchema = z.object({
   metadata: parseSubprocessMetadataSchema,
   readableContent: z.object({ content: z.string() }).nullable(),
+  readerViewAssessment: z
+    .object({
+      status: zReaderViewStatusSchema,
+      score: z.number().int().min(0).max(100),
+      reasons: z.array(zReaderViewReasonSchema),
+      classifierVersion: z.number().int().positive(),
+    })
+    .nullable(),
 });
 
 export const parseSubprocessErrorSchema = z.object({

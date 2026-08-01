@@ -16,6 +16,7 @@ import {
 import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
 
 function createdAtField(colName = "createdAt") {
   return integer(colName, { mode: "timestamp" })
@@ -298,6 +299,14 @@ export const bookmarkLinks = sqliteTable(
     favicon: text("favicon"),
     htmlContent: text("htmlContent"),
     contentAssetId: text("contentAssetId"),
+    readerViewStatus: text("readerViewStatus", {
+      enum: ["readable", "not_readable", "uncertain", "unavailable"],
+    }),
+    readerViewScore: integer("readerViewScore"),
+    readerViewReasons: text("readerViewReasons", { mode: "json" }).$type<
+      ZReaderViewReason[]
+    >(),
+    readerViewClassifierVersion: integer("readerViewClassifierVersion"),
     crawledAt: integer("crawledAt", { mode: "timestamp" }),
     crawlStatus: text("crawlStatus", {
       enum: ["pending", "failure", "success"],

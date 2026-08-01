@@ -1069,6 +1069,9 @@
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "page_overview": "Page Overview",
+    "try_reader_view": "Try Reader View",
+    "archived_page": "Archived Page",
     "tabs": {
       "content": "Content",
       "details": "Details"

@@ -47,6 +47,51 @@ export type ZBookmarkReadableContent = z.infer<
   typeof zBookmarkReadableContentSchema
 >;
 
+export const zReaderViewStatusSchema = z.enum([
+  "readable",
+  "not_readable",
+  "uncertain",
+  "unavailable",
+]);
+export type ZReaderViewStatus = z.infer<typeof zReaderViewStatusSchema>;
+
+export const zReaderViewReasonSchema = z.enum([
+  "article_metadata",
+  "non_article_metadata",
+  "article_element",
+  "very_short_content",
+  "short_content",
+  "substantial_content_length",
+  "useful_content_length",
+  "no_substantive_blocks",
+  "single_substantive_block",
+  "multiple_substantive_blocks",
+  "some_substantive_blocks",
+  "long_preformatted_content",
+  "very_high_link_density",
+  "high_link_density",
+  "elevated_link_density",
+  "low_link_density",
+  "control_heavy_page",
+  "link_collection",
+  "search_url",
+  "root_page",
+  "challenge_page",
+  "sentence_like_text",
+  "low_sentence_density",
+  "probably_readerable",
+  "probably_not_readerable",
+  "no_extracted_content",
+]);
+export type ZReaderViewReason = z.infer<typeof zReaderViewReasonSchema>;
+
+export const zPreferredLinkPreviewSchema = z.enum([
+  "reader_view",
+  "screenshot",
+  "overview",
+]);
+export type ZPreferredLinkPreview = z.infer<typeof zPreferredLinkPreviewSchema>;
+
 export const zSortOrder = z.enum(["asc", "desc", "relevance"]);
 export type ZSortOrder = z.infer<typeof zSortOrder>;
 
@@ -87,6 +132,9 @@ export const zBookmarkedLinkSchema = z.object({
   favicon: z.string().nullish(),
   htmlContent: z.string().nullish(),
   contentAssetId: z.string().nullish(),
+  readerViewStatus: zReaderViewStatusSchema.nullish(),
+  readerViewScore: z.number().int().min(0).max(100).nullish(),
+  preferredPreview: zPreferredLinkPreviewSchema.nullish(),
   crawledAt: z.date().nullish(),
   crawlStatus: z.enum(["success", "failure", "pending"]).nullish(),
   author: z.string().nullish(),

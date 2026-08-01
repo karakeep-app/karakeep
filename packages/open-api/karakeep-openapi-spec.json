@@ -291,6 +291,33 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "readerViewStatus": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "readable",
+                      "not_readable",
+                      "uncertain",
+                      "unavailable",
+                      null
+                    ]
+                  },
+                  "readerViewScore": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "preferredPreview": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "reader_view",
+                      "screenshot",
+                      "overview",
+                      null
+                    ]
+                  },
                   "crawledAt": {
                     "type": "string",
                     "nullable": true,

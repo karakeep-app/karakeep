@@ -59,6 +59,7 @@ import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
+import { getPreferredLinkPreview } from "../lib/linkPreview";
 import { Asset } from "./assets";
 import { List } from "./lists";
 
@@ -195,6 +196,16 @@ export class Bookmark extends BareBookmark {
         htmlContent: includeContent
           ? await Bookmark.getBookmarkHtmlContent(link, bookmark.userId)
           : null,
+        readerViewStatus: link.readerViewStatus,
+        readerViewScore: link.readerViewScore,
+        preferredPreview: getPreferredLinkPreview({
+          readerViewStatus: link.readerViewStatus,
+          readerViewReasons: link.readerViewReasons,
+          crawlStatusCode: link.crawlStatusCode,
+          hasScreenshot: assets.some(
+            (asset) => asset.assetType === AssetTypes.LINK_SCREENSHOT,
+          ),
+        }),
         crawledAt: link.crawledAt,
         crawlStatus: link.crawlStatus,
         author: link.author,
@@ -606,6 +617,15 @@ export class Bookmark extends BareBookmark {
                   : row.bookmarkLinks.htmlContent
                 : null,
               contentAssetId: row.bookmarkLinks.contentAssetId,
+              readerViewStatus: row.bookmarkLinks.readerViewStatus,
+              readerViewScore: row.bookmarkLinks.readerViewScore,
+              preferredPreview: getPreferredLinkPreview({
+                readerViewStatus: row.bookmarkLinks.readerViewStatus,
+                readerViewReasons: row.bookmarkLinks.readerViewReasons,
+                crawlStatusCode: row.bookmarkLinks.crawlStatusCode,
+                hasScreenshot:
+                  row.assets?.assetType === AssetTypes.LINK_SCREENSHOT,
+              }),
               crawlStatus: row.bookmarkLinks.crawlStatus,
               crawledAt: row.bookmarkLinks.crawledAt,
               author: row.bookmarkLinks.author,
@@ -667,8 +687,18 @@ export class Bookmark extends BareBookmark {
           if (acc[bookmarkId].content.type == BookmarkTypes.LINK) {
             const content = acc[bookmarkId].content;
             invariant(content.type == BookmarkTypes.LINK);
+            invariant(
+              row.bookmarkLinks,
+              "a link bookmark must have a corresponding bookmarkLinks row",
+            );
             if (row.assets.assetType == AssetTypes.LINK_SCREENSHOT) {
               content.screenshotAssetId = row.assets.id;
+              content.preferredPreview = getPreferredLinkPreview({
+                readerViewStatus: row.bookmarkLinks.readerViewStatus,
+                readerViewReasons: row.bookmarkLinks.readerViewReasons,
+                crawlStatusCode: row.bookmarkLinks.crawlStatusCode,
+                hasScreenshot: true,
+              });
             }
             if (row.assets.assetType == AssetTypes.LINK_PDF) {
               content.pdfAssetId = row.assets.id;

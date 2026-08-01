@@ -57,6 +57,7 @@ export async function runParseSubprocess(
 ): Promise<{
   metadata: ParseSubprocessOutput["metadata"];
   readableContent: { content: string } | null;
+  readerViewAssessment: ParseSubprocessOutput["readerViewAssessment"];
 }> {
   return await withSpan(
     tracer,
@@ -143,6 +144,7 @@ export async function runParseSubprocess(
       return {
         metadata: output.metadata,
         readableContent: output.readableContent,
+        readerViewAssessment: output.readerViewAssessment,
       };
     },
   );
