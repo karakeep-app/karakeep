@@ -18,8 +18,6 @@ const ARTICLE_SCHEMA_PATTERN =
   /"@type"\s*:\s*(?:\[[^\]]*)?"(?:Article|NewsArticle|BlogPosting|TechArticle|ScholarlyArticle|Report)"/i;
 const NON_ARTICLE_SCHEMA_PATTERN =
   /"@type"\s*:\s*(?:\[[^\]]*)?"(?:Product|WebApplication|SearchResultsPage|ItemList)"/i;
-const CHALLENGE_PATTERN =
-  /(?:verify (?:that )?you are human|checking your browser|captcha|access denied|enable javascript and cookies|security challenge)/i;
 const SENTENCE_END_PATTERN = /(?:[.!?](?:\s|$)|[。！？])/gu;
 
 function normalizedText(document: Document): string {
@@ -112,7 +110,6 @@ export function assessReaderView(
 ): ReaderViewAssessment {
   let score = 50;
   const reasons: ZReaderViewReason[] = [];
-  const sourceText = normalizedText(sourceDocument);
   const extractedText = normalizedText(extractedDocument);
   const textLength = extractedText.length;
   const articleMetadata = hasArticleMetadata(sourceDocument);
@@ -214,11 +211,6 @@ export function assessReaderView(
   if (rootPage) {
     score -= 10;
     reasons.push("root_page");
-  }
-
-  if (CHALLENGE_PATTERN.test(sourceText.slice(0, 5_000))) {
-    score -= 40;
-    reasons.push("challenge_page");
   }
 
   const sentenceEndCount =
