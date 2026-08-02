@@ -14,6 +14,14 @@ A user-friendly Raycast extension that seamlessly integrates with Karakeep, brin
 
 Get it [here](https://www.raycast.com/luolei/karakeep).
 
+### Alfred Workflow (inline search)
+
+_By [@Kyzcreig](https://github.com/Kyzcreig)_
+
+An Alfred workflow for inline bookmark search — type `kk <query>` and see live results (title, tags, URL) directly in Alfred, using Karakeep's full query language (`is:fav`, `#tag`, `list:`, `age:`). Enter opens the original URL; Cmd-Enter opens the bookmark in Karakeep. Responses are cached per-query so typing stays lag-free.
+
+Get it [here](https://github.com/Kyzcreig/alfred-karakeep).
+
 ### Alfred Workflow
 
 _By [@yinan-c](https://github.com/yinan-c)_
