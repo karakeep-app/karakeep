@@ -1,5 +1,9 @@
 import type { ZTagStyle } from "./types/users";
-import { getCuratedTagsPrompt, getTagStylePrompt } from "./utils/tag";
+import {
+  getCuratedTagsPrompt,
+  getPotentialRelevantTagsPrompt,
+  getTagStylePrompt,
+} from "./utils/tag";
 
 /**
  * Client-safe rendering of external prompt templates (no fs access). Used by
@@ -44,12 +48,16 @@ export function renderTextTaggingTemplate(
   content: string,
   tagStyle: ZTagStyle,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ): string {
   return render(template, {
     lang,
     content,
     tagStyle: getTagStylePrompt(tagStyle),
     curatedTags: getCuratedTagsPrompt(curatedTags),
+    potentialRelevantTags: getPotentialRelevantTagsPrompt(
+      potentialRelevantTags,
+    ),
     customPrompts: renderCustomPrompts(customPrompts),
   });
 }
@@ -60,11 +68,15 @@ export function renderImageTaggingTemplate(
   customPrompts: string[],
   tagStyle: ZTagStyle,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ): string {
   return render(template, {
     lang,
     tagStyle: getTagStylePrompt(tagStyle),
     curatedTags: getCuratedTagsPrompt(curatedTags),
+    potentialRelevantTags: getPotentialRelevantTagsPrompt(
+      potentialRelevantTags,
+    ),
     customPrompts: renderCustomPrompts(customPrompts),
   });
 }

@@ -86,6 +86,73 @@ describe("prompts.external", () => {
     expect(prompt).toContain("ONLY use tags from this predefined list: [tech]");
   });
 
+  it("forwards potentially relevant tags to the built-in prompts", () => {
+    expect(
+      externalPrompts.constructTextTaggingPrompt(
+        "english",
+        [],
+        "some content",
+        "as-generated",
+        undefined,
+        ["rust", "compilers"],
+      ),
+    ).toEqual(
+      defaultPrompts.constructTextTaggingPrompt(
+        "english",
+        [],
+        "some content",
+        "as-generated",
+        undefined,
+        ["rust", "compilers"],
+      ),
+    );
+    expect(
+      externalPrompts.buildImagePrompt(
+        "english",
+        [],
+        "as-generated",
+        undefined,
+        ["rust"],
+      ),
+    ).toContain("rust");
+  });
+
+  it("substitutes potentially relevant tags in override templates", () => {
+    fs.writeFileSync(
+      path.join(dir, "text-tagging.txt"),
+      "{{potentialRelevantTags}}\n{{content}}",
+    );
+    fs.writeFileSync(
+      path.join(dir, "image-tagging.txt"),
+      "{{potentialRelevantTags}}",
+    );
+    expect(
+      externalPrompts.constructTextTaggingPrompt(
+        "english",
+        [],
+        "abc",
+        "as-generated",
+        undefined,
+        ["rust", "compilers"],
+      ),
+    ).toEqual(
+      "- Similar bookmarks were tagged with the following tags (reuse if possible, ignore if irrelevant): rust, compilers\nabc",
+    );
+    expect(
+      externalPrompts.buildImagePrompt(
+        "english",
+        [],
+        "as-generated",
+        undefined,
+        ["rust"],
+      ),
+    ).toContain("rust");
+    // Absent suggestions render as nothing, not as a dangling instruction.
+    expect(
+      externalPrompts.buildImagePrompt("english", [], "as-generated"),
+    ).toEqual("");
+  });
+
   it("uses the ocr override verbatim", () => {
     fs.writeFileSync(path.join(dir, "ocr.txt"), "Extract the text.");
     expect(externalPrompts.buildOCRPrompt()).toEqual("Extract the text.");
@@ -124,6 +191,32 @@ describe("prompts.external", () => {
     });
   });
 
+  it("falls back when the override path is a directory", () => {
+    fs.mkdirSync(path.join(dir, "ocr.txt"));
+    expect(externalPrompts.buildOCRPrompt()).toEqual(
+      defaultPrompts.buildOCRPrompt(),
+    );
+  });
+
+  it("falls back when an override file cannot be read", () => {
+    const file = path.join(dir, "ocr.txt");
+    fs.writeFileSync(file, "override");
+    fs.chmodSync(file, 0o000);
+    // Root ignores file permissions, so only assert if the read really fails.
+    let readable = true;
+    try {
+      fs.readFileSync(file, "utf8");
+    } catch {
+      readable = false;
+    }
+    if (!readable) {
+      expect(externalPrompts.buildOCRPrompt()).toEqual(
+        defaultPrompts.buildOCRPrompt(),
+      );
+    }
+    fs.chmodSync(file, 0o600);
+  });
+
   it("falls back again when an override file is removed", () => {
     const file = path.join(dir, "ocr.txt");
     fs.writeFileSync(file, "override");
@@ -132,5 +225,90 @@ describe("prompts.external", () => {
     expect(externalPrompts.buildOCRPrompt()).toEqual(
       defaultPrompts.buildOCRPrompt(),
     );
+  });
+
+  // The templates in prompt-templates/ are documented as reference copies of
+  // the built-in prompts, so they have to be refreshed whenever a built-in
+  // prompt changes. Rendering them must reproduce the built-ins exactly
+  // (modulo the trailing newline every text file ends with).
+  describe("the reference templates match the built-in prompts", () => {
+    const lang = "english";
+    const customPrompts = ["rule one", "rule two"];
+    const curatedTags = ["tech", "news"];
+    const potentialRelevantTags = ["rust", "compilers"];
+    const tagStyle = "lowercase-spaces" as const;
+    const content = "some content";
+
+    beforeEach(() => {
+      process.env.PROMPTS_DIR = path.join(__dirname, "prompt-templates");
+    });
+
+    it("text-tagging", () => {
+      expect(
+        externalPrompts
+          .constructTextTaggingPrompt(
+            lang,
+            customPrompts,
+            content,
+            tagStyle,
+            curatedTags,
+            potentialRelevantTags,
+          )
+          .trimEnd(),
+      ).toEqual(
+        defaultPrompts
+          .constructTextTaggingPrompt(
+            lang,
+            customPrompts,
+            content,
+            tagStyle,
+            curatedTags,
+            potentialRelevantTags,
+          )
+          .trimEnd(),
+      );
+    });
+
+    it("image-tagging", () => {
+      expect(
+        externalPrompts
+          .buildImagePrompt(
+            lang,
+            customPrompts,
+            tagStyle,
+            curatedTags,
+            potentialRelevantTags,
+          )
+          .trimEnd(),
+      ).toEqual(
+        defaultPrompts
+          .buildImagePrompt(
+            lang,
+            customPrompts,
+            tagStyle,
+            curatedTags,
+            potentialRelevantTags,
+          )
+          .trimEnd(),
+      );
+    });
+
+    it("summary", () => {
+      expect(
+        externalPrompts
+          .constructSummaryPrompt(lang, customPrompts, content)
+          .trimEnd(),
+      ).toEqual(
+        defaultPrompts
+          .constructSummaryPrompt(lang, customPrompts, content)
+          .trimEnd(),
+      );
+    });
+
+    it("ocr", () => {
+      expect(externalPrompts.buildOCRPrompt().trimEnd()).toEqual(
+        defaultPrompts.buildOCRPrompt().trimEnd(),
+      );
+    });
   });
 });

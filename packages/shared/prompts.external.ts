@@ -51,11 +51,27 @@ export function loadTemplate(name: PromptTemplateName): string | null {
   } catch {
     return null;
   }
+  if (!stat.isFile()) {
+    logger.error(
+      `[prompts] Ignoring external prompt template at ${file}: not a regular file. Falling back to the built-in prompt.`,
+    );
+    return null;
+  }
   const cached = templateCache.get(file);
   if (cached && cached.mtimeMs === stat.mtimeMs) {
     return cached.text;
   }
-  const text = fs.readFileSync(file, "utf8");
+  let text: string;
+  try {
+    text = fs.readFileSync(file, "utf8");
+  } catch (e) {
+    // Unreadable (permissions) or removed between the stat and the read.
+    // Degrade to the built-in prompt rather than failing the whole job.
+    logger.error(
+      `[prompts] Failed to read external prompt template at ${file}: ${String(e)}. Falling back to the built-in prompt.`,
+    );
+    return null;
+  }
   templateCache.set(file, { mtimeMs: stat.mtimeMs, text });
   logger.info(`[prompts] Loaded external prompt template from ${file}`);
   return text;
@@ -79,6 +95,7 @@ export function buildImagePrompt(
   customPrompts: string[],
   tagStyle: ZTagStyle,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ) {
   const template = loadTemplate("image-tagging");
   if (template === null) {
@@ -87,6 +104,7 @@ export function buildImagePrompt(
       customPrompts,
       tagStyle,
       curatedTags,
+      potentialRelevantTags,
     );
   }
   return renderImageTaggingTemplate(
@@ -95,6 +113,7 @@ export function buildImagePrompt(
     customPrompts,
     tagStyle,
     curatedTags,
+    potentialRelevantTags,
   );
 }
 
@@ -104,6 +123,7 @@ export function constructTextTaggingPrompt(
   content: string,
   tagStyle: ZTagStyle,
   curatedTags?: string[],
+  potentialRelevantTags?: string[],
 ): string {
   const template = loadTemplate("text-tagging");
   if (template === null) {
@@ -113,6 +133,7 @@ export function constructTextTaggingPrompt(
       content,
       tagStyle,
       curatedTags,
+      potentialRelevantTags,
     );
   }
   return renderTextTaggingTemplate(
@@ -122,6 +143,7 @@ export function constructTextTaggingPrompt(
     content,
     tagStyle,
     curatedTags,
+    potentialRelevantTags,
   );
 }
 

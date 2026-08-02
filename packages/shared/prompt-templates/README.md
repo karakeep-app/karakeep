@@ -43,8 +43,8 @@ restart needed.
 
 | File                | Used for                       | Placeholders |
 | ------------------- | ------------------------------ | ------------ |
-| `text-tagging.txt`  | Tag suggestions for text/links | `{{lang}}`, `{{content}}`, `{{tagStyle}}`, `{{curatedTags}}`, `{{customPrompts}}` |
-| `image-tagging.txt` | Tag suggestions for images     | `{{lang}}`, `{{tagStyle}}`, `{{curatedTags}}`, `{{customPrompts}}` |
+| `text-tagging.txt`  | Tag suggestions for text/links | `{{lang}}`, `{{content}}`, `{{tagStyle}}`, `{{curatedTags}}`, `{{potentialRelevantTags}}`, `{{customPrompts}}` |
+| `image-tagging.txt` | Tag suggestions for images     | `{{lang}}`, `{{tagStyle}}`, `{{curatedTags}}`, `{{potentialRelevantTags}}`, `{{customPrompts}}` |
 | `summary.txt`       | Bookmark summarization         | `{{lang}}`, `{{content}}`, `{{customPrompts}}` |
 | `ocr.txt`           | LLM-based OCR of images        | (none) |
 
@@ -57,6 +57,11 @@ Placeholder meanings:
   style (may be empty).
 - `{{curatedTags}}` — the rendered instruction line restricting tags to the
   user's curated list (may be empty).
+- `{{potentialRelevantTags}}` — the rendered instruction line suggesting tags
+  taken from bookmarks that are similar to this one (found via embeddings).
+  Empty when the feature is off or nothing similar was found. Omitting this
+  placeholder from a template silently disables the suggestions for that
+  prompt.
 - `{{customPrompts}}` — the user's custom prompts from the settings page,
   rendered as a `- ` bulleted list (may be empty).
 
