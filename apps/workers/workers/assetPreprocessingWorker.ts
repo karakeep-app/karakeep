@@ -27,7 +27,7 @@ import { newAssetId, readAsset, saveAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
-import { buildOCRPrompt } from "@karakeep/shared/prompts";
+import { buildOCRPrompt } from "@karakeep/shared/prompts.external";
 import {
   DequeuedJob,
   EnqueueOptions,
