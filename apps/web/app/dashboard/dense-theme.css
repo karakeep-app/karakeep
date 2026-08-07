@@ -10,7 +10,10 @@
   --k-surface-2: #111112;
   --k-border: #232427;
   --k-border-soft: #1a1b1d;
-  --k-accent: #7ee2b8;
+  /* Default accent per design review — violet, matching the reference
+     mockup (the doc's token table originally listed mint as default, but
+     the actual design intent, per the designer, is violet). */
+  --k-accent: #7c5dff;
   --k-accent-border: color-mix(in oklab, var(--k-accent) 34%, var(--k-bg));
   --k-accent-fg: #0d0d0e;
   --k-fg: #eceae7;
