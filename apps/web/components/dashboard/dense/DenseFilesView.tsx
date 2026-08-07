@@ -120,13 +120,13 @@ export default function DenseFilesView({
       {/* Capped so rows/cards don't stretch edge-to-edge into empty space
           on wide monitors — "fluid" per the design doc means it adapts to
           the window, not that it has no limit at all. */}
-      <div className="flex w-full max-w-[1600px] flex-col">
-        <div className="flex items-center gap-[14px] px-[22px] pb-[12px] pt-[15px]">
-          <div className="flex flex-col gap-[3px]">
-            <h1 className="text-[16px] font-semibold uppercase tracking-[0.06em] text-[#ddd9d4]">
+      <div className="flex w-full max-w-[1800px] flex-col">
+        <div className="flex items-center gap-[21px] px-[33px] pb-[18px] pt-[22px]">
+          <div className="flex flex-col gap-[5px]">
+            <h1 className="text-[24px] font-semibold uppercase tracking-[0.06em] text-[#ddd9d4]">
               {label}
             </h1>
-            <p className="font-k-mono text-k-fg-dim text-[11.5px]">
+            <p className="font-k-mono text-k-fg-dim text-[17px]">
               {bookmarks.length} item{bookmarks.length === 1 ? "" : "s"} ·{" "}
               {unsummarisedCount} unsummarised
               {mostRecentModified && (
@@ -135,14 +135,14 @@ export default function DenseFilesView({
             </p>
           </div>
 
-          <div className="ml-auto flex items-center gap-[10px]">
+          <div className="ml-auto flex items-center gap-[15px]">
             <Link
               href="/dashboard/search"
-              className="border-k-border bg-k-bg text-k-fg-dim hover:text-k-fg-muted flex items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
+              className="border-k-border bg-k-bg text-k-fg-dim hover:text-k-fg-muted flex items-center gap-3 rounded-[14px] border px-[18px] py-2 text-[19px]"
             >
-              <Search size={15} strokeWidth={1.75} />
+              <Search size={22} strokeWidth={1.75} />
               Search
-              <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">
+              <kbd className="font-k-mono text-k-fg-dim ml-1 text-[15px]">
                 ⌘K
               </kbd>
             </Link>
@@ -150,18 +150,18 @@ export default function DenseFilesView({
               type="button"
               aria-label="Add bookmark"
               onClick={() => setQuickAddOpen(true)}
-              className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border"
+              className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[33px] items-center justify-center rounded-[12px] border"
             >
-              <Plus size={20} strokeWidth={1.75} />
+              <Plus size={26} strokeWidth={1.75} />
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   aria-label="Sort"
-                  className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border"
+                  className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[33px] items-center justify-center rounded-[12px] border"
                 >
-                  <SlidersHorizontal size={20} strokeWidth={1.75} />
+                  <SlidersHorizontal size={26} strokeWidth={1.75} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -178,7 +178,7 @@ export default function DenseFilesView({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className="border-k-border bg-k-bg flex items-center gap-[3px] rounded-[8px] border p-[3px]">
+            <div className="border-k-border bg-k-bg flex items-center gap-[5px] rounded-[12px] border p-[5px]">
               <button
                 type="button"
                 aria-label="List view"
@@ -186,11 +186,11 @@ export default function DenseFilesView({
                 onClick={() => setView("list")}
                 className={
                   view === "list"
-                    ? "bg-k-accent text-k-bg flex size-[18px] items-center justify-center rounded-[5px]"
-                    : "text-k-fg-muted flex size-[18px] items-center justify-center"
+                    ? "bg-k-accent text-k-accent-fg flex size-[27px] items-center justify-center rounded-[8px]"
+                    : "text-k-fg-muted flex size-[27px] items-center justify-center"
                 }
               >
-                <ListIcon size={13} strokeWidth={2} />
+                <ListIcon size={20} strokeWidth={2} />
               </button>
               <button
                 type="button"
@@ -199,18 +199,18 @@ export default function DenseFilesView({
                 onClick={() => setView("grid")}
                 className={
                   view === "grid"
-                    ? "bg-k-accent text-k-bg flex size-[18px] items-center justify-center rounded-[5px]"
-                    : "text-k-fg-muted flex size-[18px] items-center justify-center"
+                    ? "bg-k-accent text-k-accent-fg flex size-[27px] items-center justify-center rounded-[8px]"
+                    : "text-k-fg-muted flex size-[27px] items-center justify-center"
                 }
               >
-                <LayoutGrid size={13} strokeWidth={2} />
+                <LayoutGrid size={20} strokeWidth={2} />
               </button>
             </div>
           </div>
         </div>
 
         {bookmarks.length === 0 ? (
-          <div className="text-k-fg-dim flex flex-1 items-center justify-center text-[13px]">
+          <div className="text-k-fg-dim flex flex-1 items-center justify-center py-24 text-[19px]">
             Nothing here yet.
           </div>
         ) : view === "list" ? (
@@ -220,7 +220,7 @@ export default function DenseFilesView({
             ))}
           </div>
         ) : (
-          <div className="grid flex-1 grid-cols-1 gap-[14px] overflow-y-auto px-[18px] pb-[18px] sm:grid-cols-2">
+          <div className="grid flex-1 grid-cols-1 gap-[21px] overflow-y-auto px-[27px] pb-[27px] sm:grid-cols-2">
             {bookmarks.map((bookmark) => (
               <DenseBookmarkCard key={bookmark.id} bookmark={bookmark} />
             ))}

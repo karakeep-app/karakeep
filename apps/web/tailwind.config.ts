@@ -31,6 +31,8 @@ const config = {
         "k-fg-soft": "var(--k-fg-soft)",
         "k-fg-muted": "var(--k-fg-muted)",
         "k-fg-dim": "var(--k-fg-dim)",
+        "k-summary": "var(--k-summary)",
+        "k-summary-strong": "var(--k-summary-strong)",
         "k-timestamp": "var(--k-timestamp)",
         "k-version": "var(--k-version)",
         "k-version-rail": "var(--k-version-rail)",

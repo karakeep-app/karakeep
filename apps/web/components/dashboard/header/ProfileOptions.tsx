@@ -89,9 +89,9 @@ export default function SidebarProfileOptions({
           <button
             type="button"
             aria-label={t("settings.user_settings")}
-            className="flex size-4 items-center justify-center text-current"
+            className="flex size-full items-center justify-center text-current"
           >
-            <UserCircle size={16} strokeWidth={1.75} />
+            <UserCircle size={24} strokeWidth={1.75} />
           </button>
         ) : (
           <Button
