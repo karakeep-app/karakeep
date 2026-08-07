@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,11 +60,14 @@ export default function DenseFilesView({
   label,
   query,
   initialBookmarks,
+  searchEnabled = false,
 }: {
   label: string;
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">;
   initialBookmarks: ZGetBookmarksResponse;
+  searchEnabled?: boolean;
 }) {
+  const router = useRouter();
   const api = useTRPC();
   const { view, setView } = useFilesView();
   const { scale, preference, setPreference } = useDenseScaleContext();
@@ -103,6 +107,20 @@ export default function DenseFilesView({
     () => data.pages.flatMap((p) => p.bookmarks),
     [data],
   );
+
+  // The pill advertises ⌘K, so make it real — but only when search is
+  // actually available, otherwise the shortcut would just crash the page.
+  useEffect(() => {
+    if (!searchEnabled) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        router.push("/dashboard/search");
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [searchEnabled, router]);
 
   const { ref: loadMoreRef, inView } = useInView();
   useEffect(() => {
@@ -144,16 +162,27 @@ export default function DenseFilesView({
           </div>
 
           <div className="ml-auto flex items-center gap-[10px]">
-            <Link
-              href="/dashboard/search"
-              className="border-k-border bg-k-surface-1 text-k-fg-dim hover:text-k-fg-muted flex items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
-            >
-              <Search size={15} strokeWidth={1.75} />
-              Search
-              <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">
-                ⌘K
-              </kbd>
-            </Link>
+            {searchEnabled ? (
+              <Link
+                href="/dashboard/search"
+                className="border-k-border bg-k-surface-1 text-k-fg-dim hover:text-k-fg-muted flex items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
+              >
+                <Search size={15} strokeWidth={1.75} />
+                Search
+                <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">
+                  ⌘K
+                </kbd>
+              </Link>
+            ) : (
+              <span
+                title="Search needs a search backend configured on the server (see Karakeep's search configuration docs)."
+                aria-disabled="true"
+                className="border-k-border bg-k-surface-1 text-k-fg-dim/50 flex cursor-not-allowed items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
+              >
+                <Search size={15} strokeWidth={1.75} />
+                Search
+              </span>
+            )}
             <button
               type="button"
               aria-label="Add bookmark"

@@ -3,6 +3,7 @@ import { api } from "@/server/api/client";
 import { getServerAuthSession } from "@/server/auth";
 
 import type { ZGetBookmarksRequest } from "@karakeep/shared/types/bookmarks";
+import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 
 import DenseFilesView from "./DenseFilesView";
 
@@ -27,6 +28,14 @@ export default async function DenseFiles({
   const bookmarks = await api.bookmarks.getBookmarks({ ...query });
 
   return (
-    <DenseFilesView label={label} query={query} initialBookmarks={bookmarks} />
+    <DenseFilesView
+      label={label}
+      query={query}
+      initialBookmarks={bookmarks}
+      // /dashboard/search throws outright when no search backend is
+      // registered, so the header's search affordance must not offer to
+      // navigate there unless it will actually work.
+      searchEnabled={PluginManager.isRegistered(PluginType.Search)}
+    />
   );
 }
