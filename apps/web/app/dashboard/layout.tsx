@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import ErrorFallback from "@/components/dashboard/ErrorFallback";
 import DenseSidebar from "@/components/dashboard/dense/DenseSidebar";
+import { DenseScaleProvider } from "@/components/dashboard/dense/DenseScaleController";
 import { ForceDenseTheme } from "@/components/dashboard/dense/ForceDenseTheme";
 import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
 import { Separator } from "@/components/ui/separator";
@@ -126,39 +127,46 @@ export default async function Dashboard({
   return (
     <UserSettingsContextProvider userSettings={userSettings.data}>
       <ReaderSettingsProvider>
-        <div
-          className={`k-dense dark ${plexSans.variable} ${plexMono.variable} sm:fixed sm:inset-0 sm:overflow-hidden`}
-        >
-          {/* Radix portals (dropdowns/dialogs) escape this wrapper in the
+        <DenseScaleProvider>
+          <div
+            className={`k-dense k-dense-zoom dark ${plexSans.variable} ${plexMono.variable} sm:fixed sm:inset-0 sm:overflow-hidden`}
+          >
+            {/* Radix portals (dropdowns/dialogs) escape this wrapper in the
               DOM, so mirror its theme classes onto <html> too. */}
-          <ForceDenseTheme
-            fontClassNames={`${plexSans.variable} ${plexMono.variable}`}
-          />
-          <div className="flex min-h-[100dvh] w-full flex-col sm:h-[100dvh] sm:flex-row sm:overflow-hidden">
-            <ValidAccountCheck />
-            <div className="hidden flex-none sm:flex">
-              <DenseSidebar
-                searchEnabled={searchEnabled}
-                initialLists={lists.data.lists}
-                initialTags={tags.error ? [] : tags.data.tags}
-                serverVersion={serverConfig.serverVersion}
-              />
+            <ForceDenseTheme
+              fontClassNames={`${plexSans.variable} ${plexMono.variable}`}
+            />
+            {/* h-full, not 100dvh: under `zoom` the wrapper above already
+              resolves to exactly the viewport, whereas viewport units would
+              be re-divided by the zoom factor and overflow. */}
+            <div className="flex min-h-[100dvh] w-full flex-col sm:h-full sm:flex-row sm:overflow-hidden">
+              <ValidAccountCheck />
+              <div className="hidden flex-none sm:flex">
+                <DenseSidebar
+                  searchEnabled={searchEnabled}
+                  initialLists={lists.data.lists}
+                  initialTags={tags.error ? [] : tags.data.tags}
+                  serverVersion={serverConfig.serverVersion}
+                />
+              </div>
+              <main className="bg-k-bg flex-1 sm:min-h-0 sm:overflow-y-auto">
+                {serverConfig.demoMode && <DemoModeBanner />}
+                <div className="block w-full bg-background sm:hidden">
+                  <MobileSidebar items={mobileSidebar} />
+                  <Separator />
+                </div>
+                {modal}
+                <div className="min-h-30 p-4">
+                  <ErrorBoundary fallback={<ErrorFallback />}>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      {children}
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
+              </main>
             </div>
-            <main className="bg-k-bg flex-1 sm:min-h-0 sm:overflow-y-auto">
-              {serverConfig.demoMode && <DemoModeBanner />}
-              <div className="block w-full bg-background sm:hidden">
-                <MobileSidebar items={mobileSidebar} />
-                <Separator />
-              </div>
-              {modal}
-              <div className="min-h-30 p-4">
-                <ErrorBoundary fallback={<ErrorFallback />}>
-                  <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
-                </ErrorBoundary>
-              </div>
-            </main>
           </div>
-        </div>
+        </DenseScaleProvider>
       </ReaderSettingsProvider>
     </UserSettingsContextProvider>
   );

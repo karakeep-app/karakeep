@@ -6,6 +6,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
@@ -16,6 +18,9 @@ import {
   ArrowUpAZ,
   LayoutGrid,
   List as ListIcon,
+  Maximize2,
+  Minus,
+  Plus,
   Search,
   SlidersHorizontal,
   Upload,
@@ -30,6 +35,7 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { DenseBookmarkCard } from "./DenseBookmarkCard";
 import { DenseBookmarkRow } from "./DenseBookmarkRow";
+import { useDenseScaleContext } from "./DenseScaleController";
 import { QuickAddDialog } from "./QuickAddDialog";
 
 const VIEW_KEY = "k-dense-files-view";
@@ -60,6 +66,7 @@ export default function DenseFilesView({
 }) {
   const api = useTRPC();
   const { view, setView } = useFilesView();
+  const { scale, preference, setPreference } = useDenseScaleContext();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const sortOrder = useSortOrderStore((state) => state.sortOrder);
   const setSortOrder = useSortOrderStore((state) => state.setSortOrder);
@@ -169,6 +176,7 @@ export default function DenseFilesView({
                 align="end"
                 className="border-k-border bg-k-surface-1 text-k-fg"
               >
+                <DropdownMenuLabel>Sort</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => setSortOrder("desc")}>
                   <ArrowDownAZ className="mr-2 size-4" />
                   Newest first
@@ -177,6 +185,48 @@ export default function DenseFilesView({
                   <ArrowUpAZ className="mr-2 size-4" />
                   Oldest first
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>
+                  Scale
+                  <span className="text-k-fg-dim ml-2 font-normal">
+                    {preference === "auto"
+                      ? `Auto · ${Math.round(scale * 100)}%`
+                      : `${Math.round(scale * 100)}%`}
+                  </span>
+                </DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={() => setPreference("auto")}
+                  disabled={preference === "auto"}
+                >
+                  <Maximize2 className="mr-2 size-4" />
+                  Fit to display
+                </DropdownMenuItem>
+                <div className="flex items-center gap-2 px-2 py-1.5">
+                  <button
+                    type="button"
+                    aria-label="Decrease scale"
+                    onClick={() =>
+                      setPreference(
+                        Math.round(Math.max(0.85, scale - 0.1) * 100) / 100,
+                      )
+                    }
+                    className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
+                  >
+                    <Minus className="size-3" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Increase scale"
+                    onClick={() =>
+                      setPreference(
+                        Math.round(Math.min(2.5, scale + 0.1) * 100) / 100,
+                      )
+                    }
+                    className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
+                  >
+                    <Plus className="size-3" />
+                  </button>
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
             {/* Segmented view toggle — 52x22 shell, active glyph sits on an

@@ -49,6 +49,28 @@
   font-family: var(--font-k-sans), "IBM Plex Sans", sans-serif;
 }
 
+/*
+ * The prototype's px values are literal and drawn on a 1000x625 frame, so on
+ * a larger display the design occupies a smaller fraction of the screen than
+ * it does in the design tool. `--k-zoom` (set by DenseScaleProvider from the
+ * viewport, overridable by the user) rescales the whole UI so it frames the
+ * way the mockup does. Zoom is used rather than a transform because it
+ * participates in layout, so nothing overflows or overlaps.
+ */
+/* Deliberately a separate class from `.k-dense`: the token block above is
+   also mirrored onto <html> (so portals inherit the palette), and if the
+   zoom rule matched both the wrapper and <html> the factor would compound. */
+.k-dense-zoom {
+  zoom: var(--k-zoom, 1);
+}
+
+/* Portaled UI (dropdowns, dialogs) renders into <body>, outside .k-dense —
+   scale it too so menus match the surface that opened them. */
+body > [data-radix-popper-content-wrapper],
+body > [data-dense-portal] {
+  zoom: var(--k-zoom, 1);
+}
+
 .k-dense .font-k-mono {
   font-family: var(--font-k-mono), "IBM Plex Mono", monospace;
 }
