@@ -117,122 +117,129 @@ export default function DenseFilesView({
     // header/row padding below lines up with the design's own spacing
     // instead of stacking on top of it.
     <div className="-m-4 flex flex-col">
-      <div className="flex items-center gap-[14px] px-[22px] pb-[12px] pt-[15px]">
-        <div className="flex flex-col gap-[3px]">
-          <h1 className="text-[16px] font-semibold uppercase tracking-[0.06em] text-[#ddd9d4]">
-            {label}
-          </h1>
-          <p className="font-k-mono text-k-fg-dim text-[11.5px]">
-            {bookmarks.length} item{bookmarks.length === 1 ? "" : "s"} ·{" "}
-            {unsummarisedCount} unsummarised
-            {mostRecentModified && (
-              <> · updated {relativeShort(mostRecentModified)}</>
-            )}
-          </p>
-        </div>
+      {/* Capped so rows/cards don't stretch edge-to-edge into empty space
+          on wide monitors — "fluid" per the design doc means it adapts to
+          the window, not that it has no limit at all. */}
+      <div className="flex w-full max-w-[1600px] flex-col">
+        <div className="flex items-center gap-[14px] px-[22px] pb-[12px] pt-[15px]">
+          <div className="flex flex-col gap-[3px]">
+            <h1 className="text-[16px] font-semibold uppercase tracking-[0.06em] text-[#ddd9d4]">
+              {label}
+            </h1>
+            <p className="font-k-mono text-k-fg-dim text-[11.5px]">
+              {bookmarks.length} item{bookmarks.length === 1 ? "" : "s"} ·{" "}
+              {unsummarisedCount} unsummarised
+              {mostRecentModified && (
+                <> · updated {relativeShort(mostRecentModified)}</>
+              )}
+            </p>
+          </div>
 
-        <div className="ml-auto flex items-center gap-[10px]">
-          <Link
-            href="/dashboard/search"
-            className="border-k-border bg-k-bg text-k-fg-dim hover:text-k-fg-muted flex items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
-          >
-            <Search size={15} strokeWidth={1.75} />
-            Search
-            <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">⌘K</kbd>
-          </Link>
-          <button
-            type="button"
-            aria-label="Add bookmark"
-            onClick={() => setQuickAddOpen(true)}
-            className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border"
-          >
-            <Plus size={20} strokeWidth={1.75} />
-          </button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <div className="ml-auto flex items-center gap-[10px]">
+            <Link
+              href="/dashboard/search"
+              className="border-k-border bg-k-bg text-k-fg-dim hover:text-k-fg-muted flex items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
+            >
+              <Search size={15} strokeWidth={1.75} />
+              Search
+              <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">
+                ⌘K
+              </kbd>
+            </Link>
+            <button
+              type="button"
+              aria-label="Add bookmark"
+              onClick={() => setQuickAddOpen(true)}
+              className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border"
+            >
+              <Plus size={20} strokeWidth={1.75} />
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Sort"
+                  className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border"
+                >
+                  <SlidersHorizontal size={20} strokeWidth={1.75} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="border-k-border bg-k-surface-1 text-k-fg"
+              >
+                <DropdownMenuItem onClick={() => setSortOrder("desc")}>
+                  <ArrowDownAZ className="mr-2 size-4" />
+                  Newest first
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortOrder("asc")}>
+                  <ArrowUpAZ className="mr-2 size-4" />
+                  Oldest first
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <div className="border-k-border bg-k-bg flex items-center gap-[3px] rounded-[8px] border p-[3px]">
               <button
                 type="button"
-                aria-label="Sort"
-                className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border"
+                aria-label="List view"
+                aria-pressed={view === "list"}
+                onClick={() => setView("list")}
+                className={
+                  view === "list"
+                    ? "bg-k-accent text-k-bg flex size-[18px] items-center justify-center rounded-[5px]"
+                    : "text-k-fg-muted flex size-[18px] items-center justify-center"
+                }
               >
-                <SlidersHorizontal size={20} strokeWidth={1.75} />
+                <ListIcon size={13} strokeWidth={2} />
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="border-k-border bg-k-surface-1 text-k-fg"
-            >
-              <DropdownMenuItem onClick={() => setSortOrder("desc")}>
-                <ArrowDownAZ className="mr-2 size-4" />
-                Newest first
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortOrder("asc")}>
-                <ArrowUpAZ className="mr-2 size-4" />
-                Oldest first
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <div className="border-k-border bg-k-bg flex items-center gap-[3px] rounded-[8px] border p-[3px]">
-            <button
-              type="button"
-              aria-label="List view"
-              aria-pressed={view === "list"}
-              onClick={() => setView("list")}
-              className={
-                view === "list"
-                  ? "bg-k-accent text-k-bg flex size-[18px] items-center justify-center rounded-[5px]"
-                  : "text-k-fg-muted flex size-[18px] items-center justify-center"
-              }
-            >
-              <ListIcon size={13} strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              aria-label="Grid view"
-              aria-pressed={view === "grid"}
-              onClick={() => setView("grid")}
-              className={
-                view === "grid"
-                  ? "bg-k-accent text-k-bg flex size-[18px] items-center justify-center rounded-[5px]"
-                  : "text-k-fg-muted flex size-[18px] items-center justify-center"
-              }
-            >
-              <LayoutGrid size={13} strokeWidth={2} />
-            </button>
+              <button
+                type="button"
+                aria-label="Grid view"
+                aria-pressed={view === "grid"}
+                onClick={() => setView("grid")}
+                className={
+                  view === "grid"
+                    ? "bg-k-accent text-k-bg flex size-[18px] items-center justify-center rounded-[5px]"
+                    : "text-k-fg-muted flex size-[18px] items-center justify-center"
+                }
+              >
+                <LayoutGrid size={13} strokeWidth={2} />
+              </button>
+            </div>
           </div>
         </div>
+
+        {bookmarks.length === 0 ? (
+          <div className="text-k-fg-dim flex flex-1 items-center justify-center text-[13px]">
+            Nothing here yet.
+          </div>
+        ) : view === "list" ? (
+          <div className="flex flex-1 flex-col overflow-y-auto">
+            {bookmarks.map((bookmark) => (
+              <DenseBookmarkRow key={bookmark.id} bookmark={bookmark} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid flex-1 grid-cols-1 gap-[14px] overflow-y-auto px-[18px] pb-[18px] sm:grid-cols-2">
+            {bookmarks.map((bookmark) => (
+              <DenseBookmarkCard key={bookmark.id} bookmark={bookmark} />
+            ))}
+          </div>
+        )}
+
+        {hasNextPage && (
+          <div ref={loadMoreRef} className="py-4 text-center">
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="font-k-mono text-k-fg-dim hover:text-k-fg-muted text-[11px]"
+            >
+              {isFetchingNextPage ? "Loading…" : "Load more"}
+            </button>
+          </div>
+        )}
       </div>
-
-      {bookmarks.length === 0 ? (
-        <div className="text-k-fg-dim flex flex-1 items-center justify-center text-[13px]">
-          Nothing here yet.
-        </div>
-      ) : view === "list" ? (
-        <div className="flex flex-1 flex-col overflow-y-auto">
-          {bookmarks.map((bookmark) => (
-            <DenseBookmarkRow key={bookmark.id} bookmark={bookmark} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid flex-1 grid-cols-1 gap-[14px] overflow-y-auto px-[18px] pb-[18px] sm:grid-cols-2">
-          {bookmarks.map((bookmark) => (
-            <DenseBookmarkCard key={bookmark.id} bookmark={bookmark} />
-          ))}
-        </div>
-      )}
-
-      {hasNextPage && (
-        <div ref={loadMoreRef} className="py-4 text-center">
-          <button
-            type="button"
-            onClick={() => fetchNextPage()}
-            disabled={isFetchingNextPage}
-            className="font-k-mono text-k-fg-dim hover:text-k-fg-muted text-[11px]"
-          >
-            {isFetchingNextPage ? "Loading…" : "Load more"}
-          </button>
-        </div>
-      )}
 
       <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
     </div>
