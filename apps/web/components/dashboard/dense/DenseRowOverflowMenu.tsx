@@ -64,9 +64,9 @@ export function DenseRowOverflowMenu({ bookmark }: { bookmark: ZBookmark }) {
             type="button"
             aria-label="More actions"
             onClick={(e) => e.stopPropagation()}
-            className="text-k-fg-dim hover:text-k-fg-muted flex size-[22px] items-center justify-center"
+            className="hover:text-k-fg-muted flex items-center justify-center text-current"
           >
-            <MoreHorizontal size={22} strokeWidth={1.75} />
+            <MoreHorizontal size={15} strokeWidth={1.75} />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent

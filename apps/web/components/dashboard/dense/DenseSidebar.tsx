@@ -11,10 +11,10 @@ import {
   Inbox,
   PanelLeftClose,
   PanelLeftOpen,
-  Plus,
   Search,
   Settings,
   Star,
+  Upload,
 } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
@@ -24,7 +24,8 @@ import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { QuickAddDialog } from "./QuickAddDialog";
 
 const SIDEBAR_COLLAPSED_KEY = "k-dense-sidebar-collapsed";
-const LIST_DOT_COLORS = ["#7c5dff", "#8ab4f8", "#d3a8f0"];
+// Prototype list dots: accent, then blue, then violet.
+const LIST_DOT_COLORS = ["var(--k-accent)", "#8ab4f8", "#d3a8f0"];
 
 function useSidebarCollapsed() {
   // Default to expanded on the server render; sync with the persisted
@@ -63,10 +64,10 @@ function NavRow({
       <Link
         href={href}
         className={cn(
-          "flex items-center gap-[14px] rounded-[9px] px-3 py-2 text-[19px] transition-colors",
+          "flex items-center gap-[9px] rounded-[6px] px-2 py-[5px] transition-colors",
           active
-            ? "bg-k-border text-k-fg [&_svg]:text-k-accent font-semibold"
-            : "text-k-fg-muted hover:bg-k-border/60 [&_svg]:text-k-fg-dim",
+            ? "bg-k-border-soft text-k-fg [&_svg]:text-k-accent font-medium"
+            : "text-k-fg-muted hover:bg-k-border-soft/60 [&_svg]:text-k-icon",
         )}
       >
         {icon}
@@ -80,18 +81,18 @@ function RailIcon({
   href,
   icon,
   label,
-  active,
+  tone = "dim",
   onClick,
 }: {
   href?: string;
   icon: React.ReactNode;
   label: string;
-  active?: boolean;
+  tone?: "dim" | "accent";
   onClick?: () => void;
 }) {
   const cls = cn(
-    "flex size-[27px] items-center justify-center",
-    active ? "text-k-accent" : "text-k-fg-dim hover:text-k-fg-muted",
+    "flex items-center justify-center",
+    tone === "accent" ? "text-k-accent" : "text-k-icon hover:text-k-fg-muted",
   );
   if (onClick) {
     return (
@@ -147,39 +148,39 @@ export default function DenseSidebar({
   const navItems = [
     {
       href: "/dashboard/bookmarks",
-      label: "Inbox",
-      icon: <Inbox size={27} strokeWidth={1.75} />,
+      label: "Files",
+      icon: <Inbox size={15} strokeWidth={1.75} />,
     },
     ...(searchEnabled
       ? [
           {
             href: "/dashboard/search",
             label: "Search",
-            icon: <Search size={27} strokeWidth={1.75} />,
+            icon: <Search size={15} strokeWidth={1.75} />,
           },
         ]
       : []),
     {
       href: "/dashboard/favourites",
       label: "Favourites",
-      icon: <Star size={27} strokeWidth={1.75} />,
+      icon: <Star size={15} strokeWidth={1.75} />,
     },
     {
       href: "/dashboard/archive",
       label: "Archive",
-      icon: <Archive size={27} strokeWidth={1.75} />,
+      icon: <Archive size={15} strokeWidth={1.75} />,
     },
   ];
 
   if (collapsed) {
     return (
-      <aside className="border-k-border bg-k-surface-2 flex w-[87px] flex-none flex-col items-center gap-[27px] border-r py-[21px]">
+      <aside className="border-k-border bg-k-surface-2 flex w-[40px] flex-none flex-col items-center gap-[18px] border-r py-[14px]">
         <Link
           href="/dashboard/bookmarks"
-          className="text-k-fg flex size-[29px] items-center justify-center"
+          className="text-k-fg flex items-center justify-center"
           aria-label="Karakeep"
         >
-          <svg viewBox="0 0 24 24" fill="none" className="size-[29px]">
+          <svg viewBox="0 0 24 24" fill="none" className="size-[19px]">
             <path
               d="M4 3h16v18l-8-5-8 5V3Z"
               stroke="currentColor"
@@ -190,47 +191,48 @@ export default function DenseSidebar({
         </Link>
         <button
           type="button"
-          aria-label="Expand sidebar"
+          aria-label="Show sidebar"
           aria-expanded={false}
           onClick={toggle}
-          className="text-k-fg-dim hover:text-k-fg-muted flex size-[26px] items-center justify-center"
+          className="text-k-icon hover:text-k-fg-muted flex items-center justify-center"
         >
-          <PanelLeftOpen size={26} strokeWidth={1.75} />
+          <PanelLeftOpen size={17} strokeWidth={1.75} />
         </button>
-        <nav className="flex flex-col items-center gap-[23px]">
+        <nav className="flex flex-col items-center gap-[15px]">
           {navItems.map((item) => (
             <RailIcon
               key={item.href}
               href={item.href}
-              icon={item.icon}
+              icon={<span className="[&_svg]:size-[18px]">{item.icon}</span>}
               label={item.label}
-              active={pathname === item.href}
+              tone={pathname === item.href ? "accent" : "dim"}
             />
           ))}
           <RailIcon
             href="/dashboard/tags"
-            icon={<Hash size={27} strokeWidth={1.75} />}
+            icon={<Hash size={18} strokeWidth={1.75} />}
             label="Tags"
-            active={pathname.startsWith("/dashboard/tags")}
+            tone={pathname.startsWith("/dashboard/tags") ? "accent" : "dim"}
           />
           <RailIcon
-            icon={<Plus size={27} strokeWidth={1.75} />}
+            icon={<Upload size={18} strokeWidth={1.75} />}
             label="Add"
+            tone="accent"
             onClick={() => setQuickAddOpen(true)}
           />
         </nav>
-        <div className="mt-auto flex flex-col items-center gap-[23px]">
+        <div className="mt-auto flex flex-col items-center gap-[14px]">
           <Link
             href="/settings"
             aria-label="Settings"
-            className="text-k-fg-dim hover:text-k-fg-muted flex size-6 items-center justify-center"
+            className="text-k-fg-dim hover:text-k-fg-muted flex size-[17px] items-center justify-center"
           >
-            <Settings size={24} strokeWidth={1.75} />
+            <Settings size={17} strokeWidth={1.75} />
           </Link>
-          <div className="text-k-fg-dim hover:text-k-fg-muted flex size-6 items-center justify-center">
+          <div className="text-k-fg-dim hover:text-k-fg-muted flex size-[17px] items-center justify-center">
             <ProfileOptions iconOnly />
           </div>
-          <span className="font-k-mono text-k-version-rail text-[13px]">
+          <span className="font-k-mono text-k-version-rail text-[8.5px]">
             {serverVersion ?? ""}
           </span>
         </div>
@@ -240,29 +242,28 @@ export default function DenseSidebar({
   }
 
   return (
-    <aside className="border-k-border bg-k-surface-2 flex w-[230px] flex-none flex-col gap-6 border-r p-[21px_15px]">
-      {/* Brand row — wordmark + collapse only; adding is handled by the
-          content header's add button (matching the reference mockup). */}
-      <div className="flex items-center gap-2 px-[9px]">
+    <aside className="border-k-border bg-k-surface-2 flex w-[153px] flex-none flex-col gap-4 border-r p-[14px_10px]">
+      {/* Brand row — wordmark + collapse toggle only. */}
+      <div className="flex items-center gap-1 px-[6px]">
         <Link
           href="/dashboard/bookmarks"
-          className="text-k-fg text-[30px] font-semibold tracking-[-0.01em]"
+          className="text-k-fg text-[20px] font-semibold tracking-[-0.01em]"
         >
           Karakeep
         </Link>
         <button
           type="button"
-          aria-label="Collapse sidebar"
+          aria-label="Hide sidebar"
           aria-expanded={true}
           onClick={toggle}
-          className="text-k-fg-dim hover:text-k-fg-muted ml-auto flex size-[26px] items-center justify-center"
+          className="text-k-icon hover:text-k-fg-muted ml-auto flex items-center justify-center"
         >
-          <PanelLeftClose size={26} strokeWidth={1.75} />
+          <PanelLeftClose size={21} strokeWidth={1.75} />
         </button>
       </div>
 
       {/* Primary nav */}
-      <ul className="flex flex-col gap-[2px]">
+      <ul className="flex flex-col gap-px text-[12.5px]">
         {navItems.map((item) => (
           <NavRow
             key={item.href}
@@ -276,11 +277,11 @@ export default function DenseSidebar({
 
       {/* Lists */}
       {topLevelLists.length > 0 && (
-        <div>
-          <p className="font-k-mono text-k-fg-dim px-3 pb-2 text-[15px] font-medium uppercase tracking-[0.08em]">
+        <div className="flex flex-col gap-px text-[12.5px]">
+          <p className="font-k-mono text-k-fg-dim px-2 pb-[5px] text-[10px] font-medium uppercase tracking-[0.08em]">
             Lists
           </p>
-          <ul className="flex flex-col gap-[2px]">
+          <ul className="flex flex-col gap-px">
             {topLevelLists.slice(0, 6).map((list, i) => {
               const href = `/dashboard/lists/${list.id}`;
               const active = pathname === href;
@@ -289,17 +290,16 @@ export default function DenseSidebar({
                   <Link
                     href={href}
                     className={cn(
-                      "flex items-center gap-[14px] rounded-[9px] px-3 py-2 text-[19px] transition-colors",
+                      "flex items-center gap-[9px] rounded-[6px] px-2 py-[5px] transition-colors",
                       active
-                        ? "bg-k-border text-k-fg font-semibold"
-                        : "text-k-fg-muted hover:bg-k-border/60",
+                        ? "bg-k-border-soft text-k-fg font-medium"
+                        : "text-k-fg-muted hover:bg-k-border-soft/60",
                     )}
                   >
                     <span
-                      className="size-[8px] flex-none rounded-full"
+                      className="size-[5px] flex-none rounded-full"
                       style={{
-                        backgroundColor:
-                          LIST_DOT_COLORS[i % LIST_DOT_COLORS.length],
+                        background: LIST_DOT_COLORS[i % LIST_DOT_COLORS.length],
                       }}
                     />
                     <span className="truncate">{list.name}</span>
@@ -313,16 +313,16 @@ export default function DenseSidebar({
 
       {/* Tags */}
       {initialTags.length > 0 && (
-        <div>
-          <p className="font-k-mono text-k-fg-dim px-3 pb-2 text-[15px] font-medium uppercase tracking-[0.08em]">
+        <div className="flex flex-col gap-2">
+          <p className="font-k-mono text-k-fg-dim px-2 text-[10.5px] font-medium uppercase tracking-[0.08em]">
             Tags
           </p>
-          <div className="flex flex-wrap gap-2 px-3">
+          <div className="flex flex-wrap gap-[5px] px-2">
             {initialTags.slice(0, 8).map((tag) => (
               <Link
                 key={tag.id}
                 href={`/dashboard/tags/${tag.id}`}
-                className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg rounded-full border px-[10px] py-[3px] text-[16px]"
+                className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg rounded-full border px-[7px] py-[2px] text-[11px]"
               >
                 {tag.name}
               </Link>
@@ -332,18 +332,18 @@ export default function DenseSidebar({
       )}
 
       {/* Footer */}
-      <div className="border-k-border mt-auto flex items-center gap-[18px] border-t pt-[15px]">
+      <div className="border-k-border mt-auto flex items-center gap-3 border-t pt-[10px]">
         <Link
           href="/settings"
           aria-label="Settings"
-          className="text-k-fg-dim hover:text-k-fg-muted flex size-6 items-center justify-center"
+          className="text-k-fg-dim hover:text-k-fg-muted flex size-4 items-center justify-center"
         >
-          <Settings size={24} strokeWidth={1.75} />
+          <Settings size={16} strokeWidth={1.75} />
         </Link>
-        <div className="text-k-fg-dim hover:text-k-fg-muted flex size-6 items-center justify-center">
+        <div className="text-k-fg-dim hover:text-k-fg-muted flex size-4 items-center justify-center">
           <ProfileOptions iconOnly />
         </div>
-        <span className="font-k-mono text-k-version ml-auto text-[14px]">
+        <span className="font-k-mono text-k-version ml-auto text-[9.5px]">
           {serverVersion ?? ""}
         </span>
       </div>

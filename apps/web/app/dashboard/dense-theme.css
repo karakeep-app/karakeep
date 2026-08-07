@@ -1,14 +1,21 @@
 /*
- * Design tokens for the "1a dense list" dark fork of the dashboard.
+ * Design tokens for the "1a dense list" dark fork of the dashboard,
+ * transcribed from the Karakeep Dark prototype (`Karakeep Dark.dc.html`).
  * Scoped under `.k-dense` so the rest of the app (settings, admin, ...)
  * is completely unaffected.
  *
- * Surface tone: "Deep slate" and reading emphasis "Title-led" — these are
- * the axes the reference mockup was rendered with, not the token table's
- * nominal "Charcoal"/"Balanced" defaults.
+ * The prototype exposes three theme axes with these defaults:
+ *   accent          = #7C5DFF  (violet)
+ *   surfaceTone     = Deep slate
+ *   readingEmphasis = Title-led
+ *
+ * The surface tone is expressed as variables below. The reading-emphasis
+ * values (summary 12px/1.5/#87847f, title weight 600) are inlined at their
+ * Title-led values in the components rather than plumbed through variables,
+ * since only the one emphasis is currently built.
  */
 .k-dense {
-  /* Surface tone — Deep slate */
+  /* surfaceTone: Deep slate */
   --k-bg: #0e1116;
   --k-surface-1: #151a21;
   --k-surface-2: #11151c;
@@ -17,22 +24,24 @@
 
   --k-accent: #7c5dff;
   --k-accent-border: color-mix(in oklab, var(--k-accent) 34%, var(--k-bg));
-  --k-accent-fg: #0e1116;
+  --k-accent-fg: var(--k-bg);
 
   --k-fg: #eceae7;
   --k-fg-soft: #c2bfba;
   --k-fg-muted: #a9a6a1;
+  /* Label/meta text. Distinct from --k-icon: the prototype uses a slightly
+     warmer, lighter grey for glyphs than for small caption text. */
   --k-fg-dim: #6d6a65;
+  --k-icon: #77746f;
 
-  /* Reading emphasis — Title-led: the summary sits back so the AI title
-     carries the row. */
+  /* readingEmphasis: Title-led */
   --k-summary: #87847f;
   --k-summary-strong: #a9a6a1;
 
+  --k-section-label: #ddd9d4c3;
   --k-timestamp: #54524e;
-  --k-version: #4a4844;
-  --k-version-rail: #443f3c;
-  --k-skeleton: #1c232e;
+  --k-version: #443f3c;
+  --k-version-rail: #4a4844;
   --k-divider: #3a3b3e;
 
   background-color: var(--k-bg);

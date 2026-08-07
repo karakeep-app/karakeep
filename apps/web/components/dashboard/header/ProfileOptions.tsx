@@ -91,7 +91,7 @@ export default function SidebarProfileOptions({
             aria-label={t("settings.user_settings")}
             className="flex size-full items-center justify-center text-current"
           >
-            <UserCircle size={24} strokeWidth={1.75} />
+            <UserCircle className="size-full" strokeWidth={1.75} />
           </button>
         ) : (
           <Button

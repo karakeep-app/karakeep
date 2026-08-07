@@ -9,15 +9,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
+import { cn } from "@/lib/utils";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import {
   ArrowDownAZ,
   ArrowUpAZ,
   LayoutGrid,
   List as ListIcon,
-  Plus,
   Search,
   SlidersHorizontal,
+  Upload,
 } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 
@@ -120,13 +121,13 @@ export default function DenseFilesView({
       {/* Capped so rows/cards don't stretch edge-to-edge into empty space
           on wide monitors — "fluid" per the design doc means it adapts to
           the window, not that it has no limit at all. */}
-      <div className="flex w-full max-w-[1800px] flex-col">
-        <div className="flex items-center gap-[21px] px-[33px] pb-[18px] pt-[22px]">
-          <div className="flex flex-col gap-[5px]">
-            <h1 className="text-[24px] font-semibold uppercase tracking-[0.06em] text-[#ddd9d4]">
+      <div className="flex w-full max-w-[1400px] flex-col">
+        <div className="flex items-center gap-[14px] px-[22px] pb-[12px] pt-[15px]">
+          <div className="flex flex-col gap-[3px]">
+            <h1 className="text-k-section-label text-[15px] font-semibold uppercase tracking-[0.06em]">
               {label}
             </h1>
-            <p className="font-k-mono text-k-fg-dim text-[17px]">
+            <p className="font-k-mono text-k-fg-dim text-[11.5px]">
               {bookmarks.length} item{bookmarks.length === 1 ? "" : "s"} ·{" "}
               {unsummarisedCount} unsummarised
               {mostRecentModified && (
@@ -135,14 +136,14 @@ export default function DenseFilesView({
             </p>
           </div>
 
-          <div className="ml-auto flex items-center gap-[15px]">
+          <div className="ml-auto flex items-center gap-[10px]">
             <Link
               href="/dashboard/search"
-              className="border-k-border bg-k-bg text-k-fg-dim hover:text-k-fg-muted flex items-center gap-3 rounded-[14px] border px-[18px] py-2 text-[19px]"
+              className="border-k-border bg-k-surface-1 text-k-fg-dim hover:text-k-fg-muted flex items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
             >
-              <Search size={22} strokeWidth={1.75} />
+              <Search size={15} strokeWidth={1.75} />
               Search
-              <kbd className="font-k-mono text-k-fg-dim ml-1 text-[15px]">
+              <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">
                 ⌘K
               </kbd>
             </Link>
@@ -150,18 +151,18 @@ export default function DenseFilesView({
               type="button"
               aria-label="Add bookmark"
               onClick={() => setQuickAddOpen(true)}
-              className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[33px] items-center justify-center rounded-[12px] border"
+              className="border-k-border bg-k-surface-1 text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border p-1"
             >
-              <Plus size={26} strokeWidth={1.75} />
+              <Upload size={20} strokeWidth={1.75} />
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
                   aria-label="Sort"
-                  className="border-k-border bg-k-bg text-k-fg-muted hover:text-k-fg flex size-[33px] items-center justify-center rounded-[12px] border"
+                  className="border-k-border bg-k-surface-1 text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border p-1"
                 >
-                  <SlidersHorizontal size={26} strokeWidth={1.75} />
+                  <SlidersHorizontal size={20} strokeWidth={1.75} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -178,49 +179,57 @@ export default function DenseFilesView({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <div className="border-k-border bg-k-bg flex items-center gap-[5px] rounded-[12px] border p-[5px]">
+            {/* Segmented view toggle — 52x22 shell, active glyph sits on an
+                accent chip (prototype: 18px icon, 3px pad, 5px radius). */}
+            <div className="border-k-border bg-k-surface-1 flex h-[22px] w-[52px] items-center justify-center rounded-[8px] border p-[2px]">
               <button
                 type="button"
                 aria-label="List view"
                 aria-pressed={view === "list"}
                 onClick={() => setView("list")}
-                className={
+                className={cn(
+                  "flex items-center justify-center rounded-[5px] p-[3px]",
                   view === "list"
-                    ? "bg-k-accent text-k-accent-fg flex size-[27px] items-center justify-center rounded-[8px]"
-                    : "text-k-fg-muted flex size-[27px] items-center justify-center"
-                }
+                    ? "bg-k-accent text-k-accent-fg"
+                    : "text-k-fg-muted",
+                )}
               >
-                <ListIcon size={20} strokeWidth={2} />
+                <ListIcon size={12} strokeWidth={2} />
               </button>
               <button
                 type="button"
                 aria-label="Grid view"
                 aria-pressed={view === "grid"}
                 onClick={() => setView("grid")}
-                className={
+                className={cn(
+                  "flex items-center justify-center rounded-[5px] p-[3px]",
                   view === "grid"
-                    ? "bg-k-accent text-k-accent-fg flex size-[27px] items-center justify-center rounded-[8px]"
-                    : "text-k-fg-muted flex size-[27px] items-center justify-center"
-                }
+                    ? "bg-k-accent text-k-accent-fg"
+                    : "text-k-fg-muted",
+                )}
               >
-                <LayoutGrid size={20} strokeWidth={2} />
+                <LayoutGrid size={12} strokeWidth={2} />
               </button>
             </div>
           </div>
         </div>
 
         {bookmarks.length === 0 ? (
-          <div className="text-k-fg-dim flex flex-1 items-center justify-center py-24 text-[19px]">
+          <div className="text-k-fg-dim flex flex-1 items-center justify-center py-24 text-[12.5px]">
             Nothing here yet.
           </div>
         ) : view === "list" ? (
-          <div className="flex flex-1 flex-col overflow-y-auto">
-            {bookmarks.map((bookmark) => (
-              <DenseBookmarkRow key={bookmark.id} bookmark={bookmark} />
+          <div className="flex flex-1 flex-col">
+            {bookmarks.map((bookmark, i) => (
+              <DenseBookmarkRow
+                key={bookmark.id}
+                bookmark={bookmark}
+                selected={i === 0}
+              />
             ))}
           </div>
         ) : (
-          <div className="grid flex-1 grid-cols-1 gap-[21px] overflow-y-auto px-[27px] pb-[27px] sm:grid-cols-2">
+          <div className="grid flex-1 grid-cols-1 gap-[14px] px-[18px] pb-[18px] sm:grid-cols-2">
             {bookmarks.map((bookmark) => (
               <DenseBookmarkCard key={bookmark.id} bookmark={bookmark} />
             ))}

@@ -39,7 +39,7 @@ export function DenseBookmarkRow({
   return (
     <div
       className={cn(
-        "border-k-border-soft group relative flex gap-[21px] border-t px-[27px] py-[21px]",
+        "border-k-border-soft group relative flex gap-[14px] border-t px-[18px] py-[14px]",
         selected ? "bg-k-surface-1" : "hover:bg-k-surface-1/60",
       )}
     >
@@ -49,24 +49,25 @@ export function DenseBookmarkRow({
         aria-label={title}
       />
 
-      <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col gap-[9px]">
-        <div className="flex items-center gap-3">
+      <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col gap-[6px]">
+        <div className="flex items-center gap-2">
           <span
             className={cn(
-              "truncate text-[21px] font-semibold tracking-[-0.01em]",
+              // Title-led emphasis: weight 600.
+              "truncate text-[14px] font-semibold tracking-[-0.01em]",
               isPendingSummary ? "text-k-fg-soft" : "text-k-fg",
             )}
           >
             {title}
           </span>
           {isPendingSummary ? (
-            <span className="border-k-border font-k-mono text-k-fg-dim flex flex-none items-center gap-[6px] rounded-[6px] border px-2 py-[2px] text-[14px] font-medium uppercase tracking-[0.06em]">
-              <span className="bg-k-fg-dim size-[6px] rounded-full" />
+            <span className="border-k-border font-k-mono text-k-fg-dim inline-flex flex-none items-center gap-[5px] rounded-[4px] border px-[5px] py-px text-[9.5px] font-medium uppercase tracking-[0.06em]">
+              <span className="bg-k-fg-dim size-1 rounded-full" />
               Summarising
             </span>
           ) : isSummarised ? (
             <Sparkles
-              size={20}
+              size={13}
               className="text-k-accent flex-none opacity-65"
               aria-label="AI summarised"
             />
@@ -74,26 +75,32 @@ export function DenseBookmarkRow({
         </div>
 
         {isPendingSummary ? (
-          <div className="flex flex-col gap-[9px] py-[3px]">
-            <div className="bg-k-skeleton h-3 max-w-[960px] rounded-[5px]" />
-            <div className="bg-k-skeleton h-3 w-[72%] max-w-[960px] rounded-[5px]" />
+          <div className="flex max-w-[640px] flex-col gap-[6px] pt-[2px]">
+            <div className="bg-k-border h-2 rounded-[3px]" />
+            <div className="bg-k-border h-2 w-[72%] rounded-[3px]" />
           </div>
         ) : bookmark.summary ? (
-          <p className="text-k-summary line-clamp-2 max-w-[960px] text-[18px] leading-[1.5] [text-wrap:pretty]">
+          // Title-led emphasis: 12px / 1.5 / #87847f.
+          <p className="text-k-summary line-clamp-2 max-w-[640px] text-[12px] leading-[1.5] [text-wrap:pretty]">
             {bookmark.summary}
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-[15px] pt-[3px]">
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-[10px]",
+            isPendingSummary ? "pt-[4px]" : "pt-[2px]",
+          )}
+        >
           {source && (
-            <span className="font-k-mono text-k-fg-dim text-[17px]">
+            <span className="font-k-mono text-k-fg-dim text-[11px]">
               {source}
             </span>
           )}
           {!isPendingSummary && readingMinutes && (
             <>
               {source && <span className="text-k-divider">·</span>}
-              <span className="font-k-mono text-k-fg-dim text-[17px]">
+              <span className="font-k-mono text-k-fg-dim text-[11px]">
                 {readingMinutes} min
               </span>
             </>
@@ -102,7 +109,7 @@ export function DenseBookmarkRow({
             <Link
               key={tag.id}
               href={`/dashboard/tags/${tag.id}`}
-              className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg pointer-events-auto relative z-20 rounded-full border px-[10px] py-[2px] text-[16px]"
+              className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg pointer-events-auto relative z-20 rounded-full border px-[7px] py-px text-[10.5px]"
             >
               {tag.name}
             </Link>
@@ -110,11 +117,11 @@ export function DenseBookmarkRow({
         </div>
       </div>
 
-      <div className="relative z-10 flex flex-none flex-col items-end gap-[15px]">
-        <span className="font-k-mono text-k-timestamp text-[17px]">
+      <div className="relative z-10 flex flex-none flex-col items-end gap-[10px]">
+        <span className="font-k-mono text-k-timestamp text-[11px]">
           {formatCompactRelativeTime(bookmark.createdAt)}
         </span>
-        <div className="flex items-center gap-[15px]">
+        <div className="text-k-icon flex items-center gap-2">
           <button
             type="button"
             aria-label={bookmark.favourited ? "Unfavourite" : "Favourite"}
@@ -128,11 +135,11 @@ export function DenseBookmarkRow({
                 favourited: !bookmark.favourited,
               });
             }}
-            className="text-k-fg-dim hover:text-k-fg-muted pointer-events-auto relative z-20 flex size-[22px] items-center justify-center"
+            className="hover:text-k-fg-muted pointer-events-auto relative z-20 flex items-center justify-center"
           >
             <FavouritedActionIcon
               favourited={bookmark.favourited}
-              size={22}
+              size={15}
               strokeWidth={1.75}
             />
           </button>
