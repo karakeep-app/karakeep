@@ -1,0 +1,33 @@
+/*
+ * Design tokens for the "1a dense list" dark fork of the dashboard.
+ * Scoped under `.k-dense` so the rest of the app (settings, admin, ...)
+ * is completely unaffected. See the design handoff README for the source
+ * of truth on these values.
+ */
+.k-dense {
+  --k-bg: #0d0d0e;
+  --k-surface-1: #141516;
+  --k-surface-2: #111112;
+  --k-border: #232427;
+  --k-border-soft: #1a1b1d;
+  --k-accent: #7ee2b8;
+  --k-accent-border: color-mix(in oklab, var(--k-accent) 34%, var(--k-bg));
+  --k-accent-fg: #0d0d0e;
+  --k-fg: #eceae7;
+  --k-fg-soft: #c2bfba;
+  --k-fg-muted: #a9a6a1;
+  --k-fg-dim: #6d6a65;
+  --k-timestamp: #54524e;
+  --k-version: #4a4844;
+  --k-version-rail: #443f3c;
+  --k-skeleton: #1c1d1f;
+  --k-divider: #3a3b3e;
+
+  background-color: var(--k-bg);
+  color: var(--k-fg);
+  font-family: var(--font-k-sans), "IBM Plex Sans", sans-serif;
+}
+
+.k-dense .font-k-mono {
+  font-family: var(--font-k-mono), "IBM Plex Mono", monospace;
+}

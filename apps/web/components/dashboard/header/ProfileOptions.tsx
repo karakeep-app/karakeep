@@ -28,6 +28,7 @@ import {
   Shield,
   Sun,
   Twitter,
+  UserCircle,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -56,7 +57,14 @@ function DarkModeToggle() {
   }
 }
 
-export default function SidebarProfileOptions() {
+export default function SidebarProfileOptions({
+  iconOnly = false,
+}: {
+  /** Render a plain, unstyled profile glyph as the trigger instead of the
+   * avatar bubble — used by the dense sidebar footer, which specs a bare
+   * 16px icon rather than an avatar chip. */
+  iconOnly?: boolean;
+}) {
   const { t } = useTranslation();
   const toggleTheme = useToggleTheme();
   const { data: session } = useSession();
@@ -77,16 +85,26 @@ export default function SidebarProfileOptions() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
-          variant="ghost"
-        >
-          <UserAvatar
-            image={avatarUrl}
-            name={session.user.name}
-            className="h-full w-full rounded-full"
-          />
-        </Button>
+        {iconOnly ? (
+          <button
+            type="button"
+            aria-label={t("settings.user_settings")}
+            className="flex size-4 items-center justify-center text-current"
+          >
+            <UserCircle size={16} strokeWidth={1.75} />
+          </button>
+        ) : (
+          <Button
+            className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
+            variant="ghost"
+          >
+            <UserAvatar
+              image={avatarUrl}
+              name={session.user.name}
+              className="h-full w-full rounded-full"
+            />
+          </Button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="mr-2 min-w-64 p-2">
         <div className="flex gap-2">
