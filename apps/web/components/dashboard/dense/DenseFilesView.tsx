@@ -41,6 +41,15 @@ import { QuickAddDialog } from "./QuickAddDialog";
 
 const VIEW_KEY = "k-dense-files-view";
 
+/**
+ * Shared shell for every control in the FILES header. The prototype drew
+ * these at differing heights (22px buttons next to a taller search pill);
+ * unifying them on the pill's height reads considerably tidier, so this is
+ * a deliberate, reviewed departure from the mockup.
+ */
+const CONTROL_SHELL =
+  "border-k-border bg-k-surface-1 text-k-fg-muted flex h-[28px] flex-none items-center justify-center rounded-[8px] border";
+
 function useFilesView() {
   const [view, setView] = useState<"list" | "grid">("list");
   useEffect(() => {
@@ -165,7 +174,7 @@ export default function DenseFilesView({
             {searchEnabled ? (
               <Link
                 href="/dashboard/search"
-                className="border-k-border bg-k-surface-1 text-k-fg-dim hover:text-k-fg-muted flex items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
+                className={cn(CONTROL_SHELL, "gap-2 px-[12px] text-[12.5px]")}
               >
                 <Search size={15} strokeWidth={1.75} />
                 Search
@@ -177,7 +186,10 @@ export default function DenseFilesView({
               <span
                 title="Search needs a search backend configured on the server (see Karakeep's search configuration docs)."
                 aria-disabled="true"
-                className="border-k-border bg-k-surface-1 text-k-fg-dim/50 flex cursor-not-allowed items-center gap-2 rounded-[9px] border px-[12px] py-[5px] text-[12.5px]"
+                className={cn(
+                  CONTROL_SHELL,
+                  "text-k-fg-dim/50 cursor-not-allowed gap-2 px-[12px] text-[12.5px]",
+                )}
               >
                 <Search size={15} strokeWidth={1.75} />
                 Search
@@ -187,18 +199,18 @@ export default function DenseFilesView({
               type="button"
               aria-label="Add bookmark"
               onClick={() => setQuickAddOpen(true)}
-              className="border-k-border bg-k-surface-1 text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border p-1"
+              className={cn(CONTROL_SHELL, "hover:text-k-fg w-[28px]")}
             >
-              <Upload size={20} strokeWidth={1.75} />
+              <Upload size={15} strokeWidth={1.75} />
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  aria-label="Sort"
-                  className="border-k-border bg-k-surface-1 text-k-fg-muted hover:text-k-fg flex size-[22px] items-center justify-center rounded-[8px] border p-1"
+                  aria-label="View options"
+                  className={cn(CONTROL_SHELL, "hover:text-k-fg w-[28px]")}
                 >
-                  <SlidersHorizontal size={20} strokeWidth={1.75} />
+                  <SlidersHorizontal size={15} strokeWidth={1.75} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -258,22 +270,22 @@ export default function DenseFilesView({
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* Segmented view toggle — 52x22 shell, active glyph sits on an
-                accent chip (prototype: 18px icon, 3px pad, 5px radius). */}
-            <div className="border-k-border bg-k-surface-1 flex h-[22px] w-[52px] items-center justify-center rounded-[8px] border p-[2px]">
+            {/* Segmented view toggle. Same shell height as every other
+                header control; the active glyph sits on an accent chip. */}
+            <div className={cn(CONTROL_SHELL, "gap-[2px] p-[3px]")}>
               <button
                 type="button"
                 aria-label="List view"
                 aria-pressed={view === "list"}
                 onClick={() => setView("list")}
                 className={cn(
-                  "flex items-center justify-center rounded-[5px] p-[3px]",
+                  "flex size-[20px] items-center justify-center rounded-[5px]",
                   view === "list"
                     ? "bg-k-accent text-k-accent-fg"
                     : "text-k-fg-muted",
                 )}
               >
-                <ListIcon size={12} strokeWidth={2} />
+                <ListIcon size={13} strokeWidth={2} />
               </button>
               <button
                 type="button"
@@ -281,13 +293,13 @@ export default function DenseFilesView({
                 aria-pressed={view === "grid"}
                 onClick={() => setView("grid")}
                 className={cn(
-                  "flex items-center justify-center rounded-[5px] p-[3px]",
+                  "flex size-[20px] items-center justify-center rounded-[5px]",
                   view === "grid"
                     ? "bg-k-accent text-k-accent-fg"
                     : "text-k-fg-muted",
                 )}
               >
-                <LayoutGrid size={12} strokeWidth={2} />
+                <LayoutGrid size={13} strokeWidth={2} />
               </button>
             </div>
           </div>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics=""><meta name="design_doc_mode" content="canvas"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;450;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"><style>body{margin:0;background:#f0eee9;font-family:'IBM Plex Sans',system-ui,sans-serif}a{color:#2a78d6}a:hover{color:#1b5ba8}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08)}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 'IBM Plex Sans',system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 'IBM Plex Sans',system-ui,sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:var(--kk-bg, #0d0d0e);border:1px solid rgba(0,0,0,.35);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.18);overflow:hidden}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 'IBM Plex Sans',system-ui,sans-serif;color:rgba(0,0,0,.5)}</style></helmet>
+
+<section class="dv-turn" id="t1" style="{{ themeVars }}">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Karakeep · dark mode, no thumbnails, AI-first</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Dense list — AI title as the row, summary as the body</div>
+<div style="width: 20px; height: 20px; border-radius: 5px; background: #eceae7"></div><div class="dv-card" style="width:1000px; height:625px">
+  <div style="display:flex; height:100%; font-family:'IBM Plex Sans',system-ui,sans-serif; color:#eceae7; background:var(--kk-bg, #0d0d0e);">
+
+    
+
+    <sc-if value="{{ railMode }}" hint-placeholder-val="{{ false }}"><div style="width: 40px; flex: none; background: var(--kk-surface2, #111112); border-right: 1px solid var(--kk-border, #1e1f21); padding: 14px 0; display: flex; flex-direction: column; align-items: center; gap: 18px; height: 531px; box-sizing: border-box">
+      <img src="./karakeep-mark.png" alt="Karakeep" width="659" height="659" style="width:19px; height:19px; display:block; object-fit:contain; flex:none;">
+      <i class="ti ti-layout-sidebar-left-expand" onClick="{{ toggleSidebar }}" style="font-size:17px; color:#77746f; cursor:pointer;" title="Show sidebar"></i>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:15px;">
+        <i class="ti ti-inbox" style="font-size:18px; color:var(--kk-accent, #7ee2b8);" aria-hidden="true"></i>
+        <i class="ti ti-star" style="font-size:18px; color:#77746f;" aria-hidden="true"></i>
+        <i class="ti ti-archive" style="font-size:18px; color:#77746f;" aria-hidden="true"></i>
+        <i class="ti ti-hash" style="font-size:18px; color:#77746f;" aria-hidden="true"></i>
+        <i class="ti ti-upload" style="font-size:18px; color:var(--kk-accent, #7ee2b8);" aria-hidden="true"></i>
+      </div>
+      <div style="margin-top:auto; display:flex; flex-direction:column; align-items:center; gap:14px;">
+        <i class="ti ti-settings" style="font-size:17px; color:#6d6a65;" aria-hidden="true"></i>
+        <i class="ti ti-user-circle" style="font-size:17px; color:#6d6a65;" aria-hidden="true"></i>
+        <span style="font:400 8.5px 'IBM Plex Mono',monospace; color:#4a4844;">v0.28.4</span>
+      </div>
+    </div></sc-if><sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}"><div style="width: 153px; flex: none; background: var(--kk-surface2, #111112); border-right: 1px solid var(--kk-border, #1e1f21); padding: 14px 10px; display: flex; flex-direction: column; gap: 16px; height: 100%; box-sizing: border-box">
+      <div style="display: flex; align-items: center; gap: 4px; padding: 0 6px; width: 110px; height: 21px">
+        <span style="font-size: 20px; font-weight: 600; letter-spacing: -0.01em; position: relative; left: -10px">&nbsp;Hoarder</span><i class="ti ti-layout-sidebar-left-collapse" onClick="{{ toggleSidebar }}" style="font-size: 21px; color: #77746f; cursor: pointer; position: relative; left: 25px; top: -1px" title="Hide sidebar"></i>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1px; font-size:12.5px;">
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; border-radius:6px; background:var(--kk-border-soft, #1a1b1d); font-weight:500;"><i class="ti ti-inbox" aria-hidden="true" style="font-size: 15px; color: var(--kk-accent, #7ee2b8);"></i>Files</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><i class="ti ti-star" style="font-size:15px; color:#77746f;" aria-hidden="true"></i>Favourites</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><i class="ti ti-archive" style="font-size: 15px; color: #77746f" aria-hidden="true"></i>Archive</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1px; font-size:12.5px;">
+        <div style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; text-transform:uppercase; color:#6d6a65; padding:0 8px 5px;">Lists</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><span style="width:5px;height:5px;border-radius:50%;background:var(--kk-accent, #7ee2b8);"></span>Reading</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><span style="width:5px;height:5px;border-radius:50%;background:#8ab4f8;"></span>Dev</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><span style="width:5px;height:5px;border-radius:50%;background:#d3a8f0;"></span>Ceramics</div>
+      </div><div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="font:500 10.5px 'IBM Plex Mono',monospace; letter-spacing:0.08em; text-transform:uppercase; color:#6d6a65; padding:0 8px;">Tags</div>
+        <div style="display:flex; flex-wrap:wrap; gap:5px; padding:0 8px;">
+          <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:11px; padding:2px 7px; border-radius:999px;">frontend</span>
+          <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:11px; padding:2px 7px; border-radius:999px;">docker</span>
+          <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:11px; padding:2px 7px; border-radius:999px;">glaze</span>
+          <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:11px; padding:2px 7px; border-radius:999px;">selfhost</span>
+        </div>
+      </div>
+      <div style="margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 10px 8px 0; border-top: 1px solid var(--kk-border, #1e1f21); position: relative; top: 7px">
+        <i class="ti ti-settings" style="font-size: 16px; color: #6d6a65; position: relative; top: -2px" title="Settings" aria-hidden="true"></i>
+        <i class="ti ti-user-circle" style="font-size: 16px; color: #6d6a65; position: relative; top: -2px" title="Profile" aria-hidden="true"></i>
+        <span style="margin-left: auto; font: 400 9.5px 'IBM Plex Mono',monospace; color: #443f3c; position: relative; top: -2px">v0.28.4</span>
+      </div>
+    </div><div style="flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative">
+      
+
+      
+
+      <div style="display: flex; align-items: center; gap: 14px; padding: 15px 22px 12px; width: 800px; height: 32px">
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <span style="font-size: 15px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #DDD9D4C3; position: relative; top: 4px">Files</span>
+          <span style="font:400 11.5px 'IBM Plex Mono',monospace; color:#6d6a65;"><span>24 items · 3 unsummarised</span>&nbsp;· updated 4 min ago</span>
+        </div>
+        <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+          
+          
+        </div><div style="display: flex; align-items: center; gap: 8px; background: var(--kk-surface, #141516); border: 1px solid var(--kk-border, #1e1f21); border-radius: 9px; padding: 5px 12px; position: relative; left: 44px; top: -2px">
+            <i class="ti ti-search" style="font-size:15px; color:#6d6a65;" aria-hidden="true"></i>
+            <span style="font-size:12.5px; color:#6d6a65;">Search</span>
+          </div><div style="display: flex; align-items: center; gap: 2px; background: var(--kk-surface, #141516); border: 1px solid var(--kk-border, #1e1f21); border-radius: 8px; padding: 4px; width: 22px; height: 22px; justify-content:center; position: relative; left: 44px; top: -2px">
+          
+          
+        <i class="ti ti-upload" style="font-size: 20px; color: #A9A6A1; font-weight: 400;" title="Add" aria-hidden="true"></i></div><div style="display: flex; align-items: center; gap: 2px; background: var(--kk-surface, #141516); border: 1px solid var(--kk-border, #1e1f21); border-radius: 8px; padding: 4px; width: 22px; height: 22px; justify-content:center; position: relative; left: 44px; top: -2px">
+          
+          
+        <i class="ti ti-adjustments-horizontal" style="font-size:20px; color:#a9a6a1;" aria-hidden="true"></i></div><div style="display: flex; align-items: center; gap: 2px; background: var(--kk-surface, #141516); border: 1px solid var(--kk-border, #1e1f21); border-radius: 8px; padding: 3px; width: 52px; height: 22px; justify-content:center; position: relative; left: 44px; top: -2px">
+          
+          
+        <i class="ti ti-list" style="font-size: 18px; color: var(--kk-bg, #0d0d0e); border-radius: 5px; padding: 3px; background-color: var(--kk-accent, #7ee2b8)" aria-hidden="true"></i><i class="ti ti-layout-grid" style="font-size: 18px; color: #A9A6A1; padding: 3px" aria-hidden="true"></i></div><i class="ti ti-adjustments-horizontal" style="font-size:17px; color:#a9a6a1;" aria-hidden="true"></i>
+      </div><div style="display:flex; flex-direction:column;">
+        <div style="display:flex; gap:14px; padding:14px 18px; border-top:1px solid var(--kk-border-soft, #1a1b1d); background:var(--kk-surface, #141516);">
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; position: relative">
+            
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:14px; font-weight:var(--kk-title-w, 550); letter-spacing:-0.01em;">Theming shadcn/ui entirely through CSS variables</span><i class="ti ti-sparkles" style="font-size:13px; color:var(--kk-accent, #7ee2b8); opacity:0.65;" title="AI summarised" aria-hidden="true"></i>
+              
+            </div><div style="font-size:var(--kk-sum-size, 12.5px); line-height:var(--kk-sum-lh, 1.55); color:var(--kk-sum-fg, #a9a6a1); max-width:640px; text-wrap:pretty;">Every colour in the library resolves through a small token set on <span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:#c2bfba;">:root</span>, so a theme override cascades to every component without touching component source.</div>
+            <div style="display:flex; align-items:center; gap:10px; padding-top:2px;">
+              <span style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">ui.shadcn.com</span>
+              <span style="color:#3a3b3e;">·</span>
+              <span style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">6 min</span>
+              <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:1px 7px; border-radius:999px;">frontend</span>
+              <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:1px 7px; border-radius:999px;">css</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex:none;">
+            <span style="font:400 11px 'IBM Plex Mono',monospace; color:#54524e;">2d</span>
+            <div style="display:flex; gap:8px; color:#77746f;"><i class="ti ti-star" style="font-size:15px;" aria-hidden="true"></i><i class="ti ti-dots" style="font-size:15px;" aria-hidden="true"></i></div>
+          </div>
+        </div>
+
+        
+
+        <div style="display: flex; gap: 14px; padding: 14px 18px; border-top: 1px solid var(--kk-border-soft, #1a1b1d); position: static; left: 2px">
+          <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size: 14px; font-weight:var(--kk-title-w, 550); letter-spacing: -0.01em;">Cone 6 satin matte: silica-to-alumina ratios</span><i class="ti ti-sparkles" style="font-size:13px; color:var(--kk-accent, #7ee2b8); opacity:0.65;" title="AI summarised" aria-hidden="true"></i>
+              
+            </div>
+            <div style="font-size:var(--kk-sum-size, 12.5px); line-height:var(--kk-sum-lh, 1.55); color:var(--kk-sum-fg, #a9a6a1); max-width:640px; text-wrap:pretty;">A working range of 6.5:1 to 8:1 keeps the surface stable without going dry; magnesium carbonate is doing most of the matting here, not underfiring.</div>
+            <div style="display:flex; align-items:center; gap:10px; padding-top:2px;">
+              <span style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">glazy.org</span>
+              <span style="color:#3a3b3e;">·</span>
+              <span style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">11 min</span>
+              <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:1px 7px; border-radius:999px;">glaze</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex:none;">
+            <span style="font:400 11px 'IBM Plex Mono',monospace; color:#54524e;">4d</span>
+            <div style="display:flex; gap:8px; color:#77746f;"><i class="ti ti-star" style="font-size:15px;" aria-hidden="true"></i><i class="ti ti-dots" style="font-size:15px;" aria-hidden="true"></i></div>
+          </div>
+        </div><div style="display:flex; gap:14px; padding:14px 18px; border-top:1px solid var(--kk-border-soft, #1a1b1d);">
+          <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:14px; font-weight:var(--kk-title-w, 550); letter-spacing:-0.01em; color:#c2bfba;">reverse-proxy-css-injection.md</span>
+              <span style="display:inline-flex; align-items:center; gap:5px; font:500 9.5px 'IBM Plex Mono',monospace; letter-spacing:0.06em; color:#6d6a65; border:1px solid var(--kk-border, #1e1f21); border-radius:4px; padding:1px 5px;"><span style="width:4px; height:4px; border-radius:50%; background:#6d6a65;"></span>SUMMARISING</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; max-width:640px; padding-top:2px;">
+              <div style="height:8px; border-radius:3px; background:var(--kk-border, #1e1f21);"></div>
+              <div style="height:8px; width:72%; border-radius:3px; background:var(--kk-border, #1e1f21);"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding-top:4px;">
+              <span style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">gist.github.com</span>
+              <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:1px 7px; border-radius:999px;">docker</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex:none;">
+            <span style="font:400 11px 'IBM Plex Mono',monospace; color:#54524e;">6d</span>
+            <div style="display:flex; gap:8px; color:#77746f;"><i class="ti ti-star" style="font-size:15px;" aria-hidden="true"></i><i class="ti ti-dots" style="font-size:15px;" aria-hidden="true"></i></div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:14px; padding:14px 18px; border-top:1px solid var(--kk-border-soft, #1a1b1d);">
+          <div style="flex:1; min-width:0; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:14px; font-weight:var(--kk-title-w, 550); letter-spacing:-0.01em;">Why 14px Inter at 1.5 beats a bigger type scale</span>
+              <i class="ti ti-sparkles" style="font-size:13px; color:var(--kk-accent, #7ee2b8); opacity:0.65;" title="AI summarised" aria-hidden="true"></i>
+            </div>
+            <div style="font-size:var(--kk-sum-size, 12.5px); line-height:var(--kk-sum-lh, 1.55); color:var(--kk-sum-fg, #a9a6a1); max-width:640px; text-wrap:pretty;">Line length and leading carry more of the readability load than font size does — the author caps measure at 68 characters and never goes above 15px.</div>
+            <div style="display:flex; align-items:center; gap:10px; padding-top:2px;">
+              <span style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">practicaltypography.com</span>
+              <span style="color:#3a3b3e;">·</span>
+              <span style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">4 min</span>
+              <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:1px 7px; border-radius:999px;">type</span>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex:none;">
+            <span style="font:400 11px 'IBM Plex Mono',monospace; color:#54524e;">1w</span>
+            <div style="display:flex; gap:8px; color:#77746f;"><i class="ti ti-star" style="font-size:15px;" aria-hidden="true"></i><i class="ti ti-dots" style="font-size:15px;" aria-hidden="true"></i></div>
+          </div>
+        </div>
+      </div>
+    </div></sc-if>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Summary cards — the AI summary <em>is</em> the card</div>
+<div class="dv-card" style="width:1000px">
+  <div style="display:flex; font-family:'IBM Plex Sans',system-ui,sans-serif; color:#eceae7; background:var(--kk-bg, #0d0d0e);">
+
+    <div style="width:60px; flex:none; border-right:1px solid var(--kk-border, #1e1f21); padding:14px 0; display:flex; flex-direction:column; align-items:center; gap:20px;">
+      <div style="width:20px; height:20px; border-radius:6px; background:var(--kk-accent, #7ee2b8);"></div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:14px; color:#77746f;">
+        <i class="ti ti-inbox" style="font-size:19px; color:#eceae7;" aria-hidden="true"></i>
+        <i class="ti ti-star" style="font-size:19px;" aria-hidden="true"></i>
+        <i class="ti ti-hash" style="font-size:19px;" aria-hidden="true"></i>
+        <i class="ti ti-archive" style="font-size:19px;" aria-hidden="true"></i>
+      </div>
+      <div style="margin-top:auto; width:26px; height:26px; border-radius:50%; border:1px solid var(--kk-border, #1e1f21);"></div>
+    </div>
+
+    <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+      <div style="display:flex; align-items:center; gap:14px; padding:18px 22px 14px;">
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <span style="font-size:19px; font-weight:600; letter-spacing:-0.02em;">Inbox</span>
+          <span style="font:400 11.5px 'IBM Plex Mono',monospace; color:#6d6a65;">summarised by Claude · updated 4 min ago</span>
+        </div>
+        <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+          <div style="display:flex; align-items:center; gap:8px; background:var(--kk-surface, #141516); border:1px solid var(--kk-border, #1e1f21); border-radius:999px; padding:7px 13px;">
+            <i class="ti ti-search" style="font-size:15px; color:#6d6a65;" aria-hidden="true"></i>
+            <span style="font-size:12.5px; color:#6d6a65;">Search</span>
+          </div>
+          
+        </div>
+      </div>
+
+      <div style="display:flex; gap:7px; padding:0 22px 16px;">
+        <span style="font-size:12px; font-weight:500; color:var(--kk-bg, #0d0d0e); background:#eceae7; border-radius:999px; padding:4px 12px;">All</span>
+        <span style="font-size:12px; color:#a9a6a1; border:1px solid var(--kk-border, #1e1f21); border-radius:999px; padding:4px 12px;">Unread</span>
+        <span style="font-size:12px; color:#a9a6a1; border:1px solid var(--kk-border, #1e1f21); border-radius:999px; padding:4px 12px;">Reading</span>
+        <span style="font-size:12px; color:#a9a6a1; border:1px solid var(--kk-border, #1e1f21); border-radius:999px; padding:4px 12px;">Dev</span>
+        <span style="font-size:12px; color:#a9a6a1; border:1px solid var(--kk-border, #1e1f21); border-radius:999px; padding:4px 12px;">Ceramics</span>
+      </div>
+
+      <div style="padding:0 22px 22px; display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+
+        <div style="background:var(--kk-surface, #141516); border:1px solid var(--kk-border, #1e1f21); border-radius:12px; padding:16px 17px; display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; color:var(--kk-accent, #7ee2b8);">AI TITLE</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">ui.shadcn.com</span>
+          </div>
+          <div style="font-size:var(--kk-title-size, 16px); font-weight:var(--kk-title-w2, 600); line-height:1.3; letter-spacing:-0.015em; text-wrap:pretty;">Theming shadcn/ui entirely through CSS variables</div>
+          <div style="font-size:var(--kk-sum-size, 12.5px); line-height:var(--kk-sum-lh, 1.6); color:var(--kk-sum-fg, #a9a6a1); text-wrap:pretty;">Every colour resolves through a small token set on the root element, so one override cascades to every component. The article walks through remapping the palette to a warm neutral without forking a single component.</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+            <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:2px 8px; border-radius:999px;">frontend</span>
+            <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:2px 8px; border-radius:999px;">css</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">6 min</span>
+          </div>
+        </div>
+
+        <div style="background:var(--kk-surface, #141516); border:1px solid var(--kk-border, #1e1f21); border-radius:12px; padding:16px 17px; display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; color:var(--kk-accent, #7ee2b8);">AI TITLE</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">glazy.org</span>
+          </div>
+          <div style="font-size:var(--kk-title-size, 16px); font-weight:var(--kk-title-w2, 600); line-height:1.3; letter-spacing:-0.015em; text-wrap:pretty;">Cone 6 satin matte: silica-to-alumina ratios that stay stable</div>
+          <div style="font-size:var(--kk-sum-size, 12.5px); line-height:var(--kk-sum-lh, 1.6); color:var(--kk-sum-fg, #a9a6a1); text-wrap:pretty;">A working range of 6.5:1 to 8:1 keeps the surface from going dry. Magnesium carbonate is doing the matting, not underfiring — the author reruns the same base at three ratios to show it.</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+            <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:2px 8px; border-radius:999px;">glaze</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">11 min</span>
+          </div>
+        </div>
+
+        <div style="background:var(--kk-surface, #141516); border:1px solid var(--kk-border, #1e1f21); border-radius:12px; padding:16px 17px; display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; color:var(--kk-accent, #7ee2b8);">AI TITLE</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">gist.github.com</span>
+          </div>
+          <div style="font-size:var(--kk-title-size, 16px); font-weight:var(--kk-title-w2, 600); line-height:1.3; letter-spacing:-0.015em; text-wrap:pretty;">Injecting a stylesheet through a reverse proxy, no fork</div>
+          <div style="font-size:var(--kk-sum-size, 12.5px); line-height:var(--kk-sum-lh, 1.6); color:var(--kk-sum-fg, #a9a6a1); text-wrap:pretty;">A sub_filter rule inserts a style block before the closing head tag, which is enough to restyle a self-hosted app you don't control the build of.</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+            <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:2px 8px; border-radius:999px;">docker</span>
+            <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:2px 8px; border-radius:999px;">selfhost</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">3 min</span>
+          </div>
+        </div>
+
+        <div style="background:var(--kk-surface, #141516); border:1px solid var(--kk-border, #1e1f21); border-radius:12px; padding:16px 17px; display:flex; flex-direction:column; gap:11px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; color:var(--kk-accent, #7ee2b8);">AI TITLE</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">practicaltypography.com</span>
+          </div>
+          <div style="font-size:var(--kk-title-size, 16px); font-weight:var(--kk-title-w2, 600); line-height:1.3; letter-spacing:-0.015em; text-wrap:pretty;">Measure and leading matter more than font size</div>
+          <div style="font-size:var(--kk-sum-size, 12.5px); line-height:var(--kk-sum-lh, 1.6); color:var(--kk-sum-fg, #a9a6a1); text-wrap:pretty;">Capping the line at 68 characters does more for readability than scaling type up. The author never goes above 15px in body copy and leans on generous leading instead.</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:2px;">
+            <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:10.5px; padding:2px 8px; border-radius:999px;">type</span>
+            <span style="margin-left:auto; font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">4 min</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Split triage — quiet index left, full AI read-out right</div>
+<div class="dv-card" style="width:1180px">
+  <div style="display:flex; font-family:'IBM Plex Sans',system-ui,sans-serif; color:#eceae7; background:var(--kk-bg, #0d0d0e);">
+
+    <div style="width:172px; flex:none; background:var(--kk-surface2, #111112); border-right:1px solid var(--kk-border, #1e1f21); padding:14px 10px; display:flex; flex-direction:column; gap:16px;">
+      <div style="display:flex; align-items:center; gap:9px; padding:0 6px;">
+        <div style="width:17px; height:17px; border-radius:5px; background:#eceae7;"></div>
+        <span style="font-size:13px; font-weight:600; letter-spacing:-0.01em;">Karakeep</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1px; font-size:12.5px;">
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; border-radius:6px; background:var(--kk-border-soft, #1a1b1d); font-weight:500;"><i class="ti ti-inbox" style="font-size:15px; color:var(--kk-accent, #7ee2b8);" aria-hidden="true"></i>Inbox</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><i class="ti ti-star" style="font-size:15px; color:#77746f;" aria-hidden="true"></i>Favourites</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><i class="ti ti-archive" style="font-size:15px; color:#77746f;" aria-hidden="true"></i>Archive</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:1px; font-size:12.5px;">
+        <div style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; text-transform:uppercase; color:#6d6a65; padding:0 8px 5px;">Lists</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><span style="width:5px;height:5px;border-radius:50%;background:var(--kk-accent, #7ee2b8);"></span>Reading</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><span style="width:5px;height:5px;border-radius:50%;background:#8ab4f8;"></span>Dev</div>
+        <div style="display:flex; align-items:center; gap:9px; padding:5px 8px; color:#a9a6a1;"><span style="width:5px;height:5px;border-radius:50%;background:#d3a8f0;"></span>Ceramics</div>
+      </div>
+    </div>
+
+    <div style="width:330px; flex:none; border-right:1px solid var(--kk-border, #1e1f21); display:flex; flex-direction:column;">
+      <div style="padding:13px 16px; border-bottom:1px solid var(--kk-border, #1e1f21); display:flex; align-items:center; gap:9px;">
+        <i class="ti ti-search" style="font-size:15px; color:#6d6a65;" aria-hidden="true"></i>
+        <span style="font-size:12.5px; color:#6d6a65;">Search 1,204 bookmarks</span>
+      </div>
+      <div style="padding:14px 16px; border-left:2px solid var(--kk-accent, #7ee2b8); background:var(--kk-surface, #141516); display:flex; flex-direction:column; gap:5px;">
+        <div style="font-size:13px; font-weight:var(--kk-title-w, 550); line-height:1.35; letter-spacing:-0.01em;">Theming shadcn/ui entirely through CSS variables</div>
+        <div style="font-size:var(--kk-sum-size-sm, 11.5px); line-height:var(--kk-sum-lh, 1.5); color:var(--kk-sum-fg, #8f8c87); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Every colour resolves through a small token set on the root element, so one override cascades everywhere.</div>
+        <div style="font:400 10.5px 'IBM Plex Mono',monospace; color:#54524e;">ui.shadcn.com · 2d</div>
+      </div>
+      <div style="padding:14px 16px; border-top:1px solid var(--kk-border-soft, #1a1b1d); display:flex; flex-direction:column; gap:5px;">
+        <div style="font-size:13px; font-weight:500; line-height:1.35; color:#c2bfba;">Cone 6 satin matte: silica-to-alumina ratios</div>
+        <div style="font-size:11.5px; line-height:1.5; color:#77746f; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">A working range of 6.5:1 to 8:1 keeps the surface stable without going dry.</div>
+        <div style="font:400 10.5px 'IBM Plex Mono',monospace; color:#4a4844;">glazy.org · 4d</div>
+      </div>
+      <div style="padding:14px 16px; border-top:1px solid var(--kk-border-soft, #1a1b1d); display:flex; flex-direction:column; gap:5px;">
+        <div style="font-size:13px; font-weight:500; line-height:1.35; color:#c2bfba;">Injecting a stylesheet through a reverse proxy</div>
+        <div style="font-size:11.5px; line-height:1.5; color:#77746f; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">A sub_filter rule inserts a style block before the closing head tag.</div>
+        <div style="font:400 10.5px 'IBM Plex Mono',monospace; color:#4a4844;">gist.github.com · 6d</div>
+      </div>
+      <div style="padding:14px 16px; border-top:1px solid var(--kk-border-soft, #1a1b1d); display:flex; flex-direction:column; gap:5px;">
+        <div style="font-size:13px; font-weight:500; line-height:1.35; color:#c2bfba;">Measure and leading matter more than font size</div>
+        <div style="font-size:11.5px; line-height:1.5; color:#77746f; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">Capping the line at 68 characters does more than scaling type up.</div>
+        <div style="font:400 10.5px 'IBM Plex Mono',monospace; color:#4a4844;">practicaltypography.com · 1w</div>
+      </div>
+      <div style="padding:14px 16px; border-top:1px solid var(--kk-border-soft, #1a1b1d); display:flex; flex-direction:column; gap:5px;">
+        <div style="font-size:13px; font-weight:500; line-height:1.35; color:#c2bfba;">Self-hosting Postgres backups to object storage</div>
+        <div style="font-size:11.5px; line-height:1.5; color:#77746f; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">pgBackRest to an S3-compatible bucket, with a restore drill on a schedule.</div>
+        <div style="font:400 10.5px 'IBM Plex Mono',monospace; color:#4a4844;">wiki.postgresql.org · 2w</div>
+      </div>
+    </div>
+
+    <div style="flex:1; min-width:0; display:flex; flex-direction:column;">
+      <div style="display:flex; align-items:center; gap:10px; padding:13px 22px; border-bottom:1px solid var(--kk-border, #1e1f21); color:#a9a6a1;">
+        <i class="ti ti-star" style="font-size:16px;" aria-hidden="true"></i>
+        <i class="ti ti-archive" style="font-size:16px;" aria-hidden="true"></i>
+        <i class="ti ti-tag" style="font-size:16px;" aria-hidden="true"></i>
+        <i class="ti ti-external-link" style="font-size:16px;" aria-hidden="true"></i>
+        <span style="margin-left:auto; display:inline-flex; align-items:center; gap:6px; font:500 10.5px 'IBM Plex Mono',monospace; letter-spacing:0.06em; color:var(--kk-accent, #7ee2b8); border:1px solid var(--kk-accent-bd, #274a3c); border-radius:999px; padding:3px 9px;"><i class="ti ti-refresh" style="font-size:12px;" aria-hidden="true"></i>RE-SUMMARISE</span>
+      </div>
+
+      <div style="padding:26px 34px 30px; display:flex; flex-direction:column; gap:22px; max-width:600px;">
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="font:400 11px 'IBM Plex Mono',monospace; color:#6d6a65;">ui.shadcn.com/docs/theming · saved 2 days ago</div>
+          <div style="font-size:25px; font-weight:600; line-height:1.22; letter-spacing:-0.025em; text-wrap:pretty;">Theming shadcn/ui entirely through CSS variables</div>
+          <div style="display:flex; align-items:center; gap:7px;">
+            <span style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; color:var(--kk-accent, #7ee2b8);">AI TITLE</span>
+            <span style="font:400 10.5px 'IBM Plex Mono',monospace; color:#4a4844;">original: “Theming — shadcn/ui”</span>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:9px;">
+          <div style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; color:#6d6a65;">SUMMARY</div>
+          <div style="font-size:var(--kk-sum-size-lg, 14px); line-height:var(--kk-sum-lh, 1.65); color:var(--kk-sum-fg-strong, #c2bfba); text-wrap:pretty;">Every colour in the library resolves through a small set of semantic tokens declared on the root element, so a single override cascades to every component without forking source. The page maps each token to its role — surface, muted, accent, border — and shows a warm-neutral remap as a worked example, including the dark-mode pairs.</div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="font:500 10px 'IBM Plex Mono',monospace; letter-spacing:0.08em; color:#6d6a65;">KEY POINTS</div>
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:13px; line-height:1.55; color:#a9a6a1;">
+            <div style="display:flex; gap:10px;"><span style="color:var(--kk-accent, #7ee2b8);">—</span><span>Tokens are HSL triples, not colour functions, so they compose in <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#c2bfba;">hsl(var(--x) / 0.5)</span>.</span></div>
+            <div style="display:flex; gap:10px;"><span style="color:var(--kk-accent, #7ee2b8);">—</span><span>Dark mode is a second block on <span style="font-family:'IBM Plex Mono',monospace; font-size:12px; color:#c2bfba;">.dark</span>, not a separate theme file.</span></div>
+            <div style="display:flex; gap:10px;"><span style="color:var(--kk-accent, #7ee2b8);">—</span><span>Border and ring share one token — changing it retunes every focus state at once.</span></div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px; padding-top:2px; border-top:1px solid var(--kk-border, #1e1f21); margin-top:2px; padding-top:16px;">
+          <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:11px; padding:2px 9px; border-radius:999px;">frontend</span>
+          <span style="border:1px solid var(--kk-border, #1e1f21); color:#a9a6a1; font-size:11px; padding:2px 9px; border-radius:999px;">css</span>
+          <span style="border:1px dashed #2c2d30; color:#6d6a65; font-size:11px; padding:2px 9px; border-radius:999px;">+ tag</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "make <a class="dv-oid" href="#1b">1b</a> three columns and denser" · "give <a class="dv-oid" href="#1a">1a</a> the summary read-out pane from <a class="dv-oid" href="#1c">1c</a>" · "new directions — try a keyboard-driven command-palette layout"</p>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#7C5DFF&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#7ee2b8&quot;,&quot;#7C5DFF&quot;,&quot;#E8B14C&quot;,&quot;#8AB4F8&quot;],&quot;section&quot;:&quot;Feel&quot;},&quot;surfaceTone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Deep slate&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;Charcoal&quot;,&quot;True black&quot;,&quot;Deep slate&quot;],&quot;section&quot;:&quot;Feel&quot;},&quot;readingEmphasis&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Title-led&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;Title-led&quot;,&quot;Balanced&quot;,&quot;Summary-led&quot;],&quot;section&quot;:&quot;Feel&quot;}}">
+class Component extends DCLogic {
+  state = { rail: false };
+  renderVals() {
+    const rail = this.state.rail;
+    const accent = this.props.accent ?? '#7ee2b8';
+    const tone = this.props.surfaceTone ?? 'Charcoal';
+    const emph = this.props.readingEmphasis ?? 'Balanced';
+
+    const tones = {
+      'Charcoal':   { bg:'#0d0d0e', s1:'#141516', s2:'#111112', bd:'#232427', bds:'#1a1b1d' },
+      'True black': { bg:'#000000', s1:'#0b0b0c', s2:'#070708', bd:'#1c1c1e', bds:'#141415' },
+      'Deep slate': { bg:'#0e1116', s1:'#151a21', s2:'#11151c', bd:'#232b36', bds:'#191f27' },
+    };
+    const emphs = {
+      'Title-led':   { sum:'12px',   sumLg:'13px',   sumSm:'11px',   lh:'1.5', fg:'#87847f', fgS:'#a9a6a1', tw:'600', tw2:'650', tsize:'17px' },
+      'Balanced':    { sum:'12.5px', sumLg:'14px',   sumSm:'11.5px', lh:'1.6', fg:'#a9a6a1', fgS:'#c2bfba', tw:'550', tw2:'600', tsize:'16px' },
+      'Summary-led': { sum:'13.5px', sumLg:'15.5px', sumSm:'12.5px', lh:'1.72', fg:'#c2bfba', fgS:'#ddd9d4', tw:'500', tw2:'550', tsize:'14.5px' },
+    };
+    const t = tones[tone] || tones['Charcoal'];
+    const e = emphs[emph] || emphs['Balanced'];
+
+    return {
+      railMode: rail,
+      expanded: !rail,
+      toggleSidebar: () => this.setState(s => ({ rail: !s.rail })),
+      themeVars: {
+      '--kk-accent': accent,
+      '--kk-accent-bd': 'color-mix(in oklab, ' + accent + ' 34%, ' + t.bg + ')',
+      '--kk-bg': t.bg,
+      '--kk-surface': t.s1,
+      '--kk-surface2': t.s2,
+      '--kk-border': t.bd,
+      '--kk-border-soft': t.bds,
+      '--kk-sum-size': e.sum,
+      '--kk-sum-size-lg': e.sumLg,
+      '--kk-sum-size-sm': e.sumSm,
+      '--kk-sum-lh': e.lh,
+      '--kk-sum-fg': e.fg,
+      '--kk-sum-fg-strong': e.fgS,
+      '--kk-title-w': e.tw,
+      '--kk-title-w2': e.tw2,
+      '--kk-title-size': e.tsize,
+    } };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ProfileOptions from "@/components/dashboard/header/ProfileOptions";
+import { EditListModal } from "@/components/dashboard/lists/EditListModal";
 import { cn } from "@/lib/utils";
 import {
   Archive,
@@ -11,6 +12,7 @@ import {
   Inbox,
   PanelLeftClose,
   PanelLeftOpen,
+  Plus,
   Search,
   Settings,
   Star,
@@ -128,6 +130,7 @@ export default function DenseSidebar({
   const pathname = usePathname();
   const { collapsed, toggle } = useSidebarCollapsed();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [newListOpen, setNewListOpen] = useState(false);
 
   const { data: listsData } = useBookmarkLists(undefined, {
     initialData: { lists: initialLists },
@@ -174,11 +177,11 @@ export default function DenseSidebar({
 
   if (collapsed) {
     return (
-      <aside className="border-k-border bg-k-surface-2 flex w-[40px] flex-none flex-col items-center gap-[18px] border-r py-[14px]">
+      <aside className="border-k-border bg-k-surface-2 flex h-full w-[40px] flex-none flex-col items-center gap-[18px] border-r py-[14px]">
         <Link
           href="/dashboard/bookmarks"
-          className="text-k-fg flex items-center justify-center"
-          aria-label="Karakeep"
+          className="text-k-fg flex flex-none items-center justify-center"
+          aria-label="Keepsake"
         >
           <svg viewBox="0 0 24 24" fill="none" className="size-[19px]">
             <path
@@ -194,11 +197,11 @@ export default function DenseSidebar({
           aria-label="Show sidebar"
           aria-expanded={false}
           onClick={toggle}
-          className="text-k-icon hover:text-k-fg-muted flex items-center justify-center"
+          className="text-k-icon hover:text-k-fg-muted flex flex-none items-center justify-center"
         >
           <PanelLeftOpen size={17} strokeWidth={1.75} />
         </button>
-        <nav className="flex flex-col items-center gap-[15px]">
+        <nav className="flex min-h-0 flex-1 flex-col items-center gap-[15px] overflow-y-auto">
           {navItems.map((item) => (
             <RailIcon
               key={item.href}
@@ -208,6 +211,12 @@ export default function DenseSidebar({
               tone={pathname === item.href ? "accent" : "dim"}
             />
           ))}
+          <RailIcon
+            href="/dashboard/lists"
+            icon={<Inbox size={18} strokeWidth={1.75} />}
+            label="Lists"
+            tone={pathname.startsWith("/dashboard/lists") ? "accent" : "dim"}
+          />
           <RailIcon
             href="/dashboard/tags"
             icon={<Hash size={18} strokeWidth={1.75} />}
@@ -221,10 +230,11 @@ export default function DenseSidebar({
             onClick={() => setQuickAddOpen(true)}
           />
         </nav>
-        <div className="mt-auto flex flex-col items-center gap-[14px]">
+        <div className="flex flex-none flex-col items-center gap-[14px]">
           <Link
             href="/settings"
             aria-label="Settings"
+            title="Settings"
             className="text-k-fg-dim hover:text-k-fg-muted flex size-[17px] items-center justify-center"
           >
             <Settings size={17} strokeWidth={1.75} />
@@ -233,7 +243,7 @@ export default function DenseSidebar({
             <ProfileOptions iconOnly />
           </div>
           <span className="font-k-mono text-k-version-rail text-[8.5px]">
-            {serverVersion ?? ""}
+            {serverVersion ?? "dev"}
           </span>
         </div>
         <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
@@ -242,14 +252,14 @@ export default function DenseSidebar({
   }
 
   return (
-    <aside className="border-k-border bg-k-surface-2 flex w-[153px] flex-none flex-col gap-4 border-r p-[14px_10px]">
+    <aside className="border-k-border bg-k-surface-2 flex h-full w-[153px] flex-none flex-col border-r p-[14px_10px]">
       {/* Brand row — wordmark + collapse toggle only. */}
-      <div className="flex items-center gap-1 px-[6px]">
+      <div className="flex flex-none items-center gap-1 px-[6px]">
         <Link
           href="/dashboard/bookmarks"
           className="text-k-fg text-[20px] font-semibold tracking-[-0.01em]"
         >
-          Karakeep
+          Keepsake
         </Link>
         <button
           type="button"
@@ -262,80 +272,114 @@ export default function DenseSidebar({
         </button>
       </div>
 
-      {/* Primary nav */}
-      <ul className="flex flex-col gap-px text-[12.5px]">
-        {navItems.map((item) => (
-          <NavRow
-            key={item.href}
-            href={item.href}
-            icon={item.icon}
-            label={item.label}
-            active={pathname === item.href}
-          />
-        ))}
-      </ul>
+      {/* Scrollable middle. Keeping this separate from the footer means a
+          long list of lists/tags can never push settings + profile out of
+          view — they stay pinned to the bottom of the rail. */}
+      <div className="sidebar-scrollbar mt-4 flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto">
+        <ul className="flex flex-col gap-px text-[12.5px]">
+          {navItems.map((item) => (
+            <NavRow
+              key={item.href}
+              href={item.href}
+              icon={item.icon}
+              label={item.label}
+              active={pathname === item.href}
+            />
+          ))}
+        </ul>
 
-      {/* Lists */}
-      {topLevelLists.length > 0 && (
+        {/* Lists. Always rendered — it carries the "create list" affordance
+            and the link to the full lists page, so it must be reachable
+            even when the user has no lists yet. */}
         <div className="flex flex-col gap-px text-[12.5px]">
-          <p className="font-k-mono text-k-fg-dim px-2 pb-[5px] text-[10px] font-medium uppercase tracking-[0.08em]">
-            Lists
-          </p>
-          <ul className="flex flex-col gap-px">
-            {topLevelLists.slice(0, 6).map((list, i) => {
-              const href = `/dashboard/lists/${list.id}`;
-              const active = pathname === href;
-              return (
-                <li key={list.id}>
-                  <Link
-                    href={href}
-                    className={cn(
-                      "flex items-center gap-[9px] rounded-[6px] px-2 py-[5px] transition-colors",
-                      active
-                        ? "bg-k-border-soft text-k-fg font-medium"
-                        : "text-k-fg-muted hover:bg-k-border-soft/60",
-                    )}
-                  >
-                    <span
-                      className="size-[5px] flex-none rounded-full"
-                      style={{
-                        background: LIST_DOT_COLORS[i % LIST_DOT_COLORS.length],
-                      }}
-                    />
-                    <span className="truncate">{list.name}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-
-      {/* Tags */}
-      {initialTags.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <p className="font-k-mono text-k-fg-dim px-2 text-[10.5px] font-medium uppercase tracking-[0.08em]">
-            Tags
-          </p>
-          <div className="flex flex-wrap gap-[5px] px-2">
-            {initialTags.slice(0, 8).map((tag) => (
-              <Link
-                key={tag.id}
-                href={`/dashboard/tags/${tag.id}`}
-                className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg rounded-full border px-[7px] py-[2px] text-[11px]"
-              >
-                {tag.name}
-              </Link>
-            ))}
+          <div className="flex items-center px-2 pb-[5px]">
+            <Link
+              href="/dashboard/lists"
+              className="font-k-mono text-k-fg-dim hover:text-k-fg-muted text-[10px] font-medium uppercase tracking-[0.08em]"
+            >
+              Lists
+            </Link>
+            <button
+              type="button"
+              aria-label="New list"
+              title="New list"
+              onClick={() => setNewListOpen(true)}
+              className="text-k-fg-dim hover:text-k-fg-muted ml-auto flex items-center justify-center"
+            >
+              <Plus size={13} strokeWidth={2} />
+            </button>
           </div>
+          {topLevelLists.length > 0 ? (
+            <ul className="flex flex-col gap-px">
+              {topLevelLists.slice(0, 8).map((list, i) => {
+                const href = `/dashboard/lists/${list.id}`;
+                const active = pathname === href;
+                return (
+                  <li key={list.id}>
+                    <Link
+                      href={href}
+                      className={cn(
+                        "flex items-center gap-[9px] rounded-[6px] px-2 py-[5px] transition-colors",
+                        active
+                          ? "bg-k-border-soft text-k-fg font-medium"
+                          : "text-k-fg-muted hover:bg-k-border-soft/60",
+                      )}
+                    >
+                      <span
+                        className="size-[5px] flex-none rounded-full"
+                        style={{
+                          background:
+                            LIST_DOT_COLORS[i % LIST_DOT_COLORS.length],
+                        }}
+                      />
+                      <span className="truncate">{list.name}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setNewListOpen(true)}
+              className="text-k-fg-dim/70 hover:text-k-fg-muted px-2 py-[5px] text-left text-[11px]"
+            >
+              No lists yet — create one
+            </button>
+          )}
         </div>
-      )}
 
-      {/* Footer */}
-      <div className="border-k-border mt-auto flex items-center gap-3 border-t pt-[10px]">
+        {/* Tags */}
+        {initialTags.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <Link
+              href="/dashboard/tags"
+              className="font-k-mono text-k-fg-dim hover:text-k-fg-muted px-2 text-[10.5px] font-medium uppercase tracking-[0.08em]"
+            >
+              Tags
+            </Link>
+            <div className="flex flex-wrap gap-[5px] px-2">
+              {initialTags.slice(0, 8).map((tag) => (
+                <Link
+                  key={tag.id}
+                  href={`/dashboard/tags/${tag.id}`}
+                  className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg rounded-full border px-[7px] py-[2px] text-[11px]"
+                >
+                  {tag.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer — flex-none so it is always pinned above the rail's bottom
+          padding regardless of how much content is above it. */}
+      <div className="border-k-border mt-4 flex flex-none items-center gap-3 border-t pt-[10px]">
         <Link
           href="/settings"
           aria-label="Settings"
+          title="Settings"
           className="text-k-fg-dim hover:text-k-fg-muted flex size-4 items-center justify-center"
         >
           <Settings size={16} strokeWidth={1.75} />
@@ -344,10 +388,12 @@ export default function DenseSidebar({
           <ProfileOptions iconOnly />
         </div>
         <span className="font-k-mono text-k-version ml-auto text-[9.5px]">
-          {serverVersion ?? ""}
+          {serverVersion ?? "dev"}
         </span>
       </div>
+
       <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
+      <EditListModal open={newListOpen} setOpen={setNewListOpen} />
     </aside>
   );
 }

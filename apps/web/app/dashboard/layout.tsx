@@ -139,7 +139,7 @@ export default async function Dashboard({
             {/* h-full, not 100dvh: under `zoom` the wrapper above already
               resolves to exactly the viewport, whereas viewport units would
               be re-divided by the zoom factor and overflow. */}
-            <div className="flex min-h-[100dvh] w-full flex-col sm:h-full sm:flex-row sm:overflow-hidden">
+            <div className="flex min-h-[100dvh] w-full flex-col sm:h-full sm:min-h-0 sm:flex-row sm:overflow-hidden">
               <ValidAccountCheck />
               <div className="hidden flex-none sm:flex">
                 <DenseSidebar
