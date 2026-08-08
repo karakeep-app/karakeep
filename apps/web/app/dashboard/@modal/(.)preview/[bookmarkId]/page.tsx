@@ -2,7 +2,7 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import BookmarkPreview from "@/components/dashboard/preview/BookmarkPreview";
+import DenseBookmarkDetail from "@/components/dashboard/dense/DenseBookmarkDetail";
 import {
   Dialog,
   DialogContent,
@@ -34,11 +34,13 @@ export default function BookmarkPreviewPage(props: {
         </DialogHeader>
       </VisuallyHidden>
       <DialogContent
-        className="h-[90%] max-w-[90%] overflow-hidden rounded-xl p-0"
+        // Narrower than the old preview's 90%: the read-out is a single
+        // 600px column, so a full-bleed dialog would be mostly empty.
+        className="border-k-border bg-k-bg h-[86%] max-w-[700px] overflow-hidden rounded-xl p-0"
         hideCloseBtn={true}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <BookmarkPreview
+        <DenseBookmarkDetail
           bookmarkId={params.bookmarkId}
           onClose={() => setOpenWithRouter(false)}
         />

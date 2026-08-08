@@ -64,11 +64,87 @@
   zoom: var(--k-zoom, 1);
 }
 
-/* Portaled UI (dropdowns, dialogs) renders into <body>, outside .k-dense —
-   scale it too so menus match the surface that opened them. */
-body > [data-radix-popper-content-wrapper],
-body > [data-dense-portal] {
+/*
+ * Portaled UI (dropdowns, dialogs) renders into <body>, outside .k-dense —
+ * scale it too so menus match the surface that opened them.
+ *
+ * For poppers the zoom must land on the *content*, never on the wrapper
+ * Radix positions. Radix measures the trigger with getBoundingClientRect
+ * (already-zoomed, real viewport px) and writes the result as an inline
+ * `transform: translate(x, y)` on the wrapper; zooming that same element
+ * multiplies the translate as well, so at a 1.376 factor a menu anchored at
+ * x=1342 was drawn at x=1846 — off-screen on a 1512px viewport, i.e. every
+ * dropdown in the fork silently vanished. Scaling the child instead leaves
+ * the offset in real px, and because `zoom` participates in layout the
+ * wrapper still measures the scaled size, so Radix's own alignment and
+ * collision handling keep working.
+ */
+body > [data-radix-popper-content-wrapper] > * {
   zoom: var(--k-zoom, 1);
+}
+
+/*
+ * Dialogs are their own portal root (`body > [role="dialog"]`), and unlike
+ * poppers they self-centre with percentage offsets, which `zoom` resolves in
+ * the element's own scaled coordinate space — so the whole element can be
+ * zoomed and it stays centred.
+ */
+body > [role="dialog"] {
+  zoom: var(--k-zoom, 1);
+}
+
+/*
+ * Re-point shadcn's own theme tokens at the palette above.
+ *
+ * The fork reuses plenty of upstream Karakeep UI verbatim (the tag editor,
+ * attachments, dropdowns, dialogs, toasts). Those are all built on shadcn's
+ * `--background`/`--foreground`/... variables, which in `.dark` resolve to a
+ * cool blue-slate that visibly clashes with this design's warm greys — an
+ * embedded component would render its heading in near-white #f8fafc next to
+ * our #eceae7. Remapping the variables once here keeps every borrowed
+ * component on-palette without restyling each one.
+ *
+ * Values are the HSL triples of the hex tokens above (shadcn composes them
+ * as `hsl(var(--x))`, so they must stay bare triples, not colours).
+ *
+ * The doubled class is deliberate: `.dark` sets these same variables at
+ * equal specificity, and both classes land on the same elements, so this
+ * needs (0,2,0) to win regardless of stylesheet order.
+ */
+.k-dense.k-dense {
+  --background: 217.5 22.2% 7.1%; /* --k-bg */
+  --foreground: 36 11.6% 91.6%; /* --k-fg */
+
+  --card: 215 22.2% 10.6%; /* --k-surface-1 */
+  --card-foreground: 36 11.6% 91.6%;
+  --popover: 215 22.2% 10.6%;
+  --popover-foreground: 36 11.6% 91.6%;
+
+  --secondary: 215 22.2% 10.6%;
+  --secondary-foreground: 36 11.6% 91.6%;
+  --muted: 218 24.4% 8.8%; /* --k-surface-2 */
+  --muted-foreground: 38 3.8% 41.2%; /* --k-fg-dim */
+
+  /* shadcn's `--accent` is the hover/active *surface*, not a brand colour —
+     mapping the violet here would light up every menu row. */
+  --accent: 215 21.3% 17.5%; /* --k-border */
+  --accent-foreground: 36 11.6% 91.6%;
+
+  --border: 215 21.3% 17.5%;
+  --input: 215 21.3% 17.5%;
+  --ring: 251 100% 68.2%; /* --k-accent */
+}
+
+/*
+ * The design is built almost entirely from icon-only controls, so the
+ * handoff calls for a visible focus ring on every one of them, derived from
+ * the accent at reduced alpha. Applying it once here covers the whole fork
+ * (including portaled menus, since `.k-dense` is mirrored onto <html>)
+ * rather than relying on each control to remember its own ring.
+ */
+.k-dense :focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--k-accent) 55%, transparent);
+  outline-offset: 2px;
 }
 
 .k-dense .font-k-mono {

@@ -10,6 +10,7 @@ import {
   estimateReadingTimeMinutes,
   formatCompactRelativeTime,
 } from "@/lib/dense/format";
+import { summaryPreview } from "@/lib/dense/summary";
 import { useLiveBookmark } from "@/lib/dense/useLiveBookmark";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "lucide-react";
@@ -35,6 +36,7 @@ export function DenseBookmarkRow({
   const isSummarised =
     bookmark.summarizationStatus === "success" && !!bookmark.summary;
   const readingMinutes = estimateReadingTimeMinutes(bookmark.summary);
+  const summary = summaryPreview(bookmark.summary);
 
   return (
     <div
@@ -79,10 +81,10 @@ export function DenseBookmarkRow({
             <div className="bg-k-border h-2 rounded-[3px]" />
             <div className="bg-k-border h-2 w-[72%] rounded-[3px]" />
           </div>
-        ) : bookmark.summary ? (
+        ) : summary ? (
           // Title-led emphasis: 12px / 1.5 / #87847f.
           <p className="text-k-summary line-clamp-2 max-w-[640px] text-[12px] leading-[1.5] [text-wrap:pretty]">
-            {bookmark.summary}
+            {summary}
           </p>
         ) : null}
 

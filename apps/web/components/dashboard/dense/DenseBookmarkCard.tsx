@@ -7,6 +7,7 @@ import {
   getDenseRowTitle,
 } from "@/lib/dense/bookmarkDisplay";
 import { formatCompactRelativeTime } from "@/lib/dense/format";
+import { summaryPreview } from "@/lib/dense/summary";
 import { useLiveBookmark } from "@/lib/dense/useLiveBookmark";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "lucide-react";
@@ -28,6 +29,7 @@ export function DenseBookmarkCard({
   const title = getDenseRowTitle(bookmark);
   const source = getDenseRowSource(bookmark);
   const isPendingSummary = bookmark.summarizationStatus === "pending";
+  const summary = summaryPreview(bookmark.summary);
 
   return (
     <div className="border-k-border bg-k-surface-1 group relative flex flex-col gap-2 rounded-[12px] border p-[16px_17px]">
@@ -85,9 +87,9 @@ export function DenseBookmarkCard({
           <div className="bg-k-border h-2 rounded-[3px]" />
           <div className="bg-k-border h-2 w-[72%] rounded-[3px]" />
         </div>
-      ) : bookmark.summary ? (
+      ) : summary ? (
         <p className="text-k-summary pointer-events-none relative z-10 line-clamp-3 text-[12px] leading-[1.5]">
-          {bookmark.summary}
+          {summary}
         </p>
       ) : null}
       <div className="pointer-events-none relative z-10 mt-auto flex items-center justify-between pt-1">
