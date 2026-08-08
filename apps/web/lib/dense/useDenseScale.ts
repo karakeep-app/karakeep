@@ -3,29 +3,36 @@
 import { useCallback, useEffect, useState } from "react";
 
 /**
- * The prototype is drawn on a 1000x625 frame. Its sizes are literal px, so
- * on a larger display the same design occupies a smaller fraction of the
- * screen than it does in the design tool — which reads as "everything is
- * tiny" even though every value matches spec.
+ * The prototype is drawn on a 1000x625 frame. Its px values are literal, so
+ * on a viewport smaller than that frame the design would be clipped —
+ * `computeAutoScale` scales *down* to fit in that case.
  *
- * This derives a zoom factor from the viewport so the app frames the same
- * way the mockup does. Taking the *smaller* of the width and height ratios
- * (rather than width alone) preserves the 16:10 framing, so you see roughly
- * the same number of rows the mockup shows instead of a very wide, very
- * short list.
+ * It used to also scale *up* past 1x on anything bigger, uncapped, to make
+ * the design "occupy the same fraction of the screen it does in the design
+ * tool". In practice that meant a real ~2560x1440 monitor computed a 2.3x
+ * factor — every control, not just text, rendered at 2.3x its designed
+ * size, and a Save button at that scale reads as broken, not "bigger": the
+ * padding/border-radius/height ratios that look right at 1x don't hold up
+ * blown up uniformly, so the button dominates the dialog instead of
+ * sitting in proportion with it. Reported directly against a real external
+ * monitor, not a guess. AUTO_MAX_SCALE keeps automatic scaling to fitting
+ * *down*, never up past the design's own sizes — the manual +/- control in
+ * the header's Scale menu still goes up to MAX_SCALE for anyone who wants
+ * larger UI on purpose (that's a size preference, not a viewport-fit bug).
  */
 const DESIGN_WIDTH = 1000;
 const DESIGN_HEIGHT = 625;
 
 export const MIN_SCALE = 0.85;
 export const MAX_SCALE = 2.5;
+const AUTO_MAX_SCALE = 1;
 const STORAGE_KEY = "k-dense-scale";
 
 export type ScalePreference = "auto" | number;
 
 export function computeAutoScale(width: number, height: number) {
   const raw = Math.min(width / DESIGN_WIDTH, height / DESIGN_HEIGHT);
-  return Math.min(MAX_SCALE, Math.max(MIN_SCALE, raw));
+  return Math.min(AUTO_MAX_SCALE, Math.max(MIN_SCALE, raw));
 }
 
 function parsePreference(stored: string | null): ScalePreference {
