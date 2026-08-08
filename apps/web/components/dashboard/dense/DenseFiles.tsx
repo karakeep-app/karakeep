@@ -16,9 +16,11 @@ import DenseFilesView from "./DenseFilesView";
 export default async function DenseFiles({
   label,
   query,
+  disableAdd,
 }: {
   label: string;
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">;
+  disableAdd?: boolean;
 }) {
   const session = await getServerAuthSession();
   if (!session) {
@@ -32,6 +34,7 @@ export default async function DenseFiles({
       label={label}
       query={query}
       initialBookmarks={bookmarks}
+      disableAdd={disableAdd}
       // /dashboard/search throws outright when no search backend is
       // registered, so the header's search affordance must not offer to
       // navigate there unless it will actually work.

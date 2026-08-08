@@ -34,6 +34,7 @@ import type {
   ZGetBookmarksRequest,
   ZGetBookmarksResponse,
 } from "@karakeep/shared/types/bookmarks";
+import { BookmarkGridContextProvider } from "@karakeep/shared-react/hooks/bookmark-grid-context";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { DenseBookmarkCard } from "./DenseBookmarkCard";
@@ -72,11 +73,18 @@ export default function DenseFilesView({
   query,
   initialBookmarks,
   searchEnabled = false,
+  disableAdd = false,
 }: {
   label: string;
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">;
   initialBookmarks: ZGetBookmarksResponse;
   searchEnabled?: boolean;
+  /** Smart lists reject additions server-side (view-only, membership is
+   *  computed from the list's query), and viewers can't add regardless of
+   *  list type. Set by the list page for either case — the create flow
+   *  would otherwise create the bookmark and then fail, unhandled, trying
+   *  to add it to the list. */
+  disableAdd?: boolean;
 }) {
   const router = useRouter();
   const api = useTRPC();
@@ -163,202 +171,230 @@ export default function DenseFilesView({
   }, null);
 
   return (
-    // Negative margin cancels the dashboard shell's default p-4 so the
-    // header/row padding below lines up with the design's own spacing
-    // instead of stacking on top of it.
-    <div className="-m-4 flex flex-col">
-      {/* Capped so rows/cards don't stretch edge-to-edge into empty space
+    // Read by useBookmarkPostCreationHook, inside the QuickAddDialog below:
+    // it's what makes a bookmark created from Favourites come out
+    // favourited, one created from Archive come out archived, and one
+    // created while viewing a list/tag get added to it — the same context
+    // the pre-fork grid provides via UpdatableBookmarksGrid. Without this
+    // the dense fork's Quick Add always created plain inbox items
+    // regardless of which filtered view it was opened from.
+    <BookmarkGridContextProvider query={finalQuery}>
+      {/* Negative margin cancels the dashboard shell's default p-4 so the
+          header/row padding below lines up with the design's own spacing
+          instead of stacking on top of it. */}
+      <div className="-m-4 flex flex-col">
+        {/* Capped so rows/cards don't stretch edge-to-edge into empty space
           on wide monitors — "fluid" per the design doc means it adapts to
           the window, not that it has no limit at all. */}
-      <div className="flex w-full max-w-[1400px] flex-col">
-        <div className="flex items-center gap-[14px] px-[22px] pb-[12px] pt-[15px]">
-          <div className="flex flex-col gap-[3px]">
-            <h1 className="text-k-section-label text-[15px] font-semibold uppercase tracking-[0.06em]">
-              {label}
-            </h1>
-            <p className="font-k-mono text-k-fg-dim text-[11.5px]">
-              {bookmarks.length} item{bookmarks.length === 1 ? "" : "s"} ·{" "}
-              {unsummarisedCount} unsummarised
-              {mostRecentModified && (
-                <> · updated {formatRelativeSince(mostRecentModified)}</>
-              )}
-            </p>
-          </div>
-
-          <div className="ml-auto flex items-center gap-[10px]">
-            {searchEnabled ? (
-              <Link
-                href="/dashboard/search"
-                className={cn(CONTROL_SHELL, "gap-2 px-[12px] text-[12.5px]")}
-              >
-                <Search size={15} strokeWidth={1.75} />
-                Search
-                <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">
-                  ⌘K
-                </kbd>
-              </Link>
-            ) : (
-              <span
-                title="Search needs a search backend configured on the server (see Karakeep's search configuration docs)."
-                aria-disabled="true"
-                className={cn(
-                  CONTROL_SHELL,
-                  "text-k-fg-dim/50 cursor-not-allowed gap-2 px-[12px] text-[12.5px]",
+        <div className="flex w-full max-w-[1400px] flex-col">
+          <div className="flex items-center gap-[14px] px-[22px] pb-[12px] pt-[15px]">
+            <div className="flex flex-col gap-[3px]">
+              <h1 className="text-k-section-label text-[15px] font-semibold uppercase tracking-[0.06em]">
+                {label}
+              </h1>
+              <p className="font-k-mono text-k-fg-dim text-[11.5px]">
+                {bookmarks.length} item{bookmarks.length === 1 ? "" : "s"} ·{" "}
+                {unsummarisedCount} unsummarised
+                {mostRecentModified && (
+                  <> · updated {formatRelativeSince(mostRecentModified)}</>
                 )}
-              >
-                <Search size={15} strokeWidth={1.75} />
-                Search
-              </span>
-            )}
-            <button
-              type="button"
-              aria-label="Add bookmark"
-              onClick={() => setQuickAddOpen(true)}
-              className={cn(CONTROL_SHELL, "hover:text-k-fg w-[28px]")}
-            >
-              <Upload size={15} strokeWidth={1.75} />
-            </button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              </p>
+            </div>
+
+            <div className="ml-auto flex items-center gap-[10px]">
+              {searchEnabled ? (
+                <Link
+                  href="/dashboard/search"
+                  className={cn(CONTROL_SHELL, "gap-2 px-[12px] text-[12.5px]")}
+                >
+                  <Search size={15} strokeWidth={1.75} />
+                  Search
+                  <kbd className="font-k-mono text-k-fg-dim ml-1 text-[10px]">
+                    ⌘K
+                  </kbd>
+                </Link>
+              ) : (
+                <span
+                  title="Search needs a search backend configured on the server (see Karakeep's search configuration docs)."
+                  aria-disabled="true"
+                  className={cn(
+                    CONTROL_SHELL,
+                    "text-k-fg-dim/50 cursor-not-allowed gap-2 px-[12px] text-[12.5px]",
+                  )}
+                >
+                  <Search size={15} strokeWidth={1.75} />
+                  Search
+                </span>
+              )}
+              {disableAdd ? (
+                <span
+                  title="This list is view-only — smart lists compute their contents from a query, and can't be added to directly."
+                  aria-disabled="true"
+                  className={cn(
+                    CONTROL_SHELL,
+                    "text-k-fg-dim/50 w-[28px] cursor-not-allowed",
+                  )}
+                >
+                  <Upload size={15} strokeWidth={1.75} />
+                </span>
+              ) : (
                 <button
                   type="button"
-                  aria-label="View options"
+                  aria-label="Add bookmark"
+                  onClick={() => setQuickAddOpen(true)}
                   className={cn(CONTROL_SHELL, "hover:text-k-fg w-[28px]")}
                 >
-                  <SlidersHorizontal size={15} strokeWidth={1.75} />
+                  <Upload size={15} strokeWidth={1.75} />
                 </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="border-k-border bg-k-surface-1 text-k-fg"
-              >
-                <DropdownMenuLabel>Sort</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setSortOrder("desc")}>
-                  <ArrowDownAZ className="mr-2 size-4" />
-                  Newest first
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("asc")}>
-                  <ArrowUpAZ className="mr-2 size-4" />
-                  Oldest first
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>
-                  Scale
-                  <span className="text-k-fg-dim ml-2 font-normal">
-                    {preference === "auto"
-                      ? `Auto · ${Math.round(scale * 100)}%`
-                      : `${Math.round(scale * 100)}%`}
-                  </span>
-                </DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => setPreference("auto")}
-                  disabled={preference === "auto"}
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="View options"
+                    className={cn(CONTROL_SHELL, "hover:text-k-fg w-[28px]")}
+                  >
+                    <SlidersHorizontal size={15} strokeWidth={1.75} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="border-k-border bg-k-surface-1 text-k-fg"
                 >
-                  <Maximize2 className="mr-2 size-4" />
-                  Fit to display
-                </DropdownMenuItem>
-                <div className="flex items-center gap-2 px-2 py-1.5">
-                  <button
-                    type="button"
-                    aria-label="Decrease scale"
-                    onClick={() =>
-                      setPreference(
-                        Math.round(Math.max(MIN_SCALE, scale - 0.1) * 100) /
-                          100,
-                      )
-                    }
-                    className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
+                  <DropdownMenuLabel>Sort</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setSortOrder("desc")}>
+                    <ArrowDownAZ className="mr-2 size-4" />
+                    Newest first
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortOrder("asc")}>
+                    <ArrowUpAZ className="mr-2 size-4" />
+                    Oldest first
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>
+                    Scale
+                    <span className="text-k-fg-dim ml-2 font-normal">
+                      {preference === "auto"
+                        ? `Auto · ${Math.round(scale * 100)}%`
+                        : `${Math.round(scale * 100)}%`}
+                    </span>
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={() => setPreference("auto")}
+                    disabled={preference === "auto"}
                   >
-                    <Minus className="size-3" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="Increase scale"
-                    onClick={() =>
-                      setPreference(
-                        Math.round(Math.min(MAX_SCALE, scale + 0.1) * 100) /
-                          100,
-                      )
-                    }
-                    className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
-                  >
-                    <Plus className="size-3" />
-                  </button>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {/* Segmented view toggle. Same shell height as every other
+                    <Maximize2 className="mr-2 size-4" />
+                    Fit to display
+                  </DropdownMenuItem>
+                  <div className="flex items-center gap-2 px-2 py-1.5">
+                    <button
+                      type="button"
+                      aria-label="Decrease scale"
+                      onClick={() =>
+                        setPreference(
+                          Math.round(Math.max(MIN_SCALE, scale - 0.1) * 100) /
+                            100,
+                        )
+                      }
+                      className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
+                    >
+                      <Minus className="size-3" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Increase scale"
+                      onClick={() =>
+                        setPreference(
+                          Math.round(Math.min(MAX_SCALE, scale + 0.1) * 100) /
+                            100,
+                        )
+                      }
+                      className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
+                    >
+                      <Plus className="size-3" />
+                    </button>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              {/* Segmented view toggle. Same shell height as every other
                 header control; the active glyph sits on an accent chip. */}
-            <div className={cn(CONTROL_SHELL, "gap-[2px] p-[3px]")}>
-              <button
-                type="button"
-                aria-label="List view"
-                aria-pressed={view === "list"}
-                onClick={() => setView("list")}
-                className={cn(
-                  "flex size-[20px] items-center justify-center rounded-[5px]",
-                  view === "list"
-                    ? "bg-k-accent text-k-accent-fg"
-                    : "text-k-fg-muted",
-                )}
-              >
-                <ListIcon size={13} strokeWidth={2} />
-              </button>
-              <button
-                type="button"
-                aria-label="Grid view"
-                aria-pressed={view === "grid"}
-                onClick={() => setView("grid")}
-                className={cn(
-                  "flex size-[20px] items-center justify-center rounded-[5px]",
-                  view === "grid"
-                    ? "bg-k-accent text-k-accent-fg"
-                    : "text-k-fg-muted",
-                )}
-              >
-                <LayoutGrid size={13} strokeWidth={2} />
-              </button>
+              <div className={cn(CONTROL_SHELL, "gap-[2px] p-[3px]")}>
+                <button
+                  type="button"
+                  aria-label="List view"
+                  aria-pressed={view === "list"}
+                  onClick={() => setView("list")}
+                  className={cn(
+                    "flex size-[20px] items-center justify-center rounded-[5px]",
+                    view === "list"
+                      ? "bg-k-accent text-k-accent-fg"
+                      : "text-k-fg-muted",
+                  )}
+                >
+                  <ListIcon size={13} strokeWidth={2} />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Grid view"
+                  aria-pressed={view === "grid"}
+                  onClick={() => setView("grid")}
+                  className={cn(
+                    "flex size-[20px] items-center justify-center rounded-[5px]",
+                    view === "grid"
+                      ? "bg-k-accent text-k-accent-fg"
+                      : "text-k-fg-muted",
+                  )}
+                >
+                  <LayoutGrid size={13} strokeWidth={2} />
+                </button>
+              </div>
             </div>
           </div>
+
+          {bookmarks.length === 0 ? (
+            <div className="text-k-fg-dim flex flex-1 items-center justify-center py-24 text-[12.5px]">
+              Nothing here yet.
+            </div>
+          ) : view === "list" ? (
+            <div className="flex flex-1 flex-col">
+              {bookmarks.map((bookmark, i) => (
+                <DenseBookmarkRow
+                  key={bookmark.id}
+                  bookmark={bookmark}
+                  selected={i === 0}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid flex-1 grid-cols-1 gap-[14px] px-[18px] pb-[18px] sm:grid-cols-2">
+              {bookmarks.map((bookmark) => (
+                <DenseBookmarkCard key={bookmark.id} bookmark={bookmark} />
+              ))}
+            </div>
+          )}
+
+          {hasNextPage && (
+            <div ref={loadMoreRef} className="py-4 text-center">
+              <button
+                type="button"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="font-k-mono text-k-fg-dim hover:text-k-fg-muted text-[11px]"
+              >
+                {isFetchingNextPage ? "Loading…" : "Load more"}
+              </button>
+            </div>
+          )}
         </div>
 
-        {bookmarks.length === 0 ? (
-          <div className="text-k-fg-dim flex flex-1 items-center justify-center py-24 text-[12.5px]">
-            Nothing here yet.
-          </div>
-        ) : view === "list" ? (
-          <div className="flex flex-1 flex-col">
-            {bookmarks.map((bookmark, i) => (
-              <DenseBookmarkRow
-                key={bookmark.id}
-                bookmark={bookmark}
-                selected={i === 0}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="grid flex-1 grid-cols-1 gap-[14px] px-[18px] pb-[18px] sm:grid-cols-2">
-            {bookmarks.map((bookmark) => (
-              <DenseBookmarkCard key={bookmark.id} bookmark={bookmark} />
-            ))}
-          </div>
-        )}
-
-        {hasNextPage && (
-          <div ref={loadMoreRef} className="py-4 text-center">
-            <button
-              type="button"
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              className="font-k-mono text-k-fg-dim hover:text-k-fg-muted text-[11px]"
-            >
-              {isFetchingNextPage ? "Loading…" : "Load more"}
-            </button>
-          </div>
+        {/* Not rendered at all when disabled, rather than rendered-but-inert:
+          QuickAddDialog owns the ⌘E-to-open hotkey (see its own comment),
+          and a disabled dialog would still be silently claiming ⌘E as long
+          as it's mounted. */}
+        {!disableAdd && (
+          <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
         )}
       </div>
-
-      <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
-    </div>
+    </BookmarkGridContextProvider>
   );
 }

@@ -16,14 +16,11 @@ import {
   Search,
   Settings,
   Star,
-  Upload,
 } from "lucide-react";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import type { ZGetTagResponse } from "@karakeep/shared/types/tags";
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
-
-import { QuickAddDialog } from "./QuickAddDialog";
 
 const SIDEBAR_COLLAPSED_KEY = "k-dense-sidebar-collapsed";
 // Prototype list dots: accent, then blue, then violet.
@@ -129,7 +126,6 @@ export default function DenseSidebar({
 }) {
   const pathname = usePathname();
   const { collapsed, toggle } = useSidebarCollapsed();
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [newListOpen, setNewListOpen] = useState(false);
 
   const { data: listsData } = useBookmarkLists(undefined, {
@@ -223,12 +219,6 @@ export default function DenseSidebar({
             label="Tags"
             tone={pathname.startsWith("/dashboard/tags") ? "accent" : "dim"}
           />
-          <RailIcon
-            icon={<Upload size={18} strokeWidth={1.75} />}
-            label="Add"
-            tone="accent"
-            onClick={() => setQuickAddOpen(true)}
-          />
         </nav>
         <div className="flex flex-none flex-col items-center gap-[14px]">
           <Link
@@ -240,13 +230,12 @@ export default function DenseSidebar({
             <Settings size={17} strokeWidth={1.75} />
           </Link>
           <div className="text-k-fg-dim hover:text-k-fg-muted flex size-[17px] items-center justify-center">
-            <ProfileOptions iconOnly />
+            <ProfileOptions iconOnly dense />
           </div>
           <span className="font-k-mono text-k-version-rail text-[8.5px]">
             {serverVersion ?? "dev"}
           </span>
         </div>
-        <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
       </aside>
     );
   }
@@ -385,14 +374,13 @@ export default function DenseSidebar({
           <Settings size={16} strokeWidth={1.75} />
         </Link>
         <div className="text-k-fg-dim hover:text-k-fg-muted flex size-4 items-center justify-center">
-          <ProfileOptions iconOnly />
+          <ProfileOptions iconOnly dense />
         </div>
         <span className="font-k-mono text-k-version ml-auto text-[9.5px]">
           {serverVersion ?? "dev"}
         </span>
       </div>
 
-      <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
       <EditListModal open={newListOpen} setOpen={setNewListOpen} />
     </aside>
   );

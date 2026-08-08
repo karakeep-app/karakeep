@@ -17,6 +17,7 @@ import { useSession } from "@/lib/auth/client";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
 import { useKeyboardNavigationStore } from "@/lib/store/useKeyboardNavigationStore";
+import { cn } from "@/lib/utils";
 import {
   BookOpen,
   Keyboard,
@@ -59,11 +60,19 @@ function DarkModeToggle() {
 
 export default function SidebarProfileOptions({
   iconOnly = false,
+  dense = false,
 }: {
   /** Render a plain, unstyled profile glyph as the trigger instead of the
    * avatar bubble — used by the dense sidebar footer, which specs a bare
    * 16px icon rather than an avatar chip. */
   iconOnly?: boolean;
+  /** Retheme the dropdown content to the dense fork's tokens. The trigger
+   *  itself doesn't need this — `iconOnly` already renders it as a bare
+   *  glyph that just inherits the dense sidebar's text color — but the
+   *  dropdown panel has its own hardcoded avatar ring/background and email
+   *  color that the fork's global CSS-variable remap doesn't reach. False
+   *  by default so Header.tsx's non-dense usage is unaffected. */
+  dense?: boolean;
 }) {
   const { t } = useTranslation();
   const toggleTheme = useToggleTheme();
@@ -106,9 +115,19 @@ export default function SidebarProfileOptions({
           </Button>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="mr-2 min-w-64 p-2">
+      <DropdownMenuContent
+        className={cn(
+          "mr-2 min-w-64 p-2",
+          dense && "border-k-border bg-k-surface-1 text-k-fg",
+        )}
+      >
         <div className="flex gap-2">
-          <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border-4 bg-black p-0 text-white">
+          <div
+            className={cn(
+              "flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border-4 bg-black p-0 text-white",
+              dense ? "border-k-border bg-k-surface-2" : "border-new-gray-200",
+            )}
+          >
             <UserAvatar
               image={avatarUrl}
               name={session.user.name}
@@ -117,10 +136,17 @@ export default function SidebarProfileOptions({
           </div>
           <div className="flex flex-col">
             <p>{session.user.name}</p>
-            <p className="text-sm text-gray-400">{session.user.email}</p>
+            <p
+              className={cn(
+                "text-sm",
+                dense ? "text-k-fg-dim" : "text-gray-400",
+              )}
+            >
+              {session.user.email}
+            </p>
           </div>
         </div>
-        <Separator className="my-2" />
+        <Separator className={cn("my-2", dense && "bg-k-border")} />
         <DropdownMenuItem asChild>
           <Link href="/settings">
             <Settings className="mr-2 size-4" />
@@ -138,23 +164,33 @@ export default function SidebarProfileOptions({
             </Link>
           </DropdownMenuItem>
         )}
-        <Separator className="my-2" />
+        <Separator className={cn("my-2", dense && "bg-k-border")} />
         <DropdownMenuItem asChild>
           <Link href="/dashboard/cleanups">
             <Paintbrush className="mr-2 size-4" />
             {t("cleanups.cleanups")}
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={toggleTheme}>
-          <DarkModeToggle />
-        </DropdownMenuItem>
+        {/* ForceDenseTheme forces dark for as long as any dashboard page is
+            mounted and only restores the user's real preference on
+            unmount (see its own comment) — it doesn't fight further
+            changes after that initial mount. Offering this toggle here
+            would flip next-themes to light while `.k-dense`'s own
+            CSS-variable palette stays fully dark, desyncing the two and
+            leaving `dark:` utility classes elsewhere in the app switched
+            off against an otherwise dark screen. */}
+        {!dense && (
+          <DropdownMenuItem onClick={toggleTheme}>
+            <DarkModeToggle />
+          </DropdownMenuItem>
+        )}
         {inBookmarkGrid && (
           <DropdownMenuItem onClick={() => setShortcutsDialogOpen(true)}>
             <Keyboard className="mr-2 size-4" />
             {t("keyboard_shortcuts.title")}
           </DropdownMenuItem>
         )}
-        <Separator className="my-2" />
+        <Separator className={cn("my-2", dense && "bg-k-border")} />
         <DropdownMenuItem asChild>
           <a href="https://karakeep.app/apps" target="_blank" rel="noreferrer">
             <Puzzle className="mr-2 size-4" />
@@ -173,7 +209,7 @@ export default function SidebarProfileOptions({
             {t("options.follow_us_on_x")}
           </a>
         </DropdownMenuItem>
-        <Separator className="my-2" />
+        <Separator className={cn("my-2", dense && "bg-k-border")} />
         <DropdownMenuItem onClick={() => router.push("/logout")}>
           <LogOut className="mr-2 size-4" />
           <span>{t("actions.sign_out")}</span>

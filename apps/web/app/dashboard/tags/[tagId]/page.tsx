@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
-import TagHeader from "@/components/dashboard/tags/TagHeader";
+import DenseFiles from "@/components/dashboard/dense/DenseFiles";
 import { api } from "@/server/api/client";
 import { TRPCError } from "@trpc/server";
 
@@ -49,14 +48,12 @@ export default async function TagPage(props: {
       : userSettings.archiveDisplayBehaviour === "show";
 
   return (
-    <Bookmarks
-      header={<TagHeader initialData={tag} />}
-      showDivider={true}
+    <DenseFiles
+      label={`#${tag.name}`}
       query={{
         tagId: tag.id,
         archived: !includeArchived ? false : undefined,
       }}
-      showEditorCard={true}
     />
   );
 }
