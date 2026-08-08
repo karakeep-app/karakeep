@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 import { BookmarkTagsEditor } from "@/components/dashboard/bookmarks/BookmarkTagsEditor";
 import {
   ArchivedActionIcon,
@@ -46,6 +46,14 @@ const SECTION_LABEL =
 
 const ACTION_ICON =
   "text-k-fg-muted hover:text-k-fg flex items-center justify-center disabled:opacity-50";
+
+/** Reading-emphasis-driven size/line-height, shared by the lead, the
+ *  no-summary fallback, and the trailing-prose paragraph — all three are
+ *  the same "detail summary" typographic role in the design doc's table. */
+const DETAIL_SUMMARY_STYLE: CSSProperties = {
+  fontSize: "var(--k-detail-summary-size)",
+  lineHeight: "var(--k-summary-lh)",
+};
 
 /**
  * The design's source line is the URL rather than the bare domain
@@ -258,12 +266,14 @@ export default function DenseBookmarkDetail({
                 <div className="bg-k-border h-2 w-[72%] rounded-[3px]" />
               </div>
             ) : lead ? (
-              // Title-led reading emphasis: detail summary 13px / 1.5.
-              <p className="text-k-summary-strong whitespace-pre-line text-[13px] leading-[1.5] [text-wrap:pretty]">
+              <p
+                style={DETAIL_SUMMARY_STYLE}
+                className="text-k-summary-strong whitespace-pre-line [text-wrap:pretty]"
+              >
                 {lead}
               </p>
             ) : (
-              <p className="text-k-fg-dim text-[13px] leading-[1.5]">
+              <p style={DETAIL_SUMMARY_STYLE} className="text-k-fg-dim">
                 No summary yet.
               </p>
             )}
@@ -283,7 +293,10 @@ export default function DenseBookmarkDetail({
                 ))}
               </ul>
               {trail && (
-                <p className="text-k-summary-strong whitespace-pre-line text-[13px] leading-[1.5] [text-wrap:pretty]">
+                <p
+                  style={DETAIL_SUMMARY_STYLE}
+                  className="text-k-summary-strong whitespace-pre-line [text-wrap:pretty]"
+                >
                   {trail}
                 </p>
               )}

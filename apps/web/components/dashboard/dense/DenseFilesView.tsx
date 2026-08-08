@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatRelativeSince } from "@/lib/dense/format";
+import { ACCENTS, READING_EMPHASES, SURFACE_TONES } from "@/lib/dense/theme";
 import { MAX_SCALE, MIN_SCALE } from "@/lib/dense/useDenseScale";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import { DenseBookmarkCard } from "./DenseBookmarkCard";
 import { DenseBookmarkRow } from "./DenseBookmarkRow";
 import { useDenseScaleContext } from "./DenseScaleController";
+import { useDenseThemeContext } from "./DenseThemeController";
 import { QuickAddDialog } from "./QuickAddDialog";
 
 const VIEW_KEY = "k-dense-files-view";
@@ -90,6 +92,7 @@ export default function DenseFilesView({
   const api = useTRPC();
   const { view, setView } = useFilesView();
   const { scale, preference, setPreference } = useDenseScaleContext();
+  const { preference: theme, setPreference: setTheme } = useDenseThemeContext();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const sortOrder = useSortOrderStore((state) => state.sortOrder);
   const setSortOrder = useSortOrderStore((state) => state.setSortOrder);
@@ -313,6 +316,70 @@ export default function DenseFilesView({
                     >
                       <Plus className="size-3" />
                     </button>
+                  </div>
+
+                  {/* The prototype's own theme axes (design/README.md's
+                      "Design tokens" table), made real as a picker rather
+                      than a fixed default — see lib/dense/theme.ts for the
+                      transcribed values. */}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Accent</DropdownMenuLabel>
+                  <div className="flex items-center gap-[10px] px-2 py-1.5">
+                    {ACCENTS.map((a) => (
+                      <button
+                        key={a.id}
+                        type="button"
+                        aria-label={a.label}
+                        aria-pressed={theme.accent === a.id}
+                        title={a.label}
+                        onClick={() => setTheme({ accent: a.id })}
+                        style={{ background: a.hex }}
+                        className={cn(
+                          "size-[18px] flex-none rounded-full border-2 transition-colors",
+                          theme.accent === a.id
+                            ? "border-k-fg"
+                            : "border-transparent",
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <DropdownMenuLabel>Surface</DropdownMenuLabel>
+                  <div className="flex gap-[6px] px-2 pb-1.5">
+                    {SURFACE_TONES.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        aria-pressed={theme.tone === t.id}
+                        onClick={() => setTheme({ tone: t.id })}
+                        className={cn(
+                          "flex-1 rounded-[6px] border px-[6px] py-[5px] text-[10.5px] transition-colors",
+                          theme.tone === t.id
+                            ? "border-k-accent-border text-k-fg bg-k-border-soft"
+                            : "border-k-border text-k-fg-muted hover:text-k-fg-soft",
+                        )}
+                      >
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                  <DropdownMenuLabel>Reading emphasis</DropdownMenuLabel>
+                  <div className="flex gap-[6px] px-2 pb-1.5">
+                    {READING_EMPHASES.map((e) => (
+                      <button
+                        key={e.id}
+                        type="button"
+                        aria-pressed={theme.emphasis === e.id}
+                        onClick={() => setTheme({ emphasis: e.id })}
+                        className={cn(
+                          "flex-1 rounded-[6px] border px-[6px] py-[5px] text-[10.5px] transition-colors",
+                          theme.emphasis === e.id
+                            ? "border-k-accent-border text-k-fg bg-k-border-soft"
+                            : "border-k-border text-k-fg-muted hover:text-k-fg-soft",
+                        )}
+                      >
+                        {e.label}
+                      </button>
+                    ))}
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>

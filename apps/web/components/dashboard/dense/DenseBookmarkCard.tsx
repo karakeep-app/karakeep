@@ -69,10 +69,13 @@ export function DenseBookmarkCard({
         </div>
       </div>
       <div className="pointer-events-none relative z-10 flex items-center gap-2">
-        {/* Title-led emphasis: card title 17px, weight 650. */}
         <span
+          style={{
+            fontSize: "var(--k-card-title-size)",
+            fontWeight: "var(--k-card-title-weight)",
+          }}
           className={cn(
-            "line-clamp-2 text-[17px] font-[650] tracking-[-0.015em]",
+            "line-clamp-2 tracking-[-0.015em]",
             isPendingSummary ? "text-k-fg-soft" : "text-k-fg",
           )}
         >
@@ -88,7 +91,13 @@ export function DenseBookmarkCard({
           <div className="bg-k-border h-2 w-[72%] rounded-[3px]" />
         </div>
       ) : summary ? (
-        <p className="text-k-summary pointer-events-none relative z-10 line-clamp-3 text-[12px] leading-[1.5]">
+        <p
+          style={{
+            fontSize: "var(--k-card-summary-size)",
+            lineHeight: "var(--k-summary-lh)",
+          }}
+          className="text-k-summary pointer-events-none relative z-10 line-clamp-3"
+        >
           {summary}
         </p>
       ) : null}

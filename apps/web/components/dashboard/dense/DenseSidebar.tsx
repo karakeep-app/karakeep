@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import ProfileOptions from "@/components/dashboard/header/ProfileOptions";
 import { EditListModal } from "@/components/dashboard/lists/EditListModal";
+import { topicColorsFor } from "@/lib/dense/theme";
 import { cn } from "@/lib/utils";
 import {
   Archive,
@@ -22,9 +23,9 @@ import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import type { ZGetTagResponse } from "@karakeep/shared/types/tags";
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 
+import { useDenseThemeContext } from "./DenseThemeController";
+
 const SIDEBAR_COLLAPSED_KEY = "k-dense-sidebar-collapsed";
-// Prototype list dots: accent, then blue, then violet.
-const LIST_DOT_COLORS = ["var(--k-accent)", "#8ab4f8", "#d3a8f0"];
 
 function useSidebarCollapsed() {
   // Default to expanded on the server render; sync with the persisted
@@ -127,6 +128,13 @@ export default function DenseSidebar({
   const pathname = usePathname();
   const { collapsed, toggle } = useSidebarCollapsed();
   const [newListOpen, setNewListOpen] = useState(false);
+  const { preference: theme } = useDenseThemeContext();
+  // Always includes the active accent, so a list's dot changes when the
+  // theme does rather than only ever showing two fixed companion colours.
+  const listDotColors = useMemo(
+    () => topicColorsFor(theme.accent),
+    [theme.accent],
+  );
 
   const { data: listsData } = useBookmarkLists(undefined, {
     initialData: { lists: initialLists },
@@ -317,8 +325,7 @@ export default function DenseSidebar({
                       <span
                         className="size-[5px] flex-none rounded-full"
                         style={{
-                          background:
-                            LIST_DOT_COLORS[i % LIST_DOT_COLORS.length],
+                          background: listDotColors[i % listDotColors.length],
                         }}
                       />
                       <span className="truncate">{list.name}</span>

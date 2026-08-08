@@ -58,9 +58,9 @@ export function DenseBookmarkRow({
       <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col gap-[6px]">
         <div className="flex items-center gap-2">
           <span
+            style={{ fontWeight: "var(--k-row-title-weight)" }}
             className={cn(
-              // Title-led emphasis: weight 600.
-              "truncate text-[14px] font-semibold tracking-[-0.01em]",
+              "truncate text-[14px] tracking-[-0.01em]",
               isPendingSummary ? "text-k-fg-soft" : "text-k-fg",
             )}
           >
@@ -86,8 +86,13 @@ export function DenseBookmarkRow({
             <div className="bg-k-border h-2 w-[72%] rounded-[3px]" />
           </div>
         ) : summary ? (
-          // Title-led emphasis: 12px / 1.5 / #87847f.
-          <p className="text-k-summary line-clamp-2 max-w-[640px] text-[12px] leading-[1.5] [text-wrap:pretty]">
+          <p
+            style={{
+              fontSize: "var(--k-row-summary-size)",
+              lineHeight: "var(--k-summary-lh)",
+            }}
+            className="text-k-summary line-clamp-2 max-w-[640px] [text-wrap:pretty]"
+          >
             {summary}
           </p>
         ) : null}
