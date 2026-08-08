@@ -1,0 +1,208 @@
+/*
+ * Design tokens for the "1a dense list" dark fork of the dashboard,
+ * transcribed from the Karakeep Dark prototype (`Karakeep Dark.dc.html`).
+ * Scoped under `.k-dense` so the rest of the app (settings, admin, ...)
+ * is completely unaffected.
+ *
+ * The prototype exposes three theme axes, all switchable at runtime (see
+ * lib/dense/theme.ts and the header's "Theme" menu) — the values below are
+ * just their defaults, present so the page looks right before that JS runs
+ * and so nothing breaks if it doesn't:
+ *   accent          = #7C5DFF  (violet)
+ *   surfaceTone     = Deep slate
+ *   readingEmphasis = Title-led
+ */
+.k-dense {
+  /* surfaceTone: Deep slate */
+  --k-bg: #0e1116;
+  --k-surface-1: #151a21;
+  --k-surface-2: #11151c;
+  --k-border: #232b36;
+  --k-border-soft: #191f27;
+
+  --k-accent: #7c5dff;
+  --k-accent-border: color-mix(in oklab, var(--k-accent) 34%, var(--k-bg));
+  --k-accent-fg: var(--k-bg);
+
+  --k-fg: #eceae7;
+  --k-fg-soft: #c2bfba;
+  --k-fg-muted: #a9a6a1;
+  /* Label/meta text. Distinct from --k-icon: the prototype uses a slightly
+     warmer, lighter grey for glyphs than for small caption text. */
+  --k-fg-dim: #6d6a65;
+  --k-icon: #77746f;
+
+  /* readingEmphasis: Title-led. Overridden inline on <html> by
+     useDenseTheme (lib/dense/theme.ts) when the user picks something else
+     — these are the values that show before that JS runs, and the only
+     ones that show at all if it never does. */
+  --k-summary: #87847f;
+  --k-summary-strong: #a9a6a1;
+  --k-row-summary-size: 12px;
+  --k-detail-summary-size: 13px;
+  --k-card-summary-size: 11px;
+  --k-summary-lh: 1.5;
+  --k-row-title-weight: 600;
+  --k-card-title-weight: 650;
+  --k-card-title-size: 17px;
+
+  /* Dashed "+ tag" affordance in the detail read-out. */
+  --k-border-dashed: #2c2d30;
+  --k-section-label: #ddd9d4c3;
+  --k-timestamp: #54524e;
+  --k-version: #443f3c;
+  --k-version-rail: #4a4844;
+  --k-divider: #3a3b3e;
+
+  background-color: var(--k-bg);
+  color: var(--k-fg);
+  font-family: var(--font-k-sans), "IBM Plex Sans", sans-serif;
+}
+
+/*
+ * The prototype's px values are literal and drawn on a 1000x625 frame, so on
+ * a larger display the design occupies a smaller fraction of the screen than
+ * it does in the design tool. `--k-zoom` (set by DenseScaleProvider from the
+ * viewport, overridable by the user) rescales the whole UI so it frames the
+ * way the mockup does. Zoom is used rather than a transform because it
+ * participates in layout, so nothing overflows or overlaps.
+ */
+/* Deliberately a separate class from `.k-dense`: the token block above is
+   also mirrored onto <html> (so portals inherit the palette), and if the
+   zoom rule matched both the wrapper and <html> the factor would compound. */
+.k-dense-zoom {
+  zoom: var(--k-zoom, 1);
+}
+
+/*
+ * Portaled UI (dropdowns, dialogs) renders into <body>, outside .k-dense —
+ * scale it too so menus match the surface that opened them.
+ *
+ * For poppers the zoom must land on the *content*, never on the wrapper
+ * Radix positions. Radix measures the trigger with getBoundingClientRect
+ * (already-zoomed, real viewport px) and writes the result as an inline
+ * `transform: translate(x, y)` on the wrapper; zooming that same element
+ * multiplies the translate as well, so at a 1.376 factor a menu anchored at
+ * x=1342 was drawn at x=1846 — off-screen on a 1512px viewport, i.e. every
+ * dropdown in the fork silently vanished. Scaling the child instead leaves
+ * the offset in real px, and because `zoom` participates in layout the
+ * wrapper still measures the scaled size, so Radix's own alignment and
+ * collision handling keep working.
+ */
+body > [data-radix-popper-content-wrapper] > * {
+  zoom: var(--k-zoom, 1);
+}
+
+/*
+ * Dialogs are their own portal root (`body > [role="dialog"]`), and unlike
+ * poppers they self-centre with percentage offsets, which `zoom` resolves in
+ * the element's own scaled coordinate space — so the whole element can be
+ * zoomed and it stays centred.
+ */
+body > [role="dialog"] {
+  zoom: var(--k-zoom, 1);
+}
+
+/*
+ * Re-point shadcn's own theme tokens at the palette above.
+ *
+ * The fork reuses plenty of upstream Karakeep UI verbatim (the tag editor,
+ * attachments, dropdowns, dialogs, toasts). Those are all built on shadcn's
+ * `--background`/`--foreground`/... variables, which in `.dark` resolve to a
+ * cool blue-slate that visibly clashes with this design's warm greys — an
+ * embedded component would render its heading in near-white #f8fafc next to
+ * our #eceae7. Remapping the variables once here keeps every borrowed
+ * component on-palette without restyling each one.
+ *
+ * Values are the HSL triples of the hex tokens above (shadcn composes them
+ * as `hsl(var(--x))`, so they must stay bare triples, not colours).
+ *
+ * The doubled class is deliberate: `.dark` sets these same variables at
+ * equal specificity, and both classes land on the same elements, so this
+ * needs (0,2,0) to win regardless of stylesheet order.
+ */
+.k-dense.k-dense {
+  --background: 217.5 22.2% 7.1%; /* --k-bg */
+  --foreground: 36 11.6% 91.6%; /* --k-fg */
+
+  --card: 215 22.2% 10.6%; /* --k-surface-1 */
+  --card-foreground: 36 11.6% 91.6%;
+  --popover: 215 22.2% 10.6%;
+  --popover-foreground: 36 11.6% 91.6%;
+
+  --secondary: 215 22.2% 10.6%;
+  --secondary-foreground: 36 11.6% 91.6%;
+  --muted: 218 24.4% 8.8%; /* --k-surface-2 */
+  --muted-foreground: 38 3.8% 41.2%; /* --k-fg-dim */
+
+  /* shadcn's `--accent` is the hover/active *surface*, not a brand colour —
+     mapping the violet here would light up every menu row. */
+  --accent: 215 21.3% 17.5%; /* --k-border */
+  --accent-foreground: 36 11.6% 91.6%;
+
+  --border: 215 21.3% 17.5%;
+  --input: 215 21.3% 17.5%;
+  --ring: 251 100% 68.2%; /* --k-accent */
+
+  /* Missed in the original remap — anything using shadcn's "primary"
+     (Button's default variant, Badge, the settings stats bar chart's
+     fill, ...) rendered in stock shadcn's near-white instead of the
+     fork's accent until this was added. Same colour as --ring; the two
+     express the same "this is the accent" concept for different shadcn
+     component families. */
+  --primary: 251 100% 68.2%; /* --k-accent */
+  --primary-foreground: 217.5 22.2% 7.1%; /* --k-bg */
+}
+
+/*
+ * The design is built almost entirely from icon-only controls, so the
+ * handoff calls for a visible focus ring on every one of them, derived from
+ * the accent at reduced alpha. Applying it once here covers the whole fork
+ * (including portaled menus, since `.k-dense` is mirrored onto <html>)
+ * rather than relying on each control to remember its own ring.
+ */
+.k-dense :focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--k-accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/*
+ * Every hover/active-state colour change in the fork (row backgrounds, nav
+ * rows, icon buttons, tag chips, theme swatches, ...) is a bare Tailwind
+ * `hover:`/`aria-pressed:` class with no transition, so it snaps instead of
+ * easing. Rather than adding `transition-colors` to each of those
+ * individually — and having to remember it on every one added later — one
+ * rule here covers every link/button/role=button in the fork. Restrained on
+ * purpose: colour/border/opacity only, no transform or shadow, since the
+ * design doc is explicit that this UI has no elevation ("Surfaces are
+ * separated by borders and background steps only — keep it that way").
+ */
+.k-dense a,
+.k-dense button,
+.k-dense [role="button"],
+body > [data-radix-popper-content-wrapper] a,
+body > [data-radix-popper-content-wrapper] button,
+body > [role="dialog"] a,
+body > [role="dialog"] button {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+
+/*
+ * Selected text defaults to the browser's blue regardless of theme, which
+ * reads as a bug next to a UI this deliberate about colour. Tinted with the
+ * active accent instead, at low alpha so body text stays legible under it.
+ */
+.k-dense ::selection,
+body > [data-radix-popper-content-wrapper] ::selection,
+body > [role="dialog"] ::selection {
+  background-color: color-mix(in oklab, var(--k-accent) 40%, transparent);
+  color: var(--k-fg);
+}
+
+.k-dense .font-k-mono {
+  font-family: var(--font-k-mono), "IBM Plex Mono", monospace;
+}

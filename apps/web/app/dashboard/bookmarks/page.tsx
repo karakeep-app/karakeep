@@ -1,10 +1,6 @@
 import React from "react";
-import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
+import DenseFiles from "@/components/dashboard/dense/DenseFiles";
 
 export default async function BookmarksPage() {
-  return (
-    <div>
-      <Bookmarks query={{ archived: false }} showEditorCard={true} />
-    </div>
-  );
+  return <DenseFiles label="Files" query={{ archived: false }} />;
 }

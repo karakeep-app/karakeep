@@ -1,3 +1,8 @@
+/**
+ * UNUSED by the dense fork — kept intentionally. Only imported by
+ * ./BookmarkPreview.tsx, which explains why it's still here at the top of
+ * that file.
+ */
 import { useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";

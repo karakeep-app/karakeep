@@ -30,7 +30,21 @@ interface MultiUrlImportState {
   text: string;
 }
 
-export default function EditorCard({ className }: { className?: string }) {
+export default function EditorCard({
+  className,
+  dense = false,
+  onSaved,
+}: {
+  className?: string;
+  /** Retheme to the dense fork's tokens/typography. Opt-in and false by
+   *  default so this shared component's other callers (the pre-fork grid on
+   *  /dashboard/lists, /dashboard/tags) are unaffected. */
+  dense?: boolean;
+  /** Fires after a bookmark is successfully created. QuickAddDialog uses
+   *  this to close itself — appropriate for a modal, unlike the old
+   *  page-embedded card, which just cleared and stayed put. */
+  onSaved?: () => void;
+}) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -67,6 +81,7 @@ export default function EditorCard({ className }: { className?: string }) {
       if (bookmarkLayout === "list" && inputRef?.current?.style) {
         inputRef.current.style.height = "auto";
       }
+      onSaved?.();
     },
     onError: (e) => {
       toast({ description: e.message, variant: "destructive" });
@@ -190,16 +205,32 @@ export default function EditorCard({ className }: { className?: string }) {
       <form
         className={cn(
           className,
-          "relative flex flex-col gap-2 rounded-xl bg-card p-4",
+          "relative flex flex-col gap-2 rounded-xl p-4",
+          dense ? "bg-transparent" : "bg-card",
           cardHeight,
         )}
         onSubmit={form.handleSubmit(onSubmit, onError)}
       >
         <div className="flex justify-between">
-          <p className="text-sm">{t("editor.new_item")}</p>
-          <Kbd>⌘ + E</Kbd>
+          <p
+            className={cn(
+              dense
+                ? "font-k-mono text-k-fg-dim text-[10px] font-medium uppercase tracking-[0.08em]"
+                : "text-sm",
+            )}
+          >
+            {dense ? t("editor.new_item").toUpperCase() : t("editor.new_item")}
+          </p>
+          <Kbd
+            className={cn(
+              dense &&
+                "font-k-mono border-k-border bg-k-surface-1 text-k-fg-dim border",
+            )}
+          >
+            ⌘ + E
+          </Kbd>
         </div>
-        <Separator />
+        <Separator className={cn(dense && "bg-k-border")} />
         <FormItem className="flex-1">
           <FormControl>
             <Textarea
@@ -208,6 +239,8 @@ export default function EditorCard({ className }: { className?: string }) {
               className={cn(
                 "text-md h-full w-full border-none p-0 font-light focus-visible:ring-0",
                 { "resize-none": bookmarkLayout !== "list" },
+                dense &&
+                  "font-k-sans text-k-fg placeholder:text-k-fg-dim text-[13px] font-normal",
               )}
               placeholder={t("editor.placeholder_v2")}
               onKeyDown={(e) => {
@@ -240,6 +273,15 @@ export default function EditorCard({ className }: { className?: string }) {
           loading={isPending}
           type="submit"
           variant="secondary"
+          className={cn(
+            // Button's "default" size (h-10, the shadcn default whenever a
+            // caller doesn't pass `size`) is 40px tall — noticeably bigger
+            // than every other control in the fork, which is 28px
+            // (CONTROL_SHELL) throughout. Explicit height/padding here
+            // rather than size="sm" (still 36px) to actually match.
+            dense &&
+              "bg-k-accent text-k-accent-fg hover:bg-k-accent/90 h-[32px] rounded-[8px] px-3 py-0 text-[12.5px] font-medium disabled:opacity-40",
+          )}
         >
           {form.formState.dirtyFields.text
             ? demoMode

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
-import ListHeader from "@/components/dashboard/lists/ListHeader";
+import DenseFiles from "@/components/dashboard/dense/DenseFiles";
 import { api } from "@/server/api/client";
 import { TRPCError } from "@trpc/server";
-
-import { BookmarkListContextProvider } from "@karakeep/shared-react/hooks/bookmark-list-context";
 
 export async function generateMetadata(props: {
   params: Promise<{ listId: string }>;
@@ -50,20 +47,19 @@ export default async function ListPage(props: {
       ? searchParams.includeArchived === "true"
       : userSettings.archiveDisplayBehaviour === "show";
 
-  // Only show editor card if user is owner or editor (not viewer)
+  // Smart lists reject additions server-side — their contents are computed
+  // from list.query, not a manual membership row — and viewers can't add
+  // regardless of list type.
   const canEdit = list.userRole === "owner" || list.userRole === "editor";
 
   return (
-    <BookmarkListContextProvider list={list}>
-      <Bookmarks
-        query={{
-          listId: list.id,
-          archived: !includeArchived ? false : undefined,
-        }}
-        showDivider={true}
-        showEditorCard={list.type === "manual" && canEdit}
-        header={<ListHeader initialData={list} />}
-      />
-    </BookmarkListContextProvider>
+    <DenseFiles
+      label={`${list.icon} ${list.name}`}
+      query={{
+        listId: list.id,
+        archived: !includeArchived ? false : undefined,
+      }}
+      disableAdd={list.type !== "manual" || !canEdit}
+    />
   );
 }

@@ -80,6 +80,7 @@ export default function UserAvatar() {
               name={t("settings.info.avatar.title")}
               fallback={<User className="h-7 w-7" />}
               className="h-full w-full"
+              fallbackClassName="bg-muted text-muted-foreground"
             />
           </div>
           <input

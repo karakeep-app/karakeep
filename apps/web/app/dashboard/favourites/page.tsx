@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Bookmarks from "@/components/dashboard/bookmarks/Bookmarks";
+import DenseFiles from "@/components/dashboard/dense/DenseFiles";
 import { useTranslation } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,16 +11,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FavouritesBookmarkPage() {
-  return (
-    <Bookmarks
-      header={
-        <div className="flex items-center justify-between">
-          <p className="text-2xl">⭐️ Favourites</p>
-        </div>
-      }
-      query={{ favourited: true }}
-      showDivider={true}
-      showEditorCard={true}
-    />
-  );
+  return <DenseFiles label="Favourites" query={{ favourited: true }} />;
 }

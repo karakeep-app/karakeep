@@ -1,3 +1,20 @@
+/**
+ * UNUSED by the dense fork — kept intentionally, not dead by oversight.
+ *
+ * The dense fork's bookmark detail read-out
+ * (components/dashboard/dense/DenseBookmarkDetail.tsx) replaced this as the
+ * screen both preview routes render, per the 1c prototype
+ * (design/screenshots/1c-split-triage.png). This file and ./ActionBar.tsx
+ * have had no importers since that change.
+ *
+ * Left in place rather than deleted: this repo's purpose is easy fork syncs
+ * ("a modern looking, declutterred UI for Karakeep ... focus on automating
+ * fork syncs" — repo description), and these are upstream files. Deleting
+ * them guarantees a conflict the moment upstream touches either one again;
+ * leaving them costs some dead weight but nothing else, since nothing here
+ * imports them. Safe to delete once that trade-off stops being worth it, or
+ * if this fork ever needs to fall back to the stock preview.
+ */
 "use client";
 
 import { useState } from "react";
