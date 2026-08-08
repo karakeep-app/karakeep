@@ -1,0 +1,26 @@
+# Standalone Meilisearch for local dev, separate from docker/docker-compose.yml
+# (which bundles web+chrome+meilisearch for a fully containerized deployment
+# and would conflict with running `pnpm web`/`pnpm workers` natively).
+#
+# Usage:
+#   docker compose -f docker-compose.search.yml up -d
+#
+# Then add to both apps/web/.env and apps/workers/.env:
+#   MEILI_ADDR=http://127.0.0.1:7700
+#   MEILI_MASTER_KEY=<same value as MEILI_MASTER_KEY below>
+#
+# and restart `pnpm web` / `pnpm workers`.
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.41.0
+    restart: unless-stopped
+    ports:
+      - "7700:7700"
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-devkey-change-me}
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meilisearch-data:/meili_data
+
+volumes:
+  meilisearch-data:
