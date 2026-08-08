@@ -11,9 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatRelativeSince } from "@/lib/dense/format";
+import { MAX_SCALE, MIN_SCALE } from "@/lib/dense/useDenseScale";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 import { cn } from "@/lib/utils";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -91,29 +93,38 @@ export default function DenseFilesView({
     includeContent: false,
   };
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
+  // The server prefetch in DenseFiles.tsx doesn't pass a sortOrder, so it is
+  // the schema default ("desc"). sortOrder is part of the query key, so
+  // switching sort is already a different query that fetches on its own —
+  // but initialData would seed *that* key with these desc-sorted rows too,
+  // flashing the wrong order. Hand it over only for the order it describes.
+  const hasServerData = resolvedSortOrder === "desc";
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery(
       api.bookmarks.getBookmarks.infiniteQueryOptions(
         { ...finalQuery, useCursorV2: true },
         {
-          initialData: () => ({
-            pages: [initialBookmarks],
-            pageParams: [query.cursor ?? null],
-          }),
+          initialData: hasServerData
+            ? () => ({
+                pages: [initialBookmarks],
+                pageParams: [query.cursor ?? null],
+              })
+            : undefined,
           initialCursor: null,
           getNextPageParam: (lastPage) => lastPage.nextCursor,
           refetchOnMount: true,
+          // Keeps the current rows on screen while the newly-sorted query
+          // loads, instead of dropping to the empty state for a frame.
+          placeholderData: keepPreviousData,
         },
       ),
     );
 
-  useEffect(() => {
-    refetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedSortOrder]);
-
+  // `data` is undefined on the first render of a non-default sort order,
+  // where there is no server payload to seed from.
   const bookmarks = useMemo(
-    () => data.pages.flatMap((p) => p.bookmarks),
+    () => data?.pages.flatMap((p) => p.bookmarks) ?? [],
     [data],
   );
 
@@ -138,8 +149,12 @@ export default function DenseFilesView({
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // Only work that is actually outstanding counts. `summarizationStatus` is
+  // `success | failure | pending | null`, and `null` means "never queued" —
+  // which is every bookmark on a server with no AI configured, so counting
+  // anything-but-success reported "24 items · 24 unsummarised" forever.
   const unsummarisedCount = bookmarks.filter(
-    (b) => b.summarizationStatus !== "success",
+    (b) => b.summarizationStatus === "pending",
   ).length;
   const mostRecentModified = bookmarks.reduce<Date | null>((acc, b) => {
     const candidate = b.modifiedAt ?? b.createdAt;
@@ -165,7 +180,7 @@ export default function DenseFilesView({
               {bookmarks.length} item{bookmarks.length === 1 ? "" : "s"} ·{" "}
               {unsummarisedCount} unsummarised
               {mostRecentModified && (
-                <> · updated {relativeShort(mostRecentModified)}</>
+                <> · updated {formatRelativeSince(mostRecentModified)}</>
               )}
             </p>
           </div>
@@ -248,7 +263,8 @@ export default function DenseFilesView({
                     aria-label="Decrease scale"
                     onClick={() =>
                       setPreference(
-                        Math.round(Math.max(0.85, scale - 0.1) * 100) / 100,
+                        Math.round(Math.max(MIN_SCALE, scale - 0.1) * 100) /
+                          100,
                       )
                     }
                     className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
@@ -260,7 +276,8 @@ export default function DenseFilesView({
                     aria-label="Increase scale"
                     onClick={() =>
                       setPreference(
-                        Math.round(Math.min(2.5, scale + 0.1) * 100) / 100,
+                        Math.round(Math.min(MAX_SCALE, scale + 0.1) * 100) /
+                          100,
                       )
                     }
                     className="border-k-border text-k-fg-muted hover:text-k-fg flex size-6 items-center justify-center rounded border"
@@ -344,15 +361,4 @@ export default function DenseFilesView({
       <QuickAddDialog open={quickAddOpen} onOpenChange={setQuickAddOpen} />
     </div>
   );
-}
-
-function relativeShort(date: Date) {
-  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
-  if (seconds < 60) return "just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
 }

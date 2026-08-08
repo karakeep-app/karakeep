@@ -5,7 +5,6 @@ import { ScalePreference, useDenseScale } from "@/lib/dense/useDenseScale";
 
 interface DenseScaleValue {
   scale: number;
-  autoScale: number;
   preference: ScalePreference;
   setPreference: (next: ScalePreference) => void;
 }
@@ -34,7 +33,7 @@ export function DenseScaleProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const { scale, autoScale, preference, setPreference } = useDenseScale();
+  const { scale, preference, setPreference } = useDenseScale();
 
   useEffect(() => {
     const html = document.documentElement;
@@ -45,9 +44,7 @@ export function DenseScaleProvider({
   }, [scale]);
 
   return (
-    <DenseScaleCtx.Provider
-      value={{ scale, autoScale, preference, setPreference }}
-    >
+    <DenseScaleCtx.Provider value={{ scale, preference, setPreference }}>
       {children}
     </DenseScaleCtx.Provider>
   );

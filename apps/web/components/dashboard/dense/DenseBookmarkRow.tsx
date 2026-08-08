@@ -51,6 +51,10 @@ export function DenseBookmarkRow({
         aria-label={title}
       />
 
+      {/* pointer-events-none hands clicks to the overlay link above, at the
+          cost of the title/summary not being selectable. Opting the text
+          back in would take those clicks away from the link, so the whole
+          row would stop being a click target — left as-is deliberately. */}
       <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col gap-[6px]">
         <div className="flex items-center gap-2">
           <span

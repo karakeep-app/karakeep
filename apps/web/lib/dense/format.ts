@@ -24,6 +24,36 @@ export function formatCompactRelativeTime(date: Date): string {
   return `${years}y`;
 }
 
+/**
+ * Longer-form relative time for the header's "updated ..." clause, where the
+ * row list's telegraphic `4m` would read as a typo mid-sentence.
+ */
+export function formatRelativeSince(date: Date): string {
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+/**
+ * "saved 2 days ago" — the detail read-out's source line. Spelled out in
+ * full because it sits in running text next to the URL.
+ */
+export function formatSavedAgo(date: Date): string {
+  const days = Math.floor((Date.now() - date.getTime()) / 86_400_000);
+  if (days < 1) return "saved today";
+  if (days === 1) return "saved 1 day ago";
+  if (days < 31) return `saved ${days} days ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `saved ${months} month${months === 1 ? "" : "s"} ago`;
+  const years = Math.floor(days / 365);
+  return `saved ${years} year${years === 1 ? "" : "s"} ago`;
+}
+
 export function getDomainFromUrl(url: string): string | null {
   try {
     return new URL(url).hostname.replace(/^www\./, "");

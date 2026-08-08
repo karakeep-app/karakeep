@@ -13,15 +13,19 @@ export interface ParsedSummary {
   lead: string | null;
   /** List items, in order. Empty when the summary isn't written as a list. */
   keyPoints: string[];
+  /** Prose after the list. Every part of the summary is in exactly one of
+   *  these three fields — none of it is dropped. */
+  trail: string | null;
 }
 
 export function parseSummary(
   summary: string | null | undefined,
 ): ParsedSummary {
-  if (!summary?.trim()) return { lead: null, keyPoints: [] };
+  if (!summary?.trim()) return { lead: null, keyPoints: [], trail: null };
 
   const lines = summary.split("\n");
   const leadLines: string[] = [];
+  const trailLines: string[] = [];
   const keyPoints: string[] = [];
 
   for (const line of lines) {
@@ -30,21 +34,24 @@ export function parseSummary(
       const text = match[1].trim();
       if (text) keyPoints.push(text);
     } else if (keyPoints.length === 0) {
-      // Prose only counts as the lead while it precedes the list; any trailing
-      // paragraph after the bullets stays out rather than being reordered
-      // above them.
       leadLines.push(line);
+    } else {
+      // Prose after the list keeps its position rather than being reordered
+      // up into the lead — but it is still shown. Silently discarding part
+      // of the summary would be worse than either.
+      trailLines.push(line);
     }
   }
 
   // A single bullet isn't a list — treat it as prose so a one-line summary
   // that merely starts with a dash doesn't render as a lone key point.
   if (keyPoints.length < 2) {
-    return { lead: summary.trim(), keyPoints: [] };
+    return { lead: summary.trim(), keyPoints: [], trail: null };
   }
 
   const lead = leadLines.join("\n").trim();
-  return { lead: lead || null, keyPoints };
+  const trail = trailLines.join("\n").trim();
+  return { lead: lead || null, keyPoints, trail: trail || null };
 }
 
 /**
@@ -56,6 +63,8 @@ export function parseSummary(
 export function summaryPreview(
   summary: string | null | undefined,
 ): string | null {
+  // No `trail` case: parseSummary only leaves `lead` empty when it found a
+  // list, so the join below always covers it.
   const { lead, keyPoints } = parseSummary(summary);
   if (lead) return lead;
   if (keyPoints.length > 0) return keyPoints.join(" · ");

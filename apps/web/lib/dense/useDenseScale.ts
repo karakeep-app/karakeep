@@ -14,11 +14,11 @@ import { useCallback, useEffect, useState } from "react";
  * the same number of rows the mockup shows instead of a very wide, very
  * short list.
  */
-export const DESIGN_WIDTH = 1000;
-export const DESIGN_HEIGHT = 625;
+const DESIGN_WIDTH = 1000;
+const DESIGN_HEIGHT = 625;
 
-const MIN_SCALE = 0.85;
-const MAX_SCALE = 2.5;
+export const MIN_SCALE = 0.85;
+export const MAX_SCALE = 2.5;
 const STORAGE_KEY = "k-dense-scale";
 
 export type ScalePreference = "auto" | number;
@@ -76,5 +76,5 @@ export function useDenseScale() {
 
   const scale = preference === "auto" ? autoScale : preference;
 
-  return { scale, autoScale, preference, setPreference, MIN_SCALE, MAX_SCALE };
+  return { scale, preference, setPreference };
 }

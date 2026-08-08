@@ -24,7 +24,13 @@ export default async function BookmarkPreviewPage(props: {
   return (
     // -m-4 cancels the dashboard shell's padding so the read-out's own
     // 22/34px gutters are the only ones, same as DenseFilesView does.
-    <div className="-m-4 h-[calc(100dvh-theme(spacing.8))] overflow-hidden">
+    //
+    // Deliberately no height here: `<main>` is already the scroller, and a
+    // viewport-unit height would be re-multiplied by the wrapper's `zoom`
+    // (see the note in dashboard/layout.tsx) — at 1.376x, `100dvh - 2rem`
+    // measured 1139px inside an 860px viewport and produced a second,
+    // taller-than-the-screen scrollbar.
+    <div className="-m-4">
       <DenseBookmarkDetail bookmarkId={bookmark.id} initialData={bookmark} />
     </div>
   );

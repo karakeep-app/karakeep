@@ -24,6 +24,7 @@ const config = {
         "k-surface-2": "var(--k-surface-2)",
         "k-border": "var(--k-border)",
         "k-border-soft": "var(--k-border-soft)",
+        "k-border-dashed": "var(--k-border-dashed)",
         "k-accent": "var(--k-accent)",
         "k-accent-border": "var(--k-accent-border)",
         "k-accent-fg": "var(--k-accent-fg)",

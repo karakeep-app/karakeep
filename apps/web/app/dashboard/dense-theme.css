@@ -38,6 +38,8 @@
   --k-summary: #87847f;
   --k-summary-strong: #a9a6a1;
 
+  /* Dashed "+ tag" affordance in the detail read-out. */
+  --k-border-dashed: #2c2d30;
   --k-section-label: #ddd9d4c3;
   --k-timestamp: #54524e;
   --k-version: #443f3c;

@@ -15,6 +15,7 @@ import { TextContentSection } from "@/components/dashboard/preview/TextContentSe
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { useSession } from "@/lib/auth/client";
 import { getDenseRowTitle } from "@/lib/dense/bookmarkDisplay";
+import { formatSavedAgo } from "@/lib/dense/format";
 import { parseSummary } from "@/lib/dense/summary";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -45,17 +46,6 @@ const SECTION_LABEL =
 
 const ACTION_ICON =
   "text-k-fg-muted hover:text-k-fg flex items-center justify-center disabled:opacity-50";
-
-function savedAgo(date: Date) {
-  const days = Math.floor((Date.now() - date.getTime()) / 86_400_000);
-  if (days < 1) return "saved today";
-  if (days === 1) return "saved 1 day ago";
-  if (days < 31) return `saved ${days} days ago`;
-  const months = Math.floor(days / 30);
-  if (months < 12) return `saved ${months} month${months === 1 ? "" : "s"} ago`;
-  const years = Math.floor(days / 365);
-  return `saved ${years} year${years === 1 ? "" : "s"} ago`;
-}
 
 /**
  * The design's source line is the URL rather than the bare domain
@@ -132,7 +122,7 @@ export default function DenseBookmarkDetail({
   // different title — otherwise it just repeats the heading above it.
   const showOriginalTitle = !!originalTitle && originalTitle !== title;
   const isPendingSummary = bookmark.summarizationStatus === "pending";
-  const { lead, keyPoints } = parseSummary(bookmark.summary);
+  const { lead, keyPoints, trail } = parseSummary(bookmark.summary);
 
   let content;
   switch (bookmark.content.type) {
@@ -149,7 +139,10 @@ export default function DenseBookmarkDetail({
 
   return (
     <div className="bg-k-bg flex h-full flex-col">
-      <div className="border-k-border flex flex-none items-center gap-[10px] border-b px-[22px] py-[13px]">
+      {/* Sticky rather than merely flex-none: in the dialog this sits above
+          a scrolling body, but on the full-page route `<main>` is the
+          scroller, and without this the actions would scroll away. */}
+      <div className="border-k-border bg-k-bg sticky top-0 z-10 flex flex-none items-center gap-[10px] border-b px-[22px] py-[13px]">
         <button
           type="button"
           aria-label={bookmark.favourited ? "Unfavourite" : "Favourite"}
@@ -239,7 +232,7 @@ export default function DenseBookmarkDetail({
           <div className="flex flex-col gap-[10px]">
             <p className="font-k-mono text-k-fg-dim text-[11px]">
               {sourceUrl && <>{displayUrl(sourceUrl)} · </>}
-              {savedAgo(bookmark.createdAt)}
+              {formatSavedAgo(bookmark.createdAt)}
             </p>
             <h1 className="text-k-fg text-[25px] font-semibold leading-[1.22] tracking-[-0.025em] [text-wrap:pretty]">
               {title}
@@ -289,6 +282,11 @@ export default function DenseBookmarkDetail({
                   </li>
                 ))}
               </ul>
+              {trail && (
+                <p className="text-k-summary-strong whitespace-pre-line text-[13px] leading-[1.5] [text-wrap:pretty]">
+                  {trail}
+                </p>
+              )}
             </div>
           )}
 
@@ -309,7 +307,7 @@ export default function DenseBookmarkDetail({
                   <button
                     type="button"
                     onClick={() => setTagEditorOpen(true)}
-                    className="text-k-fg-dim hover:text-k-fg-muted rounded-full border border-dashed border-[#2c2d30] px-[9px] py-[2px] text-[11px]"
+                    className="text-k-fg-dim hover:text-k-fg-muted border-k-border-dashed rounded-full border border-dashed px-[9px] py-[2px] text-[11px]"
                   >
                     + tag
                   </button>
