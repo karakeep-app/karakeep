@@ -241,6 +241,8 @@ function cssVarsFor(pref: DenseThemePreference): Record<string, string> {
     "--border": tone.borderHsl,
     "--input": tone.borderHsl,
     "--ring": accent.hsl,
+    "--primary": accent.hsl,
+    "--primary-foreground": tone.bgHsl,
   };
 }
 

@@ -143,6 +143,15 @@ body > [role="dialog"] {
   --border: 215 21.3% 17.5%;
   --input: 215 21.3% 17.5%;
   --ring: 251 100% 68.2%; /* --k-accent */
+
+  /* Missed in the original remap — anything using shadcn's "primary"
+     (Button's default variant, Badge, the settings stats bar chart's
+     fill, ...) rendered in stock shadcn's near-white instead of the
+     fork's accent until this was added. Same colour as --ring; the two
+     express the same "this is the accent" concept for different shadcn
+     component families. */
+  --primary: 251 100% 68.2%; /* --k-accent */
+  --primary-foreground: 217.5 22.2% 7.1%; /* --k-bg */
 }
 
 /*

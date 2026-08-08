@@ -32,7 +32,7 @@ export function ImportSessionsSection() {
       >
         <Card>
           <CardContent className="flex items-center justify-center py-8">
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               {t("settings.import_sessions.load_error")}
             </p>
           </CardContent>
@@ -55,11 +55,11 @@ export function ImportSessionsSection() {
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Package className="mb-4 h-12 w-12 text-gray-400" />
-            <p className="mb-2 text-center text-gray-600">
+            <Package className="mb-4 h-12 w-12 text-muted-foreground" />
+            <p className="mb-2 text-center text-muted-foreground">
               {t("settings.import_sessions.no_sessions")}
             </p>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm text-muted-foreground">
               {t("settings.import_sessions.no_sessions_detail")}
             </p>
           </CardContent>

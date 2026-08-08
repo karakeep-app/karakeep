@@ -132,6 +132,7 @@ export default function SidebarProfileOptions({
               image={avatarUrl}
               name={session.user.name}
               className="h-full w-full"
+              fallbackClassName="bg-muted text-muted-foreground"
             />
           </div>
           <div className="flex flex-col">
