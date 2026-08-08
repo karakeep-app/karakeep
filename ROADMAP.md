@@ -41,9 +41,6 @@ Small, well-understood, and mostly about finishing what 0.1 started.
 - **A documented fork-sync process** — the repository's stated purpose is easy
   upstream merges, and that process should be scripted and written down rather
   than done by hand.
-- **Consistent naming.** The interface says Keepsake; application metadata,
-  package names and page titles still say Karakeep. Either finish the rename or
-  deliberately keep upstream's, but stop doing both.
 - **Selectable row text.** Row titles and summaries currently cannot be selected,
   because the whole row is a click target. Worth solving properly rather than
   trading one for the other.
@@ -90,6 +87,11 @@ are started, and some may never be.
 
 - **Replacing Karakeep.** This fork tracks upstream and intends to keep doing
   so. Engine work belongs there.
+- **Renaming the application internally.** The interface says Keepsake;
+  package names, application metadata and page titles deliberately stay
+  Karakeep. Renaming them would touch a large number of upstream files for no
+  functional gain and make every future sync harder. This is a decision, not
+  an oversight.
 - **Diverging the data model.** Schema changes make syncing harder and are
   avoided unless a feature genuinely cannot work without one.
 - **Light-and-dark parity as a constraint on design.** If a light theme
