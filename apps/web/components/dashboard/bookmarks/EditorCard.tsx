@@ -274,8 +274,13 @@ export default function EditorCard({
           type="submit"
           variant="secondary"
           className={cn(
+            // Button's "default" size (h-10, the shadcn default whenever a
+            // caller doesn't pass `size`) is 40px tall — noticeably bigger
+            // than every other control in the fork, which is 28px
+            // (CONTROL_SHELL) throughout. Explicit height/padding here
+            // rather than size="sm" (still 36px) to actually match.
             dense &&
-              "bg-k-accent text-k-accent-fg hover:bg-k-accent/90 rounded-[8px] text-[12.5px] font-medium disabled:opacity-40",
+              "bg-k-accent text-k-accent-fg hover:bg-k-accent/90 h-[32px] rounded-[8px] px-3 py-0 text-[12.5px] font-medium disabled:opacity-40",
           )}
         >
           {form.formState.dirtyFields.text
