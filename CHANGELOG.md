@@ -32,6 +32,16 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   directly: following it would have deployed plain upstream Karakeep, not
   this fork's UI, with no error to indicate the mismatch. It now pulls
   `ghcr.io/hexpum/keepsake-ui`.
+- Row titles and summaries in the list and grid views could not be
+  selected or copied — a known limitation since 0.1.0. The row was covered
+  by an absolutely positioned link with the actual text set to
+  `pointer-events: none` so clicks would pass through to it, which also
+  blocks text selection. Replaced with a real link on the title and a
+  click handler on the row itself that ignores clicks on interactive
+  descendants (tags, the favourite button, the overflow menu) and clicks
+  that just finished a text selection, so the row is still clickable
+  anywhere, Ctrl/Cmd-click and middle-click still open a new tab, and the
+  text is selectable again.
 
 ### Added
 

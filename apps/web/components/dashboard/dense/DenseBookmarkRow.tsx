@@ -12,6 +12,7 @@ import {
 } from "@/lib/dense/format";
 import { summaryPreview } from "@/lib/dense/summary";
 import { useLiveBookmark } from "@/lib/dense/useLiveBookmark";
+import { useRowNavigate } from "@/lib/dense/useRowNavigate";
 import { cn } from "@/lib/utils";
 import { Sparkles } from "lucide-react";
 
@@ -37,27 +38,20 @@ export function DenseBookmarkRow({
     bookmark.summarizationStatus === "success" && !!bookmark.summary;
   const readingMinutes = estimateReadingTimeMinutes(bookmark.summary);
   const summary = summaryPreview(bookmark.summary);
+  const navigate = useRowNavigate(`/dashboard/preview/${bookmark.id}`);
 
   return (
     <div
+      {...navigate}
       className={cn(
-        "border-k-border-soft group relative flex gap-[14px] border-t px-[18px] py-[14px]",
+        "border-k-border-soft group relative flex cursor-pointer gap-[14px] border-t px-[18px] py-[14px]",
         selected ? "bg-k-surface-1" : "hover:bg-k-surface-1/60",
       )}
     >
-      <Link
-        href={`/dashboard/preview/${bookmark.id}`}
-        className="absolute inset-0 z-0"
-        aria-label={title}
-      />
-
-      {/* pointer-events-none hands clicks to the overlay link above, at the
-          cost of the title/summary not being selectable. Opting the text
-          back in would take those clicks away from the link, so the whole
-          row would stop being a click target — left as-is deliberately. */}
-      <div className="pointer-events-none relative z-10 flex min-w-0 flex-1 flex-col gap-[6px]">
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col gap-[6px]">
         <div className="flex items-center gap-2">
-          <span
+          <Link
+            href={`/dashboard/preview/${bookmark.id}`}
             style={{ fontWeight: "var(--k-row-title-weight)" }}
             className={cn(
               "truncate text-[14px] tracking-[-0.01em]",
@@ -65,7 +59,7 @@ export function DenseBookmarkRow({
             )}
           >
             {title}
-          </span>
+          </Link>
           {isPendingSummary ? (
             <span className="border-k-border font-k-mono text-k-fg-dim inline-flex flex-none items-center gap-[5px] rounded-[4px] border px-[5px] py-px text-[9.5px] font-medium uppercase tracking-[0.06em]">
               <span className="bg-k-fg-dim size-1 rounded-full" />
@@ -120,7 +114,7 @@ export function DenseBookmarkRow({
             <Link
               key={tag.id}
               href={`/dashboard/tags/${tag.id}`}
-              className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg pointer-events-auto relative z-20 rounded-full border px-[7px] py-px text-[10.5px]"
+              className="border-k-border text-k-fg-muted hover:border-k-accent-border hover:text-k-fg relative z-20 rounded-full border px-[7px] py-px text-[10.5px]"
             >
               {tag.name}
             </Link>
@@ -146,7 +140,7 @@ export function DenseBookmarkRow({
                 favourited: !bookmark.favourited,
               });
             }}
-            className="hover:text-k-fg-muted pointer-events-auto relative z-20 flex items-center justify-center"
+            className="hover:text-k-fg-muted relative z-20 flex items-center justify-center"
           >
             <FavouritedActionIcon
               favourited={bookmark.favourited}
@@ -154,7 +148,7 @@ export function DenseBookmarkRow({
               strokeWidth={1.75}
             />
           </button>
-          <div className="pointer-events-auto relative z-20">
+          <div className="relative z-20">
             <DenseRowOverflowMenu bookmark={bookmark} />
           </div>
         </div>
