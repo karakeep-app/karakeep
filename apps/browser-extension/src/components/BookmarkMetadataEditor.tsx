@@ -51,9 +51,16 @@ export function BookmarkMetadataEditor({ bookmarkId }: { bookmarkId: string }) {
   }, [serverFavourite, favouriteOverride]);
 
   const titleMutation = useUpdateBookmark({
-    onSuccess: (updatedBookmark) => {
+    onSuccess: (updatedBookmark, request) => {
       const updatedTitle = updatedBookmark.title ?? "";
-      setTitleState({ draft: updatedTitle, saved: updatedTitle });
+      const submittedTitle = request.title ?? "";
+      setTitleState((current) => ({
+        draft:
+          current && current.draft !== submittedTitle
+            ? current.draft
+            : updatedTitle,
+        saved: updatedTitle,
+      }));
       setTitleError(null);
     },
     onError: (error) => {
