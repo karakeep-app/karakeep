@@ -41,7 +41,11 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   descendants (tags, the favourite button, the overflow menu) and clicks
   that just finished a text selection, so the row is still clickable
   anywhere, Ctrl/Cmd-click and middle-click still open a new tab, and the
-  text is selectable again.
+  text is selectable again. The row handler also ignores clicks arriving
+  from portaled content: the row's Edit/Delete dialogs render under
+  `<body>` but remain React children of the row, so React bubbles their
+  clicks to it — without that guard, clicking a dialog's padding or its
+  backdrop navigated away and tore the dialog down mid-edit.
 
 ### Added
 
