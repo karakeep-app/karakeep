@@ -193,8 +193,9 @@ See [ROADMAP.md](./ROADMAP.md).
 Issues and pull requests are welcome. Changes to the *engine* — crawling, AI,
 API, data model — generally belong
 [upstream in Karakeep](https://github.com/karakeep-app/karakeep), where they
-benefit everyone and where this fork will pick them up on the next sync.
-Interface and theming changes belong here.
+benefit everyone and where this fork will pick them up on the next sync (see
+[FORK_SYNC.md](./FORK_SYNC.md) for how that works). Interface and theming
+changes belong here.
 
 Please run `pnpm typecheck`, `pnpm lint` and the web tests before opening a PR.
 

@@ -33,6 +33,14 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   this fork's UI, with no error to indicate the mismatch. It now pulls
   `ghcr.io/hexpum/keepsake-ui`.
 
+### Added
+
+- `scripts/sync-upstream.sh` and [`FORK_SYNC.md`](./FORK_SYNC.md) — a
+  scripted process for pulling upstream Karakeep changes in, documenting
+  which of the fork's own files are the real conflict surface (derived from
+  an actual diff against the recorded base, not a guess) and what to check
+  after merging.
+
 ## [0.1.0] — 2026-08-08
 
 First release. Based on upstream Karakeep at

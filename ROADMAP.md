@@ -41,9 +41,6 @@ Small, well-understood, and mostly about finishing what 0.1 started.
   `docker-compose.yml` variant pulls them. Takes effect once this lands on
   `main`; nothing has published yet.
 - **Versioned releases** with a changelog, starting at 0.1.0.
-- **A documented fork-sync process** — the repository's stated purpose is easy
-  upstream merges, and that process should be scripted and written down rather
-  than done by hand.
 - **Selectable row text.** Row titles and summaries currently cannot be selected,
   because the whole row is a click target. Worth solving properly rather than
   trading one for the other.
