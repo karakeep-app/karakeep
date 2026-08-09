@@ -49,6 +49,13 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Foldable sidebar sections.** Lists and Tags each have a chevron on
+  their heading and fold independently, with the state remembered per
+  browser. The heading and chevron are a single control, so clicking the
+  word folds rather than navigating. Each section now also ends in an
+  "All lists" / "All tags" link: the sidebar only ever shows the first 8,
+  and previously the heading itself was the only route to the full index
+  pages — which the fold toggle now occupies.
 - `scripts/sync-upstream.sh` and [`FORK_SYNC.md`](./FORK_SYNC.md) — a
   scripted process for pulling upstream Karakeep changes in, documenting
   which of the fork's own files are the real conflict surface (derived from
