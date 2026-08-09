@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/karakeep-app/karakeep:${KARAKEEP_VERSION:-release}
+    image: ghcr.io/hexpum/keepsake-ui:${KEEPSAKE_VERSION:-release}
     restart: unless-stopped
     volumes:
       # By default, the data is stored in a docker volume called "data".

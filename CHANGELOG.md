@@ -23,6 +23,15 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   read the new value). The admin bookmark debugger, the `admin` CLI's
   retag/resummarize `--status` filter, and the `reRunInferenceOnAllBookmarks`
   API now all recognize `skipped`.
+- The Docker release workflow pushed to upstream's own registry namespaces
+  (`ghcr.io/hoarder-app/*`, `ghcr.io/karakeep-app/*`) using a PAT secret this
+  fork never had, so it would have failed outright the first time it ran.
+  It now builds and pushes `ghcr.io/hexpum/keepsake-ui*` using the repo's
+  built-in `GITHUB_TOKEN`. Separately, `docker/docker-compose.yml` — the
+  quick-start compose file — pulled `ghcr.io/karakeep-app/karakeep`
+  directly: following it would have deployed plain upstream Karakeep, not
+  this fork's UI, with no error to indicate the mismatch. It now pulls
+  `ghcr.io/hexpum/keepsake-ui`.
 
 ## [0.1.0] — 2026-08-08
 
