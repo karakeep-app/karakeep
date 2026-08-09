@@ -433,7 +433,7 @@ export const adminAppRouter = router({
     .input(
       z.object({
         type: z.enum(["tag", "summarize"]),
-        status: z.enum(["success", "failure", "pending", "all"]),
+        status: z.enum(["success", "failure", "pending", "skipped", "all"]),
         modifiedWithinSeconds: zAdminJobModifiedWithinSecondsSchema.optional(),
       }),
     )
@@ -783,9 +783,11 @@ export const adminAppRouter = router({
         modifiedAt: z.date().nullable(),
         title: z.string().nullable(),
         summary: z.string().nullable(),
-        taggingStatus: z.enum(["pending", "failure", "success"]).nullable(),
+        taggingStatus: z
+          .enum(["pending", "failure", "success", "skipped"])
+          .nullable(),
         summarizationStatus: z
-          .enum(["pending", "failure", "success"])
+          .enum(["pending", "failure", "success", "skipped"])
           .nullable(),
         embeddingStatus: z.enum(["pending", "failure", "success"]).nullable(),
         userId: z.string(),

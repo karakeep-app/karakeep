@@ -228,11 +228,19 @@ export const bookmarks = sqliteTable(
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // "skipped" (distinct from "success"): the job ran and consciously did
+    // no work — auto-tagging/summarization disabled, no content to infer
+    // from, no inference client configured — rather than actually
+    // generating a result. Previously these were indistinguishable from a
+    // real success, because the queue runner marked every job that
+    // completed without throwing as "success" regardless of whether the
+    // job's own logic did anything. A bookmark could carry
+    // `summarizationStatus: "success"` with no `summary` set at all.
     taggingStatus: text("taggingStatus", {
-      enum: ["pending", "failure", "success"],
+      enum: ["pending", "failure", "success", "skipped"],
     }).default("pending"),
     summarizationStatus: text("summarizationStatus", {
-      enum: ["pending", "failure", "success"],
+      enum: ["pending", "failure", "success", "skipped"],
     }).default("pending"),
     embeddingStatus: text("embeddingStatus", {
       enum: ["pending", "failure", "success"],

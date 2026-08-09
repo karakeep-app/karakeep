@@ -33,6 +33,8 @@ import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
+import type { InferenceOutcome } from "./inferenceWorker";
+
 /**
  * The maximum length of the relevant tag names to avoid bloating the inference context.
  */
@@ -620,12 +622,12 @@ export async function runTagging(
   bookmarkId: string,
   job: DequeuedJob<ZOpenAIRequest>,
   inferenceClient: InferenceClient,
-) {
+): Promise<InferenceOutcome> {
   if (!serverConfig.inference.enableAutoTagging) {
     logger.debug(
       `[inference][${job.id}] Skipping tagging job for bookmark with id "${bookmarkId}" because it's disabled in the config.`,
     );
-    return;
+    return "skipped";
   }
   const jobId = job.id;
   const bookmark = await fetchBookmark(bookmarkId);
@@ -650,7 +652,7 @@ export async function runTagging(
     logger.debug(
       `[inference][${jobId}] Skipping tagging job for bookmark with id "${bookmarkId}" because user has disabled auto-tagging.`,
     );
-    return;
+    return "skipped";
   }
 
   // Resolve curated tag names if configured
@@ -701,7 +703,7 @@ export async function runTagging(
     logger.info(
       `[inference][${jobId}] Skipping tagging for bookmark "${bookmark.id}" due to missing content.`,
     );
-    return;
+    return "skipped";
   }
 
   await connectTags(bookmarkId, tags, bookmark.userId);
@@ -725,4 +727,6 @@ export async function runTagging(
 
   // Update the search index
   await triggerSearchReindex(bookmarkId, enqueueOpts);
+
+  return "done";
 }

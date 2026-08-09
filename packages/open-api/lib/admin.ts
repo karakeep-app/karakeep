@@ -227,10 +227,10 @@ registry.registerPath({
                   "The type of inference to run: 'tag' for AI tagging, 'summarize' for AI summarization.",
                 ),
               status: z
-                .enum(["success", "failure", "pending", "all"])
+                .enum(["success", "failure", "pending", "skipped", "all"])
                 .default("all")
                 .describe(
-                  "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones.",
+                  "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones, or 'skipped' for bookmarks the job ran on but did no work for (e.g. no inference client configured at the time).",
                 ),
               modifiedWithinSeconds:
                 zAdminJobModifiedWithinSecondsSchema.optional(),

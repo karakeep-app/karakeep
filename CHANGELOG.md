@@ -7,6 +7,23 @@ noted by the upstream commit each release is based on.
 This project follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- AI tagging and summarization jobs that did no work — feature disabled,
+  no inference client configured, no content to infer from — were marked
+  `success` just like a job that actually produced tags or a summary. A
+  bookmark could carry `summarizationStatus: "success"` with no `summary`
+  ever set, and nothing distinguished the two: not the API, the admin
+  debugger, or the CLI. Both statuses now have a third value, `skipped`,
+  set only when the job consciously did nothing. This is an additive
+  schema change (no migration needed) and an additive API change (existing
+  `success | failure | pending | null` consumers are unaffected unless they
+  read the new value). The admin bookmark debugger, the `admin` CLI's
+  retag/resummarize `--status` filter, and the `reRunInferenceOnAllBookmarks`
+  API now all recognize `skipped`.
+
 ## [0.1.0] — 2026-08-08
 
 First release. Based on upstream Karakeep at

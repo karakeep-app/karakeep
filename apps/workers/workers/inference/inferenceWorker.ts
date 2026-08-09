@@ -18,9 +18,23 @@ import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { runSummarization } from "./summarize";
 import { runTagging } from "./tagging";
 
+/**
+ * What a job actually did, distinct from whether it threw. "skipped" covers
+ * every early-return in runSummarization/runTagging — the feature disabled
+ * (globally or per-user), no inference client configured, no content to
+ * infer from, no prompt to send. Before this type existed, all of those
+ * completed the job without throwing, and the queue runner's onComplete
+ * marked the bookmark "success" regardless — indistinguishable from an
+ * inference call that actually ran and produced a summary or tags. A
+ * bookmark could carry `summarizationStatus: "success"` with `summary` still
+ * null, and nothing surfaced the difference anywhere: not the API, not the
+ * UI, not the CLI.
+ */
+export type InferenceOutcome = "done" | "skipped";
+
 async function attemptMarkStatus(
   jobData: object | undefined,
-  status: "success" | "failure",
+  status: "success" | "failure" | "skipped",
 ) {
   if (!jobData) {
     return;
@@ -44,18 +58,26 @@ async function attemptMarkStatus(
 export class OpenAiWorker {
   static async build() {
     logger.info("Starting inference worker ...");
-    const worker = (await getQueueClient())!.createRunner<ZOpenAIRequest>(
+    const worker = (await getQueueClient())!.createRunner<
+      ZOpenAIRequest,
+      InferenceOutcome
+    >(
       OpenAIQueue,
       {
         run: withWorkerTracing(
           "inferenceWorker.run",
           withWorkerEventLog("inferenceWorker.run", runOpenAI),
         ),
-        onComplete: async (job) => {
+        onComplete: async (job, outcome) => {
           workerStatsCounter.labels("inference", "completed").inc();
           const jobId = job.id;
-          logger.info(`[inference][${jobId}] Completed successfully`);
-          await attemptMarkStatus(job.data, "success");
+          logger.info(
+            `[inference][${jobId}] Completed successfully (${outcome})`,
+          );
+          await attemptMarkStatus(
+            job.data,
+            outcome === "skipped" ? "skipped" : "success",
+          );
         },
         onError: async (job) => {
           workerStatsCounter.labels("inference", "failed").inc();
@@ -80,7 +102,9 @@ export class OpenAiWorker {
   }
 }
 
-async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
+async function runOpenAI(
+  job: DequeuedJob<ZOpenAIRequest>,
+): Promise<InferenceOutcome> {
   const jobId = job.id;
 
   const inferenceClient = InferenceClientFactory.build();
@@ -88,7 +112,7 @@ async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
     logger.debug(
       `[inference][${jobId}] No inference client configured, nothing to do now`,
     );
-    return;
+    return "skipped";
   }
 
   const request = zOpenAIRequestSchema.safeParse(job.data);
@@ -113,11 +137,9 @@ async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
   });
   switch (request.data.type) {
     case "summarize":
-      await runSummarization(bookmarkId, job, inferenceClient);
-      break;
+      return await runSummarization(bookmarkId, job, inferenceClient);
     case "tag":
-      await runTagging(bookmarkId, job, inferenceClient);
-      break;
+      return await runTagging(bookmarkId, job, inferenceClient);
     default:
       throw new Error(`Unknown inference type: ${request.data.type}`);
   }
