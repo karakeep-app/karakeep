@@ -732,3 +732,126 @@ https://example.com | Example`;
     expect(bookmarks).toHaveLength(1);
   });
 });
+
+describe("parseInstagramSavedPostsFile", () => {
+  // Real exports are localized (labels like "Caption" appear in the
+  // account's language), so this fixture deliberately uses a non-English
+  // label to prove parsing doesn't depend on it.
+  it("extracts reels and posts regardless of localized labels", () => {
+    const html = `<html><body><main>
+      <div class="entry">
+        <table><tr><td>URL<div><a target="_blank" href="https://www.instagram.com/reel/AbCdEfGhIj1/">https://www.instagram.com/reel/AbCdEfGhIj1/</a></div></td></tr>
+        <tr><td>Untertitel</td><td>ein lustiges video #test</td></tr></table>
+      </div>
+      <div class="entry">
+        <table><tr><td>URL<div><a target="_blank" href="https://www.instagram.com/p/ZyXwVuTsRq2/">https://www.instagram.com/p/ZyXwVuTsRq2/</a></div></td></tr></table>
+      </div>
+    </main></body></html>`;
+
+    const { bookmarks } = parseImportFile("instagram-saved", html);
+
+    expect(bookmarks).toHaveLength(2);
+    expect(bookmarks[0]).toMatchObject({
+      title: "",
+      content: {
+        type: "link",
+        url: "https://www.instagram.com/reel/AbCdEfGhIj1/",
+      },
+      tags: ["instagram-reel"],
+      paths: [["Instagram Reels"]],
+    });
+    expect(bookmarks[1]).toMatchObject({
+      content: {
+        type: "link",
+        url: "https://www.instagram.com/p/ZyXwVuTsRq2/",
+      },
+      tags: ["instagram-post"],
+      paths: [["Instagram Saved Posts"]],
+    });
+  });
+
+  it("deduplicates repeated links to the same post", () => {
+    const html = `<html><body>
+      <a href="https://www.instagram.com/reel/AbCdEfGhIj1/">link</a>
+      <a href="https://www.instagram.com/reel/AbCdEfGhIj1/">same link again</a>
+    </body></html>`;
+
+    const { bookmarks } = parseImportFile("instagram-saved", html);
+    expect(bookmarks).toHaveLength(1);
+  });
+
+  it("throws a descriptive error when no saved posts are found", () => {
+    const html = `<html><body><p>No saved posts here.</p></body></html>`;
+    expect(() => parseImportFile("instagram-saved", html)).toThrow(
+      /No saved Instagram posts or reels/,
+    );
+  });
+});
+
+describe("parseTikTokFavoritesFile", () => {
+  it("extracts favorited videos with dates", () => {
+    const json = JSON.stringify({
+      "Likes and Favorites": {
+        "Favorite Videos": {
+          FavoriteVideoList: [
+            {
+              Date: "2026-05-30 07:45:10",
+              Link: "https://www.tiktokv.com/share/video/7000000000000000001/",
+            },
+            {
+              Date: "2026-06-01 12:00:00",
+              Link: "https://www.tiktokv.com/share/video/7000000000000000002/",
+            },
+          ],
+        },
+      },
+    });
+
+    const { bookmarks } = parseImportFile("tiktok-favorites", json);
+
+    expect(bookmarks).toHaveLength(2);
+    expect(bookmarks[0]).toMatchObject({
+      title: "",
+      content: {
+        type: "link",
+        url: "https://www.tiktokv.com/share/video/7000000000000000001/",
+      },
+      tags: ["tiktok-favorite"],
+      paths: [["TikTok Favorites"]],
+      addDate: Date.parse("2026-05-30T07:45:10Z") / 1000,
+    });
+  });
+
+  it("also handles exports nested under an 'Activity' wrapper", () => {
+    const json = JSON.stringify({
+      Activity: {
+        "Likes and Favorites": {
+          "Favorite Videos": {
+            FavoriteVideoList: [
+              {
+                Date: "2026-05-30 07:45:10",
+                Link: "https://www.tiktokv.com/share/video/7000000000000000001/",
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    const { bookmarks } = parseImportFile("tiktok-favorites", json);
+    expect(bookmarks).toHaveLength(1);
+  });
+
+  it("throws a descriptive error for invalid JSON", () => {
+    expect(() => parseImportFile("tiktok-favorites", "not json")).toThrow(
+      /not valid JSON/,
+    );
+  });
+
+  it("throws a descriptive error when there are no favorited videos", () => {
+    const json = JSON.stringify({ "Likes and Favorites": {} });
+    expect(() => parseImportFile("tiktok-favorites", json)).toThrow(
+      /No favorited TikTok videos/,
+    );
+  });
+});

@@ -345,6 +345,44 @@ export function ImportExportRow() {
             <p>Import</p>
           </FilePickerButton>
         </ImportCard>
+        <ImportCard
+          text="Instagram Saved"
+          description={t(
+            "settings.import.import_bookmarks_from_instagram_saved_export",
+          )}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".html"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "instagram-saved" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <ImportCard
+          text="TikTok Favorites"
+          description={t(
+            "settings.import.import_bookmarks_from_tiktok_favorites_export",
+          )}
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".json"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "tiktok-favorites" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
         <ExportButton />
       </div>
       {Object.entries(importProgress).map(([id, progress]) => {

@@ -19,7 +19,9 @@ export type ImportSource =
   | "mymind"
   | "readwise-reader"
   | "instapaper"
-  | "onetab";
+  | "onetab"
+  | "instagram-saved"
+  | "tiktok-favorites";
 
 export interface ParsedBookmark {
   title: string;
@@ -611,6 +613,117 @@ function parseOneTabFile(textContent: string): ParsedBookmark[] {
   return bookmarks;
 }
 
+// Instagram's "saved posts" export (your_instagram_activity/saved/saved_posts.html
+// inside the "Download your information" zip) is a legacy Facebook-style HTML
+// table, not a Netscape bookmark file. Crucially, all of its labels (e.g. the
+// German "Untertitel" for "Caption") are localized to the account's language,
+// so we deliberately avoid matching on any label text. The only locale-stable
+// signal is the anchor href itself, which always points at
+// instagram.com/reel/<id>/ or instagram.com/p/<id>/. Title/description are
+// intentionally left blank; Karakeep's own crawler fills those in from the
+// live page after import.
+function parseInstagramSavedPostsFile(textContent: string): ParsedBookmark[] {
+  const $ = cheerio.load(textContent);
+  const bookmarks: ParsedBookmark[] = [];
+  const seenUrls = new Set<string>();
+
+  $("a[href*='instagram.com/reel/'], a[href*='instagram.com/p/']").each(
+    (_index, el) => {
+      const href = $(el).attr("href");
+      if (!href) {
+        return;
+      }
+      const match = href.match(
+        /^https:\/\/(?:www\.)?instagram\.com\/(reel|p)\/([A-Za-z0-9_-]+)\/?/,
+      );
+      if (!match) {
+        return;
+      }
+      const isReel = match[1] === "reel";
+      const url = `https://www.instagram.com/${match[1]}/${match[2]}/`;
+      if (seenUrls.has(url)) {
+        return;
+      }
+      seenUrls.add(url);
+
+      bookmarks.push({
+        title: "",
+        content: { type: BookmarkTypes.LINK as const, url },
+        tags: [isReel ? "instagram-reel" : "instagram-post"],
+        paths: [[isReel ? "Instagram Reels" : "Instagram Saved Posts"]],
+      });
+    },
+  );
+
+  if (bookmarks.length === 0) {
+    throw new Error(
+      "No saved Instagram posts or reels were found in the uploaded file. Make sure you're uploading the saved_posts.html file from your_instagram_activity/saved/ in your Instagram data export.",
+    );
+  }
+
+  return bookmarks;
+}
+
+const zTikTokFavoriteVideoSchema = z.object({
+  Date: z.string().optional(),
+  Link: z.string(),
+});
+
+// TikTok's "Favorite Videos" export (user_data_tiktok.json, under
+// "Likes and Favorites" > "Favorite Videos" > "FavoriteVideoList") is the
+// user's bookmarked/saved videos, distinct from the much larger "Like List".
+// We only import favorites here, matching the "saved" semantics of a
+// bookmark manager. TikTok has nested this under an "Activity" wrapper in
+// some export versions, so both shapes are checked.
+function parseTikTokFavoritesFile(textContent: string): ParsedBookmark[] {
+  let data: unknown;
+  try {
+    data = JSON.parse(textContent);
+  } catch {
+    throw new Error(
+      "The uploaded file is not valid JSON. Make sure you're uploading the user_data_tiktok.json file from your TikTok data export.",
+    );
+  }
+
+  const root = data as Record<string, unknown>;
+  const likesAndFavorites =
+    (root["Likes and Favorites"] as Record<string, unknown> | undefined) ??
+    ((root["Activity"] as Record<string, unknown> | undefined)?.[
+      "Likes and Favorites"
+    ] as Record<string, unknown> | undefined);
+  const favoriteVideos = (
+    likesAndFavorites?.["Favorite Videos"] as
+      | Record<string, unknown>
+      | undefined
+  )?.["FavoriteVideoList"];
+
+  const parsed = z.array(zTikTokFavoriteVideoSchema).safeParse(favoriteVideos);
+  if (!parsed.success || parsed.data.length === 0) {
+    throw new Error(
+      "No favorited TikTok videos were found. Make sure you're uploading the user_data_tiktok.json file from a TikTok data export that includes 'Favorite Videos'.",
+    );
+  }
+
+  return parsed.data.map((fav) => {
+    let addDate: number | undefined;
+    if (fav.Date) {
+      // TikTok exports dates as "YYYY-MM-DD HH:mm:ss" in UTC.
+      const parsedMs = Date.parse(`${fav.Date.replace(" ", "T")}Z`);
+      if (!Number.isNaN(parsedMs)) {
+        addDate = parsedMs / 1000;
+      }
+    }
+
+    return {
+      title: "",
+      content: { type: BookmarkTypes.LINK as const, url: fav.Link },
+      tags: ["tiktok-favorite"],
+      addDate,
+      paths: [["TikTok Favorites"]],
+    };
+  });
+}
+
 function deduplicateBookmarks(bookmarks: ParsedBookmark[]): ParsedBookmark[] {
   const deduplicatedBookmarksMap = new Map<string, ParsedBookmark>();
   const textBookmarks: ParsedBookmark[] = [];
@@ -703,6 +816,12 @@ export function parseImportFile(
       break;
     case "onetab":
       result = parseOneTabFile(textContent);
+      break;
+    case "instagram-saved":
+      result = parseInstagramSavedPostsFile(textContent);
+      break;
+    case "tiktok-favorites":
+      result = parseTikTokFavoritesFile(textContent);
       break;
   }
   return { bookmarks: deduplicateBookmarks(result), lists: [] };
