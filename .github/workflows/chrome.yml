@@ -1,0 +1,178 @@
+name: Chrome Image
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/chrome.yml"
+      - "docker/chrome/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/chrome.yml"
+      - "docker/chrome/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
+env:
+  IMAGE: ghcr.io/karakeep-app/karakeep-chrome
+  HEADLESS_SHELL_VERSION: 151.0.7922.47
+  IMAGE_REVISION: r1
+
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.created.outputs.value }}
+    permissions:
+      contents: read
+    steps:
+      - name: Set image creation time
+        id: created
+        run: echo "value=$(date --utc +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.platform }}
+    needs: metadata
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            os: ubuntu-latest
+          - platform: linux/arm64
+            os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Build image
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        with:
+          build-args: |
+            BUILD_REVISION=${{ github.sha }}
+            BUILD_CREATED=${{ needs.metadata.outputs.created }}
+          context: .
+          file: docker/chrome/Dockerfile
+          load: true
+          platforms: ${{ matrix.platform }}
+          tags: karakeep-chrome:build-check
+
+  publish-architectures:
+    name: Publish ${{ matrix.platform }}
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'karakeep-app/karakeep' &&
+      github.ref == 'refs/heads/main'
+    needs:
+      - metadata
+      - build
+    environment: chrome-production
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            suffix: amd64
+            os: ubuntu-latest
+          - platform: linux/arm64
+            suffix: arm64
+            os: ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Refuse to overwrite the immutable tag
+        env:
+          VERSION_TAG: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}
+        run: |
+          if docker buildx imagetools inspect "$VERSION_TAG" >/dev/null 2>&1; then
+            echo "Refusing to overwrite published image $VERSION_TAG"
+            exit 1
+          fi
+
+      - name: Build and publish architecture image
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        with:
+          build-args: |
+            BUILD_REVISION=${{ github.sha }}
+            BUILD_CREATED=${{ needs.metadata.outputs.created }}
+          context: .
+          file: docker/chrome/Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}-${{ matrix.suffix }}
+
+  publish-manifest:
+    name: Publish multi-architecture manifest
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'karakeep-app/karakeep' &&
+      github.ref == 'refs/heads/main'
+    needs: publish-architectures
+    environment: chrome-production
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release manifests
+        env:
+          LATEST_TAG: ${{ env.IMAGE }}:latest
+          RELEASE_TAG: ${{ env.IMAGE }}:release
+          VERSION_TAG: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}
+        run: |
+          docker buildx imagetools create \
+            --tag "$VERSION_TAG" \
+            --tag "$LATEST_TAG" \
+            --tag "$RELEASE_TAG" \
+            "$VERSION_TAG-amd64" \
+            "$VERSION_TAG-arm64"
+
+      - name: Inspect published manifests
+        env:
+          LATEST_TAG: ${{ env.IMAGE }}:latest
+          RELEASE_TAG: ${{ env.IMAGE }}:release
+          VERSION_TAG: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}
+        run: |
+          docker buildx imagetools inspect "$VERSION_TAG"
+          docker buildx imagetools inspect "$LATEST_TAG"
+          docker buildx imagetools inspect "$RELEASE_TAG"
