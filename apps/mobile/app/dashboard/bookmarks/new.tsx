@@ -64,7 +64,8 @@ const NoteEditorPage = () => {
       )}
       <Input
         onChangeText={setText}
-        className="bg-card"
+        className="flex-1 bg-card"
+        inputClasses="h-auto flex-1 sm:h-auto"
         multiline
         placeholder="What's on your mind?"
         autoFocus
