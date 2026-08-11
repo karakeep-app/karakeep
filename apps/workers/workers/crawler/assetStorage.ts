@@ -327,6 +327,10 @@ export async function downloadAndStoreFile(
         logger.error(
           `[Crawler][${jobId}] Failed to download and store ${fileType}: ${e}`,
         );
+        // A crawler timeout aborts the job-wide signal. Do not turn that abort
+        // into a best-effort download miss: the queue runner must observe it so
+        // the crawl is retried and is not reported as successfully completed.
+        abortSignal.throwIfAborted();
         return null;
       } finally {
         if (assetPath) {

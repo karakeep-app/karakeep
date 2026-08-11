@@ -16,6 +16,7 @@ services:
       BROWSER_WEB_URL: http://chrome:9222
       CRAWLER_NUM_WORKERS: 6
       CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+      CRAWLER_STORE_PDF: "true"
       CRAWLER_VIDEO_DOWNLOAD: "true"
       CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: -1
       OPENAI_API_KEY: aimock-test-key
@@ -32,15 +33,18 @@ services:
       MEILI_NO_ANALYTICS: "true"
       MEILI_MASTER_KEY: dummy
   chrome:
-    image: gcr.io/zenika-hub/alpine-chrome:124
+    image: ${KARAKEEP_CHROME_IMAGE:-karakeep-chrome:e2e}
+    build:
+      context: ../..
+      dockerfile: docker/chrome/Dockerfile
     restart: unless-stopped
+    init: true
     command:
-      - --no-sandbox
       - --disable-gpu
       - --disable-dev-shm-usage
-      - --remote-debugging-address=0.0.0.0
-      - --remote-debugging-port=9222
       - --hide-scrollbars
+      - --disable-blink-features=AutomationControlled
+      - --window-size=1440,900
   nginx:
     image: nginx:alpine
     restart: unless-stopped

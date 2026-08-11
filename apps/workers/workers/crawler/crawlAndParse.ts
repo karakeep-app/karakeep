@@ -97,7 +97,12 @@ export async function handleAsAssetBookmark(
         runProxy,
       );
       if (!downloaded) {
-        return;
+        // Unlike screenshots and banner images, this download is the crawl's
+        // primary result. Without it the bookmark cannot be converted to an
+        // asset and none of the preprocessing/inference jobs can run.
+        throw new Error(
+          `[Crawler][${jobId}] Failed to download required ${assetType} asset`,
+        );
       }
       const fileName = path.basename(new URL(url).pathname);
       await db.transaction(async (trx) => {

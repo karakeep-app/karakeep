@@ -332,6 +332,9 @@ importers:
       '@expo/metro-runtime':
         specifier: ~56.0.16
         version: 56.0.16(@expo/log-box@56.0.14)(expo@56.0.15)(react-dom@19.2.3(react@19.2.3))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+      '@expo/ui':
+        specifier: 56.0.21
+        version: 56.0.21(@babel/core@7.29.0)(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(expo@56.0.15)(react-dom@19.2.3(react@19.2.3))(react-native-worklets@0.8.3(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       '@expo/vector-icons':
         specifier: ^15.0.3
         version: 15.0.3(expo-font@56.0.7)(react-native@0.85.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.0)(@react-native/metro-config@0.85.3(@babel/core@7.29.0))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)

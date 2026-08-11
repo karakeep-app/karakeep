@@ -346,6 +346,11 @@ async function runCrawler(
   }
 
   const { bookmarkId, archiveFullPage, storePdf } = request.data;
+  // Add the bookmark id before any database or network work so failed and
+  // aborted crawler events remain discoverable by bookmark id.
+  addLogFields<"crawlerWorker.run">({
+    "bookmark.id": bookmarkId,
+  });
   const {
     url,
     userId,
@@ -366,6 +371,7 @@ async function runCrawler(
   const runProxy = selectRunProxies();
 
   addLogFields<"crawlerWorker.run">({
+    "user.id": userId,
     "crawler.url": url,
     "crawler.domain": getBookmarkDomain(url),
     "crawler.proxy": redactUrlCredentials(

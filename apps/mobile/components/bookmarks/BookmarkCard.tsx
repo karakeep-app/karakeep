@@ -5,7 +5,7 @@ import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Linking, View } from "react-native";
+import { Linking, Platform, View } from "react-native";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -25,12 +25,13 @@ import {
 import TagList from "./card/TagList";
 import { Divider } from "../ui/Divider";
 import ActionBar from "./card/ActionBar";
+import { useBookmarkActions } from "./card/use-bookmark-actions";
 
 function useLinkCardContext({
   bookmark,
 }: {
   bookmark: ZBookmark;
-}): Omit<BookmarkCardContext, "isOwner" | "bookmark"> | undefined {
+}): Omit<BookmarkCardContext, "isOwner" | "bookmark" | "actions"> | undefined {
   const { settings } = useAppSettings();
 
   if (bookmark.content.type !== BookmarkTypes.LINK) {
@@ -119,7 +120,7 @@ function useTextCardContext({
   bookmark,
 }: {
   bookmark: ZBookmark;
-}): Omit<BookmarkCardContext, "isOwner" | "bookmark"> | undefined {
+}): Omit<BookmarkCardContext, "isOwner" | "bookmark" | "actions"> | undefined {
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
     return undefined;
   }
@@ -144,7 +145,7 @@ function useAssetCardContext({
   bookmark,
 }: {
   bookmark: ZBookmark;
-}): Omit<BookmarkCardContext, "isOwner" | "bookmark"> | undefined {
+}): Omit<BookmarkCardContext, "isOwner" | "bookmark" | "actions"> | undefined {
   if (bookmark.content.type !== BookmarkTypes.ASSET) {
     return undefined;
   }
@@ -185,7 +186,7 @@ function CardLayout({ ctx }: { ctx: BookmarkCardContext }) {
             <Divider orientation="vertical" className="mt-2 h-0.5 w-full" />
             <View className="mt-2 flex flex-row justify-between px-2 pb-2">
               <BookmarkCardContainer.FooterExtras />
-              <ActionBar bookmark={ctx.bookmark} />
+              {Platform.OS !== "ios" && <ActionBar actions={ctx.actions} />}
             </View>
           </View>
         </View>
@@ -232,9 +233,11 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
             <View className="h-7 justify-center overflow-hidden">
               <TagList bookmark={ctx.bookmark} />
             </View>
-            <View className="flex-row justify-end pt-0.5">
-              <ActionBar bookmark={ctx.bookmark} compact />
-            </View>
+            {Platform.OS !== "ios" && (
+              <View className="flex-row justify-end pt-0.5">
+                <ActionBar actions={ctx.actions} compact />
+              </View>
+            )}
           </View>
         </View>
       </BookmarkCardContainer.Root>
@@ -296,12 +299,15 @@ export default function BookmarkCard({
   const assetContext = useAssetCardContext({ bookmark });
   const ctx = linkContext ?? textContext ?? assetContext;
   const Layout = settings.bookmarkLayout === "list" ? ListLayout : CardLayout;
+  const isOwner = currentUser?.id === bookmark.userId;
+  const actions = useBookmarkActions(bookmark, isOwner);
 
   return (
     <Layout
       ctx={{
         ...ctx,
-        isOwner: currentUser?.id === bookmark.userId,
+        isOwner,
+        actions,
         bookmark,
         mediaOnPress: () => onOpenBookmark(bookmark),
         bodyOnPress: () => onOpenBookmark(bookmark),
