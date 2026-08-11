@@ -29,6 +29,17 @@ function isNumberArray2D(value: unknown): value is number[][] {
   return Array.isArray(value) && value.every(isNumberArray);
 }
 
+function validateEmbeddingDimensions(embeddings: number[][]): void {
+  const expectedDimensions = serverConfig.embedding.dimensions;
+  for (const [index, embedding] of embeddings.entries()) {
+    if (embedding.length !== expectedDimensions) {
+      throw new Error(
+        `Got embedding response item ${index} with ${embedding.length} dimensions from inference provider; expected ${expectedDimensions} configured by EMBEDDING_DIMENSIONS`,
+      );
+    }
+  }
+}
+
 function parseEmbeddingResponse(response: unknown): number[][] {
   if (!response || typeof response !== "object") {
     throw new Error(`Got invalid embedding response from inference provider`);
@@ -249,6 +260,7 @@ export class OpenAIEmbeddingClient implements EmbeddingClient {
     const embedResponse = await this.openAI.embeddings.create({
       model: serverConfig.embedding.textModel,
       input: inputs,
+      encoding_format: "float",
       ...(serverConfig.embedding.textModelDimensionOverride !== undefined
         ? {
             dimensions: serverConfig.embedding.textModelDimensionOverride,
@@ -256,6 +268,7 @@ export class OpenAIEmbeddingClient implements EmbeddingClient {
         : {}),
     });
     const embeddings = parseEmbeddingResponse(embedResponse);
+    validateEmbeddingDimensions(embeddings);
     const usage = parseEmbeddingUsage(embedResponse);
     return { embeddings, ...usage };
   }
@@ -382,6 +395,7 @@ export class OpenAIInferenceClient implements InferenceClient {
     const embedResponse = await this.openAI.embeddings.create({
       model: model,
       input: inputs,
+      encoding_format: "float",
       ...(serverConfig.embedding.textModelDimensionOverride !== undefined
         ? {
             dimensions: serverConfig.embedding.textModelDimensionOverride,
@@ -389,6 +403,7 @@ export class OpenAIInferenceClient implements InferenceClient {
         : {}),
     });
     const embedding2D = parseEmbeddingResponse(embedResponse);
+    validateEmbeddingDimensions(embedding2D);
     const usage = parseEmbeddingUsage(embedResponse);
     return { embeddings: embedding2D, ...usage };
   }
@@ -545,6 +560,7 @@ class OllamaInferenceClient implements InferenceClient {
       // in the future we want to add a way to split the input into multiple parts.
       truncate: true,
     });
+    validateEmbeddingDimensions(embedding.embeddings);
     const usage = parseEmbeddingUsage(embedding);
     return { embeddings: embedding.embeddings, ...usage };
   }
