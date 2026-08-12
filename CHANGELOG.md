@@ -49,7 +49,7 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
-- **A dedicated mobile shell**, first piece of a ground-up mobile redesign
+- **A dedicated mobile shell**, first pieces of a ground-up mobile redesign
   (design in `design/Keepsake Mobile Designs.html`). Below `sm`, the app
   previously fell back to upstream's stock `MobileSidebar` — a plain
   top-of-page icon strip — plus the desktop content squeezed narrow, with
@@ -59,12 +59,23 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   (Search/Lists/+/Tags/Favourites) but its own capture-screen note said
   lists, tags and the grid collapse into one browse surface rather than
   three tabs — so Tags folds into Browse here, freeing a slot for
-  Settings, which the design had no tab for. The centre capture button
-  reuses the existing quick-add flow for now; a dedicated bottom sheet
-  matching the design (fetched-title preview, inline tag/list chips,
-  summarise-now) is later work, along with the search-as-home, read-out,
-  browse and settings screens themselves. Adds `gsap`, `lenis`, `three`
-  and `vanta` as dependencies for the motion those later screens use.
+  Settings, which the design had no tab for. Adds `gsap`, `lenis`, `three`
+  and `vanta` as dependencies for this and later screens' motion.
+- **A real capture sheet** for the tab bar's centre button, replacing the
+  desktop `QuickAddDialog` reuse from the first mobile-shell pass. Springs
+  up from the bottom (GSAP, matching the design's own timing) with
+  +tag/+list chips and a summarise-now toggle, and on Save springs back
+  down immediately with a confirmation toast — the actual bookmark
+  creation, tag/list attachment and summarisation trigger all happen
+  after, off-screen, matching the design's own note that "the save never
+  waits on the network." Karakeep has no way to attach tags or lists at
+  creation time, so tapping a chip stages a local selection (via the
+  existing `TagsEditor` and `BookmarkListSelector`, both already
+  bookmark-independent controlled components) rather than attaching
+  anything immediately; Save fires creation and then the attach calls back
+  to back. Confirmed both actually persist, not just stage: a bookmark
+  captured with a tag and a list staged shows the tag on reload and
+  increases the target list's item count.
 - **Foldable sidebar sections.** Lists and Tags each have a chevron on
   their heading and fold independently, with the state remembered per
   browser. The heading and chevron are a single control, so clicking the
