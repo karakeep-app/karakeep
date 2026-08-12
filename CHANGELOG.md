@@ -73,6 +73,37 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   corresponding API today (a result-type facet, match spans, or an AI
   question-answering endpoint), so they're left out rather than wired to
   fake behaviour.
+- **Mobile empty-queue hero and a real mobile settings shell** (design
+  screen 2e), the last piece of the mobile redesign. A genuinely empty
+  queue on the search-as-home screen now gets a live Vanta.NET field
+  behind "Nothing left to read." instead of a plain line — the design's
+  own note singles this out as the one place ambient motion earns its
+  keep on an otherwise-static app — followed by a real stat block off
+  `users.stats`. Two of the design's four stat labels are swapped for
+  ones this app actually tracks: `avg_save_time` and `summarised%` are
+  not stats Karakeep has ever recorded (no timing telemetry, no aggregate
+  summarisation count), so `tags_used` and `favourited` take their place
+  rather than shipping labels wired to nothing. `vanta`/`three` add real
+  weight (a 3D scene graph), so they're dynamically imported — only the
+  empty-queue case ever needs them. `vanta` ships no types at all;
+  `apps/web/@types/vanta.d.ts` declares just the one effect this fork
+  imports, derived from reading the package's own source rather than
+  guessing a shape.
+
+  Separately, `/settings` still fell back to the stock `MobileSidebar` (a
+  bare icon strip) below `sm`, with no bottom tab bar at all — leaving
+  settings felt like leaving the app's mobile chrome entirely. Settings
+  now mounts the same `MobileShell` every dashboard page uses, and the
+  icon strip is replaced with a labelled, dense-styled pill nav. The
+  design's own settings block (four toggles: summarise-on-save, watch
+  clipboard for links, swipe actions on rows, a dense/roomy density mode)
+  isn't what this became: three of the four don't correspond to anything
+  built (background clipboard watching has no web API a page can use;
+  swipe-to-reveal actions and a second row-density mode were never
+  implemented as features, so a toggle for either would control nothing),
+  and the real settings surface is eleven actual destination pages, not
+  four in-place switches — a nav strip serves that surface honestly where
+  a row of mostly-decorative toggles wouldn't.
 - **Mobile browse** (design screen 2d): the tab bar's Browse destination is
   now a real screen instead of the plain desktop Lists page squeezed to
   phone width — a 2-column grid of list cards (icon, name, item count via

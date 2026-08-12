@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { DenseBookmarkRow } from "@/components/dashboard/dense/DenseBookmarkRow";
+import { MobileEmptyQueueHero } from "@/components/dashboard/dense/mobile/MobileEmptyQueueHero";
 import {
   useBookmarkSearch,
   useBookmarkSearchState,
@@ -40,6 +41,10 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
  * - `ask_summaries()` — the design's natural-language "ask your summaries
  *   a question" row — is a new AI feature with no existing endpoint
  *   behind it, not a UI decision.
+ *
+ * The empty-queue state (bookmarks.length === 0 with no active query)
+ * renders `MobileEmptyQueueHero` — screen 2e's Vanta field, not a plain
+ * message — see that component's own doc comment.
  */
 export function MobileSearchHome() {
   const api = useTRPC();
@@ -133,6 +138,57 @@ export function MobileSearchHome() {
 
   if (error) throw error;
 
+  const isEmptyQueue = !hasQuery && bookmarks.length === 0;
+
+  let listBody: React.ReactNode;
+  if (isPending) {
+    listBody = (
+      <div className="flex flex-col gap-[6px] px-[18px] pt-[13px]">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex flex-col gap-[6px] pb-[13px]">
+            <div className="bg-k-border h-3 w-3/4 rounded-[3px]" />
+            <div className="bg-k-border h-2 w-full rounded-[3px]" />
+          </div>
+        ))}
+      </div>
+    );
+  } else if (bookmarks.length === 0) {
+    // Design screen 2e's Vanta hero is specifically for the empty
+    // *queue* — a plain "no matches" line covers the other empty case
+    // (a search that found nothing), which isn't what that screen means.
+    listBody = isEmptyQueue ? (
+      <MobileEmptyQueueHero />
+    ) : (
+      <div className="text-k-fg-dim px-[18px] pt-[40px] text-center text-[13px]">
+        No matches.
+      </div>
+    );
+  } else {
+    listBody = (
+      <>
+        {bookmarks.map((bookmark) => (
+          <div key={bookmark.id} data-mobile-row>
+            <DenseBookmarkRow bookmark={bookmark} />
+          </div>
+        ))}
+        {hasNextPage ? (
+          <button
+            type="button"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="font-k-mono text-k-fg-dim w-full py-[16px] text-center text-[10.5px] disabled:opacity-50"
+          >
+            {isFetchingNextPage ? "// loading…" : "// load more"}
+          </button>
+        ) : (
+          <div className="font-k-mono text-k-fg-dim px-[16px] py-[16px] text-center text-[10.5px]">
+            {"// end_of_results"}
+          </div>
+        )}
+      </>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col sm:hidden">
       <div className="flex-none px-[16px] pb-[10px] pt-[10px]">
@@ -172,7 +228,7 @@ export function MobileSearchHome() {
         </div>
       </div>
 
-      {!isPending && (
+      {!isPending && !isEmptyQueue && (
         <div className="font-k-mono text-k-fg-dim flex-none px-[16px] pb-[6px] text-[10.5px]">
           {hasQuery
             ? `// ${bookmarks.length} match${bookmarks.length === 1 ? "" : "es"}`
@@ -181,42 +237,7 @@ export function MobileSearchHome() {
       )}
 
       <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto">
-        {isPending ? (
-          <div className="flex flex-col gap-[6px] px-[18px] pt-[13px]">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="flex flex-col gap-[6px] pb-[13px]">
-                <div className="bg-k-border h-3 w-3/4 rounded-[3px]" />
-                <div className="bg-k-border h-2 w-full rounded-[3px]" />
-              </div>
-            ))}
-          </div>
-        ) : bookmarks.length === 0 ? (
-          <div className="text-k-fg-dim px-[18px] pt-[40px] text-center text-[13px]">
-            {hasQuery ? "No matches." : "Nothing in the queue."}
-          </div>
-        ) : (
-          <>
-            {bookmarks.map((bookmark) => (
-              <div key={bookmark.id} data-mobile-row>
-                <DenseBookmarkRow bookmark={bookmark} />
-              </div>
-            ))}
-            {hasNextPage ? (
-              <button
-                type="button"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className="font-k-mono text-k-fg-dim w-full py-[16px] text-center text-[10.5px] disabled:opacity-50"
-              >
-                {isFetchingNextPage ? "// loading…" : "// load more"}
-              </button>
-            ) : (
-              <div className="font-k-mono text-k-fg-dim px-[16px] py-[16px] text-center text-[10.5px]">
-                {"// end_of_results"}
-              </div>
-            )}
-          </>
-        )}
+        {listBody}
       </div>
     </div>
   );

@@ -6,8 +6,8 @@ import { DenseScaleProvider } from "@/components/dashboard/dense/DenseScaleContr
 import DenseSettingsSidebar from "@/components/dashboard/dense/DenseSettingsSidebar";
 import { DenseThemeProvider } from "@/components/dashboard/dense/DenseThemeController";
 import { ForceDenseTheme } from "@/components/dashboard/dense/ForceDenseTheme";
-import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
-import { Separator } from "@/components/ui/separator";
+import { MobileSettingsNav } from "@/components/dashboard/dense/mobile/MobileSettingsNav";
+import { MobileShell } from "@/components/dashboard/dense/mobile/MobileShell";
 import LoadingSpinner from "@/components/ui/spinner";
 import DemoModeBanner from "@/components/DemoModeBanner";
 import ValidAccountCheck from "@/components/utils/ValidAccountCheck";
@@ -36,6 +36,7 @@ import {
 import { ErrorBoundary } from "react-error-boundary";
 
 import serverConfig from "@karakeep/shared/config";
+import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
 // Same dark, warm-neutral palette as /dashboard — this is not a second
@@ -154,6 +155,12 @@ export default async function SettingsLayout({
   const userSettings = await tryCatch(api.users.settings());
   // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
+  const searchEnabled = PluginManager.isRegistered(PluginType.Search);
+  // The dashboard tab bar's own "back to app" isn't needed a second time
+  // here — every other tab already leads out of settings.
+  const mobileNavItems = settingsSidebarItems(t).filter(
+    (item) => item.path !== "/dashboard/bookmarks",
+  );
 
   if (userSettings.error) {
     if (userSettings.error instanceof TRPCError) {
@@ -188,11 +195,10 @@ export default async function SettingsLayout({
                 </div>
                 <main className="bg-k-bg flex-1 sm:min-h-0 sm:overflow-y-auto">
                   {serverConfig.demoMode && <DemoModeBanner />}
-                  <div className="block w-full bg-background sm:hidden">
-                    <MobileSidebar items={settingsSidebarItems} />
-                    <Separator />
-                  </div>
-                  <div className="min-h-30 p-4">
+                  <MobileSettingsNav items={mobileNavItems} />
+                  {/* pb-20 clears the fixed mobile tab bar, same as the
+                      dashboard layout's own content padding. */}
+                  <div className="min-h-30 p-4 pb-20 sm:pb-4">
                     <ErrorBoundary fallback={<ErrorFallback />}>
                       <Suspense fallback={<LoadingSpinner />}>
                         {children}
@@ -201,6 +207,7 @@ export default async function SettingsLayout({
                   </div>
                 </main>
               </div>
+              <MobileShell searchEnabled={searchEnabled} />
             </div>
           </DenseThemeProvider>
         </DenseScaleProvider>
