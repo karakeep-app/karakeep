@@ -6,8 +6,7 @@ import DenseSidebar from "@/components/dashboard/dense/DenseSidebar";
 import { DenseScaleProvider } from "@/components/dashboard/dense/DenseScaleController";
 import { DenseThemeProvider } from "@/components/dashboard/dense/DenseThemeController";
 import { ForceDenseTheme } from "@/components/dashboard/dense/ForceDenseTheme";
-import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
-import { Separator } from "@/components/ui/separator";
+import { MobileShell } from "@/components/dashboard/dense/mobile/MobileShell";
 import LoadingSpinner from "@/components/ui/spinner";
 import DemoModeBanner from "@/components/DemoModeBanner";
 import ValidAccountCheck from "@/components/utils/ValidAccountCheck";
@@ -16,15 +15,6 @@ import { UserSettingsContextProvider } from "@/lib/userSettings";
 import { api } from "@/server/api/client";
 import { getServerAuthSession } from "@/server/auth";
 import { TRPCError } from "@trpc/server";
-import { TFunction } from "i18next";
-import {
-  Archive,
-  ClipboardList,
-  Highlighter,
-  Home,
-  Search,
-  Tag,
-} from "lucide-react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import serverConfig from "@karakeep/shared/config";
@@ -83,48 +73,6 @@ export default async function Dashboard({
     throw lists.error;
   }
 
-  const items = (t: TFunction) =>
-    [
-      {
-        name: t("common.home"),
-        icon: <Home size={18} />,
-        path: "/dashboard/bookmarks",
-      },
-      searchEnabled
-        ? [
-            {
-              name: t("common.search"),
-              icon: <Search size={18} />,
-              path: "/dashboard/search",
-            },
-          ]
-        : [],
-      {
-        name: t("common.tags"),
-        icon: <Tag size={18} />,
-        path: "/dashboard/tags",
-      },
-      {
-        name: t("common.highlights"),
-        icon: <Highlighter size={18} />,
-        path: "/dashboard/highlights",
-      },
-      {
-        name: t("common.archive"),
-        icon: <Archive size={18} />,
-        path: "/dashboard/archive",
-      },
-    ].flat();
-
-  const mobileSidebar = (t: TFunction) => [
-    ...items(t),
-    {
-      name: t("lists.all_lists"),
-      icon: <ClipboardList size={18} />,
-      path: "/dashboard/lists",
-    },
-  ];
-
   return (
     <UserSettingsContextProvider userSettings={userSettings.data}>
       <ReaderSettingsProvider>
@@ -153,12 +101,12 @@ export default async function Dashboard({
                 </div>
                 <main className="bg-k-bg flex-1 sm:min-h-0 sm:overflow-y-auto">
                   {serverConfig.demoMode && <DemoModeBanner />}
-                  <div className="block w-full bg-background sm:hidden">
-                    <MobileSidebar items={mobileSidebar} />
-                    <Separator />
-                  </div>
                   {modal}
-                  <div className="min-h-30 p-4">
+                  {/* pb-20: clears the fixed mobile tab bar (~64px) plus its
+                      own safe-area padding, so the last row in any list
+                      isn't hidden behind it. sm:pb-0 — the tab bar is
+                      sm:hidden, nothing to clear on desktop. */}
+                  <div className="min-h-30 p-4 pb-20 sm:pb-4">
                     <ErrorBoundary fallback={<ErrorFallback />}>
                       <Suspense fallback={<LoadingSpinner />}>
                         {children}
@@ -167,6 +115,7 @@ export default async function Dashboard({
                   </div>
                 </main>
               </div>
+              <MobileShell searchEnabled={searchEnabled} />
             </div>
           </DenseThemeProvider>
         </DenseScaleProvider>

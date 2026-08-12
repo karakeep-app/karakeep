@@ -49,6 +49,22 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **A dedicated mobile shell**, first piece of a ground-up mobile redesign
+  (design in `design/Keepsake Mobile Designs.html`). Below `sm`, the app
+  previously fell back to upstream's stock `MobileSidebar` — a plain
+  top-of-page icon strip — plus the desktop content squeezed narrow, with
+  no mobile-specific treatment at all. That's replaced by a fixed bottom
+  tab bar (Search, Browse, capture, Favourites, Settings) using the same
+  runtime theme tokens as the rest of the fork. The design drew five tabs
+  (Search/Lists/+/Tags/Favourites) but its own capture-screen note said
+  lists, tags and the grid collapse into one browse surface rather than
+  three tabs — so Tags folds into Browse here, freeing a slot for
+  Settings, which the design had no tab for. The centre capture button
+  reuses the existing quick-add flow for now; a dedicated bottom sheet
+  matching the design (fetched-title preview, inline tag/list chips,
+  summarise-now) is later work, along with the search-as-home, read-out,
+  browse and settings screens themselves. Adds `gsap`, `lenis`, `three`
+  and `vanta` as dependencies for the motion those later screens use.
 - **Foldable sidebar sections.** Lists and Tags each have a chevron on
   their heading and fold independently, with the state remembered per
   browser. The heading and chevron are a single control, so clicking the

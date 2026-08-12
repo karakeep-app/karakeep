@@ -12,9 +12,16 @@ import { useHotkeys } from "react-hotkeys-hook";
 export function QuickAddDialog({
   open,
   onOpenChange,
+  hotkeyEnabled = true,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** The mobile shell mounts its own always-present instance so the tab
+   *  bar's "+" works from any page, not just ones that happen to render
+   *  another caller. Two mounted instances both listening for "mod+e"
+   *  would open both at once, so exactly one instance per tree should set
+   *  this — the mobile shell passes false. */
+  hotkeyEnabled?: boolean;
 }) {
   // EditorCard's own "mod+e" hotkey only focuses an already-mounted
   // textarea — fine pre-fork, where the card sits inline on the page, but
@@ -23,14 +30,14 @@ export function QuickAddDialog({
   // was already open some other way, so the shortcut the dialog itself
   // advertises ("⌘ + E") did nothing. This component, unlike its dialog
   // content, is always mounted by its caller, so the hotkey lives here.
-  //
-  // Assumes a single QuickAddDialog mount in the tree at a time — DenseFilesView
-  // is currently the only caller. If a second one is ever added, this hotkey
-  // needs to be scoped again or it will open both at once.
-  useHotkeys("mod+e", (e) => {
-    e.preventDefault();
-    onOpenChange(true);
-  });
+  useHotkeys(
+    "mod+e",
+    (e) => {
+      e.preventDefault();
+      onOpenChange(true);
+    },
+    { enabled: hotkeyEnabled },
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
