@@ -133,7 +133,18 @@ export function useDoBookmarkSearch() {
   };
 }
 
-export function useBookmarkSearch() {
+/**
+ * `enabled` lets a caller skip the request entirely for query states it
+ * knows are meaningless. Needed because this hook is also used by a screen
+ * where "no query" is the normal resting state rather than a transient one
+ * (the mobile Search tab doubles as home), and searching for `""` there is
+ * both wasted work and — on a server with no search backend configured —
+ * a failing request on the app's default landing screen. Defaults to true
+ * so existing callers are unaffected.
+ */
+export function useBookmarkSearch({
+  enabled = true,
+}: { enabled?: boolean } = {}) {
   const api = useTRPC();
   const { searchQuery, effectiveSearchMode } = useBookmarkSearchState();
   const sortOrder = useSortOrderStore((state) => state.sortOrder);
@@ -156,6 +167,7 @@ export function useBookmarkSearch() {
         sortOrder: effectiveSortOrder,
       },
       {
+        enabled,
         placeholderData: keepPreviousData,
         gcTime: 0,
         initialCursor: null,
