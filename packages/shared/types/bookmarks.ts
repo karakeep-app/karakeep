@@ -191,8 +191,12 @@ export const zBareBookmarkSchema = z.object({
   title: z.string().nullish(),
   archived: z.boolean(),
   favourited: z.boolean(),
-  taggingStatus: z.enum(["success", "failure", "pending"]).nullable(),
-  summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),
+  taggingStatus: z
+    .enum(["success", "failure", "pending", "skipped"])
+    .nullable(),
+  summarizationStatus: z
+    .enum(["success", "failure", "pending", "skipped"])
+    .nullable(),
   embeddingStatus: z.enum(["success", "failure", "pending"]).nullable(),
   note: z.string().nullish(),
   summary: z.string().nullish(),

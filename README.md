@@ -113,9 +113,12 @@ SSO.
 
 ## Getting started
 
-This fork is currently **built from source**. It does not publish container
-images yet — that is [on the roadmap](./ROADMAP.md). To run Karakeep itself
-with prebuilt images, follow
+CI builds and publishes container images to `ghcr.io/hexpum/keepsake-ui` on
+every push to `main` and on each tagged release (see
+[`docker/docker-compose.yml`](./docker/docker-compose.yml) for the compose
+file that pulls them). Until the first images land, or if you'd rather build
+locally, use the from-source path below. To run upstream Karakeep itself with
+its own prebuilt images instead of this fork's UI, follow
 [Karakeep's installation docs](https://docs.karakeep.app/Installation/docker).
 
 **Requirements:** Node 24 (see [`.nvmrc`](./.nvmrc)) and pnpm 11.
@@ -190,8 +193,9 @@ See [ROADMAP.md](./ROADMAP.md).
 Issues and pull requests are welcome. Changes to the *engine* — crawling, AI,
 API, data model — generally belong
 [upstream in Karakeep](https://github.com/karakeep-app/karakeep), where they
-benefit everyone and where this fork will pick them up on the next sync.
-Interface and theming changes belong here.
+benefit everyone and where this fork will pick them up on the next sync (see
+[FORK_SYNC.md](./FORK_SYNC.md) for how that works). Interface and theming
+changes belong here.
 
 Please run `pnpm typecheck`, `pnpm lint` and the web tests before opening a PR.
 

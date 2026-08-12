@@ -24,8 +24,11 @@ export function QuickAddDialog({
   // advertises ("⌘ + E") did nothing. This component, unlike its dialog
   // content, is always mounted by its caller, so the hotkey lives here.
   //
-  // Assumes a single QuickAddDialog mount in the tree at a time — DenseFilesView
-  // is currently the only caller. If a second one is ever added, this hotkey
+  // Assumes a single QuickAddDialog mount in the tree at a time —
+  // DenseFilesView is currently the only caller. The mobile shell has its
+  // own, separate capture surface (MobileCaptureSheet) rather than a
+  // second instance of this component, specifically to avoid that
+  // conflict; if a second QuickAddDialog caller is ever added, this hotkey
   // needs to be scoped again or it will open both at once.
   useHotkeys("mod+e", (e) => {
     e.preventDefault();

@@ -35,15 +35,12 @@ The interface as it stands today.
 Small, well-understood, and mostly about finishing what 0.1 started.
 
 - **Published container images** so the fork can be run without building from
-  source. Requires reworking the inherited release workflows, which currently
-  target upstream's registries.
+  source. The inherited release workflow targeted upstream's own registries
+  and a PAT this fork doesn't have — it's now reworked to build and push
+  `ghcr.io/hexpum/keepsake-ui*` using the repo's own `GITHUB_TOKEN`, and a
+  `docker-compose.yml` variant pulls them. Takes effect once this lands on
+  `main`; nothing has published yet.
 - **Versioned releases** with a changelog, starting at 0.1.0.
-- **A documented fork-sync process** — the repository's stated purpose is easy
-  upstream merges, and that process should be scripted and written down rather
-  than done by hand.
-- **Selectable row text.** Row titles and summaries currently cannot be selected,
-  because the whole row is a click target. Worth solving properly rather than
-  trading one for the other.
 - **Real reading time.** The estimate is currently derived from summary length,
   which is not a meaningful number. Either compute it from article content or
   remove it.

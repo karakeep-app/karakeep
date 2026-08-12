@@ -17,6 +17,8 @@ import { DequeuedJob } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 
+import type { InferenceOutcome } from "./inferenceWorker";
+
 async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
   const bookmark = await db.query.bookmarks.findFirst({
     where: eq(bookmarks.id, bookmarkId),
@@ -48,12 +50,12 @@ export async function runSummarization(
   bookmarkId: string,
   job: DequeuedJob<ZOpenAIRequest>,
   inferenceClient: InferenceClient,
-) {
+): Promise<InferenceOutcome> {
   if (!serverConfig.inference.enableAutoSummarization) {
     logger.debug(
       `[inference][${job.id}] Skipping summarization job for bookmark with id "${bookmarkId}" because it's disabled in the config.`,
     );
-    return;
+    return "skipped";
   }
   const jobId = job.id;
 
@@ -90,7 +92,7 @@ export async function runSummarization(
     logger.debug(
       `[inference][${jobId}] Skipping summarization job for bookmark with id "${bookmarkId}" because user has disabled auto-summarization.`,
     );
-    return;
+    return "skipped";
   }
 
   let textToSummarize = "";
@@ -107,7 +109,7 @@ export async function runSummarization(
       logger.info(
         `[inference] No content found for link "${bookmarkId}". Skipping summary.`,
       );
-      return;
+      return "skipped";
     }
 
     textToSummarize = `
@@ -122,14 +124,14 @@ URL: ${link.url ?? ""}
     logger.warn(
       `[inference][${jobId}] Bookmark ${bookmarkId} (type: ${bookmarkData.type}) is not a LINK or TEXT type with content, or content is missing. Skipping summary.`,
     );
-    return;
+    return "skipped";
   }
 
   if (!textToSummarize.trim()) {
     logger.info(
       `[inference][${jobId}] No content to summarize for bookmark ${bookmarkId}.`,
     );
-    return;
+    return "skipped";
   }
 
   const prompts = await db.query.customPrompts.findMany({
@@ -189,4 +191,6 @@ URL: ${link.url ?? ""}
     priority: job.priority,
     groupId: bookmarkData.userId,
   });
+
+  return "done";
 }

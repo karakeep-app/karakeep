@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from "react";
 import BookmarksGrid from "@/components/dashboard/bookmarks/BookmarksGrid";
 import BookmarksGridSkeleton from "@/components/dashboard/bookmarks/BookmarksGridSkeleton";
+import { MobileSearchHome } from "@/components/dashboard/dense/mobile/MobileSearchHome";
 import { useBookmarkSearch } from "@/lib/hooks/bookmark-search";
 import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
@@ -30,7 +31,7 @@ function SearchComp() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="hidden flex-col gap-3 sm:flex">
       {data ? (
         <BookmarksGrid
           hasNextPage={hasNextPage}
@@ -49,6 +50,7 @@ export default function SearchPage() {
   return (
     <Suspense>
       <SearchComp />
+      <MobileSearchHome />
     </Suspense>
   );
 }

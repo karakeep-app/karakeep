@@ -498,7 +498,7 @@ jobsCmd
   .description("re-run AI tagging on all bookmarks matching a status")
   .requiredOption(
     "--status <status>",
-    "filter by tagging status (success, failure, pending, all)",
+    "filter by tagging status (success, failure, pending, skipped, all)",
   )
   .option(
     "--modified-within <duration>",
@@ -507,7 +507,12 @@ jobsCmd
   )
   .action(async (opts) => {
     const api = getAPIClient();
-    const status = opts.status as "success" | "failure" | "pending" | "all";
+    const status = opts.status as
+      | "success"
+      | "failure"
+      | "pending"
+      | "skipped"
+      | "all";
     try {
       await api.admin.reRunInferenceOnAllBookmarks.mutate({
         type: "tag",
@@ -531,7 +536,7 @@ jobsCmd
   .description("re-run AI summarization on all bookmarks matching a status")
   .requiredOption(
     "--status <status>",
-    "filter by summarization status (success, failure, pending, all)",
+    "filter by summarization status (success, failure, pending, skipped, all)",
   )
   .option(
     "--modified-within <duration>",
@@ -540,7 +545,12 @@ jobsCmd
   )
   .action(async (opts) => {
     const api = getAPIClient();
-    const status = opts.status as "success" | "failure" | "pending" | "all";
+    const status = opts.status as
+      | "success"
+      | "failure"
+      | "pending"
+      | "skipped"
+      | "all";
     try {
       await api.admin.reRunInferenceOnAllBookmarks.mutate({
         type: "summarize",

@@ -25,6 +25,7 @@ import {
   Layers,
   Link as LinkIcon,
   Loader2,
+  MinusCircle,
   RefreshCw,
   Search,
   Sparkles,
@@ -177,7 +178,9 @@ export default function BookmarkDebugger() {
     }
   };
 
-  const getStatusBadge = (status: "pending" | "failure" | "success" | null) => {
+  const getStatusBadge = (
+    status: "pending" | "failure" | "success" | "skipped" | null,
+  ) => {
     if (!status) return null;
 
     const config = {
@@ -192,6 +195,13 @@ export default function BookmarkDebugger() {
       pending: {
         variant: "secondary" as const,
         icon: AlertCircle,
+      },
+      // The job ran and consciously did no work — feature disabled, no
+      // content to infer from, no inference client configured — rather
+      // than actually producing a result. Distinct from "success".
+      skipped: {
+        variant: "outline" as const,
+        icon: MinusCircle,
       },
     };
 

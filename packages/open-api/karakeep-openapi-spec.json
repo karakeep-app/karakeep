@@ -154,6 +154,7 @@
               "success",
               "failure",
               "pending",
+              "skipped",
               null
             ]
           },
@@ -164,6 +165,7 @@
               "success",
               "failure",
               "pending",
+              "skipped",
               null
             ]
           },
@@ -1621,6 +1623,7 @@
                         "success",
                         "failure",
                         "pending",
+                        "skipped",
                         null
                       ]
                     },
@@ -1631,6 +1634,7 @@
                         "success",
                         "failure",
                         "pending",
+                        "skipped",
                         null
                       ]
                     },
@@ -1879,6 +1883,7 @@
                         "success",
                         "failure",
                         "pending",
+                        "skipped",
                         null
                       ]
                     },
@@ -1889,6 +1894,7 @@
                         "success",
                         "failure",
                         "pending",
+                        "skipped",
                         null
                       ]
                     },
@@ -4639,10 +4645,11 @@
                       "success",
                       "failure",
                       "pending",
+                      "skipped",
                       "all"
                     ],
                     "default": "all",
-                    "description": "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones."
+                    "description": "Filter bookmarks by their inference status. Use 'failure' to retry only failed ones, or 'skipped' for bookmarks the job ran on but did no work for (e.g. no inference client configured at the time)."
                   },
                   "modifiedWithinSeconds": {
                     "type": "integer",

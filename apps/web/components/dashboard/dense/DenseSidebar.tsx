@@ -9,6 +9,7 @@ import { topicColorsFor } from "@/lib/dense/theme";
 import { cn } from "@/lib/utils";
 import {
   Archive,
+  ChevronDown,
   Hash,
   Inbox,
   PanelLeftClose,
@@ -46,6 +47,98 @@ function useSidebarCollapsed() {
     });
   };
   return { collapsed, toggle };
+}
+
+const SECTION_FOLD_KEY = "k-dense-sidebar-fold:";
+
+/**
+ * Per-section fold state, persisted the same way the whole-sidebar collapse
+ * is: default open for the server render, then reconciled with localStorage
+ * on mount so SSR never has to reach for it.
+ */
+function useSectionFold(section: string) {
+  const [folded, setFolded] = useState(false);
+  useEffect(() => {
+    const stored = window.localStorage.getItem(SECTION_FOLD_KEY + section);
+    if (stored !== null) {
+      setFolded(stored === "1");
+    }
+  }, [section]);
+  const toggle = () => {
+    setFolded((prev) => {
+      const next = !prev;
+      window.localStorage.setItem(SECTION_FOLD_KEY + section, next ? "1" : "0");
+      return next;
+    });
+  };
+  return { folded, toggle };
+}
+
+/**
+ * A foldable sidebar section (Lists, Tags).
+ *
+ * The label and its chevron are one button rather than a label sitting next
+ * to a separate chevron control: a chevron beside a heading reads as "click
+ * the heading to fold", so making only the chevron work would send anyone
+ * who clicks the word somewhere unexpected. `action` is for controls that
+ * belong to the section itself (Lists' "new list" +) and stays reachable
+ * while folded.
+ */
+function SidebarSection({
+  id,
+  label,
+  action,
+  children,
+}: {
+  id: string;
+  label: string;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  const { folded, toggle } = useSectionFold(id);
+  const contentId = `sidebar-section-${id}`;
+  return (
+    <div className="flex flex-col gap-px text-[12.5px]">
+      <div className="flex items-center px-2 pb-[5px]">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={!folded}
+          aria-controls={contentId}
+          className="font-k-mono text-k-fg-dim hover:text-k-fg-muted flex items-center gap-[3px] text-[10px] font-medium uppercase tracking-[0.08em] transition-colors"
+        >
+          {label}
+          <ChevronDown
+            size={11}
+            strokeWidth={2.25}
+            aria-hidden
+            className={cn(
+              "transition-transform duration-150",
+              folded && "-rotate-90",
+            )}
+          />
+        </button>
+        {action && <div className="ml-auto flex items-center">{action}</div>}
+      </div>
+      {/* Kept mounted and hidden with `display:none` rather than unmounted,
+          so `aria-controls` always resolves to a real element. */}
+      <div id={contentId} className={cn(folded && "hidden")}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** Link to a section's full index page — the sidebar only ever shows 8. */
+function SectionAllLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="text-k-fg-dim/70 hover:text-k-fg-muted block px-2 py-[5px] text-[11px]"
+    >
+      {label}
+    </Link>
+  );
 }
 
 function NavRow({
@@ -288,52 +381,52 @@ export default function DenseSidebar({
         {/* Lists. Always rendered — it carries the "create list" affordance
             and the link to the full lists page, so it must be reachable
             even when the user has no lists yet. */}
-        <div className="flex flex-col gap-px text-[12.5px]">
-          <div className="flex items-center px-2 pb-[5px]">
-            <Link
-              href="/dashboard/lists"
-              className="font-k-mono text-k-fg-dim hover:text-k-fg-muted text-[10px] font-medium uppercase tracking-[0.08em]"
-            >
-              Lists
-            </Link>
+        <SidebarSection
+          id="lists"
+          label="Lists"
+          action={
             <button
               type="button"
               aria-label="New list"
               title="New list"
               onClick={() => setNewListOpen(true)}
-              className="text-k-fg-dim hover:text-k-fg-muted ml-auto flex items-center justify-center"
+              className="text-k-fg-dim hover:text-k-fg-muted flex items-center justify-center"
             >
               <Plus size={13} strokeWidth={2} />
             </button>
-          </div>
+          }
+        >
           {topLevelLists.length > 0 ? (
-            <ul className="flex flex-col gap-px">
-              {topLevelLists.slice(0, 8).map((list, i) => {
-                const href = `/dashboard/lists/${list.id}`;
-                const active = pathname === href;
-                return (
-                  <li key={list.id}>
-                    <Link
-                      href={href}
-                      className={cn(
-                        "flex items-center gap-[9px] rounded-[6px] px-2 py-[5px] transition-colors",
-                        active
-                          ? "bg-k-border-soft text-k-fg font-medium"
-                          : "text-k-fg-muted hover:bg-k-border-soft/60",
-                      )}
-                    >
-                      <span
-                        className="size-[5px] flex-none rounded-full"
-                        style={{
-                          background: listDotColors[i % listDotColors.length],
-                        }}
-                      />
-                      <span className="truncate">{list.name}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <>
+              <ul className="flex flex-col gap-px">
+                {topLevelLists.slice(0, 8).map((list, i) => {
+                  const href = `/dashboard/lists/${list.id}`;
+                  const active = pathname === href;
+                  return (
+                    <li key={list.id}>
+                      <Link
+                        href={href}
+                        className={cn(
+                          "flex items-center gap-[9px] rounded-[6px] px-2 py-[5px] transition-colors",
+                          active
+                            ? "bg-k-border-soft text-k-fg font-medium"
+                            : "text-k-fg-muted hover:bg-k-border-soft/60",
+                        )}
+                      >
+                        <span
+                          className="size-[5px] flex-none rounded-full"
+                          style={{
+                            background: listDotColors[i % listDotColors.length],
+                          }}
+                        />
+                        <span className="truncate">{list.name}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+              <SectionAllLink href="/dashboard/lists" label="All lists" />
+            </>
           ) : (
             <button
               type="button"
@@ -343,18 +436,12 @@ export default function DenseSidebar({
               No lists yet — create one
             </button>
           )}
-        </div>
+        </SidebarSection>
 
         {/* Tags */}
         {initialTags.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <Link
-              href="/dashboard/tags"
-              className="font-k-mono text-k-fg-dim hover:text-k-fg-muted px-2 text-[10.5px] font-medium uppercase tracking-[0.08em]"
-            >
-              Tags
-            </Link>
-            <div className="flex flex-wrap gap-[5px] px-2">
+          <SidebarSection id="tags" label="Tags">
+            <div className="flex flex-wrap gap-[5px] px-2 pt-[3px]">
               {initialTags.slice(0, 8).map((tag) => (
                 <Link
                   key={tag.id}
@@ -365,7 +452,8 @@ export default function DenseSidebar({
                 </Link>
               ))}
             </div>
-          </div>
+            <SectionAllLink href="/dashboard/tags" label="All tags" />
+          </SidebarSection>
         )}
       </div>
 
