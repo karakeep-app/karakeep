@@ -1,3 +1,4 @@
+import path from "node:path";
 import bundleAnalyzer from "@next/bundle-analyzer";
 
 const withBundleAnalyzer = bundleAnalyzer({
@@ -8,6 +9,18 @@ const withBundleAnalyzer = bundleAnalyzer({
 const nextConfig = {
   output: "standalone",
   turbopack: {
+    // Without this, Turbopack infers the workspace root by walking up from
+    // this file looking for a lockfile — and stops at the *first* one it
+    // finds, not necessarily this monorepo's own. A stray lockfile
+    // anywhere above the checkout (e.g. an unrelated `pnpm-lock.yaml`
+    // sitting directly in a contributor's home directory, one level above
+    // wherever they cloned this repo) gets picked instead, silently
+    // pointing every module path at the wrong root. The visible symptom
+    // is unrelated-looking: "Could not find the module ... in the React
+    // Client Manifest" on every route, because Turbopack's build graph and
+    // Next's manifest disagree about where "the project" is. Pinning this
+    // explicitly to the actual monorepo root removes the guesswork.
+    root: path.join(import.meta.dirname, "../.."),
     rules: {
       "*.svg": {
         loaders: ["@svgr/webpack"],
