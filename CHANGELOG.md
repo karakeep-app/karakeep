@@ -73,6 +73,17 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   corresponding API today (a result-type facet, match spans, or an AI
   question-answering endpoint), so they're left out rather than wired to
   fake behaviour.
+- **Mobile browse** (design screen 2d): the tab bar's Browse destination is
+  now a real screen instead of the plain desktop Lists page squeezed to
+  phone width — a 2-column grid of list cards (icon, name, item count via
+  the same `lists.stats` query the desktop tree view uses), a usage-sorted
+  tag cloud with counts, and a small "recently added" glance, matching the
+  design's own note that lists, tags and the grid collapse onto one browse
+  surface rather than three tabs. "All lists"/"All tags" links and tapping
+  a card fall through to the existing (not yet mobile-styled) list/tag/
+  bookmark-detail pages — this screen is the browse *overview* the design
+  actually drew, not a mobile pass over every list and tag page, which
+  stays a documented boundary rather than a silent gap.
 - **Mobile read/detail** (design screen 2c): tapping a bookmark on mobile
   now opens a full-screen read-out instead of the desktop dialog/split-pane
   squeezed into a phone width. Two of the design's own GSAP behaviours are
