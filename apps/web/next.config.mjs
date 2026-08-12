@@ -71,7 +71,21 @@ const nextConfig = {
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },
 
-  allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS?.split(","),
+  // Next's dev server refuses to serve its own JS/HMR to an origin it
+  // doesn't recognize as local — by default that's only bare localhost, so
+  // loading the app via LAN (a phone on the same Wi-Fi, or `pnpm
+  // web:portless`'s `*.local` proxy hostname) gets its dev bundle silently
+  // blocked. The page still renders server-side, so it *looks* fine, but
+  // nothing on it is interactive: no hydration, so e.g. sign-in's form
+  // falls back to a plain native GET submit (credentials end up in the
+  // URL). `*.local` covers portless's LAN mode out of the box; extend via
+  // ALLOWED_DEV_ORIGINS (comma-separated) for anything else, e.g. a raw
+  // LAN IP a particular router/OS combination reports instead of the
+  // hostname.
+  allowedDevOrigins: [
+    "*.local",
+    ...(process.env.ALLOWED_DEV_ORIGINS?.split(",") ?? []),
+  ],
 };
 
 export default withBundleAnalyzer(nextConfig);
