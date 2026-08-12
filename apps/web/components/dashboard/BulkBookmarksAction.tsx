@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import {
   ActionButton,
@@ -35,6 +36,9 @@ export default function BulkBookmarksAction() {
     useState(false);
   const [manageListsModal, setManageListsModalOpen] = useState(false);
   const [bulkTagModal, setBulkTagModalOpen] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(
+    null,
+  );
   const pathname = usePathname();
   const currentPathnameRef = useRef(pathname);
 
@@ -73,6 +77,10 @@ export default function BulkBookmarksAction() {
       setIsBulkEditEnabled(false);
     },
   });
+
+  useEffect(() => {
+    setPortalContainer(document.body);
+  }, []);
 
   // Reset bulk edit state when the route changes
   useEffect(() => {
@@ -244,6 +252,57 @@ export default function BulkBookmarksAction() {
     },
   ];
 
+  const renderActions = (mobile: boolean) => (
+    <div className="flex min-w-max items-center">
+      {actionList.map(
+        ({ name, icon, action, isPending, hidden, alwaysEnable }) => {
+          const className = `${hidden ? "hidden" : "block"} ${
+            mobile && alwaysEnable ? "-order-1" : ""
+          }`;
+          const disabled = !selectedBookmarks.length && !alwaysEnable;
+
+          if (mobile) {
+            return (
+              <ActionButton
+                aria-label={name}
+                title={name}
+                className={className}
+                disabled={disabled}
+                loading={!!isPending}
+                variant="ghost"
+                key={name}
+                onClick={action}
+              >
+                {icon}
+              </ActionButton>
+            );
+          }
+
+          return (
+            <ActionButtonWithTooltip
+              className={className}
+              tooltip={name}
+              disabled={disabled}
+              delayDuration={100}
+              loading={!!isPending}
+              variant="ghost"
+              key={name}
+              onClick={action}
+            >
+              {icon}
+            </ActionButtonWithTooltip>
+          );
+        },
+      )}
+    </div>
+  );
+
+  const isModalOpen =
+    isDeleteDialogOpen ||
+    isRemoveFromListDialogOpen ||
+    manageListsModal ||
+    bulkTagModal;
+
   return (
     <div>
       <ActionConfirmingDialog
@@ -293,24 +352,21 @@ export default function BulkBookmarksAction() {
         open={bulkTagModal}
         setOpen={setBulkTagModalOpen}
       />
-      <div className="flex items-center">
-        {actionList.map(
-          ({ name, icon: Icon, action, isPending, hidden, alwaysEnable }) => (
-            <ActionButtonWithTooltip
-              className={hidden ? "hidden" : "block"}
-              tooltip={name}
-              disabled={!selectedBookmarks.length && !alwaysEnable}
-              delayDuration={100}
-              loading={!!isPending}
-              variant="ghost"
-              key={name}
-              onClick={action}
-            >
-              {Icon}
-            </ActionButtonWithTooltip>
-          ),
-        )}
-      </div>
+      {portalContainer && isBulkEditEnabled && !isModalOpen
+        ? createPortal(
+            <div className="fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-[70] sm:bottom-6 sm:left-1/2 sm:right-auto sm:w-max sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2">
+              <div
+                aria-label={t("actions.bulk_edit")}
+                className="overflow-x-auto rounded-2xl border bg-background/95 p-1 shadow-2xl ring-1 ring-black/5 backdrop-blur-sm duration-200 animate-in fade-in slide-in-from-bottom-2 motion-reduce:animate-none dark:ring-white/10"
+                role="toolbar"
+              >
+                <div className="sm:hidden">{renderActions(true)}</div>
+                <div className="hidden sm:block">{renderActions(false)}</div>
+              </div>
+            </div>,
+            portalContainer,
+          )
+        : null}
     </div>
   );
 }
