@@ -61,6 +61,18 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   three tabs — so Tags folds into Browse here, freeing a slot for
   Settings, which the design had no tab for. Adds `gsap`, `lenis`, `three`
   and `vanta` as dependencies for this and later screens' motion.
+- **Search doubles as home** on mobile (design screen 2b): the Search tab
+  shows the same plain queue the desktop Files page uses when the query is
+  empty, and switches to live results from the existing search
+  infrastructure once you type — one screen, not a search page plus a
+  separate list page. Reuses `useBookmarkSearch`/`useDoBookmarkSearch` and
+  `DenseBookmarkRow` as-is rather than a parallel implementation, with Lenis
+  smooth-scroll and a GSAP stagger-in that fires once per query change, not
+  on every background refetch. The design's filter pills, matched-term
+  highlighting and "ask your summaries" row aren't built: none has a
+  corresponding API today (a result-type facet, match spans, or an AI
+  question-answering endpoint), so they're left out rather than wired to
+  fake behaviour.
 - **A real capture sheet** for the tab bar's centre button, replacing the
   desktop `QuickAddDialog` reuse from the first mobile-shell pass. Springs
   up from the bottom (GSAP, matching the design's own timing) with
