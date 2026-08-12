@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import DenseBookmarkDetail from "@/components/dashboard/dense/DenseBookmarkDetail";
+import { MobileBookmarkDetail } from "@/components/dashboard/dense/mobile/MobileBookmarkDetail";
 import { api } from "@/server/api/client";
 import { TRPCError } from "@trpc/server";
 
@@ -31,7 +32,12 @@ export default async function BookmarkPreviewPage(props: {
     // measured 1139px inside an 860px viewport and produced a second,
     // taller-than-the-screen scrollbar.
     <div className="-m-4">
-      <DenseBookmarkDetail bookmarkId={bookmark.id} initialData={bookmark} />
+      <div className="hidden sm:block">
+        <DenseBookmarkDetail bookmarkId={bookmark.id} initialData={bookmark} />
+      </div>
+      <div className="sm:hidden">
+        <MobileBookmarkDetail bookmarkId={bookmark.id} initialData={bookmark} />
+      </div>
     </div>
   );
 }

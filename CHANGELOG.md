@@ -73,6 +73,26 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   corresponding API today (a result-type facet, match spans, or an AI
   question-answering endpoint), so they're left out rather than wired to
   fake behaviour.
+- **Mobile read/detail** (design screen 2c): tapping a bookmark on mobile
+  now opens a full-screen read-out instead of the desktop dialog/split-pane
+  squeezed into a phone width. Two of the design's own GSAP behaviours are
+  carried over verbatim from its component source rather than re-derived
+  from the screenshot: a hairline progress rule at the top fills as the
+  page scrolls, and the title does a word-by-word split reveal on open.
+  Reuses `DenseBookmarkDetail`'s data helpers (`parseSummary`,
+  `formatSavedAgo`, `estimateReadingTimeMinutes`) and the existing row
+  overflow menu (open original, archive, edit tags, re-summarise, delete)
+  rather than duplicating any of that logic. Wired into both places a
+  bookmark can be opened from: the intercepted modal route (soft nav from
+  a list) and the plain preview route (hard nav/refresh) — the modal route
+  now decides between Radix's dialog and the full-screen mobile view with
+  a `matchMedia` check rather than CSS alone, because Radix's dialog
+  overlay always portals to `<body>` and would otherwise darken the whole
+  screen even when its content box was hidden. The design's flowing prose
+  paragraphs under the summary card and its "related" block aren't built:
+  the former reads as placeholder article text where Karakeep only has the
+  one AI summary field (already fully surfaced), and the latter has no
+  similar-bookmarks endpoint to back it.
 - **A real capture sheet** for the tab bar's centre button, replacing the
   desktop `QuickAddDialog` reuse from the first mobile-shell pass. Springs
   up from the bottom (GSAP, matching the design's own timing) with

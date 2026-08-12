@@ -3,6 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import DenseBookmarkDetail from "@/components/dashboard/dense/DenseBookmarkDetail";
+import { MobileBookmarkDetail } from "@/components/dashboard/dense/mobile/MobileBookmarkDetail";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,22 @@ export default function BookmarkPreviewPage(props: {
   const router = useRouter();
 
   const [open, setOpen] = useState(true);
+  // Radix's Dialog always portals its overlay to <body> once `open`, so
+  // hiding it for mobile with a `sm:hidden` wrapper wouldn't work — the
+  // overlay would still darken the whole screen with nothing on top of it.
+  // Reading matchMedia synchronously here instead: this route only ever
+  // mounts from a client-side <Link> navigation (Next intercepts soft nav
+  // into this parallel `@modal` slot; a hard nav/refresh renders the plain
+  // .../preview/[bookmarkId] page instead, not this one), so it's never
+  // part of the initial server-rendered HTML — nothing to hydrate against,
+  // so no mismatch from reading `window` up front. `640px` matches
+  // Tailwind's own `sm:` breakpoint, same cutoff the rest of the mobile
+  // shell uses.
+  const [isMobile] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      !window.matchMedia("(min-width: 640px)").matches,
+  );
 
   const setOpenWithRouter = (value: boolean) => {
     setOpen(value);
@@ -25,6 +42,15 @@ export default function BookmarkPreviewPage(props: {
       router.back();
     }
   };
+
+  if (isMobile) {
+    return (
+      <MobileBookmarkDetail
+        bookmarkId={params.bookmarkId}
+        onBack={() => setOpenWithRouter(false)}
+      />
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpenWithRouter}>
