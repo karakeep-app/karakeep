@@ -11,7 +11,8 @@ Same bookmarking engine. Different surface.
 
 </div>
 
-![Keepsake's list view](design/Keepsake Mobile Designs.html)
+![Keepsake's list view](docs/screenshots/01-list.png)
+
 ## What this is
 
 Keepsake is a **user-interface fork** of [Karakeep](https://github.com/karakeep-app/karakeep)
