@@ -97,7 +97,10 @@ export default function ForgotPasswordForm() {
         ) : (
           <>
             <Form {...form}>
+              {/* See CredentialsForm: without method="post" a pre-hydration
+              submit falls back to GET and puts the address in the URL. */}
               <form
+                method="post"
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >

@@ -72,7 +72,15 @@ export default function CredentialsForm() {
   return (
     <div className="space-y-6">
       <Form {...form}>
+        {/* method="post" is the un-hydrated fallback, not the path taken in
+        normal use: handleSubmit preventDefaults once React is attached. Without
+        it the form keeps HTML's default of GET, so a submit landing in the gap
+        between paint and hydration navigates to /signin?email=…&password=… —
+        putting the password in browser history, access logs and any Referer
+        sent from this page. Posting to the same route re-renders it (200), so
+        the fallback stays harmless. */}
         <form
+          method="post"
           onSubmit={form.handleSubmit(async (value) => {
             const resp = await signIn("credentials", {
               redirect: false,

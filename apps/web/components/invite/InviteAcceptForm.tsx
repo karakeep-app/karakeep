@@ -187,7 +187,11 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
         </div>
 
         <Form {...form}>
+          {/* See CredentialsForm: without method="post" a pre-hydration submit
+          falls back to GET and puts the chosen password — and the invite
+          token — in the URL. */}
           <form
+            method="post"
             onSubmit={form.handleSubmit(async (value) => {
               try {
                 await acceptInviteMutation.mutateAsync({

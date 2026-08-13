@@ -107,7 +107,10 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         <Form {...form}>
+          {/* See CredentialsForm: without method="post" a pre-hydration submit
+          falls back to GET and puts the new password in the URL. */}
           <form
+            method="post"
             onSubmit={form.handleSubmit(async (value) => {
               if (turnstileSiteKey && !value.turnstileToken) {
                 form.setError("turnstileToken", {
