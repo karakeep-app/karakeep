@@ -36,6 +36,23 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- The sign-in, sign-up, reset-password, forgot-password and invite-accept
+  forms could put credentials in the URL. Each is a client component whose
+  only submit path is react-hook-form's `handleSubmit`, and none set an
+  HTML `method` — and a `<form>` with no `method` defaults to GET. A submit
+  landing in the gap between first paint and hydration is therefore handled
+  natively by the browser, navigating to the same route with every field as
+  a query parameter: `/signin?email=…&password=…`. That puts the password in
+  plaintext into browser history, the `Referer` of anything this page loads,
+  and every access log and proxy in front of the app; the reset and invite
+  forms also carry their single-use token. Reproduced deterministically by
+  blocking `/_next/static/**` so hydration never runs. All five now set
+  `method="post"`, which changes nothing once hydrated (`handleSubmit` still
+  preventDefaults) and keeps the un-hydrated fallback harmless, since
+  POSTing to one of these routes simply re-renders it. Every other form in
+  the app lives inside a dialog that cannot be opened without JS, so none of
+  them has an un-hydrated submit path.
+
 - Opening `/dashboard/search` without a query fired a `searchBookmarks`
   request for the empty string, and the page turned any search failure into
   the dashboard's error boundary. On a server with no search backend
