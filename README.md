@@ -11,7 +11,7 @@ Same bookmarking engine. Different surface.
 
 </div>
 
-![Keepsake's list view](docs/screenshots/01-list.png)
+![Keepsake's list view] (design/Keepsake Mobile Designs.html)(docs/screenshots/01-list.png)
 
 ## What this is
 
