@@ -73,3 +73,11 @@ auth_failures.log
 .codex
 .claude/worktrees
 jean.json
+
+# `next dev` regenerates these inside the Next app on every run (see
+# node_modules/next/dist/server/lib/generate-agent-files.js). They are machine
+# state, not source, and this repo already keeps its own curated AGENTS.md and
+# CLAUDE.md at the root — leaving the generated pair untracked kept them
+# showing up as noise in every `git status`.
+apps/web/AGENTS.md
+apps/web/CLAUDE.md
