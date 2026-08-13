@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { DenseBookmarkRow } from "@/components/dashboard/dense/DenseBookmarkRow";
-import { MobileEmptyQueueHero } from "@/components/dashboard/dense/mobile/MobileEmptyQueueHero";
 import {
   useBookmarkSearch,
   useBookmarkSearchState,
@@ -15,6 +15,22 @@ import Lenis from "lenis";
 import { Search, X } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
+
+/**
+ * Lazy: this pulls in `three` (~365KB minified) for its Vanta field, and
+ * only the empty-queue state ever renders it. Statically importing it put
+ * `three` in this route's shared bundle for *every* visitor — including
+ * desktop, which never renders this component at all, and including the
+ * overwhelmingly common case of a queue that isn't empty. `ssr: false`
+ * because the effect it exists to run is canvas/WebGL-only anyway.
+ */
+const MobileEmptyQueueHero = dynamic(
+  () =>
+    import("@/components/dashboard/dense/mobile/MobileEmptyQueueHero").then(
+      (m) => m.MobileEmptyQueueHero,
+    ),
+  { ssr: false },
+);
 
 /**
  * The mobile "search()" screen (design/Keepsake Mobile Designs.html,
@@ -70,7 +86,10 @@ export function MobileSearchHome() {
       },
     ),
   );
-  const searchResult = useBookmarkSearch();
+  // Gated: with no query this screen shows the plain queue, so searching
+  // for "" would be pure waste — and on a server with no search backend
+  // configured, a failing request on the app's default landing screen.
+  const searchResult = useBookmarkSearch({ enabled: hasQuery });
 
   const {
     data,
@@ -90,7 +109,6 @@ export function MobileSearchHome() {
   const bookmarks = data?.pages.flatMap((p) => p.bookmarks) ?? [];
 
   const listRef = useRef<HTMLDivElement>(null);
-  const lenisRef = useRef<Lenis | null>(null);
   const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -103,7 +121,6 @@ export function MobileSearchHome() {
       smoothWheel: true,
       syncTouch: true,
     });
-    lenisRef.current = lenis;
     const raf = (time: number) => {
       lenis.raf(time);
       rafRef.current = requestAnimationFrame(raf);
@@ -112,7 +129,6 @@ export function MobileSearchHome() {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       lenis.destroy();
-      lenisRef.current = null;
     };
   }, []);
 

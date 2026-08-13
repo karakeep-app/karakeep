@@ -11,6 +11,28 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Opening `/dashboard/search` without a query fired a `searchBookmarks`
+  request for the empty string, and the page turned any search failure into
+  the dashboard's error boundary. On a server with no search backend
+  configured that empty request always fails, so simply landing on the
+  route crashed it — and since that page also hosts the mobile Search tab,
+  which is the mobile shell's *default landing tab*, the entire mobile app
+  opened onto a crashed screen, over a query the user never typed. The
+  search query is now gated on there actually being a query on both the
+  desktop and mobile halves of the page, and the desktop half shows a short
+  "search from the field above" line instead of a skeleton that could never
+  resolve. `useBookmarkSearch` takes an optional `enabled` flag for this and
+  defaults to `true`, so other callers are unaffected.
+- `three` (~365KB minified) was pulled into `/dashboard/search`'s shared
+  bundle for every visitor. Only the mobile empty-queue hero uses it, via
+  Vanta — a screen desktop never renders at all, and one that only appears
+  when the queue is completely empty. Vanta was already dynamically
+  imported but `three` was still a static import in the same module, which
+  defeated most of the point; the hero is now lazily imported as a whole, so
+  `three`, `vanta` and the hero's own code all load as separate chunks only
+  when that state is actually reached. This also fixed a latent race the
+  static import had been masking: the hero used to render synchronously and
+  usually beat the crash above, so the empty-queue screen appeared to work.
 - AI tagging and summarization jobs that did no work — feature disabled,
   no inference client configured, no content to infer from — were marked
   `success` just like a job that actually produced tags or a summary. A
