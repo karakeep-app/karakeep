@@ -5,6 +5,8 @@ import { createContext, useContext } from "react";
 import { Pressable, View } from "react-native";
 
 import { NotePreview } from "../NotePreview";
+import BookmarkCardContextMenu from "./bookmark-card-context-menu";
+import type { BookmarkActionController } from "./use-bookmark-actions";
 
 export interface BookmarkCardContext {
   bookmark: ZBookmark;
@@ -15,6 +17,7 @@ export interface BookmarkCardContext {
   compactBody?: React.ReactNode;
   footerExtras?: React.ReactNode;
   isOwner?: boolean;
+  actions: BookmarkActionController;
   mediaOnPress?: () => void;
   bodyOnPress?: () => void;
   titleOnPress?: () => void;
@@ -137,13 +140,24 @@ function Title() {
 }
 
 function Root({ children }: { children: React.ReactNode }) {
-  return (
+  const ctx = useContext(BookmarkCardContext);
+  const card = (
     <View
       className="overflow-hidden rounded-xl bg-card"
       style={{ borderCurve: "continuous" }}
     >
       {children}
     </View>
+  );
+
+  if (!ctx) {
+    return card;
+  }
+
+  return (
+    <BookmarkCardContextMenu actions={ctx.actions}>
+      {card}
+    </BookmarkCardContextMenu>
   );
 }
 

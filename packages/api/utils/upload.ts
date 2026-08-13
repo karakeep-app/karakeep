@@ -95,7 +95,8 @@ export async function uploadAsset(
   let tempFilePath: string | undefined;
 
   try {
-    tempFilePath = path.join(os.tmpdir(), `karakeep-upload-${Date.now()}`);
+    const assetId = newAssetId();
+    tempFilePath = path.join(os.tmpdir(), `karakeep-upload-${assetId}`);
     await pipeline(
       webStreamToNode(data.stream()),
       fs.createWriteStream(tempFilePath),
@@ -103,7 +104,7 @@ export async function uploadAsset(
     const [assetDb] = await db
       .insert(assets)
       .values({
-        id: newAssetId(),
+        id: assetId,
         // Initially, uploads are uploaded for unknown purpose
         // And without an attached bookmark.
         assetType: AssetTypes.UNKNOWN,

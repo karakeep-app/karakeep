@@ -37,21 +37,7 @@ patchedDependencies:
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
 
-minimumReleaseAgeExclude:
-  - '@restatedev/restate-sdk-clients@1.15.1'
-  - '@restatedev/restate-sdk-core@1.15.1'
-  - '@restatedev/restate-sdk@1.15.1'
-  - '@next/bundle-analyzer@16.2.12'
-  - '@next/env@16.2.12'
-  - '@next/swc-darwin-arm64@16.2.12'
-  - '@next/swc-darwin-x64@16.2.12'
-  - '@next/swc-linux-arm64-gnu@16.2.12'
-  - '@next/swc-linux-arm64-musl@16.2.12'
-  - '@next/swc-linux-x64-gnu@16.2.12'
-  - '@next/swc-linux-x64-musl@16.2.12'
-  - '@next/swc-win32-arm64-msvc@16.2.12'
-  - '@next/swc-win32-x64-msvc@16.2.12'
-  - next@16.2.12
+minimumReleaseAgeExclude: []
 
 # Pin vite so adding vitest as a direct devDep to apps/mcp doesn't hoist
 # vite 7.3.x, which surfaces a nested-vite peer mismatch inside

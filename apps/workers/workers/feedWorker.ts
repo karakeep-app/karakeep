@@ -59,50 +59,52 @@ function getErrorMessage(error: unknown): string {
 
 export const FeedRefreshingWorker = cron.schedule(
   "0 * * * *",
-  () => {
+  async () => {
     logger.info("[feed] Scheduling feed refreshing jobs ...");
-    db.query.rssFeedsTable
-      .findMany({
+    try {
+      const feeds = await db.query.rssFeedsTable.findMany({
         columns: {
           id: true,
           userId: true,
         },
         where: eq(rssFeedsTable.enabled, true),
-      })
-      .then((feeds) => {
-        const currentHour = new Date();
-        currentHour.setMinutes(0, 0, 0);
-        const hourlyWindow = currentHour.toISOString();
-        const now = new Date();
-        const currentMinute = now.getMinutes();
-
-        for (const feed of feeds) {
-          const idempotencyKey = `${feed.id}-${hourlyWindow}`;
-          const targetMinute = getFeedMinuteOffset(feed.id);
-
-          // Calculate delay: if target minute has passed, schedule for next hour
-          let delayMinutes = targetMinute - currentMinute;
-          if (delayMinutes < 0) {
-            delayMinutes += 60;
-          }
-          const delayMs = delayMinutes * 60 * 1000;
-
-          logger.debug(
-            `[feed] Scheduling feed ${feed.id} at minute ${targetMinute} (delay: ${delayMinutes} minutes)`,
-          );
-
-          FeedQueue.enqueue(
-            {
-              feedId: feed.id,
-            },
-            {
-              idempotencyKey,
-              groupId: feed.userId,
-              delayMs,
-            },
-          );
-        }
       });
+
+      const currentHour = new Date();
+      currentHour.setMinutes(0, 0, 0);
+      const hourlyWindow = currentHour.toISOString();
+      const now = new Date();
+      const currentMinute = now.getMinutes();
+
+      for (const feed of feeds) {
+        const idempotencyKey = `${feed.id}-${hourlyWindow}`;
+        const targetMinute = getFeedMinuteOffset(feed.id);
+
+        // Calculate delay: if target minute has passed, schedule for next hour
+        let delayMinutes = targetMinute - currentMinute;
+        if (delayMinutes < 0) {
+          delayMinutes += 60;
+        }
+        const delayMs = delayMinutes * 60 * 1000;
+
+        logger.debug(
+          `[feed] Scheduling feed ${feed.id} at minute ${targetMinute} (delay: ${delayMinutes} minutes)`,
+        );
+
+        await FeedQueue.enqueue(
+          {
+            feedId: feed.id,
+          },
+          {
+            idempotencyKey,
+            groupId: feed.userId,
+            delayMs,
+          },
+        );
+      }
+    } catch (error) {
+      logger.error(`[feed] Error scheduling feed refreshing jobs: ${error}`);
+    }
   },
   {
     runOnInit: false,
@@ -201,8 +203,7 @@ async function run(
     response = await fetchWithProxy(feed.url, {
       signal: AbortSignal.timeout(5000),
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "User-Agent": "Karakeep-RSS/1.0 (+https://karakeep.app)",
         Accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
       },
     });

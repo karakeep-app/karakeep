@@ -36,7 +36,7 @@ index cdfc908..6297563 100644
 -    volumes:
 -      - redis:/data
    chrome:
-     image: gcr.io/zenika-hub/alpine-chrome:123
+     image: ghcr.io/karakeep-app/karakeep-chrome:release
      restart: unless-stopped
 @@ -37,24 +33,7 @@ services:
        MEILI_NO_ANALYTICS: "true"

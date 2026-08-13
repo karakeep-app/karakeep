@@ -141,12 +141,16 @@ async function main() {
     importWorkerPromise = importWorker.start();
   }
 
-  await Promise.any([
+  let exitCode = 0;
+  await Promise.race([
     Promise.all([
       ...workers.map(({ worker }) => worker.run()),
       httpServer.serve(),
       ...(importWorkerPromise ? [importWorkerPromise] : []),
-    ]),
+    ]).catch((err: unknown) => {
+      exitCode = 1;
+      logger.error(`One of the workers failed, shutting down: ${err}`);
+    }),
     shutdownPromise,
   ]);
 
@@ -169,7 +173,7 @@ async function main() {
   await httpServer.stop();
   await shutdownEventLogger();
   await shutdownTracing();
-  process.exit(0);
+  process.exit(exitCode);
 }
 
 main();

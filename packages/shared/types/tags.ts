@@ -90,7 +90,7 @@ export const zTagListQueryParamsSchema = z.object({
     })
     .optional()
     .pipe(zTagListRequestSchema.shape.cursor),
-  limit: z.coerce.number().optional(),
+  limit: z.coerce.number().int().min(1).optional(),
 });
 
 export const zTagListApiResultSchema = z.object({

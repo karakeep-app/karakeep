@@ -9,6 +9,31 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Changed
+
+- Synced with upstream Karakeep at
+  [`44ea028`](https://github.com/karakeep-app/karakeep/commit/44ea028)
+  (22 commits past the 0.1.0 base, ~0.33.2). Everything the fork owns —
+  the dense list/grid/detail UI, the mobile shell, runtime theming, the
+  `skipped` inference statuses — is unchanged; this is upstream's engine
+  and platform work coming in. Only `pnpm-lock.yaml` conflicted, and it
+  was regenerated rather than hand-merged. Of note for this fork:
+  - **Next.js 16.3** (from 16.2). No fork-side changes were needed.
+  - **Bookmark pagination**: upstream tightened `limit` validation to
+    `int().min(1)` and fixed cursor tie-breakers, and dropped the unused
+    `ids` parameter from the `getBookmarks` tRPC endpoint. Verified the
+    fork's own callers pass integer limits within 1–100 and none passed
+    `ids`, so no dense/mobile component needed changing.
+  - **Chrome container**: upstream replaced the third-party
+    `alpine-chrome` image with its own `ghcr.io/karakeep-app/karakeep-chrome`.
+    `docker/docker-compose.yml` now pulls that for the crawler while
+    continuing to pull this fork's own `ghcr.io/hexpum/keepsake-ui` for
+    the app itself. Upstream's `chrome.yml` publish workflow is inert
+    here — it is guarded on `github.repository == 'karakeep-app/karakeep'`.
+  - **Theme-aware favicon**, worker crash-loop and RSS scheduling fixes,
+    asset-upload collision fix, touch-friendly bulk selection, and iOS
+    context menus in the Expo app, all taken as-is.
+
 ### Fixed
 
 - Opening `/dashboard/search` without a query fired a `searchBookmarks`

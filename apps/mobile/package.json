@@ -22,6 +22,7 @@
   "dependencies": {
     "@expo/dom-webview": "~56.0.6",
     "@expo/metro-runtime": "~56.0.16",
+    "@expo/ui": "56.0.21",
     "@expo/vector-icons": "^15.0.3",
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/shared-react": "workspace:^0.1.0",

@@ -74,13 +74,6 @@ export async function runBenchmarks(
     });
   });
 
-  bench.add("bookmarks.getBookmarks (by ids)", async () => {
-    await seed.trpc.bookmarks.getBookmarks.query({
-      ids: sampleIds.slice(0, 20),
-      includeContent: false,
-    });
-  });
-
   // Benchmark with cursor (without listId)
   {
     const firstPage = await seed.trpc.bookmarks.getBookmarks.query({

@@ -287,6 +287,39 @@ export abstract class List {
     return [...ownedLists, ...sharedLists];
   }
 
+  static async getSizes(
+    ctx: AuthedContext,
+    lists: readonly (ManualList | SmartList)[],
+  ): Promise<Map<string, number>> {
+    const manualListIds = lists
+      .filter((list) => list.type === "manual")
+      .map((list) => list.id);
+    const smartLists = lists.filter((list) => list.type === "smart");
+
+    const [manualSizes, smartSizes] = await Promise.all([
+      manualListIds.length > 0
+        ? ctx.db
+            .select({
+              listId: bookmarksInLists.listId,
+              size: count(),
+            })
+            .from(bookmarksInLists)
+            .where(inArray(bookmarksInLists.listId, manualListIds))
+            .groupBy(bookmarksInLists.listId)
+        : Promise.resolve([]),
+      Promise.all(
+        smartLists.map(
+          async (list) => [list.id, await list.getSize()] as const,
+        ),
+      ),
+    ]);
+
+    const sizes = new Map(lists.map((list) => [list.id, 0]));
+    manualSizes.forEach(({ listId, size }) => sizes.set(listId, size));
+    smartSizes.forEach(([listId, size]) => sizes.set(listId, size));
+    return sizes;
+  }
+
   static async getAllOwned(
     ctx: AuthedContext,
   ): Promise<(ManualList | SmartList)[]> {

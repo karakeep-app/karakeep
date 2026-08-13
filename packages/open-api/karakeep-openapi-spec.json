@@ -3126,8 +3126,8 @@
           },
           {
             "schema": {
-              "type": "number",
-              "nullable": true
+              "type": "integer",
+              "minimum": 1
             },
             "required": false,
             "name": "limit",

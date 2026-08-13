@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  DEFAULT_NUM_BOOKMARKS_PER_PAGE,
   MAX_NUM_BOOKMARKS_PER_PAGE,
   zPublicBookmarkSchema,
   zSortOrder,
@@ -39,7 +40,12 @@ export const publicBookmarks = router({
       z.object({
         listId: z.string(),
         cursor: zCursorV2.nullish(),
-        limit: z.number().max(MAX_NUM_BOOKMARKS_PER_PAGE).default(20),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_NUM_BOOKMARKS_PER_PAGE)
+          .default(DEFAULT_NUM_BOOKMARKS_PER_PAGE),
         sortOrder: zSortOrder.exclude(["relevance"]).optional().default("desc"),
       }),
     )

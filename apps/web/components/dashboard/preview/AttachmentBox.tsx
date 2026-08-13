@@ -114,7 +114,7 @@ export default function AttachmentBox({
                   <FilePickerButton
                     title="Attach a Banner"
                     loading={isAttaching}
-                    accept=".jgp,.JPG,.jpeg,.png,.webp"
+                    accept=".jpg,.JPG,.jpeg,.png,.webp"
                     multiple={false}
                     variant="none"
                     size="none"

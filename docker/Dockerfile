@@ -9,7 +9,8 @@ RUN apt-get update \
     && cargo install monolith --locked
 
 ################# Base Builder ##############
-FROM node:24-slim AS base
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS base
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -75,7 +76,8 @@ RUN (cd apps/mcp && pnpm --config.verify-deps-before-run=false build)
 
 ################# The All-in-one builder ##############
 
-FROM node:24-slim AS aio_builder
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -202,7 +204,8 @@ ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 ################# The cli ##############
 
-FROM node:24-slim AS cli
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -217,7 +220,8 @@ ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
 
-FROM node:24-slim AS mcp
+# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
+FROM node:24.18.1-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 

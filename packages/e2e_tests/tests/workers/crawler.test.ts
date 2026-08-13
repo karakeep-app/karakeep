@@ -65,6 +65,7 @@ describe("Crawler Tests", () => {
     expect(
       bookmark.assets.find((a) => a.assetType === "screenshot"),
     ).toBeDefined();
+    expect(bookmark.assets.find((a) => a.assetType === "pdf")).toBeDefined();
   });
 
   it("should crawl browser-rendered content", async () => {

@@ -2,6 +2,8 @@ import { experimental_trpcMiddleware } from "@trpc/server";
 import { z } from "zod";
 
 import {
+  DEFAULT_NUM_IMPORT_SESSION_RESULTS_PER_PAGE,
+  MAX_NUM_IMPORT_SESSION_RESULTS_PER_PAGE,
   zCreateImportSessionRequestSchema,
   zDeleteImportSessionRequestSchema,
   zGetImportSessionStatsRequestSchema,
@@ -141,7 +143,12 @@ export const importSessionsRouter = router({
           .enum(["all", "accepted", "rejected", "skipped_duplicate", "pending"])
           .optional(),
         cursor: z.string().optional(),
-        limit: z.number().default(50),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(MAX_NUM_IMPORT_SESSION_RESULTS_PER_PAGE)
+          .default(DEFAULT_NUM_IMPORT_SESSION_RESULTS_PER_PAGE),
       }),
     )
     .use(ensureImportSessionAccess)

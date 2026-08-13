@@ -526,6 +526,8 @@ export const fetchWithProxy = async (
       return response;
     }
 
+    closeResponseBody(response);
+
     if (redirectsRemaining <= 0) {
       throw new Error(`Too many redirects while fetching ${url}`);
     }

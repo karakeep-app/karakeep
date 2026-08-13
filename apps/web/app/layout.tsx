@@ -24,6 +24,23 @@ export const metadata: Metadata = {
   applicationName: "Karakeep",
   description:
     "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI.",
+  icons: {
+    icon: [
+      {
+        url: "/icons/logo-icon.svg",
+        type: "image/svg+xml",
+        sizes: "any",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/icons/logo-icon-dark.svg",
+        type: "image/svg+xml",
+        sizes: "any",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+    apple: "/apple-icon.png",
+  },
   appleWebApp: {
     capable: true,
     title: "Karakeep",

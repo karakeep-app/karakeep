@@ -105,7 +105,7 @@ const allEnv = z.object({
   EMBEDDING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   INFERENCE_CONTEXT_LENGTH: z.coerce.number().default(2048),
   INFERENCE_MAX_OUTPUT_TOKENS: z.coerce.number().default(2048),
-  INFERENCE_USE_MAX_COMPLETION_TOKENS: stringBool("false"),
+  INFERENCE_USE_MAX_COMPLETION_TOKENS: optionalStringBool(),
   INFERENCE_SUPPORTS_STRUCTURED_OUTPUT: optionalStringBool(),
   INFERENCE_OUTPUT_SCHEMA: z
     .enum(["structured", "json", "plain"])
@@ -350,7 +350,16 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       inferredTagLang: val.INFERENCE_LANG,
       contextLength: val.INFERENCE_CONTEXT_LENGTH,
       maxOutputTokens: val.INFERENCE_MAX_OUTPUT_TOKENS,
-      useMaxCompletionTokens: val.INFERENCE_USE_MAX_COMPLETION_TOKENS,
+      // The new default model (5.6 series) requires this being set to true.
+      // So if someone explicitly sets it to false, we'll respect that. If
+      // someone using the default openai based configuration, we'll default
+      // to true.
+      useMaxCompletionTokens:
+        val.INFERENCE_USE_MAX_COMPLETION_TOKENS !== undefined
+          ? val.INFERENCE_USE_MAX_COMPLETION_TOKENS
+          : !val.OLLAMA_BASE_URL && !val.OPENAI_BASE_URL && !!val.OPENAI_API_KEY
+            ? true
+            : false,
       outputSchema:
         val.INFERENCE_SUPPORTS_STRUCTURED_OUTPUT !== undefined
           ? val.INFERENCE_SUPPORTS_STRUCTURED_OUTPUT

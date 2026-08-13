@@ -12,11 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/lib/auth/client";
+import useBulkActionsStore from "@/lib/bulkActions";
 import { useClientConfig } from "@/lib/clientConfig";
 import useUpload from "@/lib/hooks/upload-file";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   Archive,
+  Circle,
   Download,
   FileDown,
   FileText,
@@ -93,8 +95,12 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
 
   // Check if the current user owns this bookmark
   const isOwner = session?.user?.id === bookmark.userId;
+  const enableBulkEditForBookmark = useBulkActionsStore(
+    (state) => state.enableBulkEditForBookmark,
+  );
 
   const [isClipboardAvailable, setIsClipboardAvailable] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     // This code only runs in the browser
@@ -103,6 +109,16 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         window.navigator &&
         !!window.navigator.clipboard,
     );
+
+    const touchPointer = window.matchMedia("(any-pointer: coarse)");
+    const updateIsTouchDevice = () => setIsTouchDevice(touchPointer.matches);
+
+    updateIsTouchDevice();
+    touchPointer.addEventListener("change", updateIsTouchDevice);
+
+    return () => {
+      touchPointer.removeEventListener("change", updateIsTouchDevice);
+    };
   }, []);
 
   const { setOpen: setManageListsModalOpen, content: manageListsModal } =
@@ -229,6 +245,14 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
 
   // Define action items array
   const actionItems: ActionItemType[] = [
+    {
+      id: "select",
+      title: t("actions.select"),
+      icon: <Circle className="mr-2 size-4" />,
+      visible: isOwner && isTouchDevice,
+      disabled: false,
+      onClick: () => enableBulkEditForBookmark(bookmark.id),
+    },
     {
       id: "edit",
       title: t("actions.edit"),
