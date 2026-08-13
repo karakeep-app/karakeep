@@ -1,7 +1,12 @@
 "use client";
 
 import EditorCard from "@/components/dashboard/bookmarks/EditorCard";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useHotkeys } from "react-hotkeys-hook";
 
 /**
@@ -38,7 +43,14 @@ export function QuickAddDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="border-k-border bg-k-surface-1 text-k-fg sm:max-w-lg">
+        {/* Both are sr-only: the editor card is self-explanatory on screen, but
+        Radix wires DialogContent's aria-labelledby/aria-describedby to these,
+        so without them a screen reader announces an unnamed, undescribed
+        dialog (and Radix warns about the missing description). */}
         <DialogTitle className="sr-only">Add bookmark</DialogTitle>
+        <DialogDescription className="sr-only">
+          Paste a link to save it, or write a note to keep as its own bookmark.
+        </DialogDescription>
         <EditorCard dense onSaved={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>

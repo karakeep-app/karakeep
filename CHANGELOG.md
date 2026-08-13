@@ -52,6 +52,22 @@ and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   POSTing to one of these routes simply re-renders it. Every other form in
   the app lives inside a dialog that cannot be opened without JS, so none of
   them has an un-hydrated submit path.
+- The fork's two dialogs — quick-add and the intercepted bookmark preview —
+  had no accessible description, so Radix wired `aria-describedby` to
+  nothing and a screen reader announced an undescribed dialog (and Radix
+  warned about it on every open). Both now carry an `sr-only`
+  `DialogDescription`. The preview modal's `DialogHeader` was also a sibling
+  of `DialogContent` rather than a child of it; since Radix only mounts the
+  content while the dialog is open, the header's "Preview" text was sitting
+  in the DOM permanently instead of appearing with the dialog. It now lives
+  inside the content.
+
+  The same missing-description warning still comes from 20 upstream dialogs
+  (`ManageListsModal`, `BulkTagModal`, `AddApiKey`, `WebhookSettings`,
+  `KeyboardShortcutsDialog`, the admin dialogs and others). Those are
+  unmodified upstream components, and writing 20 descriptions into them here
+  would conflict on every future sync for a fix that belongs upstream, so
+  they are deliberately left alone rather than silenced.
 
 - Opening `/dashboard/search` without a query fired a `searchBookmarks`
   request for the empty string, and the page turned any search failure into

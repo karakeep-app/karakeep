@@ -7,6 +7,7 @@ import { MobileBookmarkDetail } from "@/components/dashboard/dense/mobile/Mobile
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -54,11 +55,6 @@ export default function BookmarkPreviewPage(props: {
 
   return (
     <Dialog open={open} onOpenChange={setOpenWithRouter}>
-      <VisuallyHidden>
-        <DialogHeader>
-          <DialogTitle>Preview</DialogTitle>
-        </DialogHeader>
-      </VisuallyHidden>
       <DialogContent
         // Narrower than the old preview's 90%: the read-out is a single
         // 600px column, so a full-bleed dialog would be mostly empty.
@@ -66,6 +62,19 @@ export default function BookmarkPreviewPage(props: {
         hideCloseBtn={true}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
+        {/* Inside DialogContent, not beside it: Radix only mounts the content
+        while the dialog is open, so a header placed outside stayed in the DOM
+        permanently. Hidden because the read-out renders its own visible title,
+        but still needed — these are what aria-labelledby/aria-describedby
+        point at, and without the description Radix warns. */}
+        <VisuallyHidden>
+          <DialogHeader>
+            <DialogTitle>Preview</DialogTitle>
+            <DialogDescription>
+              The bookmark&apos;s summary, notes and archived page.
+            </DialogDescription>
+          </DialogHeader>
+        </VisuallyHidden>
         <DenseBookmarkDetail
           bookmarkId={params.bookmarkId}
           onClose={() => setOpenWithRouter(false)}
