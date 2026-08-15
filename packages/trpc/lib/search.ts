@@ -144,11 +144,14 @@ async function getIds(
         );
     }
     case "listName": {
-      // First, look up the list by name
+      // First, look up the list by name or by id
       const lists = await db.query.bookmarkLists.findMany({
         where: and(
           eq(bookmarkLists.userId, userId),
-          eq(bookmarkLists.name, matcher.listName),
+          or(
+            eq(bookmarkLists.name, matcher.listName),
+            eq(bookmarkLists.id, matcher.listName),
+          ),
         ),
       });
 
