@@ -55,6 +55,38 @@ describe("parseVtt", () => {
     expect(parseVtt("")).toBe("");
     expect(parseVtt("WEBVTT\n\n")).toBe("");
   });
+
+  it("drops header metadata that yt-dlp writes above the first cue", () => {
+    const vtt = [
+      "WEBVTT",
+      "Kind: captions",
+      "Language: en-US",
+      "X-TIMESTAMP-MAP=MPEGTS:900000,LOCAL:00:00:00.000",
+      "",
+      "00:00:00.000 --> 00:00:02.000",
+      "spoken words",
+      "",
+    ].join("\n");
+    expect(parseVtt(vtt)).toBe("spoken words");
+  });
+
+  it("drops non-numeric cue identifiers and comment blocks", () => {
+    const vtt = [
+      "WEBVTT",
+      "",
+      "NOTE this file was machine generated",
+      "",
+      "intro",
+      "00:00:00.000 --> 00:00:02.000",
+      "spoken words",
+      "",
+      "cue-2",
+      "00:00:02.000 --> 00:00:04.000",
+      "more words",
+      "",
+    ].join("\n");
+    expect(parseVtt(vtt)).toBe("spoken words more words");
+  });
 });
 
 describe("composeInstagramHtml", () => {
