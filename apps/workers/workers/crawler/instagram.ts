@@ -52,14 +52,30 @@ export function isInstagramUrl(url: string): boolean {
   return !!shortcode && INSTAGRAM_MEDIA_TYPES.has(type);
 }
 
+/**
+ * Extract the spoken text out of a WebVTT file.
+ *
+ * Only the lines that follow a timestamp line carry payload. Everything else
+ * is structure: the header block (`WEBVTT`, `Kind: captions`, `Language:`,
+ * `X-TIMESTAMP-MAP=...`), `NOTE`/`STYLE`/`REGION` blocks, and the optional cue
+ * identifier that may precede a timestamp (the spec allows any non-empty
+ * string there, not just an index). Tracking whether we are inside a cue drops
+ * all of those without having to enumerate them.
+ */
 export function parseVtt(vtt: string): string {
   const out: string[] = [];
+  let inCue = false;
   for (const raw of vtt.split(/\r?\n/)) {
     const line = raw.trim();
-    if (!line) continue;
-    if (line === "WEBVTT") continue;
-    if (line.includes("-->")) continue; // timestamp cue
-    if (/^\d+$/.test(line)) continue; // numeric cue index
+    if (!line) {
+      inCue = false; // a blank line terminates the current block
+      continue;
+    }
+    if (line.includes("-->")) {
+      inCue = true; // timestamp line; its payload is on the lines below
+      continue;
+    }
+    if (!inCue) continue; // header, comment block, or cue identifier
     if (line === out[out.length - 1]) continue; // consecutive duplicate
     out.push(line);
   }
@@ -165,7 +181,7 @@ export async function handleInstagramBookmark(args: {
   bookmarkId: string;
   runProxy: RunProxyConfig;
   abortSignal: AbortSignal;
-}): Promise<void> {
+}): Promise<boolean> {
   const { url, jobId, bookmarkId, runProxy, abortSignal } = args;
   const content = await extractInstagramContent(
     url,
@@ -177,18 +193,24 @@ export async function handleInstagramBookmark(args: {
     logger.warn(
       `[Crawler][${jobId}] No Instagram content extracted for "${url}"; leaving bookmark as-is`,
     );
-    return;
+    return false;
   }
+  // A transcript-only reel has no caption. Only set the columns we have a
+  // value for: passing null would overwrite a title/author stored by an
+  // earlier crawl or set by the user.
+  const summary = content.caption || content.transcript;
   await db
     .update(bookmarkLinks)
     .set({
       htmlContent: composeInstagramHtml(content),
-      title: content.caption ? content.caption.slice(0, 100) : null,
-      description: content.caption ? content.caption.slice(0, 300) : null,
-      author: content.author,
+      ...(summary
+        ? { title: summary.slice(0, 100), description: summary.slice(0, 300) }
+        : {}),
+      ...(content.author ? { author: content.author } : {}),
       crawledAt: new Date(),
       crawlStatusCode: 200,
     })
     .where(eq(bookmarkLinks.id, bookmarkId));
   logger.info(`[Crawler][${jobId}] Stored Instagram text content for "${url}"`);
+  return true;
 }

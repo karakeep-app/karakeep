@@ -388,14 +388,18 @@ async function runCrawler(
   // an empty shell. When enabled, extract caption + transcript via yt-dlp
   // instead, then run the same downstream jobs (inference, search, video).
   if (serverConfig.crawler.instagramEnabled && isInstagramUrl(url)) {
-    await handleInstagramBookmark({
+    const extracted = await handleInstagramBookmark({
       url,
       jobId,
       bookmarkId,
       runProxy,
       abortSignal: job.abortSignal,
     });
-    await enqueuePostCrawlJobs(job, bookmarkId, userId, url);
+    // On a rate-limit or expired-cookie failure nothing was written, so there
+    // is no new content for tagging/summarization/embedding to work on.
+    if (extracted) {
+      await enqueuePostCrawlJobs(job, bookmarkId, userId, url);
+    }
     return { status: "completed" };
   }
 
