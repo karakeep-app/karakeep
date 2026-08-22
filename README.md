@@ -11,6 +11,9 @@
     <a href="https://hosted.weblate.org/engage/hoarder/">
         <img src="https://hosted.weblate.org/widget/hoarder/hoarder/svg-badge.svg" alt="Translation status" />
     </a>
+    <a href="https://render.com/deploy?repo=https://github.com/karakeep-app/karakeep">
+        <img alt="Deploy to Render" src="https://render.com/images/deploy-to-render-button.svg" height="20" />
+    </a>
 </div>
 
 # <img height="50px" src="./screenshots/logo.png" />
