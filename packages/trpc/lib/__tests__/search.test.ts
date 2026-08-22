@@ -295,6 +295,94 @@ describe("getBookmarkIdsFromMatcher", () => {
     expect(result).toEqual([]);
   });
 
+  it("should handle listName matcher that references a list by id", async () => {
+    const matcher: Matcher = {
+      type: "listName",
+      listName: "l1",
+      inverse: false,
+    };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b1", "b6"]);
+  });
+
+  it("should handle listName matcher that references a list by id with inverse=true", async () => {
+    const matcher: Matcher = {
+      type: "listName",
+      listName: "l1",
+      inverse: true,
+    };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result.sort()).toEqual(["b2", "b3", "b4", "b5"]);
+  });
+
+  it("should return empty when listName references an unknown list id", async () => {
+    const matcher: Matcher = {
+      type: "listName",
+      listName: "l-does-not-exist",
+      inverse: false,
+    };
+    const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
+    expect(result).toEqual([]);
+  });
+
+  it("should not resolve a list id that belongs to another user", async () => {
+    const otherUserId = "other-user";
+    await mockCtx.db.insert(users).values({
+      id: otherUserId,
+      name: "Other User",
+      email: "other@example.com",
+      role: "user",
+    });
+    await mockCtx.db.insert(bookmarks).values({
+      id: "b7",
+      type: BookmarkTypes.LINK,
+      userId: otherUserId,
+      archived: false,
+      favourited: false,
+      createdAt: new Date("2024-01-07"),
+      title: "other user bookmark",
+    });
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "l6",
+      userId: otherUserId,
+      name: "other list",
+      icon: "🚀",
+      type: "manual",
+    });
+    await mockCtx.db.insert(bookmarksInLists).values({
+      bookmarkId: "b7",
+      listId: "l6",
+    });
+
+    const otherCtx: AuthedContext = {
+      ...mockCtx,
+      user: {
+        id: otherUserId,
+        name: "Other User",
+        email: "other@example.com",
+        role: "user",
+      },
+    };
+
+    // Sanity check that the other user can search their own list by id.
+    expect(
+      await getBookmarkIdsFromMatcher(otherCtx, {
+        type: "listName",
+        listName: "l6",
+        inverse: false,
+      }),
+    ).toEqual(["b7"]);
+
+    // The test user's list id is not reachable from the other user's context.
+    expect(
+      await getBookmarkIdsFromMatcher(otherCtx, {
+        type: "listName",
+        listName: "l1",
+        inverse: false,
+      }),
+    ).toEqual([]);
+  });
+
   it("should handle archived matcher", async () => {
     const matcher: Matcher = { type: "archived", archived: true };
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
