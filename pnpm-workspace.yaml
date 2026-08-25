@@ -8,15 +8,15 @@ packages:
 nodeLinker: hoisted
 
 allowBuilds:
-  '@sentry/cli': true
-  '@swc/core': true
+  "@sentry/cli": true
+  "@swc/core": true
   better-sqlite3: true
   esbuild: true
   re2: true
   sharp: true
   tesseract.js: true
   # These install scripts are informational or unnecessary for our installs.
-  '@parcel/watcher': false
+  "@parcel/watcher": false
   core-js: false
   core-js-pure: false
   postman-code-generators: false
@@ -37,7 +37,20 @@ patchedDependencies:
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
 
-minimumReleaseAgeExclude: []
+minimumReleaseAgeExclude:
+  [
+    "@next/bundle-analyzer@16.3.3",
+    "@next/env@16.3.3",
+    "@next/swc-darwin-arm64@16.3.3",
+    "@next/swc-darwin-x64@16.3.3",
+    "@next/swc-linux-arm64-gnu@16.3.3",
+    "@next/swc-linux-arm64-musl@16.3.3",
+    "@next/swc-linux-x64-gnu@16.3.3",
+    "@next/swc-linux-x64-musl@16.3.3",
+    "@next/swc-win32-arm64-msvc@16.3.3",
+    "@next/swc-win32-x64-msvc@16.3.3",
+    next@16.3.3,
+  ]
 
 # Pin vite so adding vitest as a direct devDep to apps/mcp doesn't hoist
 # vite 7.3.x, which surfaces a nested-vite peer mismatch inside
