@@ -196,19 +196,56 @@ async function getIds(
         );
     }
     case "inlist": {
-      const comp = matcher.inList ? exists : notExists;
+      // A bookmark counts as "in a list" if it's a member of a manual
+      // list, or if it matches one of the user's smart list queries. The
+      // join table only tracks manual membership, so smart lists have to
+      // be resolved separately, the same way case "listName" resolves them.
+      const { List } = await import("../models/lists");
+
+      const [manualRows, smartLists] = await Promise.all([
+        db
+          .selectDistinct({ id: bookmarksInLists.bookmarkId })
+          .from(bookmarksInLists)
+          .innerJoin(bookmarks, eq(bookmarks.id, bookmarksInLists.bookmarkId))
+          .where(eq(bookmarks.userId, userId)),
+        db.query.bookmarkLists.findMany({
+          where: and(
+            eq(bookmarkLists.userId, userId),
+            eq(bookmarkLists.type, "smart"),
+          ),
+        }),
+      ]);
+
+      const inListBookmarkIds = new Set(manualRows.map((r) => r.id));
+      const smartListBookmarkIds = await Promise.all(
+        smartLists.map(async (list) => {
+          const listModel = await List.fromId(ctx, list.id);
+          return listModel.getBookmarkIds(visitedListIds);
+        }),
+      );
+      for (const ids of smartListBookmarkIds) {
+        ids.forEach((id) => inListBookmarkIds.add(id));
+      }
+
+      if (inListBookmarkIds.size === 0) {
+        if (matcher.inList) {
+          return [];
+        }
+        return db
+          .selectDistinct({ id: bookmarks.id })
+          .from(bookmarks)
+          .where(eq(bookmarks.userId, userId));
+      }
+
       return db
-        .select({ id: bookmarks.id })
+        .selectDistinct({ id: bookmarks.id })
         .from(bookmarks)
         .where(
           and(
             eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(bookmarksInLists)
-                .where(and(eq(bookmarksInLists.bookmarkId, bookmarks.id))),
-            ),
+            matcher.inList
+              ? inArray(bookmarks.id, [...inListBookmarkIds])
+              : notInArray(bookmarks.id, [...inListBookmarkIds]),
           ),
         );
     }
