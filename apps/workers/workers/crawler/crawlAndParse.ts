@@ -52,6 +52,7 @@ import {
 import { crawlPage } from "./crawlPage";
 import { runParseSubprocess } from "./parseSubprocess";
 import { redactUrlCredentials, shouldRetryCrawlStatusCode } from "./utils";
+import { fetchYouTubeAuthor } from "./youtubeMetadata";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -212,6 +213,11 @@ export async function crawlAndParseUrl(
       },
     },
     async () => {
+      const youtubeAuthorPromise = fetchYouTubeAuthor(
+        url,
+        abortSignal,
+        runProxy,
+      );
       let result: {
         htmlContent: string;
         screenshot: Buffer | undefined;
@@ -289,7 +295,10 @@ export async function crawlAndParseUrl(
       // The probe metadata extraction has been running alongside the crawl;
       // this is the point where it's needed. The promise never rejects and
       // all its underlying work is time-bounded.
-      const probeMetadata = await probeMetadataPromise;
+      const [probeMetadata, youtubeAuthor] = await Promise.all([
+        probeMetadataPromise,
+        youtubeAuthorPromise,
+      ]);
       abortSignal.throwIfAborted();
 
       // On the last retry attempt the crawl proceeds despite a blocked status
@@ -310,7 +319,14 @@ export async function crawlAndParseUrl(
           `[Crawler][${jobId}] The rendered page looks blocked (status ${statusCode}); preferring preflight probe metadata.`,
         );
       }
-      const meta = resolveMetadata(renderMeta, probeMetadata, renderBlocked);
+      const resolvedMeta = resolveMetadata(
+        renderMeta,
+        probeMetadata,
+        renderBlocked,
+      );
+      const meta = youtubeAuthor
+        ? { ...resolvedMeta, author: youtubeAuthor }
+        : resolvedMeta;
       const readerViewReasons: ZReaderViewReason[] | null = readerViewAssessment
         ? renderIsChallengePage &&
           !readerViewAssessment.reasons.includes("challenge_page")
