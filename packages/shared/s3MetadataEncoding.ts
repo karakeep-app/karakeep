@@ -9,7 +9,9 @@ const ASCII_ONLY = /^[\x20-\x7e]*$/;
 const ENCODED_WORD = /^=\?UTF-8\?B\?([A-Za-z0-9+/=]*)\?=$/;
 
 export function encodeS3MetadataValue(value: string): string {
-  if (ASCII_ONLY.test(value)) {
+  // A literal value that already looks like an encoded-word must be encoded
+  // too, otherwise decodeS3MetadataValue would unwrap it on the way back.
+  if (ASCII_ONLY.test(value) && !ENCODED_WORD.test(value)) {
     return value;
   }
   return `=?UTF-8?B?${Buffer.from(value, "utf8").toString("base64")}?=`;

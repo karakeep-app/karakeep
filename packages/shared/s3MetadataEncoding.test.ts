@@ -33,6 +33,14 @@ describe("S3 metadata value encoding", () => {
     }
   });
 
+  it("round-trips a literal value that looks like an encoded word", () => {
+    const literal = "=?UTF-8?B?SGVsbG8=?=";
+    const encoded = encodeS3MetadataValue(literal);
+    expect(encoded).not.toBe(literal);
+    expect(encoded).toMatch(/^[\x20-\x7e]*$/);
+    expect(decodeS3MetadataValue(encoded)).toBe(literal);
+  });
+
   it("passes through values that are not encoded words", () => {
     expect(decodeS3MetadataValue("photo.jpg")).toBe("photo.jpg");
     expect(decodeS3MetadataValue("=?not-an-encoded-word")).toBe(
