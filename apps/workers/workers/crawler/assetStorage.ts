@@ -227,6 +227,7 @@ export async function downloadAndStoreFile(
   fileType: string,
   abortSignal: AbortSignal,
   runProxy: RunProxyConfig,
+  downloadTimeoutSec?: number,
 ) {
   return await withSpan(
     tracer,
@@ -242,6 +243,16 @@ export async function downloadAndStoreFile(
     },
     async () => {
       let assetPath: string | undefined;
+      // Best-effort downloads (e.g. banner images) get their own budget so a
+      // hanging host only costs this download instead of the whole crawl. The
+      // job-wide signal still aborts it, and only that abort is re-thrown below.
+      const downloadSignal =
+        downloadTimeoutSec !== undefined
+          ? AbortSignal.any([
+              AbortSignal.timeout(downloadTimeoutSec * 1000),
+              abortSignal,
+            ])
+          : abortSignal;
       try {
         if (url.startsWith("data:")) {
           return await storeDataUriAsset(url, userId, jobId, fileType);
@@ -252,7 +263,7 @@ export async function downloadAndStoreFile(
         const response = await fetchWithProxy(
           url,
           {
-            signal: abortSignal,
+            signal: downloadSignal,
           },
           runProxy,
         );
@@ -275,7 +286,7 @@ export async function downloadAndStoreFile(
           transform(chunk, _, callback) {
             bytesRead += chunk.length;
 
-            if (abortSignal.aborted) {
+            if (downloadSignal.aborted) {
               callback(new Error("AbortError"));
             } else if (bytesRead > serverConfig.maxAssetSizeMb * 1024 * 1024) {
               callback(
@@ -324,9 +335,15 @@ export async function downloadAndStoreFile(
 
         return { assetId, userId, contentType, size: bytesRead };
       } catch (e) {
-        logger.error(
-          `[Crawler][${jobId}] Failed to download and store ${fileType}: ${e}`,
-        );
+        if (downloadSignal.aborted && !abortSignal.aborted) {
+          logger.warn(
+            `[Crawler][${jobId}] Skipping ${fileType}: download timed out after ${downloadTimeoutSec} secs`,
+          );
+        } else {
+          logger.error(
+            `[Crawler][${jobId}] Failed to download and store ${fileType}: ${e}`,
+          );
+        }
         // A crawler timeout aborts the job-wide signal. Do not turn that abort
         // into a best-effort download miss: the queue runner must observe it so
         // the crawl is retried and is not reported as successfully completed.
@@ -361,6 +378,7 @@ export async function downloadAndStoreImage(
     "image",
     abortSignal,
     runProxy,
+    serverConfig.crawler.bannerDownloadTimeoutSec,
   );
 }
 
