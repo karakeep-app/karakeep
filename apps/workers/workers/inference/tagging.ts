@@ -419,24 +419,26 @@ async function connectTags(
     return;
   }
 
-  const res = await db.transaction(async (tx) => {
+  const res = await db.transaction((tx) => {
     // Attempt to match exiting tags with the new ones
-    const { matchedTagIds, notFoundTagNames } = await (async () => {
+    const { matchedTagIds, notFoundTagNames } = (() => {
       const { normalizeTag } = tagNormalizer();
       const normalizedInferredTags = inferredTags.map((t) => ({
         originalTag: t,
         normalizedTag: normalizeTag(t),
       }));
 
-      const matchedTags = await tx.query.bookmarkTags.findMany({
-        where: and(
-          eq(bookmarkTags.userId, userId),
-          inArray(
-            bookmarkTags.normalizedName,
-            normalizedInferredTags.map((t) => t.normalizedTag),
+      const matchedTags = tx.query.bookmarkTags
+        .findMany({
+          where: and(
+            eq(bookmarkTags.userId, userId),
+            inArray(
+              bookmarkTags.normalizedName,
+              normalizedInferredTags.map((t) => t.normalizedTag),
+            ),
           ),
-        ),
-      });
+        })
+        .sync();
 
       const matchedTagIds = matchedTags.map((r) => r.id);
       const notFoundTagNames = normalizedInferredTags
@@ -454,22 +456,22 @@ async function connectTags(
     // Create tags that didn't exist previously
     let newTagIds: string[] = [];
     if (notFoundTagNames.length > 0) {
-      newTagIds = (
-        await tx
-          .insert(bookmarkTags)
-          .values(
-            notFoundTagNames.map((t) => ({
-              name: t,
-              userId,
-            })),
-          )
-          .onConflictDoNothing()
-          .returning()
-      ).map((t) => t.id);
+      newTagIds = tx
+        .insert(bookmarkTags)
+        .values(
+          notFoundTagNames.map((t) => ({
+            name: t,
+            userId,
+          })),
+        )
+        .onConflictDoNothing()
+        .returning()
+        .all()
+        .map((t) => t.id);
     }
 
     // Delete old AI tags
-    const detachedTags = await tx
+    const detachedTags = tx
       .delete(tagsOnBookmarks)
       .where(
         and(
@@ -477,14 +479,15 @@ async function connectTags(
           eq(tagsOnBookmarks.bookmarkId, bookmarkId),
         ),
       )
-      .returning();
+      .returning()
+      .all();
 
     const allTagIds = new Set([...matchedTagIds, ...newTagIds]);
 
     // Attach new ones
     let attachedTags: { tagId: string; bookmarkId: string }[] = [];
     if (allTagIds.size > 0) {
-      attachedTags = await tx
+      attachedTags = tx
         .insert(tagsOnBookmarks)
         .values(
           [...allTagIds].map((tagId) => ({
@@ -494,7 +497,8 @@ async function connectTags(
           })),
         )
         .onConflictDoNothing()
-        .returning();
+        .returning()
+        .all();
     }
 
     return { detachedTags, attachedTags };

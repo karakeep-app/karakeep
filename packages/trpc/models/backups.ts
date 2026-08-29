@@ -113,28 +113,28 @@ export class Backup {
       });
     }
 
-    await this.ctx.db.transaction(async (db) => {
+    await this.ctx.db.transaction((db) => {
       // Delete asset first
       if (this.backup.assetId) {
-        await db
-          .delete(assets)
+        db.delete(assets)
           .where(
             and(
               eq(assets.id, this.backup.assetId),
               eq(assets.userId, this.ctx.user.id),
             ),
-          );
+          )
+          .run();
       }
 
       // Delete backup record
-      await db
-        .delete(backupsTable)
+      db.delete(backupsTable)
         .where(
           and(
             eq(backupsTable.id, this.backup.id),
             eq(backupsTable.userId, this.ctx.user.id),
           ),
-        );
+        )
+        .run();
     });
   }
 

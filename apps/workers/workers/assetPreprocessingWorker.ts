@@ -67,9 +67,8 @@ export class AssetPreprocessingWorker {
 
             const bookmarkId = job.data?.bookmarkId;
             if (bookmarkId && job.numRetriesLeft == 0) {
-              await db.transaction(async (tx) => {
-                await tx
-                  .update(bookmarks)
+              await db.transaction((tx) => {
+                tx.update(bookmarks)
                   .set({
                     taggingStatus: null,
                   })
@@ -78,9 +77,9 @@ export class AssetPreprocessingWorker {
                       eq(bookmarks.id, bookmarkId),
                       eq(bookmarks.taggingStatus, "pending"),
                     ),
-                  );
-                await tx
-                  .update(bookmarks)
+                  )
+                  .run();
+                tx.update(bookmarks)
                   .set({
                     summarizationStatus: null,
                   })
@@ -89,9 +88,9 @@ export class AssetPreprocessingWorker {
                       eq(bookmarks.id, bookmarkId),
                       eq(bookmarks.summarizationStatus, "pending"),
                     ),
-                  );
-                await tx
-                  .update(bookmarks)
+                  )
+                  .run();
+                tx.update(bookmarks)
                   .set({
                     embeddingStatus: null,
                   })
@@ -100,7 +99,8 @@ export class AssetPreprocessingWorker {
                       eq(bookmarks.id, bookmarkId),
                       eq(bookmarks.embeddingStatus, "pending"),
                     ),
-                  );
+                  )
+                  .run();
               });
             }
             return Promise.resolve();

@@ -22,22 +22,22 @@ export class StorageQuotaError extends Error {
 export class QuotaService {
   // TODO: Use quota approval tokens for bookmark creation when
   // bookmark creation logic is in the model.
-  static async canCreateBookmark(
-    db: DB | KarakeepDBTransaction,
-    userId: string,
-  ) {
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-      columns: {
-        bookmarkQuota: true,
-      },
-    });
+  static canCreateBookmark(db: DB | KarakeepDBTransaction, userId: string) {
+    const user = db.query.users
+      .findFirst({
+        where: eq(users.id, userId),
+        columns: {
+          bookmarkQuota: true,
+        },
+      })
+      .sync();
 
     if (user?.bookmarkQuota !== null && user?.bookmarkQuota !== undefined) {
-      const currentBookmarkCount = await db
+      const currentBookmarkCount = db
         .select({ count: count() })
         .from(bookmarks)
-        .where(eq(bookmarks.userId, userId));
+        .where(eq(bookmarks.userId, userId))
+        .all();
 
       if (currentBookmarkCount[0].count >= user.bookmarkQuota) {
         return {

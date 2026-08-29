@@ -247,14 +247,15 @@ export class Tag {
     }
 
     const { deletedTags, affectedBookmarks } = await ctx.db.transaction(
-      async (trx) => {
-        const unlinked = await trx
+      (trx) => {
+        const unlinked = trx
           .delete(tagsOnBookmarks)
           .where(and(inArray(tagsOnBookmarks.tagId, input.fromTagIds)))
-          .returning();
+          .returning()
+          .all();
 
         if (unlinked.length > 0) {
-          await trx
+          trx
             .insert(tagsOnBookmarks)
             .values(
               unlinked.map((u) => ({
@@ -262,10 +263,11 @@ export class Tag {
                 tagId: input.intoTagId,
               })),
             )
-            .onConflictDoNothing();
+            .onConflictDoNothing()
+            .run();
         }
 
-        const deletedTags = await trx
+        const deletedTags = trx
           .delete(bookmarkTags)
           .where(
             and(
@@ -273,7 +275,8 @@ export class Tag {
               eq(bookmarkTags.userId, ctx.user.id),
             ),
           )
-          .returning({ id: bookmarkTags.id });
+          .returning({ id: bookmarkTags.id })
+          .all();
 
         return {
           deletedTags,

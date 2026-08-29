@@ -112,15 +112,16 @@ export class ImportSessionsRepo {
     // (e.g. the first sweep after deploy) shouldn't block other writers.
     let archivedCount = 0;
     for (const session of sessions) {
-      const archived = await this.db.transaction(async (tx) => {
-        const statusCounts = await tx
+      const archived = await this.db.transaction((tx) => {
+        const statusCounts = tx
           .select({
             status: importStagingBookmarks.status,
             count: count(),
           })
           .from(importStagingBookmarks)
           .where(eq(importStagingBookmarks.importSessionId, session.id))
-          .groupBy(importStagingBookmarks.status);
+          .groupBy(importStagingBookmarks.status)
+          .all();
 
         const stats = {
           totalBookmarks: 0,
@@ -148,7 +149,7 @@ export class ImportSessionsRepo {
           }
         }
 
-        const result = await tx
+        const result = tx
           .update(importSessions)
           .set({ status: "archived", ...stats })
           .where(
@@ -156,18 +157,19 @@ export class ImportSessionsRepo {
               eq(importSessions.id, session.id),
               eq(importSessions.status, "completed"),
             ),
-          );
+          )
+          .run();
 
         if (result.changes === 0) {
           return false;
         }
 
-        await tx
-          .delete(importStagingBookmarks)
-          .where(eq(importStagingBookmarks.importSessionId, session.id));
-        await tx
-          .delete(importSessionBookmarks)
-          .where(eq(importSessionBookmarks.importSessionId, session.id));
+        tx.delete(importStagingBookmarks)
+          .where(eq(importStagingBookmarks.importSessionId, session.id))
+          .run();
+        tx.delete(importSessionBookmarks)
+          .where(eq(importSessionBookmarks.importSessionId, session.id))
+          .run();
         return true;
       });
 
