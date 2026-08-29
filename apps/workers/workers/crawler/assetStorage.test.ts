@@ -155,6 +155,33 @@ describe("downloadAndStoreFile", () => {
     });
   });
 
+  test.each([0, -1])(
+    "treats a timeout of %s as disabled and passes the job-wide signal through",
+    async (timeoutSec) => {
+      respondWithImage(Buffer.from("png"));
+      const job = new AbortController();
+
+      const result = await downloadAndStoreFile(
+        "https://example.com/banner.png",
+        "user-id",
+        "job-id",
+        "image",
+        job.signal,
+        runProxy,
+        timeoutSec,
+      );
+
+      expect(fetchWithProxy).toHaveBeenCalledTimes(1);
+      expect(fetchWithProxy.mock.calls[0][1].signal).toBe(job.signal);
+      expect(result).toEqual({
+        assetId: "asset-id",
+        userId: "user-id",
+        contentType: "image/png",
+        size: 3,
+      });
+    },
+  );
+
   test("stores the file when it completes within the timeout", async () => {
     respondWithImage(Buffer.from("png-bytes"));
     const job = new AbortController();

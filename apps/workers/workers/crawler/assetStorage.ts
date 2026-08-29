@@ -246,8 +246,10 @@ export async function downloadAndStoreFile(
       // Best-effort downloads (e.g. banner images) get their own budget so a
       // hanging host only costs this download instead of the whole crawl. The
       // job-wide signal still aborts it, and only that abort is re-thrown below.
+      // A non-positive budget disables the separate timeout: AbortSignal.timeout
+      // rejects negative values, and 0 would skip every download.
       const downloadSignal =
-        downloadTimeoutSec !== undefined
+        downloadTimeoutSec !== undefined && downloadTimeoutSec > 0
           ? AbortSignal.any([
               AbortSignal.timeout(downloadTimeoutSec * 1000),
               abortSignal,
