@@ -1277,6 +1277,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.1014.0
         version: 3.1014.0
+      '@karakeep/plugins':
+        specifier: workspace:^0.1.0
+        version: link:../plugins
       '@karakeep/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -1333,6 +1336,9 @@ importers:
 
   packages/plugins:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: ^3.1014.0
+        version: 3.1014.0
       '@karakeep/shared':
         specifier: workspace:*
         version: link:../shared
@@ -1345,6 +1351,9 @@ importers:
       async-mutex:
         specifier: ^0.4.1
         version: 0.4.1
+      glob:
+        specifier: ^11.0.0
+        version: 11.0.2
       liteque:
         specifier: ^0.9.0
         version: 0.9.0(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(@types/react@19.2.15)(better-sqlite3@13.0.3)(react@19.2.3)
@@ -1392,15 +1401,9 @@ importers:
 
   packages/shared:
     dependencies:
-      '@aws-sdk/client-s3':
-        specifier: ^3.1014.0
-        version: 3.1014.0
       cheerio:
         specifier: ^1.2.0
         version: 1.2.0
-      glob:
-        specifier: ^11.0.0
-        version: 11.0.2
       html-to-text:
         specifier: ^9.0.5
         version: 9.0.5

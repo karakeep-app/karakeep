@@ -3,8 +3,7 @@ import { and, desc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
 
 import { assets, backupsTable } from "@karakeep/db/schema";
-import { BackupQueue } from "@karakeep/shared-server";
-import { deleteAsset } from "@karakeep/shared/assetdb";
+import { BackupQueue, deleteAsset } from "@karakeep/shared-server";
 import { zBackupSchema } from "@karakeep/shared/types/backups";
 
 import { AuthedContext } from "..";

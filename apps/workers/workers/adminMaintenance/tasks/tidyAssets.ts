@@ -3,11 +3,12 @@ import { eq } from "drizzle-orm";
 import { db } from "@karakeep/db";
 import { assets } from "@karakeep/db/schema";
 import {
+  deleteAsset,
+  getAllAssets,
   ZAdminMaintenanceTidyAssetsTask,
   ZTidyAssetsRequest,
   zTidyAssetsRequestSchema,
 } from "@karakeep/shared-server";
-import { deleteAsset, getAllAssets } from "@karakeep/shared/assetdb";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob } from "@karakeep/shared/queueing";
 

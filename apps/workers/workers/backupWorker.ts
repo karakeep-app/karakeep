@@ -22,8 +22,8 @@ import {
   addLogFields,
   BackupQueue,
   QuotaService,
+  saveAssetFromFile,
 } from "@karakeep/shared-server";
-import { saveAssetFromFile } from "@karakeep/shared/assetdb";
 import {
   toExportFormat,
   toExportListFormat,

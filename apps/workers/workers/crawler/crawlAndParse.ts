@@ -21,16 +21,14 @@ import {
 } from "@karakeep/db/schema";
 import {
   addLogFields,
+  ASSET_TYPES,
   AssetPreprocessingQueue,
   getTracer,
+  readAsset,
   setSpanAttributes,
+  silentDeleteAsset,
   withSpan,
 } from "@karakeep/shared-server";
-import {
-  ASSET_TYPES,
-  readAsset,
-  silentDeleteAsset,
-} from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";

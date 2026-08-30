@@ -15,15 +15,17 @@ import { fetchWithProxy, getBookmarkDomain } from "network";
 import type { RunProxyConfig } from "network";
 
 import { db } from "@karakeep/db";
-import { getTracer, QuotaService, withSpan } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   getAssetSize,
+  getTracer,
   IMAGE_ASSET_TYPES,
   newAssetId,
+  QuotaService,
   saveAsset,
   saveAssetFromFile,
-} from "@karakeep/shared/assetdb";
+  withSpan,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";

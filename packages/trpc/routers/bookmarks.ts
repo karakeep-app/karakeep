@@ -26,9 +26,9 @@ import {
   OpenAIQueue,
   QueuePriority,
   QuotaService,
+  SUPPORTED_BOOKMARK_ASSET_TYPES,
   triggerSearchReindex,
 } from "@karakeep/shared-server";
-import { SUPPORTED_BOOKMARK_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import {
   EmbeddingClientFactory,

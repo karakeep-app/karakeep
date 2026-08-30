@@ -9,13 +9,10 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 
-import {
-  ASSET_TYPES,
-  AssetMetadata,
-  AssetStore,
-  LocalFileSystemAssetStore,
-  S3AssetStore,
-} from "@karakeep/shared/assetdb";
+import type { AssetMetadata, AssetStore } from "@karakeep/shared/assetdb";
+import { ASSET_TYPES } from "@karakeep/shared/assetdb";
+import { LocalFileSystemAssetStore } from "@karakeep/plugins/assetstore-filesystem/implementation";
+import { S3AssetStore } from "@karakeep/plugins/assetstore-s3/implementation";
 
 export interface TestAssetData {
   userId: string;

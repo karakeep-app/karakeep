@@ -31,10 +31,14 @@ import {
   rssFeedImportsTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { EmbeddingsQueue, SearchIndexingQueue } from "@karakeep/shared-server";
+import {
+  deleteAsset,
+  EmbeddingsQueue,
+  readAsset,
+  SearchIndexingQueue,
+} from "@karakeep/shared-server";
 
 import { WebhooksService } from "./webhooks.service";
-import { deleteAsset, readAsset } from "@karakeep/shared/assetdb";
 import { getAlignedExpiry } from "@karakeep/shared/signedTokens";
 import {
   BookmarkTypes,

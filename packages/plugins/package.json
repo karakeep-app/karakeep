@@ -5,6 +5,10 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./assetstore-filesystem": "./assetstore-filesystem/index.ts",
+    "./assetstore-filesystem/implementation": "./assetstore-filesystem/src/index.ts",
+    "./assetstore-s3": "./assetstore-s3/index.ts",
+    "./assetstore-s3/implementation": "./assetstore-s3/src/index.ts",
     "./queue-liteque": "./queue-liteque/index.ts",
     "./queue-restate": "./queue-restate/index.ts",
     "./ratelimit-memory": "./ratelimit-memory/index.ts",
@@ -21,10 +25,12 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1014.0",
     "@karakeep/shared": "workspace:*",
     "@restatedev/restate-sdk": "^1.16.2",
     "@restatedev/restate-sdk-clients": "^1.16.2",
     "async-mutex": "^0.4.1",
+    "glob": "^11.0.0",
     "liteque": "^0.9.0",
     "meilisearch": "^0.58.0",
     "redis": "^5.11.0"

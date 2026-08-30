@@ -6,12 +6,13 @@ import { pipeline } from "stream/promises";
 import { fileTypeFromBlob, supportedMimeTypes } from "file-type";
 
 import { assets, AssetTypes } from "@karakeep/db/schema";
-import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import {
   newAssetId,
+  QuotaService,
   saveAssetFromFile,
+  StorageQuotaError,
   SUPPORTED_UPLOAD_ASSET_TYPES,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { AuthedContext } from "@karakeep/trpc";
 

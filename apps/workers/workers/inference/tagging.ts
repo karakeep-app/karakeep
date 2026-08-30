@@ -20,10 +20,11 @@ import {
 } from "@karakeep/db/schema";
 import {
   addLogFields,
+  ASSET_TYPES,
+  readAsset,
   setSpanAttributes,
   triggerSearchReindex,
 } from "@karakeep/shared-server";
-import { ASSET_TYPES, readAsset } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { buildImagePrompt } from "@karakeep/shared/prompts";

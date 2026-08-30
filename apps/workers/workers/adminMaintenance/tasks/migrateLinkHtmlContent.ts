@@ -4,13 +4,13 @@ import type { ZAdminMaintenanceMigrateLargeLinkHtmlTask } from "@karakeep/shared
 import type { DequeuedJob } from "@karakeep/shared/queueing";
 import { db } from "@karakeep/db";
 import { AssetTypes, bookmarkLinks, bookmarks } from "@karakeep/db/schema";
-import { QuotaService } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   deleteAsset,
   newAssetId,
+  QuotaService,
   saveAsset,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
