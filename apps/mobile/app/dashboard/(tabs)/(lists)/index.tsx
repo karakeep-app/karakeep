@@ -34,6 +34,10 @@ interface ListLink {
   numBookmarks?: number;
 }
 
+function byName(a: ZBookmarkListTreeNode, b: ZBookmarkListTreeNode) {
+  return a.item.name.localeCompare(b.item.name);
+}
+
 function traverseTree(
   node: ZBookmarkListTreeNode,
   links: ListLink[],
@@ -55,16 +59,18 @@ function traverseTree(
   });
 
   if (node.children && showChildrenOf[node.item.id]) {
-    node.children.forEach((child) =>
-      traverseTree(
-        child,
-        links,
-        showChildrenOf,
-        listStats,
-        node.item.id,
-        level + 1,
-      ),
-    );
+    [...node.children]
+      .sort(byName)
+      .forEach((child) =>
+        traverseTree(
+          child,
+          links,
+          showChildrenOf,
+          listStats,
+          node.item.id,
+          level + 1,
+        ),
+      );
   }
 }
 
@@ -149,27 +155,31 @@ export default function Lists() {
 
     // Add shared lists as children if section is expanded
     if (showChildrenOf["shared-section"]) {
-      Object.values(lists.root).forEach((list) => {
-        if (list.item.userRole !== "owner") {
-          traverseTree(
-            list,
-            links,
-            showChildrenOf,
-            listStats?.stats,
-            "shared-section",
-            1,
-          );
-        }
-      });
+      Object.values(lists.root)
+        .sort(byName)
+        .forEach((list) => {
+          if (list.item.userRole !== "owner") {
+            traverseTree(
+              list,
+              links,
+              showChildrenOf,
+              listStats?.stats,
+              "shared-section",
+              1,
+            );
+          }
+        });
     }
   }
 
   // Add owned lists only
-  Object.values(lists.root).forEach((list) => {
-    if (list.item.userRole === "owner") {
-      traverseTree(list, links, showChildrenOf, listStats?.stats);
-    }
-  });
+  Object.values(lists.root)
+    .sort(byName)
+    .forEach((list) => {
+      if (list.item.userRole === "owner") {
+        traverseTree(list, links, showChildrenOf, listStats?.stats);
+      }
+    });
 
   return (
     <>
