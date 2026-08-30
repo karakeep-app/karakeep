@@ -192,6 +192,36 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="tags/new"
+        options={{
+          ...formSheetSurfaceOptions,
+          headerTitle: "New Tag",
+          headerBackTitle: "Back",
+          headerLargeTitle: false,
+          headerTransparent: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
+        name="tags/[slug]/edit"
+        options={{
+          ...formSheetSurfaceOptions,
+          headerTitle: "Edit Tag",
+          headerBackTitle: "Back",
+          headerLargeTitle: false,
+          headerTransparent: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
         name="archive"
         options={{
           headerTitle: "🗄️ Archive",
