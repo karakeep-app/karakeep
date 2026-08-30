@@ -349,7 +349,10 @@ export const bookmarksAppRouter = router({
       const bookmark = await ctx.db.transaction(
         (tx) => {
           // Check user quota
-          const quotaResult = QuotaService.canCreateBookmark(tx, ctx.user.id);
+          const quotaResult = QuotaService.canCreateBookmarkInTransaction(
+            tx,
+            ctx.user.id,
+          );
           if (!quotaResult.result) {
             throw new TRPCError({
               code: "FORBIDDEN",
