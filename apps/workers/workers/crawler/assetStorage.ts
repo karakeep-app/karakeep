@@ -28,7 +28,11 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
-import { normalizeContentType, truncateUrl } from "./utils";
+import {
+  normalizeContentType,
+  normalizeHtmlCharset,
+  truncateUrl,
+} from "./utils";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -403,7 +407,11 @@ export async function archiveWebpage(
       const assetPath = path.join(os.tmpdir(), assetId);
 
       let res = await execa({
-        input: html,
+        // The HTML is UTF-8, but it may still declare the original page's
+        // legacy encoding (e.g. shift_jis); monolith passes the document
+        // through as-is, so viewers would decode the archive with the wrong
+        // encoding. Rewrite the declaration to match the actual bytes.
+        input: normalizeHtmlCharset(html),
         cancelSignal: abortSignal,
         env: {
           https_proxy: runProxy.httpsProxy,
