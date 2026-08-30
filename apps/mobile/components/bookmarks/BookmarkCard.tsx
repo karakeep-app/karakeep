@@ -185,7 +185,8 @@ function useAssetCardContext({
     media: (
       <BookmarkAssetImage
         assetId={assetImage}
-        className="h-56 min-h-56 w-full"
+        className="h-56 min-h-56 w-full bg-muted"
+        contentFit="contain"
       />
     ),
     compactMedia: (

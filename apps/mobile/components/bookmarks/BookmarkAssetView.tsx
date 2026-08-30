@@ -45,10 +45,11 @@ export default function BookmarkAssetView({
         images={[assetSource]}
       />
 
-      <Pressable onPress={() => setImageZoom(true)}>
+      <Pressable className="flex-1" onPress={() => setImageZoom(true)}>
         <BookmarkAssetImage
           assetId={bookmark.content.assetId}
-          className="h-56 min-h-56 w-full"
+          className="h-full w-full"
+          contentFit="contain"
         />
       </Pressable>
     </View>
