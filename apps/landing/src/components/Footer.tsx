@@ -19,6 +19,7 @@ const footerLinks = {
       href: `${DOCS_LINK}/integrations/agentic-skills/`,
     },
     { label: "API Reference", href: `${DOCS_LINK}/api/karakeep-api` },
+    { label: "llms.txt", href: `/llms.txt` },
   ],
   Legal: [
     { label: "Terms of Service", href: "/terms", internal: true },
