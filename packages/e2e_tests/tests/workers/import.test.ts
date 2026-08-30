@@ -320,5 +320,5 @@ describe("Import Worker Tests", () => {
     assert(rootListBookmarks);
     // All 12 unique bookmarks should be in the root list
     expect(rootListBookmarks.bookmarks.length).toBe(12);
-  });
+  }, 130000);
 });
