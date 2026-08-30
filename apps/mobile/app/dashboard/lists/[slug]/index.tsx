@@ -118,7 +118,6 @@ function ListActionsMenu({
   return (
     <MenuView
       actions={[
-        ...layoutActions,
         {
           id: "edit",
           title: "Edit List",
@@ -146,6 +145,7 @@ function ListActionsMenu({
             ios: destructiveMenuIconColor,
           }),
         },
+        ...layoutActions,
         {
           id: "leave",
           title: "Leave List",
