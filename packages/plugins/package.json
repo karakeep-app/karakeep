@@ -25,7 +25,7 @@
     "@restatedev/restate-sdk": "^1.16.2",
     "@restatedev/restate-sdk-clients": "^1.16.2",
     "async-mutex": "^0.4.1",
-    "liteque": "^0.8.0",
+    "liteque": "^0.9.0",
     "meilisearch": "^0.58.0",
     "redis": "^5.11.0"
   },

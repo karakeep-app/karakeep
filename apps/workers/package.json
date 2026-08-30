@@ -30,7 +30,7 @@
     "https-proxy-agent": "^7.0.6",
     "ipaddr.js": "^2.2.0",
     "jsdom": "^24.0.0",
-    "liteque": "^0.8.0",
+    "liteque": "^0.9.0",
     "lru-cache": "^11.2.2",
     "metascraper": "^5.50.0",
     "metascraper-amazon": "^5.50.0",
