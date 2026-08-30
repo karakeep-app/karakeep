@@ -1698,8 +1698,6 @@ importers:
         specifier: ^5.9
         version: 5.9.3
 
-  tools/evals: {}
-
   tools/seed-snapshot:
     dependencies:
       '@karakeep/shared':
