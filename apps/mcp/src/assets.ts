@@ -1,7 +1,7 @@
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import type { CallToolResult } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
-import { karakeepClient, mcpServer } from "./shared";
+import { karakeepClient, registerTool } from "./shared";
 import { toMcpToolError } from "./utils";
 
 export const getAssetInputSchema = {
@@ -36,9 +36,12 @@ Expires at: ${res.data.expiresAt}`,
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-asset",
-  "Get a temporary signed URL for downloading an asset by its asset ID.",
-  getAssetInputSchema,
+  {
+    description:
+      "Get a temporary signed URL for downloading an asset by its asset ID.",
+    inputSchema: z.object(getAssetInputSchema),
+  },
   getAssetHandler,
 );

@@ -14,7 +14,7 @@
     "@karakeep/sdk": "workspace:^",
     "@karakeep/shared": "workspace:^",
     "chalk": "^5.3.0",
-    "zod": "^4.0.0"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@types/node": "^24",

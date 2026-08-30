@@ -1,4 +1,4 @@
-import { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import { CallToolResult } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
 import {
@@ -6,7 +6,7 @@ import {
   zEditBookmarkListSchemaWithValidation,
 } from "@karakeep/shared/types/lists";
 
-import { karakeepClient, mcpServer } from "./shared";
+import { karakeepClient, registerTool } from "./shared";
 import {
   compactBookmark,
   compactList,
@@ -14,9 +14,9 @@ import {
   toMcpToolError,
 } from "./utils";
 
-mcpServer.tool(
+registerTool(
   "get-lists",
-  `Retrieves a list of lists.`,
+  { description: `Retrieves a list of lists.` },
   async (): Promise<CallToolResult> => {
     const res = await karakeepClient.GET("/lists", {
       params: {},
@@ -60,10 +60,12 @@ export async function getListHandler({
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-list",
-  `Retrieve a single list by its id.`,
-  getListInputSchema,
+  {
+    description: `Retrieve a single list by its id.`,
+    inputSchema: z.object(getListInputSchema),
+  },
   getListHandler,
 );
 
@@ -135,10 +137,12 @@ ${compactList(res.data)}`,
   };
 }
 
-mcpServer.tool(
+registerTool(
   "update-list",
-  `Update a list. Only the fields you pass are changed. Length caps and smart-list query rules come from the shared list schema.`,
-  updateListInputSchema,
+  {
+    description: `Update a list. Only the fields you pass are changed. Length caps and smart-list query rules come from the shared list schema.`,
+    inputSchema: z.object(updateListInputSchema),
+  },
   updateListHandler,
 );
 
@@ -175,19 +179,23 @@ export async function deleteListHandler({
   };
 }
 
-mcpServer.tool(
+registerTool(
   "delete-list",
-  `Delete a list by id. Bookmarks inside the list are not deleted. Child lists are also not deleted. Any child lists become root-level lists (their parentId is set to null). If that isn't the tree change you want, move or re-parent the children before calling this.`,
-  deleteListInputSchema,
+  {
+    description: `Delete a list by id. Bookmarks inside the list are not deleted. Child lists are also not deleted. Any child lists become root-level lists (their parentId is set to null). If that isn't the tree change you want, move or re-parent the children before calling this.`,
+    inputSchema: z.object(deleteListInputSchema),
+  },
   deleteListHandler,
 );
 
-mcpServer.tool(
+registerTool(
   "add-bookmark-to-list",
-  `Add a bookmark to a list.`,
   {
-    listId: z.string().describe(`The listId to add the bookmark to.`),
-    bookmarkId: z.string().describe(`The bookmarkId to add.`),
+    description: `Add a bookmark to a list.`,
+    inputSchema: z.object({
+      listId: z.string().describe(`The listId to add the bookmark to.`),
+      bookmarkId: z.string().describe(`The bookmarkId to add.`),
+    }),
   },
   async ({ listId, bookmarkId }): Promise<CallToolResult> => {
     const res = await karakeepClient.PUT(
@@ -215,12 +223,14 @@ mcpServer.tool(
   },
 );
 
-mcpServer.tool(
+registerTool(
   "remove-bookmark-from-list",
-  `Remove a bookmark from a list.`,
   {
-    listId: z.string().describe(`The listId to remove the bookmark from.`),
-    bookmarkId: z.string().describe(`The bookmarkId to remove.`),
+    description: `Remove a bookmark from a list.`,
+    inputSchema: z.object({
+      listId: z.string().describe(`The listId to remove the bookmark from.`),
+      bookmarkId: z.string().describe(`The bookmarkId to remove.`),
+    }),
   },
   async ({ listId, bookmarkId }): Promise<CallToolResult> => {
     const res = await karakeepClient.DELETE(
@@ -305,24 +315,28 @@ export async function getListBookmarksHandler(
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-list-bookmarks",
-  `List bookmarks in a list by its stable id. Smart lists are evaluated using their saved query.`,
-  getListBookmarksInputSchema,
-  { readOnlyHint: true },
+  {
+    description: `List bookmarks in a list by its stable id. Smart lists are evaluated using their saved query.`,
+    inputSchema: z.object(getListBookmarksInputSchema),
+    annotations: { readOnlyHint: true },
+  },
   getListBookmarksHandler,
 );
 
-mcpServer.tool(
+registerTool(
   "create-list",
-  `Create a list.`,
   {
-    name: z.string().describe(`The name of the list.`),
-    icon: z.string().describe(`The emoji icon of the list.`),
-    parentId: z
-      .string()
-      .optional()
-      .describe(`The parent list id of this list.`),
+    description: `Create a list.`,
+    inputSchema: z.object({
+      name: z.string().describe(`The name of the list.`),
+      icon: z.string().describe(`The emoji icon of the list.`),
+      parentId: z
+        .string()
+        .optional()
+        .describe(`The parent list id of this list.`),
+    }),
   },
   async ({ name, icon, parentId }): Promise<CallToolResult> => {
     const res = await karakeepClient.POST("/lists", {

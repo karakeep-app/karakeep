@@ -1,7 +1,7 @@
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import type { CallToolResult } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
-import { karakeepClient, mcpServer } from "./shared";
+import { karakeepClient, registerTool } from "./shared";
 import { compactHighlight, pickDefined, toMcpToolError } from "./utils";
 
 const highlightColorSchema = z.enum(["yellow", "red", "green", "blue"]);
@@ -45,11 +45,13 @@ export async function listHighlightsHandler(
   };
 }
 
-mcpServer.tool(
+registerTool(
   "list-highlights",
-  `List highlights across all bookmarks, newest first.`,
-  listHighlightsInputSchema,
-  { readOnlyHint: true },
+  {
+    description: `List highlights across all bookmarks, newest first.`,
+    inputSchema: z.object(listHighlightsInputSchema),
+    annotations: { readOnlyHint: true },
+  },
   listHighlightsHandler,
 );
 
@@ -84,11 +86,13 @@ export async function getBookmarkHighlightsHandler({
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-bookmark-highlights",
-  `List every highlight on a bookmark.`,
-  getBookmarkHighlightsInputSchema,
-  { readOnlyHint: true },
+  {
+    description: `List every highlight on a bookmark.`,
+    inputSchema: z.object(getBookmarkHighlightsInputSchema),
+    annotations: { readOnlyHint: true },
+  },
   getBookmarkHighlightsHandler,
 );
 
@@ -115,11 +119,13 @@ export async function getHighlightHandler({
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-highlight",
-  `Retrieve a single highlight by id.`,
-  getHighlightInputSchema,
-  { readOnlyHint: true },
+  {
+    description: `Retrieve a single highlight by id.`,
+    inputSchema: z.object(getHighlightInputSchema),
+    annotations: { readOnlyHint: true },
+  },
   getHighlightHandler,
 );
 
@@ -172,11 +178,13 @@ export async function createHighlightHandler(
   };
 }
 
-mcpServer.tool(
+registerTool(
   "create-highlight",
-  `Create a text highlight on a bookmark using character offsets from the bookmark's readable content.`,
-  createHighlightInputSchema,
-  { readOnlyHint: false, destructiveHint: false },
+  {
+    description: `Create a text highlight on a bookmark using character offsets from the bookmark's readable content.`,
+    inputSchema: z.object(createHighlightInputSchema),
+    annotations: { readOnlyHint: false, destructiveHint: false },
+  },
   createHighlightHandler,
 );
 
@@ -216,11 +224,13 @@ export async function updateHighlightHandler(
   };
 }
 
-mcpServer.tool(
+registerTool(
   "update-highlight",
-  `Update a highlight's color or note.`,
-  updateHighlightInputSchema,
-  { readOnlyHint: false, destructiveHint: false },
+  {
+    description: `Update a highlight's color or note.`,
+    inputSchema: z.object(updateHighlightInputSchema),
+    annotations: { readOnlyHint: false, destructiveHint: false },
+  },
   updateHighlightHandler,
 );
 
@@ -249,10 +259,16 @@ export async function deleteHighlightHandler({
   };
 }
 
-mcpServer.tool(
+registerTool(
   "delete-highlight",
-  `Delete a highlight by id.`,
-  deleteHighlightInputSchema,
-  { readOnlyHint: false, destructiveHint: true, idempotentHint: false },
+  {
+    description: `Delete a highlight by id.`,
+    inputSchema: z.object(deleteHighlightInputSchema),
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+    },
+  },
   deleteHighlightHandler,
 );

@@ -7,7 +7,7 @@
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@karakeep/shared": "workspace:^0.1.0",
-    "zod": "^4.0.0"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
