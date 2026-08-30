@@ -1,13 +1,10 @@
 import type { LucideIcon } from "lucide-react-native";
-import {
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import { useHeaderHeight } from "expo-router/react-navigation";
+import { RefreshControl, useWindowDimensions, View } from "react-native";
 import QueryPageState from "@/components/QueryPageState";
-import { Divider } from "@/components/ui/Divider";
+import {
+  SettingsScreen,
+  SettingsSeparator,
+} from "@/components/settings/settings-list";
 import EmptyState from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
@@ -127,7 +124,7 @@ function SectionCard({
         <Icon size={18} color={colors.primary} strokeWidth={2.25} />
         <Text className="font-semibold">{title}</Text>
       </View>
-      <Divider orientation="horizontal" className="mx-4" />
+      <SettingsSeparator className="mx-4 my-0" />
       <View className="gap-4 p-4">{children}</View>
     </View>
   );
@@ -430,17 +427,8 @@ function SourcesList({ stats }: { stats: UserStats }) {
 }
 
 function StatsSkeleton() {
-  const headerHeight = useHeaderHeight();
-
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{
-        gap: 12,
-        paddingHorizontal: 16,
-        paddingBottom: 40 + headerHeight,
-      }}
-    >
+    <SettingsScreen contentContainerStyle={{ gap: 12 }}>
       <View className="rounded-2xl bg-card p-5">
         <Skeleton className="mb-5 h-10 w-10 rounded-full" />
         <Skeleton className="mb-2 h-10 w-28" />
@@ -457,12 +445,11 @@ function StatsSkeleton() {
       </View>
       <Skeleton className="h-52 rounded-2xl" />
       <Skeleton className="h-72 rounded-2xl" />
-    </ScrollView>
+    </SettingsScreen>
   );
 }
 
 export default function UsageStatsScreen() {
-  const headerHeight = useHeaderHeight();
   const { width: windowWidth } = useWindowDimensions();
   const { colors } = useColorScheme();
   const api = useTRPC();
@@ -491,8 +478,7 @@ export default function UsageStatsScreen() {
     metricColumnCount;
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
+    <SettingsScreen
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}
@@ -501,11 +487,7 @@ export default function UsageStatsScreen() {
           colors={[colors.primary]}
         />
       }
-      contentContainerStyle={{
-        gap: 12,
-        paddingHorizontal: 16,
-        paddingBottom: 40 + headerHeight,
-      }}
+      contentContainerStyle={{ gap: 12 }}
     >
       <View
         className="overflow-hidden rounded-2xl bg-card"
@@ -535,7 +517,7 @@ export default function UsageStatsScreen() {
             <BookOpen size={21} color={colors.primary} strokeWidth={2.25} />
           </View>
         </View>
-        <Divider orientation="horizontal" style={{ marginVertical: 18 }} />
+        <SettingsSeparator className="mx-0" style={{ marginVertical: 18 }} />
         <View className="flex-row items-start gap-4">
           <View className="flex-1">
             <Text selectable className="font-semibold tabular-nums">
@@ -679,6 +661,6 @@ export default function UsageStatsScreen() {
           ) : null}
         </>
       )}
-    </ScrollView>
+    </SettingsScreen>
   );
 }

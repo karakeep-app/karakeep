@@ -4,18 +4,20 @@ import {
   Alert,
   Modal,
   Pressable,
-  ScrollView,
-  Switch,
   TextInput,
   View,
 } from "react-native";
-import Slider from "@react-native-community/slider";
 import Constants from "expo-constants";
-import { Link } from "expo-router";
-import { useHeaderHeight } from "expo-router/react-navigation";
+import { useRouter } from "expo-router";
+import {
+  SettingsActionRow,
+  SettingsGroup,
+  SettingsNavigationRow,
+  SettingsScreen,
+  SettingsSeparator,
+  SettingsValueRow,
+} from "@/components/settings/settings-list";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
-import ChevronRight from "@/components/ui/ChevronRight";
-import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { useServerVersion } from "@/lib/hooks";
 import {
@@ -23,43 +25,28 @@ import {
   useOfflineLibrary,
 } from "@/lib/offlineLibrary";
 import { useSession } from "@/lib/session";
+import {
+  BOOKMARK_VIEW_LABELS,
+  getUploadQualityLabel,
+  THEME_LABELS,
+} from "@/lib/settings-display";
 import useAppSettings from "@/lib/settings";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <Text className="px-4 pb-1 pt-4 text-xs uppercase tracking-wide text-muted-foreground">
-      {title}
-    </Text>
-  );
-}
-
 export default function Settings() {
-  const { logout } = useSession();
-  const headerHeight = useHeaderHeight();
-  const {
-    settings,
-    setSettings,
-    isLoading: isSettingsLoading,
-  } = useAppSettings();
+  const router = useRouter();
   const api = useTRPC();
+  const { logout } = useSession();
+  const { settings, isLoading } = useAppSettings();
   const offlineLibrary = useOfflineLibrary(getOfflineLibraryScope(settings));
-
-  const [imageQuality, setImageQuality] = useState<number | null>(null);
-
-  useEffect(() => {
-    setImageQuality(settings.imageQuality * 100);
-  }, [settings.imageQuality]);
-
   const { data, error } = useQuery(api.users.whoami.queryOptions());
   const {
     data: serverVersion,
     isLoading: isServerVersionLoading,
     error: serverVersionError,
   } = useServerVersion();
-
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState("");
 
@@ -74,8 +61,8 @@ export default function Settings() {
           [{ text: "OK", onPress: logout }],
         );
       },
-      onError: (e) => {
-        if (e.data?.code === "UNAUTHORIZED") {
+      onError: (mutationError) => {
+        if (mutationError.data?.code === "UNAUTHORIZED") {
           Alert.alert("Error", "Invalid password. Please try again.");
         } else {
           Alert.alert("Error", "Failed to delete account. Please try again.");
@@ -84,7 +71,16 @@ export default function Settings() {
     }),
   );
 
-  const isLocalUser = data?.localUser ?? false;
+  useEffect(() => {
+    if (error?.data?.code === "UNAUTHORIZED") {
+      logout();
+    }
+  }, [error?.data?.code, logout]);
+
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPassword("");
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -96,7 +92,7 @@ export default function Settings() {
           text: "Delete",
           style: "destructive",
           onPress: () => {
-            if (isLocalUser) {
+            if (data?.localUser ?? false) {
               setShowPasswordModal(true);
             } else {
               deleteAccount({});
@@ -107,276 +103,132 @@ export default function Settings() {
     );
   };
 
-  if (error?.data?.code === "UNAUTHORIZED") {
-    logout();
-  }
-
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{
-        paddingHorizontal: 16,
-        paddingBottom: 40 + headerHeight,
-      }}
-    >
+    <SettingsScreen>
       <UserProfileHeader
         image={data?.image}
         name={data?.name}
         email={data?.email}
       />
 
-      <SectionHeader title="Appearance" />
-      <View
-        className="w-full rounded-xl bg-card py-2"
-        style={{ borderCurve: "continuous" }}
-      >
-        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
-          <Link asChild href="/dashboard/settings/theme" className="flex-1">
-            <Pressable className="flex flex-row items-center">
-              <Text className="mr-2 flex-1" numberOfLines={1}>
-                Theme
-              </Text>
-              <Text className="mr-1 text-muted-foreground" numberOfLines={1}>
-                {
-                  { light: "Light", dark: "Dark", system: "System" }[
-                    settings.theme
-                  ]
-                }
-              </Text>
-              <ChevronRight />
-            </Pressable>
-          </Link>
-        </View>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
-          <Link
-            asChild
-            href="/dashboard/settings/bookmark-default-view"
-            className="flex-1"
-          >
-            <Pressable className="flex flex-row items-center">
-              <Text className="mr-2 flex-1" numberOfLines={1}>
-                Default Bookmark View
-              </Text>
-              {isSettingsLoading ? (
-                <ActivityIndicator size="small" />
-              ) : (
-                <Text className="mr-1 text-muted-foreground" numberOfLines={1}>
-                  {
-                    {
-                      reader: "Reader",
-                      browser: "Browser",
-                      externalBrowser: "External Browser",
-                    }[settings.defaultBookmarkView]
-                  }
-                </Text>
-              )}
-              <ChevronRight />
-            </Pressable>
-          </Link>
-        </View>
-      </View>
+      <SettingsGroup header="Preferences">
+        <SettingsNavigationRow
+          label="Theme"
+          onPress={() => router.push("/dashboard/settings/theme")}
+          value={THEME_LABELS[settings.theme]}
+        />
+        <SettingsSeparator />
+        <SettingsNavigationRow
+          isLoading={isLoading}
+          label="Open bookmarks in"
+          onPress={() =>
+            router.push("/dashboard/settings/bookmark-default-view")
+          }
+          value={BOOKMARK_VIEW_LABELS[settings.defaultBookmarkView]}
+        />
+        <SettingsSeparator />
+        <SettingsNavigationRow
+          label="Reader View"
+          onPress={() => router.push("/dashboard/settings/reading")}
+        />
+        <SettingsSeparator />
+        <SettingsNavigationRow
+          isLoading={isLoading}
+          label="Uploads"
+          onPress={() => router.push("/dashboard/settings/uploads")}
+          value={getUploadQualityLabel(settings.imageQuality)}
+        />
+      </SettingsGroup>
 
-      <SectionHeader title="Reading" />
-      <View
-        className="w-full rounded-xl bg-card py-2"
-        style={{ borderCurve: "continuous" }}
-      >
-        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
-          <Link
-            asChild
-            href="/dashboard/settings/reader-settings"
-            className="flex-1"
-          >
-            <Pressable className="flex flex-row items-center">
-              <Text className="mr-2 flex-1" numberOfLines={1}>
-                Reader Text Settings
-              </Text>
-              <ChevronRight />
-            </Pressable>
-          </Link>
-        </View>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
-          <Text className="flex-1" numberOfLines={1}>
-            Show notes in bookmark card
-          </Text>
-          <Switch
-            className="shrink-0"
-            value={settings.showNotes}
-            onValueChange={(value) =>
-              setSettings({
-                ...settings,
-                showNotes: value,
-              })
-            }
-          />
-        </View>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
-          <Link
-            asChild
-            href="/dashboard/settings/toolbar-settings"
-            className="flex-1"
-          >
-            <Pressable className="flex flex-row justify-between">
-              <Text>Toolbar Buttons</Text>
-              <ChevronRight />
-            </Pressable>
-          </Link>
-        </View>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
-          <Text className="flex-1" numberOfLines={1}>
-            Keep screen on while reading
-          </Text>
-          <Switch
-            className="shrink-0"
-            disabled={isSettingsLoading}
-            value={settings.keepScreenOnWhileReading}
-            onValueChange={(value) => {
-              if (isSettingsLoading) return;
-              setSettings({
-                ...settings,
-                keepScreenOnWhileReading: value,
-              });
-            }}
-          />
-        </View>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <View className="flex flex-row items-center justify-between gap-8 px-4 py-1">
-          <Link asChild href="/dashboard/settings/offline" className="flex-1">
-            <Pressable className="flex flex-row items-center">
-              <Text className="mr-2 flex-1" numberOfLines={1}>
-                Offline content
-              </Text>
-              <Text className="mr-1 text-muted-foreground">
-                {offlineLibrary.length}
-              </Text>
-              <ChevronRight />
-            </Pressable>
-          </Link>
-        </View>
-      </View>
+      <SettingsGroup header="Data">
+        <SettingsNavigationRow
+          label="Downloads"
+          onPress={() => router.push("/dashboard/settings/offline")}
+          value={String(offlineLibrary.length)}
+        />
+        <SettingsSeparator />
+        <SettingsNavigationRow
+          label="Statistics"
+          onPress={() => router.push("/dashboard/settings/usage")}
+        />
+      </SettingsGroup>
 
-      <SectionHeader title="Media" />
-      <View
-        className="w-full rounded-xl bg-card py-2"
-        style={{ borderCurve: "continuous" }}
-      >
-        <View className="flex w-full flex-col gap-1 px-4 py-2">
-          <View className="flex flex-row items-center justify-between">
-            <Text>Upload Image Quality</Text>
-            <Text className="text-foreground">
-              {Math.round(imageQuality ?? 0)}%
-            </Text>
-          </View>
-          {imageQuality === null ? (
-            <ActivityIndicator size="small" />
-          ) : (
-            <Slider
-              style={{ height: 40, width: "100%" }}
-              onSlidingComplete={(value) =>
-                setSettings({
-                  ...settings,
-                  imageQuality: Math.round(value) / 100,
-                })
-              }
-              onValueChange={(value) => setImageQuality(value)}
-              value={imageQuality}
-              minimumValue={0}
-              maximumValue={100}
-            />
-          )}
-        </View>
-      </View>
-
-      <SectionHeader title="Library" />
-      <View
-        className="w-full overflow-hidden rounded-xl bg-card"
-        style={{ borderCurve: "continuous" }}
-      >
-        <Link asChild href="/dashboard/settings/usage">
-          <Pressable className="flex flex-row items-center px-4 py-3">
-            <Text className="mr-2 flex-1" numberOfLines={1}>
-              Usage statistics
-            </Text>
-            <ChevronRight />
-          </Pressable>
-        </Link>
-      </View>
-
-      <SectionHeader title="Account" />
-      <View
-        className="w-full rounded-xl bg-card py-2"
-        style={{ borderCurve: "continuous" }}
-      >
-        <Pressable
-          className="flex flex-row items-center px-4 py-1"
-          onPress={logout}
-        >
-          <Text className="flex-1 text-destructive">Log Out</Text>
-        </Pressable>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <Pressable
-          className="flex flex-row items-center px-4 py-1"
-          onPress={handleDeleteAccount}
+      <SettingsGroup header="Account">
+        <SettingsActionRow label="Log Out" onPress={logout} />
+        <SettingsSeparator />
+        <SettingsActionRow
           disabled={isDeleting}
-        >
-          {isDeleting ? (
-            <ActivityIndicator size="small" />
-          ) : (
-            <Text className="flex-1 text-destructive">Delete Account</Text>
-          )}
-        </Pressable>
-      </View>
+          isLoading={isDeleting}
+          label="Delete Account"
+          onPress={handleDeleteAccount}
+        />
+      </SettingsGroup>
+
+      <SettingsGroup header="About">
+        <SettingsValueRow
+          label="Server"
+          value={isLoading ? "Loading..." : settings.address}
+        />
+        <SettingsSeparator />
+        <SettingsValueRow
+          label="App Version"
+          value={Constants.expoConfig?.version ?? "Unknown"}
+        />
+        <SettingsSeparator />
+        <SettingsValueRow
+          label="Server Version"
+          value={
+            isServerVersionLoading
+              ? "Loading..."
+              : serverVersionError
+                ? "Unavailable"
+                : (serverVersion ?? "Unknown")
+          }
+        />
+      </SettingsGroup>
 
       <Modal
-        visible={showPasswordModal}
-        transparent
         animationType="fade"
-        onRequestClose={() => {
-          setShowPasswordModal(false);
-          setPassword("");
-        }}
+        onRequestClose={closePasswordModal}
+        transparent
+        visible={showPasswordModal}
       >
         <Pressable
-          className="flex-1 items-center justify-center bg-black/50"
-          onPress={() => {
-            setShowPasswordModal(false);
-            setPassword("");
-          }}
+          accessibilityViewIsModal
+          className="flex-1 items-center justify-center bg-black/50 px-8"
+          onPress={closePasswordModal}
         >
-          <Pressable className="mx-8 w-full max-w-sm rounded-2xl bg-card p-6">
+          <Pressable
+            className="w-full max-w-sm rounded-2xl bg-card p-6"
+            onPress={(event) => event.stopPropagation()}
+            style={{ borderCurve: "continuous" }}
+          >
             <Text className="mb-2 text-lg font-bold">Enter Password</Text>
             <Text className="mb-4 text-sm text-muted-foreground">
-              Please enter your password to confirm account deletion.
+              Enter your password to confirm account deletion.
             </Text>
             <TextInput
+              autoFocus
               className="mb-4 rounded-lg border border-input bg-background px-3 py-2 text-foreground"
+              onChangeText={setPassword}
               placeholder="Password"
               secureTextEntry
               value={password}
-              onChangeText={setPassword}
-              autoFocus
             />
-            <View className="flex flex-row justify-end gap-3">
+            <View className="flex-row justify-end gap-3">
               <Pressable
                 className="rounded-lg px-4 py-2"
-                onPress={() => {
-                  setShowPasswordModal(false);
-                  setPassword("");
-                }}
+                onPress={closePasswordModal}
               >
                 <Text className="text-muted-foreground">Cancel</Text>
               </Pressable>
               <Pressable
                 className="rounded-lg bg-destructive px-4 py-2"
+                disabled={isDeleting || password.length === 0}
                 onPress={() => deleteAccount({ password })}
-                disabled={isDeleting || !password}
               >
                 {isDeleting ? (
-                  <ActivityIndicator size="small" color="white" />
+                  <ActivityIndicator color="white" size="small" />
                 ) : (
                   <Text className="font-medium text-destructive-foreground">
                     Delete
@@ -387,52 +239,6 @@ export default function Settings() {
           </Pressable>
         </Pressable>
       </Modal>
-
-      <SectionHeader title="About" />
-      <View
-        className="w-full rounded-xl bg-card py-2"
-        style={{ borderCurve: "continuous" }}
-      >
-        <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="text-muted-foreground" numberOfLines={1}>
-            Server
-          </Text>
-          <Text
-            className="flex-1 text-right text-sm text-muted-foreground"
-            numberOfLines={1}
-          >
-            {isSettingsLoading ? "Loading..." : settings.address}
-          </Text>
-        </View>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="w-fit text-muted-foreground" numberOfLines={1}>
-            App Version
-          </Text>
-          <Text
-            className="flex-1 text-right text-sm text-muted-foreground"
-            numberOfLines={1}
-          >
-            {Constants.expoConfig?.version ?? "unknown"}
-          </Text>
-        </View>
-        <Divider orientation="horizontal" className="mx-6 my-1" />
-        <View className="flex flex-row items-center justify-between px-4 py-1">
-          <Text className="text-muted-foreground" numberOfLines={1}>
-            Server Version
-          </Text>
-          <Text
-            className="flex-1 text-right text-sm text-muted-foreground"
-            numberOfLines={1}
-          >
-            {isServerVersionLoading
-              ? "Loading..."
-              : serverVersionError
-                ? "unavailable"
-                : (serverVersion ?? "unknown")}
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
+    </SettingsScreen>
   );
 }
