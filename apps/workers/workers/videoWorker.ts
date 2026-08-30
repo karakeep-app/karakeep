@@ -199,11 +199,13 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       fileSize,
     );
 
+    const contentType = getVideoContentType(assetPath);
+
     await saveAssetFromFile({
       userId,
       assetId: videoAssetId,
       assetPath,
-      metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
+      metadata: { contentType },
       quotaApproved,
     });
 
@@ -215,7 +217,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
           bookmarkId,
           userId,
           assetType: AssetTypes.LINK_VIDEO,
-          contentType: ASSET_TYPES.VIDEO_MP4,
+          contentType,
           size: fileSize,
         },
         txn,
@@ -267,6 +269,17 @@ async function deleteLeftOverAssetFile(
     logger.error(
       `[VideoCrawler][${jobId}] Failed deleting leftover video asset "${assetFile}".`,
     );
+  }
+}
+
+function getVideoContentType(assetPath: string): ASSET_TYPES {
+  switch (path.extname(assetPath).toLowerCase()) {
+    case ".webm":
+      return ASSET_TYPES.VIDEO_WEBM;
+    case ".mkv":
+      return ASSET_TYPES.VIDEO_MKV;
+    default:
+      return ASSET_TYPES.VIDEO_MP4;
   }
 }
 
