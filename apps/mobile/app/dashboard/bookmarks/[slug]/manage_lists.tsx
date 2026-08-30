@@ -19,6 +19,17 @@ import {
 } from "@karakeep/shared-react/hooks/lists";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
+function byListPathName(a: ZBookmarkList[], b: ZBookmarkList[]) {
+  const commonPathLength = Math.min(a.length, b.length);
+
+  for (let index = 0; index < commonPathLength; index++) {
+    const comparison = a[index].name.localeCompare(b[index].name);
+    if (comparison !== 0) return comparison;
+  }
+
+  return a.length - b.length;
+}
+
 const ListPickerPage = () => {
   const headerHeight = useHeaderHeight();
   const api = useTRPC();
@@ -101,7 +112,8 @@ const ListPickerPage = () => {
   const { allPaths } = data ?? {};
   const filteredPaths = allPaths
     ?.filter((path) => path[path.length - 1].userRole !== "viewer")
-    .filter((path) => path[path.length - 1].type !== "smart");
+    .filter((path) => path[path.length - 1].type !== "smart")
+    .sort(byListPathName);
   const options =
     filteredPaths?.map((path) => {
       const option = listPathToPickerOption(path);
