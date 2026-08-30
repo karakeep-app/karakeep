@@ -7,7 +7,6 @@ import * as WebBrowser from "expo-web-browser";
 import Logo from "@/components/Logo";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
-import ChevronRight from "@/components/ui/ChevronRight";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
@@ -179,20 +178,6 @@ export default function Signin() {
 
         <View className="gap-3">
           <GroupedSection>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.push("/server-address")}
-              className="flex-row items-center px-4 active:opacity-70"
-            >
-              <Text className="py-3.5" style={{ width: LABEL_WIDTH }}>
-                Server
-              </Text>
-              <Text className="flex-1 py-3.5" numberOfLines={1}>
-                {serverAddress}
-              </Text>
-              <ChevronRight size={16} />
-            </Pressable>
-
             {loginType === LoginType.Password ? (
               <>
                 <RowSeparator />
@@ -268,20 +253,31 @@ export default function Signin() {
         </View>
 
         <View className="items-center gap-3">
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push("/test-connection")}
-            disabled={!settings.address}
-            hitSlop={8}
-            className={cn(
-              "active:opacity-60",
-              !settings.address && "opacity-40",
-            )}
-          >
-            <Text className="text-sm text-muted-foreground">
-              Test connection
-            </Text>
-          </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/server-address")}
+              hitSlop={8}
+              className="flex-row items-center gap-1 active:opacity-60"
+            >
+              <Text className="text-sm text-blue-600">{serverAddress}</Text>
+            </Pressable>
+            <Text className="text-sm text-muted-foreground">|</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/test-connection")}
+              disabled={!settings.address}
+              hitSlop={8}
+              className={cn(
+                "active:opacity-60",
+                !settings.address && "opacity-40",
+              )}
+            >
+              <Text className="text-sm text-muted-foreground">
+                Test connection
+              </Text>
+            </Pressable>
+          </View>
           <Pressable
             accessibilityRole="button"
             onPress={() => {
