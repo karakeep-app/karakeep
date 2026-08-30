@@ -497,8 +497,8 @@ export abstract class List {
     }
   }
 
-  protected async cleanupRulesAfterListDeletion(tx: KarakeepDBTransaction) {
-    const rules = await tx
+  protected cleanupRulesAfterListDeletion(tx: KarakeepDBTransaction) {
+    const rules = tx
       .select({
         id: ruleEngineRulesTable.id,
         event: ruleEngineRulesTable.event,
@@ -515,7 +515,8 @@ export abstract class List {
             WHERE value = ${this.list.id}
           )`,
         ),
-      );
+      )
+      .all();
     const rulesToDelete: string[] = [];
     const rulesToUpdate: { id: string; event: string }[] = [];
 
@@ -560,38 +561,37 @@ export abstract class List {
     }
 
     if (rulesToDelete.length > 0) {
-      await tx
-        .delete(ruleEngineRulesTable)
-        .where(inArray(ruleEngineRulesTable.id, rulesToDelete));
+      tx.delete(ruleEngineRulesTable)
+        .where(inArray(ruleEngineRulesTable.id, rulesToDelete))
+        .run();
     }
 
     if (rulesToUpdate.length > 0) {
-      await Promise.all(
-        rulesToUpdate.map(({ id, event }) =>
-          tx
-            .update(ruleEngineRulesTable)
-            .set({ event })
-            .where(eq(ruleEngineRulesTable.id, id)),
-        ),
-      );
+      for (const { id, event } of rulesToUpdate) {
+        tx.update(ruleEngineRulesTable)
+          .set({ event })
+          .where(eq(ruleEngineRulesTable.id, id))
+          .run();
+      }
     }
   }
 
   async delete() {
     this.ensureCanManage();
-    await this.ctx.db.transaction(async (tx) => {
-      const res = await tx
+    await this.ctx.db.transaction((tx) => {
+      const res = tx
         .delete(bookmarkLists)
         .where(
           and(
             eq(bookmarkLists.id, this.list.id),
             eq(bookmarkLists.userId, this.ctx.user.id),
           ),
-        );
+        )
+        .run();
       if (res.changes == 0) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
-      await this.cleanupRulesAfterListDeletion(tx);
+      this.cleanupRulesAfterListDeletion(tx);
     });
   }
 
@@ -1154,22 +1154,22 @@ export class ManualList extends List {
 
     const bookmarkIds = await this.getBookmarkIds();
 
-    await this.ctx.db.transaction(async (tx) => {
-      await tx
-        .insert(bookmarksInLists)
+    await this.ctx.db.transaction((tx) => {
+      tx.insert(bookmarksInLists)
         .values(
           bookmarkIds.map((id) => ({
             bookmarkId: id,
             listId: targetList.id,
           })),
         )
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .run();
 
       if (deleteSourceAfterMerge) {
-        await tx
-          .delete(bookmarkLists)
-          .where(eq(bookmarkLists.id, this.list.id));
-        await this.cleanupRulesAfterListDeletion(tx);
+        tx.delete(bookmarkLists)
+          .where(eq(bookmarkLists.id, this.list.id))
+          .run();
+        this.cleanupRulesAfterListDeletion(tx);
       }
     });
   }

@@ -147,15 +147,15 @@ export class Asset {
       });
     }
 
-    await ctx.db.transaction(async (tx) => {
-      await tx.delete(assets).where(eq(assets.id, input.oldAssetId));
-      await tx
-        .update(assets)
+    await ctx.db.transaction((tx) => {
+      tx.delete(assets).where(eq(assets.id, input.oldAssetId)).run();
+      tx.update(assets)
         .set({
           bookmarkId: input.bookmarkId,
           assetType: oldAsset.asset.assetType,
         })
-        .where(eq(assets.id, input.newAssetId));
+        .where(eq(assets.id, input.newAssetId))
+        .run();
     });
 
     await deleteAsset({

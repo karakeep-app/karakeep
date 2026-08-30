@@ -103,8 +103,8 @@ async function migrateBookmarkHtml(
   }
 
   try {
-    await db.transaction(async (txn) => {
-      const res = await txn
+    await db.transaction((txn) => {
+      const res = txn
         .update(bookmarkLinks)
         .set({ htmlContent: null, contentAssetId: assetId })
         .where(
@@ -112,13 +112,14 @@ async function migrateBookmarkHtml(
             eq(bookmarkLinks.id, bookmarkId),
             isNull(bookmarkLinks.contentAssetId),
           ),
-        );
+        )
+        .run();
 
       if (res.changes === 0) {
         throw new Error("Failed to update bookmark");
       }
 
-      await updateAsset(
+      updateAsset(
         undefined,
         {
           id: assetId,

@@ -20,7 +20,7 @@
     "@karakeep/shared": "workspace:*",
     "@opentelemetry/api": "^1.9.0",
     "@paralleldrive/cuid2": "^2.2.2",
-    "better-sqlite3": "^11.3.0",
+    "better-sqlite3": "^13.0.3",
     "dotenv": "^16.4.1",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",

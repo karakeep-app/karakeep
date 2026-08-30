@@ -50,6 +50,7 @@ minimumReleaseAgeExclude:
     "@next/swc-win32-arm64-msvc@16.3.3",
     "@next/swc-win32-x64-msvc@16.3.3",
     next@16.3.3,
+    liteque@0.9.0,
   ]
 
 # Pin vite so adding vitest as a direct devDep to apps/mcp doesn't hoist
