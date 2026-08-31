@@ -50,6 +50,12 @@ describe("normalizeHtmlCharset", () => {
     );
   });
 
+  it("does not consume following attributes with an unquoted value", () => {
+    expect(
+      normalizeHtmlCharset('<meta charset=shift_jis name="x" content="y">'),
+    ).toBe('<meta charset=UTF-8 name="x" content="y">');
+  });
+
   it("leaves meta tags without a charset untouched", () => {
     const html =
       '<meta name="viewport" content="width=device-width"><meta charset=UTF-8>';
@@ -100,6 +106,17 @@ describe("decodeHtmlResponse", () => {
     );
     expect(decoded).toBe(
       '<meta http-equiv="Content-Type" content="text/html; charset=shift_jis"><title>テスト</title>',
+    );
+  });
+
+  it("ignores meta charset declarations beyond the 1024-byte sniff window", async () => {
+    // Browsers ignore encoding declarations past the first 1024 bytes, so a
+    // late declaration must not override the UTF-8 fallback.
+    const prefix = `<b>${"a".repeat(1100)}</b><meta charset="shift_jis">`;
+    const text = "<p>日本語</p>";
+    const body = [...Buffer.from(prefix), ...Buffer.from(text, "utf8")];
+    expect(await decodeHtmlResponse(htmlResponse(body, "text/html"))).toBe(
+      prefix + text,
     );
   });
 

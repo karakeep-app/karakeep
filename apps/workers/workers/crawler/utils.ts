@@ -81,7 +81,7 @@ function sniffMetaCharset(body: Uint8Array): string | undefined {
   // Decode the start of the body as latin1 so every byte maps to a single
   // character and the ASCII meta tags are readable. Charset declarations
   // always appear in the first 1024 bytes per the HTML sniffing rules.
-  const head = new TextDecoder("iso-8859-1").decode(body.subarray(0, 8192));
+  const head = new TextDecoder("iso-8859-1").decode(body.subarray(0, 1024));
   return head.match(META_CHARSET_RE)?.[2];
 }
 
@@ -97,6 +97,13 @@ function sniffMetaCharset(body: Uint8Array): string | undefined {
  */
 export function normalizeHtmlCharset(html: string): string {
   return html.replace(/<meta[^>]*>/gi, (metaTag) =>
-    metaTag.replace(/\bcharset\s*=\s*(["']?)[^"'>]*\1/gi, "charset=$1UTF-8$1"),
+    metaTag.replace(
+      // Quoted values run up to their closing quote; unquoted values stop at
+      // whitespace, `>`, or a quote (the end of the surrounding attribute),
+      // so an unquoted value never swallows the following attributes.
+      /\bcharset\s*=\s*(?:(["'])[^"']*\1|[^\s"'>]+)/gi,
+      (_match, quote: string | undefined) =>
+        `charset=${quote ?? ""}UTF-8${quote ?? ""}`,
+    ),
   );
 }
