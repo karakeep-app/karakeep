@@ -1,21 +1,19 @@
-import type { LucideIcon } from "lucide-react";
+import type { ComponentType, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-interface FeatureBullet {
-  icon: LucideIcon;
+export interface FeatureBullet {
+  icon: ComponentType<{ className?: string }>;
   text: string;
 }
 
 interface FeatureShowcaseProps {
   label: string;
-  title: string;
   headline: string;
   description: string;
   bullets: FeatureBullet[];
-  screenshot: string;
-  screenshotAlt: string;
   reverse?: boolean;
+  children: ReactNode;
 }
 
 export default function FeatureShowcase({
@@ -23,52 +21,45 @@ export default function FeatureShowcase({
   headline,
   description,
   bullets,
-  screenshot,
-  screenshotAlt,
   reverse = false,
+  children,
 }: FeatureShowcaseProps) {
   return (
-    <section className="px-4 py-8 sm:py-12">
-      <div className="mx-auto max-w-6xl rounded-2xl bg-gray-50/80 px-6 py-10 sm:px-12 sm:py-14">
-        <div
-          className={cn(
-            "flex flex-col items-center gap-10 lg:flex-row lg:gap-14",
-            reverse && "lg:flex-row-reverse",
-          )}
-        >
-          {/* Text side */}
-          <div className="flex flex-1 flex-col justify-center space-y-5">
-            <span className="text-xs font-bold uppercase tracking-widest text-gray-500">
-              {label}
-            </span>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              {headline}
-            </h2>
-            <p className="text-base font-medium text-gray-500">{description}</p>
-            <ul className="space-y-3 pt-2">
-              {bullets.map((bullet) => (
-                <li key={bullet.text} className="flex items-start gap-3">
-                  <div className="mt-0.5 rounded-lg bg-gray-100 p-1.5">
-                    <bullet.icon className="size-4 text-gray-500" />
-                  </div>
-                  <span className="text-gray-700">{bullet.text}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Screenshot side */}
-          <div className="flex flex-1 items-center justify-center">
-            <div className="relative p-4">
-              {/* Glow behind card */}
-              <div className="absolute inset-2 rounded-2xl bg-gradient-to-br from-gray-200/40 via-gray-100/30 to-transparent blur-2xl" />
-              <div className="relative overflow-hidden rounded-xl border border-gray-200/80 bg-white shadow-lg">
-                <img src={screenshot} alt={screenshotAlt} className="w-full" />
-              </div>
-            </div>
-          </div>
-        </div>
+    <div
+      className={cn(
+        "flex flex-col items-center gap-10 rounded-3xl bg-neutral-50 px-6 py-10 sm:px-12 sm:py-14 lg:flex-row lg:gap-[72px] lg:px-16",
+        reverse && "lg:flex-row-reverse",
+      )}
+    >
+      {/* Text side */}
+      <div className="flex flex-1 flex-col gap-[18px]">
+        <span className="text-xs font-bold tracking-[0.14em] text-neutral-500">
+          {label}
+        </span>
+        <h3 className="font-display text-2xl font-bold tracking-[-0.02em] text-neutral-900 sm:text-[32px] sm:leading-[1.2]">
+          {headline}
+        </h3>
+        <p className="text-base leading-[1.65] text-neutral-500">
+          {description}
+        </p>
+        <ul className="mt-2 flex flex-col gap-3.5">
+          {bullets.map((bullet) => (
+            <li key={bullet.text} className="flex items-center gap-3">
+              <span className="flex size-[30px] shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white">
+                <bullet.icon className="size-[15px] text-neutral-500" />
+              </span>
+              <span className="text-[15px] text-neutral-700">
+                {bullet.text}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
-    </section>
+
+      {/* Visual side */}
+      <div className="flex w-full flex-1 items-center justify-center">
+        {children}
+      </div>
+    </div>
   );
 }

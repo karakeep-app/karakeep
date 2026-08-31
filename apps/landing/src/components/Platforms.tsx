@@ -45,13 +45,13 @@ const extras = [
 
 export default function Platforms() {
   return (
-    <section className="bg-gray-50 px-4 py-16 sm:py-24">
+    <section className="bg-white px-4 py-16 sm:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className="font-display text-3xl font-bold tracking-tight text-neutral-900 sm:text-[40px] sm:leading-[1.15]">
             Apps & Extensions for Seamless Access
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
+          <p className="mx-auto mt-4 max-w-2xl text-lg leading-[1.6] text-neutral-600">
             Access your bookmarks from anywhere with native apps and browser
             extensions.
           </p>
@@ -82,9 +82,9 @@ export default function Platforms() {
           {extras.map((extra) => (
             <div
               key={extra.label}
-              className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700"
+              className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-700"
             >
-              <extra.icon className="size-4 text-gray-500" />
+              <extra.icon className="size-4 text-neutral-500" />
               {extra.label}
             </div>
           ))}

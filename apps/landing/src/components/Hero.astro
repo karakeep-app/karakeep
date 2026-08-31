@@ -3,46 +3,53 @@ import { Image } from "astro:assets";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CLOUD_SIGNUP_LINK, DEMO_LINK, GITHUB_LINK } from "../constants";
-import heroImage from "../assets/hero.webp";
+import heroDashboard from "../assets/hero-dashboard.webp";
+import iosHome from "../assets/ios-home.webp";
 ---
 
-<section class="relative overflow-hidden px-4 pb-20 pt-16 sm:pt-24">
-  <div class="mx-auto max-w-5xl text-center">
-    <h1 class="text-3xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+<section class="relative overflow-hidden bg-white px-4 pb-24 pt-16 sm:pt-24">
+  <!-- Radial glow -->
+  <div
+    class="pointer-events-none absolute -top-56 left-1/2 h-[520px] w-[980px] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(124,58,237,0.10),rgba(219,39,119,0.06),transparent)]"
+  >
+  </div>
+
+  <div class="relative mx-auto flex max-w-4xl flex-col items-center text-center">
+    <a
+      href={GITHUB_LINK}
+      target="_blank"
+      rel="noreferrer"
+      class="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-700 shadow-sm transition-all hover:border-neutral-300 hover:shadow-md"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 fill-yellow-400 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      <span class="font-semibold text-neutral-900">28k+</span>
+      <span class="text-neutral-500">stars on GitHub</span>
+    </a>
+    <h1
+      class="mt-7 font-display text-4xl font-bold leading-[1.08] tracking-[-0.02em] text-neutral-900 sm:text-5xl lg:text-[64px]"
+    >
       The
-      <span class="bg-gradient-to-r from-purple-600 to-red-600 bg-clip-text text-transparent">
+      <span class="bg-gradient-to-r from-[#7c3aed] to-[#db2777] bg-clip-text text-transparent">
         Bookmark Everything
       </span>
       App
     </h1>
-    <p class="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
+    <p class="mt-6 max-w-2xl text-lg leading-[1.6] text-neutral-600 sm:text-[19px]">
       Quickly save links, notes, and images and Karakeep will automatically
       tag them for you using AI for faster retrieval. Built for the data
       hoarders out there!
     </p>
-    <div class="mt-6 flex items-center justify-center">
-      <a
-        href={GITHUB_LINK}
-        target="_blank"
-        rel="noreferrer"
-        class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:shadow-md"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 fill-yellow-400 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-        <span class="font-semibold">28k+</span>
-        <span class="text-gray-500">stars on GitHub</span>
-      </a>
-    </div>
-    <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+    <div class="mt-9 flex w-full flex-col items-center justify-center gap-4 sm:flex-row">
       <a
         href={CLOUD_SIGNUP_LINK}
-        class={cn("w-full gap-2 px-8 sm:w-auto", buttonVariants({ variant: "default", size: "lg" }))}
+        class={cn("w-full px-9 shadow-[0_1px_2px_rgba(28,22,56,0.2),0_8px_24px_-8px_rgba(28,22,56,0.4)] sm:w-auto", buttonVariants({ variant: "brand", size: "lg" }))}
       >
         Sign Up
       </a>
       <a
         href={DEMO_LINK}
         target="_blank"
-        class={cn("w-full gap-2 px-8 sm:w-auto", buttonVariants({ variant: "outline", size: "lg" }))}
+        class={cn("w-full px-9 sm:w-auto", buttonVariants({ variant: "outline", size: "lg" }))}
         rel="noreferrer"
       >
         Try Demo
@@ -50,18 +57,56 @@ import heroImage from "../assets/hero.webp";
     </div>
   </div>
 
-  <!-- Hero screenshot with browser mockup -->
-  <div class="relative mx-auto mt-16 max-w-screen-2xl px-4">
-    <!-- Glow effect -->
-    <div class="absolute -inset-4 rounded-3xl bg-gradient-to-r from-purple-400/20 via-pink-400/20 to-red-400/20 blur-3xl"></div>
-
-    <Image
-      src={heroImage}
-      alt="Karakeep dashboard"
-      width={3963}
-      height={2261}
-      class="relative h-auto w-full"
-      loading="eager"
-    />
+  <!-- Hero screenshot in a browser frame -->
+  <div class="relative mx-auto mt-12 max-w-[1120px] sm:mt-16 lg:mt-[72px]">
+    <!-- Glow behind the frame -->
+    <div
+      class="pointer-events-none absolute -inset-6 rounded-[32px] bg-[linear-gradient(105deg,rgba(167,139,250,0.18),rgba(232,121,249,0.12),rgba(244,114,182,0.14))] blur-[48px]"
+    >
+    </div>
+    <div
+      class="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_-12px_rgba(124,58,237,0.12),0_48px_96px_-24px_rgba(15,23,42,0.22)]"
+    >
+      <div class="h-[3px] bg-gradient-to-r from-[#7c3aed] to-[#db2777]"></div>
+      <div class="flex h-11 items-center border-b border-neutral-100 bg-neutral-50 px-5">
+        <div class="flex items-center gap-2">
+          <div class="size-3 rounded-full bg-red-400"></div>
+          <div class="size-3 rounded-full bg-amber-400"></div>
+          <div class="size-3 rounded-full bg-green-400"></div>
+        </div>
+        <div class="flex grow justify-center">
+          <div
+            class="flex items-center gap-1.5 rounded-md border border-neutral-100 bg-white px-3.5 py-1 text-xs text-neutral-500"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><rect width="18" height="11" x="3" y="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            cloud.karakeep.app
+          </div>
+        </div>
+        <div class="w-[52px]"></div>
+      </div>
+      <Image
+        src={heroDashboard}
+        alt="Karakeep dashboard"
+        width={2880}
+        height={1800}
+        class="block h-auto w-full"
+        loading="eager"
+      />
+    </div>
+    <!-- Phone overlay -->
+    <div
+      class="absolute -bottom-10 right-0 hidden w-[220px] rounded-[38px] bg-neutral-900 p-[9px] shadow-[0_2px_4px_rgba(15,23,42,0.12),0_32px_64px_-16px_rgba(15,23,42,0.38)] lg:block xl:-right-7"
+    >
+      <div class="overflow-hidden rounded-[30px] bg-white">
+        <Image
+          src={iosHome}
+          alt="Karakeep iOS app"
+          width={660}
+          height={1331}
+          class="block h-auto w-full"
+          loading="eager"
+        />
+      </div>
+    </div>
   </div>
 </section>
