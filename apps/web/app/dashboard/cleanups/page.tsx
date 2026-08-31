@@ -1,4 +1,5 @@
 import { TagDuplicationDetection } from "@/components/dashboard/cleanups/TagDuplicationDetention";
+import { UnusedTagsSection } from "@/components/dashboard/cleanups/UnusedTagsSection";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/lib/i18n/server";
 import { Paintbrush, Tags } from "lucide-react";
@@ -20,6 +21,8 @@ export default async function Cleanups() {
       </span>
       <Separator />
       <TagDuplicationDetection />
+      <Separator />
+      <UnusedTagsSection />
     </div>
   );
 }
