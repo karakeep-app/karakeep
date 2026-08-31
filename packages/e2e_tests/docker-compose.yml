@@ -9,6 +9,7 @@ services:
       - "${KARAKEEP_PORT:-3000}:3000"
     environment:
       DATA_DIR: /tmp
+      DB_WAL_MODE: "true"
       NEXTAUTH_SECRET: secret
       NEXTAUTH_URL: http://localhost:${KARAKEEP_PORT:-3000}
       MEILI_MASTER_KEY: dummy
