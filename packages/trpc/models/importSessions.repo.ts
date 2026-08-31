@@ -110,68 +110,73 @@ export class ImportSessionsRepo {
 
     // One transaction per session to keep write locks short; a large backlog
     // (e.g. the first sweep after deploy) shouldn't block other writers.
+    // Each transaction reads before writing, so reserve the writer slot before
+    // taking a WAL snapshot that another connection could invalidate.
     let archivedCount = 0;
     for (const session of sessions) {
-      const archived = await this.db.transaction((tx) => {
-        const statusCounts = tx
-          .select({
-            status: importStagingBookmarks.status,
-            count: count(),
-          })
-          .from(importStagingBookmarks)
-          .where(eq(importStagingBookmarks.importSessionId, session.id))
-          .groupBy(importStagingBookmarks.status)
-          .all();
+      const archived = await this.db.transaction(
+        (tx) => {
+          const statusCounts = tx
+            .select({
+              status: importStagingBookmarks.status,
+              count: count(),
+            })
+            .from(importStagingBookmarks)
+            .where(eq(importStagingBookmarks.importSessionId, session.id))
+            .groupBy(importStagingBookmarks.status)
+            .all();
 
-        const stats = {
-          totalBookmarks: 0,
-          completedBookmarks: 0,
-          failedBookmarks: 0,
-          pendingBookmarks: 0,
-          processingBookmarks: 0,
-        };
+          const stats = {
+            totalBookmarks: 0,
+            completedBookmarks: 0,
+            failedBookmarks: 0,
+            pendingBookmarks: 0,
+            processingBookmarks: 0,
+          };
 
-        for (const { status, count: itemCount } of statusCounts) {
-          stats.totalBookmarks += itemCount;
-          switch (status) {
-            case "pending":
-              stats.pendingBookmarks += itemCount;
-              break;
-            case "processing":
-              stats.processingBookmarks += itemCount;
-              break;
-            case "completed":
-              stats.completedBookmarks += itemCount;
-              break;
-            case "failed":
-              stats.failedBookmarks += itemCount;
-              break;
+          for (const { status, count: itemCount } of statusCounts) {
+            stats.totalBookmarks += itemCount;
+            switch (status) {
+              case "pending":
+                stats.pendingBookmarks += itemCount;
+                break;
+              case "processing":
+                stats.processingBookmarks += itemCount;
+                break;
+              case "completed":
+                stats.completedBookmarks += itemCount;
+                break;
+              case "failed":
+                stats.failedBookmarks += itemCount;
+                break;
+            }
           }
-        }
 
-        const result = tx
-          .update(importSessions)
-          .set({ status: "archived", ...stats })
-          .where(
-            and(
-              eq(importSessions.id, session.id),
-              eq(importSessions.status, "completed"),
-            ),
-          )
-          .run();
+          const result = tx
+            .update(importSessions)
+            .set({ status: "archived", ...stats })
+            .where(
+              and(
+                eq(importSessions.id, session.id),
+                eq(importSessions.status, "completed"),
+              ),
+            )
+            .run();
 
-        if (result.changes === 0) {
-          return false;
-        }
+          if (result.changes === 0) {
+            return false;
+          }
 
-        tx.delete(importStagingBookmarks)
-          .where(eq(importStagingBookmarks.importSessionId, session.id))
-          .run();
-        tx.delete(importSessionBookmarks)
-          .where(eq(importSessionBookmarks.importSessionId, session.id))
-          .run();
-        return true;
-      });
+          tx.delete(importStagingBookmarks)
+            .where(eq(importStagingBookmarks.importSessionId, session.id))
+            .run();
+          tx.delete(importSessionBookmarks)
+            .where(eq(importSessionBookmarks.importSessionId, session.id))
+            .run();
+          return true;
+        },
+        { behavior: "immediate" },
+      );
 
       if (archived) {
         archivedCount++;
