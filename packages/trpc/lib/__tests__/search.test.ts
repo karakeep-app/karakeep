@@ -542,6 +542,32 @@ describe("getBookmarkIdsFromMatcher", () => {
     expect(result).toEqual(["b3"]);
   });
 
+  it("should count smart list membership as being in a list", async () => {
+    // b3 is archived and matches no manual list. A smart list querying
+    // "is:archived" also matches it (along with the already-listed b2/b6),
+    // so is:inlist should now include it and -is:inlist should not.
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "l6",
+      userId: testUserId,
+      name: "archived smart list",
+      icon: "🗄️",
+      type: "smart",
+      query: "is:archived",
+    });
+
+    const inList = await getBookmarkIdsFromMatcher(mockCtx, {
+      type: "inlist",
+      inList: true,
+    });
+    expect(inList.sort()).toEqual(["b1", "b2", "b3", "b4", "b5", "b6"]);
+
+    const notInList = await getBookmarkIdsFromMatcher(mockCtx, {
+      type: "inlist",
+      inList: false,
+    });
+    expect(notInList).toEqual([]);
+  });
+
   it("should handle rssFeedName matcher", async () => {
     const matcher: Matcher = {
       type: "rssFeedName",
