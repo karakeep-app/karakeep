@@ -87,7 +87,7 @@ Karakeep has a powerful search query language for finding the right bookmarks. I
 | `url:<value>` | Match URL substring | `url:github.com` |
 | `title:<value>` | Match title substring (supports quoted strings) | `title:rust`, `title:"my title"` |
 | `#<tag>` or `tag:<tag>` | Match bookmarks with specific tag (supports quoted strings) | `#important`, `tag:"work in progress"` |
-| `list:<name>` | Match bookmarks in a specific list (supports quoted strings) | `list:reading`, `list:"to review"` |
+| `list:<name>` | Match bookmarks in a specific list (supports quoted strings). A list id also works and survives renames | `list:reading`, `list:"to review"`, `list:kidcwffcnie6rky83n9xof8x` |
 | `after:<date>` | Created on or after date (YYYY-MM-DD) | `after:2024-01-01` |
 | `before:<date>` | Created on or before date (YYYY-MM-DD) | `before:2024-12-31` |
 | `age:<time-range>` | Filter by creation age. Use `<` / `>` for max/min age. Units: `d` (days), `w` (weeks), `m` (months), `y` (years) | `age:<1d`, `age:>2w`, `age:<6m` |
