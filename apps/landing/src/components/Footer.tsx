@@ -9,6 +9,7 @@ const footerLinks = {
     { label: "Apps & Extensions", href: "/apps/", internal: true },
     { label: "Try Demo", href: "https://try.karakeep.app" },
     { label: "Karakeep Cloud", href: "https://cloud.karakeep.app" },
+    { label: "Cloud Status Page", href: "https://status.karakeep.dev" },
   ],
   Resources: [
     { label: "Documentation", href: DOCS_LINK },
