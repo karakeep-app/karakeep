@@ -50,8 +50,8 @@ import {
   withEventLog,
 } from "./eventLogger";
 
-beforeAll(() => {
-  initEventLogger("test");
+beforeAll(async () => {
+  await initEventLogger("test");
 });
 
 beforeEach(() => {

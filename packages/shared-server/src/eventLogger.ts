@@ -2,19 +2,8 @@ import { AsyncLocalStorage } from "node:async_hooks";
 
 import { TRPCError } from "@trpc/server";
 import { context } from "@opentelemetry/api";
-import { logs } from "@opentelemetry/api-logs";
-import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
-import { resourceFromAttributes } from "@opentelemetry/resources";
-import {
-  BatchLogRecordProcessor,
-  LoggerProvider,
-} from "@opentelemetry/sdk-logs";
-import {
-  ATTR_SERVICE_NAME,
-  ATTR_SERVICE_VERSION,
-} from "@opentelemetry/semantic-conventions";
-import { OpenTelemetryTransportV3 } from "@opentelemetry/winston-transport";
-import winston from "winston";
+import type { LoggerProvider } from "@opentelemetry/sdk-logs";
+import type winstonType from "winston";
 import type { EventLog, EventLogType } from "./eventLogTypes";
 
 import serverConfig from "@karakeep/shared/config";
@@ -29,7 +18,7 @@ interface LogEventContext {
 
 interface EventLoggerState {
   eventStorage: AsyncLocalStorage<LogEventContext>;
-  winstonLogger: winston.Logger | null;
+  winstonLogger: winstonType.Logger | null;
   loggerProvider: LoggerProvider | null;
   isInitialized: boolean;
 }
@@ -56,7 +45,7 @@ const eventLoggerState =
     isInitialized: false,
   });
 
-export function initEventLogger(serviceSuffix?: string): void {
+export async function initEventLogger(serviceSuffix?: string): Promise<void> {
   if (eventLoggerState.isInitialized) {
     appLogger.debug("Event logger already initialized, skipping");
     return;
@@ -68,18 +57,35 @@ export function initEventLogger(serviceSuffix?: string): void {
     return;
   }
 
+  const { default: winston } = await import("winston");
+
   const serviceName = serviceSuffix
     ? `${serverConfig.tracing.serviceName}-${serviceSuffix}`
     : serverConfig.tracing.serviceName;
 
   appLogger.info(`Initializing event logger for service: ${serviceName}`);
 
-  let transport: winston.transport = new winston.transports.Console();
+  let transport: winstonType.transport = new winston.transports.Console();
 
   const otlpEndpoint = serverConfig.eventLogs.otlpExport.enabled
     ? serverConfig.eventLogs.otlpExport.endpoint
     : undefined;
   if (otlpEndpoint) {
+    const [
+      { logs },
+      { OTLPLogExporter },
+      { resourceFromAttributes },
+      { BatchLogRecordProcessor, LoggerProvider },
+      { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
+      { OpenTelemetryTransportV3 },
+    ] = await Promise.all([
+      import("@opentelemetry/api-logs"),
+      import("@opentelemetry/exporter-logs-otlp-http"),
+      import("@opentelemetry/resources"),
+      import("@opentelemetry/sdk-logs"),
+      import("@opentelemetry/semantic-conventions"),
+      import("@opentelemetry/winston-transport"),
+    ]);
     const endpoint = otlpEndpoint;
     const resource = resourceFromAttributes({
       [ATTR_SERVICE_NAME]: serviceName,

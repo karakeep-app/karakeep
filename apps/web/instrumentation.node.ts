@@ -5,5 +5,5 @@ import {
 } from "@karakeep/shared-server";
 
 await loadAllPlugins();
-initTracing("web");
-initEventLogger("web");
+await initTracing("web");
+await initEventLogger("web");

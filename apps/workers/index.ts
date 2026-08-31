@@ -126,8 +126,8 @@ function isWorkerEnabled(name: WorkerName) {
 
 async function main() {
   await loadAllPlugins();
-  initTracing("workers");
-  initEventLogger("workers");
+  await initTracing("workers");
+  await initEventLogger("workers");
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
   await prepareQueue();
 
