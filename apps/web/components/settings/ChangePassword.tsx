@@ -70,7 +70,7 @@ export function ChangePassword() {
   }
 
   return (
-    <SettingsSection title="Security">
+    <SettingsSection id="security" title="Security">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <FormField
