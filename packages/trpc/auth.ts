@@ -6,6 +6,7 @@ import { apiKeys } from "@karakeep/db/schema";
 import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import serverConfig from "@karakeep/shared/config";
+import { getReadOnlyModeError } from "@karakeep/shared/readOnlyMode";
 
 import type { Context } from "./index";
 
@@ -154,7 +155,10 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
 
   // Update lastUsedAt with 10-minute throttle to avoid excessive DB writes
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
-  if (!apiKey.lastUsedAt || apiKey.lastUsedAt < tenMinutesAgo) {
+  if (
+    !getReadOnlyModeError(serverConfig) &&
+    (!apiKey.lastUsedAt || apiKey.lastUsedAt < tenMinutesAgo)
+  ) {
     // Fire and forget - don't await to avoid blocking the auth response
     database
       .update(apiKeys)

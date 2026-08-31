@@ -20,6 +20,7 @@ import {
 } from "@karakeep/db/schema";
 import serverConfig from "@karakeep/shared/config";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
+import { getReadOnlyModeError } from "@karakeep/shared/readOnlyMode";
 import {
   containsUnsafeUserNameMarkup,
   normalizeUserNameInput,
@@ -95,9 +96,17 @@ const CustomProvider = (): Adapter => {
     verificationTokensTable: verificationTokens,
   });
 
+  const assertWritesAllowed = () => {
+    const message = getReadOnlyModeError(serverConfig);
+    if (message) {
+      throw new Error(message);
+    }
+  };
+
   return {
     ...adapter,
     createUser: async (user: Omit<AdapterUser, "id">) => {
+      assertWritesAllowed();
       const created = await User.createRaw(db, {
         name: normalizeSafeDisplayName(user.name),
         email: user.email,
@@ -109,6 +118,10 @@ const CustomProvider = (): Adapter => {
         "auth.provider": "oauth",
       });
       return created;
+    },
+    linkAccount: async (account) => {
+      assertWritesAllowed();
+      await adapter.linkAccount?.(account);
     },
   };
 };

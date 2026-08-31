@@ -165,6 +165,7 @@ const allEnv = z.object({
   DEMO_MODE: stringBool("false"),
   DEMO_MODE_EMAIL: z.string().optional(),
   DEMO_MODE_PASSWORD: z.string().optional(),
+  DEGRADED_MODE: stringBool("false"),
   DATA_DIR: z.string().default(""),
   ASSETS_DIR: z.string().optional(),
   MAX_ASSET_SIZE_MB: z.coerce.number().default(50),
@@ -452,6 +453,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           password: val.DEMO_MODE_PASSWORD,
         }
       : undefined,
+    degradedMode: val.DEGRADED_MODE,
     dataDir: val.DATA_DIR,
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
