@@ -1,19 +1,21 @@
 import {
-  ArrowDownNarrowWide,
+  Archive,
   BookOpen,
   BrainCircuit,
   FileText,
   Highlighter,
   Link2,
+  ScanText,
   Smartphone,
-  Sparkles,
   Tag,
   Text,
   Workflow,
   Zap,
 } from "lucide-react";
 
-import FeatureShowcase from "./FeatureShowcase";
+import FeatureShowcase, { FeatureShowcaseHalf } from "./FeatureShowcase";
+import CollabListCardMockup from "./showcase/CollabListCardMockup";
+import RssFeedsCardMockup from "./showcase/RssFeedsCardMockup";
 import RuleCardMockup from "./showcase/RuleCardMockup";
 import {
   BrowserScreenshotCard,
@@ -74,8 +76,8 @@ export default function UseCases() {
             { icon: Link2, text: "Save any link with one click" },
             { icon: FileText, text: "Store notes, images, and PDFs" },
             {
-              icon: ArrowDownNarrowWide,
-              text: "Auto-fetch metadata and thumbnails",
+              icon: Archive,
+              text: "Full-page archives protect against link rot",
             },
           ]}
         >
@@ -88,6 +90,29 @@ export default function UseCases() {
         </FeatureShowcase>
 
         <FeatureShowcase
+          label="SEARCH"
+          headline="Find it the way you remember it"
+          description="Search the full text of everything you save — or switch to semantic search and find bookmarks by what they mean, not just the words they contain."
+          bullets={[
+            {
+              icon: Zap,
+              text: "Blazingly fast full-text search across everything you save",
+            },
+            {
+              icon: SearchModesIcon,
+              text: "Keyword, hybrid, and semantic modes in the search bar",
+            },
+            {
+              icon: ScanText,
+              text: "OCR makes text inside images and screenshots searchable",
+            },
+          ]}
+          reverse
+        >
+          <SearchCardMockup />
+        </FeatureShowcase>
+
+        <FeatureShowcase
           label="ORGANIZATION"
           headline="Let AI organize your bookmarks"
           description="Karakeep uses AI to automatically tag and categorize your bookmarks. Stop spending time filing things away — just save and let AI do the work."
@@ -96,7 +121,6 @@ export default function UseCases() {
             { icon: Text, text: "AI-generated summaries" },
             { icon: Zap, text: "Instant organization as you save" },
           ]}
-          reverse
         >
           <TagsCardMockup />
         </FeatureShowcase>
@@ -113,6 +137,7 @@ export default function UseCases() {
             { icon: Highlighter, text: "Highlight text on any saved page" },
             { icon: Smartphone, text: "Read offline in the mobile apps" },
           ]}
+          reverse
         >
           <PaperScreenshotCard
             src={readerVignette}
@@ -131,32 +156,26 @@ export default function UseCases() {
             { icon: Zap, text: "Trigger actions on new bookmarks" },
             { icon: Tag, text: "Auto-tag based on URL patterns or content" },
           ]}
-          reverse
         >
           <RuleCardMockup />
         </FeatureShowcase>
 
-        <FeatureShowcase
-          label="SEARCH"
-          headline="Find it the way you remember it"
-          description="Search the full text of everything you save — or switch to semantic search and find bookmarks by what they mean, not just the words they contain."
-          bullets={[
-            {
-              icon: Zap,
-              text: "Blazingly fast full-text search across everything you save",
-            },
-            {
-              icon: Sparkles,
-              text: "Semantic mode finds conceptually similar bookmarks",
-            },
-            {
-              icon: SearchModesIcon,
-              text: "Keyword, hybrid, and semantic modes in the search bar",
-            },
-          ]}
-        >
-          <SearchCardMockup />
-        </FeatureShowcase>
+        <div className="grid gap-10 lg:grid-cols-2">
+          <FeatureShowcaseHalf
+            label="RSS FEEDS"
+            headline="Your feeds, on autopilot"
+            description="Subscribe to blogs and news sites and Karakeep saves new posts automatically — tagged, indexed, and searchable like everything else. Any list can be published back out as an RSS feed, too."
+          >
+            <RssFeedsCardMockup />
+          </FeatureShowcaseHalf>
+          <FeatureShowcaseHalf
+            label="COLLABORATION"
+            headline="Curate lists together"
+            description="Invite friends or teammates into any list as editors or viewers. Plan a trip, run a book club, or build a team reading list — everyone sees the same collection."
+          >
+            <CollabListCardMockup />
+          </FeatureShowcaseHalf>
+        </div>
       </div>
     </section>
   );

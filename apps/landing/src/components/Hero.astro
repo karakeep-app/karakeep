@@ -95,9 +95,13 @@ import iosHome from "../assets/ios-home.webp";
     </div>
     <!-- Phone overlay -->
     <div
-      class="absolute -bottom-10 right-0 hidden w-[220px] rounded-[38px] bg-neutral-900 p-[9px] shadow-[0_2px_4px_rgba(15,23,42,0.12),0_32px_64px_-16px_rgba(15,23,42,0.38)] lg:block xl:-right-7"
+      class="absolute -bottom-10 right-0 hidden w-[220px] rounded-[34px] bg-neutral-900 p-1.5 shadow-[0_2px_4px_rgba(15,23,42,0.12),0_32px_64px_-16px_rgba(15,23,42,0.38)] lg:block xl:-right-7"
     >
-      <div class="overflow-hidden rounded-[30px] bg-white">
+      <div class="relative overflow-hidden rounded-[28px] bg-[#f2f2f7] pt-[30px]">
+        <div
+          class="absolute left-1/2 top-1.5 h-[18px] w-16 -translate-x-1/2 rounded-full bg-neutral-900"
+        >
+        </div>
         <Image
           src={iosHome}
           alt="Karakeep iOS app"

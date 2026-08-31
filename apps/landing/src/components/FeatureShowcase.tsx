@@ -63,3 +63,33 @@ export default function FeatureShowcase({
     </div>
   );
 }
+
+interface FeatureShowcaseHalfProps {
+  label: string;
+  headline: string;
+  description: string;
+  children: ReactNode;
+}
+
+/** Half-width showcase panel: text on top, visual below. */
+export function FeatureShowcaseHalf({
+  label,
+  headline,
+  description,
+  children,
+}: FeatureShowcaseHalfProps) {
+  return (
+    <div className="flex flex-col gap-[18px] rounded-3xl bg-neutral-50 px-6 py-10 sm:px-12 sm:py-12">
+      <span className="text-xs font-bold tracking-[0.14em] text-neutral-500">
+        {label}
+      </span>
+      <h3 className="font-display text-2xl font-bold tracking-[-0.02em] text-neutral-900 sm:text-[28px] sm:leading-[1.2]">
+        {headline}
+      </h3>
+      <p className="text-base leading-[1.65] text-neutral-500">{description}</p>
+      <div className="mt-2 flex w-full grow items-center justify-center">
+        {children}
+      </div>
+    </div>
+  );
+}
