@@ -1,3 +1,4 @@
+import { APP_STORE_LINK, PLAY_STORE_LINK } from "./constants";
 import appleIcon from "/apple-icon.svg?url";
 import chromeIcon from "/chrome-icon.svg?url";
 import firefoxIcon from "/firefox-icon.svg?url";
@@ -19,13 +20,13 @@ const mobileApps: Listing[] = [
   {
     name: "iOS App",
     description: "Save links and notes from your iPhone and iPad.",
-    url: "https://apps.apple.com/us/app/karakeep-app/id6479258022",
+    url: APP_STORE_LINK,
     badge: appleIcon,
   },
   {
     name: "Android App",
     description: "Capture and organize content on Android devices.",
-    url: "https://play.google.com/store/apps/details?id=app.hoarder.hoardermobile&pcampaignid=web_share",
+    url: PLAY_STORE_LINK,
     badge: googlePlayIcon,
   },
 ];

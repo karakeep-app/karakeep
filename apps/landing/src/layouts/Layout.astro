@@ -7,13 +7,12 @@ import BaseLayout from "./BaseLayout.astro";
 interface Props {
   title?: string;
   description?: string;
-  path?: string;
 }
 
-const { title, description, path } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
-<BaseLayout title={title} description={description} path={path}>
+<BaseLayout title={title} description={description}>
   <slot name="head" slot="head" />
   <div class="flex min-h-screen flex-col bg-gray-50">
     <Banner />

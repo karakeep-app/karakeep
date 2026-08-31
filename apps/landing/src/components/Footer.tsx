@@ -5,8 +5,8 @@ const currentYear = new Date().getFullYear();
 
 const footerLinks = {
   Product: [
-    { label: "Pricing", href: "/pricing", internal: true },
-    { label: "Apps & Extensions", href: "/apps", internal: true },
+    { label: "Pricing", href: "/pricing/", internal: true },
+    { label: "Apps & Extensions", href: "/apps/", internal: true },
     { label: "Try Demo", href: "https://try.karakeep.app" },
     { label: "Karakeep Cloud", href: "https://cloud.karakeep.app" },
   ],
@@ -22,8 +22,8 @@ const footerLinks = {
     { label: "llms.txt", href: `/llms.txt` },
   ],
   Legal: [
-    { label: "Terms of Service", href: "/terms", internal: true },
-    { label: "Privacy Policy", href: "/privacy", internal: true },
+    { label: "Terms of Service", href: "/terms/", internal: true },
+    { label: "Privacy Policy", href: "/privacy/", internal: true },
   ],
 };
 

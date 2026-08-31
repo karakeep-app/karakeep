@@ -18,6 +18,7 @@
   "dependencies": {
     "@astrojs/check": "^0.9.4",
     "@astrojs/react": "^5.0.2",
+    "@astrojs/sitemap": "^3.7.3",
     "@radix-ui/react-slot": "^1.2.4",
     "astro": "^6.4.8",
     "class-variance-authority": "^0.7.0",

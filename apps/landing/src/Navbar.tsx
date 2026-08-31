@@ -19,7 +19,7 @@ export default function NavBar() {
         {/* Desktop navigation */}
         <div className="hidden items-center gap-6 md:flex">
           <a
-            href="/pricing"
+            href="/pricing/"
             className="text-sm text-gray-600 transition-colors hover:text-gray-900"
           >
             Pricing
@@ -79,7 +79,7 @@ export default function NavBar() {
         <div className="border-t border-gray-200/50 bg-white/95 px-4 pb-4 pt-2 backdrop-blur-xl md:hidden">
           <div className="flex flex-col gap-3">
             <a
-              href="/pricing"
+              href="/pricing/"
               className="text-sm text-gray-600 hover:text-gray-900"
               onClick={() => setMobileOpen(false)}
             >

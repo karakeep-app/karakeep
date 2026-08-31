@@ -1,8 +1,13 @@
 import react from "@astrojs/react";
+import sitemap from "@astrojs/sitemap";
 import { defineConfig } from "astro/config";
 
+import { BASE_URL } from "./src/constants";
+
 export default defineConfig({
-  integrations: [react()],
+  site: BASE_URL,
+  trailingSlash: "always",
+  integrations: [react(), sitemap()],
   vite: {
     plugins: [(await import("vite-plugin-svgr")).default()],
   },

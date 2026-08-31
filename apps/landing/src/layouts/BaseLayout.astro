@@ -2,21 +2,22 @@
 import { ClientRouter } from "astro:transitions";
 import "@karakeep/tailwind-config/globals.css";
 
+import { BASE_URL } from "../constants";
+
 interface Props {
   title?: string;
   description?: string;
-  path?: string;
 }
 
-const BASE_URL = "https://karakeep.app";
 const DEFAULT_TITLE =
   "Karakeep - The Bookmark Everything App | Save, Organize & Tag with AI";
 const DEFAULT_DESCRIPTION =
   "Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI. Self-hostable, with apps for iOS, Android, Chrome, and Firefox.";
 
-const { title, description = DEFAULT_DESCRIPTION, path = "/" } = Astro.props;
+const { title, description = DEFAULT_DESCRIPTION } = Astro.props;
 const fullTitle = title ? `${title} | Karakeep` : DEFAULT_TITLE;
-const url = `${BASE_URL}${path}`;
+const canonicalPath = `${Astro.url.pathname.replace(/\/+$/, "")}/`;
+const url = `${BASE_URL}${canonicalPath}`;
 ---
 
 <!doctype html>

@@ -1,51 +1,91 @@
 ---
 import Hero from "../components/Hero.astro";
+import {
+  APP_STORE_LINK,
+  BASE_URL,
+  GITHUB_LINK,
+  PLAY_STORE_LINK,
+} from "../constants";
 import Homepage from "../Homepage";
 import Layout from "../layouts/Layout.astro";
+
+const ORGANIZATION_ID = `${BASE_URL}/#organization`;
 ---
 
-<Layout path="/">
+<Layout>
   <Fragment slot="head">
     <script is:inline type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Karakeep",
-      "url": "https://karakeep.app",
-      "description": "Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI.",
-      "applicationCategory": "Productivity",
-      "operatingSystem": "Web, iOS, Android",
-      "offers": [
+      "@graph": [
         {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD",
-          "description": "Free plan with 10 bookmarks and 20MB storage"
+          "@type": "SoftwareApplication",
+          "@id": `${BASE_URL}/#software-application`,
+          "name": "Karakeep",
+          "alternateName": "Hoarder",
+          "url": BASE_URL,
+          "description": "Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI.",
+          "applicationCategory": "UtilitiesApplication",
+          "operatingSystem": "Web, iOS, Android",
+          "sameAs": [
+            GITHUB_LINK,
+            APP_STORE_LINK,
+            PLAY_STORE_LINK
+          ],
+          "offers": [
+            {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "description": "Free plan with 10 bookmarks and 20MB storage"
+            },
+            {
+              "@type": "Offer",
+              "price": "4",
+              "priceCurrency": "USD",
+              "description": "Pro plan with 50,000 bookmarks, 50GB storage, and AI-powered tagging",
+              "priceSpecification": {
+                "@type": "UnitPriceSpecification",
+                "price": "4",
+                "priceCurrency": "USD",
+                "billingDuration": "P1M"
+              }
+            }
+          ],
+          "featureList": [
+            "AI-powered bookmark tagging",
+            "Full text search",
+            "Collaborative lists",
+            "RSS feed integration",
+            "Browser extensions",
+            "Self-hosting support",
+            "REST API and webhooks",
+            "Dark mode"
+          ],
+          "screenshot": `${BASE_URL}/screenshot.webp`,
+          "author": {
+            "@id": ORGANIZATION_ID
+          }
         },
         {
-          "@type": "Offer",
-          "price": "4",
-          "priceCurrency": "USD",
-          "billingIncrement": "P1M",
-          "description": "Pro plan with 50,000 bookmarks, 50GB storage, and AI-powered tagging"
+          "@type": "Organization",
+          "@id": ORGANIZATION_ID,
+          "name": "Localhost Labs Ltd",
+          "url": "https://localhostlabs.co.uk",
+          "email": "info@localhostlabs.co.uk",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "email": "support@karakeep.app",
+            "contactType": "customer support"
+          },
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "71-75 Shelton Street, Covent Garden",
+            "addressLocality": "London",
+            "postalCode": "WC2H 9JQ",
+            "addressCountry": "GB"
+          }
         }
-      ],
-      "featureList": [
-        "AI-powered bookmark tagging",
-        "Full text search",
-        "Collaborative lists",
-        "RSS feed integration",
-        "Browser extensions",
-        "Self-hosting support",
-        "REST API and webhooks",
-        "Dark mode"
-      ],
-      "screenshot": "https://karakeep.app/hero.webp",
-      "softwareVersion": "latest",
-      "author": {
-        "@type": "Organization",
-        "name": "Localhost Labs Ltd",
-        "url": "https://localhostlabs.co.uk"
-      }
+      ]
     })} />
   </Fragment>
   <Hero />

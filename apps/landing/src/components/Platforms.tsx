@@ -1,5 +1,7 @@
 import { Code2, Globe, Terminal, Webhook } from "lucide-react";
 
+import { APP_STORE_LINK, PLAY_STORE_LINK } from "../constants";
+
 import appStoreBadge from "/app-store-badge.png?url";
 import chromeExtensionBadge from "/chrome-extension-badge.png?url";
 import firefoxAddonBadge from "/firefox-addon.png?url";
@@ -9,12 +11,12 @@ import safariIcon from "/safari-extension.png?url";
 const platforms = [
   {
     name: "iOS",
-    url: "https://apps.apple.com/us/app/karakeep-app/id6479258022",
+    url: APP_STORE_LINK,
     badge: appStoreBadge,
   },
   {
     name: "Android",
-    url: "https://play.google.com/store/apps/details?id=app.hoarder.hoardermobile&pcampaignid=web_share",
+    url: PLAY_STORE_LINK,
     badge: playStoreBadge,
   },
   {
