@@ -868,6 +868,66 @@ describe("Shared Lists", () => {
     });
   });
 
+  describe("Public Shared Lists", () => {
+    test<CustomTestContext>("should show collaborator bookmarks in a public list", async ({
+      apiCallers,
+      unauthedAPICaller,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Public Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner adds a bookmark
+      const ownerBookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: ownerBookmark.id,
+      });
+
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "editor",
+      );
+
+      // Collaborator adds their own bookmark
+      const collabBookmark = await collaboratorApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Collaborator's bookmark",
+      });
+
+      await collaboratorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: collabBookmark.id,
+      });
+
+      await ownerApi.lists.edit({
+        listId: list.id,
+        public: true,
+      });
+
+      const publicView =
+        await unauthedAPICaller.publicBookmarks.getPublicBookmarksInList({
+          listId: list.id,
+        });
+
+      expect(publicView.list.numItems).toBe(2);
+      expect(publicView.bookmarks.map((b) => b.id).sort()).toEqual(
+        [ownerBookmark.id, collabBookmark.id].sort(),
+      );
+    });
+  });
+
   describe("Bookmark Editing Permissions", () => {
     test<CustomTestContext>("should not allow viewer to add bookmarks to list", async ({
       apiCallers,
