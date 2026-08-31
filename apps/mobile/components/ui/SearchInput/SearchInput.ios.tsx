@@ -1,10 +1,14 @@
 import * as React from "react";
-import { Pressable, TextInput, View, ViewStyle } from "react-native";
+import {
+  LayoutChangeEvent,
+  Pressable,
+  TextInput,
+  View,
+  ViewStyle,
+} from "react-native";
 import Animated, {
-  measure,
-  useAnimatedRef,
   useAnimatedStyle,
-  useDerivedValue,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { TailwindResolver } from "@/components/TailwindResolver";
@@ -42,11 +46,16 @@ const SearchInput = React.forwardRef<
   ) => {
     const inputRef = useAugmentedRef({ ref, methods: { focus, blur, clear } });
     const [showCancel, setShowCancel] = React.useState(false);
-    const showCancelDerivedValue = useDerivedValue(
-      () => showCancel,
-      [showCancel],
-    );
-    const animatedRef = useAnimatedRef();
+    const cancelButtonWidth = useSharedValue(cancelText.length * 11.2);
+    const cancelButtonVisibility = useSharedValue(0);
+
+    React.useEffect(() => {
+      cancelButtonVisibility.set(withTiming(showCancel ? 1 : 0));
+    }, [cancelButtonVisibility, showCancel]);
+
+    React.useEffect(() => {
+      cancelButtonWidth.set(cancelText.length * 11.2);
+    }, [cancelButtonWidth, cancelText]);
 
     const [value = "", onChangeText] = useControllableState({
       prop: valueProp,
@@ -55,53 +64,28 @@ const SearchInput = React.forwardRef<
     });
 
     const rootStyle = useAnimatedStyle(() => {
-      if (_WORKLET) {
-        // safely use measure
-        const measurement = measure(animatedRef);
-        return {
-          paddingRight: showCancelDerivedValue.value
-            ? withTiming(measurement?.width ?? cancelText.length * 11.2)
-            : withTiming(0),
-        };
-      }
       return {
-        paddingRight: showCancelDerivedValue.value
-          ? withTiming(cancelText.length * 11.2)
-          : withTiming(0),
+        paddingRight: cancelButtonVisibility.get() * cancelButtonWidth.get(),
       };
     });
-    const buttonStyle3 = useAnimatedStyle(() => {
-      if (_WORKLET) {
-        // safely use measure
-        const measurement = measure(animatedRef);
-        return {
-          position: "absolute",
-          right: 0,
-          opacity: showCancelDerivedValue.value ? withTiming(1) : withTiming(0),
-          transform: [
-            {
-              translateX: showCancelDerivedValue.value
-                ? withTiming(0)
-                : measurement?.width
-                  ? withTiming(measurement.width)
-                  : cancelText.length * 11.2,
-            },
-          ],
-        };
-      }
+
+    const buttonStyle = useAnimatedStyle(() => {
+      const visibility = cancelButtonVisibility.get();
       return {
         position: "absolute",
         right: 0,
-        opacity: showCancelDerivedValue.value ? withTiming(1) : withTiming(0),
+        opacity: visibility,
         transform: [
           {
-            translateX: showCancelDerivedValue.value
-              ? withTiming(0)
-              : withTiming(cancelText.length * 11.2),
+            translateX: (1 - visibility) * cancelButtonWidth.get(),
           },
         ],
       };
     });
+
+    function onCancelButtonLayout(event: LayoutChangeEvent) {
+      cancelButtonWidth.set(event.nativeEvent.layout.width);
+    }
 
     function focus() {
       inputRef.current?.focus();
@@ -159,8 +143,8 @@ const SearchInput = React.forwardRef<
           />
         </Animated.View>
         <Animated.View
-          ref={animatedRef}
-          style={buttonStyle3}
+          onLayout={onCancelButtonLayout}
+          style={buttonStyle}
           pointerEvents={!showCancel ? "none" : "auto"}
         >
           <Pressable

@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format, isAfter, subYears } from "date-fns";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Linking, Platform, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -212,7 +212,7 @@ function CardLayout({ ctx }: { ctx: BookmarkCardContext }) {
             <TagList bookmark={ctx.bookmark} />
             <View className="flex-row justify-between border-t border-border px-2 pb-2 pt-2">
               <BookmarkFooterMetadata ctx={ctx} />
-              {Platform.OS !== "ios" && <ActionBar actions={ctx.actions} />}
+              <ActionBar actions={ctx.actions} />
             </View>
           </View>
         </View>
@@ -259,17 +259,15 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
             <View className="h-7 justify-center overflow-hidden">
               <TagList bookmark={ctx.bookmark} />
             </View>
-            {Platform.OS !== "ios" && (
-              <View
-                className={
-                  hasCompactMedia
-                    ? "mt-auto flex-row justify-end pt-0.5"
-                    : "flex-row justify-end pt-0.5"
-                }
-              >
-                <ActionBar actions={ctx.actions} compact />
-              </View>
-            )}
+            <View
+              className={
+                hasCompactMedia
+                  ? "mt-auto flex-row justify-end pt-0.5"
+                  : "flex-row justify-end pt-0.5"
+              }
+            >
+              <ActionBar actions={ctx.actions} compact />
+            </View>
           </View>
         </View>
       </BookmarkCardContainer.Root>

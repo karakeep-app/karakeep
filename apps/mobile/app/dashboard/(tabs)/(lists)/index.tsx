@@ -15,7 +15,7 @@ import { Text } from "@/components/ui/Text";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus } from "lucide-react-native";
+import { ChevronDown, Plus } from "lucide-react-native";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -215,14 +215,11 @@ export default function Lists() {
                       }));
                     }}
                   >
-                    <ChevronRight
-                      color={colors.foreground}
-                      style={{
-                        transform: [
-                          { rotate: l.item.collapsed ? "0deg" : "90deg" },
-                        ],
-                      }}
-                    />
+                    {l.item.collapsed ? (
+                      <ChevronRight color={colors.foreground} />
+                    ) : (
+                      <ChevronDown color={colors.foreground} />
+                    )}
                   </Pressable>
                 )}
               </View>
@@ -267,6 +264,7 @@ export default function Lists() {
           </View>
         )}
         data={links}
+        keyExtractor={(item) => item.id}
         refreshing={refreshing}
         onRefresh={onRefresh}
       />

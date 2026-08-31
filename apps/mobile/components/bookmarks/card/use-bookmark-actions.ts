@@ -20,7 +20,6 @@ export interface BookmarkActionController {
   isBusy: boolean;
   isFavourited: boolean;
   menuActions: MenuAction[];
-  contextMenuActions: MenuAction[];
   handleAction: (actionId: string) => void;
   share: () => void;
   toggleFavourite: () => void;
@@ -182,25 +181,6 @@ export function useBookmarkActions(
     });
   }
 
-  const contextMenuActions: MenuAction[] = [
-    ...(isOwner
-      ? [
-          {
-            id: "toggle-favourite",
-            title: isFavourited ? "Remove from Favorites" : "Add to Favorites",
-            image: isFavourited ? "star.slash" : "star",
-            state: isFavourited ? ("on" as const) : ("off" as const),
-          },
-        ]
-      : []),
-    {
-      id: "share",
-      title: "Share",
-      image: "square.and.arrow.up",
-    },
-    ...menuActions,
-  ];
-
   const handleAction = (actionId: string) => {
     if (actionId === "toggle-favourite") {
       toggleFavourite();
@@ -234,7 +214,6 @@ export function useBookmarkActions(
     isBusy: isArchivePending || isDeletionPending,
     isFavourited,
     menuActions,
-    contextMenuActions,
     handleAction,
     share,
     toggleFavourite,

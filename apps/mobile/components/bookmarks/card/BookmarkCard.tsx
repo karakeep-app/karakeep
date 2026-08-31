@@ -5,7 +5,6 @@ import { createContext, useContext } from "react";
 import { Pressable, View } from "react-native";
 
 import { NotePreview } from "../NotePreview";
-import BookmarkCardContextMenu from "./bookmark-card-context-menu";
 import type { BookmarkActionController } from "./use-bookmark-actions";
 
 export interface BookmarkCardContext {
@@ -140,24 +139,13 @@ function Title() {
 }
 
 function Root({ children }: { children: React.ReactNode }) {
-  const ctx = useContext(BookmarkCardContext);
-  const card = (
+  return (
     <View
       className="overflow-hidden rounded-xl bg-card"
       style={{ borderCurve: "continuous" }}
     >
       {children}
     </View>
-  );
-
-  if (!ctx) {
-    return card;
-  }
-
-  return (
-    <BookmarkCardContextMenu actions={ctx.actions}>
-      {card}
-    </BookmarkCardContextMenu>
   );
 }
 
