@@ -24,6 +24,8 @@ export default function UpdatingBookmarkList({
     isPlaceholderData,
     error,
     fetchNextPage,
+    hasNextPage,
+    isFetching,
     isFetchingNextPage,
     refetch,
   } = useInfiniteQuery(
@@ -50,6 +52,13 @@ export default function UpdatingBookmarkList({
     queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
   };
 
+  const onEndReached = () => {
+    if (!hasNextPage || isFetching) {
+      return;
+    }
+    void fetchNextPage({ cancelRefetch: false });
+  };
+
   return (
     <BookmarkList
       bookmarks={data.pages
@@ -57,7 +66,7 @@ export default function UpdatingBookmarkList({
         .filter((b) => b.content.type != BookmarkTypes.UNKNOWN)}
       header={header}
       onRefresh={onRefresh}
-      fetchNextPage={fetchNextPage}
+      fetchNextPage={onEndReached}
       isFetchingNextPage={isFetchingNextPage}
       isRefreshing={isPending || isPlaceholderData}
     />

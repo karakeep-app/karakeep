@@ -13,6 +13,8 @@ export default function Highlights() {
     isPlaceholderData,
     error,
     fetchNextPage,
+    hasNextPage,
+    isFetching,
     isFetchingNextPage,
     refetch,
   } = useInfiniteQuery(
@@ -33,11 +35,18 @@ export default function Highlights() {
     queryClient.invalidateQueries(api.highlights.getAll.pathFilter());
   };
 
+  const onEndReached = () => {
+    if (!hasNextPage || isFetching) {
+      return;
+    }
+    void fetchNextPage({ cancelRefetch: false });
+  };
+
   return (
     <HighlightList
       highlights={data.pages.flatMap((p) => p.highlights)}
       onRefresh={onRefresh}
-      fetchNextPage={fetchNextPage}
+      fetchNextPage={onEndReached}
       isFetchingNextPage={isFetchingNextPage}
       isRefreshing={isPending || isPlaceholderData}
     />

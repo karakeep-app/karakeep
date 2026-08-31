@@ -45,6 +45,7 @@ export default function Tags() {
     refetch,
     fetchNextPage,
     hasNextPage,
+    isFetching,
     isFetchingNextPage,
   } = usePaginatedSearchTags({
     limit: 50,
@@ -72,8 +73,8 @@ export default function Tags() {
   }));
 
   const handleLoadMore = () => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+    if (hasNextPage && !isFetching) {
+      void fetchNextPage({ cancelRefetch: false });
     }
   };
 
