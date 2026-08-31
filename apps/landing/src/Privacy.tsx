@@ -36,8 +36,8 @@ export default function PrivacyPolicy() {
           <li>
             <strong>Content you provide</strong>: links, notes, uploads, and
             other data you choose to save in the Service. We may process this
-            content — including via third-party artificial intelligence
-            providers — to provide features such as full-text search, automatic
+            content, including via third-party artificial intelligence
+            providers, to provide features such as full-text search, automatic
             tagging, and AI-powered summaries.
           </li>
           <li>

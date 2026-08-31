@@ -31,7 +31,7 @@ function PricingHeader({
         Simple pricing
       </h1>
       <p className="mt-5 max-w-xl text-lg leading-[1.6] text-neutral-600">
-        Free to try in the cloud, $4 a month for serious collectors — and always
+        Free to try in the cloud, $4 a month for serious collectors, and always
         free to self-host.
       </p>
       <div className="mt-8 inline-flex items-center rounded-[10px] bg-neutral-100 p-1">
@@ -114,7 +114,7 @@ function PricingCard({
         )}
         {billingPeriod === "monthly" && hasYearlyPlan && (
           <p className="mt-2 text-[13px] text-green-700">
-            or {tier.yearlyPrice}/year — save {YEARLY_SAVINGS_PERCENT}%
+            or {tier.yearlyPrice}/year and save {YEARLY_SAVINGS_PERCENT}%
           </p>
         )}
         <div className="mt-6 border-t border-neutral-100" />

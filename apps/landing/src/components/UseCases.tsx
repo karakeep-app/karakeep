@@ -62,7 +62,7 @@ export default function UseCases() {
           Save, organize, and rediscover
         </h2>
         <p className="mt-4 text-lg leading-[1.6] text-neutral-600">
-          From quick captures to automated workflows — here&apos;s how Karakeep
+          From quick captures to automated workflows. Here&apos;s how Karakeep
           fits the way you collect.
         </p>
       </div>
@@ -92,7 +92,7 @@ export default function UseCases() {
         <FeatureShowcase
           label="SEARCH"
           headline="Find it the way you remember it"
-          description="Search the full text of everything you save — or switch to semantic search and find bookmarks by what they mean, not just the words they contain."
+          description="Search the full text of everything you save, or switch to semantic search and find bookmarks by what they mean, not just the words they contain."
           bullets={[
             {
               icon: Zap,
@@ -115,7 +115,7 @@ export default function UseCases() {
         <FeatureShowcase
           label="ORGANIZATION"
           headline="Let AI organize your bookmarks"
-          description="Karakeep uses AI to automatically tag and categorize your bookmarks. Stop spending time filing things away — just save and let AI do the work."
+          description="Karakeep uses AI to automatically tag and categorize your bookmarks. Stop spending time filing things away. Just save and let AI do the work."
           bullets={[
             { icon: BrainCircuit, text: "Automatic AI-powered tagging" },
             { icon: Text, text: "AI-generated summaries" },
@@ -164,14 +164,14 @@ export default function UseCases() {
           <FeatureShowcaseHalf
             label="RSS FEEDS"
             headline="Your feeds, on autopilot"
-            description="Subscribe to blogs and news sites and Karakeep saves new posts automatically — tagged, indexed, and searchable like everything else. Any list can be published back out as an RSS feed, too."
+            description="Subscribe to blogs and news sites and Karakeep saves new posts automatically. They're tagged, indexed, and searchable like everything else. Any list can be published back out as an RSS feed, too."
           >
             <RssFeedsCardMockup />
           </FeatureShowcaseHalf>
           <FeatureShowcaseHalf
             label="COLLABORATION"
             headline="Curate lists together"
-            description="Invite friends or teammates into any list as editors or viewers. Plan a trip, run a book club, or build a team reading list — everyone sees the same collection."
+            description="Invite friends or teammates into any list as editors or viewers. Plan a trip, run a book club, or build a team reading list. Everyone sees the same collection."
           >
             <CollabListCardMockup />
           </FeatureShowcaseHalf>

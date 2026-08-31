@@ -48,7 +48,7 @@ export default function LlmReady() {
           </h3>
           <p className="text-base leading-[1.65] text-[#a39db8]">
             Skills, a first-party MCP server, a CLI, and a markdown-first API
-            with granular permissions — everything an agent needs to search and
+            with granular permissions. Everything an agent needs to search and
             save on your behalf.
           </p>
           <div className="mt-3 grid gap-6 sm:grid-cols-2">
