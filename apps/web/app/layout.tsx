@@ -55,6 +55,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  // Matches the `--background` token in tooling/tailwind/globals.css so that
+  // browser and installed-web-app chrome follows the active theme.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#020817" },
+  ],
 };
 
 export default async function RootLayout({
