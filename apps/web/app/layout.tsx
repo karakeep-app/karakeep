@@ -55,8 +55,10 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  // Matches the `--background` token in tooling/tailwind/globals.css so that
-  // browser and installed-web-app chrome follows the active theme.
+  // Values match the `--background` token in tooling/tailwind/globals.css.
+  // These follow the OS color scheme only. An in-app theme override via
+  // next-themes is not reflected here, so chrome can differ from the page
+  // when a user picks a theme opposite to their system preference.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#020817" },
