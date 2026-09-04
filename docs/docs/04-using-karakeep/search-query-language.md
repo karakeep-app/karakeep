@@ -24,6 +24,8 @@ Here's a comprehensive table of all supported qualifiers:
 | `is:archived`                    | Archived bookmarks                                                                                                                                                                                        | `-is:archived`                               |
 | `is:tagged`                      | Bookmarks that has one or more tags                                                                                                                                                                       | `is:tagged`                                  |
 | `is:inlist`                      | Bookmarks that are in one or more lists                                                                                                                                                                   | `is:inlist`                                  |
+| `has:notes`                      | Bookmarks that have a non-empty note                                                                                                                                                                      | `has:notes`                                  |
+| `has:highlights`                 | Bookmarks that have one or more highlights                                                                                                                                                                | `has:highlights`                             |
 | `is:link`, `is:text`, `is:media` | Bookmarks that are of type link, text or media                                                                                                                                                            | `is:link`                                    |
 | `is:broken`                      | Bookmarks with broken/failed links (crawl failures or non-2xx status codes)                                                                                                                               | `is:broken`                                  |
 | `url:<value>`                    | Match bookmarks with URL substring                                                                                                                                                                        | `url:example.com`                            |
@@ -50,6 +52,10 @@ is:archived and (list:reading or #work)
 
 # Find bookmarks that are not tagged or not in any list
 -is:tagged or -is:inlist
+
+# Find bookmarks that have notes but no highlights
+has:notes -has:highlights
+
 # Find bookmarks with "React" in the title
 title:React
 ```

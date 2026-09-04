@@ -144,6 +144,26 @@ export default function QueryExplainerTooltip({
             </TableCell>
           </TableRow>
         );
+      case "hasNotes":
+        return (
+          <TableRow>
+            <TableCell colSpan={2} className="text-center">
+              {matcher.hasNotes
+                ? t("search.has_notes")
+                : t("search.has_no_notes")}
+            </TableCell>
+          </TableRow>
+        );
+      case "hasHighlights":
+        return (
+          <TableRow>
+            <TableCell colSpan={2} className="text-center">
+              {matcher.hasHighlights
+                ? t("search.has_highlights")
+                : t("search.has_no_highlights")}
+            </TableCell>
+          </TableRow>
+        );
       case "and":
       case "or":
         return (
