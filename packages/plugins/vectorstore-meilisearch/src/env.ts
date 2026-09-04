@@ -10,6 +10,12 @@ const rawConfig = z
     MEILI_VECTOR_MASTER_KEY: z.string().optional(),
     MEILI_BATCH_SIZE: z.coerce.number().int().positive().default(50),
     MEILI_BATCH_TIMEOUT_MS: z.coerce.number().int().positive().default(500),
+    // Store vectors binary-quantized (1 bit per dimension, ~32x smaller,
+    // faster search, small recall loss). Requires Meilisearch >= 1.12.
+    MEILI_BINARY_QUANTIZED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((v) => v === "true"),
   })
   .parse(process.env);
 
@@ -19,4 +25,5 @@ export const envConfig = {
     rawConfig.MEILI_VECTOR_MASTER_KEY ?? rawConfig.MEILI_MASTER_KEY ?? "",
   MEILI_BATCH_SIZE: rawConfig.MEILI_BATCH_SIZE,
   MEILI_BATCH_TIMEOUT_MS: rawConfig.MEILI_BATCH_TIMEOUT_MS,
+  MEILI_BINARY_QUANTIZED: rawConfig.MEILI_BINARY_QUANTIZED,
 };
