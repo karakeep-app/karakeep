@@ -446,6 +446,18 @@ export async function archiveWebpage(
       const stats = await fs.stat(assetPath);
       const fileSize = stats.size;
 
+      // Discard oversized archives: media-rich pages can produce 1GB+
+      // monolith files that never render and only hang/crash browsers.
+      // 0 (default) disables the limit.
+      const maxArchiveSizeMb = serverConfig.crawler.fullPageArchiveMaxSizeMb;
+      if (maxArchiveSizeMb > 0 && fileSize > maxArchiveSizeMb * 1024 * 1024) {
+        logger.warn(
+          `[Crawler][${jobId}] Discarding page archive of ${fileSize} bytes as it exceeds CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB=${maxArchiveSizeMb}.`,
+        );
+        await tryCatch(fs.unlink(assetPath));
+        return null;
+      }
+
       const { data: quotaApproved, error: quotaError } = await tryCatch(
         QuotaService.checkStorageQuota(db, userId, fileSize),
       );
