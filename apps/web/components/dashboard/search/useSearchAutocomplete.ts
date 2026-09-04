@@ -55,6 +55,18 @@ const QUALIFIER_DEFINITIONS = [
     appendSpace: true,
   },
   {
+    value: "has:notes",
+    descriptionKey: "search.has_notes",
+    negatedDescriptionKey: "search.has_no_notes",
+    appendSpace: true,
+  },
+  {
+    value: "has:highlights",
+    descriptionKey: "search.has_highlights",
+    negatedDescriptionKey: "search.has_no_highlights",
+    appendSpace: true,
+  },
+  {
     value: "is:link",
     appendSpace: true,
   },

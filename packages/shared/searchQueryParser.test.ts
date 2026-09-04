@@ -141,6 +141,100 @@ describe("Search Query Parser", () => {
     });
   });
 
+  describe("has queries", () => {
+    test("parses supported values", () => {
+      expect(parseSearchQuery("has:notes")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "hasNotes",
+          hasNotes: true,
+        },
+      });
+      expect(parseSearchQuery("has:highlights")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "hasHighlights",
+          hasHighlights: true,
+        },
+      });
+    });
+
+    test("supports both negation forms", () => {
+      expect(parseSearchQuery("-has:notes")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "hasNotes",
+          hasNotes: false,
+        },
+      });
+      expect(parseSearchQuery("!has:notes")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "hasNotes",
+          hasNotes: false,
+        },
+      });
+      expect(parseSearchQuery("-has:highlights")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "hasHighlights",
+          hasHighlights: false,
+        },
+      });
+      expect(parseSearchQuery("!has:highlights")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "hasHighlights",
+          hasHighlights: false,
+        },
+      });
+    });
+
+    test("preserves unsupported values as pure text", () => {
+      expect(parseSearchQuery("has:attachments")).toEqual({
+        result: "full",
+        text: "has:attachments",
+        matcher: undefined,
+      });
+      expect(parseSearchQuery("-has:attachments")).toEqual({
+        result: "full",
+        text: "-has:attachments",
+        matcher: undefined,
+      });
+    });
+
+    test("composes with AND and OR expressions", () => {
+      expect(parseSearchQuery("has:notes and has:highlights")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "and",
+          matchers: [
+            { type: "hasNotes", hasNotes: true },
+            { type: "hasHighlights", hasHighlights: true },
+          ],
+        },
+      });
+      expect(parseSearchQuery("has:notes or !has:highlights")).toEqual({
+        result: "full",
+        text: "",
+        matcher: {
+          type: "or",
+          matchers: [
+            { type: "hasNotes", hasNotes: true },
+            { type: "hasHighlights", hasHighlights: false },
+          ],
+        },
+      });
+    });
+  });
+
   test("simple string queries", () => {
     expect(parseSearchQuery("url:https://example.com")).toEqual({
       result: "full",
