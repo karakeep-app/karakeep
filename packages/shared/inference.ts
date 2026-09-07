@@ -1,5 +1,5 @@
 import { Ollama } from "ollama";
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
 import { zodResponseFormat } from "openai/helpers/zod";
 import * as undici from "undici";
 import { z } from "zod";
@@ -138,6 +138,13 @@ export interface InferenceClient extends EmbeddingClient {
     image: string,
     opts: Partial<InferenceOptions>,
   ): Promise<InferenceResponse>;
+  /**
+   * Transcribe spoken audio to text.
+   *
+   * Returns null when the provider exposes no speech-to-text endpoint, so
+   * callers can degrade (skip the transcript) rather than fail the whole job.
+   */
+  transcribeAudio(audio: Uint8Array, filename: string): Promise<string | null>;
 }
 
 const mapInferenceOutputSchema = <
@@ -176,6 +183,7 @@ export interface OpenAIInferenceConfig {
   serviceTier?: typeof serverConfig.inference.openAIServiceTier;
   textModel: string;
   imageModel: string;
+  audioModel: string;
   contextLength: number;
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
@@ -293,6 +301,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       serviceTier: serverConfig.inference.openAIServiceTier,
       textModel: serverConfig.inference.textModel,
       imageModel: serverConfig.inference.imageModel,
+      audioModel: serverConfig.inference.audioModel,
       contextLength: serverConfig.inference.contextLength,
       maxOutputTokens: serverConfig.inference.maxOutputTokens,
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
@@ -386,6 +395,27 @@ export class OpenAIInferenceClient implements InferenceClient {
       throw new Error(`Got no message content from OpenAI`);
     }
     return { response, totalTokens: chatCompletion.usage?.total_tokens };
+  }
+
+  async transcribeAudio(
+    audio: Uint8Array,
+    filename: string,
+  ): Promise<string | null> {
+    // `toFile` builds the multipart entry the transcription endpoint expects.
+    // The filename matters: the API picks the decoder from its extension.
+    const transcription = await this.openAI.audio.transcriptions.create({
+      file: await toFile(audio, filename),
+      model: this.config.audioModel,
+      response_format: "text",
+    });
+    // With response_format "text" the SDK hands back a bare string, but a
+    // gateway pointed at by OPENAI_BASE_URL may still answer with the JSON
+    // object shape. Accept either rather than trusting one.
+    const text =
+      typeof transcription === "string"
+        ? transcription
+        : ((transcription as { text?: string }).text ?? "");
+    return text.trim() || null;
   }
 
   async generateEmbeddingFromText(
@@ -548,6 +578,15 @@ class OllamaInferenceClient implements InferenceClient {
       optsWithDefaults,
       image,
     );
+  }
+
+  transcribeAudio(): Promise<string | null> {
+    // Ollama has no speech-to-text endpoint. Returning null (rather than
+    // throwing) lets callers skip the transcript and keep the rest of the job.
+    logger.info(
+      "[inference] Ollama has no transcription endpoint; skipping audio transcription",
+    );
+    return Promise.resolve(null);
   }
 
   async generateEmbeddingFromText(

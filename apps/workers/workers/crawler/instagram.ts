@@ -8,6 +8,7 @@ import logger from "@karakeep/shared/logger";
 import serverConfig from "@karakeep/shared/config";
 import { db } from "@karakeep/db";
 import { bookmarkLinks } from "@karakeep/db/schema";
+import { InferenceClientFactory } from "@karakeep/shared/inference";
 
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
@@ -95,6 +96,7 @@ export async function parseInstagramDump(
     uploader?: string;
     channel?: string;
     upload_date?: string;
+    duration?: number;
   };
 
   const vttName = files.find((f) => f.endsWith(".vtt"));
@@ -108,6 +110,108 @@ export async function parseInstagramDump(
     author: info.uploader ?? info.channel ?? null,
     date: info.upload_date ?? null,
   };
+}
+
+/**
+ * Pull the audio of every video in an Instagram post and transcribe it.
+ *
+ * Instagram serves no subtitles to yt-dlp (`--write-auto-subs` yields nothing
+ * for every post type), so the only way to get spoken words is to fetch the
+ * audio and run speech-to-text over it ourselves.
+ *
+ * Unlike the metadata pass this one deliberately omits `--no-playlist`: a
+ * carousel can mix images and videos, and the videos in it have to be reached.
+ * yt-dlp's format selector is the gate — an image item matches no audio format
+ * and is skipped, so an image-only carousel downloads nothing and costs
+ * nothing. `--match-filter` caps duration per item, which also covers the
+ * playlist case where the top-level metadata carries no duration at all.
+ *
+ * Returns the transcripts joined in item order, or "" when there was no audio
+ * (the common case: image-only posts).
+ */
+export async function transcribeInstagramAudio(
+  url: string,
+  jobId: string,
+  runProxy: RunProxyConfig,
+  abortSignal: AbortSignal,
+): Promise<string> {
+  const inferenceClient = InferenceClientFactory.build();
+  if (!inferenceClient) {
+    logger.info(
+      `[Crawler][${jobId}] No inference client configured; skipping Instagram transcription`,
+    );
+    return "";
+  }
+  const maxDuration = serverConfig.crawler.instagramTranscribeMaxDurationSec;
+  const dir = await mkdtemp(join(tmpdir(), "karakeep-ig-audio-"));
+  try {
+    const proxy = runProxy.httpsProxy ?? runProxy.httpProxy;
+    const args = [
+      "-f",
+      "bestaudio",
+      "-x",
+      "--audio-format",
+      "mp3",
+      // Keep going past items that carry no audio instead of aborting the run.
+      "--ignore-errors",
+      "--match-filter",
+      `duration < ${maxDuration}`,
+      // playlist_index is "NA" for a standalone reel, so the id keeps names
+      // unique and sorting them reproduces the order items appear in the post.
+      "-o",
+      join(dir, "%(playlist_index)s-%(id)s.%(ext)s"),
+      ...serverConfig.crawler.ytDlpArguments,
+      ...(proxy ? ["--proxy", proxy] : []),
+      "--",
+      url,
+    ];
+    try {
+      await execa("yt-dlp", args, {
+        cancelSignal: abortSignal,
+        timeout: serverConfig.crawler.downloadVideoTimeout * 1000,
+      });
+    } catch (e) {
+      // Same salvage rationale as the metadata pass: yt-dlp exits non-zero
+      // when any item fails (an image in a mixed carousel always does), while
+      // still having written the files for the items that worked.
+      logger.warn(
+        `[Crawler][${jobId}] yt-dlp audio pass exited non-zero for "${url}"; using whatever was downloaded: ${e}`,
+      );
+    }
+    const audioFiles = (await readdir(dir))
+      .filter((f) => f.endsWith(".mp3"))
+      .sort();
+    if (audioFiles.length === 0) {
+      return "";
+    }
+    logger.info(
+      `[Crawler][${jobId}] Transcribing ${audioFiles.length} audio track(s) for "${url}"`,
+    );
+    const transcripts: string[] = [];
+    for (const file of audioFiles) {
+      abortSignal.throwIfAborted();
+      try {
+        const audio = await readFile(join(dir, file));
+        const text = await inferenceClient.transcribeAudio(audio, file);
+        if (text) {
+          transcripts.push(text);
+        }
+      } catch (e) {
+        // One unreadable track must not cost us the others, nor the caption.
+        logger.warn(
+          `[Crawler][${jobId}] Failed to transcribe "${file}" of "${url}": ${e}`,
+        );
+      }
+    }
+    return transcripts.join("\n\n");
+  } catch (e) {
+    logger.warn(
+      `[Crawler][${jobId}] Instagram transcription failed for "${url}": ${e}`,
+    );
+    return "";
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 }
 
 export async function extractInstagramContent(
@@ -162,6 +266,19 @@ export async function extractInstagramContent(
     if (!content) {
       logger.warn(
         `[Crawler][${jobId}] No Instagram content extracted for "${url}"`,
+      );
+      return content;
+    }
+    // Instagram never actually serves the auto-subs the metadata pass asks
+    // for, so `transcript` is empty here for every post. Falling back to
+    // speech-to-text is what makes a reel's spoken words searchable at all;
+    // the check still honours a subtitle track if Instagram ever returns one.
+    if (!content.transcript && serverConfig.crawler.instagramTranscribe) {
+      content.transcript = await transcribeInstagramAudio(
+        url,
+        jobId,
+        runProxy,
+        abortSignal,
       );
     }
     return content;

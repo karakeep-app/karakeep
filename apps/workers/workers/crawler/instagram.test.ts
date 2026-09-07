@@ -4,8 +4,14 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 vi.mock("execa", () => ({ execa: vi.fn() }));
+vi.mock("@karakeep/shared/inference", () => ({
+  InferenceClientFactory: { build: vi.fn() },
+}));
 
 import { execa } from "execa";
+
+import serverConfig from "@karakeep/shared/config";
+import { InferenceClientFactory } from "@karakeep/shared/inference";
 
 import {
   composeInstagramHtml,
@@ -13,7 +19,32 @@ import {
   isInstagramUrl,
   parseInstagramDump,
   parseVtt,
+  transcribeInstagramAudio,
 } from "./instagram";
+
+/** Point InferenceClientFactory at a stub whose transcribeAudio we control. */
+function stubTranscriber(impl: (file: string) => Promise<string | null>) {
+  const transcribeAudio = vi.fn((_audio: Uint8Array, filename: string) =>
+    impl(filename),
+  );
+  vi.mocked(InferenceClientFactory.build).mockReturnValue({
+    transcribeAudio,
+  } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+  return transcribeAudio;
+}
+
+/** Make the mocked yt-dlp drop `files` into the -o directory, then succeed. */
+function ytDlpWrites(files: Record<string, string>) {
+  vi.mocked(execa).mockImplementation((async (
+    _file: string,
+    args: string[],
+  ) => {
+    const outBase = args[args.indexOf("-o") + 1];
+    for (const [name, body] of Object.entries(files)) {
+      await writeFile(join(dirname(outBase), name), body);
+    }
+  }) as unknown as typeof execa);
+}
 
 describe("isInstagramUrl", () => {
   it("accepts post, reel, reels and tv URLs", () => {
@@ -221,5 +252,142 @@ describe("extractInstagramContent", () => {
       ),
     ).toBeNull();
     expect(execa).not.toHaveBeenCalled();
+  });
+});
+
+describe("transcribeInstagramAudio", () => {
+  const proxy = {
+    httpProxy: undefined,
+    httpsProxy: undefined,
+    noProxy: undefined,
+  };
+  const signal = new AbortController().signal;
+
+  beforeEach(() => {
+    vi.mocked(execa).mockReset();
+    vi.mocked(InferenceClientFactory.build).mockReset();
+  });
+
+  it("returns nothing when the post had no audio to download", async () => {
+    // The image-only carousel case: yt-dlp matches no audio format, writes no
+    // file, and the transcriber must never be called (it costs money per call).
+    const transcribe = stubTranscriber(async () => "should not happen");
+    ytDlpWrites({});
+    expect(
+      await transcribeInstagramAudio(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBe("");
+    expect(transcribe).not.toHaveBeenCalled();
+  });
+
+  it("transcribes a single track", async () => {
+    stubTranscriber(async () => "spoken words");
+    ytDlpWrites({ "NA-ABC123.mp3": "audio" });
+    expect(
+      await transcribeInstagramAudio(
+        "https://www.instagram.com/reel/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBe("spoken words");
+  });
+
+  it("joins tracks of a mixed carousel in item order", async () => {
+    // A carousel can hold several videos. They must be concatenated in the
+    // order they appear in the post, which is what the playlist_index prefix
+    // in the output template gives us once the filenames are sorted.
+    stubTranscriber(async (f) => `text of ${f}`);
+    ytDlpWrites({
+      "2-B.mp3": "audio",
+      "10-C.mp3": "audio",
+      "1-A.mp3": "audio",
+    });
+    expect(
+      await transcribeInstagramAudio(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBe("text of 1-A.mp3\n\ntext of 10-C.mp3\n\ntext of 2-B.mp3");
+  });
+
+  it("keeps the other tracks when one fails to transcribe", async () => {
+    stubTranscriber(async (f) => {
+      if (f.startsWith("2-")) {
+        throw new Error("rate limited");
+      }
+      return `text of ${f}`;
+    });
+    ytDlpWrites({ "1-A.mp3": "audio", "2-B.mp3": "audio" });
+    expect(
+      await transcribeInstagramAudio(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBe("text of 1-A.mp3");
+  });
+
+  it("still transcribes what downloaded when yt-dlp exits non-zero", async () => {
+    // A mixed carousel always exits non-zero: the image items match no audio
+    // format. The videos that did download must not be thrown away with it.
+    stubTranscriber(async () => "spoken words");
+    vi.mocked(execa).mockImplementation((async (
+      _file: string,
+      args: string[],
+    ) => {
+      const outBase = args[args.indexOf("-o") + 1];
+      await writeFile(join(dirname(outBase), "1-A.mp3"), "audio");
+      throw new Error("Command failed with exit code 1");
+    }) as unknown as typeof execa);
+    expect(
+      await transcribeInstagramAudio(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBe("spoken words");
+  });
+
+  it("skips transcription when no inference client is configured", async () => {
+    vi.mocked(InferenceClientFactory.build).mockReturnValue(null);
+    ytDlpWrites({ "1-A.mp3": "audio" });
+    expect(
+      await transcribeInstagramAudio(
+        "https://www.instagram.com/reel/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBe("");
+    // No point paying for the download either.
+    expect(execa).not.toHaveBeenCalled();
+  });
+
+  it("caps how long a track may be", async () => {
+    stubTranscriber(async () => "spoken words");
+    ytDlpWrites({});
+    await transcribeInstagramAudio(
+      "https://www.instagram.com/reel/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    const args = vi.mocked(execa).mock.calls[0][1] as string[];
+    expect(args).toContain("--match-filter");
+    expect(args[args.indexOf("--match-filter") + 1]).toBe(
+      `duration < ${serverConfig.crawler.instagramTranscribeMaxDurationSec}`,
+    );
+    // The metadata pass pins --no-playlist; this one must not, or the videos
+    // inside a carousel are unreachable.
+    expect(args).not.toContain("--no-playlist");
   });
 });

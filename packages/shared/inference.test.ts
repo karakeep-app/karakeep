@@ -41,6 +41,7 @@ function makeConfig(
     apiKey: "test-key",
     textModel: "test-text-model",
     imageModel: "test-image-model",
+    audioModel: "test-audio-model",
     contextLength: 2048,
     maxOutputTokens: 1024,
     useMaxCompletionTokens: false,
