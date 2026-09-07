@@ -372,13 +372,17 @@ export async function transcribeInstagramVideos(
         }
         const mp4 = join(dir, `${i}.mp4`);
         const mp3 = join(dir, `${i}.mp3`);
-        if (!response.body) throw new Error("empty body");
-        await pipeline(
-          Readable.fromWeb(
-            response.body as unknown as NodeReadableStream<Uint8Array>,
-          ),
-          createWriteStream(mp4),
-        );
+        const body = response.body as unknown;
+        if (!body) throw new Error("empty body");
+        // fetchWithProxy is backed by node-fetch v3 today, whose Response.body
+        // is already a Node Readable; a Web ReadableStream (as our tests mock,
+        // and as a future move to undici/global fetch would return) needs
+        // Readable.fromWeb first. Duck-type on `.pipe` to accept either.
+        const source =
+          typeof (body as { pipe?: unknown }).pipe === "function"
+            ? (body as NodeJS.ReadableStream)
+            : Readable.fromWeb(body as NodeReadableStream<Uint8Array>);
+        await pipeline(source, createWriteStream(mp4));
         const { size } = await stat(mp4);
         if (size > maxBytes) {
           logger.warn(

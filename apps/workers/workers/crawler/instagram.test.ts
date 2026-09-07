@@ -2,6 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { Readable } from "node:stream";
+
+import { Response as NodeFetchResponse } from "node-fetch";
 
 vi.mock("execa", () => ({ execa: vi.fn() }));
 vi.mock("network", () => ({ fetchWithProxy: vi.fn() }));
@@ -874,15 +877,14 @@ describe("extractInstagramContent (page)", () => {
       if (url.startsWith("https://www.instagram.com/"))
         return new Response(carouselHtml(), { status: 200 });
       if (url.endsWith(".mp4")) {
-        const stream = new ReadableStream(
-          {
-            pull() {
-              bodyRead = true;
-            },
+        // Mirror production: fetchWithProxy is backed by node-fetch v3, whose
+        // Response.body is a Node Readable, not a Web ReadableStream.
+        const nodeStream = new Readable({
+          read() {
+            bodyRead = true;
           },
-          { highWaterMark: 0 },
-        );
-        return new Response(stream, {
+        });
+        return new NodeFetchResponse(nodeStream, {
           status: 200,
           headers: { "content-length": String(5 * 1024 * 1024) },
         });
@@ -901,6 +903,45 @@ describe("extractInstagramContent (page)", () => {
     );
     expect(bodyRead).toBe(false);
     expect(content?.stats?.videos).toEqual({ expected: 1, got: 0 });
+  });
+
+  it("streams a node-fetch video body to disk and transcribes it through ffmpeg", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    const transcribeAudio = vi.fn(async () => "spoken words");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    vi.mocked(fetchWithProxy).mockImplementation((async (url: string) => {
+      if (url.startsWith("https://www.instagram.com/"))
+        return new Response(carouselHtml(), { status: 200 });
+      if (url.endsWith(".mp4")) {
+        // A real, small node-fetch Response body: a Node Readable.
+        return new NodeFetchResponse(Readable.from([Buffer.from("abc")]), {
+          status: 200,
+          headers: { "content-length": "3" },
+        });
+      }
+      return new Response(new Uint8Array([1]), {
+        status: 200,
+        headers: { "content-type": "image/jpeg" },
+      });
+    }) as unknown as typeof fetchWithProxy);
+    vi.mocked(execa).mockImplementation((async (
+      file: string,
+      args: string[],
+    ) => {
+      expect(file).toBe("ffmpeg");
+      expect(args[args.indexOf("-i") + 1]).toMatch(/0\.mp4$/);
+      await writeFile(args[args.length - 1], "mp3");
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.transcript).toBe("spoken words");
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 1 });
   });
 });
 
