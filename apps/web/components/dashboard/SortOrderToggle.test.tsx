@@ -43,6 +43,9 @@ describe("SortOrderToggle tooltip", () => {
     await waitFor(() => expect(document.activeElement).toBe(trigger));
     expect(useSortOrderStore.getState().sortOrder).toBe("asc");
     expect(screen.queryByRole("tooltip")).toBeNull();
+    expect(screen.getByRole("button", { name: "actions.sort.title" })).toBe(
+      trigger,
+    );
 
     await act(async () => trigger.blur());
     await act(async () => trigger.focus());
