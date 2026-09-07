@@ -151,6 +151,24 @@ const allEnv = z.object({
   CRAWLER_INSTAGRAM_DESCRIBE_IMAGES: stringBool("false"),
   CRAWLER_INSTAGRAM_MAX_IMAGES: z.coerce.number().int().positive().default(10),
   CRAWLER_INSTAGRAM_OCR_DETAIL: z.enum(["low", "high", "auto"]).default("low"),
+  CRAWLER_INSTAGRAM_HEADERS_JSON: z
+    .string()
+    .optional()
+    .transform((s) => {
+      if (!s) return {};
+      const o = JSON.parse(s) as unknown;
+      if (
+        !o ||
+        typeof o !== "object" ||
+        Array.isArray(o) ||
+        Object.values(o).some((v) => typeof v !== "string")
+      ) {
+        throw new Error(
+          "CRAWLER_INSTAGRAM_HEADERS_JSON must be a JSON object of string values",
+        );
+      }
+      return o as Record<string, string>;
+    }),
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
@@ -431,6 +449,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       instagramDescribeImages: val.CRAWLER_INSTAGRAM_DESCRIBE_IMAGES,
       instagramMaxImages: val.CRAWLER_INSTAGRAM_MAX_IMAGES,
       instagramOcrDetail: val.CRAWLER_INSTAGRAM_OCR_DETAIL,
+      instagramHeaders: val.CRAWLER_INSTAGRAM_HEADERS_JSON,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,

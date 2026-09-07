@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { parseInstagramPage, stripAltTextPrefix } from "./instagramPage";
+import serverConfig from "@karakeep/shared/config";
+
+import {
+  instagramRequestHeaders,
+  parseInstagramPage,
+  stripAltTextPrefix,
+} from "./instagramPage";
 
 /** Wrap a payload the way Instagram embeds it: one data-sjs script among others. */
 function page(payload: unknown, extra = ""): string {
@@ -168,5 +174,23 @@ describe("parseInstagramPage", () => {
   it("skips a block that mentions media_type but is not valid JSON", () => {
     const broken = `<script type="application/json" data-sjs>{"media_type":8,</script>`;
     expect(parseInstagramPage(page(carousel, broken))).not.toBeNull();
+  });
+});
+
+describe("instagramRequestHeaders", () => {
+  it("overlays CRAWLER_INSTAGRAM_HEADERS_JSON on the defaults", () => {
+    const saved = serverConfig.crawler.instagramHeaders;
+    serverConfig.crawler.instagramHeaders = {
+      "User-Agent": "UA/2",
+      "X-Extra": "1",
+    };
+    try {
+      const h = instagramRequestHeaders();
+      expect(h["User-Agent"]).toBe("UA/2");
+      expect(h["X-Extra"]).toBe("1");
+      expect(h["Sec-Fetch-Mode"]).toBe("navigate");
+    } finally {
+      serverConfig.crawler.instagramHeaders = saved;
+    }
   });
 });

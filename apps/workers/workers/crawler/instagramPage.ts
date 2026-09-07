@@ -1,6 +1,7 @@
 import type { RunProxyConfig } from "network";
 import { fetchWithProxy } from "network";
 
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 /**
@@ -25,6 +26,19 @@ export const INSTAGRAM_BROWSER_HEADERS: Record<string, string> = {
   "sec-ch-ua-mobile": "?0",
   "sec-ch-ua-platform": '"macOS"',
 };
+
+/**
+ * The default browser-like headers, overlaid with any operator-supplied
+ * overrides from `CRAWLER_INSTAGRAM_HEADERS_JSON`. Lets an operator refresh
+ * the User-Agent / client hints without a rebuild when Instagram stops
+ * honouring the built-in set.
+ */
+export function instagramRequestHeaders(): Record<string, string> {
+  return {
+    ...INSTAGRAM_BROWSER_HEADERS,
+    ...serverConfig.crawler.instagramHeaders,
+  };
+}
 
 /** Instagram answered, but in a way that a later attempt may not repeat. */
 export class InstagramTransientError extends Error {
@@ -178,7 +192,7 @@ export async function fetchInstagramPage(
   const response = await fetchWithProxy(
     url,
     {
-      headers: INSTAGRAM_BROWSER_HEADERS,
+      headers: instagramRequestHeaders(),
       signal: AbortSignal.any([AbortSignal.timeout(20_000), abortSignal]),
     },
     runProxy,
