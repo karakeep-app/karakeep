@@ -580,6 +580,38 @@ describe("extractInstagramContent (page)", () => {
     );
   });
 
+  it("falls back to yt-dlp audio when the direct video has no audio stream", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    const transcribeAudio = vi.fn(async () => "from dash audio");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    vi.mocked(execa).mockImplementation((async (
+      file: string,
+      args: string[],
+    ) => {
+      if (file === "ffmpeg") {
+        throw new Error(
+          "Command failed with exit code 1: ffmpeg ...\nOutput file #0 does not contain any stream",
+        );
+      }
+      // yt-dlp audio pass: drop one mp3 into -o's directory
+      const outBase = args[args.indexOf("-o") + 1];
+      await writeFile(join(dirname(outBase), "NA-ABC123.mp3"), "audio");
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.transcript).toBe("from dash audio");
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 1 });
+    const files = vi.mocked(execa).mock.calls.map((c) => c[0]);
+    expect(files).toEqual(["ffmpeg", "yt-dlp"]);
+  });
+
   it("falls back to yt-dlp when the page carries no post data", async () => {
     servePage("<html><body>log in to continue</body></html>");
     vi.mocked(execa).mockImplementation((async (

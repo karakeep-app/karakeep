@@ -502,7 +502,7 @@ async function extractFromPage(
   logger.info(
     `[Crawler][${jobId}] Read Instagram post ${media.code} from its page: ${images.length} image(s), ${videos.length} video(s)`,
   );
-  const video =
+  let video =
     serverConfig.crawler.instagramTranscribe && videos.length > 0
       ? await transcribeInstagramVideos(
           videos.map((v) => v.videoUrl!),
@@ -511,6 +511,23 @@ async function extractFromPage(
           abortSignal,
         )
       : { transcript: "", transcribed: 0 };
+  // Some posts expose a video-only track in video_versions (audio is a
+  // separate DASH stream), so ffmpeg finds nothing to transcribe. yt-dlp's
+  // bestaudio selector reaches that separate track, anonymously.
+  if (video.transcribed < videos.length) {
+    logger.info(
+      `[Crawler][${jobId}] ${videos.length - video.transcribed} video(s) yielded no transcript; retrying via yt-dlp audio`,
+    );
+    const viaYtDlp = await transcribeInstagramAudio(
+      url,
+      jobId,
+      runProxy,
+      abortSignal,
+    );
+    if (viaYtDlp && viaYtDlp.length > video.transcript.length) {
+      video = { transcript: viaYtDlp, transcribed: videos.length };
+    }
+  }
   const imageTexts =
     images.length > 0
       ? await describeInstagramImages(images, jobId, runProxy, abortSignal)
