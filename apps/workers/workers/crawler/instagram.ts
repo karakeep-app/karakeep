@@ -225,13 +225,13 @@ export async function transcribeInstagramAudio(
   jobId: string,
   runProxy: RunProxyConfig,
   abortSignal: AbortSignal,
-): Promise<string> {
+): Promise<{ transcript: string; transcribed: number }> {
   const inferenceClient = InferenceClientFactory.build();
   if (!inferenceClient) {
     logger.info(
       `[Crawler][${jobId}] No inference client configured; skipping Instagram transcription`,
     );
-    return "";
+    return { transcript: "", transcribed: 0 };
   }
   const maxDuration = serverConfig.crawler.instagramTranscribeMaxDurationSec;
   const dir = await mkdtemp(join(tmpdir(), "karakeep-ig-audio-"));
@@ -273,7 +273,7 @@ export async function transcribeInstagramAudio(
       .filter((f) => f.endsWith(".mp3"))
       .sort();
     if (audioFiles.length === 0) {
-      return "";
+      return { transcript: "", transcribed: 0 };
     }
     logger.info(
       `[Crawler][${jobId}] Transcribing ${audioFiles.length} audio track(s) for "${url}"`,
@@ -297,12 +297,15 @@ export async function transcribeInstagramAudio(
         );
       }
     }
-    return transcripts.join("\n\n");
+    return {
+      transcript: transcripts.join("\n\n"),
+      transcribed: transcripts.length,
+    };
   } catch (e) {
     logger.warn(
       `[Crawler][${jobId}] Instagram transcription failed for "${url}": ${e}`,
     );
-    return "";
+    return { transcript: "", transcribed: 0 };
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -514,7 +517,10 @@ async function extractFromPage(
   // Some posts expose a video-only track in video_versions (audio is a
   // separate DASH stream), so ffmpeg finds nothing to transcribe. yt-dlp's
   // bestaudio selector reaches that separate track, anonymously.
-  if (video.transcribed < videos.length) {
+  if (
+    serverConfig.crawler.instagramTranscribe &&
+    video.transcribed < videos.length
+  ) {
     logger.info(
       `[Crawler][${jobId}] ${videos.length - video.transcribed} video(s) yielded no transcript; retrying via yt-dlp audio`,
     );
@@ -524,8 +530,11 @@ async function extractFromPage(
       runProxy,
       abortSignal,
     );
-    if (viaYtDlp && viaYtDlp.length > video.transcript.length) {
-      video = { transcript: viaYtDlp, transcribed: videos.length };
+    if (
+      viaYtDlp.transcript &&
+      viaYtDlp.transcript.length > video.transcript.length
+    ) {
+      video = viaYtDlp;
     }
   }
   const imageTexts =
@@ -608,12 +617,9 @@ async function extractWithYtDlp(
     // speech-to-text is what makes a reel's spoken words searchable at all;
     // the check still honours a subtitle track if Instagram ever returns one.
     if (!content.transcript && serverConfig.crawler.instagramTranscribe) {
-      content.transcript = await transcribeInstagramAudio(
-        url,
-        jobId,
-        runProxy,
-        abortSignal,
-      );
+      content.transcript = (
+        await transcribeInstagramAudio(url, jobId, runProxy, abortSignal)
+      ).transcript;
     }
     return content;
   } catch (e) {

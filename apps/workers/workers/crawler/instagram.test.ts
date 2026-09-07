@@ -288,7 +288,7 @@ describe("transcribeInstagramAudio", () => {
         proxy,
         signal,
       ),
-    ).toBe("");
+    ).toEqual({ transcript: "", transcribed: 0 });
     expect(transcribe).not.toHaveBeenCalled();
   });
 
@@ -302,7 +302,7 @@ describe("transcribeInstagramAudio", () => {
         proxy,
         signal,
       ),
-    ).toBe("spoken words");
+    ).toEqual({ transcript: "spoken words", transcribed: 1 });
   });
 
   it("joins tracks of a mixed carousel in item order", async () => {
@@ -322,7 +322,10 @@ describe("transcribeInstagramAudio", () => {
         proxy,
         signal,
       ),
-    ).toBe("text of 1-A.mp3\n\ntext of 10-C.mp3\n\ntext of 2-B.mp3");
+    ).toEqual({
+      transcript: "text of 1-A.mp3\n\ntext of 10-C.mp3\n\ntext of 2-B.mp3",
+      transcribed: 3,
+    });
   });
 
   it("keeps the other tracks when one fails to transcribe", async () => {
@@ -340,7 +343,7 @@ describe("transcribeInstagramAudio", () => {
         proxy,
         signal,
       ),
-    ).toBe("text of 1-A.mp3");
+    ).toEqual({ transcript: "text of 1-A.mp3", transcribed: 1 });
   });
 
   it("still transcribes what downloaded when yt-dlp exits non-zero", async () => {
@@ -362,7 +365,7 @@ describe("transcribeInstagramAudio", () => {
         proxy,
         signal,
       ),
-    ).toBe("spoken words");
+    ).toEqual({ transcript: "spoken words", transcribed: 1 });
   });
 
   it("skips transcription when no inference client is configured", async () => {
@@ -375,7 +378,7 @@ describe("transcribeInstagramAudio", () => {
         proxy,
         signal,
       ),
-    ).toBe("");
+    ).toEqual({ transcript: "", transcribed: 0 });
     // No point paying for the download either.
     expect(execa).not.toHaveBeenCalled();
   });
@@ -429,6 +432,37 @@ function carouselHtml(): string {
             code: "ABC123",
             media_type: 1,
             image_versions2: { candidates: [{ url: "https://cdn/3.jpg" }] },
+          },
+        ],
+      },
+    ],
+  };
+  return `<html><script type="application/json" data-sjs>${JSON.stringify(payload)}</script></html>`;
+}
+
+/** A carousel with two videos and no images, for partial-recovery tests. */
+function twoVideoCarouselHtml(): string {
+  const payload = {
+    items: [
+      {
+        code: "ABC123",
+        media_type: 8,
+        taken_at: 1787181237,
+        caption: { text: "carousel caption" },
+        user: { username: "someuser", full_name: "Some User" },
+        image_versions2: { candidates: [{ url: "https://cdn/cover.jpg" }] },
+        carousel_media: [
+          {
+            code: "ABC123",
+            media_type: 2,
+            image_versions2: { candidates: [{ url: "https://cdn/2.jpg" }] },
+            video_versions: [{ url: "https://cdn/2.mp4" }],
+          },
+          {
+            code: "ABC123",
+            media_type: 2,
+            image_versions2: { candidates: [{ url: "https://cdn/3.jpg" }] },
+            video_versions: [{ url: "https://cdn/3.mp4" }],
           },
         ],
       },
@@ -610,6 +644,54 @@ describe("extractInstagramContent (page)", () => {
     expect(content?.stats?.videos).toEqual({ expected: 1, got: 1 });
     const files = vi.mocked(execa).mock.calls.map((c) => c[0]);
     expect(files).toEqual(["ffmpeg", "yt-dlp"]);
+  });
+
+  it("does not run the yt-dlp audio fallback when transcription is off", async () => {
+    serverConfig.crawler.instagramTranscribe = false;
+    const transcribeAudio = vi.fn(async () => "should not happen");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(execa).not.toHaveBeenCalled();
+    expect(content?.transcript).toBe("");
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 0 });
+  });
+
+  it("marks the post partial when the fallback recovers fewer tracks than videos", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    const transcribeAudio = vi.fn(async () => "from dash audio");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(twoVideoCarouselHtml());
+    vi.mocked(execa).mockImplementation((async (
+      file: string,
+      args: string[],
+    ) => {
+      if (file === "ffmpeg") {
+        throw new Error(
+          "Command failed with exit code 1: ffmpeg ...\nOutput file #0 does not contain any stream",
+        );
+      }
+      // yt-dlp only recovers one of the two tracks.
+      const outBase = args[args.indexOf("-o") + 1];
+      await writeFile(join(dirname(outBase), "1-A.mp3"), "audio");
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.stats?.videos).toEqual({ expected: 2, got: 1 });
+    expect(extractionStatus(content!.stats!)).toBe("partial");
   });
 
   it("falls back to yt-dlp when the page carries no post data", async () => {
