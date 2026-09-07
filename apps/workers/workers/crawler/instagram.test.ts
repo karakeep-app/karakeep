@@ -1,14 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 vi.mock("execa", () => ({ execa: vi.fn() }));
+vi.mock("network", () => ({ fetchWithProxy: vi.fn() }));
 vi.mock("@karakeep/shared/inference", () => ({
   InferenceClientFactory: { build: vi.fn() },
 }));
 
 import { execa } from "execa";
+import { fetchWithProxy } from "network";
 
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
@@ -19,6 +21,7 @@ import {
   isInstagramUrl,
   parseInstagramDump,
   parseVtt,
+  privateYtDlpArgs,
   transcribeInstagramAudio,
 } from "./instagram";
 
@@ -182,7 +185,7 @@ describe("parseInstagramDump", () => {
   });
 });
 
-describe("extractInstagramContent", () => {
+describe("extractInstagramContent (yt-dlp fallback)", () => {
   const proxy = {
     httpProxy: undefined,
     httpsProxy: undefined,
@@ -192,6 +195,9 @@ describe("extractInstagramContent", () => {
 
   beforeEach(() => {
     vi.mocked(execa).mockReset();
+    // No page data reachable: every case below must go through yt-dlp.
+    vi.mocked(fetchWithProxy).mockReset();
+    vi.mocked(fetchWithProxy).mockRejectedValue(new Error("offline"));
   });
 
   it("parses the dump even when yt-dlp exits non-zero", async () => {
@@ -389,5 +395,239 @@ describe("transcribeInstagramAudio", () => {
     // The metadata pass pins --no-playlist; this one must not, or the videos
     // inside a carousel are unreachable.
     expect(args).not.toContain("--no-playlist");
+  });
+});
+
+/** A page carrying one carousel: an image with alt text, a video, a bare image. */
+function carouselHtml(): string {
+  const payload = {
+    items: [
+      {
+        code: "ABC123",
+        media_type: 8,
+        taken_at: 1787181237,
+        caption: { text: "carousel caption" },
+        user: { username: "someuser", full_name: "Some User" },
+        image_versions2: { candidates: [{ url: "https://cdn/cover.jpg" }] },
+        carousel_media: [
+          {
+            code: "ABC123",
+            media_type: 1,
+            accessibility_caption:
+              "Photo by Some User on August 19, 2026. May be an image of text",
+            image_versions2: { candidates: [{ url: "https://cdn/1.jpg" }] },
+          },
+          {
+            code: "ABC123",
+            media_type: 2,
+            image_versions2: { candidates: [{ url: "https://cdn/2.jpg" }] },
+            video_versions: [{ url: "https://cdn/2.mp4" }],
+          },
+          {
+            code: "ABC123",
+            media_type: 1,
+            image_versions2: { candidates: [{ url: "https://cdn/3.jpg" }] },
+          },
+        ],
+      },
+    ],
+  };
+  return `<html><script type="application/json" data-sjs>${JSON.stringify(payload)}</script></html>`;
+}
+
+/** Route the mocked fetch: the post page, CDN images, CDN video. */
+function servePage(html: string) {
+  vi.mocked(fetchWithProxy).mockImplementation((async (url: string) => {
+    if (url.startsWith("https://www.instagram.com/")) {
+      return new Response(html, {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      });
+    }
+    if (url.endsWith(".jpg")) {
+      return new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { "content-type": "image/jpeg" },
+      });
+    }
+    if (url.endsWith(".mp4")) {
+      return new Response(new Uint8Array([9, 9, 9]), { status: 200 });
+    }
+    throw new Error(`unexpected fetch ${url}`);
+  }) as unknown as typeof fetchWithProxy);
+}
+
+describe("extractInstagramContent (page)", () => {
+  const proxy = {
+    httpProxy: undefined,
+    httpsProxy: undefined,
+    noProxy: undefined,
+  };
+  const signal = new AbortController().signal;
+  const saved = { ...serverConfig.crawler };
+
+  beforeEach(() => {
+    vi.mocked(execa).mockReset();
+    vi.mocked(fetchWithProxy).mockReset();
+    vi.mocked(InferenceClientFactory.build).mockReset();
+    vi.mocked(InferenceClientFactory.build).mockReturnValue(null);
+    serverConfig.crawler.instagramTranscribe = false;
+    serverConfig.crawler.instagramDescribeImages = false;
+  });
+
+  afterEach(() => {
+    Object.assign(serverConfig.crawler, saved);
+  });
+
+  it("reads caption, author, date and image alt text without yt-dlp", async () => {
+    servePage(carouselHtml());
+    expect(
+      await extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toEqual({
+      caption: "carousel caption",
+      transcript: "",
+      images: ["May be an image of text", ""],
+      author: "Some User",
+      date: "20260819",
+    });
+    expect(execa).not.toHaveBeenCalled();
+  });
+
+  it("appends OCR text to each image when image description is on", async () => {
+    serverConfig.crawler.instagramDescribeImages = true;
+    const inferFromImage = vi.fn(async (_p: string, ct: string) => ({
+      response: `text in ${ct}`,
+      totalTokens: 1,
+    }));
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      inferFromImage,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.images).toEqual([
+      "May be an image of text — text in image/jpeg",
+      "text in image/jpeg",
+    ]);
+    // Only the two images were sent to the model, never the video poster.
+    expect(inferFromImage).toHaveBeenCalledTimes(2);
+  });
+
+  it("caps the number of images sent to the model", async () => {
+    serverConfig.crawler.instagramDescribeImages = true;
+    serverConfig.crawler.instagramMaxImages = 1;
+    const inferFromImage = vi.fn(async () => ({
+      response: "ocr",
+      totalTokens: 1,
+    }));
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      inferFromImage,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(inferFromImage).toHaveBeenCalledTimes(1);
+    // The alt text of the image past the cap is still kept.
+    expect(content?.images).toEqual(["May be an image of text — ocr", ""]);
+  });
+
+  it("transcribes the videos in the post through ffmpeg, not yt-dlp", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    const transcribeAudio = vi.fn(async () => "spoken words");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    vi.mocked(execa).mockImplementation((async (
+      file: string,
+      args: string[],
+    ) => {
+      expect(file).toBe("ffmpeg");
+      await writeFile(args[args.length - 1], "mp3");
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.transcript).toBe("spoken words");
+    expect(execa).toHaveBeenCalledTimes(1);
+    const args = vi.mocked(execa).mock.calls[0][1] as string[];
+    expect(args[args.indexOf("-t") + 1]).toBe(
+      String(serverConfig.crawler.instagramTranscribeMaxDurationSec),
+    );
+  });
+
+  it("falls back to yt-dlp when the page carries no post data", async () => {
+    servePage("<html><body>log in to continue</body></html>");
+    vi.mocked(execa).mockImplementation((async (
+      _file: string,
+      args: string[],
+    ) => {
+      const outBase = args[args.indexOf("-o") + 1];
+      await writeFile(
+        join(dirname(outBase), "ig.info.json"),
+        JSON.stringify({ description: "from yt-dlp" }),
+      );
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.caption).toBe("from yt-dlp");
+    expect(content?.images).toBeUndefined();
+  });
+});
+
+describe("privateYtDlpArgs", () => {
+  const saved = [...serverConfig.crawler.ytDlpArguments];
+  let dir: string;
+  let jar: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), "ig-cookies-"));
+    jar = join(dir, "master.txt");
+    await writeFile(jar, "# Netscape HTTP Cookie File\nsession");
+  });
+
+  afterEach(async () => {
+    serverConfig.crawler.ytDlpArguments = saved;
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("points yt-dlp at a copy so the configured jar is never rewritten", async () => {
+    serverConfig.crawler.ytDlpArguments = ["--cookies", jar, "--verbose"];
+    const workDir = await mkdtemp(join(tmpdir(), "ig-work-"));
+    try {
+      const args = await privateYtDlpArgs(workDir);
+      expect(args[0]).toBe("--cookies");
+      expect(args[1]).not.toBe(jar);
+      expect(dirname(args[1])).toBe(workDir);
+      expect(args[2]).toBe("--verbose");
+      expect(await readFile(args[1], "utf8")).toBe(await readFile(jar, "utf8"));
+    } finally {
+      await rm(workDir, { recursive: true, force: true });
+    }
+  });
+
+  it("passes arguments through when there is no cookie jar", async () => {
+    serverConfig.crawler.ytDlpArguments = ["--verbose"];
+    expect(await privateYtDlpArgs(dir)).toEqual(["--verbose"]);
   });
 });

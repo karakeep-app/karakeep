@@ -1,20 +1,40 @@
-import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import {
+  copyFile,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { execa } from "execa";
+import { join } from "node:path";
 import { eq } from "drizzle-orm";
+import { execa } from "execa";
 import type { RunProxyConfig } from "network";
-import logger from "@karakeep/shared/logger";
-import serverConfig from "@karakeep/shared/config";
+import { fetchWithProxy } from "network";
+
 import { db } from "@karakeep/db";
 import { bookmarkLinks } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
+import type { InferenceClient } from "@karakeep/shared/inference";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
+import logger from "@karakeep/shared/logger";
+import { buildOCRPrompt } from "@karakeep/shared/prompts";
+
+import type { InstagramMediaItem } from "./instagramPage";
+import { fetchInstagramPage, parseInstagramPage } from "./instagramPage";
 
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
 export interface InstagramContent {
   caption: string;
   transcript: string;
+  /**
+   * One entry per image in the post, in order: Instagram's alt text plus any
+   * OCR'd text. Empty string for an image that yielded nothing. Absent on the
+   * yt-dlp fallback path, which cannot see images at all.
+   */
+  images?: string[];
   author: string | null;
   date: string | null;
 }
@@ -31,6 +51,15 @@ export function composeInstagramHtml(content: InstagramContent): string {
   if (content.transcript) {
     parts.push(`<h2>Transcript</h2>`);
     parts.push(`<p>${escapeHtml(content.transcript)}</p>`);
+  }
+  const images = (content.images ?? [])
+    .map((text, i) => ({ n: i + 1, text }))
+    .filter(({ text }) => text);
+  if (images.length > 0) {
+    parts.push(`<h2>Images</h2>`);
+    for (const { n, text } of images) {
+      parts.push(`<p>[${n}] ${escapeHtml(text)}</p>`);
+    }
   }
   const footer = [content.author, content.date].filter(Boolean).join(" · ");
   if (footer) {
@@ -113,11 +142,44 @@ export async function parseInstagramDump(
 }
 
 /**
- * Pull the audio of every video in an Instagram post and transcribe it.
- *
- * Instagram serves no subtitles to yt-dlp (`--write-auto-subs` yields nothing
- * for every post type), so the only way to get spoken words is to fetch the
- * audio and run speech-to-text over it ourselves.
+ * yt-dlp rewrites the cookie jar it is given when it exits, and Instagram's
+ * response to a burst of requests can be a Set-Cookie that drops the session
+ * — after which the jar on disk is logged out for good. Hand yt-dlp a private
+ * copy inside the job's temp dir instead, so the configured jar is only ever
+ * read. Any `--cookies <path>` in CRAWLER_YTDLP_ARGS is redirected; other
+ * arguments pass through untouched.
+ */
+export async function privateYtDlpArgs(dir: string): Promise<string[]> {
+  const args = [...serverConfig.crawler.ytDlpArguments];
+  const i = args.indexOf("--cookies");
+  if (i === -1 || i + 1 >= args.length) {
+    return args;
+  }
+  const copy = join(dir, "cookies.txt");
+  try {
+    await copyFile(args[i + 1], copy);
+    args[i + 1] = copy;
+  } catch (e) {
+    // A missing or unreadable jar is a configuration problem yt-dlp will
+    // report on its own; don't mask it by silently running without cookies.
+    logger.warn(`[Crawler] Could not copy the yt-dlp cookie jar: ${e}`);
+  }
+  return args;
+}
+
+async function transcribeAudioFile(
+  client: InferenceClient,
+  path: string,
+  name: string,
+): Promise<string | null> {
+  const audio = await readFile(path);
+  return await client.transcribeAudio(audio, name);
+}
+
+/**
+ * Pull the audio of every video in an Instagram post via yt-dlp and
+ * transcribe it. This is the fallback path, used when the page could not be
+ * read directly.
  *
  * Unlike the metadata pass this one deliberately omits `--no-playlist`: a
  * carousel can mix images and videos, and the videos in it have to be reached.
@@ -160,7 +222,7 @@ export async function transcribeInstagramAudio(
       // unique and sorting them reproduces the order items appear in the post.
       "-o",
       join(dir, "%(playlist_index)s-%(id)s.%(ext)s"),
-      ...serverConfig.crawler.ytDlpArguments,
+      ...(await privateYtDlpArgs(dir)),
       ...(proxy ? ["--proxy", proxy] : []),
       "--",
       url,
@@ -191,8 +253,11 @@ export async function transcribeInstagramAudio(
     for (const file of audioFiles) {
       abortSignal.throwIfAborted();
       try {
-        const audio = await readFile(join(dir, file));
-        const text = await inferenceClient.transcribeAudio(audio, file);
+        const text = await transcribeAudioFile(
+          inferenceClient,
+          join(dir, file),
+          file,
+        );
         if (text) {
           transcripts.push(text);
         }
@@ -214,18 +279,228 @@ export async function transcribeInstagramAudio(
   }
 }
 
-export async function extractInstagramContent(
+/**
+ * Transcribe videos whose direct URLs the page handed us. No yt-dlp and no
+ * cookies: the CDN serves public media to anyone. ffmpeg strips the audio
+ * track; `-t` caps the duration so a long video cannot run up the bill.
+ */
+export async function transcribeInstagramVideos(
+  videoUrls: string[],
+  jobId: string,
+  runProxy: RunProxyConfig,
+  abortSignal: AbortSignal,
+): Promise<string> {
+  const inferenceClient = InferenceClientFactory.build();
+  if (!inferenceClient) {
+    logger.info(
+      `[Crawler][${jobId}] No inference client configured; skipping Instagram transcription`,
+    );
+    return "";
+  }
+  const maxBytes = serverConfig.crawler.maxVideoDownloadSize * 1024 * 1024;
+  const maxDuration = serverConfig.crawler.instagramTranscribeMaxDurationSec;
+  const dir = await mkdtemp(join(tmpdir(), "karakeep-ig-video-"));
+  try {
+    logger.info(
+      `[Crawler][${jobId}] Transcribing ${videoUrls.length} video(s) directly`,
+    );
+    const transcripts: string[] = [];
+    for (const [i, videoUrl] of videoUrls.entries()) {
+      abortSignal.throwIfAborted();
+      try {
+        const response = await fetchWithProxy(
+          videoUrl,
+          {
+            signal: AbortSignal.any([
+              AbortSignal.timeout(
+                serverConfig.crawler.downloadVideoTimeout * 1000,
+              ),
+              abortSignal,
+            ]),
+          },
+          runProxy,
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const video = Buffer.from(await response.arrayBuffer());
+        if (video.byteLength > maxBytes) {
+          logger.warn(
+            `[Crawler][${jobId}] Video ${i + 1} is ${video.byteLength} bytes, over the ${maxBytes} limit; skipping`,
+          );
+          continue;
+        }
+        const mp4 = join(dir, `${i}.mp4`);
+        const mp3 = join(dir, `${i}.mp3`);
+        await writeFile(mp4, video);
+        await execa(
+          "ffmpeg",
+          [
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            mp4,
+            "-vn",
+            "-acodec",
+            "libmp3lame",
+            "-q:a",
+            "5",
+            "-t",
+            String(maxDuration),
+            mp3,
+          ],
+          { cancelSignal: abortSignal, timeout: 120_000 },
+        );
+        const text = await transcribeAudioFile(
+          inferenceClient,
+          mp3,
+          "audio.mp3",
+        );
+        if (text) {
+          transcripts.push(text);
+        }
+      } catch (e) {
+        // One bad video must not cost us the others, nor the caption.
+        logger.warn(
+          `[Crawler][${jobId}] Failed to transcribe video ${i + 1}: ${e}`,
+        );
+      }
+    }
+    return transcripts.join("\n\n");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Turn each image into indexable text. Instagram's alt text comes for free
+ * and already names what is in the picture (and often quotes its text); when
+ * image description is enabled, the image is also run through the same LLM
+ * OCR prompt the asset pipeline uses, which recovers the full text of the
+ * slide-style posts people actually save.
+ *
+ * Returns one string per image, in order; empty when nothing was obtained.
+ */
+export async function describeInstagramImages(
+  images: InstagramMediaItem[],
+  jobId: string,
+  runProxy: RunProxyConfig,
+  abortSignal: AbortSignal,
+): Promise<string[]> {
+  const inferenceClient = serverConfig.crawler.instagramDescribeImages
+    ? InferenceClientFactory.build()
+    : null;
+  const max = serverConfig.crawler.instagramMaxImages;
+  if (images.length > max) {
+    logger.info(
+      `[Crawler][${jobId}] Post has ${images.length} images; describing the first ${max}`,
+    );
+  }
+  const out: string[] = [];
+  for (const [i, image] of images.entries()) {
+    abortSignal.throwIfAborted();
+    const pieces: string[] = [];
+    if (image.altText) {
+      pieces.push(image.altText);
+    }
+    if (inferenceClient && image.imageUrl && i < max) {
+      try {
+        const response = await fetchWithProxy(
+          image.imageUrl,
+          {
+            signal: AbortSignal.any([AbortSignal.timeout(20_000), abortSignal]),
+          },
+          runProxy,
+        );
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const contentType =
+          response.headers.get("content-type")?.split(";")[0] ?? "image/jpeg";
+        const base64 = Buffer.from(await response.arrayBuffer()).toString(
+          "base64",
+        );
+        const ocr = await inferenceClient.inferFromImage(
+          buildOCRPrompt(),
+          contentType,
+          base64,
+          { schema: null, abortSignal },
+        );
+        const text = ocr.response.trim();
+        if (text) {
+          pieces.push(text);
+        }
+      } catch (e) {
+        // Keep the alt text; losing one image's OCR is not worth the post.
+        logger.warn(
+          `[Crawler][${jobId}] Failed to describe image ${i + 1}: ${e}`,
+        );
+      }
+    }
+    out.push(pieces.join(" — "));
+  }
+  return out;
+}
+
+/**
+ * Read the post straight from Instagram's page: caption, author, date, and
+ * every image and video in it. This is the primary path. It needs no cookies
+ * for public posts, and it is the only path that can see carousel images.
+ */
+async function extractFromPage(
   url: string,
   jobId: string,
   runProxy: RunProxyConfig,
   abortSignal: AbortSignal,
 ): Promise<InstagramContent | null> {
-  if (!/^https?:\/\//i.test(url)) {
+  const html = await fetchInstagramPage(url, jobId, runProxy, abortSignal);
+  if (!html) {
+    return null;
+  }
+  const media = parseInstagramPage(html);
+  if (!media) {
     logger.warn(
-      `[Crawler][${jobId}] Refusing non-http(s) Instagram URL "${url}"`,
+      `[Crawler][${jobId}] Instagram page for "${url}" carried no post data`,
     );
     return null;
   }
+  const videos = media.items.filter((i) => i.kind === "video" && i.videoUrl);
+  const images = media.items.filter((i) => i.kind === "image" && i.imageUrl);
+  logger.info(
+    `[Crawler][${jobId}] Read Instagram post ${media.code} from its page: ${images.length} image(s), ${videos.length} video(s)`,
+  );
+  return {
+    caption: media.caption,
+    transcript:
+      serverConfig.crawler.instagramTranscribe && videos.length > 0
+        ? await transcribeInstagramVideos(
+            videos.map((v) => v.videoUrl!),
+            jobId,
+            runProxy,
+            abortSignal,
+          )
+        : "",
+    images:
+      images.length > 0
+        ? await describeInstagramImages(images, jobId, runProxy, abortSignal)
+        : [],
+    author: media.author,
+    date: media.date,
+  };
+}
+
+/**
+ * Fallback: metadata via yt-dlp. Kept for the day Instagram stops serving
+ * post data to anonymous page requests; with a cookie jar configured this
+ * path can still read what the page cannot.
+ */
+async function extractWithYtDlp(
+  url: string,
+  jobId: string,
+  runProxy: RunProxyConfig,
+  abortSignal: AbortSignal,
+): Promise<InstagramContent | null> {
   const dir = await mkdtemp(join(tmpdir(), "karakeep-ig-"));
   try {
     const proxy = runProxy.httpsProxy ?? runProxy.httpProxy;
@@ -240,7 +515,7 @@ export async function extractInstagramContent(
       "--no-playlist",
       "-o",
       join(dir, "ig"),
-      ...serverConfig.crawler.ytDlpArguments,
+      ...(await privateYtDlpArgs(dir)),
       ...(proxy ? ["--proxy", proxy] : []),
       "--",
       url,
@@ -292,6 +567,32 @@ export async function extractInstagramContent(
   }
 }
 
+export async function extractInstagramContent(
+  url: string,
+  jobId: string,
+  runProxy: RunProxyConfig,
+  abortSignal: AbortSignal,
+): Promise<InstagramContent | null> {
+  if (!/^https?:\/\//i.test(url)) {
+    logger.warn(
+      `[Crawler][${jobId}] Refusing non-http(s) Instagram URL "${url}"`,
+    );
+    return null;
+  }
+  try {
+    const fromPage = await extractFromPage(url, jobId, runProxy, abortSignal);
+    if (fromPage) {
+      return fromPage;
+    }
+  } catch (e) {
+    logger.warn(
+      `[Crawler][${jobId}] Reading the Instagram page for "${url}" failed: ${e}`,
+    );
+  }
+  logger.info(`[Crawler][${jobId}] Falling back to yt-dlp for "${url}"`);
+  return await extractWithYtDlp(url, jobId, runProxy, abortSignal);
+}
+
 export async function handleInstagramBookmark(args: {
   url: string;
   jobId: string;
@@ -312,10 +613,13 @@ export async function handleInstagramBookmark(args: {
     );
     return false;
   }
-  // A transcript-only reel has no caption. Only set the columns we have a
-  // value for: passing null would overwrite a title/author stored by an
-  // earlier crawl or set by the user.
-  const summary = content.caption || content.transcript;
+  // A transcript-only reel has no caption, and a slide deck may have neither.
+  // Only set the columns we have a value for: passing null would overwrite a
+  // title/author stored by an earlier crawl or set by the user.
+  const summary =
+    content.caption ||
+    content.transcript ||
+    (content.images ?? []).filter(Boolean).join(" ");
   await db
     .update(bookmarkLinks)
     .set({
