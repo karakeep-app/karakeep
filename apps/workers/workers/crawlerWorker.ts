@@ -397,11 +397,12 @@ async function runCrawler(
         abortSignal: job.abortSignal,
       });
     } catch (e) {
-      // A rate-limit or an empty answer from Instagram is worth another run;
-      // rethrow on every attempt so the queue's own retry schedule handles
-      // the pacing. On the last attempt (numRetriesLeft == 0) this same
-      // rethrow reaches the runner's onError handler, which already sets
-      // crawlStatus: "failure" there — no separate "give up" path needed.
+      // A rate-limit or an empty answer from Instagram is worth another run,
+      // and once the retries run out the bookmark ends as crawlStatus:
+      // "failure". Rethrowing on every attempt is what gets both: the queue's
+      // own schedule paces the retries, and on the last one (numRetriesLeft
+      // == 0) the same rethrow reaches the runner's onError handler, which
+      // sets that "failure" — no separate "give up" path needed.
       if (e instanceof InstagramTransientError) {
         throw e;
       }

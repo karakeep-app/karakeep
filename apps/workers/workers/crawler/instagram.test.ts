@@ -477,6 +477,37 @@ function twoImageCarouselWithAltTextHtml(): string {
   return `<html><script type="application/json" data-sjs>${JSON.stringify(payload)}</script></html>`;
 }
 
+/** A carousel with two images and no video; the second carries no alt text. */
+function imageOnlyCarouselHtml(): string {
+  const payload = {
+    items: [
+      {
+        code: "ABC123",
+        media_type: 8,
+        taken_at: 1787181237,
+        caption: { text: "carousel caption" },
+        user: { username: "someuser", full_name: "Some User" },
+        image_versions2: { candidates: [{ url: "https://cdn/cover.jpg" }] },
+        carousel_media: [
+          {
+            code: "ABC123",
+            media_type: 1,
+            accessibility_caption:
+              "Photo by Some User on August 19, 2026. first alt text",
+            image_versions2: { candidates: [{ url: "https://cdn/1.jpg" }] },
+          },
+          {
+            code: "ABC123",
+            media_type: 1,
+            image_versions2: { candidates: [{ url: "https://cdn/2.jpg" }] },
+          },
+        ],
+      },
+    ],
+  };
+  return `<html><script type="application/json" data-sjs>${JSON.stringify(payload)}</script></html>`;
+}
+
 /** A carousel with two videos and no images, for partial-recovery tests. */
 function twoVideoCarouselHtml(): string {
   const payload = {
@@ -569,7 +600,7 @@ describe("extractInstagramContent (page)", () => {
       date: "20260819",
       stats: {
         path: "page",
-        images: { expected: 2, got: 1 },
+        images: { expected: 2, got: 2 },
         videos: { expected: 1, got: 0 },
       },
     });
@@ -814,7 +845,8 @@ describe("extractInstagramContent (page)", () => {
       "first alt text — first",
       "second alt text",
     ]);
-    expect(content?.stats?.images).toEqual({ expected: 2, got: 2 });
+    // The second image's alt text is kept, but nothing was processed for it.
+    expect(content?.stats?.images).toEqual({ expected: 2, got: 1 });
   });
 
   it("does not retry via yt-dlp audio when the job is aborted mid-transcription", async () => {
@@ -942,6 +974,83 @@ describe("extractInstagramContent (page)", () => {
     );
     expect(content?.transcript).toBe("spoken words");
     expect(content?.stats?.videos).toEqual({ expected: 1, got: 1 });
+  });
+
+  it("skips a video whose body streams past the limit and never runs ffmpeg", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    serverConfig.crawler.maxVideoDownloadSize = 1; // MB
+    const transcribeAudio = vi.fn(async () => "x");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    vi.mocked(fetchWithProxy).mockImplementation((async (url: string) => {
+      if (url.startsWith("https://www.instagram.com/"))
+        return new Response(carouselHtml(), { status: 200 });
+      if (url.endsWith(".mp4")) {
+        // No content-length at all: only counting the bytes as they arrive
+        // can stop this 2 MB body against the 1 MB cap.
+        const chunk = Buffer.alloc(512 * 1024);
+        return new NodeFetchResponse(
+          Readable.from([chunk, chunk, chunk, chunk]),
+          { status: 200 },
+        );
+      }
+      return new Response(new Uint8Array([1]), {
+        status: 200,
+        headers: { "content-type": "image/jpeg" },
+      });
+    }) as unknown as typeof fetchWithProxy);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(execa).not.toHaveBeenCalled();
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 0 });
+  });
+
+  it("does not fall back to yt-dlp when ffmpeg fails for another reason", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    const transcribeAudio = vi.fn(async () => "should not happen");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    vi.mocked(execa).mockImplementation((async (file: string) => {
+      if (file === "ffmpeg") {
+        throw new Error(
+          "Command failed with exit code 1: ffmpeg ...\nInvalid data found when processing input",
+        );
+      }
+      throw new Error(`unexpected execa call: ${file}`);
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(vi.mocked(execa).mock.calls.map((c) => c[0])).toEqual(["ffmpeg"]);
+    expect(content?.transcript).toBe("");
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 0 });
+  });
+
+  it("counts an image with no alt text as processed when OCR is off", async () => {
+    servePage(imageOnlyCarouselHtml());
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.images).toEqual(["first alt text", ""]);
+    expect(content?.stats).toEqual({
+      path: "page",
+      images: { expected: 2, got: 2 },
+      videos: { expected: 0, got: 0 },
+    });
+    expect(extractionStatus(content!.stats!)).toBe("ok");
   });
 });
 

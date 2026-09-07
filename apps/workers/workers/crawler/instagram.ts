@@ -1,17 +1,9 @@
 import { createWriteStream } from "node:fs";
-import {
-  copyFile,
-  mkdtemp,
-  readdir,
-  readFile,
-  rm,
-  stat,
-} from "node:fs/promises";
+import { copyFile, mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { Readable } from "node:stream";
+import { Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import type { RunProxyConfig } from "network";
@@ -65,12 +57,20 @@ export function extractionStatus(
 }
 
 /**
+ * The one rendering of a stats tuple, shared by the htmlContent marker and the
+ * `[ig]` log line so an operator greps the same fields in both places.
+ */
+function statsSegment(stats: InstagramExtractionStats): string {
+  return `path=${stats.path} images=${stats.images.got}/${stats.images.expected} videos=${stats.videos.got}/${stats.videos.expected} status=${extractionStatus(stats)}`;
+}
+
+/**
  * Machine-readable trailer for htmlContent. The homelab health probe greps
  * this to count partial extractions; it is an HTML comment so the UI never
  * shows it and the search index ignores it.
  */
 export function instagramMarker(stats: InstagramExtractionStats): string {
-  return `<!-- karakeep-ig path=${stats.path} images=${stats.images.got}/${stats.images.expected} videos=${stats.videos.got}/${stats.videos.expected} status=${extractionStatus(stats)} -->`;
+  return `<!-- karakeep-ig ${statsSegment(stats)} -->`;
 }
 
 function escapeHtml(s: string): string {
@@ -319,6 +319,32 @@ export async function transcribeInstagramAudio(
   }
 }
 
+export interface InstagramVideoTranscription {
+  transcript: string;
+  transcribed: number;
+  /**
+   * Videos whose media carries no audio track at all — Instagram serves the
+   * audio of some posts as a separate DASH stream, which ffmpeg cannot see.
+   * Only those are worth a second, more expensive attempt via yt-dlp.
+   */
+  noAudioStream: number;
+}
+
+/** Sentinel for the mid-stream size guard; never surfaces to the operator. */
+const OVER_LIMIT = "instagram video exceeds the download limit";
+
+/**
+ * ffmpeg's way of saying the input had nothing it could extract. execa puts
+ * the failure in `message`, and the raw text in `stderr`; check both.
+ */
+function hasNoAudioStream(e: unknown): boolean {
+  const err = e as { message?: unknown; stderr?: unknown } | null;
+  const text = `${typeof err?.message === "string" ? err.message : ""}\n${
+    typeof err?.stderr === "string" ? err.stderr : ""
+  }`;
+  return /does not contain any stream/i.test(text);
+}
+
 /**
  * Transcribe videos whose direct URLs the page handed us. No yt-dlp and no
  * cookies: the CDN serves public media to anyone. ffmpeg strips the audio
@@ -329,13 +355,13 @@ export async function transcribeInstagramVideos(
   jobId: string,
   runProxy: RunProxyConfig,
   abortSignal: AbortSignal,
-): Promise<{ transcript: string; transcribed: number }> {
+): Promise<InstagramVideoTranscription> {
   const inferenceClient = InferenceClientFactory.build();
   if (!inferenceClient) {
     logger.info(
       `[Crawler][${jobId}] No inference client configured; skipping Instagram transcription`,
     );
-    return { transcript: "", transcribed: 0 };
+    return { transcript: "", transcribed: 0, noAudioStream: 0 };
   }
   const maxBytes = serverConfig.crawler.maxVideoDownloadSize * 1024 * 1024;
   const maxDuration = serverConfig.crawler.instagramTranscribeMaxDurationSec;
@@ -345,6 +371,7 @@ export async function transcribeInstagramVideos(
       `[Crawler][${jobId}] Transcribing ${videoUrls.length} video(s) directly`,
     );
     const transcripts: string[] = [];
+    let noAudioStream = 0;
     for (const [i, videoUrl] of videoUrls.entries()) {
       if (abortSignal.aborted) break;
       try {
@@ -370,25 +397,37 @@ export async function transcribeInstagramVideos(
           );
           continue;
         }
+        if (!response.body) throw new Error("empty body");
         const mp4 = join(dir, `${i}.mp4`);
         const mp3 = join(dir, `${i}.mp3`);
-        const body = response.body as unknown;
-        if (!body) throw new Error("empty body");
-        // fetchWithProxy is backed by node-fetch v3 today, whose Response.body
-        // is already a Node Readable; a Web ReadableStream (as our tests mock,
-        // and as a future move to undici/global fetch would return) needs
-        // Readable.fromWeb first. Duck-type on `.pipe` to accept either.
-        const source =
-          typeof (body as { pipe?: unknown }).pipe === "function"
-            ? (body as NodeJS.ReadableStream)
-            : Readable.fromWeb(body as NodeReadableStream<Uint8Array>);
-        await pipeline(source, createWriteStream(mp4));
-        const { size } = await stat(mp4);
-        if (size > maxBytes) {
-          logger.warn(
-            `[Crawler][${jobId}] Video ${i + 1} is ${size} bytes, over the ${maxBytes} limit; skipping`,
-          );
-          continue;
+        // A missing or lying content-length is the norm on the CDN, so the
+        // cap has to hold mid-stream. Same guard the asset downloader uses
+        // (assetStorage.ts, `contentLengthEnforcer`): count the bytes as they
+        // pass and fail the pipeline the moment they go over, so an oversized
+        // body is never read — let alone written out — in full.
+        let bytesRead = 0;
+        const enforcer = new Transform({
+          transform(chunk: Buffer, _encoding, callback) {
+            bytesRead += chunk.length;
+            if (abortSignal.aborted) {
+              callback(new Error("AbortError"));
+            } else if (bytesRead > maxBytes) {
+              callback(new Error(OVER_LIMIT));
+            } else {
+              callback(null, chunk); // pass data along unchanged
+            }
+          },
+        });
+        try {
+          await pipeline(response.body, enforcer, createWriteStream(mp4));
+        } catch (e) {
+          if (e instanceof Error && e.message === OVER_LIMIT) {
+            logger.warn(
+              `[Crawler][${jobId}] Video ${i + 1} streamed past the ${maxBytes} byte limit; skipping`,
+            );
+            continue;
+          }
+          throw e;
         }
         await execa(
           "ffmpeg",
@@ -419,6 +458,9 @@ export async function transcribeInstagramVideos(
         }
       } catch (e) {
         // One bad video must not cost us the others, nor the caption.
+        if (hasNoAudioStream(e)) {
+          noAudioStream += 1;
+        }
         logger.warn(
           `[Crawler][${jobId}] Failed to transcribe video ${i + 1}: ${e}`,
         );
@@ -427,6 +469,7 @@ export async function transcribeInstagramVideos(
     return {
       transcript: transcripts.join("\n\n"),
       transcribed: transcripts.length,
+      noAudioStream,
     };
   } finally {
     await rm(dir, { recursive: true, force: true });
@@ -440,14 +483,16 @@ export async function transcribeInstagramVideos(
  * OCR prompt the asset pipeline uses, which recovers the full text of the
  * slide-style posts people actually save.
  *
- * Returns one string per image, in order; empty when nothing was obtained.
+ * Returns one string per image, in order (empty when that image yielded
+ * nothing), plus how many images were actually processed as configured —
+ * which is what the stats count, not how many happened to end up with text.
  */
 export async function describeInstagramImages(
   images: InstagramMediaItem[],
   jobId: string,
   runProxy: RunProxyConfig,
   abortSignal: AbortSignal,
-): Promise<string[]> {
+): Promise<{ texts: string[]; processed: number }> {
   const inferenceClient = serverConfig.crawler.instagramDescribeImages
     ? InferenceClientFactory.build()
     : null;
@@ -458,11 +503,13 @@ export async function describeInstagramImages(
     );
   }
   const out: string[] = [];
+  let processed = 0;
   for (const [i, image] of images.entries()) {
     if (abortSignal.aborted) {
       // Out of time: keep what we have and pad the rest so indices still
       // line up. Alt text came with the page and costs nothing, so keep it
-      // for the images we never got to OCR.
+      // for the images we never got to OCR — but those images were not
+      // processed, and the stats must not pretend otherwise.
       out.push(...images.slice(i).map((img) => img.altText ?? ""));
       break;
     }
@@ -470,6 +517,10 @@ export async function describeInstagramImages(
     if (image.altText) {
       pieces.push(image.altText);
     }
+    // Nothing was asked of an image past the cap or with OCR off, so simply
+    // reaching it is all "processed" can mean; when OCR was asked for, it has
+    // to have come back without throwing.
+    let ocrOk = true;
     if (inferenceClient && image.imageUrl && i < max) {
       try {
         const response = await fetchWithProxy(
@@ -503,14 +554,18 @@ export async function describeInstagramImages(
         }
       } catch (e) {
         // Keep the alt text; losing one image's OCR is not worth the post.
+        ocrOk = false;
         logger.warn(
           `[Crawler][${jobId}] Failed to describe image ${i + 1}: ${e}`,
         );
       }
     }
+    if (ocrOk) {
+      processed += 1;
+    }
     out.push(pieces.join(" — "));
   }
-  return out;
+  return { texts: out, processed };
 }
 
 /**
@@ -548,17 +603,19 @@ async function extractFromPage(
           runProxy,
           abortSignal,
         )
-      : { transcript: "", transcribed: 0 };
+      : { transcript: "", transcribed: 0, noAudioStream: 0 };
   // Some posts expose a video-only track in video_versions (audio is a
   // separate DASH stream), so ffmpeg finds nothing to transcribe. yt-dlp's
-  // bestaudio selector reaches that separate track, anonymously.
+  // bestaudio selector reaches that separate track, anonymously. Only that
+  // case is worth the second pass: a video skipped for size, or one ffmpeg
+  // failed on for any other reason, would cost a yt-dlp run for nothing.
   if (
     serverConfig.crawler.instagramTranscribe &&
     !abortSignal.aborted &&
-    video.transcribed < videos.length
+    video.noAudioStream > 0
   ) {
     logger.info(
-      `[Crawler][${jobId}] ${videos.length - video.transcribed} video(s) yielded no transcript; retrying via yt-dlp audio`,
+      `[Crawler][${jobId}] ${video.noAudioStream} video(s) carried no audio stream; retrying via yt-dlp audio`,
     );
     const viaYtDlp = await transcribeInstagramAudio(
       url,
@@ -570,25 +627,22 @@ async function extractFromPage(
       viaYtDlp.transcript &&
       viaYtDlp.transcript.length > video.transcript.length
     ) {
-      video = viaYtDlp;
+      video = { ...video, ...viaYtDlp };
     }
   }
-  const imageTexts =
+  const described =
     images.length > 0
       ? await describeInstagramImages(images, jobId, runProxy, abortSignal)
-      : [];
+      : { texts: [], processed: 0 };
   return {
     caption: media.caption,
     transcript: video.transcript,
-    images: imageTexts,
+    images: described.texts,
     author: media.author,
     date: media.date,
     stats: {
       path: "page",
-      images: {
-        expected: images.length,
-        got: imageTexts.filter(Boolean).length,
-      },
+      images: { expected: images.length, got: described.processed },
       videos: { expected: videos.length, got: video.transcribed },
     },
   };
@@ -646,8 +700,13 @@ async function extractWithYtDlp(
           stderr,
         )
       ) {
-        logger.info(
-          `[Crawler][${jobId}] "${url}" is not public; nothing to extract without a session`,
+        // Warn, with what yt-dlp actually said: this branch gives up for
+        // good, so a rate limit that happened to match reads as a private
+        // post unless the operator can see the original message.
+        logger.warn(
+          `[Crawler][${jobId}] "${url}" is not public; nothing to extract without a session. yt-dlp said: ${stderr
+            .trim()
+            .slice(0, 500)}`,
         );
         return null; // permanent: do not retry
       }
@@ -753,9 +812,8 @@ export async function handleInstagramBookmark(args: {
     content.transcript ||
     (content.images ?? []).filter(Boolean).join(" ");
   if (content.stats) {
-    const s = content.stats;
     logger.info(
-      `[Crawler][${jobId}] [ig] path=${s.path} images=${s.images.got}/${s.images.expected} videos=${s.videos.got}/${s.videos.expected} status=${extractionStatus(s)} url="${url}"`,
+      `[Crawler][${jobId}] [ig] ${statsSegment(content.stats)} url="${url}"`,
     );
   } else {
     logger.info(`[Crawler][${jobId}] [ig] path=ytdlp status=ok url="${url}"`);
