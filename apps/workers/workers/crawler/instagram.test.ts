@@ -440,6 +440,39 @@ function carouselHtml(): string {
   return `<html><script type="application/json" data-sjs>${JSON.stringify(payload)}</script></html>`;
 }
 
+/** A carousel with two images, both carrying alt text, and no video. */
+function twoImageCarouselWithAltTextHtml(): string {
+  const payload = {
+    items: [
+      {
+        code: "ABC123",
+        media_type: 8,
+        taken_at: 1787181237,
+        caption: { text: "carousel caption" },
+        user: { username: "someuser", full_name: "Some User" },
+        image_versions2: { candidates: [{ url: "https://cdn/cover.jpg" }] },
+        carousel_media: [
+          {
+            code: "ABC123",
+            media_type: 1,
+            accessibility_caption:
+              "Photo by Some User on August 19, 2026. first alt text",
+            image_versions2: { candidates: [{ url: "https://cdn/1.jpg" }] },
+          },
+          {
+            code: "ABC123",
+            media_type: 1,
+            accessibility_caption:
+              "Photo by Some User on August 19, 2026. second alt text",
+            image_versions2: { candidates: [{ url: "https://cdn/2.jpg" }] },
+          },
+        ],
+      },
+    ],
+  };
+  return `<html><script type="application/json" data-sjs>${JSON.stringify(payload)}</script></html>`;
+}
+
 /** A carousel with two videos and no images, for partial-recovery tests. */
 function twoVideoCarouselHtml(): string {
   const payload = {
@@ -720,6 +753,61 @@ describe("extractInstagramContent (page)", () => {
     expect(content?.images).toEqual(["May be an image of text — first", ""]);
     expect(content?.stats?.images).toEqual({ expected: 2, got: 1 });
     expect(execa).not.toHaveBeenCalled(); // no yt-dlp fallback after an abort
+  });
+
+  it("keeps alt text for images it never got to OCR after an abort", async () => {
+    serverConfig.crawler.instagramDescribeImages = true;
+    const controller = new AbortController();
+    let calls = 0;
+    const inferFromImage = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) {
+        controller.abort();
+        return { response: "first", totalTokens: 1 };
+      }
+      throw new Error("should not be called after abort");
+    });
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      inferFromImage,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(twoImageCarouselWithAltTextHtml());
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      controller.signal,
+    );
+    expect(content?.images).toEqual([
+      "first alt text — first",
+      "second alt text",
+    ]);
+    expect(content?.stats?.images).toEqual({ expected: 2, got: 2 });
+  });
+
+  it("does not retry via yt-dlp audio when the job is aborted mid-transcription", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    const transcribeAudio = vi.fn(async () => "should not be reached");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    const controller = new AbortController();
+    vi.mocked(execa).mockImplementation((async (file: string) => {
+      if (file === "ffmpeg") {
+        controller.abort();
+        throw new Error("aborted mid-transcription");
+      }
+      throw new Error(`unexpected execa call: ${file}`);
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      controller.signal,
+    );
+    expect(execa).toHaveBeenCalledTimes(1); // ffmpeg only, never yt-dlp
+    expect(content?.caption).toBe("carousel caption");
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 0 });
   });
 
   it("falls back to yt-dlp when the page carries no post data", async () => {

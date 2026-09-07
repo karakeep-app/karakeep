@@ -435,8 +435,10 @@ export async function describeInstagramImages(
   const out: string[] = [];
   for (const [i, image] of images.entries()) {
     if (abortSignal.aborted) {
-      // Out of time: keep what we have and pad the rest so indices still line up.
-      out.push(...images.slice(i).map(() => ""));
+      // Out of time: keep what we have and pad the rest so indices still
+      // line up. Alt text came with the page and costs nothing, so keep it
+      // for the images we never got to OCR.
+      out.push(...images.slice(i).map((img) => img.altText ?? ""));
       break;
     }
     const pieces: string[] = [];
@@ -523,6 +525,7 @@ async function extractFromPage(
   // bestaudio selector reaches that separate track, anonymously.
   if (
     serverConfig.crawler.instagramTranscribe &&
+    !abortSignal.aborted &&
     video.transcribed < videos.length
   ) {
     logger.info(
