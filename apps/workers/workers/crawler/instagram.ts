@@ -470,7 +470,11 @@ export async function describeInstagramImages(
           buildOCRPrompt(),
           contentType,
           base64,
-          { schema: null, abortSignal },
+          {
+            schema: null,
+            abortSignal,
+            imageDetail: serverConfig.crawler.instagramOcrDetail,
+          },
         );
         const text = ocr.response.trim();
         if (text) {

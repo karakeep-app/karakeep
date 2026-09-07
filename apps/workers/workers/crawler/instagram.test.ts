@@ -619,6 +619,35 @@ describe("extractInstagramContent (page)", () => {
     expect(content?.images).toEqual(["May be an image of text — ocr", ""]);
   });
 
+  it("sends images at the configured OCR detail", async () => {
+    serverConfig.crawler.instagramDescribeImages = true;
+    serverConfig.crawler.instagramOcrDetail = "high";
+    const inferFromImage = vi.fn(
+      async (
+        _prompt: string,
+        _contentType: string,
+        _image: string,
+        _opts: { imageDetail?: string },
+      ) => ({
+        response: "ocr",
+        totalTokens: 1,
+      }),
+    );
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      inferFromImage,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(inferFromImage.mock.calls[0][3]).toMatchObject({
+      imageDetail: "high",
+    });
+  });
+
   it("transcribes the videos in the post through ffmpeg, not yt-dlp", async () => {
     serverConfig.crawler.instagramTranscribe = true;
     const transcribeAudio = vi.fn(async () => "spoken words");

@@ -117,6 +117,7 @@ export interface InferenceOptions {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   schema: z.ZodSchema<any> | null;
   abortSignal?: AbortSignal;
+  imageDetail?: "low" | "high" | "auto";
 }
 
 const defaultInferenceOptions: InferenceOptions = {
@@ -378,7 +379,7 @@ export class OpenAIInferenceClient implements InferenceClient {
                 type: "image_url",
                 image_url: {
                   url: `data:${contentType};base64,${image}`,
-                  detail: "low",
+                  detail: optsWithDefaults.imageDetail ?? "low",
                 },
               },
             ],
