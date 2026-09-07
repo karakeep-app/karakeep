@@ -1,13 +1,17 @@
+import { createWriteStream } from "node:fs";
 import {
   copyFile,
   mkdtemp,
   readdir,
   readFile,
   rm,
-  writeFile,
+  stat,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { eq } from "drizzle-orm";
 import { execa } from "execa";
 import type { RunProxyConfig } from "network";
@@ -359,16 +363,29 @@ export async function transcribeInstagramVideos(
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}`);
         }
-        const video = Buffer.from(await response.arrayBuffer());
-        if (video.byteLength > maxBytes) {
+        const declared = Number(response.headers.get("content-length") ?? 0);
+        if (declared > maxBytes) {
           logger.warn(
-            `[Crawler][${jobId}] Video ${i + 1} is ${video.byteLength} bytes, over the ${maxBytes} limit; skipping`,
+            `[Crawler][${jobId}] Video ${i + 1} declares ${declared} bytes, over the ${maxBytes} limit; skipping`,
           );
           continue;
         }
         const mp4 = join(dir, `${i}.mp4`);
         const mp3 = join(dir, `${i}.mp3`);
-        await writeFile(mp4, video);
+        if (!response.body) throw new Error("empty body");
+        await pipeline(
+          Readable.fromWeb(
+            response.body as unknown as NodeReadableStream<Uint8Array>,
+          ),
+          createWriteStream(mp4),
+        );
+        const { size } = await stat(mp4);
+        if (size > maxBytes) {
+          logger.warn(
+            `[Crawler][${jobId}] Video ${i + 1} is ${size} bytes, over the ${maxBytes} limit; skipping`,
+          );
+          continue;
+        }
         await execa(
           "ffmpeg",
           [

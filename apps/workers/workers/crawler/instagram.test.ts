@@ -861,6 +861,47 @@ describe("extractInstagramContent (page)", () => {
     expect(content?.caption).toBe("from yt-dlp");
     expect(content?.images).toBeUndefined();
   });
+
+  it("skips a video whose Content-Length exceeds the download limit without reading it", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    serverConfig.crawler.maxVideoDownloadSize = 1; // MB
+    const transcribeAudio = vi.fn(async () => "x");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    let bodyRead = false;
+    vi.mocked(fetchWithProxy).mockImplementation((async (url: string) => {
+      if (url.startsWith("https://www.instagram.com/"))
+        return new Response(carouselHtml(), { status: 200 });
+      if (url.endsWith(".mp4")) {
+        const stream = new ReadableStream(
+          {
+            pull() {
+              bodyRead = true;
+            },
+          },
+          { highWaterMark: 0 },
+        );
+        return new Response(stream, {
+          status: 200,
+          headers: { "content-length": String(5 * 1024 * 1024) },
+        });
+      }
+      return new Response(new Uint8Array([1]), {
+        status: 200,
+        headers: { "content-type": "image/jpeg" },
+      });
+    }) as unknown as typeof fetchWithProxy);
+    vi.mocked(execa).mockResolvedValue(undefined as never);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(bodyRead).toBe(false);
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 0 });
+  });
 });
 
 describe("transient vs permanent Instagram failures", () => {
