@@ -26,6 +26,7 @@ import {
   privateYtDlpArgs,
   transcribeInstagramAudio,
 } from "./instagram";
+import { InstagramTransientError } from "./instagramPage";
 
 /** Point InferenceClientFactory at a stub whose transcribeAudio we control. */
 function stubTranscriber(impl: (file: string) => Promise<string | null>) {
@@ -830,6 +831,70 @@ describe("extractInstagramContent (page)", () => {
     );
     expect(content?.caption).toBe("from yt-dlp");
     expect(content?.images).toBeUndefined();
+  });
+});
+
+describe("transient vs permanent Instagram failures", () => {
+  const proxy = {
+    httpProxy: undefined,
+    httpsProxy: undefined,
+    noProxy: undefined,
+  };
+  const signal = new AbortController().signal;
+  beforeEach(() => {
+    vi.mocked(execa).mockReset();
+    vi.mocked(fetchWithProxy).mockReset();
+  });
+
+  it("throws InstagramTransientError on HTTP 429 from the page", async () => {
+    vi.mocked(fetchWithProxy).mockResolvedValue(
+      new Response("slow down", { status: 429 }) as never,
+    );
+    await expect(
+      extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).rejects.toBeInstanceOf(InstagramTransientError);
+    expect(execa).not.toHaveBeenCalled();
+  });
+
+  it("throws InstagramTransientError when yt-dlp reports an empty JSON answer", async () => {
+    servePage("<html>shell</html>");
+    vi.mocked(execa).mockRejectedValue(
+      Object.assign(new Error("exit 1"), {
+        stderr:
+          "ERROR: [Instagram] X: Failed to parse JSON (caused by JSONDecodeError)",
+      }),
+    );
+    await expect(
+      extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).rejects.toBeInstanceOf(InstagramTransientError);
+  });
+
+  it("returns null (no retry) for a post that is not public", async () => {
+    servePage("<html>shell</html>");
+    vi.mocked(execa).mockRejectedValue(
+      Object.assign(new Error("exit 1"), {
+        stderr:
+          "ERROR: [Instagram] X: Instagram sent an empty media response. Check if this post is accessible in your browser without being logged-in.",
+      }),
+    );
+    expect(
+      await extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).toBeNull();
   });
 });
 

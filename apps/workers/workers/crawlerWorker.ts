@@ -48,6 +48,7 @@ import {
   handleAsAssetBookmark,
 } from "./crawler/crawlAndParse";
 import { handleInstagramBookmark, isInstagramUrl } from "./crawler/instagram";
+import { InstagramTransientError } from "./crawler/instagramPage";
 import {
   getContentTypeAndMetadata,
   loadStoredProbeMetadata,
@@ -386,13 +387,25 @@ async function runCrawler(
   // an empty shell. When enabled, extract caption + transcript via yt-dlp
   // instead, then run the same downstream jobs (inference, search, video).
   if (serverConfig.crawler.instagramEnabled && isInstagramUrl(url)) {
-    const extracted = await handleInstagramBookmark({
-      url,
-      jobId,
-      bookmarkId,
-      runProxy,
-      abortSignal: job.abortSignal,
-    });
+    let extracted = false;
+    try {
+      extracted = await handleInstagramBookmark({
+        url,
+        jobId,
+        bookmarkId,
+        runProxy,
+        abortSignal: job.abortSignal,
+      });
+    } catch (e) {
+      // A rate-limit or an empty answer from Instagram is worth another run;
+      // the queue's own retry schedule handles the pacing. Only give up on
+      // the last attempt so the bookmark ends as "failure", not as a silent
+      // success with nothing in it.
+      if (e instanceof InstagramTransientError && numRetriesLeft > 0) {
+        throw e;
+      }
+      logger.warn(`[Crawler][${jobId}] Instagram extraction gave up: ${e}`);
+    }
     // On a rate-limit or expired-cookie failure nothing was written, so there
     // is no new content for tagging/summarization/embedding to work on.
     if (extracted) {

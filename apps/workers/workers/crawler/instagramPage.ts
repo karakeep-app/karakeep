@@ -26,6 +26,11 @@ export const INSTAGRAM_BROWSER_HEADERS: Record<string, string> = {
   "sec-ch-ua-platform": '"macOS"',
 };
 
+/** Instagram answered, but in a way that a later attempt may not repeat. */
+export class InstagramTransientError extends Error {
+  readonly name = "InstagramTransientError";
+}
+
 export interface InstagramMediaItem {
   kind: "image" | "video";
   imageUrl: string | null;
@@ -178,6 +183,11 @@ export async function fetchInstagramPage(
     },
     runProxy,
   );
+  if (response.status === 429 || response.status >= 500) {
+    throw new InstagramTransientError(
+      `Instagram page fetch returned HTTP ${response.status}`,
+    );
+  }
   if (!response.ok) {
     logger.warn(
       `[Crawler][${jobId}] Instagram page fetch for "${url}" returned HTTP ${response.status}`,

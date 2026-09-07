@@ -22,7 +22,11 @@ import logger from "@karakeep/shared/logger";
 import { buildOCRPrompt } from "@karakeep/shared/prompts";
 
 import type { InstagramMediaItem } from "./instagramPage";
-import { fetchInstagramPage, parseInstagramPage } from "./instagramPage";
+import {
+  fetchInstagramPage,
+  InstagramTransientError,
+  parseInstagramPage,
+} from "./instagramPage";
 
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
@@ -611,6 +615,29 @@ async function extractWithYtDlp(
       logger.warn(
         `[Crawler][${jobId}] yt-dlp exited non-zero for "${url}"; parsing any partial output: ${e}`,
       );
+      const stderr = (e as { stderr?: string }).stderr ?? "";
+      if (
+        /empty media response|not accessible|login required|private/i.test(
+          stderr,
+        )
+      ) {
+        logger.info(
+          `[Crawler][${jobId}] "${url}" is not public; nothing to extract without a session`,
+        );
+        return null; // permanent: do not retry
+      }
+      if (
+        /Failed to parse JSON|HTTP Error 429|HTTP Error 5\d\d|rate.?limit/i.test(
+          stderr,
+        )
+      ) {
+        throw new InstagramTransientError(
+          `yt-dlp: ${
+            stderr.split("\n").find((l) => l.startsWith("ERROR")) ??
+            "transient failure"
+          }`,
+        );
+      }
     }
     const content = await parseInstagramDump(dir);
     if (!content) {
@@ -630,6 +657,7 @@ async function extractWithYtDlp(
     }
     return content;
   } catch (e) {
+    if (e instanceof InstagramTransientError) throw e;
     logger.warn(
       `[Crawler][${jobId}] Instagram extraction failed for "${url}": ${e}`,
     );
@@ -657,6 +685,7 @@ export async function extractInstagramContent(
       return fromPage;
     }
   } catch (e) {
+    if (e instanceof InstagramTransientError) throw e;
     if (abortSignal.aborted) {
       logger.warn(
         `[Crawler][${jobId}] Instagram extraction for "${url}" aborted: ${e}`,
