@@ -22,7 +22,16 @@ const ButtonWithTooltip = React.forwardRef<
 >(({ tooltip, delayDuration, ...props }, ref) => {
   return (
     <Tooltip delayDuration={delayDuration}>
-      <TooltipTrigger asChild>
+      <TooltipTrigger
+        asChild
+        onFocus={(event) => {
+          // Menus restore focus to their trigger after a pointer selection.
+          // Keep that focus, but only show focus-triggered tooltips for keyboard users.
+          if (!event.currentTarget.matches(":focus-visible")) {
+            event.preventDefault();
+          }
+        }}
+      >
         <Button ref={ref} {...props} />
       </TooltipTrigger>
       <TooltipPortal>
