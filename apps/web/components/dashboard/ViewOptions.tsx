@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "@/lib/i18n/client";
+import { useDropdownTooltipFocus } from "@/lib/hooks/useDropdownTooltipFocus";
 import {
   useBookmarkDisplaySettings,
   useBookmarkLayout,
@@ -56,6 +57,7 @@ const iconMap: Record<LayoutType, LucideIcon> = {
 };
 
 export default function ViewOptions() {
+  const tooltipFocus = useDropdownTooltipFocus();
   const { t } = useTranslation();
   const layout = useBookmarkLayout();
   const gridColumns = useGridColumns();
@@ -133,11 +135,15 @@ export default function ViewOptions() {
           tooltip={t("view_options.title")}
           delayDuration={100}
           variant="ghost"
+          onFocus={tooltipFocus.onTriggerFocus}
         >
           <Settings size={18} />
         </ButtonWithTooltip>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
+      <DropdownMenuContent
+        className="w-56"
+        onCloseAutoFocus={tooltipFocus.onCloseAutoFocus}
+      >
         <div className="px-2 py-1.5 text-sm font-semibold">
           {t("view_options.layout")}
         </div>

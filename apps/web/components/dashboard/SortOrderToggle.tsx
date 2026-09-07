@@ -9,12 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useBookmarkSearchState } from "@/lib/hooks/bookmark-search";
+import { useDropdownTooltipFocus } from "@/lib/hooks/useDropdownTooltipFocus";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
 import { Check, ListFilter, SortAsc, SortDesc } from "lucide-react";
 
 export default function SortOrderToggle() {
+  const tooltipFocus = useDropdownTooltipFocus();
   const { t } = useTranslation();
   const isInSearchPage = useInSearchPageStore((state) => state.inSearchPage);
   const { effectiveSearchMode } = useBookmarkSearchState();
@@ -41,13 +43,17 @@ export default function SortOrderToggle() {
           tooltip={t("actions.sort.title")}
           delayDuration={100}
           variant="ghost"
+          onFocus={tooltipFocus.onTriggerFocus}
         >
           {currentSort === "relevance" && <ListFilter size={18} />}
           {currentSort === "asc" && <SortAsc size={18} />}
           {currentSort === "desc" && <SortDesc size={18} />}
         </ButtonWithTooltip>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-fit">
+      <DropdownMenuContent
+        className="w-fit"
+        onCloseAutoFocus={tooltipFocus.onCloseAutoFocus}
+      >
         {isInSearchPage && (
           <DropdownMenuItem
             className="cursor-pointer justify-between"
