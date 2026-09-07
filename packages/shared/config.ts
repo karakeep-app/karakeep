@@ -31,6 +31,42 @@ const oauthIdTokenSignedResponseAlg = z.enum([
   "EdDSA",
 ]);
 
+/**
+ * The headers are pasted from a browser's devtools, so a Cookie among them is
+ * the norm — which is why a malformed value is reported as a zod issue with a
+ * fixed message. Throwing (or letting JSON.parse throw) would put the value
+ * itself, session cookie and all, into the crash log.
+ */
+export const instagramHeadersSchema = z
+  .string()
+  .optional()
+  .transform((s, ctx) => {
+    const invalid = () => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "CRAWLER_INSTAGRAM_HEADERS_JSON must be a JSON object of string values",
+      });
+      return z.NEVER;
+    };
+    if (!s) return {};
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(s);
+    } catch {
+      return invalid();
+    }
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed) ||
+      Object.values(parsed).some((v) => typeof v !== "string")
+    ) {
+      return invalid();
+    }
+    return parsed as Record<string, string>;
+  });
+
 const allEnv = z.object({
   PORT: z.coerce.number().default(3000),
   WORKERS_HOST: z.string().default("127.0.0.1"),
@@ -151,24 +187,7 @@ const allEnv = z.object({
   CRAWLER_INSTAGRAM_DESCRIBE_IMAGES: stringBool("false"),
   CRAWLER_INSTAGRAM_MAX_IMAGES: z.coerce.number().int().positive().default(10),
   CRAWLER_INSTAGRAM_OCR_DETAIL: z.enum(["low", "high", "auto"]).default("low"),
-  CRAWLER_INSTAGRAM_HEADERS_JSON: z
-    .string()
-    .optional()
-    .transform((s) => {
-      if (!s) return {};
-      const o = JSON.parse(s) as unknown;
-      if (
-        !o ||
-        typeof o !== "object" ||
-        Array.isArray(o) ||
-        Object.values(o).some((v) => typeof v !== "string")
-      ) {
-        throw new Error(
-          "CRAWLER_INSTAGRAM_HEADERS_JSON must be a JSON object of string values",
-        );
-      }
-      return o as Record<string, string>;
-    }),
+  CRAWLER_INSTAGRAM_HEADERS_JSON: instagramHeadersSchema,
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
