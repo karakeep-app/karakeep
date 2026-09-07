@@ -26,6 +26,12 @@ import { fetchInstagramPage, parseInstagramPage } from "./instagramPage";
 
 const INSTAGRAM_MEDIA_TYPES = new Set(["p", "reel", "reels", "tv"]);
 
+export interface InstagramExtractionStats {
+  path: "page" | "ytdlp";
+  images: { expected: number; got: number };
+  videos: { expected: number; got: number };
+}
+
 export interface InstagramContent {
   caption: string;
   transcript: string;
@@ -37,6 +43,26 @@ export interface InstagramContent {
   images?: string[];
   author: string | null;
   date: string | null;
+  /** Absent on the yt-dlp fallback path, which cannot count what it did not see. */
+  stats?: InstagramExtractionStats;
+}
+
+export function extractionStatus(
+  stats: InstagramExtractionStats,
+): "ok" | "partial" {
+  return stats.images.got < stats.images.expected ||
+    stats.videos.got < stats.videos.expected
+    ? "partial"
+    : "ok";
+}
+
+/**
+ * Machine-readable trailer for htmlContent. The homelab health probe greps
+ * this to count partial extractions; it is an HTML comment so the UI never
+ * shows it and the search index ignores it.
+ */
+export function instagramMarker(stats: InstagramExtractionStats): string {
+  return `<!-- karakeep-ig path=${stats.path} images=${stats.images.got}/${stats.images.expected} videos=${stats.videos.got}/${stats.videos.expected} status=${extractionStatus(stats)} -->`;
 }
 
 function escapeHtml(s: string): string {
@@ -64,6 +90,9 @@ export function composeInstagramHtml(content: InstagramContent): string {
   const footer = [content.author, content.date].filter(Boolean).join(" · ");
   if (footer) {
     parts.push(`<p><small>${escapeHtml(footer)}</small></p>`);
+  }
+  if (content.stats) {
+    parts.push(instagramMarker(content.stats));
   }
   return parts.join("\n");
 }
@@ -289,13 +318,13 @@ export async function transcribeInstagramVideos(
   jobId: string,
   runProxy: RunProxyConfig,
   abortSignal: AbortSignal,
-): Promise<string> {
+): Promise<{ transcript: string; transcribed: number }> {
   const inferenceClient = InferenceClientFactory.build();
   if (!inferenceClient) {
     logger.info(
       `[Crawler][${jobId}] No inference client configured; skipping Instagram transcription`,
     );
-    return "";
+    return { transcript: "", transcribed: 0 };
   }
   const maxBytes = serverConfig.crawler.maxVideoDownloadSize * 1024 * 1024;
   const maxDuration = serverConfig.crawler.instagramTranscribeMaxDurationSec;
@@ -367,7 +396,10 @@ export async function transcribeInstagramVideos(
         );
       }
     }
-    return transcripts.join("\n\n");
+    return {
+      transcript: transcripts.join("\n\n"),
+      transcribed: transcripts.length,
+    };
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -470,23 +502,33 @@ async function extractFromPage(
   logger.info(
     `[Crawler][${jobId}] Read Instagram post ${media.code} from its page: ${images.length} image(s), ${videos.length} video(s)`,
   );
+  const video =
+    serverConfig.crawler.instagramTranscribe && videos.length > 0
+      ? await transcribeInstagramVideos(
+          videos.map((v) => v.videoUrl!),
+          jobId,
+          runProxy,
+          abortSignal,
+        )
+      : { transcript: "", transcribed: 0 };
+  const imageTexts =
+    images.length > 0
+      ? await describeInstagramImages(images, jobId, runProxy, abortSignal)
+      : [];
   return {
     caption: media.caption,
-    transcript:
-      serverConfig.crawler.instagramTranscribe && videos.length > 0
-        ? await transcribeInstagramVideos(
-            videos.map((v) => v.videoUrl!),
-            jobId,
-            runProxy,
-            abortSignal,
-          )
-        : "",
-    images:
-      images.length > 0
-        ? await describeInstagramImages(images, jobId, runProxy, abortSignal)
-        : [],
+    transcript: video.transcript,
+    images: imageTexts,
     author: media.author,
     date: media.date,
+    stats: {
+      path: "page",
+      images: {
+        expected: images.length,
+        got: imageTexts.filter(Boolean).length,
+      },
+      videos: { expected: videos.length, got: video.transcribed },
+    },
   };
 }
 
@@ -620,6 +662,14 @@ export async function handleInstagramBookmark(args: {
     content.caption ||
     content.transcript ||
     (content.images ?? []).filter(Boolean).join(" ");
+  if (content.stats) {
+    const s = content.stats;
+    logger.info(
+      `[Crawler][${jobId}] [ig] path=${s.path} images=${s.images.got}/${s.images.expected} videos=${s.videos.got}/${s.videos.expected} status=${extractionStatus(s)} url="${url}"`,
+    );
+  } else {
+    logger.info(`[Crawler][${jobId}] [ig] path=ytdlp status=ok url="${url}"`);
+  }
   await db
     .update(bookmarkLinks)
     .set({

@@ -18,6 +18,8 @@ import { InferenceClientFactory } from "@karakeep/shared/inference";
 import {
   composeInstagramHtml,
   extractInstagramContent,
+  extractionStatus,
+  instagramMarker,
   isInstagramUrl,
   parseInstagramDump,
   parseVtt,
@@ -494,6 +496,11 @@ describe("extractInstagramContent (page)", () => {
       images: ["May be an image of text", ""],
       author: "Some User",
       date: "20260819",
+      stats: {
+        path: "page",
+        images: { expected: 2, got: 1 },
+        videos: { expected: 1, got: 0 },
+      },
     });
     expect(execa).not.toHaveBeenCalled();
   });
@@ -565,6 +572,7 @@ describe("extractInstagramContent (page)", () => {
       signal,
     );
     expect(content?.transcript).toBe("spoken words");
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 1 });
     expect(execa).toHaveBeenCalledTimes(1);
     const args = vi.mocked(execa).mock.calls[0][1] as string[];
     expect(args[args.indexOf("-t") + 1]).toBe(
@@ -629,5 +637,50 @@ describe("privateYtDlpArgs", () => {
   it("passes arguments through when there is no cookie jar", async () => {
     serverConfig.crawler.ytDlpArguments = ["--verbose"];
     expect(await privateYtDlpArgs(dir)).toEqual(["--verbose"]);
+  });
+});
+
+describe("extraction stats", () => {
+  it("marks a post partial when a video produced no transcript", () => {
+    const stats = {
+      path: "page" as const,
+      images: { expected: 2, got: 2 },
+      videos: { expected: 1, got: 0 },
+    };
+    expect(extractionStatus(stats)).toBe("partial");
+    expect(instagramMarker(stats)).toBe(
+      "<!-- karakeep-ig path=page images=2/2 videos=0/1 status=partial -->",
+    );
+  });
+
+  it("is ok when everything expected was obtained", () => {
+    expect(
+      extractionStatus({
+        path: "page",
+        images: { expected: 0, got: 0 },
+        videos: { expected: 1, got: 1 },
+      }),
+    ).toBe("ok");
+  });
+
+  it("does not count an image without text as obtained unless nothing was asked of it", () => {
+    // Alt text present, OCR off: the image still 'got' its text. Nothing at all: not got.
+    const html = composeInstagramHtml({
+      caption: "c",
+      transcript: "",
+      images: ["alt", ""],
+      author: null,
+      date: null,
+      stats: {
+        path: "page",
+        images: { expected: 2, got: 1 },
+        videos: { expected: 0, got: 0 },
+      },
+    });
+    expect(
+      html.endsWith(
+        "<!-- karakeep-ig path=page images=1/2 videos=0/0 status=partial -->",
+      ),
+    ).toBe(true);
   });
 });
