@@ -617,7 +617,7 @@ async function extractWithYtDlp(
       );
       const stderr = (e as { stderr?: string }).stderr ?? "";
       if (
-        /empty media response|not accessible|login required|private/i.test(
+        /empty media response|not accessible|login required|private account|is private/i.test(
           stderr,
         )
       ) {

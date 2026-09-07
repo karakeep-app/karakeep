@@ -896,6 +896,24 @@ describe("transient vs permanent Instagram failures", () => {
       ),
     ).toBeNull();
   });
+
+  it("does not misclassify a transient failure that merely mentions 'private'", async () => {
+    servePage("<html>shell</html>");
+    vi.mocked(execa).mockRejectedValue(
+      Object.assign(new Error("exit 1"), {
+        stderr:
+          "ERROR: [Instagram] X: Failed to parse JSON (private key rotated)",
+      }),
+    );
+    await expect(
+      extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      ),
+    ).rejects.toBeInstanceOf(InstagramTransientError);
+  });
 });
 
 describe("privateYtDlpArgs", () => {

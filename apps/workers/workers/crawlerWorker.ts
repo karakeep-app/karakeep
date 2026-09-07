@@ -398,10 +398,11 @@ async function runCrawler(
       });
     } catch (e) {
       // A rate-limit or an empty answer from Instagram is worth another run;
-      // the queue's own retry schedule handles the pacing. Only give up on
-      // the last attempt so the bookmark ends as "failure", not as a silent
-      // success with nothing in it.
-      if (e instanceof InstagramTransientError && numRetriesLeft > 0) {
+      // rethrow on every attempt so the queue's own retry schedule handles
+      // the pacing. On the last attempt (numRetriesLeft == 0) this same
+      // rethrow reaches the runner's onError handler, which already sets
+      // crawlStatus: "failure" there — no separate "give up" path needed.
+      if (e instanceof InstagramTransientError) {
         throw e;
       }
       logger.warn(`[Crawler][${jobId}] Instagram extraction gave up: ${e}`);
