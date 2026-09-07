@@ -280,7 +280,7 @@ export async function transcribeInstagramAudio(
     );
     const transcripts: string[] = [];
     for (const file of audioFiles) {
-      abortSignal.throwIfAborted();
+      if (abortSignal.aborted) break;
       try {
         const text = await transcribeAudioFile(
           inferenceClient,
@@ -338,7 +338,7 @@ export async function transcribeInstagramVideos(
     );
     const transcripts: string[] = [];
     for (const [i, videoUrl] of videoUrls.entries()) {
-      abortSignal.throwIfAborted();
+      if (abortSignal.aborted) break;
       try {
         const response = await fetchWithProxy(
           videoUrl,
@@ -434,7 +434,11 @@ export async function describeInstagramImages(
   }
   const out: string[] = [];
   for (const [i, image] of images.entries()) {
-    abortSignal.throwIfAborted();
+    if (abortSignal.aborted) {
+      // Out of time: keep what we have and pad the rest so indices still line up.
+      out.push(...images.slice(i).map(() => ""));
+      break;
+    }
     const pieces: string[] = [];
     if (image.altText) {
       pieces.push(image.altText);
@@ -650,6 +654,12 @@ export async function extractInstagramContent(
       return fromPage;
     }
   } catch (e) {
+    if (abortSignal.aborted) {
+      logger.warn(
+        `[Crawler][${jobId}] Instagram extraction for "${url}" aborted: ${e}`,
+      );
+      return null;
+    }
     logger.warn(
       `[Crawler][${jobId}] Reading the Instagram page for "${url}" failed: ${e}`,
     );

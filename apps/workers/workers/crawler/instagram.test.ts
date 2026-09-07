@@ -694,6 +694,34 @@ describe("extractInstagramContent (page)", () => {
     expect(extractionStatus(content!.stats!)).toBe("partial");
   });
 
+  it("keeps caption and partial images when the job is aborted mid-way", async () => {
+    serverConfig.crawler.instagramDescribeImages = true;
+    const controller = new AbortController();
+    let calls = 0;
+    const inferFromImage = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) {
+        controller.abort();
+        return { response: "first", totalTokens: 1 };
+      }
+      throw new Error("should not be called after abort");
+    });
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      inferFromImage,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    servePage(carouselHtml());
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      controller.signal,
+    );
+    expect(content?.caption).toBe("carousel caption");
+    expect(content?.images).toEqual(["May be an image of text — first", ""]);
+    expect(content?.stats?.images).toEqual({ expected: 2, got: 1 });
+    expect(execa).not.toHaveBeenCalled(); // no yt-dlp fallback after an abort
+  });
+
   it("falls back to yt-dlp when the page carries no post data", async () => {
     servePage("<html><body>log in to continue</body></html>");
     vi.mocked(execa).mockImplementation((async (
