@@ -151,6 +151,60 @@ interface HTMLHighlighterProps {
   onDeleteHighlight?: (highlight: Highlight) => void;
 }
 
+interface ImageHighlightMetadata {
+  id: string;
+  className: string;
+}
+
+const IMAGE_HIGHLIGHT_METADATA_ATTRIBUTE = "data-highlight-image-metadata";
+
+function readImageHighlightMetadata(
+  image: HTMLImageElement,
+): ImageHighlightMetadata[] {
+  const serialized = image.getAttribute(IMAGE_HIGHLIGHT_METADATA_ATTRIBUTE);
+  if (serialized) {
+    try {
+      const metadata = JSON.parse(serialized) as unknown;
+      if (Array.isArray(metadata)) {
+        return metadata.filter(
+          (entry): entry is ImageHighlightMetadata =>
+            !!entry &&
+            typeof entry === "object" &&
+            typeof (entry as ImageHighlightMetadata).id === "string" &&
+            typeof (entry as ImageHighlightMetadata).className === "string",
+        );
+      }
+    } catch {
+      // Fall through to the legacy attributes below.
+    }
+  }
+
+  const id = image.getAttribute("data-highlight-id");
+  const className = image.getAttribute("data-highlight-image-class");
+  return id && className ? [{ id, className }] : [];
+}
+
+function writeImageHighlightMetadata(
+  image: HTMLImageElement,
+  metadata: ImageHighlightMetadata[],
+) {
+  if (metadata.length === 0) {
+    image.removeAttribute(IMAGE_HIGHLIGHT_METADATA_ATTRIBUTE);
+    image.removeAttribute("data-highlight-image");
+    image.removeAttribute("data-highlight-image-class");
+    image.removeAttribute("data-highlight-id");
+    return;
+  }
+
+  image.setAttribute(
+    IMAGE_HIGHLIGHT_METADATA_ATTRIBUTE,
+    JSON.stringify(metadata),
+  );
+  image.setAttribute("data-highlight-image", "true");
+  image.setAttribute("data-highlight-image-class", metadata[0].className);
+  image.setAttribute("data-highlight-id", metadata[0].id);
+}
+
 const BookmarkHTMLHighlighter = forwardRef<
   HTMLDivElement,
   HTMLHighlighterProps
@@ -210,13 +264,11 @@ const BookmarkHTMLHighlighter = forwardRef<
       "img[data-highlight-image]",
     );
     existingImageHighlights.forEach((image) => {
-      const className = image.getAttribute("data-highlight-image-class");
-      if (className) {
+      const highlightedImage = image as HTMLImageElement;
+      readImageHighlightMetadata(highlightedImage).forEach(({ className }) => {
         image.classList.remove(...className.split(" "));
-      }
-      image.removeAttribute("data-highlight-image");
-      image.removeAttribute("data-highlight-image-class");
-      image.removeAttribute("data-highlight-id");
+      });
+      writeImageHighlightMetadata(highlightedImage, []);
     });
 
     // Apply all highlights
@@ -464,10 +516,12 @@ const BookmarkHTMLHighlighter = forwardRef<
 
     images.forEach((image) => {
       const className = HIGHLIGHT_COLOR_MAP.img[highlight.color];
+      const metadata = readImageHighlightMetadata(image).filter(
+        (entry) => entry.id !== highlight.id,
+      );
+      metadata.unshift({ id: highlight.id, className });
       image.classList.add(...className.split(" "));
-      image.setAttribute("data-highlight-image", "true");
-      image.setAttribute("data-highlight-image-class", className);
-      image.setAttribute("data-highlight-id", highlight.id);
+      writeImageHighlightMetadata(image, metadata);
     });
   };
 
