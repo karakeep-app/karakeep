@@ -14,6 +14,10 @@ import {
   ZHighlightColor,
 } from "@karakeep/shared/types/highlights";
 
+import {
+  extractHighlightText,
+  imageReferencesFromHighlightText,
+} from "./highlight-utils";
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent } from "./ui/popover";
@@ -202,6 +206,19 @@ const BookmarkHTMLHighlighter = forwardRef<
       }
     });
 
+    const existingImageHighlights = contentRef.current.querySelectorAll(
+      "img[data-highlight-image]",
+    );
+    existingImageHighlights.forEach((image) => {
+      const className = image.getAttribute("data-highlight-image-class");
+      if (className) {
+        image.classList.remove(...className.split(" "));
+      }
+      image.removeAttribute("data-highlight-image");
+      image.removeAttribute("data-highlight-image-class");
+      image.removeAttribute("data-highlight-id");
+    });
+
     // Apply all highlights
     highlights.forEach((highlight) => {
       applyHighlightByOffset(highlight);
@@ -239,8 +256,11 @@ const BookmarkHTMLHighlighter = forwardRef<
 
     // Check if we clicked on an existing highlight
     const target = e.target as HTMLElement;
-    if (target.dataset.highlight) {
-      const highlightId = target.dataset.highlightId;
+    const highlightedTarget = target.closest<HTMLElement>(
+      '[data-highlight="true"], img[data-highlight-image]',
+    );
+    if (highlightedTarget?.dataset.highlightId) {
+      const highlightId = highlightedTarget.dataset.highlightId;
       if (highlightId && highlights) {
         const highlight = highlights.find((h) => h.id === highlightId);
         if (!highlight) {
@@ -304,21 +324,26 @@ const BookmarkHTMLHighlighter = forwardRef<
     }
   };
 
-  const getTextNodeOffset = (node: Node): number => {
-    let offset = 0;
-    const walker = document.createTreeWalker(
-      contentRef.current!,
-      NodeFilter.SHOW_TEXT,
-      null,
-    );
-
-    while (walker.nextNode()) {
-      if (walker.currentNode === node) {
-        return offset;
-      }
-      offset += walker.currentNode.textContent?.length ?? 0;
+  const getGlobalOffset = (container: Node, offsetInNode: number): number => {
+    if (!contentRef.current) {
+      return -1;
     }
-    return -1;
+
+    if (
+      container !== contentRef.current &&
+      !contentRef.current.contains(container)
+    ) {
+      return -1;
+    }
+
+    try {
+      const prefix = document.createRange();
+      prefix.selectNodeContents(contentRef.current);
+      prefix.setEnd(container, offsetInNode);
+      return prefix.cloneContents().textContent?.length ?? 0;
+    } catch {
+      return -1;
+    }
   };
 
   const createHighlightFromRange = (
@@ -327,18 +352,28 @@ const BookmarkHTMLHighlighter = forwardRef<
   ): Highlight | null => {
     if (!contentRef.current) return null;
 
-    const startOffset =
-      getTextNodeOffset(range.startContainer) + range.startOffset;
-    const endOffset = getTextNodeOffset(range.endContainer) + range.endOffset;
+    const startOffset = getGlobalOffset(
+      range.startContainer,
+      range.startOffset,
+    );
+    const endOffset = getGlobalOffset(range.endContainer, range.endOffset);
+    const text = extractHighlightText(range, contentRef.current);
 
-    if (startOffset === -1 || endOffset === -1) return null;
+    if (
+      startOffset === -1 ||
+      endOffset === -1 ||
+      startOffset > endOffset ||
+      (startOffset === endOffset && !text.includes("[[karakeep-image:"))
+    ) {
+      return null;
+    }
 
     const highlight: Highlight = {
       id: "NOT_SET",
       startOffset,
       endOffset,
       color,
-      text: range.toString(),
+      text,
     };
 
     applyHighlightByOffset(highlight);
@@ -379,9 +414,25 @@ const BookmarkHTMLHighlighter = forwardRef<
 
   const applyHighlightByOffset = (highlight: Highlight) => {
     const ranges = getRangeFromHighlight(highlight);
-    if (!ranges) {
+    if (!contentRef.current || !ranges) {
       return;
     }
+
+    const selectedImages =
+      ranges.length > 0
+        ? (() => {
+            const selectionRange = document.createRange();
+            selectionRange.setStart(ranges[0].node, ranges[0].start);
+            selectionRange.setEnd(
+              ranges[ranges.length - 1].node,
+              ranges[ranges.length - 1].end,
+            );
+            return Array.from(
+              contentRef.current.querySelectorAll("img"),
+            ).filter((image) => selectionRange.intersectsNode(image));
+          })()
+        : [];
+
     // Apply highlights to found ranges
     ranges.forEach(({ node, start, end }) => {
       if (start > 0) {
@@ -400,6 +451,23 @@ const BookmarkHTMLHighlighter = forwardRef<
       span.dataset.highlightId = highlight.id;
       node.parentNode?.insertBefore(span, node);
       span.appendChild(node);
+    });
+
+    const imageReferences = imageReferencesFromHighlightText(highlight.text);
+    const allImages = contentRef.current.querySelectorAll("img");
+    const images = imageReferences.some((image) => image.index !== null)
+      ? imageReferences
+          .filter((image) => image.index !== null)
+          .map((image) => allImages.item(image.index!))
+          .filter((image): image is HTMLImageElement => image !== null)
+      : selectedImages;
+
+    images.forEach((image) => {
+      const className = HIGHLIGHT_COLOR_MAP.img[highlight.color];
+      image.classList.add(...className.split(" "));
+      image.setAttribute("data-highlight-image", "true");
+      image.setAttribute("data-highlight-image-class", className);
+      image.setAttribute("data-highlight-id", highlight.id);
     });
   };
 
