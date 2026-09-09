@@ -174,7 +174,7 @@ export default function BookmarkPreview({
       break;
     }
     case BookmarkTypes.ASSET: {
-      content = <AssetContentSection bookmark={bookmark} />;
+      content = <AssetContentSection bookmark={bookmark} readOnly={!isOwner} />;
       break;
     }
   }

@@ -8,6 +8,26 @@ const zHighlightColorSchema = z.enum(["yellow", "red", "green", "blue"]);
 export type ZHighlightColor = z.infer<typeof zHighlightColorSchema>;
 export const SUPPORTED_HIGHLIGHT_COLORS = zHighlightColorSchema.options;
 
+const zPdfHighlightRectSchema = z.object({
+  // Rectangles are normalized to the page so zoom and device pixel ratio do
+  // not change the persisted highlight position.
+  x: z.number().finite().min(0).max(1),
+  y: z.number().finite().min(0).max(1),
+  width: z.number().finite().positive().max(1),
+  height: z.number().finite().positive().max(1),
+});
+
+const zPdfHighlightPageSchema = z.object({
+  pageIndex: z.number().int().nonnegative(),
+  rects: z.array(zPdfHighlightRectSchema).min(1),
+});
+
+export const zPdfHighlightMetadataSchema = z.object({
+  pages: z.array(zPdfHighlightPageSchema).min(1),
+});
+
+export type ZPdfHighlightMetadata = z.infer<typeof zPdfHighlightMetadataSchema>;
+
 const zHighlightBaseSchema = z.object({
   bookmarkId: z.string(),
   startOffset: z.number(),
@@ -15,6 +35,7 @@ const zHighlightBaseSchema = z.object({
   color: zHighlightColorSchema.default("yellow"),
   text: z.string().nullable(),
   note: z.string().nullable(),
+  pdf: zPdfHighlightMetadataSchema.nullable().optional(),
 });
 
 export const zHighlightSchema = zHighlightBaseSchema.extend(

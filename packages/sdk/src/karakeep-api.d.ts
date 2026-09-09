@@ -1001,6 +1001,17 @@ export interface components {
       color: "yellow" | "red" | "green" | "blue";
       text: string | null;
       note: string | null;
+      pdf?: {
+        pages: {
+          pageIndex: number;
+          rects: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+          }[];
+        }[];
+      } | null;
       id: string;
       userId: string;
       /** Format: date-time */
@@ -2668,6 +2679,17 @@ export interface operations {
           color?: "yellow" | "red" | "green" | "blue";
           text: string | null;
           note: string | null;
+          pdf?: {
+            pages: {
+              pageIndex: number;
+              rects: {
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+              }[];
+            }[];
+          } | null;
         };
       };
     };

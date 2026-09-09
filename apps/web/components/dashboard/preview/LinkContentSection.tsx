@@ -43,6 +43,7 @@ import { contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
 import SavedPageOverview from "./SavedPageOverview";
+import PdfBookmarkSection from "./PdfBookmarkSection";
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
   return (
@@ -107,12 +108,22 @@ function VideoSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
-function PDFSection({ link }: { link: ZBookmarkedLink }) {
+function PDFSection({
+  bookmark,
+  readOnly,
+}: {
+  bookmark: ZBookmark;
+  readOnly: boolean;
+}) {
+  if (bookmark.content.type !== BookmarkTypes.LINK) {
+    throw new Error("Invalid content type");
+  }
+
   return (
-    <iframe
-      title="PDF Viewer"
-      src={`/api/assets/${link.pdfAssetId}`}
-      className="relative h-full min-w-full"
+    <PdfBookmarkSection
+      bookmark={bookmark}
+      assetId={bookmark.content.pdfAssetId!}
+      readOnly={readOnly}
     />
   );
 }
@@ -177,7 +188,7 @@ export default function LinkContentSection({
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
   } else if (section === "pdf") {
-    content = <PDFSection link={bookmark.content} />;
+    content = <PDFSection bookmark={bookmark} readOnly={!isOwner} />;
   } else if (section === "screenshot") {
     content = <ScreenshotSection link={bookmark.content} />;
   } else {

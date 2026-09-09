@@ -37,6 +37,43 @@ describe("Highlight Routes", () => {
     expect(res.note).toEqual("Test note");
   });
 
+  test<CustomTestContext>("round-trips PDF highlight positions", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].highlights;
+    const bookmarksApi = apiCallers[0].bookmarks;
+    const bookmark = await bookmarksApi.createBookmark({
+      url: "https://example.com/paper.pdf",
+      type: BookmarkTypes.LINK,
+    });
+
+    const pdf = {
+      pages: [
+        {
+          pageIndex: 0,
+          rects: [{ x: 0.1, y: 0.2, width: 0.4, height: 0.05 }],
+        },
+        {
+          pageIndex: 1,
+          rects: [{ x: 0.1, y: 0, width: 0.4, height: 0.05 }],
+        },
+      ],
+    };
+
+    const created = await api.create({
+      bookmarkId: bookmark.id,
+      startOffset: 0,
+      endOffset: 0,
+      color: "yellow",
+      text: "A selection spanning two PDF pages",
+      note: null,
+      pdf,
+    });
+
+    const fetched = await api.get({ highlightId: created.id });
+    expect(fetched.pdf).toEqual(pdf);
+  });
+
   test<CustomTestContext>("delete highlight", async ({ apiCallers }) => {
     const api = apiCallers[0].highlights;
     const bookmarksApi = apiCallers[0].bookmarks;

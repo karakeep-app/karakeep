@@ -14,10 +14,18 @@ import { useTranslation } from "@/lib/i18n/client";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
+import PdfBookmarkSection from "./PdfBookmarkSection";
+
 // 20 MB
 const BIG_FILE_SIZE = 20 * 1024 * 1024;
 
-function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
+function PDFContentSection({
+  bookmark,
+  readOnly,
+}: {
+  bookmark: ZBookmark;
+  readOnly: boolean;
+}) {
   if (bookmark.content.type != BookmarkTypes.ASSET) {
     throw new Error("Invalid content type");
   }
@@ -44,7 +52,7 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
     (r) => r.assetType === "assetScreenshot",
   )?.id;
 
-  const content =
+  const screenshotContent =
     section === "screenshot" && screenshot ? (
       <div className="relative h-full min-w-full">
         <Image
@@ -55,14 +63,7 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
           className="object-contain"
         />
       </div>
-    ) : (
-      <embed
-        title={bookmark.content.assetId}
-        type="application/pdf"
-        className="h-full w-full"
-        src={getAssetUrl(bookmark.content.assetId)}
-      />
-    );
+    ) : null;
 
   return (
     <div className="flex h-full flex-col items-center gap-2">
@@ -81,7 +82,15 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
           </SelectContent>
         </Select>
       </div>
-      {content}
+      {section === "pdf" ? (
+        <PdfBookmarkSection
+          bookmark={bookmark}
+          assetId={bookmark.content.assetId}
+          readOnly={readOnly}
+        />
+      ) : (
+        screenshotContent
+      )}
     </div>
   );
 }
@@ -105,7 +114,13 @@ function ImageContentSection({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
-export function AssetContentSection({ bookmark }: { bookmark: ZBookmark }) {
+export function AssetContentSection({
+  bookmark,
+  readOnly = false,
+}: {
+  bookmark: ZBookmark;
+  readOnly?: boolean;
+}) {
   if (bookmark.content.type != BookmarkTypes.ASSET) {
     throw new Error("Invalid content type");
   }
@@ -113,7 +128,7 @@ export function AssetContentSection({ bookmark }: { bookmark: ZBookmark }) {
     case "image":
       return <ImageContentSection bookmark={bookmark} />;
     case "pdf":
-      return <PDFContentSection bookmark={bookmark} />;
+      return <PDFContentSection bookmark={bookmark} readOnly={readOnly} />;
     default:
       return <div>Unsupported asset type</div>;
   }

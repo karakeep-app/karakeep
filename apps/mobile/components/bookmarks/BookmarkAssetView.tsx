@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import BookmarkAssetImage from "@/components/bookmarks/BookmarkAssetImage";
-import { PDFViewer } from "@/components/bookmarks/PDFViewer";
+import BookmarkPdfView from "@/components/bookmarks/BookmarkPdfView";
 import { useAssetUrl } from "@/lib/hooks";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -25,12 +25,7 @@ export default function BookmarkAssetView({
   // Check if this is a PDF asset
   if (bookmark.content.assetType === "pdf") {
     return (
-      <View className="flex flex-1">
-        <PDFViewer
-          source={assetSource.uri ?? ""}
-          headers={assetSource.headers}
-        />
-      </View>
+      <BookmarkPdfView bookmark={bookmark} assetId={bookmark.content.assetId} />
     );
   }
 
