@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Distill math reader fixture</title>
+  </head>
+  <body>
+    <article>
+      <h1>Distill math reader fixture</h1>
+      <p>
+        This article explains a matrix used to transform a feature
+        representation. The inline expression
+        <d-math>W_{enc}^{\ell}</d-math> identifies the encoder weights. Reader
+        mode should retain the mathematical structure alongside this explanatory
+        text, so the relationship remains understandable after saving the page.
+      </p>
+      <p>
+        The following display equation is deliberately separate from its
+        surrounding prose. It must remain a block equation after the crawler
+        extracts the article and stores its readable content.
+      </p>
+      <d-math block>x^2 + y^2 = z^2</d-math>
+      <p>
+        A previously rendered formula contains multiple representations of the
+        same value. The MathML should survive once, while the annotation and
+        visual fallback should not be converted into duplicate mathematical
+        text.
+      </p>
+      <d-math
+        ><span class="katex"
+          ><span class="katex-mathml"
+            ><math xmlns="http://www.w3.org/1998/Math/MathML"
+              ><semantics
+                ><mi>q</mi
+                ><annotation encoding="application/x-tex"
+                  >q</annotation
+                ></semantics
+              ></math
+            ></span
+          ><span class="katex-html" aria-hidden="true">q</span></span
+        ></d-math
+      >
+      <p>
+        This concluding paragraph gives the reader enough article context to
+        preserve the examples as part of a coherent document. Both raw and
+        previously rendered equations are essential to the explanation and
+        should remain available when retrieving the saved bookmark.
+      </p>
+    </article>
+  </body>
+</html>

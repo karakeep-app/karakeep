@@ -98,6 +98,32 @@ describe("Crawler Tests", () => {
     ).toBeDefined();
   });
 
+  it("should retain raw and pre-rendered Distill equations in reader content", async () => {
+    const { data: created } = await client.POST("/bookmarks", {
+      body: { type: "link", url: "http://nginx:80/distill-math.html" },
+    });
+    assert(created);
+
+    await waitUntil(async () => {
+      const bookmark = await getBookmark(created.id);
+      assert(bookmark && bookmark.content.type === "link");
+      return bookmark.content.crawledAt !== null;
+    }, "Math article is crawled");
+
+    const bookmark = await getBookmark(created.id);
+    assert(bookmark && bookmark.content.type === "link");
+    const html = bookmark.content.htmlContent;
+    assert(html);
+    expect(html.match(/<math[\s>]/g)).toHaveLength(3);
+    expect(html).toContain('display="block"');
+    expect(html).toContain("<mi>q</mi>");
+    expect(html.match(/<mi>q<\/mi>/g)).toHaveLength(1);
+    expect(html).not.toContain("<d-math");
+    expect(html).not.toContain("<annotation");
+    expect(html).not.toContain("katex-html");
+    expect(html).toContain("encoder weights");
+  });
+
   it("should fail crawling a disallowed non-redirect URL", async () => {
     let { data: bookmark } = await client.POST("/bookmarks", {
       body: {
