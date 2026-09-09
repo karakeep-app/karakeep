@@ -56,7 +56,7 @@ describe("persisted image highlights", () => {
       ],
     };
     const { container } = render(
-      <HighlightContent text="Fallback" content={content} />,
+      <HighlightContent text="Fallback" content={content} allowImages />,
     );
     expect(container.querySelector("img")?.alt).toBe("Diagram");
     expect(container.firstElementChild?.children[0].textContent).toBe(

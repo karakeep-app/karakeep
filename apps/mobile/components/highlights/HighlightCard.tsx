@@ -8,6 +8,7 @@ import { ExternalLink, Trash2 } from "lucide-react-native";
 
 import type { ZHighlight } from "@karakeep/shared/types/highlights";
 import { useDeleteHighlight } from "@karakeep/shared-react/hooks/highlights";
+import { useHighlightImages } from "@karakeep/shared-react/hooks/highlightImages";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { useToast } from "../ui/Toast";
@@ -28,6 +29,8 @@ export default function HighlightCard({
   const { toast } = useToast();
   const router = useRouter();
   const api = useTRPC();
+  const { allowImages, hasBlockedImages, loadImages } =
+    useHighlightImages(highlight);
 
   const onError = () => {
     toast({
@@ -96,7 +99,7 @@ export default function HighlightCard({
                 <Text key={index} className="italic text-foreground">
                   {part.text}
                 </Text>
-              ) : /^https?:\/\//i.test(part.src) ? (
+              ) : allowImages && /^https?:\/\//i.test(part.src) ? (
                 <Image
                   key={index}
                   source={{ uri: part.src }}
@@ -114,6 +117,12 @@ export default function HighlightCard({
             </Text>
           )}
         </View>
+
+        {hasBlockedImages && (
+          <Pressable accessibilityRole="button" onPress={loadImages}>
+            <Text>Load shared images (contacts external sites)</Text>
+          </Pressable>
+        )}
 
         {/* Note if present */}
         {highlight.note && (

@@ -5,9 +5,11 @@ import type { ZHighlightContent } from "@karakeep/shared/types/highlights";
 export default function HighlightContent({
   content,
   text,
+  allowImages = false,
 }: {
   content?: ZHighlightContent | null;
   text: string | null;
+  allowImages?: boolean;
 }) {
   return (
     <div className="whitespace-pre-wrap text-left">
@@ -15,7 +17,7 @@ export default function HighlightContent({
         ? content.parts.map((part, index) =>
             part.type === "text" ? (
               <span key={index}>{part.text}</span>
-            ) : /^https?:\/\//i.test(part.src) ? (
+            ) : allowImages && /^https?:\/\//i.test(part.src) ? (
               <img
                 key={index}
                 src={part.src}

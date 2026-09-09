@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 
 import { useDeleteHighlight } from "@karakeep/shared-react/hooks/highlights";
+import { useHighlightImages } from "@karakeep/shared-react/hooks/highlightImages";
 import HighlightContent from "@karakeep/shared-react/components/HighlightContent";
 import { ZHighlight } from "@karakeep/shared/types/highlights";
 
@@ -20,6 +21,8 @@ export default function HighlightCard({
   className?: string;
   readOnly: boolean;
 }) {
+  const { allowImages, hasBlockedImages, loadImages } =
+    useHighlightImages(highlight);
   const { mutate: deleteHighlight, isPending: isDeleting } = useDeleteHighlight(
     {
       onSuccess: () => {
@@ -70,7 +73,11 @@ export default function HighlightCard({
             HIGHLIGHT_COLOR_MAP["border-l"][highlight.color],
           )}
         >
-          <HighlightContent content={highlight.content} text={highlight.text} />
+          <HighlightContent
+            content={highlight.content}
+            text={highlight.text}
+            allowImages={allowImages}
+          />
         </blockquote>
         {highlight.note && (
           <span className="text-sm text-muted-foreground">
@@ -78,6 +85,15 @@ export default function HighlightCard({
           </span>
         )}
       </Wrapper>
+      {hasBlockedImages && (
+        <button
+          type="button"
+          className="text-sm underline"
+          onClick={loadImages}
+        >
+          Load shared images (contacts external sites)
+        </button>
+      )}
       {!readOnly && (
         <div className="flex gap-2">
           <ActionButton
