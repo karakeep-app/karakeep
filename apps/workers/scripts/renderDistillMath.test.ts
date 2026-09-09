@@ -2,7 +2,7 @@ import { Readability } from "@mozilla/readability";
 import DOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import katex from "katex";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { renderDistillMath } from "./renderDistillMath";
 
@@ -18,6 +18,49 @@ function convert(html: string): string {
 
 describe("Distill reader math", () => {
   const tex = String.raw`W_{enc}^{\ell}`;
+
+  it("limits the number of render attempts, including failed parses", () => {
+    const spy = vi.spyOn(katex, "renderToString").mockImplementation(() => {
+      throw new Error("Invalid formula");
+    });
+    try {
+      const result = convert("<d-math>x</d-math>".repeat(501));
+      expect(spy).toHaveBeenCalledTimes(500);
+      expect(result).toBe("x".repeat(501));
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("keeps oversized formulas as text without spending the render budget", () => {
+    const spy = vi.spyOn(katex, "renderToString");
+    try {
+      const source = "x".repeat(4097);
+      const result = convert(`<d-math>${source}</d-math><d-math>y</d-math>`);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(result).toContain(source);
+      expect(result).toContain("<mi>y</mi>");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("bounds aggregate source length and retains already rendered math", () => {
+    const spy = vi.spyOn(katex, "renderToString").mockImplementation(() => {
+      throw new Error("Invalid formula");
+    });
+    try {
+      const result = convert(
+        `<d-math>${"x".repeat(4000)}</d-math>`.repeat(26) +
+          "<d-math><math><mi>z</mi></math></d-math>",
+      );
+      expect(spy).toHaveBeenCalledTimes(25);
+      expect(result).toContain("x".repeat(104000));
+      expect(result).toContain("<math><mi>z</mi></math>");
+    } finally {
+      spy.mockRestore();
+    }
+  });
 
   it("renders raw inline source as MathML without exposing its annotation", () => {
     const result = convert(`<p>Encoder <d-math>${tex}</d-math>.</p>`);
