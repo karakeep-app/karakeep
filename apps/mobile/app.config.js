@@ -92,6 +92,24 @@ export default {
       ],
       "expo-secure-store",
       [
+        "react-native-android-widget",
+        {
+          widgets: [
+            {
+              name: "KarakeepSearch",
+              label: "Karakeep",
+              description: "Your Karakeep search results, ready to read.",
+              minWidth: "110dp",
+              minHeight: "110dp",
+              targetCellWidth: 4,
+              targetCellHeight: 3,
+              resizeMode: "horizontal|vertical",
+              updatePeriodMillis: 1800000,
+            },
+          ],
+        },
+      ],
+      [
         "expo-image-picker",
         {
           photosPermission:

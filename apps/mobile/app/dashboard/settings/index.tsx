@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Platform,
   Pressable,
   TextInput,
   View,
@@ -141,6 +142,15 @@ export default function Settings() {
       </SettingsGroup>
 
       <SettingsGroup header="Data">
+        {Platform.OS === "android" && (
+          <>
+            <SettingsNavigationRow
+              label="Home screen widget"
+              onPress={() => router.push("/dashboard/settings/widget")}
+            />
+            <SettingsSeparator />
+          </>
+        )}
         <SettingsNavigationRow
           label="Downloads"
           onPress={() => router.push("/dashboard/settings/offline")}

@@ -173,6 +173,16 @@ In 90% of the cases, you'll want to use the development variant.
 
 Note: Changing the code will hot reload the app. However, installing new packages requires restarting the expo server.
 
+#### Android search widget
+
+Build the native Android app, then add **Karakeep** from the launcher's widget picker. Expo Go does not include the native widget module.
+
+The widget uses the account signed into the app. Set its query under **Settings → Home screen widget**; the default is `-is:archived`, and an empty query shows all bookmarks. The query applies to all installed Karakeep widgets. The widget follows the app's theme setting, supports resizing in both directions, and scrolls through up to 50 results. Tapping a result opens the reader.
+
+Widgets refresh when the app goes into the background, when widget settings or the account change, and when the refresh button is tapped. Android also schedules updates every 30 minutes; delivery depends on the system's background limits.
+
+Run `pnpm --filter @karakeep/mobile test` for the search and widget lifecycle tests. When changing widget behavior, also check the native app on a launcher: small and full-screen sizes, list scrolling, light/dark themes, custom queries, reader links with the app open and closed, network failures, and logout while a request is in flight.
+
 
 ### Browser Extension
 

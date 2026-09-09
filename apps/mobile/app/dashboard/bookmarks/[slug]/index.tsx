@@ -32,7 +32,7 @@ function KeepScreenOn() {
 
 export default function BookmarkView() {
   const router = useRouter();
-  const { slug } = useLocalSearchParams();
+  const { slug, view } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { settings } = useAppSettings();
@@ -78,7 +78,9 @@ export default function BookmarkView() {
     connectionStatus === "device-offline" ||
     connectionStatus === "server-unreachable";
   const displayedBookmarkLinkType: BookmarkLinkType =
-    isOffline && offlineArticle ? "reader" : bookmarkLinkType;
+    view === "reader" || (isOffline && offlineArticle)
+      ? "reader"
+      : bookmarkLinkType;
 
   if (!displayedBookmark) {
     return <QueryPageState error={error} onRetry={refetch} />;
@@ -139,7 +141,10 @@ export default function BookmarkView() {
                 )}
                 <BookmarkLinkTypeSelector
                   type={displayedBookmarkLinkType}
-                  onChange={(type) => setBookmarkLinkType(type)}
+                  onChange={(type) => {
+                    router.setParams({ view: undefined });
+                    setBookmarkLinkType(type);
+                  }}
                   bookmark={displayedBookmark}
                 />
               </View>
