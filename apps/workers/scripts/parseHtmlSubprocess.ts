@@ -1,5 +1,4 @@
 import { Readability } from "@mozilla/readability";
-import DOMPurify from "dompurify";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import { JSDOM, VirtualConsole } from "jsdom";
@@ -19,6 +18,8 @@ import winston from "winston";
 
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
+
+import { sanitizeReadableMath } from "./readableMath";
 
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
@@ -150,25 +151,19 @@ function extractReadableContent(
       };
     }
 
-    const purifyWindow = new JSDOM("").window;
+    const purifiedHTML = sanitizeReadableMath(readableContent.content, url);
+    const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
     try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
-      const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
-      try {
-        return {
-          readableContent: { content: purifiedHTML },
-          readerViewAssessment: assessReaderView(
-            dom.window.document,
-            extractedDom.window.document,
-            url,
-          ),
-        };
-      } finally {
-        extractedDom.window.close();
-      }
+      return {
+        readableContent: { content: purifiedHTML },
+        readerViewAssessment: assessReaderView(
+          dom.window.document,
+          extractedDom.window.document,
+          url,
+        ),
+      };
     } finally {
-      purifyWindow.close();
+      extractedDom.window.close();
     }
   } finally {
     dom.window.close();
@@ -205,25 +200,19 @@ async function main() {
   if (!metadataOnly && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
-    const purifyWindow = new JSDOM("").window;
+    const purifiedHTML = sanitizeReadableMath(meta.readableContentHtml, url);
+    readableContent = { content: purifiedHTML };
+    const sourceDom = new JSDOM(htmlContent, { url });
+    const extractedDom = new JSDOM(purifiedHTML, { url });
     try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(meta.readableContentHtml);
-      readableContent = { content: purifiedHTML };
-      const sourceDom = new JSDOM(htmlContent, { url });
-      const extractedDom = new JSDOM(purifiedHTML, { url });
-      try {
-        readerViewAssessment = assessReaderView(
-          sourceDom.window.document,
-          extractedDom.window.document,
-          url,
-        );
-      } finally {
-        sourceDom.window.close();
-        extractedDom.window.close();
-      }
+      readerViewAssessment = assessReaderView(
+        sourceDom.window.document,
+        extractedDom.window.document,
+        url,
+      );
     } finally {
-      purifyWindow.close();
+      sourceDom.window.close();
+      extractedDom.window.close();
     }
   }
 
