@@ -717,7 +717,8 @@
                           "height"
                         ]
                       },
-                      "minItems": 1
+                      "minItems": 1,
+                      "maxItems": 256
                     }
                   },
                   "required": [
@@ -725,7 +726,8 @@
                     "rects"
                   ]
                 },
-                "minItems": 1
+                "minItems": 1,
+                "maxItems": 100
               }
             },
             "required": [
@@ -3724,7 +3726,8 @@
                                   "height"
                                 ]
                               },
-                              "minItems": 1
+                              "minItems": 1,
+                              "maxItems": 256
                             }
                           },
                           "required": [
@@ -3732,7 +3735,8 @@
                             "rects"
                           ]
                         },
-                        "minItems": 1
+                        "minItems": 1,
+                        "maxItems": 100
                       }
                     },
                     "required": [

@@ -6,6 +6,7 @@ import {
   useDeleteHighlight,
   useUpdateHighlight,
 } from "@karakeep/shared-react/hooks/highlights";
+import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useQuery } from "@tanstack/react-query";
@@ -25,6 +26,7 @@ export default function BookmarkPdfView({
   const { mutate: updateHighlight } = useUpdateHighlight();
   const { mutate: deleteHighlight } = useDeleteHighlight();
   const assetSource = useAssetUrl(assetId);
+  const { data: currentUser } = useWhoAmI();
 
   if (bookmark.content.type === BookmarkTypes.UNKNOWN) {
     return null;
@@ -36,6 +38,7 @@ export default function BookmarkPdfView({
         source={assetSource.uri}
         headers={assetSource.headers}
         highlights={highlights?.highlights ?? []}
+        readOnly={currentUser?.id !== bookmark.userId}
         onHighlight={(highlight) =>
           createHighlight({ bookmarkId: bookmark.id, ...highlight })
         }

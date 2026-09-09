@@ -8,6 +8,9 @@ const zHighlightColorSchema = z.enum(["yellow", "red", "green", "blue"]);
 export type ZHighlightColor = z.infer<typeof zHighlightColorSchema>;
 export const SUPPORTED_HIGHLIGHT_COLORS = zHighlightColorSchema.options;
 
+export const MAX_PDF_HIGHLIGHT_PAGES = 100;
+export const MAX_PDF_HIGHLIGHT_RECTS_PER_PAGE = 256;
+
 const zPdfHighlightRectSchema = z.object({
   // Rectangles are normalized to the page so zoom and device pixel ratio do
   // not change the persisted highlight position.
@@ -19,11 +22,14 @@ const zPdfHighlightRectSchema = z.object({
 
 const zPdfHighlightPageSchema = z.object({
   pageIndex: z.number().int().nonnegative(),
-  rects: z.array(zPdfHighlightRectSchema).min(1),
+  rects: z
+    .array(zPdfHighlightRectSchema)
+    .min(1)
+    .max(MAX_PDF_HIGHLIGHT_RECTS_PER_PAGE),
 });
 
 export const zPdfHighlightMetadataSchema = z.object({
-  pages: z.array(zPdfHighlightPageSchema).min(1),
+  pages: z.array(zPdfHighlightPageSchema).min(1).max(MAX_PDF_HIGHLIGHT_PAGES),
 });
 
 export type ZPdfHighlightMetadata = z.infer<typeof zPdfHighlightMetadataSchema>;

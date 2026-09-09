@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  MAX_PDF_HIGHLIGHT_PAGES,
+  MAX_PDF_HIGHLIGHT_RECTS_PER_PAGE,
+  zPdfHighlightMetadataSchema,
+} from "@karakeep/shared/types/highlights";
+
 import { pdfHighlightMetadataFromSelection } from "./pdf-highlight-utils";
 import type { PdfClientRect, PdfPageBounds } from "./pdf-highlight-utils";
 
@@ -68,5 +74,28 @@ describe("pdfHighlightMetadataFromSelection", () => {
         [{ pageIndex: 0, left: 0, top: 0, width: 0, height: 100 }],
       ),
     ).toBeNull();
+  });
+
+  it("bounds persisted page and rectangle collections", () => {
+    const rect = { x: 0, y: 0, width: 0.1, height: 0.1 };
+    const page = { pageIndex: 0, rects: [rect] };
+    expect(
+      zPdfHighlightMetadataSchema.safeParse({
+        pages: Array.from({ length: MAX_PDF_HIGHLIGHT_PAGES + 1 }, () => page),
+      }).success,
+    ).toBe(false);
+    expect(
+      zPdfHighlightMetadataSchema.safeParse({
+        pages: [
+          {
+            pageIndex: 0,
+            rects: Array.from(
+              { length: MAX_PDF_HIGHLIGHT_RECTS_PER_PAGE + 1 },
+              () => rect,
+            ),
+          },
+        ],
+      }).success,
+    ).toBe(false);
   });
 });

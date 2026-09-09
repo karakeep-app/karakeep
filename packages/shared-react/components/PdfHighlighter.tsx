@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent, MouseEvent } from "react";
+import type {
+  MouseEvent,
+  PointerEvent as ReactPointerEvent,
+  RefObject,
+} from "react";
 import { GlobalWorkerOptions, getDocument, TextLayer } from "pdfjs-dist";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 
@@ -177,6 +181,7 @@ function PdfPage({
   document,
   pageIndex,
   containerWidth,
+  rootRef,
   highlights,
   onPointerUp,
   onHighlightClick,
@@ -184,6 +189,7 @@ function PdfPage({
   document: PDFDocumentProxy;
   pageIndex: number;
   containerWidth: number;
+  rootRef: RefObject<HTMLDivElement | null>;
   highlights: ZHighlight[];
   onPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void;
   onHighlightClick: (highlight: ZHighlight, event: MouseEvent) => void;
@@ -191,10 +197,76 @@ function PdfPage({
   const pageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textLayerRef = useRef<HTMLDivElement>(null);
-  const [pageSize, setPageSize] = useState({ width: 1, height: 1 });
+  const [pageSize, setPageSize] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
+    let disposed = false;
+
+    async function measurePage() {
+      try {
+        const page = await document.getPage(pageIndex + 1);
+        if (disposed) {
+          return;
+        }
+
+        const baseViewport = page.getViewport({ scale: 1 });
+        const availableWidth = Math.max(containerWidth - 24, 320);
+        const scale = Math.min(2, availableWidth / baseViewport.width);
+        const viewport = page.getViewport({ scale });
+        setPageSize({ width: viewport.width, height: viewport.height });
+      } catch (error) {
+        if (!disposed) {
+          setPageError(
+            error instanceof Error ? error.message : "Failed to render page",
+          );
+        }
+      }
+    }
+
+    setPageSize(null);
+    setPageError(null);
+    setIsVisible(false);
+    void measurePage();
+    return () => {
+      disposed = true;
+    };
+  }, [containerWidth, document, pageIndex]);
+
+  useEffect(() => {
+    const element = pageRef.current;
+    if (!element || !pageSize) {
+      return;
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setIsVisible(entries.some((entry) => entry.isIntersecting));
+      },
+      {
+        root: rootRef.current,
+        rootMargin: "768px 0px",
+      },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [pageSize, rootRef]);
+
+  useEffect(() => {
+    if (!isVisible || !pageSize) {
+      return;
+    }
+    const measuredPageSize = pageSize;
+
     let disposed = false;
     let renderTask: { cancel: () => void; promise: Promise<void> } | undefined;
     let textLayer: TextLayer | undefined;
@@ -207,15 +279,13 @@ function PdfPage({
         }
 
         const baseViewport = page.getViewport({ scale: 1 });
-        const availableWidth = Math.max(containerWidth - 24, 320);
-        const scale = Math.min(2, availableWidth / baseViewport.width);
-        const viewport = page.getViewport({ scale });
+        const viewport = page.getViewport({
+          scale: measuredPageSize.width / baseViewport.width,
+        });
         const devicePixelRatio = Math.max(
           1,
           typeof window === "undefined" ? 1 : window.devicePixelRatio,
         );
-
-        setPageSize({ width: viewport.width, height: viewport.height });
         const canvas = canvasRef.current;
         canvas.width = Math.ceil(viewport.width * devicePixelRatio);
         canvas.height = Math.ceil(viewport.height * devicePixelRatio);
@@ -265,8 +335,16 @@ function PdfPage({
       disposed = true;
       renderTask?.cancel();
       textLayer?.cancel();
+      canvasRef.current
+        ?.getContext("2d")
+        ?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      if (canvasRef.current) {
+        canvasRef.current.width = 0;
+        canvasRef.current.height = 0;
+      }
+      textLayerRef.current?.replaceChildren();
     };
-  }, [containerWidth, document, pageIndex]);
+  }, [document, isVisible, pageIndex, pageSize]);
 
   const pageHighlights = useMemo(
     () =>
@@ -284,7 +362,10 @@ function PdfPage({
       ref={pageRef}
       data-pdf-page={pageIndex}
       className="pdf-highlight-page"
-      style={{ width: pageSize.width, height: pageSize.height }}
+      style={{
+        width: pageSize?.width ?? "100%",
+        height: pageSize?.height ?? 240,
+      }}
     >
       <canvas ref={canvasRef} aria-hidden="true" />
       <div
@@ -530,6 +611,7 @@ export default function PdfHighlighter({
             document={document}
             pageIndex={pageIndex}
             containerWidth={containerWidth}
+            rootRef={containerRef}
             highlights={pdfHighlights}
             onPointerUp={handlePointerUp}
             onHighlightClick={handleHighlightClick}
