@@ -17,6 +17,7 @@ import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
+import type { ZPdfHighlightAnchor } from "@karakeep/shared/types/highlights";
 
 function createdAtField(colName = "createdAt") {
   return integer(colName, { mode: "timestamp" })
@@ -399,6 +400,7 @@ export const highlights = sqliteTable(
       .notNull(),
     text: text("text"),
     note: text("note"),
+    pdfAnchor: text("pdfAnchor", { mode: "json" }).$type<ZPdfHighlightAnchor>(),
     createdAt: createdAtField(),
   },
   (tb) => [

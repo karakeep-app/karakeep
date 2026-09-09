@@ -427,7 +427,7 @@ export interface paths {
     put?: never;
     /**
      * Create a new highlight
-     * @description Create a new text highlight on a bookmark. Highlights are defined by character offsets within the bookmark's content and support color coding.
+     * @description Create a highlight on a bookmark. HTML highlights use character offsets. PDF highlights use a pdfAnchor containing the asset ID and rectangles in PDF page coordinates, with startOffset and endOffset set to zero. Both support text, color and notes.
      */
     post: operations["createHighlight"];
     delete?: never;
@@ -1001,6 +1001,18 @@ export interface components {
       color: "yellow" | "red" | "green" | "blue";
       text: string | null;
       note: string | null;
+      pdfAnchor?: {
+        /** @enum {number} */
+        version: 1;
+        assetId: string;
+        rects: {
+          pageIndex: number;
+          x1: number;
+          y1: number;
+          x2: number;
+          y2: number;
+        }[];
+      } | null;
       id: string;
       userId: string;
       /** Format: date-time */
@@ -2668,6 +2680,18 @@ export interface operations {
           color?: "yellow" | "red" | "green" | "blue";
           text: string | null;
           note: string | null;
+          pdfAnchor?: {
+            /** @enum {number} */
+            version: 1;
+            assetId: string;
+            rects: {
+              pageIndex: number;
+              x1: number;
+              y1: number;
+              x2: number;
+              y2: number;
+            }[];
+          } | null;
         };
       };
     };

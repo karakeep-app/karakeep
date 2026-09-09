@@ -35,6 +35,7 @@ export class HighlightsRepo {
         color: input.color,
         text: input.text,
         note: input.note,
+        pdfAnchor: input.pdfAnchor ?? null,
         userId,
       })
       .returning();

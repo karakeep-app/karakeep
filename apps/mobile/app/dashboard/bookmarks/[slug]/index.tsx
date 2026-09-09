@@ -32,7 +32,7 @@ function KeepScreenOn() {
 
 export default function BookmarkView() {
   const router = useRouter();
-  const { slug } = useLocalSearchParams();
+  const { slug, pdfHighlight } = useLocalSearchParams();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const { settings } = useAppSettings();
@@ -40,9 +40,11 @@ export default function BookmarkView() {
   const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
-    settings.defaultBookmarkView === "externalBrowser"
-      ? "browser"
-      : settings.defaultBookmarkView,
+    typeof pdfHighlight === "string"
+      ? "pdf"
+      : settings.defaultBookmarkView === "externalBrowser"
+        ? "browser"
+        : settings.defaultBookmarkView,
   );
 
   if (typeof slug !== "string") {
