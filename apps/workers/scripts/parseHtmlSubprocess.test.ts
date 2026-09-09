@@ -11,10 +11,22 @@ const prose =
     12,
   );
 
-function extract(equations: string, metadataOnly = false) {
-  const result = spawnSync(process.execPath, ["--import", "tsx", parserPath], {
+function extract(
+  equations: string,
+  metadataOnly = false,
+  redditFixture = false,
+) {
+  const imports = ["--import", "tsx"];
+  if (redditFixture)
+    imports.push(
+      "--import",
+      new URL("./fixtures/reddit-math-preload.mjs", import.meta.url).href,
+    );
+  const result = spawnSync(process.execPath, [...imports, parserPath], {
     input: JSON.stringify({
-      url: "https://example.com/research",
+      url: redditFixture
+        ? "https://www.reddit.com/r/math/comments/fixture"
+        : "https://example.com/research",
       jobId: "math-regression",
       metadataOnly,
       htmlContent: `<html><head><title>Research note</title></head><body><article><h1>Research note</h1><p>${prose}</p>${equations}<p>${prose}</p></article></body></html>`,
@@ -28,6 +40,26 @@ function extract(equations: string, metadataOnly = false) {
 }
 
 describe("reader math extraction subprocess", () => {
+  it("normalizes and sanitizes direct HTML returned by the Reddit plugin", () => {
+    const result = extract("", false, true);
+    const dom = new JSDOM(result.readableContent.content);
+    try {
+      expect(dom.window.document.body.textContent).toContain(
+        "Plugin-only-content",
+      );
+      expect(dom.window.document.body.textContent).not.toContain(prose.trim());
+      const math = dom.window.document.querySelectorAll("math");
+      expect(math).toHaveLength(2);
+      expect(math[0].querySelector("msup")).not.toBeNull();
+      expect(math[1].getAttribute("display")).toBe("block");
+      expect(math[1].querySelector("mfrac")).not.toBeNull();
+      expect(
+        dom.window.document.querySelector("script, [onerror], d-math"),
+      ).toBeNull();
+    } finally {
+      dom.window.close();
+    }
+  }, 30000);
   it("renders raw inline and block Distill equations as native MathML", () => {
     const result = extract(
       String.raw`<p>The encoder is <d-math>W_{enc}^{\ell}</d-math>.</p><d-math block>\frac{x}{2}</d-math>`,
