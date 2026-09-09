@@ -16,7 +16,7 @@ import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import BookmarkPdfHighlighterDom from "./BookmarkPdfHighlighterDom";
 import { PDFViewer } from "./PDFViewer";
 
-const MAX_DOM_PDF_BYTES = 25 * 1024 * 1024;
+import { downloadHighlightPdf } from "./downloadHighlightPdf";
 
 export default function BookmarkPdfView({
   bookmarkId,
@@ -57,31 +57,20 @@ export default function BookmarkPdfView({
     // Fetch with native authentication, then marshal only the PDF bytes across
     // Expo's DOM bridge. The DOM document never receives the server API token.
     const path = `${ReactNativeBlobUtil.fs.dirs.CacheDir}/karakeep-pdf-${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`;
-    const task = ReactNativeBlobUtil.config({ path, fileCache: true }).fetch(
-      "GET",
+    const task = downloadHighlightPdf(
+      ReactNativeBlobUtil,
       source.uri,
       JSON.parse(headersKey) as Record<string, string>,
+      path,
     );
     void (async () => {
       try {
-        const response = await task;
-        if (disposed) return;
-        if (response.info().status < 200 || response.info().status >= 300)
-          throw new Error(
-            "Unable to download the PDF. Check your connection and access.",
-          );
-        const stat = await ReactNativeBlobUtil.fs.stat(path);
-        if (Number(stat.size) > MAX_DOM_PDF_BYTES)
-          throw new Error(
-            "This PDF is too large for text highlighting on this device. Use the original reader.",
-          );
-        const base64 = await ReactNativeBlobUtil.fs.readFile(path, "base64");
-        if (!disposed) setLoaded({ source: source.uri, headersKey, base64 });
+        const base64 = await task.promise;
+        if (!disposed && base64 !== null)
+          setLoaded({ source: source.uri, headersKey, base64 });
       } catch (err) {
         if (!disposed)
           setError(err instanceof Error ? err.message : "Unable to load PDF.");
-      } finally {
-        await ReactNativeBlobUtil.fs.unlink(path).catch(() => undefined);
       }
     })();
     return () => {
