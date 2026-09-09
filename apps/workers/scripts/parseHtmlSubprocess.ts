@@ -34,6 +34,8 @@ import {
   unavailableReaderViewAssessment,
 } from "../workers/utils/readerViewAssessment";
 
+import { renderDistillMath } from "./renderDistillMath";
+
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
 logger.add(new winston.transports.Stream({ stream: process.stderr }));
@@ -150,10 +152,13 @@ function extractReadableContent(
       };
     }
 
-    const purifyWindow = new JSDOM("").window;
+    const purifyWindow = new JSDOM(readableContent.content).window;
     try {
       const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
+      renderDistillMath(purifyWindow.document);
+      const purifiedHTML = purify.sanitize(
+        purifyWindow.document.body.innerHTML,
+      );
       const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
       try {
         return {
@@ -205,10 +210,13 @@ async function main() {
   if (!metadataOnly && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
-    const purifyWindow = new JSDOM("").window;
+    const purifyWindow = new JSDOM(meta.readableContentHtml).window;
     try {
       const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(meta.readableContentHtml);
+      renderDistillMath(purifyWindow.document);
+      const purifiedHTML = purify.sanitize(
+        purifyWindow.document.body.innerHTML,
+      );
       readableContent = { content: purifiedHTML };
       const sourceDom = new JSDOM(htmlContent, { url });
       const extractedDom = new JSDOM(purifiedHTML, { url });
