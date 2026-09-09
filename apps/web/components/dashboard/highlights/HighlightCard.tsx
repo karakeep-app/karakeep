@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 
 import { useDeleteHighlight } from "@karakeep/shared-react/hooks/highlights";
+import HighlightContent from "@karakeep/shared-react/components/HighlightContent";
 import { ZHighlight } from "@karakeep/shared/types/highlights";
 
 import { HIGHLIGHT_COLOR_MAP } from "../preview/highlights";
@@ -69,7 +70,7 @@ export default function HighlightCard({
             HIGHLIGHT_COLOR_MAP["border-l"][highlight.color],
           )}
         >
-          <p>{highlight.text}</p>
+          <HighlightContent content={highlight.content} text={highlight.text} />
         </blockquote>
         {highlight.note && (
           <span className="text-sm text-muted-foreground">

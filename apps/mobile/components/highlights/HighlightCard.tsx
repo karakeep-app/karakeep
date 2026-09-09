@@ -1,4 +1,4 @@
-import { ActivityIndicator, Alert, Pressable, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Text } from "@/components/ui/Text";
@@ -90,9 +90,29 @@ export default function HighlightCard({
           className="rounded-r-lg border-l-4 bg-muted/30 p-3"
           style={{ borderLeftColor: HIGHLIGHT_COLOR_MAP[highlight.color] }}
         >
-          <Text className="italic text-foreground">
-            {highlight.text || "No text available"}
-          </Text>
+          {highlight.content?.parts.length ? (
+            highlight.content.parts.map((part, index) =>
+              part.type === "text" ? (
+                <Text key={index} className="italic text-foreground">
+                  {part.text}
+                </Text>
+              ) : /^https?:\/\//i.test(part.src) ? (
+                <Image
+                  key={index}
+                  source={{ uri: part.src }}
+                  accessibilityLabel={part.alt}
+                  resizeMode="contain"
+                  style={{ width: "100%", height: 180 }}
+                />
+              ) : (
+                <Text key={index}>[{part.alt || "Image"}]</Text>
+              ),
+            )
+          ) : (
+            <Text className="italic text-foreground">
+              {highlight.text || "No text available"}
+            </Text>
+          )}
         </View>
 
         {/* Note if present */}
