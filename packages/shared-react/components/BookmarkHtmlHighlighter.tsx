@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useEffect,
+  useId,
   useImperativeHandle,
   useRef,
   useState,
@@ -164,6 +165,21 @@ const BookmarkHTMLHighlighter = forwardRef<
   ref,
 ) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const mathHighlightStyleRef = useRef<HTMLStyleElement>(null);
+  const mathHighlightPrefix = `karakeep-math-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const mathHighlightsRef = useRef<
+    { name: string; highlightId: string; ranges: Range[] }[]
+  >([]);
+
+  const clearMathHighlights = () => {
+    for (const { name } of mathHighlightsRef.current) {
+      CSS.highlights.delete(name);
+    }
+    mathHighlightsRef.current = [];
+    if (mathHighlightStyleRef.current) {
+      mathHighlightStyleRef.current.textContent = "";
+    }
+  };
 
   // Expose the content div ref to parent components
   useImperativeHandle(ref, () => contentRef.current!, []);
@@ -189,6 +205,7 @@ const BookmarkHTMLHighlighter = forwardRef<
     if (!contentRef.current) return;
 
     // Clear existing highlights first
+    clearMathHighlights();
     const existingHighlights = contentRef.current.querySelectorAll(
       "span[data-highlight]",
     );
@@ -206,6 +223,8 @@ const BookmarkHTMLHighlighter = forwardRef<
     highlights.forEach((highlight) => {
       applyHighlightByOffset(highlight);
     });
+
+    return clearMathHighlights;
   });
 
   // Re-apply the selection when the pending range changes
@@ -238,21 +257,40 @@ const BookmarkHTMLHighlighter = forwardRef<
     const selection = window.getSelection();
 
     // Check if we clicked on an existing highlight
-    const target = e.target as HTMLElement;
-    if (target.dataset.highlight) {
-      const highlightId = target.dataset.highlightId;
-      if (highlightId && highlights) {
-        const highlight = highlights.find((h) => h.id === highlightId);
-        if (!highlight) {
-          return;
-        }
-        setSelectedHighlight(highlight);
-        setMenuPosition({
-          x: e.clientX,
-          y: e.clientY,
-        });
+    const target = e.target as Element;
+    let highlightId = target.getAttribute("data-highlight")
+      ? target.getAttribute("data-highlight-id")
+      : null;
+    // Native highlights do not insert elements to use as pointer targets.
+    // Search in reverse paint order so overlapping highlights remain editable.
+    for (let i = mathHighlightsRef.current.length - 1; i >= 0; i--) {
+      const mathHighlight = mathHighlightsRef.current[i];
+      if (
+        mathHighlight.ranges.some((range) =>
+          Array.from(range.getClientRects()).some(
+            (rect) =>
+              e.clientX >= rect.left &&
+              e.clientX < rect.right &&
+              e.clientY >= rect.top &&
+              e.clientY < rect.bottom,
+          ),
+        )
+      ) {
+        highlightId = mathHighlight.highlightId;
+        break;
+      }
+    }
+    if (highlightId) {
+      const highlight = highlights.find((h) => h.id === highlightId);
+      if (!highlight) {
         return;
       }
+      setSelectedHighlight(highlight);
+      setMenuPosition({
+        x: e.clientX,
+        y: e.clientY,
+      });
+      return;
     }
 
     if (!selection || selection.isCollapsed || !contentRef.current) {
@@ -382,8 +420,23 @@ const BookmarkHTMLHighlighter = forwardRef<
     if (!ranges) {
       return;
     }
+    const mathRanges: Range[] = [];
+    const supportsNativeHighlights =
+      typeof CSS !== "undefined" &&
+      !!CSS.highlights &&
+      typeof window.Highlight === "function";
+
     // Apply highlights to found ranges
     ranges.forEach(({ node, start, end }) => {
+      if (supportsNativeHighlights && node.parentElement?.closest("math")) {
+        // Wrapping MathML text in HTML spans changes token/operator layout.
+        // Keep its nodes intact, including partially selected math tokens.
+        const range = document.createRange();
+        range.setStart(node, start);
+        range.setEnd(node, end);
+        mathRanges.push(range);
+        return;
+      }
       if (start > 0) {
         node.splitText(start);
         node = node.nextSibling as Text;
@@ -401,10 +454,29 @@ const BookmarkHTMLHighlighter = forwardRef<
       node.parentNode?.insertBefore(span, node);
       span.appendChild(node);
     });
+
+    if (mathRanges.length > 0) {
+      const index = mathHighlightsRef.current.length;
+      const name = `${mathHighlightPrefix}-${index}`;
+      const nativeHighlight = new window.Highlight(...mathRanges);
+      nativeHighlight.priority = index;
+      CSS.highlights.set(name, nativeHighlight);
+      mathHighlightsRef.current.push({
+        name,
+        highlightId: highlight.id,
+        ranges: mathRanges,
+      });
+      mathHighlightStyleRef.current?.appendChild(
+        document.createTextNode(
+          `::highlight(${name}) { background-color: ${HIGHLIGHT_COLOR_MAP.css[highlight.color]}; color: #4b5563; }`,
+        ),
+      );
+    }
   };
 
   return (
     <div>
+      <style ref={mathHighlightStyleRef} />
       <div
         role="presentation"
         ref={contentRef}
