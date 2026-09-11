@@ -123,6 +123,56 @@ describe("Inference Worker Tests", () => {
     );
   }, 120000);
 
+  it("does not record a summary for a text bookmark with no content", async () => {
+    await trpc.users.updateSettings.mutate({
+      autoSummarizationEnabled: true,
+    });
+
+    const { data: createdBookmark, error } = await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Blank note",
+        text: "   ",
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+    assert(createdBookmark);
+    expect(createdBookmark.summarizationStatus).toBe("pending");
+
+    // The job runs and finds nothing to summarize, so it must clear the pending
+    // state rather than claim a success it never produced.
+    await waitUntil(
+      async () => {
+        const { data: bookmark } = await client.GET("/bookmarks/{bookmarkId}", {
+          params: {
+            path: {
+              bookmarkId: createdBookmark.id,
+            },
+          },
+        });
+
+        return bookmark?.summarizationStatus !== "pending";
+      },
+      "Blank text bookmark summarization settles",
+      120000,
+    );
+
+    const { data: bookmark } = await client.GET("/bookmarks/{bookmarkId}", {
+      params: {
+        path: {
+          bookmarkId: createdBookmark.id,
+        },
+      },
+    });
+
+    assert(bookmark);
+    expect(bookmark.summarizationStatus).toBeNull();
+    expect(bookmark.summary).toBeNull();
+  }, 120000);
+
   it("auto-tags and summarizes crawled link bookmarks", async () => {
     await trpc.users.updateSettings.mutate({
       autoTaggingEnabled: true,

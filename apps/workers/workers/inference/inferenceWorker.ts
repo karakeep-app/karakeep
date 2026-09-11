@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { workerStatsCounter } from "metrics";
 import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
@@ -15,7 +15,7 @@ import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
-import { runSummarization } from "./summarize";
+import { runSummarization, SummarizationOutcome } from "./summarize";
 import { runTagging } from "./tagging";
 
 async function attemptMarkStatus(
@@ -41,20 +41,59 @@ async function attemptMarkStatus(
   }
 }
 
+/**
+ * Clears the `pending` status of a job that was skipped without doing any work,
+ * so it does not sit as "summarizing" forever. Mirrors what the crawler does
+ * when a job will never produce a result.
+ */
+async function attemptClearPendingStatus(jobData: object | undefined) {
+  if (!jobData) {
+    return;
+  }
+  try {
+    const request = zOpenAIRequestSchema.parse(jobData);
+    if (request.type !== "summarize") {
+      return;
+    }
+    await db
+      .update(bookmarks)
+      .set({ summarizationStatus: null })
+      .where(
+        and(
+          eq(bookmarks.id, request.bookmarkId),
+          eq(bookmarks.summarizationStatus, "pending"),
+        ),
+      );
+  } catch (e) {
+    logger.error(
+      `Something went wrong when clearing the summarization status: ${e}`,
+    );
+  }
+}
+
 export class OpenAiWorker {
   static async build() {
     logger.info("Starting inference worker ...");
-    const worker = (await getQueueClient())!.createRunner<ZOpenAIRequest>(
+    const worker = (await getQueueClient())!.createRunner<
+      ZOpenAIRequest,
+      SummarizationOutcome | undefined
+    >(
       OpenAIQueue,
       {
         run: withWorkerTracing(
           "inferenceWorker.run",
           withWorkerEventLog("inferenceWorker.run", runOpenAI),
         ),
-        onComplete: async (job) => {
+        onComplete: async (job, result) => {
           workerStatsCounter.labels("inference", "completed").inc();
           const jobId = job.id;
           logger.info(`[inference][${jobId}] Completed successfully`);
+          if (result === "skipped") {
+            // Nothing was summarized, so recording a success would claim a
+            // summary that doesn't exist.
+            await attemptClearPendingStatus(job.data);
+            return;
+          }
           await attemptMarkStatus(job.data, "success");
         },
         onError: async (job) => {
@@ -80,7 +119,9 @@ export class OpenAiWorker {
   }
 }
 
-async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
+async function runOpenAI(
+  job: DequeuedJob<ZOpenAIRequest>,
+): Promise<SummarizationOutcome | undefined> {
   const jobId = job.id;
 
   const inferenceClient = InferenceClientFactory.build();
@@ -113,11 +154,10 @@ async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
   });
   switch (request.data.type) {
     case "summarize":
-      await runSummarization(bookmarkId, job, inferenceClient);
-      break;
+      return await runSummarization(bookmarkId, job, inferenceClient);
     case "tag":
       await runTagging(bookmarkId, job, inferenceClient);
-      break;
+      return undefined;
     default:
       throw new Error(`Unknown inference type: ${request.data.type}`);
   }

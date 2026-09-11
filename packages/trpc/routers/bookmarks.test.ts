@@ -223,6 +223,19 @@ describe("Bookmark Routes", () => {
     expect(enqueuedTypes).toContain("summarize");
   });
 
+  test<CustomTestContext>("a text bookmark starts out pending summarization", async ({
+    apiCallers,
+  }) => {
+    const created = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "A note that is worth summarizing",
+    });
+
+    // A summarization job is enqueued for it, so the UI needs to know one is
+    // coming rather than showing "no summary".
+    expect(created.summarizationStatus).toBe("pending");
+  });
+
   describe("summarizeBookmark", () => {
     beforeEach(() => {
       inferenceMocks.build.mockReset();

@@ -207,6 +207,12 @@ function AISummarySection({
       },
     });
 
+  // Unknown bookmarks carry no content relation, so there is nothing to
+  // summarize and the action would always fail.
+  if (bookmark.content.type === BookmarkTypes.UNKNOWN) {
+    return null;
+  }
+
   if (bookmark.summary) {
     return (
       <GroupedSection header="AI Summary">

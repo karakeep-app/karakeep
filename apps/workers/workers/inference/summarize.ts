@@ -55,16 +55,24 @@ async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
   return bookmark;
 }
 
+/**
+ * Whether a summarization job actually produced a summary.
+ *
+ * A skipped job must not be recorded as a successful summarization: that is what
+ * left asset bookmarks with `summarizationStatus = 'success'` and no summary.
+ */
+export type SummarizationOutcome = "summarized" | "skipped";
+
 export async function runSummarization(
   bookmarkId: string,
   job: DequeuedJob<ZOpenAIRequest>,
   inferenceClient: InferenceClient,
-) {
+): Promise<SummarizationOutcome> {
   if (!serverConfig.inference.enableAutoSummarization) {
     logger.debug(
       `[inference][${job.id}] Skipping summarization job for bookmark with id "${bookmarkId}" because it's disabled in the config.`,
     );
-    return;
+    return "skipped";
   }
   const jobId = job.id;
 
@@ -101,7 +109,7 @@ export async function runSummarization(
     logger.debug(
       `[inference][${jobId}] Skipping summarization job for bookmark with id "${bookmarkId}" because user has disabled auto-summarization.`,
     );
-    return;
+    return "skipped";
   }
 
   // Extracting the plain text content of a link hits the asset store, so it's
@@ -123,7 +131,7 @@ export async function runSummarization(
     logger.info(
       `[inference][${jobId}] No content to summarize for bookmark ${bookmarkId} (type: ${bookmarkData.type}). Skipping summary.`,
     );
-    return;
+    return "skipped";
   }
 
   const prompts = await db.query.customPrompts.findMany({
@@ -183,4 +191,6 @@ export async function runSummarization(
     priority: job.priority,
     groupId: bookmarkData.userId,
   });
+
+  return "summarized";
 }

@@ -12,7 +12,7 @@ import {
   useSummarizeBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
-import { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 function AISummary({
   bookmarkId,
@@ -118,6 +118,12 @@ export default function SummarizeBookmarkArea({
   });
 
   const clientConfig = useClientConfig();
+  // Unknown bookmarks carry no content relation, so there is nothing to
+  // summarize and the action would always fail.
+  if (bookmark.content.type === BookmarkTypes.UNKNOWN) {
+    return null;
+  }
+
   if (bookmark.summary) {
     return (
       <AISummary

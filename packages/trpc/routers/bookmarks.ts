@@ -372,9 +372,14 @@ export const bookmarksAppRouter = router({
               summary: input.summary,
               createdAt: input.createdAt,
               source: input.source,
-              // Only links currently support summarization. Let's set the status to null for other types for now.
+              // Links and texts enqueue a summarization job as part of this
+              // request. Assets only get one later, once asset preprocessing has
+              // extracted their text, so they start with no status.
               summarizationStatus:
-                input.type === BookmarkTypes.LINK ? "pending" : null,
+                input.type === BookmarkTypes.LINK ||
+                input.type === BookmarkTypes.TEXT
+                  ? "pending"
+                  : null,
             })
             .returning()
             .all()[0];
