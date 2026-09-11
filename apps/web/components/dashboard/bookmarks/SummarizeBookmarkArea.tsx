@@ -12,7 +12,7 @@ import {
   useSummarizeBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
-import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 function AISummary({
   bookmarkId,
@@ -118,10 +118,6 @@ export default function SummarizeBookmarkArea({
   });
 
   const clientConfig = useClientConfig();
-  if (bookmark.content.type !== BookmarkTypes.LINK) {
-    return null;
-  }
-
   if (bookmark.summary) {
     return (
       <AISummary
