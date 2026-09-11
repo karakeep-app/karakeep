@@ -41,6 +41,14 @@ async function attemptMarkStatus(
   }
 }
 
+function isSummarizeJob(jobData: object | undefined): boolean {
+  if (!jobData) {
+    return false;
+  }
+  const parsed = zOpenAIRequestSchema.safeParse(jobData);
+  return parsed.success && parsed.data.type === "summarize";
+}
+
 /**
  * Clears the `pending` status of a job that was skipped without doing any work,
  * so it does not sit as "summarizing" forever. Mirrors what the crawler does
@@ -88,9 +96,11 @@ export class OpenAiWorker {
           workerStatsCounter.labels("inference", "completed").inc();
           const jobId = job.id;
           logger.info(`[inference][${jobId}] Completed successfully`);
-          if (result === "skipped") {
-            // Nothing was summarized, so recording a success would claim a
-            // summary that doesn't exist.
+          // A summarization only counts as successful when the job reports it
+          // actually wrote one. Anything else — disabled in the config or by
+          // the user, no content to summarize, no inference client — leaves no
+          // summary behind, so claiming success would be a lie.
+          if (isSummarizeJob(job.data) && result !== "summarized") {
             await attemptClearPendingStatus(job.data);
             return;
           }
@@ -119,7 +129,7 @@ export class OpenAiWorker {
   }
 }
 
-async function runOpenAI(
+export async function runOpenAI(
   job: DequeuedJob<ZOpenAIRequest>,
 ): Promise<SummarizationOutcome | undefined> {
   const jobId = job.id;
@@ -129,7 +139,12 @@ async function runOpenAI(
     logger.debug(
       `[inference][${jobId}] No inference client configured, nothing to do now`,
     );
-    return;
+    // A summarize job that never reached a model produced no summary, so it
+    // must not be recorded as one. Tagging is left as it was.
+    const parsed = zOpenAIRequestSchema.safeParse(job.data);
+    return parsed.success && parsed.data.type === "summarize"
+      ? "skipped"
+      : undefined;
   }
 
   const request = zOpenAIRequestSchema.safeParse(job.data);
