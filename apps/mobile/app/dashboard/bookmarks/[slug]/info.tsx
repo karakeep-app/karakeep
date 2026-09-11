@@ -207,10 +207,6 @@ function AISummarySection({
       },
     });
 
-  if (bookmark.content.type !== BookmarkTypes.LINK) {
-    return null;
-  }
-
   if (bookmark.summary) {
     return (
       <GroupedSection header="AI Summary">
