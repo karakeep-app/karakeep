@@ -2,7 +2,8 @@ import { assert, beforeEach, describe, expect, inject, it } from "vitest";
 
 import { createKarakeepClient } from "@karakeep/sdk";
 
-import { createTestUser } from "../../utils/api";
+import { createTestUser, uploadTestAsset } from "../../utils/api";
+import { createTestPdfFileWithText } from "../../utils/assets";
 import { waitUntil } from "../../utils/general";
 import { getTrpcClient } from "../../utils/trpc";
 
@@ -171,6 +172,64 @@ describe("Inference Worker Tests", () => {
     assert(bookmark);
     expect(bookmark.summarizationStatus).toBeNull();
     expect(bookmark.summary).toBeNull();
+  }, 120000);
+
+  it("auto-summarizes asset bookmarks from their extracted text", async () => {
+    await trpc.users.updateSettings.mutate({
+      autoSummarizationEnabled: true,
+    });
+
+    const upload = await uploadTestAsset(
+      apiKey,
+      port,
+      createTestPdfFileWithText(),
+    );
+
+    const { data: createdBookmark, error } = await client.POST("/bookmarks", {
+      body: {
+        type: "asset",
+        assetType: "pdf",
+        assetId: upload.assetId,
+        fileName: upload.fileName,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+    assert(createdBookmark);
+
+    // Asset preprocessing extracts the PDF text first, and only then is a
+    // summarization job enqueued.
+    await waitUntil(
+      async () => {
+        const { data: bookmark } = await client.GET("/bookmarks/{bookmarkId}", {
+          params: {
+            path: {
+              bookmarkId: createdBookmark.id,
+            },
+          },
+        });
+
+        return bookmark?.summarizationStatus === "success";
+      },
+      "Asset bookmark summarization completes",
+      120000,
+    );
+
+    const { data: bookmark } = await client.GET("/bookmarks/{bookmarkId}", {
+      params: {
+        path: {
+          bookmarkId: createdBookmark.id,
+        },
+      },
+    });
+
+    assert(bookmark);
+    expect(bookmark.summarizationStatus).toBe("success");
+    expect(bookmark.summary).toBe(
+      "This page contains a short Hello World test document used to verify Karakeep's inference worker end-to-end.",
+    );
   }, 120000);
 
   it("auto-tags and summarizes crawled link bookmarks", async () => {
