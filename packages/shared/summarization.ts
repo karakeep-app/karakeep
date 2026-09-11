@@ -43,7 +43,7 @@ export function buildSummarizationInput(
       if (!link) {
         return null;
       }
-      if (!link.description && !linkPlainTextContent) {
+      if (!link.description?.trim() && !linkPlainTextContent.trim()) {
         return null;
       }
       return `

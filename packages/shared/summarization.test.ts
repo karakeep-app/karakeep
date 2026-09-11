@@ -85,6 +85,12 @@ describe("buildSummarizationInput", () => {
       expect(buildSummarizationInput(linkBookmark(), "")).toBeNull();
     });
 
+    test("returns null when both are only whitespace", () => {
+      expect(
+        buildSummarizationInput(linkBookmark({ description: "  \n " }), " \t "),
+      ).toBeNull();
+    });
+
     test("returns null when the link row is missing", () => {
       expect(
         buildSummarizationInput(
