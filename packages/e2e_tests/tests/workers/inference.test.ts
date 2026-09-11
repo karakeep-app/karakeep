@@ -74,6 +74,55 @@ describe("Inference Worker Tests", () => {
     );
   }, 120000);
 
+  it("auto-summarizes text bookmarks", async () => {
+    await trpc.users.updateSettings.mutate({
+      autoSummarizationEnabled: true,
+    });
+
+    const { data: createdBookmark, error } = await client.POST("/bookmarks", {
+      body: {
+        type: "text",
+        title: "Inference text bookmark",
+        text: "Karakeep should summarize this bookmark through the inference worker.",
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+    assert(createdBookmark);
+
+    await waitUntil(
+      async () => {
+        const { data: bookmark } = await client.GET("/bookmarks/{bookmarkId}", {
+          params: {
+            path: {
+              bookmarkId: createdBookmark.id,
+            },
+          },
+        });
+
+        return bookmark?.summarizationStatus === "success";
+      },
+      "Text bookmark summarization completes",
+      120000,
+    );
+
+    const { data: bookmark } = await client.GET("/bookmarks/{bookmarkId}", {
+      params: {
+        path: {
+          bookmarkId: createdBookmark.id,
+        },
+      },
+    });
+
+    assert(bookmark);
+    expect(bookmark.summarizationStatus).toBe("success");
+    expect(bookmark.summary).toBe(
+      "This page contains a short Hello World test document used to verify Karakeep's inference worker end-to-end.",
+    );
+  }, 120000);
+
   it("auto-tags and summarizes crawled link bookmarks", async () => {
     await trpc.users.updateSettings.mutate({
       autoTaggingEnabled: true,

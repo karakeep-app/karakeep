@@ -40,6 +40,7 @@ import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
 import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
+import { buildSummarizationInput } from "@karakeep/shared/summarization";
 import type {
   ZBookmarkContent,
   ZBookmarkSource,
@@ -529,6 +530,13 @@ export const bookmarksAppRouter = router({
               enqueueOpts,
             );
           }
+          await OpenAIQueue.enqueue(
+            {
+              bookmarkId: bookmark.id,
+              type: "summarize",
+            },
+            enqueueOpts,
+          );
           break;
         }
         case BookmarkTypes.ASSET: {
@@ -1515,29 +1523,63 @@ export const bookmarksAppRouter = router({
           message: "No inference client configured",
         });
       }
-      const bookmark = await ctx.db.query.bookmarkLinks.findFirst({
-        where: eq(bookmarkLinks.id, input.bookmarkId),
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+        columns: { type: true },
+        with: {
+          link: {
+            columns: {
+              title: true,
+              description: true,
+              htmlContent: true,
+              contentAssetId: true,
+              publisher: true,
+              author: true,
+              url: true,
+            },
+          },
+          text: {
+            columns: {
+              text: true,
+            },
+          },
+          asset: {
+            columns: {
+              content: true,
+              fileName: true,
+            },
+          },
+        },
       });
 
       if (!bookmark) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Bookmark not found or not a link",
+          message: "Bookmark not found",
         });
       }
 
-      const content = await Bookmark.getBookmarkPlainTextContent(
+      // Extracting the plain text content of a link hits the asset store, so
+      // it's only resolved for the bookmark type that needs it.
+      const linkPlainTextContent =
+        bookmark.type === BookmarkTypes.LINK && bookmark.link
+          ? ((await Bookmark.getBookmarkPlainTextContent(
+              bookmark.link,
+              ctx.user.id,
+            )) ?? "")
+          : "";
+
+      const bookmarkDetails = buildSummarizationInput(
         bookmark,
-        ctx.user.id,
+        linkPlainTextContent,
       );
 
-      const bookmarkDetails = `
-Title: ${bookmark.title ?? ""}
-Description: ${bookmark.description ?? ""}
-Content: ${content}
-Publisher: ${bookmark.publisher ?? ""}
-Author: ${bookmark.author ?? ""}
-`;
+      if (!bookmarkDetails) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Nothing to summarize for this bookmark",
+        });
+      }
 
       const prompts = await ctx.db.query.customPrompts.findMany({
         where: and(

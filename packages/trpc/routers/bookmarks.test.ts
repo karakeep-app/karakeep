@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
+  bookmarkAssets,
   bookmarkLinks,
   bookmarks,
   rssFeedImportsTable,
@@ -39,6 +40,21 @@ vi.mock("@karakeep/shared-server", async (original) => {
       enqueue: vi.fn(),
     },
     triggerSearchReindex: vi.fn(),
+  };
+});
+
+const inferenceMocks = vi.hoisted(() => ({
+  build: vi.fn(),
+  inferFromText: vi.fn(),
+}));
+
+vi.mock("@karakeep/shared/inference", async (original) => {
+  const mod = (await original()) as typeof import("@karakeep/shared/inference");
+  return {
+    ...mod,
+    InferenceClientFactory: {
+      build: inferenceMocks.build,
+    },
   };
 });
 
@@ -186,6 +202,146 @@ describe("Bookmark Routes", () => {
     });
 
     expect(created.content.type).toBe(BookmarkTypes.TEXT);
+  });
+
+  test<CustomTestContext>("creating a text bookmark enqueues a summarization job", async ({
+    apiCallers,
+  }) => {
+    const openAIEnqueueMock = getTestQueueMocks().openAIEnqueue;
+    openAIEnqueueMock.mockClear();
+
+    const created = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "A note that is worth summarizing",
+    });
+
+    const enqueuedTypes = openAIEnqueueMock.mock.calls
+      .map(([request]) => request)
+      .filter((request) => request.bookmarkId === created.id)
+      .map((request) => request.type);
+
+    expect(enqueuedTypes).toContain("summarize");
+  });
+
+  describe("summarizeBookmark", () => {
+    beforeEach(() => {
+      inferenceMocks.build.mockReset();
+      inferenceMocks.inferFromText.mockReset();
+      inferenceMocks.build.mockReturnValue({
+        inferFromText: inferenceMocks.inferFromText,
+      });
+    });
+
+    test<CustomTestContext>("summarizes a link bookmark", async ({
+      apiCallers,
+      db,
+    }) => {
+      inferenceMocks.inferFromText.mockResolvedValue({
+        response: "A link summary",
+        totalTokens: 10,
+      });
+
+      const created = await apiCallers[0].bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com/article",
+      });
+      // Simulate the crawler having populated a description.
+      await db
+        .update(bookmarkLinks)
+        .set({ description: "A crawled description" })
+        .where(eq(bookmarkLinks.id, created.id));
+
+      const result = await apiCallers[0].bookmarks.summarizeBookmark({
+        bookmarkId: created.id,
+      });
+
+      expect(result.summary).toBe("A link summary");
+      const [prompt] = inferenceMocks.inferFromText.mock.calls[0];
+      expect(prompt).toContain("A crawled description");
+    });
+
+    test<CustomTestContext>("summarizes a text bookmark", async ({
+      apiCallers,
+    }) => {
+      inferenceMocks.inferFromText.mockResolvedValue({
+        response: "A note summary",
+        totalTokens: 10,
+      });
+
+      const created = await apiCallers[0].bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "A note that is worth summarizing",
+      });
+
+      const result = await apiCallers[0].bookmarks.summarizeBookmark({
+        bookmarkId: created.id,
+      });
+
+      expect(result.summary).toBe("A note summary");
+      const [prompt] = inferenceMocks.inferFromText.mock.calls[0];
+      expect(prompt).toContain("A note that is worth summarizing");
+    });
+
+    test<CustomTestContext>("summarizes an asset bookmark with extracted content", async ({
+      apiCallers,
+      db,
+    }) => {
+      inferenceMocks.inferFromText.mockResolvedValue({
+        response: "A pdf summary",
+        totalTokens: 10,
+      });
+
+      // Asset bookmarks in `createBookmark` require a pre-uploaded asset, so
+      // this inserts the bookmark and its (already-extracted) asset content
+      // directly, the same way the asset preprocessing worker would have
+      // left them.
+      const userId = (await apiCallers[0].users.whoami()).id;
+      const [created] = await db
+        .insert(bookmarks)
+        .values({ userId, type: BookmarkTypes.ASSET })
+        .returning();
+      await db.insert(bookmarkAssets).values({
+        id: created.id,
+        assetId: "test-asset-id",
+        assetType: "pdf",
+        fileName: "paper.pdf",
+        content: "The extracted pdf text",
+      });
+
+      const result = await apiCallers[0].bookmarks.summarizeBookmark({
+        bookmarkId: created.id,
+      });
+
+      expect(result.summary).toBe("A pdf summary");
+      const [prompt] = inferenceMocks.inferFromText.mock.calls[0];
+      expect(prompt).toContain("The extracted pdf text");
+    });
+
+    test<CustomTestContext>("fails with a clear error when there's nothing to summarize yet", async ({
+      apiCallers,
+      db,
+    }) => {
+      // An asset bookmark whose text hasn't been extracted yet (the asset
+      // preprocessing worker hasn't run, or extraction failed).
+      const userId = (await apiCallers[0].users.whoami()).id;
+      const [created] = await db
+        .insert(bookmarks)
+        .values({ userId, type: BookmarkTypes.ASSET })
+        .returning();
+      await db.insert(bookmarkAssets).values({
+        id: created.id,
+        assetId: "test-asset-id-2",
+        assetType: "pdf",
+        fileName: "not-yet-processed.pdf",
+      });
+
+      await expect(
+        apiCallers[0].bookmarks.summarizeBookmark({
+          bookmarkId: created.id,
+        }),
+      ).rejects.toThrow("Nothing to summarize for this bookmark");
+      expect(inferenceMocks.inferFromText).not.toHaveBeenCalled();
+    });
   });
 
   test<CustomTestContext>("delete bookmark", async ({ apiCallers }) => {
