@@ -1,7 +1,9 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
+  assets,
+  AssetTypes,
   bookmarkLinks,
   bookmarks,
   rssFeedImportsTable,
@@ -10,6 +12,7 @@ import {
 } from "@karakeep/db/schema";
 import * as sharedServer from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 import { WebhooksService } from "../models/webhooks.service";
 import type { APICallerType, CustomTestContext } from "../testUtils";
@@ -288,6 +291,56 @@ describe("Bookmark Routes", () => {
     ).rejects.toThrow(
       /Attempting to set link attributes for non-link type bookmark/,
     );
+  });
+
+  test<CustomTestContext>("update bookmark - removes assets for images deleted from note", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const userId = await apiCallers[0].users.whoami().then((u) => u.id);
+
+    const keptAssetId = "kept-asset";
+    const removedAssetId = "removed-asset";
+    await db.insert(assets).values([
+      {
+        id: keptAssetId,
+        assetType: AssetTypes.USER_UPLOADED,
+        bookmarkId: null,
+        userId,
+      },
+      {
+        id: removedAssetId,
+        assetType: AssetTypes.USER_UPLOADED,
+        bookmarkId: null,
+        userId,
+      },
+    ]);
+
+    const bookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: `Some note with two images ![kept](${getAssetUrl(
+        keptAssetId,
+      )}) and ![removed](${getAssetUrl(removedAssetId)})`,
+    });
+
+    await db
+      .update(assets)
+      .set({ bookmarkId: bookmark.id })
+      .where(inArray(assets.id, [keptAssetId, removedAssetId]));
+
+    // Remove the "removed" image from the note but keep the other one.
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      text: `Some note with one image ![kept](${getAssetUrl(keptAssetId)})`,
+    });
+
+    const remainingAssets = await db
+      .select({ id: assets.id })
+      .from(assets)
+      .where(inArray(assets.id, [keptAssetId, removedAssetId]));
+
+    expect(remainingAssets.map((a) => a.id).sort()).toEqual([keptAssetId]);
   });
 
   test<CustomTestContext>("list bookmarks", async ({ apiCallers, db }) => {

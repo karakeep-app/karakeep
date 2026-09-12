@@ -63,7 +63,6 @@ export function MarkdownReadonly({
       onSave(newMarkdown);
     }
   };
-
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
@@ -82,6 +81,15 @@ export function MarkdownReadonly({
           ),
         pre({ ...props }) {
           return <PreWithCopyBtn {...props} />;
+        },
+        img({ ...props }) {
+          return (
+            <img
+              {...props}
+              src={props.src === "" ? undefined : props.src}
+              alt={props.alt}
+            />
+          );
         },
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className ?? "");

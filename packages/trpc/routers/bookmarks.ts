@@ -19,6 +19,7 @@ import {
   addLogFields,
   AssetPreprocessingQueue,
   buildCrawlIdempotencyKey,
+  deleteAsset,
   EmbeddingsQueue,
   LinkCrawlerQueue,
   logEvent,
@@ -60,6 +61,7 @@ import {
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
+import { getAssetIdsFromContent } from "@karakeep/shared/utils/assetUtils";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
@@ -571,6 +573,21 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
+      let removedAssetIds: string[] = [];
+      if (input.text) {
+        const existingText = await ctx.db.query.bookmarkTexts.findFirst({
+          where: eq(bookmarkTexts.id, input.bookmarkId),
+          columns: { text: true },
+        });
+        if (existingText?.text) {
+          const oldAssetIds = getAssetIdsFromContent(existingText.text);
+          const newAssetIds = getAssetIdsFromContent(input.text);
+          removedAssetIds = [...oldAssetIds].filter(
+            (id) => !newAssetIds.has(id),
+          );
+        }
+      }
+
       await ctx.db.transaction((tx) => {
         let somethingChanged = false;
 
@@ -635,6 +652,19 @@ export const bookmarksAppRouter = router({
             });
           }
           somethingChanged = true;
+
+          if (removedAssetIds.length > 0) {
+            tx.delete(assets)
+              .where(
+                and(
+                  inArray(assets.id, removedAssetIds),
+                  eq(assets.bookmarkId, input.bookmarkId),
+                  eq(assets.userId, ctx.user.id),
+                  eq(assets.assetType, AssetTypes.USER_UPLOADED),
+                ),
+              )
+              .run();
+          }
         }
 
         if (input.assetContent !== undefined) {
@@ -699,6 +729,14 @@ export const bookmarksAppRouter = router({
             .run();
         }
       });
+
+      if (removedAssetIds.length > 0) {
+        await Promise.all(
+          removedAssetIds.map((assetId) =>
+            deleteAsset({ userId: ctx.user.id, assetId }).catch(() => ({})),
+          ),
+        );
+      }
 
       // Refetch the updated bookmark data to return the full object
       const updatedBookmark = (
