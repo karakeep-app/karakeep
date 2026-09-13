@@ -53,6 +53,11 @@ import {
   buildTextPromptUntruncated,
 } from "@karakeep/shared/prompts";
 import {
+  renderImageTaggingTemplate,
+  renderSummaryTemplate,
+  renderTextTaggingTemplate,
+} from "@karakeep/shared/prompts.templates";
+import {
   zNewPromptSchema,
   ZPrompt,
   zUpdatePromptSchema,
@@ -804,6 +809,26 @@ export function PromptDemo() {
     [needsTagExpansion, allTagsData],
   );
 
+  // Instance-wide prompt template overrides (files in PROMPTS_DIR). When an
+  // override exists, preview it instead of the built-in prompt.
+  const { data: promptTemplates } = useQuery(
+    api.promptTemplates.list.queryOptions(),
+  );
+
+  const textPromptTexts = withTagsExpanded(
+    (prompts ?? [])
+      .filter((p) => p.appliesTo == "text" || p.appliesTo == "all_tagging")
+      .map((p) => p.text),
+  );
+  const imagePromptTexts = withTagsExpanded(
+    (prompts ?? [])
+      .filter((p) => p.appliesTo == "images" || p.appliesTo == "all_tagging")
+      .map((p) => p.text),
+  );
+  const summaryPromptTexts = withTagsExpanded(
+    (prompts ?? []).filter((p) => p.appliesTo == "summary").map((p) => p.text),
+  );
+
   return (
     <SettingsSection
       title={t("settings.ai.prompt_preview")}
@@ -815,19 +840,22 @@ export function PromptDemo() {
             {t("settings.ai.text_prompt")}
           </p>
           <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
-            {buildTextPromptUntruncated(
-              inferredTagLang,
-              withTagsExpanded(
-                (prompts ?? [])
-                  .filter(
-                    (p) =>
-                      p.appliesTo == "text" || p.appliesTo == "all_tagging",
-                  )
-                  .map((p) => p.text),
-              ),
-              "\n<CONTENT_HERE>\n",
-              tagStyle,
-              curatedTagNames,
+            {(promptTemplates?.textTagging != null
+              ? renderTextTaggingTemplate(
+                  promptTemplates.textTagging,
+                  inferredTagLang,
+                  textPromptTexts,
+                  "\n<CONTENT_HERE>\n",
+                  tagStyle,
+                  curatedTagNames,
+                )
+              : buildTextPromptUntruncated(
+                  inferredTagLang,
+                  textPromptTexts,
+                  "\n<CONTENT_HERE>\n",
+                  tagStyle,
+                  curatedTagNames,
+                )
             ).trim()}
           </code>
         </div>
@@ -836,18 +864,20 @@ export function PromptDemo() {
             {t("settings.ai.images_prompt")}
           </p>
           <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
-            {buildImagePrompt(
-              inferredTagLang,
-              withTagsExpanded(
-                (prompts ?? [])
-                  .filter(
-                    (p) =>
-                      p.appliesTo == "images" || p.appliesTo == "all_tagging",
-                  )
-                  .map((p) => p.text),
-              ),
-              tagStyle,
-              curatedTagNames,
+            {(promptTemplates?.imageTagging != null
+              ? renderImageTaggingTemplate(
+                  promptTemplates.imageTagging,
+                  inferredTagLang,
+                  imagePromptTexts,
+                  tagStyle,
+                  curatedTagNames,
+                )
+              : buildImagePrompt(
+                  inferredTagLang,
+                  imagePromptTexts,
+                  tagStyle,
+                  curatedTagNames,
+                )
             ).trim()}
           </code>
         </div>
@@ -856,14 +886,18 @@ export function PromptDemo() {
             {t("settings.ai.summarization_prompt")}
           </p>
           <code className="block whitespace-pre-wrap rounded-md bg-muted p-3 text-sm text-muted-foreground">
-            {buildSummaryPromptUntruncated(
-              inferredTagLang,
-              withTagsExpanded(
-                (prompts ?? [])
-                  .filter((p) => p.appliesTo == "summary")
-                  .map((p) => p.text),
-              ),
-              "\n<CONTENT_HERE>\n",
+            {(promptTemplates?.summary != null
+              ? renderSummaryTemplate(
+                  promptTemplates.summary,
+                  inferredTagLang,
+                  summaryPromptTexts,
+                  "\n<CONTENT_HERE>\n",
+                )
+              : buildSummaryPromptUntruncated(
+                  inferredTagLang,
+                  summaryPromptTexts,
+                  "\n<CONTENT_HERE>\n",
+                )
             ).trim()}
           </code>
         </div>
