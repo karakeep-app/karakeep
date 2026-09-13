@@ -5,7 +5,9 @@ import { create } from "zustand";
 
 import { zReaderFontFamilySchema } from "@karakeep/shared/types/users";
 
-const SETTING_NAME = "settings";
+import { DEFAULT_WIDGET_QUERY } from "../widgets/search";
+
+export const SETTING_NAME = "settings";
 
 const zToolbarActionId = z.enum([
   "lists",
@@ -34,7 +36,7 @@ export const DEFAULT_OVERFLOW_ACTIONS: ToolbarActionId[] = [
   "delete",
 ];
 
-const zSettingsSchema = z.object({
+export const zSettingsSchema = z.object({
   apiKey: z.string().optional(),
   apiKeyId: z.string().optional(),
   address: z.string().optional().default("https://cloud.karakeep.app"),
@@ -49,6 +51,7 @@ const zSettingsSchema = z.object({
   showNotes: z.boolean().optional().default(false),
   keepScreenOnWhileReading: z.boolean().optional().default(false),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
+  widgetSearchQuery: z.string().default(DEFAULT_WIDGET_QUERY),
   // Reader settings (local device overrides)
   readerFontSize: z.number().int().min(12).max(24).optional(),
   readerLineHeight: z.number().min(1.2).max(2.5).optional(),
@@ -85,6 +88,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       showNotes: false,
       keepScreenOnWhileReading: false,
       customHeaders: {},
+      widgetSearchQuery: DEFAULT_WIDGET_QUERY,
       toolbarActions: DEFAULT_TOOLBAR_ACTIONS,
       overflowActions: DEFAULT_OVERFLOW_ACTIONS,
     },
