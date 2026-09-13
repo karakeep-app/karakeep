@@ -23,6 +23,7 @@ import logger from "@karakeep/shared/logger";
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
+import { normalizeDistillMath } from "../workers/utils/normalizeDistillMath";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
@@ -142,6 +143,7 @@ function extractReadableContent(
   try {
     normalizeLazyLoadImages(dom.window.document);
     const documentClone = dom.window.document.cloneNode(true) as Document;
+    normalizeDistillMath(documentClone);
     const readableContent = new Readability(documentClone).parse();
     if (!readableContent || typeof readableContent.content !== "string") {
       return {
@@ -205,10 +207,13 @@ async function main() {
   if (!metadataOnly && meta.readableContentHtml) {
     // Sanitize plugin-provided HTML through DOMPurify (the extractReadableContent
     // path already does this, but the direct-content path was missing it).
-    const purifyWindow = new JSDOM("").window;
+    const purifyWindow = new JSDOM(meta.readableContentHtml).window;
     try {
+      normalizeDistillMath(purifyWindow.document);
       const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(meta.readableContentHtml);
+      const purifiedHTML = purify.sanitize(
+        purifyWindow.document.body.innerHTML,
+      );
       readableContent = { content: purifiedHTML };
       const sourceDom = new JSDOM(htmlContent, { url });
       const extractedDom = new JSDOM(purifiedHTML, { url });
