@@ -6,15 +6,6 @@ This page lists community projects that are built around Karakeep, but not offic
 This list comes with no guarantees about security, performance, reliability, or accuracy. Use at your own risk.
 :::
 
-### Quick Capture - Supasend (Quick Capture app for Karakeep)
-
-_By [@pradeepb28](https://github.com/pradeepb28)._
-
-Supasend aims to remove the friction between the thought in your brain and the app in which you capture. Think of its like a Quick capture app for your second brain apps including Karakeep. You can capture photos and links in Karakeep from Supasend faster.
-
-Get it [here](https://supasend.app/#karakeep).
-Download: [Download](https://apps.apple.com/us/app/quick-capture-supasend/id6504688166?ppid=3e1b600d-b03e-411d-b2ba-b2ef034ce0d6)
-
 ### Raycast Extension
 
 _By [@luolei](https://github.com/foru17)._
