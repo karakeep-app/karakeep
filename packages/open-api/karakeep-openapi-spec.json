@@ -669,6 +669,62 @@
             "type": "string",
             "nullable": true
           },
+          "pdfLocation": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "assetId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rects": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1000000
+                    },
+                    "x1": {
+                      "type": "number",
+                      "minimum": -10000000,
+                      "maximum": 10000000
+                    },
+                    "y1": {
+                      "type": "number",
+                      "minimum": -10000000,
+                      "maximum": 10000000
+                    },
+                    "x2": {
+                      "type": "number",
+                      "minimum": -10000000,
+                      "maximum": 10000000
+                    },
+                    "y2": {
+                      "type": "number",
+                      "minimum": -10000000,
+                      "maximum": 10000000
+                    }
+                  },
+                  "required": [
+                    "page",
+                    "x1",
+                    "y1",
+                    "x2",
+                    "y2"
+                  ]
+                },
+                "minItems": 1,
+                "maxItems": 2000
+              }
+            },
+            "required": [
+              "assetId",
+              "rects"
+            ]
+          },
           "id": {
             "type": "string"
           },
@@ -3612,6 +3668,62 @@
                   "note": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "pdfLocation": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "assetId": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "rects": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "page": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 1000000
+                            },
+                            "x1": {
+                              "type": "number",
+                              "minimum": -10000000,
+                              "maximum": 10000000
+                            },
+                            "y1": {
+                              "type": "number",
+                              "minimum": -10000000,
+                              "maximum": 10000000
+                            },
+                            "x2": {
+                              "type": "number",
+                              "minimum": -10000000,
+                              "maximum": 10000000
+                            },
+                            "y2": {
+                              "type": "number",
+                              "minimum": -10000000,
+                              "maximum": 10000000
+                            }
+                          },
+                          "required": [
+                            "page",
+                            "x1",
+                            "y1",
+                            "x2",
+                            "y2"
+                          ]
+                        },
+                        "minItems": 1,
+                        "maxItems": 2000
+                      }
+                    },
+                    "required": [
+                      "assetId",
+                      "rects"
+                    ]
                   }
                 },
                 "required": [

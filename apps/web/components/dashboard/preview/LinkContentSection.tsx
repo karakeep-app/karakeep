@@ -42,6 +42,7 @@ import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 import { contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
+import PdfReaderView from "./PdfReaderView";
 import SavedPageOverview from "./SavedPageOverview";
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
@@ -107,16 +108,6 @@ function VideoSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
-function PDFSection({ link }: { link: ZBookmarkedLink }) {
-  return (
-    <iframe
-      title="PDF Viewer"
-      src={`/api/assets/${link.pdfAssetId}`}
-      className="relative h-full min-w-full"
-    />
-  );
-}
-
 export default function LinkContentSection({
   bookmark,
 }: {
@@ -177,7 +168,15 @@ export default function LinkContentSection({
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
   } else if (section === "pdf") {
-    content = <PDFSection link={bookmark.content} />;
+    content = bookmark.content.pdfAssetId ? (
+      <PdfReaderView
+        bookmarkId={bookmark.id}
+        assetId={bookmark.content.pdfAssetId}
+        ownerId={bookmark.userId}
+      />
+    ) : (
+      <p>No PDF available.</p>
+    );
   } else if (section === "screenshot") {
     content = <ScreenshotSection link={bookmark.content} />;
   } else {

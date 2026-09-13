@@ -13,6 +13,7 @@ import { useTranslation } from "@/lib/i18n/client";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
+import PdfReaderView from "./PdfReaderView";
 
 // 20 MB
 const BIG_FILE_SIZE = 20 * 1024 * 1024;
@@ -56,11 +57,10 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
         />
       </div>
     ) : (
-      <embed
-        title={bookmark.content.assetId}
-        type="application/pdf"
-        className="h-full w-full"
-        src={getAssetUrl(bookmark.content.assetId)}
+      <PdfReaderView
+        bookmarkId={bookmark.id}
+        assetId={bookmark.content.assetId}
+        ownerId={bookmark.userId}
       />
     );
 
