@@ -47,6 +47,8 @@ import {
   crawlAndParseUrl,
   handleAsAssetBookmark,
 } from "./crawler/crawlAndParse";
+import { handleInstagramBookmark, isInstagramUrl } from "./crawler/instagram";
+import { InstagramTransientError } from "./crawler/instagramPage";
 import {
   getContentTypeAndMetadata,
   loadStoredProbeMetadata,
@@ -380,6 +382,39 @@ async function runCrawler(
   logger.info(
     `[Crawler][${jobId}] Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`,
   );
+
+  // Instagram posts hide behind a login wall, so a normal browser crawl yields
+  // an empty shell. When enabled, extract caption + transcript via yt-dlp
+  // instead, then run the same downstream jobs (inference, search, video).
+  if (serverConfig.crawler.instagramEnabled && isInstagramUrl(url)) {
+    let extracted = false;
+    try {
+      extracted = await handleInstagramBookmark({
+        url,
+        jobId,
+        bookmarkId,
+        runProxy,
+        abortSignal: job.abortSignal,
+      });
+    } catch (e) {
+      // A rate-limit or an empty answer from Instagram is worth another run,
+      // and once the retries run out the bookmark ends as crawlStatus:
+      // "failure". Rethrowing on every attempt is what gets both: the queue's
+      // own schedule paces the retries, and on the last one (numRetriesLeft
+      // == 0) the same rethrow reaches the runner's onError handler, which
+      // sets that "failure" — no separate "give up" path needed.
+      if (e instanceof InstagramTransientError) {
+        throw e;
+      }
+      logger.warn(`[Crawler][${jobId}] Instagram extraction gave up: ${e}`);
+    }
+    // On a rate-limit or expired-cookie failure nothing was written, so there
+    // is no new content for tagging/summarization/embedding to work on.
+    if (extracted) {
+      await enqueuePostCrawlJobs(job, bookmarkId, userId, url);
+    }
+    return { status: "completed" };
+  }
 
   if (precrawledArchiveAssetId) {
     logger.info(
