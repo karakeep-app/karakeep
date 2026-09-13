@@ -107,10 +107,12 @@ async function enqueueTagging(
   userId: string,
   priority: number | undefined,
   embedding?: number[],
+  collectionId?: string,
 ) {
   await OpenAIQueue.enqueue(
     {
       bookmarkId,
+      collectionId,
       type: "tag",
       ...(embedding ? { embedding } : {}),
     },
@@ -143,7 +145,13 @@ async function enqueueTaggingFallback(
     );
     return;
   }
-  await enqueueTagging(bookmarkId, bookmark.userId, job.priority);
+  await enqueueTagging(
+    bookmarkId,
+    bookmark.userId,
+    job.priority,
+    undefined,
+    job.data?.type === "embed" ? job.data.collectionId : undefined,
+  );
 }
 
 async function fetchBookmark(bookmarkId: string) {
@@ -431,7 +439,13 @@ async function runEmbed(
       `[embeddings][${jobId}] No embedding client configured, skipping embedding generation`,
     );
     if (shouldTag) {
-      await enqueueTagging(bookmarkId, bookmark.userId, job.priority);
+      await enqueueTagging(
+        bookmarkId,
+        bookmark.userId,
+        job.priority,
+        undefined,
+        data.collectionId,
+      );
     }
     return;
   }
@@ -442,7 +456,13 @@ async function runEmbed(
       `[embeddings][${jobId}] No content found for bookmark ${bookmarkId}, skipping embedding generation`,
     );
     if (shouldTag) {
-      await enqueueTagging(bookmarkId, bookmark.userId, job.priority);
+      await enqueueTagging(
+        bookmarkId,
+        bookmark.userId,
+        job.priority,
+        undefined,
+        data.collectionId,
+      );
     }
     return;
   }
@@ -489,7 +509,13 @@ async function runEmbed(
     },
   );
   if (shouldTag) {
-    await enqueueTagging(bookmarkId, bookmark.userId, job.priority, embedding);
+    await enqueueTagging(
+      bookmarkId,
+      bookmark.userId,
+      job.priority,
+      embedding,
+      data.collectionId,
+    );
   }
 
   logger.info(

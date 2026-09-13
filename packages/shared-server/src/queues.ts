@@ -119,6 +119,7 @@ export function buildCrawlIdempotencyKey(payload: ZCrawlLinkRequest): string {
 // Inference Worker
 export const zOpenAIRequestSchema = z.object({
   bookmarkId: z.string(),
+  collectionId: z.string().optional(),
   type: z.enum(["summarize", "tag"]).default("tag"),
   // Precomputed embedding so tagging can find similar bookmarks via
   // search({vector}) without waiting for the vector to be indexed. Only set on
@@ -146,6 +147,7 @@ export const zEmbeddingsRequestSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("embed"),
     bookmarkId: z.string(),
+    collectionId: z.string().optional(),
     force: z.boolean().optional(),
     runTaggingOnComplete: z.boolean().optional().default(true),
   }),

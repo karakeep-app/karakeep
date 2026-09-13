@@ -2,7 +2,7 @@
 
 import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ReactNode } from "react";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "@/lib/auth/client";
@@ -40,6 +40,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 
 import BookmarkActionBar from "./BookmarkActionBar";
 import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
+import { useBookmarkMergeDrag } from "./BookmarkMergeDragContext";
 import BookmarkOwnerIcon from "./BookmarkOwnerIcon";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
 import { NotePreview } from "./NotePreview";
@@ -152,6 +153,8 @@ function DragHandle({
   className?: string;
 }) {
   const { isBulkEditEnabled } = useBulkActionsStore();
+  const { onBookmarkDragStart, onBookmarkDragEnd } = useBookmarkMergeDrag();
+
   const handleDragStart = useCallback(
     (e: React.DragEvent) => {
       e.stopPropagation();
@@ -183,9 +186,15 @@ function DragHandle({
       document.body.appendChild(pill);
       e.dataTransfer.setDragImage(pill, 0, 0);
       requestAnimationFrame(() => pill.remove());
+
+      onBookmarkDragStart(bookmark.id);
     },
-    [bookmark],
+    [bookmark, onBookmarkDragStart],
   );
+
+  const handleDragEnd = useCallback(() => {
+    onBookmarkDragEnd();
+  }, [onBookmarkDragEnd]);
 
   if (isBulkEditEnabled) return null;
 
@@ -193,6 +202,7 @@ function DragHandle({
     <div
       draggable
       onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       className={cn(
         "absolute z-40 hidden cursor-grab rounded bg-background/70 p-0.5 opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100 [@media(pointer:fine)]:block",
         className,
@@ -318,6 +328,101 @@ function ListView({
 }: Props) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
+  const isBulkEditEnabled = useBulkActionsStore(
+    (state) => state.isBulkEditEnabled,
+  );
+  const {
+    activeTargetId,
+    isValidMergeTarget,
+    onBookmarkTargetEnter,
+    onBookmarkTargetLeave,
+    onBookmarkDrop,
+  } = useBookmarkMergeDrag();
+
+  const dragDepthRef = useRef(0);
+
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      dragDepthRef.current += 1;
+
+      if (dragDepthRef.current === 1) {
+        onBookmarkTargetEnter(bookmark.id);
+      }
+    },
+    [bookmark.id, isBulkEditEnabled, isValidMergeTarget, onBookmarkTargetEnter],
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    },
+    [bookmark.id, isBulkEditEnabled, isValidMergeTarget],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    if (dragDepthRef.current === 0) {
+      return;
+    }
+
+    dragDepthRef.current -= 1;
+
+    if (dragDepthRef.current === 0) {
+      onBookmarkTargetLeave(bookmark.id);
+    }
+  }, [bookmark.id, onBookmarkTargetLeave]);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      dragDepthRef.current = 0;
+
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        onBookmarkTargetLeave(bookmark.id);
+        return;
+      }
+
+      const transferredSourceId = e.dataTransfer.getData(BOOKMARK_DRAG_MIME);
+
+      if (!transferredSourceId) {
+        onBookmarkTargetLeave(bookmark.id);
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      onBookmarkDrop(transferredSourceId, bookmark.id);
+    },
+    [
+      bookmark.id,
+      isBulkEditEnabled,
+      isValidMergeTarget,
+      onBookmarkDrop,
+      onBookmarkTargetLeave,
+    ],
+  );
+
   const imgFitClass = switchCase(imageFit, {
     cover: "object-cover",
     contain: "object-contain",
@@ -329,8 +434,15 @@ function ListView({
       className={cn(
         "group relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
         className,
+        activeTargetId === bookmark.id &&
+          !isBulkEditEnabled &&
+          "ring-2 ring-primary",
       )}
       data-bookmark-index={bookmarkIndex}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
@@ -380,6 +492,101 @@ function GridView({
 }: Props & { layout: BookmarksLayoutTypes }) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
+  const isBulkEditEnabled = useBulkActionsStore(
+    (state) => state.isBulkEditEnabled,
+  );
+  const {
+    activeTargetId,
+    isValidMergeTarget,
+    onBookmarkTargetEnter,
+    onBookmarkTargetLeave,
+    onBookmarkDrop,
+  } = useBookmarkMergeDrag();
+
+  const dragDepthRef = useRef(0);
+
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      dragDepthRef.current += 1;
+
+      if (dragDepthRef.current === 1) {
+        onBookmarkTargetEnter(bookmark.id);
+      }
+    },
+    [bookmark.id, isBulkEditEnabled, isValidMergeTarget, onBookmarkTargetEnter],
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    },
+    [bookmark.id, isBulkEditEnabled, isValidMergeTarget],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    if (dragDepthRef.current === 0) {
+      return;
+    }
+
+    dragDepthRef.current -= 1;
+
+    if (dragDepthRef.current === 0) {
+      onBookmarkTargetLeave(bookmark.id);
+    }
+  }, [bookmark.id, onBookmarkTargetLeave]);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      dragDepthRef.current = 0;
+
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        onBookmarkTargetLeave(bookmark.id);
+        return;
+      }
+
+      const transferredSourceId = e.dataTransfer.getData(BOOKMARK_DRAG_MIME);
+
+      if (!transferredSourceId) {
+        onBookmarkTargetLeave(bookmark.id);
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      onBookmarkDrop(transferredSourceId, bookmark.id);
+    },
+    [
+      bookmark.id,
+      isBulkEditEnabled,
+      isValidMergeTarget,
+      onBookmarkDrop,
+      onBookmarkTargetLeave,
+    ],
+  );
+
   const imgFitClass = switchCase(imageFit, {
     cover: "object-cover",
     contain: "object-contain",
@@ -396,8 +603,15 @@ function GridView({
         "group relative flex flex-col overflow-hidden rounded-lg",
         className,
         fitHeight && layout != "grid" ? "max-h-96" : "h-96",
+        activeTargetId === bookmark.id &&
+          !isBulkEditEnabled &&
+          "ring-2 ring-primary",
       )}
       data-bookmark-index={bookmarkIndex}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
@@ -440,14 +654,113 @@ function CompactView({
   const isBulkEditEnabled = useBulkActionsStore(
     (state) => state.isBulkEditEnabled,
   );
+  const {
+    activeTargetId,
+    isValidMergeTarget,
+    onBookmarkTargetEnter,
+    onBookmarkTargetLeave,
+    onBookmarkDrop,
+  } = useBookmarkMergeDrag();
+
+  const dragDepthRef = useRef(0);
+
+  const handleDragEnter = useCallback(
+    (e: React.DragEvent) => {
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      dragDepthRef.current += 1;
+
+      if (dragDepthRef.current === 1) {
+        onBookmarkTargetEnter(bookmark.id);
+      }
+    },
+    [bookmark.id, isBulkEditEnabled, isValidMergeTarget, onBookmarkTargetEnter],
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    },
+    [bookmark.id, isBulkEditEnabled, isValidMergeTarget],
+  );
+
+  const handleDragLeave = useCallback(() => {
+    if (dragDepthRef.current === 0) {
+      return;
+    }
+
+    dragDepthRef.current -= 1;
+
+    if (dragDepthRef.current === 0) {
+      onBookmarkTargetLeave(bookmark.id);
+    }
+  }, [bookmark.id, onBookmarkTargetLeave]);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      dragDepthRef.current = 0;
+
+      if (
+        isBulkEditEnabled ||
+        !e.dataTransfer.types.includes(BOOKMARK_DRAG_MIME) ||
+        !isValidMergeTarget(bookmark.id)
+      ) {
+        onBookmarkTargetLeave(bookmark.id);
+        return;
+      }
+
+      const transferredSourceId = e.dataTransfer.getData(BOOKMARK_DRAG_MIME);
+
+      if (!transferredSourceId) {
+        onBookmarkTargetLeave(bookmark.id);
+        return;
+      }
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      onBookmarkDrop(transferredSourceId, bookmark.id);
+    },
+    [
+      bookmark.id,
+      isBulkEditEnabled,
+      isValidMergeTarget,
+      onBookmarkDrop,
+      onBookmarkTargetLeave,
+    ],
+  );
+
   return (
     <div
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-lg",
         className,
         "max-h-96",
+        activeTargetId === bookmark.id &&
+          !isBulkEditEnabled &&
+          "ring-2 ring-primary",
       )}
       data-bookmark-index={bookmarkIndex}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />

@@ -140,7 +140,7 @@ export const zWrappedStatsResponseSchema = z.object({
       id: z.string(),
       title: z.string().nullable(),
       createdAt: z.date(),
-      type: z.enum(["link", "text", "asset"]),
+      type: z.enum(["link", "text", "asset", "collection"]),
     })
     .nullable(),
 
