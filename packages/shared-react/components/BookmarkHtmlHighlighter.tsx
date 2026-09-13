@@ -12,6 +12,7 @@ import { Check, Trash2 } from "lucide-react";
 import {
   SUPPORTED_HIGHLIGHT_COLORS,
   ZHighlightColor,
+  ZPdfHighlightAnchor,
 } from "@karakeep/shared/types/highlights";
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
@@ -28,7 +29,7 @@ interface HighlightFormProps {
   isMobile: boolean;
 }
 
-const HighlightForm: React.FC<HighlightFormProps> = ({
+export const HighlightForm: React.FC<HighlightFormProps> = ({
   position,
   selectedHighlight,
   onClose,
@@ -79,6 +80,8 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
               <Button
                 size="none"
                 key={color}
+                aria-label={`${color} highlight`}
+                aria-pressed={selectedColor === color}
                 onClick={() => setSelectedColor(color)}
                 variant="none"
                 className={cn(
@@ -134,6 +137,7 @@ export interface Highlight {
   color: ZHighlightColor;
   text: string | null;
   note?: string | null;
+  pdfAnchor?: ZPdfHighlightAnchor | null;
 }
 
 interface HTMLHighlighterProps {
@@ -203,9 +207,11 @@ const BookmarkHTMLHighlighter = forwardRef<
     });
 
     // Apply all highlights
-    highlights.forEach((highlight) => {
-      applyHighlightByOffset(highlight);
-    });
+    highlights
+      .filter((highlight) => !highlight.pdfAnchor)
+      .forEach((highlight) => {
+        applyHighlightByOffset(highlight);
+      });
   });
 
   // Re-apply the selection when the pending range changes

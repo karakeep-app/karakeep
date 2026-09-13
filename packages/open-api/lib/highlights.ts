@@ -55,7 +55,7 @@ registry.registerPath({
   method: "post",
   path: "/highlights",
   description:
-    "Create a new text highlight on a bookmark. Highlights are defined by character offsets within the bookmark's content and support color coding.",
+    "Create a highlight on a bookmark. HTML highlights use character offsets. PDF highlights use a pdfAnchor containing the asset ID and rectangles in PDF page coordinates, with startOffset and endOffset set to zero. Both support text, color and notes.",
   summary: "Create a new highlight",
   tags: ["Highlights"],
   security: [{ [BearerAuth.name]: [] }],

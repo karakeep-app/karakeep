@@ -50,7 +50,7 @@
     "node-fetch": "^3.3.2",
     "pdf2json": "^3.1.5",
     "pdf2pic": "^3.1.3",
-    "pdfjs-dist": "^4.2.67",
+    "pdfjs-dist": "^4.10.38",
     "playwright": "^1.59.1",
     "playwright-extra": "^4.3.6",
     "prom-client": "^15.1.3",

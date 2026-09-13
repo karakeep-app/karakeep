@@ -1,0 +1,51 @@
+/* PDF.js text-layer layout, scoped to this viewer. The text itself is painted
+   by the canvas; these transparent spans provide selectable text positions. */
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  text-align: initial;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  z-index: 1;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0 0;
+}
+
+/* TextLayer uses unrotated page dimensions; mirror PDF.js's page rotation. */
+.textLayer[data-main-rotation="90"] {
+  transform: rotate(90deg) translateY(-100%);
+}
+.textLayer[data-main-rotation="180"] {
+  transform: rotate(180deg) translate(-100%, -100%);
+}
+.textLayer[data-main-rotation="270"] {
+  transform: rotate(270deg) translateX(-100%);
+}
+
+.textLayer span[role="img"] {
+  user-select: none;
+}
+
+.textLayer :global(span.markedContent) {
+  top: 0;
+  height: 0;
+}
+
+.textLayer ::selection {
+  background: rgb(0 100 255 / 30%);
+}
+
+.textLayer br::selection {
+  background: transparent;
+}
