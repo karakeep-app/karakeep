@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
 import BookmarkLists from "./components/BookmarkLists";
+import { BookmarkMetadataEditor } from "./components/BookmarkMetadataEditor";
 import { ListsSelector } from "./components/ListsSelector";
 import { NoteEditor } from "./components/NoteEditor";
 import TagList from "./components/TagList";
@@ -84,6 +85,8 @@ export default function BookmarkSavedPage() {
           </Button>
         </div>
       </div>
+      <hr />
+      <BookmarkMetadataEditor bookmarkId={bookmarkId} />
       <hr />
       <p className="text-lg">Notes</p>
       <NoteEditor bookmarkId={bookmarkId} />
