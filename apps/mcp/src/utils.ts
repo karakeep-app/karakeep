@@ -1,5 +1,6 @@
 import { CallToolResult } from "@modelcontextprotocol/server";
 import { KarakeepAPISchemas } from "@karakeep/sdk";
+import { highlightTextForDisplay } from "@karakeep/shared/utils/highlightUtils";
 
 import { turndownService } from "./shared";
 
@@ -61,7 +62,7 @@ Bookmark ID: ${highlight.bookmarkId}
 Created at: ${highlight.createdAt}
 Range: ${highlight.startOffset}-${highlight.endOffset}
 Color: ${highlight.color}
-Text: ${highlight.text ?? ""}
+Text: ${highlightTextForDisplay(highlight.text)}
 Note: ${highlight.note ?? ""}`;
 }
 
