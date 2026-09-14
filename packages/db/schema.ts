@@ -571,6 +571,51 @@ export const bookmarksInLists = sqliteTable(
   ],
 );
 
+// Auto-clustered "Smart Groups" of bookmarks, derived from embedding similarity.
+// Unlike bookmarkLists' "smart" type (a live, cheap saved-search-query evaluator),
+// clusters here are computed in batch by a worker and persisted between recomputes.
+export const bookmarkClusters = sqliteTable(
+  "bookmarkClusters",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    createdAt: createdAtField(),
+    updatedAt: integer("updatedAt", { mode: "timestamp" }).$defaultFn(
+      () => new Date(),
+    ),
+    // Bumped when clustering logic changes, to force a full recompute.
+    algoVersion: integer("algoVersion").notNull().default(1),
+  },
+  (bc) => [index("bookmarkClusters_userId_idx").on(bc.userId)],
+);
+
+export const bookmarksInClusters = sqliteTable(
+  "bookmarksInClusters",
+  {
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    clusterId: text("clusterId")
+      .notNull()
+      .references(() => bookmarkClusters.id, { onDelete: "cascade" }),
+    // Average similarity to the cluster's other members, for ranking within the group.
+    score: real("score"),
+  },
+  (tb) => [
+    primaryKey({ columns: [tb.bookmarkId, tb.clusterId] }),
+    index("bookmarksInClusters_clusterId_bookmarkId_idx").on(
+      tb.clusterId,
+      tb.bookmarkId,
+    ),
+  ],
+);
+
 export const listCollaborators = sqliteTable(
   "listCollaborators",
   {
@@ -1162,6 +1207,31 @@ export const bookmarksInListsRelations = relations(
     list: one(bookmarkLists, {
       fields: [bookmarksInLists.listId],
       references: [bookmarkLists.id],
+    }),
+  }),
+);
+
+export const bookmarkClustersRelations = relations(
+  bookmarkClusters,
+  ({ one, many }) => ({
+    bookmarksInClusters: many(bookmarksInClusters),
+    user: one(users, {
+      fields: [bookmarkClusters.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
+export const bookmarksInClustersRelations = relations(
+  bookmarksInClusters,
+  ({ one }) => ({
+    bookmark: one(bookmarks, {
+      fields: [bookmarksInClusters.bookmarkId],
+      references: [bookmarks.id],
+    }),
+    cluster: one(bookmarkClusters, {
+      fields: [bookmarksInClusters.clusterId],
+      references: [bookmarkClusters.id],
     }),
   }),
 );

@@ -26,6 +26,7 @@
     "note": "Note",
     "attachments": "Attachments",
     "highlights": "Highlights",
+    "smart_groups": "Smart Groups",
     "source": "Source",
     "screenshot": "Screenshot",
     "pdf": "Archived PDF",
@@ -121,6 +122,15 @@
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet."
+  },
+  "smart_groups": {
+    "description": "Bookmarks auto-grouped by similarity.",
+    "empty": "No Smart Groups yet. They're generated automatically as you save more bookmarks.",
+    "disabled": "Smart Groups isn't enabled on this server. It requires an embedding provider to be configured.",
+    "bookmark_count_one": "{{count}} bookmark",
+    "bookmark_count_other": "{{count}} bookmarks",
+    "regenerate_now": "Regenerate now",
+    "regenerate_enqueued": "Smart Groups regeneration has been enqueued!"
   },
   "settings": {
     "back_to_app": "Back To App",
@@ -398,6 +408,10 @@
           "importSessions": {
             "label": "Import Sessions",
             "description": "Access import sessions."
+          },
+          "smartGroups": {
+            "label": "Smart Groups",
+            "description": "Access Smart Groups and related bookmarks."
           }
         },
         "admin_resources": {
@@ -991,6 +1005,7 @@
     "continue_reading": "Continue where you left off",
     "continue_reading_percent": "Continue where you left off ({{percent}}%)",
     "continue_button": "Continue",
+    "related_bookmarks": "Related Bookmarks",
     "tabs": {
       "content": "Content",
       "details": "Details"

@@ -190,6 +190,27 @@ export const SearchIndexingQueue = createDeferredQueue<ZSearchIndexingRequest>(
   },
 );
 
+// Smart Groups Worker
+//
+// One job per user, enqueued on a cron tick (or on-demand via the
+// `smartGroups.regenerateNow` tRPC mutation). Recomputes that user's
+// embedding-derived clusters from scratch using findSimilar() edges +
+// connected components -- see apps/workers/workers/smartGroupsWorker.ts.
+export const zSmartGroupsRequestSchema = z.object({
+  userId: z.string(),
+});
+export type ZSmartGroupsRequest = z.infer<typeof zSmartGroupsRequestSchema>;
+
+export const SmartGroupsQueue = createDeferredQueue<ZSmartGroupsRequest>(
+  "smart_groups_queue",
+  {
+    defaultJobArgs: {
+      numRetries: 2,
+    },
+    keepFailedJobs: false,
+  },
+);
+
 // Admin maintenance worker
 export const zTidyAssetsRequestSchema = z.object({
   cleanDanglingAssets: z.boolean().optional().default(false),

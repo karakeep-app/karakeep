@@ -16,9 +16,11 @@ import {
   Highlighter,
   Home,
   Search,
+  Sparkles,
   Tag,
 } from "lucide-react";
 
+import { clientConfig } from "@karakeep/shared/config";
 import { PluginManager, PluginType } from "@karakeep/shared/plugins";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
@@ -81,6 +83,15 @@ export default async function Dashboard({
         icon: <Highlighter size={18} />,
         path: "/dashboard/highlights",
       },
+      clientConfig.smartGroups.enabled
+        ? [
+            {
+              name: t("common.smart_groups"),
+              icon: <Sparkles size={18} />,
+              path: "/dashboard/smart-groups",
+            },
+          ]
+        : [],
       {
         name: t("common.archive"),
         icon: <Archive size={18} />,

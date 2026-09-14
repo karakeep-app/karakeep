@@ -19,6 +19,7 @@ import {
   SearchIndexingQueue,
   shutdownEventLogger,
   shutdownTracing,
+  SmartGroupsQueue,
   startQueue,
   VideoWorkerQueue,
   WebhookQueue,
@@ -33,6 +34,9 @@ let backupSchedulingWorker:
   | undefined;
 let feedRefreshingWorker:
   | typeof import("./workers/feedWorker").FeedRefreshingWorker
+  | undefined;
+let smartGroupsRefreshingWorker:
+  | typeof import("./workers/smartGroupsWorker").SmartGroupsRefreshingWorker
   | undefined;
 
 const workerBuilders = {
@@ -103,6 +107,13 @@ const workerBuilders = {
     await BackupQueue.ensureInit();
     return BackupWorker.build();
   },
+  smartGroups: async () => {
+    const { SmartGroupsRefreshingWorker, SmartGroupsWorker } =
+      await import("./workers/smartGroupsWorker");
+    smartGroupsRefreshingWorker = SmartGroupsRefreshingWorker;
+    await SmartGroupsQueue.ensureInit();
+    return SmartGroupsWorker.build();
+  },
 } as const;
 
 async function buildImportWorker() {
@@ -152,6 +163,10 @@ async function main() {
     backupSchedulingWorker?.start();
   }
 
+  if (workers.some((w) => w.name === "smartGroups")) {
+    smartGroupsRefreshingWorker?.start();
+  }
+
   // Start import polling worker
   let importWorker = null;
   let importWorkerPromise: Promise<void> | null = null;
@@ -182,6 +197,9 @@ async function main() {
   }
   if (workers.some((w) => w.name === "backup")) {
     backupSchedulingWorker?.stop();
+  }
+  if (workers.some((w) => w.name === "smartGroups")) {
+    smartGroupsRefreshingWorker?.stop();
   }
   if (importWorker) {
     importWorker.stop();

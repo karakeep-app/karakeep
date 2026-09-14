@@ -98,6 +98,16 @@ type EventLogInternal =
       "embedding.total_tokens"?: number;
     }
   | {
+      ["event.name"]: "smartGroupsWorker.run";
+      ["user.id"]?: string;
+      "smart_groups.candidate_bookmarks"?: number;
+      "smart_groups.edges"?: number;
+      "smart_groups.clusters_found"?: number;
+      "smart_groups.clusters_created"?: number;
+      "smart_groups.clusters_updated"?: number;
+      "smart_groups.clusters_deleted"?: number;
+    }
+  | {
       ["event.name"]: "backupWorker.run";
       "backup.id"?: string;
       "backup.bookmark_count"?: number;

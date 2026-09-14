@@ -23,6 +23,9 @@ export const DEFAULT_CLIENT_CONFIG: ZClientConfig = {
   search: {
     semanticSearchEnabled: false,
   },
+  smartGroups: {
+    enabled: false,
+  },
   stripe: {
     isConfigured: false,
   },
@@ -60,6 +63,10 @@ export function ClientConfigProvider({
       search: {
         ...DEFAULT_CLIENT_CONFIG.search,
         ...value?.search,
+      },
+      smartGroups: {
+        ...DEFAULT_CLIENT_CONFIG.smartGroups,
+        ...value?.smartGroups,
       },
       stripe: {
         ...DEFAULT_CLIENT_CONFIG.stripe,

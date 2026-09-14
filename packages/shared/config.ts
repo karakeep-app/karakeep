@@ -103,6 +103,14 @@ const allEnv = z.object({
   EMBEDDING_CONTEXT_LENGTH: z.coerce.number().int().positive().default(8000),
   EMBEDDING_NUM_WORKERS: z.coerce.number().default(1),
   EMBEDDING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
+  SMART_GROUPS_ENABLED: stringBool("false"),
+  SMART_GROUPS_SIMILARITY_THRESHOLD: z.coerce
+    .number()
+    .min(0)
+    .max(1)
+    .default(0.75),
+  SMART_GROUPS_MIN_CLUSTER_SIZE: z.coerce.number().int().min(2).default(3),
+  SMART_GROUPS_RECOMPUTE_CRON: z.string().default("0 * * * *"),
   INFERENCE_CONTEXT_LENGTH: z.coerce.number().default(2048),
   INFERENCE_MAX_OUTPUT_TOKENS: z.coerce.number().default(2048),
   INFERENCE_USE_MAX_COMPLETION_TOKENS: optionalStringBool(),
@@ -396,6 +404,12 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       numWorkers: val.EMBEDDING_NUM_WORKERS,
       jobTimeoutSec: val.EMBEDDING_JOB_TIMEOUT_SEC,
     },
+    smartGroups: {
+      enabled: val.SMART_GROUPS_ENABLED,
+      similarityThreshold: val.SMART_GROUPS_SIMILARITY_THRESHOLD,
+      minClusterSize: val.SMART_GROUPS_MIN_CLUSTER_SIZE,
+      recomputeCron: val.SMART_GROUPS_RECOMPUTE_CRON,
+    },
     crawler: {
       numWorkers: val.CRAWLER_NUM_WORKERS,
       headlessBrowser: val.CRAWLER_HEADLESS_BROWSER,
@@ -623,6 +637,12 @@ export const clientConfig = {
   search: {
     semanticSearchEnabled:
       serverConfig.experimentalFeatures.semanticSearch &&
+      serverConfig.embedding.enableAutoIndexing &&
+      serverConfig.embedding.isConfigured,
+  },
+  smartGroups: {
+    enabled:
+      serverConfig.smartGroups.enabled &&
       serverConfig.embedding.enableAutoIndexing &&
       serverConfig.embedding.isConfigured,
   },

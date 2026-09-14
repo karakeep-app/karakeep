@@ -23,8 +23,10 @@ import {
   assets,
   AssetTypes,
   bookmarkAssets,
+  bookmarkClusters,
   bookmarkLinks,
   bookmarks,
+  bookmarksInClusters,
   bookmarksInLists,
   bookmarkTags,
   bookmarkTexts,
@@ -446,16 +448,19 @@ export class Bookmark extends BareBookmark {
         : DEFAULT_NUM_BOOKMARKS_PER_PAGE;
     }
 
-    // Validate that only one of listId, tagId, or rssFeedId is specified
+    // Validate that only one of listId, tagId, rssFeedId, or clusterId is specified
     // Combined filters are not supported as they would require different query strategies
-    const filterCount = [input.listId, input.tagId, input.rssFeedId].filter(
-      (f) => f !== undefined,
-    ).length;
+    const filterCount = [
+      input.listId,
+      input.tagId,
+      input.rssFeedId,
+      input.clusterId,
+    ].filter((f) => f !== undefined).length;
     if (filterCount > 1) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
-          "Cannot filter by multiple of listId, tagId, and rssFeedId simultaneously",
+          "Cannot filter by multiple of listId, tagId, rssFeedId, and clusterId simultaneously",
       });
     }
 
@@ -465,6 +470,20 @@ export class Bookmark extends BareBookmark {
       if (list.type === "smart") {
         input.ids = await list.getBookmarkIds();
         delete input.listId;
+      }
+    }
+
+    // Smart Groups clusters have no manual/smart split and no collaborators -
+    // just verify the cluster belongs to this user before filtering by it.
+    if (input.clusterId) {
+      const cluster = await ctx.db.query.bookmarkClusters.findFirst({
+        where: eq(bookmarkClusters.id, input.clusterId),
+      });
+      if (!cluster || cluster.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Smart Group not found",
+        });
       }
     }
 
@@ -546,6 +565,27 @@ export class Bookmark extends BareBookmark {
             and(
               eq(tagsOnBookmarks.tagId, input.tagId),
               eq(bookmarks.userId, ctx.user.id), // Access control
+              ...buildCommonFilters(),
+              buildCursorCondition(bookmarks.createdAt, bookmarks.id),
+            ),
+          )
+          .limit(input.limit + 1)
+          .orderBy(...buildOrderBy()),
+      );
+    } else if (input.clusterId !== undefined) {
+      // PATH: Smart Group (cluster) filter - start from bookmarksInClusters (more selective)
+      // Access control is already verified by the clusterId ownership check above
+      sq = ctx.db.$with("bookmarksSq").as(
+        ctx.db
+          .select(getTableColumns(bookmarks))
+          .from(bookmarksInClusters)
+          .innerJoin(
+            bookmarks,
+            eq(bookmarks.id, bookmarksInClusters.bookmarkId),
+          )
+          .where(
+            and(
+              eq(bookmarksInClusters.clusterId, input.clusterId),
               ...buildCommonFilters(),
               buildCursorCondition(bookmarks.createdAt, bookmarks.id),
             ),

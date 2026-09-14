@@ -31,6 +31,9 @@ export const zClientConfigSchema = z.object({
   search: z.object({
     semanticSearchEnabled: z.boolean(),
   }),
+  smartGroups: z.object({
+    enabled: z.boolean(),
+  }),
   stripe: z.object({
     isConfigured: z.boolean(),
   }),

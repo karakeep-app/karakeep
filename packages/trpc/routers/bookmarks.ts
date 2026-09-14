@@ -920,6 +920,54 @@ export const bookmarksAppRouter = router({
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
     }),
+  getRelated: bookmarksProcedure
+    .use(createBookmarksQueriedMiddleware())
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+        limit: z.number().min(1).max(20).default(6),
+      }),
+    )
+    .output(z.object({ bookmarks: z.array(zBookmarkSchema) }))
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      if (
+        !serverConfig.smartGroups.enabled ||
+        !serverConfig.embedding.enableAutoIndexing
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Smart Groups / related bookmarks is not enabled",
+        });
+      }
+
+      const vectorStoreClient = await getVectorStoreClient();
+      if (!vectorStoreClient) {
+        return { bookmarks: [] };
+      }
+
+      const { hits } = await vectorStoreClient.findSimilar({
+        id: input.bookmarkId,
+        limit: input.limit,
+        filter: [{ type: "eq", field: "userId", value: ctx.user.id }],
+      });
+      if (hits.length === 0) {
+        return { bookmarks: [] };
+      }
+
+      const idToRank = hits.reduce<Record<string, number>>((acc, h) => {
+        acc[h.id] = h.score;
+        return acc;
+      }, {});
+      const { bookmarks: results } = await Bookmark.loadMulti(ctx, {
+        ids: hits.map((h) => h.id),
+        sortOrder: "desc",
+        includeContent: false,
+      });
+      results.sort((a, b) => idToRank[b.id] - idToRank[a.id]);
+
+      return { bookmarks: results.map((b) => b.asZBookmark()) };
+    }),
   getBookmarkReadableContent: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
     .input(

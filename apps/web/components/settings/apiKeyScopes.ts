@@ -93,6 +93,12 @@ const RESOURCE_TRANSLATION_KEYS = {
       "settings.api_keys.scopes.resources.subscriptions.description",
     hidden: true,
   },
+  smartGroups: {
+    labelKey: "settings.api_keys.scopes.resources.smartGroups.label",
+    descriptionKey:
+      "settings.api_keys.scopes.resources.smartGroups.description",
+    hidden: true,
+  },
 } as const satisfies Record<
   ZApiKeyScopeResource,
   { labelKey: string; descriptionKey: string; hidden: boolean }
