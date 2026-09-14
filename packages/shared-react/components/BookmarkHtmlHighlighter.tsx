@@ -11,10 +11,15 @@ import { Check, Trash2 } from "lucide-react";
 
 import {
   SUPPORTED_HIGHLIGHT_COLORS,
+  ZHighlightContent,
   ZHighlightColor,
 } from "@karakeep/shared/types/highlights";
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
+import {
+  getHighlightImages,
+  serializeHighlightRange,
+} from "./highlight-selection";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent } from "./ui/popover";
 import { Textarea } from "./ui/textarea";
@@ -134,6 +139,7 @@ export interface Highlight {
   color: ZHighlightColor;
   text: string | null;
   note?: string | null;
+  content?: ZHighlightContent | null;
 }
 
 interface HTMLHighlighterProps {
@@ -220,12 +226,30 @@ const BookmarkHTMLHighlighter = forwardRef<
     if (!ranges) {
       return;
     }
-    const newRange = document.createRange();
-    newRange.setStart(ranges[0].node, ranges[0].start);
-    newRange.setEnd(
-      ranges[ranges.length - 1].node,
-      ranges[ranges.length - 1].end,
+    const imageNodes = getHighlightImages(
+      contentRef.current,
+      pendingHighlight.content,
     );
+    const nodes: { node: Node; start?: number; end?: number }[] = [
+      ...ranges,
+      ...imageNodes.map((node) => ({ node })),
+    ];
+    nodes.sort((a, b) =>
+      a.node === b.node
+        ? 0
+        : a.node.compareDocumentPosition(b.node) &
+            Node.DOCUMENT_POSITION_FOLLOWING
+          ? -1
+          : 1,
+    );
+    if (!nodes.length) return;
+    const first = nodes[0];
+    const last = nodes[nodes.length - 1];
+    const newRange = document.createRange();
+    if (first.start === undefined) newRange.setStartBefore(first.node);
+    else newRange.setStart(first.node, first.start);
+    if (last.end === undefined) newRange.setEndAfter(last.node);
+    else newRange.setEnd(last.node, last.end);
     window.getSelection()?.removeAllRanges();
     window.getSelection()?.addRange(newRange);
   }, [pendingHighlight, contentRef]);
@@ -238,8 +262,10 @@ const BookmarkHTMLHighlighter = forwardRef<
     const selection = window.getSelection();
 
     // Check if we clicked on an existing highlight
-    const target = e.target as HTMLElement;
-    if (target.dataset.highlight) {
+    const target = (e.target as HTMLElement).closest<HTMLElement>(
+      "[data-highlight]",
+    );
+    if (target && selection?.isCollapsed) {
       const highlightId = target.dataset.highlightId;
       if (highlightId && highlights) {
         const highlight = highlights.find((h) => h.id === highlightId);
@@ -304,41 +330,19 @@ const BookmarkHTMLHighlighter = forwardRef<
     }
   };
 
-  const getTextNodeOffset = (node: Node): number => {
-    let offset = 0;
-    const walker = document.createTreeWalker(
-      contentRef.current!,
-      NodeFilter.SHOW_TEXT,
-      null,
-    );
-
-    while (walker.nextNode()) {
-      if (walker.currentNode === node) {
-        return offset;
-      }
-      offset += walker.currentNode.textContent?.length ?? 0;
-    }
-    return -1;
-  };
-
   const createHighlightFromRange = (
     range: Range,
     color: ZHighlightColor,
   ): Highlight | null => {
     if (!contentRef.current) return null;
 
-    const startOffset =
-      getTextNodeOffset(range.startContainer) + range.startOffset;
-    const endOffset = getTextNodeOffset(range.endContainer) + range.endOffset;
-
-    if (startOffset === -1 || endOffset === -1) return null;
+    const serialized = serializeHighlightRange(contentRef.current, range);
+    if (!serialized) return null;
 
     const highlight: Highlight = {
       id: "NOT_SET",
-      startOffset,
-      endOffset,
+      ...serialized,
       color,
-      text: range.toString(),
     };
 
     applyHighlightByOffset(highlight);
@@ -401,6 +405,27 @@ const BookmarkHTMLHighlighter = forwardRef<
       node.parentNode?.insertBefore(span, node);
       span.appendChild(node);
     });
+    if (contentRef.current) {
+      getHighlightImages(contentRef.current, highlight.content).forEach(
+        (image) => {
+          const span = document.createElement("span");
+          span.classList.add(
+            HIGHLIGHT_COLOR_MAP.bg[highlight.color],
+            "max-w-full",
+            "w-fit",
+            "p-1",
+          );
+          span.style.display =
+            getComputedStyle(image).display === "block"
+              ? "block"
+              : "inline-block";
+          span.dataset.highlight = "true";
+          span.dataset.highlightId = highlight.id;
+          image.parentNode?.insertBefore(span, image);
+          span.appendChild(image);
+        },
+      );
+    }
   };
 
   return (

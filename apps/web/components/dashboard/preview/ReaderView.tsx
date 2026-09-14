@@ -174,6 +174,7 @@ export default function ReaderView({
               color: h.color,
               bookmarkId,
               text: h.text,
+              content: h.content,
               note: h.note ?? null,
             })
           }

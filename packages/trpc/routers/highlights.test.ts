@@ -8,6 +8,49 @@ import { defaultBeforeEach } from "../testUtils";
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("Highlight Routes", () => {
+  test<CustomTestContext>("round-trips rich content and preserves it on note updates", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].highlights;
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      url: "https://example.com",
+      type: BookmarkTypes.LINK,
+    });
+    const content = {
+      version: 1 as const,
+      parts: [
+        { type: "text" as const, text: "Before\n" },
+        {
+          type: "image" as const,
+          index: 1,
+          src: "https://example.com/diagram.png",
+          alt: "Diagram",
+        },
+      ],
+    };
+    const created = await api.create({
+      bookmarkId: bookmark.id,
+      startOffset: 0,
+      endOffset: 6,
+      text: "Before\n[Diagram]",
+      note: null,
+      content,
+    });
+    expect((await api.get({ highlightId: created.id })).content).toEqual(
+      content,
+    );
+    await api.update({ highlightId: created.id, note: "Updated" });
+    expect((await api.get({ highlightId: created.id })).content).toEqual(
+      content,
+    );
+    expect(
+      (await api.getForBookmark({ bookmarkId: bookmark.id })).highlights[0]
+        .content,
+    ).toEqual(content);
+    await expect(
+      apiCallers[1].highlights.get({ highlightId: created.id }),
+    ).rejects.toThrow();
+  });
   test<CustomTestContext>("create highlight", async ({ apiCallers }) => {
     const api = apiCallers[0].highlights;
     const bookmarksApi = apiCallers[0].bookmarks;
