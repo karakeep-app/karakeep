@@ -190,8 +190,37 @@ export interface OpenAIEmbeddingConfig {
   timeoutSec?: number;
 }
 
-const buildOpenAIClient = (config: OpenAIEmbeddingConfig) =>
-  new OpenAI({
+const buildOpenAIClient = (config: OpenAIEmbeddingConfig) => {
+  const timeoutMs = (config.timeoutSec ?? OpenAI.DEFAULT_TIMEOUT / 1000) * 1000;
+  const timeoutOpts = { headersTimeout: timeoutMs, bodyTimeout: timeoutMs };
+  const dispatcher = config.proxyUrl
+    ? new undici.ProxyAgent({ uri: config.proxyUrl, ...timeoutOpts })
+    : new undici.Agent(timeoutOpts);
+
+  // Use undici's own fetch together with its Agent so that the fetch and the
+  // dispatcher always come from the same undici copy. Passing an npm undici
+  // Agent as the dispatcher of the runtime's built-in fetch fails immediately
+  // on Node >= 24, which bundles a different undici major (undici 7).
+  const fetchFn = (
+    input: RequestInfo | URL,
+    init?: RequestInit,
+  ): Promise<Response> =>
+    undici
+      .fetch(
+        input as string | URL,
+        {
+          ...init,
+          dispatcher,
+        } as Parameters<typeof undici.fetch>[1],
+      )
+      .catch((error) => {
+        logger.error(
+          `OpenAI fetch to ${String(input)} failed: ${errorMessage(error)}`,
+        );
+        throw error;
+      }) as unknown as Promise<Response>;
+
+  return new OpenAI({
     apiKey: config.apiKey,
     baseURL: config.baseURL,
     timeout:
@@ -200,10 +229,24 @@ const buildOpenAIClient = (config: OpenAIEmbeddingConfig) =>
       "X-Title": "Karakeep",
       "HTTP-Referer": "https://karakeep.app",
     },
-    fetchOptions: config.proxyUrl
-      ? { dispatcher: new undici.ProxyAgent(config.proxyUrl) }
-      : undefined,
+    fetch: fetchFn,
   });
+};
+
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    const cause = error.cause;
+    if (
+      cause instanceof Error &&
+      cause.message &&
+      cause.message !== error.message
+    ) {
+      return `${error.message}: ${cause.message}`;
+    }
+    return error.message;
+  }
+  return String(error);
+}
 
 export class InferenceClientFactory {
   static build(): InferenceClient | null {
