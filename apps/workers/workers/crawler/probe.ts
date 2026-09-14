@@ -49,6 +49,11 @@ const PROBE_HTML_CONTENT_TYPES = new Set<string>([
 export interface UrlProbeResult {
   contentType: string | null;
   /**
+   * The URL after any redirects the probe followed. Callers use this to
+   * resolve link-shortener URLs to their real destination.
+   */
+  finalUrl: string;
+  /**
    * Resolves with the page's preview metadata (or null). The extraction runs
    * in the background so it can overlap with the browser crawl — await it
    * only when the metadata is actually needed. Never rejects.
@@ -120,7 +125,11 @@ export async function getContentTypeAndMetadata(
         logger.error(
           `[Crawler][${jobId}] Failed to determine the content-type for the url ${truncateUrl(url)}: ${e}`,
         );
-        return { contentType: null, metadata: Promise.resolve(null) };
+        return {
+          contentType: null,
+          finalUrl: url,
+          metadata: Promise.resolve(null),
+        };
       }
       setSpanAttributes({
         "crawler.getContentType.statusCode": response.status,
@@ -135,7 +144,11 @@ export async function getContentTypeAndMetadata(
       );
 
       if (!contentType || !PROBE_HTML_CONTENT_TYPES.has(contentType)) {
-        return { contentType, metadata: Promise.resolve(null) };
+        return {
+          contentType,
+          finalUrl: response.url,
+          metadata: Promise.resolve(null),
+        };
       }
 
       // A previous run already extracted and stored this page's metadata; the
@@ -147,7 +160,11 @@ export async function getContentTypeAndMetadata(
         addLogFields<"crawlerWorker.run">({
           "crawler.probe.metadata": "reused_stored",
         });
-        return { contentType, metadata: Promise.resolve(null) };
+        return {
+          contentType,
+          finalUrl: response.url,
+          metadata: Promise.resolve(null),
+        };
       }
 
       // A blocked/retryable status usually means a challenge or error page
@@ -159,7 +176,11 @@ export async function getContentTypeAndMetadata(
         addLogFields<"crawlerWorker.run">({
           "crawler.probe.metadata": "blocked_status",
         });
-        return { contentType, metadata: Promise.resolve(null) };
+        return {
+          contentType,
+          finalUrl: response.url,
+          metadata: Promise.resolve(null),
+        };
       }
 
       // The response is an HTML page: parse its metadata from the body we've
@@ -205,7 +226,7 @@ export async function getContentTypeAndMetadata(
           return null;
         }
       })();
-      return { contentType, metadata };
+      return { contentType, finalUrl: response.url, metadata };
     },
   );
 }
