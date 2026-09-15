@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import ErrorFallback from "@/components/dashboard/ErrorFallback";
+import QuickAddDialog from "@/components/dashboard/bookmarks/QuickAddDialog";
 import Header from "@/components/dashboard/header/Header";
 import DemoModeBanner from "@/components/DemoModeBanner";
+import FloatingAddButton from "@/components/shared/FloatingAddButton";
 import { Separator } from "@/components/ui/separator";
 import LoadingSpinner from "@/components/ui/spinner";
 import ValidAccountCheck from "@/components/utils/ValidAccountCheck";
@@ -40,6 +42,8 @@ export default function SidebarLayout({
           </div>
         </main>
       </div>
+      <FloatingAddButton />
+      <QuickAddDialog />
     </div>
   );
 }

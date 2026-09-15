@@ -1,8 +1,9 @@
 "use client";
 
+import type { LucideIcon } from "lucide-react";
 import BookmarkCard from "@/components/dashboard/bookmarks/BookmarkCard";
 import { StyledBookmarkCard } from "@/components/dashboard/bookmarks/BookmarksGrid";
-import { useTranslation } from "@/lib/i18n/client";
+import { EmptyState, EmptyStateAction } from "@/components/ui/empty-state";
 import { useQuery } from "@tanstack/react-query";
 
 import type {
@@ -13,17 +14,25 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { BookmarkTriageActions } from "./BookmarkTriageActions";
 
+export interface DashboardRowEmptyState {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+  action?: EmptyStateAction;
+}
+
 export default function DashboardRow({
   title,
   query,
   initialBookmarks,
+  emptyState,
 }: {
   title: string;
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">;
   initialBookmarks: ZGetBookmarksResponse;
+  emptyState: DashboardRowEmptyState;
 }) {
   const api = useTRPC();
-  const { t } = useTranslation();
   const { data } = useQuery(
     api.bookmarks.getBookmarks.queryOptions(
       { ...query, sortOrder: "desc", includeContent: false },
@@ -37,9 +46,13 @@ export default function DashboardRow({
     <section className="flex flex-col gap-3">
       <h2 className="text-lg font-medium tracking-tight">{title}</h2>
       {bookmarks.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {t("dashboard.row_empty")}
-        </p>
+        <EmptyState
+          className="p-6"
+          icon={emptyState.icon}
+          title={emptyState.title}
+          description={emptyState.description}
+          action={emptyState.action}
+        />
       ) : (
         <div className="flex gap-4 overflow-x-auto pb-2">
           {bookmarks.map((bookmark) => (

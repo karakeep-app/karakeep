@@ -3,6 +3,13 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useSidebarCollapsed } from "@/lib/store/useSidebarCollapsed";
 import { cn } from "@/lib/utils";
 
 export default function SidebarItem({
@@ -35,6 +42,26 @@ export default function SidebarItem({
   onDragLeave?: React.DragEventHandler;
 }) {
   const currentPath = usePathname();
+  const collapsed = useSidebarCollapsed((s) => s.collapsed);
+
+  const link = (
+    <Link
+      href={path}
+      className={cn(
+        "flex flex-1 items-center gap-x-2 rounded-[inherit] px-3 py-2",
+        collapsed && "justify-center px-2",
+        linkClassName,
+      )}
+    >
+      {logo}
+      {!collapsed && (
+        <span title={name} className="line-clamp-1 break-all">
+          {name}
+        </span>
+      )}
+    </Link>
+  );
+
   return (
     <li
       className={cn(
@@ -52,21 +79,19 @@ export default function SidebarItem({
       onDragLeave={onDragLeave}
     >
       <div className="flex flex-1 items-center">
-        {collapseButton}
-        <Link
-          href={path}
-          className={cn(
-            "flex flex-1 items-center gap-x-2 rounded-[inherit] px-3 py-2",
-            linkClassName,
-          )}
-        >
-          {logo}
-          <span title={name} className="line-clamp-1 break-all">
-            {name}
-          </span>
-        </Link>
+        {!collapsed && collapseButton}
+        {collapsed ? (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>{link}</TooltipTrigger>
+            <TooltipPortal>
+              <TooltipContent side="right">{name}</TooltipContent>
+            </TooltipPortal>
+          </Tooltip>
+        ) : (
+          link
+        )}
       </div>
-      {right}
+      {!collapsed && right}
     </li>
   );
 }

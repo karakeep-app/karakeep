@@ -34,6 +34,8 @@
     "archive": "Archive",
     "home": "Home",
     "dashboard": "Dashboard",
+    "collapse_sidebar": "Collapse sidebar",
+    "expand_sidebar": "Expand sidebar",
     "title": "Title",
     "description": "Description",
     "summary": "Summary",
@@ -129,12 +131,29 @@
     "no_highlights": "You don't have any highlights yet."
   },
   "dashboard": {
+    "hero_title": "Your Dashboard",
+    "hero_subtitle": "Everything worth your attention, sorted into one place.",
     "read_it_later": "Read It Later",
     "notes": "Notes",
     "rss": "RSS",
     "favourites": "Favourites",
     "archive": "Archive",
-    "row_empty": "Nothing here yet."
+    "empty": {
+      "read_it_later_title": "Nothing to read yet",
+      "read_it_later_description": "Save an article or link and it'll show up here.",
+      "notes_title": "No notes yet",
+      "notes_description": "Jot something down and it'll show up here.",
+      "rss_title": "No RSS bookmarks yet",
+      "rss_description": "Subscribe to a feed and new posts will show up here automatically.",
+      "favourites_title": "No favourites yet",
+      "favourites_description": "Star a bookmark to pin it here.",
+      "archive_title": "Nothing archived yet",
+      "archive_description": "Bookmarks you mark as read land here.",
+      "save_something": "Save something",
+      "write_a_note": "Write a note",
+      "add_a_feed": "Add a feed"
+    },
+    "quick_add_description": "Save a link, note, or image to your library."
   },
   "smart_groups": {
     "description": "Bookmarks auto-grouped by similarity.",
