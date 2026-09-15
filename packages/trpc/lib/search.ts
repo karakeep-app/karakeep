@@ -100,6 +100,23 @@ async function getIds(
 
   switch (matcher.type) {
     case "tagName": {
+      if (!matcher.inverse) {
+        return db
+          .selectDistinct({ id: bookmarks.id })
+          .from(bookmarkTags)
+          .crossJoin(tagsOnBookmarks)
+          .crossJoin(bookmarks)
+          .where(
+            and(
+              eq(bookmarkTags.userId, userId),
+              eq(bookmarkTags.name, matcher.tagName),
+              eq(tagsOnBookmarks.tagId, bookmarkTags.id),
+              eq(bookmarks.id, tagsOnBookmarks.bookmarkId),
+              eq(bookmarks.userId, userId),
+            ),
+          );
+      }
+
       const comp = matcher.inverse ? notExists : exists;
       return db
         .selectDistinct({ id: bookmarks.id })
