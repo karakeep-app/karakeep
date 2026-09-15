@@ -573,6 +573,7 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
+      let candidateRemovedAssetIds: string[] = [];
       let removedAssetIds: string[] = [];
       if (input.text) {
         const existingText = await ctx.db.query.bookmarkTexts.findFirst({
@@ -582,13 +583,13 @@ export const bookmarksAppRouter = router({
         if (existingText?.text) {
           const oldAssetIds = getAssetIdsFromContent(existingText.text);
           const newAssetIds = getAssetIdsFromContent(input.text);
-          removedAssetIds = [...oldAssetIds].filter(
+          candidateRemovedAssetIds = [...oldAssetIds].filter(
             (id) => !newAssetIds.has(id),
           );
         }
       }
 
-      await ctx.db.transaction((tx) => {
+      ctx.db.transaction((tx) => {
         let somethingChanged = false;
 
         // Update link-specific fields if any are provided
@@ -653,17 +654,20 @@ export const bookmarksAppRouter = router({
           }
           somethingChanged = true;
 
-          if (removedAssetIds.length > 0) {
-            tx.delete(assets)
+          if (candidateRemovedAssetIds.length > 0) {
+            const deletedAssets = tx
+              .delete(assets)
               .where(
                 and(
-                  inArray(assets.id, removedAssetIds),
+                  inArray(assets.id, candidateRemovedAssetIds),
                   eq(assets.bookmarkId, input.bookmarkId),
                   eq(assets.userId, ctx.user.id),
-                  eq(assets.assetType, AssetTypes.USER_UPLOADED),
+                  eq(assets.assetType, AssetTypes.NOTE_IMAGE),
                 ),
               )
-              .run();
+              .returning({ id: assets.id })
+              .all();
+            removedAssetIds = deletedAssets.map((a) => a.id);
           }
         }
 
@@ -733,7 +737,11 @@ export const bookmarksAppRouter = router({
       if (removedAssetIds.length > 0) {
         await Promise.all(
           removedAssetIds.map((assetId) =>
-            deleteAsset({ userId: ctx.user.id, assetId }).catch(() => ({})),
+            deleteAsset({ userId: ctx.user.id, assetId }).catch((error) => {
+              logger.error(
+                `Failed to delete asset ${assetId} for bookmark ${input.bookmarkId} after it was removed from the note text: ${error instanceof Error ? error.message : error}`,
+              );
+            }),
           ),
         );
       }

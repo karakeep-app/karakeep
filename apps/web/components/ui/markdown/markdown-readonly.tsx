@@ -7,6 +7,22 @@ import { dracula } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
 
+function MarkdownImage({ src, alt }: { src?: string; alt?: string }) {
+  const [failedToLoad, setFailedToLoad] = React.useState(false);
+
+  if (!src || failedToLoad) {
+    return (
+      <span className="inline-block rounded-md border border-destructive/50 bg-destructive/10 px-2 py-1 align-middle text-xs text-destructive">
+        Image not found (it may have been deleted)
+      </span>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt={alt} onError={() => setFailedToLoad(true)} />
+  );
+}
+
 function PreWithCopyBtn({ className, ...props }: React.ComponentProps<"pre">) {
   const ref = React.useRef<HTMLPreElement>(null);
   return (
@@ -82,14 +98,8 @@ export function MarkdownReadonly({
         pre({ ...props }) {
           return <PreWithCopyBtn {...props} />;
         },
-        img({ ...props }) {
-          return (
-            <img
-              {...props}
-              src={props.src === "" ? undefined : props.src}
-              alt={props.alt}
-            />
-          );
+        img({ src, alt }) {
+          return <MarkdownImage src={src} alt={alt} />;
         },
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className ?? "");

@@ -300,18 +300,18 @@ describe("Bookmark Routes", () => {
     const api = apiCallers[0].bookmarks;
     const userId = await apiCallers[0].users.whoami().then((u) => u.id);
 
-    const keptAssetId = "kept-asset";
-    const removedAssetId = "removed-asset";
+    const keptAssetId = crypto.randomUUID();
+    const removedAssetId = crypto.randomUUID();
     await db.insert(assets).values([
       {
         id: keptAssetId,
-        assetType: AssetTypes.USER_UPLOADED,
+        assetType: AssetTypes.NOTE_IMAGE,
         bookmarkId: null,
         userId,
       },
       {
         id: removedAssetId,
-        assetType: AssetTypes.USER_UPLOADED,
+        assetType: AssetTypes.NOTE_IMAGE,
         bookmarkId: null,
         userId,
       },
@@ -341,6 +341,87 @@ describe("Bookmark Routes", () => {
       .where(inArray(assets.id, [keptAssetId, removedAssetId]));
 
     expect(remainingAssets.map((a) => a.id).sort()).toEqual([keptAssetId]);
+  });
+
+  test<CustomTestContext>("update bookmark - does not delete an asset that belongs to another bookmark", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const userId = await apiCallers[0].users.whoami().then((u) => u.id);
+
+    const otherBookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Some other bookmark's note",
+    });
+
+    const otherBookmarksAssetId = crypto.randomUUID();
+    await db.insert(assets).values({
+      id: otherBookmarksAssetId,
+      assetType: AssetTypes.NOTE_IMAGE,
+      bookmarkId: otherBookmark.id,
+      userId,
+    });
+
+    // Reference the other bookmark's asset from this bookmark's note, then
+    // remove it again. Because that asset is scoped to a different
+    // bookmark, this must not delete it.
+    const bookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: `Some note ![img](${getAssetUrl(otherBookmarksAssetId)})`,
+    });
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      text: "Some note with the image reference removed",
+    });
+
+    const [remainingAsset] = await db
+      .select({ id: assets.id, bookmarkId: assets.bookmarkId })
+      .from(assets)
+      .where(eq(assets.id, otherBookmarksAssetId));
+
+    expect(remainingAsset).toBeDefined();
+    expect(remainingAsset.bookmarkId).toEqual(otherBookmark.id);
+  });
+
+  test<CustomTestContext>("update bookmark - does not delete a manually attached file even if its URL disappears from the note", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const userId = await apiCallers[0].users.whoami().then((u) => u.id);
+
+    const bookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Some note",
+    });
+
+    // A regular file attachment (not a note image) that happens to be
+    // referenced by URL in the note text (e.g. pasted as a link).
+    const attachedFileId = crypto.randomUUID();
+    await db.insert(assets).values({
+      id: attachedFileId,
+      assetType: AssetTypes.USER_UPLOADED,
+      bookmarkId: bookmark.id,
+      userId,
+    });
+
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      text: `Some note with a link to ${getAssetUrl(attachedFileId)} that gets removed`,
+    });
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      text: "Some note with the link removed",
+    });
+
+    const [remainingAsset] = await db
+      .select({ id: assets.id, bookmarkId: assets.bookmarkId })
+      .from(assets)
+      .where(eq(assets.id, attachedFileId));
+
+    expect(remainingAsset).toBeDefined();
+    expect(remainingAsset.bookmarkId).toEqual(bookmark.id);
   });
 
   test<CustomTestContext>("list bookmarks", async ({ apiCallers, db }) => {

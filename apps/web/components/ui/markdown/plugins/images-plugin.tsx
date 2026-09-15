@@ -93,9 +93,21 @@ export default function ImagesPlugin({
         void (async () => {
           try {
             const uploaded = await uploadAsset(file);
+            const placeholderStillPresent = editor
+              .getEditorState()
+              .read(() =>
+                $isImageNode(nodeKey ? $getNodeByKey(nodeKey) : null),
+              );
+            if (!placeholderStillPresent) {
+              // The user deleted the placeholder while the upload was in
+              // flight. Leave the asset unattached rather than attaching it
+              // to the bookmark with nothing in the saved text referencing
+              // it, which would make it an untrackable orphan.
+              return;
+            }
             await attachAsset({
               bookmarkId,
-              asset: { id: uploaded.assetId, assetType: "userUploaded" },
+              asset: { id: uploaded.assetId, assetType: "noteImage" },
             });
             editor.update(() => {
               const node = nodeKey ? $getNodeByKey(nodeKey) : null;
@@ -180,9 +192,18 @@ export default function ImagesPlugin({
           try {
             const file = await dataUriToFile(src, altText);
             const uploaded = await uploadAsset(file);
+            const placeholderStillPresent = editor
+              .getEditorState()
+              .read(() => $isImageNode($getNodeByKey(nodeKey)));
+            if (!placeholderStillPresent) {
+              // The user deleted the image while the upload was in flight.
+              // Leave the asset unattached rather than attaching it to the
+              // bookmark with nothing in the saved text referencing it.
+              return;
+            }
             await attachAsset({
               bookmarkId,
-              asset: { id: uploaded.assetId, assetType: "userUploaded" },
+              asset: { id: uploaded.assetId, assetType: "noteImage" },
             });
             editor.update(() => {
               const uploadedNode = $getNodeByKey(nodeKey);

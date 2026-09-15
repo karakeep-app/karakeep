@@ -311,6 +311,7 @@ export class Bookmark extends BareBookmark {
 
     const PRIVACY_REDACTED_ASSET_TYPES = new Set<AssetTypes>([
       AssetTypes.USER_UPLOADED,
+      AssetTypes.NOTE_IMAGE,
       AssetTypes.BOOKMARK_ASSET,
     ]);
 
