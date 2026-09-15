@@ -28,7 +28,7 @@ import BookmarkCard from "./BookmarkCard";
 import EditorCard from "./EditorCard";
 import UnknownCard from "./UnknownCard";
 
-function StyledBookmarkCard({
+export function StyledBookmarkCard({
   children,
   className,
   ...props
@@ -39,7 +39,7 @@ function StyledBookmarkCard({
   return (
     <Slot
       className={cn(
-        "mb-4 border border-border bg-card hover:shadow-lg hover:transition-shadow",
+        "mb-4 border border-border bg-card transition-colors hover:border-primary/40",
         className,
       )}
       {...props}

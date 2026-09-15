@@ -33,6 +33,7 @@
     "video": "Video",
     "archive": "Archive",
     "home": "Home",
+    "dashboard": "Dashboard",
     "title": "Title",
     "description": "Description",
     "summary": "Summary",
@@ -100,6 +101,10 @@
     "create": "Create",
     "fetch_now": "Fetch Now",
     "summarize_with_ai": "Summarize with AI",
+    "read_it": "Read it",
+    "snooze": "Snooze",
+    "snooze_tomorrow": "Tomorrow",
+    "snooze_next_week": "Next week",
     "edit_title": "Edit Title",
     "sign_out": "Sign Out",
     "close": "Close",
@@ -122,6 +127,14 @@
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet."
+  },
+  "dashboard": {
+    "read_it_later": "Read It Later",
+    "notes": "Notes",
+    "rss": "RSS",
+    "favourites": "Favourites",
+    "archive": "Archive",
+    "row_empty": "Nothing here yet."
   },
   "smart_groups": {
     "description": "Bookmarks auto-grouped by similarity.",

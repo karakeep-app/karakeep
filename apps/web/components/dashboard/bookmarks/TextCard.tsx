@@ -1,11 +1,13 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { BookmarkMarkdownComponent } from "@/components/dashboard/bookmarks/BookmarkMarkdownComponent";
 import { bookmarkLayoutSwitch } from "@/lib/userLocalSettings/bookmarksLayout";
 import { cn } from "@/lib/utils";
 
+import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ZBookmarkTypeText } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
@@ -17,10 +19,14 @@ export default function TextCard({
   bookmark,
   className,
   bookmarkIndex,
+  layoutOverride,
+  triageActions,
 }: {
   bookmark: ZBookmarkTypeText;
   className?: string;
   bookmarkIndex?: number;
+  layoutOverride?: BookmarksLayoutTypes;
+  triageActions?: ReactNode;
 }) {
   const banner = bookmark.assets.find((a) => a.assetType == "bannerImage");
   return (
@@ -41,6 +47,8 @@ export default function TextCard({
         bookmark={bookmark}
         className={className}
         bookmarkIndex={bookmarkIndex}
+        layoutOverride={layoutOverride}
+        triageActions={triageActions}
         fitHeight={true}
         image={(layout, className) =>
           bookmarkLayoutSwitch(layout, {

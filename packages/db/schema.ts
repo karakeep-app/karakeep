@@ -254,6 +254,11 @@ export const bookmarks = sqliteTable(
         "import",
       ],
     }),
+    // Nullable: null means "not snoozed". When set to a future timestamp,
+    // the bookmark is filtered out of "active" queries (see
+    // `excludeSnoozed` in zGetBookmarksRequestSchema) until that time has
+    // passed. Filtering happens at query time, not via a background job.
+    snoozedUntil: integer("snoozedUntil", { mode: "timestamp" }),
   },
   (b) => [
     index("bookmarks_lastSavedAt_idx").on(b.createdAt),

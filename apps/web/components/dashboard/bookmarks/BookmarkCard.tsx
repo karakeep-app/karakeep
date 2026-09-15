@@ -1,8 +1,11 @@
+import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
+
+import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 
 import AssetCard from "./AssetCard";
 import LinkCard from "./LinkCard";
@@ -13,10 +16,14 @@ export default function BookmarkCard({
   bookmark: initialData,
   className,
   bookmarkIndex,
+  layoutOverride,
+  triageActions,
 }: {
   bookmark: ZBookmark;
   className?: string;
   bookmarkIndex?: number;
+  layoutOverride?: BookmarksLayoutTypes;
+  triageActions?: ReactNode;
 }) {
   const api = useTRPC();
   const { data: bookmark } = useQuery(
@@ -43,6 +50,8 @@ export default function BookmarkCard({
         <LinkCard
           className={className}
           bookmarkIndex={bookmarkIndex}
+          layoutOverride={layoutOverride}
+          triageActions={triageActions}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
@@ -51,6 +60,8 @@ export default function BookmarkCard({
         <TextCard
           className={className}
           bookmarkIndex={bookmarkIndex}
+          layoutOverride={layoutOverride}
+          triageActions={triageActions}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
@@ -59,6 +70,8 @@ export default function BookmarkCard({
         <AssetCard
           className={className}
           bookmarkIndex={bookmarkIndex}
+          layoutOverride={layoutOverride}
+          triageActions={triageActions}
           bookmark={{ ...bookmark, content: bookmark.content }}
         />
       );
@@ -67,6 +80,8 @@ export default function BookmarkCard({
         <UnknownCard
           className={className}
           bookmarkIndex={bookmarkIndex}
+          layoutOverride={layoutOverride}
+          triageActions={triageActions}
           bookmark={bookmark}
         />
       );

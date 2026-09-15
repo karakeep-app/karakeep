@@ -1,10 +1,12 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
+import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ZBookmarkTypeAsset } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
@@ -71,10 +73,14 @@ export default function AssetCard({
   bookmark: bookmarkedAsset,
   className,
   bookmarkIndex,
+  layoutOverride,
+  triageActions,
 }: {
   bookmark: ZBookmarkTypeAsset;
   className?: string;
   bookmarkIndex?: number;
+  layoutOverride?: BookmarksLayoutTypes;
+  triageActions?: ReactNode;
 }) {
   return (
     <BookmarkLayoutAdaptingCard
@@ -87,6 +93,8 @@ export default function AssetCard({
       bookmark={bookmarkedAsset}
       className={className}
       bookmarkIndex={bookmarkIndex}
+      layoutOverride={layoutOverride}
+      triageActions={triageActions}
       wrapTags={true}
       image={(_layout, className) => (
         <div className="relative size-full flex-1">

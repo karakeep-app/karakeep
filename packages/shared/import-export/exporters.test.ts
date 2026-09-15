@@ -21,6 +21,7 @@ function linkBookmark(
     note: null,
     summary: null,
     source: "api",
+    snoozedUntil: null,
     userId: "user1",
     tags: tagNames.map((name, i) => ({
       id: `tag${i}`,

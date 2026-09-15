@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Highlighter,
   Home,
+  LayoutDashboard,
   Search,
   Sparkles,
   Tag,
@@ -59,6 +60,11 @@ export default async function Dashboard({
 
   const items = (t: TFunction) =>
     [
+      {
+        name: t("common.dashboard"),
+        icon: <LayoutDashboard size={18} />,
+        path: "/dashboard/overview",
+      },
       {
         name: t("common.home"),
         icon: <Home size={18} />,

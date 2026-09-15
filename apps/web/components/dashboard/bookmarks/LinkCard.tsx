@@ -1,9 +1,11 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useUserSettings } from "@/lib/userSettings";
 
+import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ZBookmarkTypeLink } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
@@ -91,10 +93,14 @@ export default function LinkCard({
   bookmark: bookmarkLink,
   className,
   bookmarkIndex,
+  layoutOverride,
+  triageActions,
 }: {
   bookmark: ZBookmarkTypeLink;
   className?: string;
   bookmarkIndex?: number;
+  layoutOverride?: BookmarksLayoutTypes;
+  triageActions?: ReactNode;
 }) {
   return (
     <BookmarkLayoutAdaptingCard
@@ -107,6 +113,8 @@ export default function LinkCard({
       )}
       className={className}
       bookmarkIndex={bookmarkIndex}
+      layoutOverride={layoutOverride}
+      triageActions={triageActions}
     />
   );
 }

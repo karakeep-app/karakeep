@@ -24,7 +24,6 @@ import {
   Image as ImageIcon,
   NotebookPen,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
@@ -55,6 +54,15 @@ interface Props {
   fitHeight?: boolean;
   wrapTags: boolean;
   bookmarkIndex?: number;
+  // Overrides the user's global bookmark layout preference for this card
+  // instance (e.g. the dashboard's horizontal galleries always want the
+  // "grid" shape regardless of what the user picked for their main grid).
+  layoutOverride?: BookmarksLayoutTypes;
+  // Extra actions rendered as a row below the card's normal footer.
+  // Currently only rendered by the grid layout. Used by the dashboard's
+  // triage actions (Read it / Summarize it / Snooze) - omitted everywhere
+  // else, so existing cards are unaffected.
+  triageActions?: ReactNode;
 }
 
 function BottomRow({
@@ -65,7 +73,7 @@ function BottomRow({
   bookmark: ZBookmark;
 }) {
   return (
-    <div className="justify flex w-full shrink-0 justify-between text-gray-500">
+    <div className="justify flex w-full shrink-0 justify-between text-xs text-muted-foreground">
       <div className="flex items-center gap-2 overflow-hidden text-nowrap font-light">
         {footer && <>{footer}•</>}
         <Link
@@ -123,7 +131,6 @@ function BulkEditSelectionOverlay({ bookmark }: { bookmark: ZBookmark }) {
   );
   const isBulkEditEnabled = useBulkActionsStore((s) => s.isBulkEditEnabled);
   const toggleBookmark = useBulkActionsStore((state) => state.toggleBookmark);
-  const { theme } = useTheme();
   const { data: session } = useSession();
 
   // Don't show selector for non-owned bookmarks or when bulk edit is disabled
@@ -133,11 +140,8 @@ function BulkEditSelectionOverlay({ bookmark }: { bookmark: ZBookmark }) {
   return (
     <button
       className={cn(
-        "absolute left-0 top-0 z-50 h-full w-full bg-opacity-0",
-        {
-          "bg-opacity-10": isSelected,
-        },
-        theme === "dark" ? "bg-white" : "bg-black",
+        "absolute left-0 top-0 z-50 h-full w-full",
+        isSelected && "bg-primary/15",
       )}
       onClick={() => toggleBookmark(bookmark.id)}
     ></button>
@@ -238,7 +242,7 @@ function HoverActionBar({
   return (
     <div
       className={cn(
-        "z-[60] gap-1 rounded bg-white/50 p-1 backdrop-blur-sm transition-opacity duration-200 dark:bg-black/50",
+        "z-[60] gap-1 rounded bg-background/70 p-1 backdrop-blur-sm transition-opacity duration-200",
         inline ? "shrink-0" : "absolute right-2 top-2",
         isBulkEditEnabled
           ? "pointer-events-auto flex opacity-100"
@@ -345,7 +349,7 @@ function ListView({
       <div className="flex h-full flex-1 flex-col justify-between gap-2 overflow-hidden">
         <div className="flex flex-col gap-2 overflow-hidden">
           {showTitle && title && (
-            <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
+            <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-base font-medium tracking-tight">
               {title}
             </div>
           )}
@@ -377,6 +381,7 @@ function GridView({
   layout,
   fitHeight = false,
   bookmarkIndex,
+  triageActions,
 }: Props & { layout: BookmarksLayoutTypes }) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
@@ -395,7 +400,11 @@ function GridView({
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-lg",
         className,
-        fitHeight && layout != "grid" ? "max-h-96" : "h-96",
+        fitHeight && layout != "grid"
+          ? "max-h-96"
+          : triageActions
+            ? "h-[27rem]"
+            : "h-96",
       )}
       data-bookmark-index={bookmarkIndex}
     >
@@ -404,10 +413,10 @@ function GridView({
       <DragHandle bookmark={bookmark} className="left-2 top-2" />
       <HoverActionBar bookmark={bookmark} />
       {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
-      <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
+      <div className="flex h-full flex-col justify-between gap-2.5 overflow-hidden p-3">
         <div className="grow-1 flex flex-col gap-2 overflow-hidden">
           {showTitle && title && (
-            <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
+            <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-base font-medium tracking-tight">
               {title}
             </div>
           )}
@@ -424,6 +433,11 @@ function GridView({
           )}
         </div>
         <BottomRow footer={footer} bookmark={bookmark} />
+        {triageActions && (
+          <div className="relative z-[60] flex shrink-0 items-center gap-1 border-t border-border pt-2">
+            {triageActions}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -471,18 +485,20 @@ function CompactView({
             <ImageIcon className="size-5" />
           )}
           {showTitle && (
-            <div className="shrink-1 text-md line-clamp-1 overflow-hidden text-ellipsis break-words">
+            <div className="shrink-1 line-clamp-1 overflow-hidden text-ellipsis break-words text-sm font-medium">
               {title ?? "Untitled"}
             </div>
           )}
           {footer && (
-            <p className="flex shrink-0 gap-2 text-gray-500">•{footer}</p>
+            <p className="flex shrink-0 gap-2 text-xs text-muted-foreground">
+              •{footer}
+            </p>
           )}
-          <p className="text-gray-500">•</p>
+          <p className="text-xs text-muted-foreground">•</p>
           <Link
             href={`/dashboard/preview/${bookmark.id}`}
             suppressHydrationWarning
-            className="shrink-0 gap-2 text-gray-500"
+            className="shrink-0 gap-2 text-xs text-muted-foreground"
           >
             <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
           </Link>
@@ -503,7 +519,8 @@ function CompactView({
 }
 
 export function BookmarkLayoutAdaptingCard(props: Props) {
-  const layout = useBookmarkLayout();
+  const userLayout = useBookmarkLayout();
+  const layout = props.layoutOverride ?? userLayout;
 
   return bookmarkLayoutSwitch(layout, {
     masonry: <GridView layout={layout} {...props} />,

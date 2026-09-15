@@ -52,6 +52,11 @@ const formSchema = zUpdateBookmarksRequestSchema.extend({
   createdAt: z.date().optional(),
   datePublished: z.date().nullish(),
   dateModified: z.date().nullish(),
+  // This dialog doesn't expose a snooze field, but the base schema's
+  // z.coerce.date() confuses react-hook-form's resolver type inference
+  // (input vs output type) unless overridden the same way the other date
+  // fields above are.
+  snoozedUntil: z.date().nullish(),
 });
 type BookmarkFormValues = z.infer<typeof formSchema>;
 

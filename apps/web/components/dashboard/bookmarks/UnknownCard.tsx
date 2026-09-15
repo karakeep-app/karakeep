@@ -1,8 +1,10 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslation } from "@/lib/i18n/client";
 import { AlertCircle } from "lucide-react";
 
+import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
@@ -11,10 +13,14 @@ export default function UnknownCard({
   bookmark,
   className,
   bookmarkIndex,
+  layoutOverride,
+  triageActions,
 }: {
   bookmark: ZBookmark;
   className?: string;
   bookmarkIndex?: number;
+  layoutOverride?: BookmarksLayoutTypes;
+  triageActions?: ReactNode;
 }) {
   const { t } = useTranslation();
   return (
@@ -23,6 +29,8 @@ export default function UnknownCard({
       bookmark={bookmark}
       className={className}
       bookmarkIndex={bookmarkIndex}
+      layoutOverride={layoutOverride}
+      triageActions={triageActions}
       wrapTags={false}
       image={(_layout) => (
         <div className="flex size-full flex-1 flex-col items-center justify-center bg-red-50 dark:bg-red-950/10">

@@ -197,6 +197,7 @@ export const zBareBookmarkSchema = z.object({
   note: z.string().nullish(),
   summary: z.string().nullish(),
   source: zBookmarkSourceSchema.nullish(),
+  snoozedUntil: z.date().nullable(),
   userId: z.string(),
 });
 
@@ -291,6 +292,16 @@ export const zGetBookmarksRequestSchema = z.object({
   listId: z.string().optional(),
   rssFeedId: z.string().optional(),
   clusterId: z.string().optional(),
+  // Content-type filter (e.g. restrict to text-only "notes"). Optional and
+  // additive - existing callers that don't set it are unaffected.
+  type: z
+    .enum([BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET])
+    .optional(),
+  source: zBookmarkSourceSchema.optional(),
+  // When true, excludes bookmarks whose `snoozedUntil` is in the future.
+  // Used by "active" views (e.g. the dashboard overview rows) - existing
+  // callers that don't set it keep seeing snoozed bookmarks, unchanged.
+  excludeSnoozed: z.boolean().optional(),
   limit: z.number().int().min(1).max(MAX_NUM_BOOKMARKS_PER_PAGE).optional(),
   cursor: zCursorV2.nullish(),
   // TODO: This was done for backward comptability. At this point, all clients should be settings this to true.
@@ -313,6 +324,9 @@ export const zUpdateBookmarksRequestSchema = z.object({
   bookmarkId: z.string(),
   archived: z.boolean().optional(),
   favourited: z.boolean().optional(),
+  // undefined = leave untouched, null = clear the snooze, a date = snooze
+  // until that time.
+  snoozedUntil: z.coerce.date().nullable().optional(),
   summary: z.string().nullish(),
   note: z.string().optional(),
   title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),

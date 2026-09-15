@@ -661,6 +661,7 @@ export const bookmarksAppRouter = router({
           title: string | null;
           archived: boolean;
           favourited: boolean;
+          snoozedUntil: Date | null;
           note: string | null;
           summary: string | null;
           createdAt: Date;
@@ -676,6 +677,9 @@ export const bookmarksAppRouter = router({
         }
         if (input.favourited !== undefined) {
           commonUpdateData.favourited = input.favourited;
+        }
+        if (input.snoozedUntil !== undefined) {
+          commonUpdateData.snoozedUntil = input.snoozedUntil;
         }
         if (input.note !== undefined) {
           commonUpdateData.note = input.note;

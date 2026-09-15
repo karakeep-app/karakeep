@@ -63,7 +63,7 @@ function AISummary({
                     variant="none"
                     size="none"
                     spinner={<LoadingSpinner className="size-4" />}
-                    className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                    className="rounded-full bg-muted p-1 text-muted-foreground"
                     aria-label={isExpanded ? "Collapse" : "Expand"}
                     loading={isResummarizing}
                     onClick={() => resummarize({ bookmarkId })}
@@ -74,7 +74,7 @@ function AISummary({
                     size="none"
                     variant="none"
                     spinner={<LoadingSpinner className="size-4" />}
-                    className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                    className="rounded-full bg-muted p-1 text-muted-foreground"
                     aria-label={isExpanded ? "Collapse" : "Expand"}
                     loading={isUpdatingBookmark}
                     onClick={() =>
@@ -86,7 +86,7 @@ function AISummary({
                 </>
               )}
               <button
-                className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
+                className="rounded-full bg-muted p-1 text-muted-foreground"
                 aria-label="Collapse"
                 onClick={() => setIsExpanded(false)}
               >

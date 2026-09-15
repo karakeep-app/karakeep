@@ -200,6 +200,11 @@
               null
             ]
           },
+          "snoozedUntil": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
           "userId": {
             "type": "string"
           },
@@ -483,6 +488,7 @@
           "taggingStatus",
           "summarizationStatus",
           "embeddingStatus",
+          "snoozedUntil",
           "userId",
           "tags",
           "content",
@@ -1525,6 +1531,11 @@
                   "favourited": {
                     "type": "boolean"
                   },
+                  "snoozedUntil": {
+                    "type": "string",
+                    "nullable": true,
+                    "format": "date-time"
+                  },
                   "summary": {
                     "type": "string",
                     "nullable": true
@@ -1667,6 +1678,11 @@
                         null
                       ]
                     },
+                    "snoozedUntil": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time"
+                    },
                     "userId": {
                       "type": "string"
                     }
@@ -1680,6 +1696,7 @@
                     "taggingStatus",
                     "summarizationStatus",
                     "embeddingStatus",
+                    "snoozedUntil",
                     "userId"
                   ]
                 }
@@ -1925,6 +1942,11 @@
                         null
                       ]
                     },
+                    "snoozedUntil": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time"
+                    },
                     "userId": {
                       "type": "string"
                     }
@@ -1938,6 +1960,7 @@
                     "taggingStatus",
                     "summarizationStatus",
                     "embeddingStatus",
+                    "snoozedUntil",
                     "userId"
                   ]
                 }

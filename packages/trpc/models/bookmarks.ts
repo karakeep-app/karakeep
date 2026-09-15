@@ -9,6 +9,7 @@ import {
   getTableColumns,
   gt,
   inArray,
+  isNull,
   lt,
   lte,
   or,
@@ -519,6 +520,16 @@ export class Bookmark extends BareBookmark {
         : undefined,
       input.favourited !== undefined
         ? eq(bookmarks.favourited, input.favourited)
+        : undefined,
+      input.type !== undefined ? eq(bookmarks.type, input.type) : undefined,
+      input.source !== undefined
+        ? eq(bookmarks.source, input.source)
+        : undefined,
+      input.excludeSnoozed
+        ? or(
+            isNull(bookmarks.snoozedUntil),
+            lte(bookmarks.snoozedUntil, new Date()),
+          )
         : undefined,
       input.ids ? inArray(bookmarks.id, input.ids) : undefined,
     ];

@@ -31,7 +31,7 @@ export function NotePreview({ note, bookmarkId, className }: NotePreviewProps) {
       <PopoverTrigger asChild>
         <div
           className={cn(
-            "flex cursor-pointer items-center gap-1.5 text-sm font-light italic text-gray-500 dark:text-gray-400",
+            "flex cursor-pointer items-center gap-1.5 text-sm font-light italic text-muted-foreground",
             className,
           )}
         >
@@ -41,7 +41,7 @@ export function NotePreview({ note, bookmarkId, className }: NotePreviewProps) {
       </PopoverTrigger>
       <PopoverContent className="w-96 max-w-[calc(100vw-2rem)]" align="start">
         <div className="space-y-3">
-          <div className="max-h-60 overflow-y-auto whitespace-pre-wrap break-words text-sm text-gray-700 dark:text-gray-300">
+          <div className="max-h-60 overflow-y-auto whitespace-pre-wrap break-words text-sm text-foreground">
             {note}
           </div>
           <div className="flex justify-end">
