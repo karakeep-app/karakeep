@@ -659,6 +659,13 @@
       "when": 1785586065846,
       "tag": "0093_reader_view_assessment",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "6",
+      "when": 1788914841578,
+      "tag": "0094_pdf_highlights",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,9 @@
 import { TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
+import { assets, AssetTypes, bookmarkAssets } from "@karakeep/db/schema";
 import {
   zHighlightSchema,
   zNewHighlightSchema,
@@ -18,7 +20,7 @@ type Highlight = z.infer<typeof zHighlightSchema>;
 export class HighlightsService {
   private repo: HighlightsRepo;
 
-  constructor(db: DB) {
+  constructor(private db: DB) {
     this.repo = new HighlightsRepo(db);
   }
 
@@ -37,6 +39,38 @@ export class HighlightsService {
     actor: Actor,
     input: z.infer<typeof zNewHighlightSchema>,
   ): Promise<Highlight> {
+    if (input.pdfAnchor) {
+      const asset = await this.db.query.assets.findFirst({
+        where: and(
+          eq(assets.id, input.pdfAnchor.assetId),
+          eq(assets.bookmarkId, input.bookmarkId),
+          eq(assets.userId, actorUserId(actor)),
+        ),
+      });
+      const uploadedPdf =
+        asset?.assetType === AssetTypes.BOOKMARK_ASSET
+          ? await this.db.query.bookmarkAssets.findFirst({
+              where: and(
+                eq(bookmarkAssets.id, input.bookmarkId),
+                eq(bookmarkAssets.assetId, asset.id),
+                eq(bookmarkAssets.assetType, "pdf"),
+              ),
+            })
+          : null;
+      if (!asset || (asset.assetType !== AssetTypes.LINK_PDF && !uploadedPdf)) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "PDF highlight must refer to a PDF attached to this bookmark",
+        });
+      }
+      if (input.startOffset !== 0 || input.endOffset !== 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "PDF highlights use rectangles instead of character offsets",
+        });
+      }
+    }
     return await this.repo.create(actorUserId(actor), input);
   }
 

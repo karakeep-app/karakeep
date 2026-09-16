@@ -86,6 +86,7 @@
     "next-i18next": "^15.3.1",
     "next-themes": "^0.4.6",
     "nuqs": "^2.4.3",
+    "pdfjs-dist": "^4.10.38",
     "react": "19.2.3",
     "react-day-picker": "^9.7.0",
     "react-dom": "19.2.3",

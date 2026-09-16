@@ -8,6 +8,26 @@ const zHighlightColorSchema = z.enum(["yellow", "red", "green", "blue"]);
 export type ZHighlightColor = z.infer<typeof zHighlightColorSchema>;
 export const SUPPORTED_HIGHLIGHT_COLORS = zHighlightColorSchema.options;
 
+const zPdfHighlightRectSchema = z
+  .object({
+    pageIndex: z.number().int().nonnegative(),
+    x1: z.number().finite(),
+    y1: z.number().finite(),
+    x2: z.number().finite(),
+    y2: z.number().finite(),
+  })
+  .refine((rect) => rect.x2 > rect.x1 && rect.y2 > rect.y1, {
+    message: "PDF highlight rectangles must have positive area",
+  });
+
+// PDF page coordinates are independent of the current zoom or viewport size.
+export const zPdfHighlightAnchorSchema = z.object({
+  version: z.literal(1),
+  assetId: z.string().min(1),
+  rects: z.array(zPdfHighlightRectSchema).min(1).max(512),
+});
+export type ZPdfHighlightAnchor = z.infer<typeof zPdfHighlightAnchorSchema>;
+
 const zHighlightBaseSchema = z.object({
   bookmarkId: z.string(),
   startOffset: z.number(),
@@ -15,6 +35,8 @@ const zHighlightBaseSchema = z.object({
   color: zHighlightColorSchema.default("yellow"),
   text: z.string().nullable(),
   note: z.string().nullable(),
+  // Null denotes an HTML highlight. PDF records use 0/0 for legacy offsets.
+  pdfAnchor: zPdfHighlightAnchorSchema.nullish(),
 });
 
 export const zHighlightSchema = zHighlightBaseSchema.extend(

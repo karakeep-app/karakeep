@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -10,9 +10,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTranslation } from "@/lib/i18n/client";
+import { useSession } from "@/lib/auth/client";
+import { useQueryState } from "nuqs";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
+
+import PdfContent from "./PdfContent";
 
 // 20 MB
 const BIG_FILE_SIZE = 20 * 1024 * 1024;
@@ -22,6 +26,7 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
     throw new Error("Invalid content type");
   }
   const { t } = useTranslation();
+  const { data: session } = useSession();
 
   const initialSection = useMemo(() => {
     if (bookmark.content.type != BookmarkTypes.ASSET) {
@@ -38,7 +43,9 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
     }
     return "pdf";
   }, [bookmark]);
-  const [section, setSection] = useState(initialSection);
+  const [section, setSection] = useQueryState("section", {
+    defaultValue: initialSection,
+  });
 
   const screenshot = bookmark.assets.find(
     (r) => r.assetType === "assetScreenshot",
@@ -56,11 +63,10 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
         />
       </div>
     ) : (
-      <embed
-        title={bookmark.content.assetId}
-        type="application/pdf"
-        className="h-full w-full"
-        src={getAssetUrl(bookmark.content.assetId)}
+      <PdfContent
+        bookmarkId={bookmark.id}
+        assetId={bookmark.content.assetId}
+        readOnly={session?.user?.id !== bookmark.userId}
       />
     );
 
@@ -81,7 +87,7 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
           </SelectContent>
         </Select>
       </div>
-      {content}
+      <div className="min-h-0 w-full flex-1">{content}</div>
     </div>
   );
 }

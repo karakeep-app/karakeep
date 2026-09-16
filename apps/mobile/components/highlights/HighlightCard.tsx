@@ -76,7 +76,13 @@ export default function HighlightCard({
 
   const handleBookmarkPress = () => {
     Haptics.selectionAsync();
-    router.push(`/dashboard/bookmarks/${highlight.bookmarkId}`);
+    router.push({
+      pathname: "/dashboard/bookmarks/[slug]",
+      params: {
+        slug: highlight.bookmarkId,
+        ...(highlight.pdfAnchor ? { pdfHighlight: highlight.id } : {}),
+      },
+    });
   };
 
   return (

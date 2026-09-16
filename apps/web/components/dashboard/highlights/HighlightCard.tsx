@@ -2,6 +2,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
+import { parseAsString, useQueryStates } from "nuqs";
 
 import { useDeleteHighlight } from "@karakeep/shared-react/hooks/highlights";
 import { ZHighlight } from "@karakeep/shared/types/highlights";
@@ -19,6 +20,10 @@ export default function HighlightCard({
   className?: string;
   readOnly: boolean;
 }) {
+  const [, setPdfLocation] = useQueryStates({
+    section: parseAsString,
+    pdfHighlight: parseAsString,
+  });
   const { mutate: deleteHighlight, isPending: isDeleting } = useDeleteHighlight(
     {
       onSuccess: () => {
@@ -36,6 +41,10 @@ export default function HighlightCard({
   );
 
   const onBookmarkClick = () => {
+    if (highlight.pdfAnchor) {
+      void setPdfLocation({ section: "pdf", pdfHighlight: highlight.id });
+      return;
+    }
     document
       .querySelector(`[data-highlight-id="${highlight.id}"]`)
       ?.scrollIntoView({
