@@ -68,6 +68,10 @@ jobs:
         working-directory: packages/shared
         run: pnpm test
 
+      - name: Mobile Widget Tests
+        working-directory: apps/mobile
+        run: pnpm test
+
       - name: TRPC Tests
         working-directory: packages/trpc
         run: pnpm test

@@ -255,6 +255,14 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="settings/widget"
+        options={{
+          ...settingsScreenOptions,
+          headerTitle: "Home Screen Widget",
+          headerBackTitle: "Settings",
+        }}
+      />
+      <Stack.Screen
         name="settings/uploads"
         options={{
           ...settingsScreenOptions,

@@ -17,7 +17,8 @@
     "format:fix": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore .",
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.1.2",
@@ -67,6 +68,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
+    "react-native-android-widget": "0.22.1",
     "react-native-blob-util": "^0.21.2",
     "react-native-css-interop": "0.2.6",
     "react-native-draggable-flatlist": "4.0.3",
@@ -97,7 +99,8 @@
     "@types/react": "19.2.15",
     "ajv": "latest",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9"
+    "typescript": "^5.9",
+    "vitest": "^3.2.4"
   },
   "expo": {
     "install": {
