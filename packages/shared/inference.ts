@@ -123,6 +123,24 @@ const defaultInferenceOptions: InferenceOptions = {
   schema: null,
 };
 
+/**
+ * Some reasoning models inline their chain of thought in the message content
+ * instead of a separate field, so we have to drop it before using the response.
+ */
+export function stripReasoningBlocks(text: string): string {
+  // Remove complete <think>/<thinking> blocks anywhere in the text.
+  let out = text.replace(/<(think|thinking)>[\s\S]*?<\/\1>/gi, "");
+
+  // Some providers only emit the closing tag, in which case everything before
+  // it is reasoning.
+  const strayClosingTag = out.match(/<\/(?:think|thinking)>/i);
+  if (strayClosingTag?.index !== undefined) {
+    out = out.slice(strayClosingTag.index + strayClosingTag[0].length);
+  }
+
+  return out.trim();
+}
+
 export interface EmbeddingClient {
   generateEmbeddingFromText(inputs: string[]): Promise<EmbeddingResponse>;
 }
@@ -330,7 +348,9 @@ export class OpenAIInferenceClient implements InferenceClient {
       },
     );
 
-    const response = chatCompletion.choices[0].message.content;
+    const response = stripReasoningBlocks(
+      chatCompletion.choices[0].message.content ?? "",
+    );
     if (!response) {
       throw new Error(`Got no message content from OpenAI`);
     }
@@ -381,7 +401,9 @@ export class OpenAIInferenceClient implements InferenceClient {
       },
     );
 
-    const response = chatCompletion.choices[0].message.content;
+    const response = stripReasoningBlocks(
+      chatCompletion.choices[0].message.content ?? "",
+    );
     if (!response) {
       throw new Error(`Got no message content from OpenAI`);
     }
@@ -513,7 +535,7 @@ class OllamaInferenceClient implements InferenceClient {
       }
     }
 
-    return { response, totalTokens };
+    return { response: stripReasoningBlocks(response), totalTokens };
   }
 
   async inferFromText(
