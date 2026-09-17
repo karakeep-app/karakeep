@@ -92,7 +92,7 @@ test<CustomTestContext>("rate limits preserve progress and cannot be bypassed by
     ctx.db,
     subscription.id,
     async () => {
-      throw new GithubStarsError("GitHub rate limit reached.", retryAt);
+      throw new GithubStarsError("GitHub rate limit reached.", retryAt, true);
     },
     async () => api,
   );
@@ -138,18 +138,12 @@ test<CustomTestContext>("disconnect cancels stale jobs and never deletes importe
     type: BookmarkTypes.LINK,
     url: "https://github.com/example/keep",
   });
-  await syncGithubStarsPage(
-    ctx.db,
-    subscription.id,
-    async () => {
-      await api.githubStars.disconnect();
-      return {
-        repositories: [{ full_name: "example/new", topics: [] }],
-        hasNext: false,
-      };
-    },
-    async () => api,
-  );
+  await api.githubStars.disconnect();
+  const read = vi.fn(async () => {
+    throw new Error("Disconnected jobs must not fetch");
+  });
+  await syncGithubStarsPage(ctx.db, subscription.id, read, async () => api);
+  expect(read).not.toHaveBeenCalled();
   expect(await api.githubStars.get()).toBeNull();
   expect(
     (await api.bookmarks.getBookmarks({})).bookmarks.map((b) => b.id),
@@ -256,4 +250,66 @@ test<CustomTestContext>("rejects unsafe usernames and smart lists", async (ctx) 
       importTopics: false,
     }),
   ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+});
+
+test<CustomTestContext>("settings and disconnect wait for the active batch", async (ctx) => {
+  const { api, list, subscription } = await setup(ctx);
+  let finish!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const run = syncGithubStarsPage(
+    ctx.db,
+    subscription.id,
+    async () => {
+      await gate;
+      return { repositories: [], hasNext: false };
+    },
+    async () => api,
+  );
+  try {
+    await expect(api.githubStars.disconnect()).rejects.toMatchObject({
+      code: "CONFLICT",
+    });
+    await expect(
+      api.githubStars.save({
+        username: "other",
+        listId: list.id,
+        enabled: true,
+        importTopics: false,
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    expect((await api.githubStars.get())?.id).toBe(subscription.id);
+  } finally {
+    finish();
+    await run;
+  }
+  await api.githubStars.disconnect();
+  expect(await api.githubStars.get()).toBeNull();
+});
+
+test<CustomTestContext>("local failures allow immediate manual retry", async (ctx) => {
+  const { api, subscription } = await setup(ctx);
+  await syncGithubStarsPage(
+    ctx.db,
+    subscription.id,
+    async () => {
+      throw new Error("transient local failure");
+    },
+    async () => api,
+  );
+  expect((await api.githubStars.get())?.lastError).not.toBeNull();
+  expect((await api.githubStars.get())?.rateLimitUntil).toBeNull();
+  await api.githubStars.syncNow();
+  let fetched = false;
+  await syncGithubStarsPage(
+    ctx.db,
+    subscription.id,
+    async () => {
+      fetched = true;
+      return { repositories: [], hasNext: false };
+    },
+    async () => api,
+  );
+  expect(fetched).toBe(true);
 });

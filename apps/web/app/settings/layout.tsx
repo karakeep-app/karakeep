@@ -69,7 +69,7 @@ const settingsSidebarItems = (
         ]
       : []),
     {
-      name: "GitHub Stars",
+      name: t("settings.github_stars.title"),
       icon: <GitBranch size={18} />,
       path: "/settings/github-stars",
     },

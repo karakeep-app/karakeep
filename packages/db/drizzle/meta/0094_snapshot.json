@@ -1534,6 +1534,13 @@
           "notNull": false,
           "autoincrement": false
         },
+        "rateLimitUntil": {
+          "name": "rateLimitUntil",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "lastSuccessfulSyncAt": {
           "name": "lastSuccessfulSyncAt",
           "type": "integer",

@@ -1360,6 +1360,7 @@ export const githubStarsSubscriptions = sqliteTable(
       .notNull()
       .$defaultFn(() => new Date()),
     leaseUntil: integer("leaseUntil", { mode: "timestamp" }),
+    rateLimitUntil: integer("rateLimitUntil", { mode: "timestamp" }),
     lastSuccessfulSyncAt: integer("lastSuccessfulSyncAt", {
       mode: "timestamp",
     }),

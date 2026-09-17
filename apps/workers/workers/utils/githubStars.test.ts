@@ -19,7 +19,7 @@ test("fetches a bounded public page and uses pagination without following suppli
   expect(page.repositories[0].full_name).toBe("owner/repo");
   expect(fetchWithProxy).toHaveBeenLastCalledWith(
     "https://api.github.com/users/octocat/starred?sort=created&direction=desc&per_page=100&page=2",
-    expect.objectContaining({ redirect: "error", size: 5 * 1024 * 1024 }),
+    expect.objectContaining({ maxRedirects: 0, size: 5 * 1024 * 1024 }),
   );
 });
 

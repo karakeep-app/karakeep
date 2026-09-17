@@ -46,7 +46,7 @@ export default function GithubStarsSettings() {
     current?.leaseUntil && new Date(current.leaseUntil) > new Date();
   return (
     <SettingsPage
-      title="GitHub Stars"
+      title={t("settings.github_stars.title")}
       description={t("settings.github_stars.description")}
     >
       <SettingsSection
@@ -74,12 +74,19 @@ export default function GithubStarsSettings() {
             <Input
               id="github-username"
               name="username"
+              aria-describedby="github-username-help"
               defaultValue={current?.username ?? ""}
               required
               maxLength={39}
               placeholder="octocat"
               autoComplete="off"
             />
+            <p
+              id="github-username-help"
+              className="text-sm text-muted-foreground"
+            >
+              {t("settings.github_stars.username_help")}
+            </p>
           </div>
           <div className="space-y-2">
             <label htmlFor="github-list">
@@ -88,6 +95,7 @@ export default function GithubStarsSettings() {
             <select
               id="github-list"
               name="listId"
+              aria-describedby="github-list-help"
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
               required
               defaultValue={current?.listId ?? ""}
@@ -101,6 +109,9 @@ export default function GithubStarsSettings() {
                 </option>
               ))}
             </select>
+            <p id="github-list-help" className="text-sm text-muted-foreground">
+              {t("settings.github_stars.destination_help")}
+            </p>
             {destinations.length === 0 && (
               <p className="text-sm text-muted-foreground">
                 {t("settings.github_stars.create_list")}
@@ -111,24 +122,40 @@ export default function GithubStarsSettings() {
             <input
               type="checkbox"
               name="enabled"
+              aria-describedby="github-enabled-help"
               defaultChecked={current?.enabled ?? true}
             />
             {t("settings.github_stars.enabled")}
           </label>
+          <p id="github-enabled-help" className="text-sm text-muted-foreground">
+            {t("settings.github_stars.enabled_help")}
+          </p>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
               name="importTopics"
+              aria-describedby="github-topics-help"
               defaultChecked={current?.importTopics ?? false}
             />
             {t("settings.github_stars.topics")}
           </label>
-          <Button type="submit" disabled={busy || destinations.length === 0}>
+          <p id="github-topics-help" className="text-sm text-muted-foreground">
+            {t("settings.github_stars.topics_help")}
+          </p>
+          <Button
+            type="submit"
+            disabled={busy || !!running || destinations.length === 0}
+          >
             {save.isPending
               ? t("settings.github_stars.saving")
               : t("settings.github_stars.save")}
           </Button>
         </form>
+        {running && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {t("settings.github_stars.running_help")}
+          </p>
+        )}
         {error && (
           <p role="alert" className="text-destructive">
             {error}
@@ -174,7 +201,8 @@ export default function GithubStarsSettings() {
             </Button>
             <Button
               variant="outline"
-              disabled={busy}
+              disabled={busy || !!running}
+              aria-describedby="github-disconnect-help"
               onClick={() => disconnect.mutate()}
             >
               {t("settings.github_stars.disconnect")}
@@ -186,6 +214,26 @@ export default function GithubStarsSettings() {
               {t("settings.github_stars.view")}
             </Link>
           </div>
+          <p
+            id="github-disconnect-help"
+            className="text-sm text-muted-foreground"
+          >
+            {t("settings.github_stars.disconnect_help")}
+          </p>
+          <details className="text-sm text-muted-foreground">
+            <summary className="cursor-pointer">
+              {t("settings.github_stars.other_methods")}
+            </summary>
+            <p className="mt-2">
+              {t("settings.github_stars.other_methods_help")}
+            </p>
+          </details>
+          <p className="text-sm text-muted-foreground">
+            {t("settings.github_stars.retry_help")}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t("settings.github_stars.empty_help")}
+          </p>
           <p className="text-sm text-muted-foreground">
             {t("settings.github_stars.preservation")}
           </p>

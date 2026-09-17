@@ -632,7 +632,7 @@
     },
     "github_stars": {
       "description": "Automatically save your publicly starred GitHub repositories to a Karakeep list.",
-      "account": "Public GitHub account",
+      "account": "Subscribe to public stars",
       "account_description": "No token or extra service required. New stars are checked daily. Private repositories are not supported.",
       "load_error": "Could not load GitHub Stars settings. Please reload.",
       "username": "GitHub username",
@@ -656,7 +656,18 @@
       "view": "View imported repositories",
       "preservation": "Existing notes, tags and archived bookmarks are preserved. Unstarring a repository or disconnecting never deletes imported bookmarks. Large collections are imported in batches; GitHub rate limits can delay synchronization.",
       "last_sync": "Last complete sync:",
-      "next_check": "Next check:"
+      "next_check": "Next check:",
+      "title": "GitHub Stars",
+      "username_help": "Only stars visible without signing in can be imported. Private profiles may return no results; private repositories are not supported.",
+      "destination_help": "Choose a manual list you own. Existing bookmarks are reused and added to this list.",
+      "enabled_help": "Checks again 24 hours after a complete scan. Large collections continue in batches. Pausing keeps imported bookmarks.",
+      "topics_help": "Adds repository topics as tags. Existing tags are kept; disabling this does not remove tags already imported.",
+      "running_help": "A batch is running. Wait for it to finish before saving settings or disconnecting.",
+      "disconnect_help": "Stops future checks and removes these settings. Imported bookmarks and tags stay in Karakeep.",
+      "retry_help": "You can retry ordinary errors with Sync now. GitHub rate limits must expire first; other users on this server share the same limit.",
+      "empty_help": "No repositories appeared? The account may have no stars visible to this public importer. A completed scan does not prove access to hidden stars.",
+      "other_methods": "Other ways to import",
+      "other_methods_help": "GitHub sign-in for authorized access and one-time file import are not available here yet. This mode subscribes to public stars without connecting your GitHub account."
     }
   },
   "admin": {

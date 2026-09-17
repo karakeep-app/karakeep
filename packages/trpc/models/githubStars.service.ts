@@ -13,6 +13,7 @@ export class GithubStarsError extends Error {
   constructor(
     message: string,
     readonly retryAt: Date,
+    readonly rateLimited = false,
   ) {
     super(message);
   }
@@ -48,29 +49,30 @@ export async function syncGithubStarsPage(
     eq(githubStarsSubscriptions.id, id),
     eq(githubStarsSubscriptions.leaseUntil, leaseUntil),
   );
+  const ownsLease = () =>
+    Date.now() < leaseUntil.getTime() &&
+    db
+      .select({ id: githubStarsSubscriptions.id })
+      .from(githubStarsSubscriptions)
+      .where(ownedLease)
+      .get();
   try {
     const page = await readPage(subscription.username, subscription.nextPage);
     const api = await getClient(subscription.userId);
     for (const repository of page.repositories) {
       // Stop stale jobs after disconnect/reconfiguration or lease expiry.
-      if (
-        Date.now() >= leaseUntil.getTime() ||
-        !db
-          .select({ id: githubStarsSubscriptions.id })
-          .from(githubStarsSubscriptions)
-          .where(ownedLease)
-          .get()
-      )
-        return;
+      if (!ownsLease()) return;
       const bookmark = await api.bookmarks.createBookmark({
         type: BookmarkTypes.LINK,
         url: `https://github.com/${repository.full_name}`,
         source: "import",
       });
+      if (!ownsLease()) return;
       await api.lists.addToList({
         listId: subscription.listId,
         bookmarkId: bookmark.id,
       });
+      if (!ownsLease()) return;
       if (subscription.importTopics && repository.topics.length) {
         await api.bookmarks.updateTags({
           bookmarkId: bookmark.id,
@@ -87,6 +89,7 @@ export async function syncGithubStarsPage(
         ),
         ...(page.hasNext ? {} : { lastSuccessfulSyncAt: new Date() }),
         lastError: null,
+        rateLimitUntil: null,
         leaseUntil: null,
       })
       .where(ownedLease)
@@ -98,6 +101,10 @@ export async function syncGithubStarsPage(
           error instanceof GithubStarsError
             ? error.message
             : "Could not import this page. Check your destination list and bookmark quota; the page will be retried.",
+        rateLimitUntil:
+          error instanceof GithubStarsError && error.rateLimited
+            ? error.retryAt
+            : null,
         nextRunAt:
           error instanceof GithubStarsError
             ? error.retryAt

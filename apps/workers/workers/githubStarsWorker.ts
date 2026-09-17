@@ -1,5 +1,5 @@
 import { readStarredPage } from "./utils/githubStars";
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, isNull, lt, lte, or } from "drizzle-orm";
 import cron from "node-cron";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { db } from "@karakeep/db";
@@ -20,6 +20,10 @@ export const GithubStarsSchedulingWorker = cron.schedule(
           and(
             eq(githubStarsSubscriptions.enabled, true),
             lte(githubStarsSubscriptions.nextRunAt, new Date()),
+            or(
+              isNull(githubStarsSubscriptions.leaseUntil),
+              lt(githubStarsSubscriptions.leaseUntil, new Date()),
+            ),
           ),
         )
         .all();
@@ -28,7 +32,7 @@ export const GithubStarsSchedulingWorker = cron.schedule(
           { subscriptionId: subscription.id },
           {
             groupId: subscription.userId,
-            idempotencyKey: `${subscription.id}:${Math.floor(Date.now() / 60_000)}`,
+            idempotencyKey: subscription.id,
           },
         );
       }

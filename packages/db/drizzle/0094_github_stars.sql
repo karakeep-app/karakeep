@@ -8,6 +8,7 @@ CREATE TABLE `githubStarsSubscriptions` (
 	`nextPage` integer DEFAULT 1 NOT NULL,
 	`nextRunAt` integer NOT NULL,
 	`leaseUntil` integer,
+	`rateLimitUntil` integer,
 	`lastSuccessfulSyncAt` integer,
 	`lastError` text,
 	FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,

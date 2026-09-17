@@ -16,6 +16,16 @@ const config = z.object({
   importTopics: z.boolean(),
 });
 
+function assertIdle(leaseUntil: Date | null | undefined) {
+  if (leaseUntil && leaseUntil > new Date()) {
+    throw new TRPCError({
+      code: "CONFLICT",
+      message:
+        "An import batch is running. Wait for it to finish before changing settings or disconnecting.",
+    });
+  }
+}
+
 export const githubStarsRouter = router({
   get: sessionProcedure.query(
     ({ ctx }) =>
@@ -28,6 +38,12 @@ export const githubStarsRouter = router({
   save: sessionProcedure.input(config).mutation(({ ctx, input }) => {
     return ctx.db.transaction(
       (tx) => {
+        const previous = tx
+          .select()
+          .from(githubStarsSubscriptions)
+          .where(eq(githubStarsSubscriptions.userId, ctx.user.id))
+          .get();
+        assertIdle(previous?.leaseUntil);
         const list = tx
           .select()
           .from(bookmarkLists)
@@ -50,7 +66,17 @@ export const githubStarsRouter = router({
           .run();
         return tx
           .insert(githubStarsSubscriptions)
-          .values({ ...input, userId: ctx.user.id })
+          .values({
+            ...input,
+            userId: ctx.user.id,
+            ...(previous?.rateLimitUntil && previous.rateLimitUntil > new Date()
+              ? {
+                  rateLimitUntil: previous.rateLimitUntil,
+                  nextRunAt: previous.rateLimitUntil,
+                  lastError: previous.lastError,
+                }
+              : {}),
+          })
           .returning()
           .get();
       },
@@ -70,7 +96,7 @@ export const githubStarsRouter = router({
       });
     if (subscription.leaseUntil && subscription.leaseUntil > new Date()) return;
     // Respect GitHub cooldowns. A manual sync must not bypass a rate limit.
-    if (subscription.lastError && subscription.nextRunAt > new Date())
+    if (subscription.rateLimitUntil && subscription.rateLimitUntil > new Date())
       throw new TRPCError({
         code: "TOO_MANY_REQUESTS",
         message: "Please wait until the next scheduled retry.",
@@ -82,9 +108,19 @@ export const githubStarsRouter = router({
       .run();
   }),
   disconnect: sessionProcedure.mutation(({ ctx }) => {
-    ctx.db
-      .delete(githubStarsSubscriptions)
-      .where(eq(githubStarsSubscriptions.userId, ctx.user.id))
-      .run();
+    ctx.db.transaction(
+      (tx) => {
+        const subscription = tx
+          .select()
+          .from(githubStarsSubscriptions)
+          .where(eq(githubStarsSubscriptions.userId, ctx.user.id))
+          .get();
+        assertIdle(subscription?.leaseUntil);
+        tx.delete(githubStarsSubscriptions)
+          .where(eq(githubStarsSubscriptions.userId, ctx.user.id))
+          .run();
+      },
+      { behavior: "immediate" },
+    );
   }),
 });

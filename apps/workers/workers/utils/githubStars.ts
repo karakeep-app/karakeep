@@ -22,7 +22,7 @@ export async function readStarredPage(username: string, page: number) {
         "User-Agent": "Karakeep",
       },
       signal: AbortSignal.timeout(30_000),
-      redirect: "error",
+      maxRedirects: 0,
       size: 5 * 1024 * 1024,
     },
   );
@@ -45,6 +45,7 @@ export async function readStarredPage(username: string, page: number) {
             ? Math.min(Math.max(cooldown, 60 * 60_000), 24 * 60 * 60_000)
             : 60 * 60_000),
       ),
+      response.status === 403 || response.status === 429,
     );
   }
   return {
