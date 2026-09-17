@@ -4,6 +4,24 @@ import { isAllowedBookmarkUrl } from "../utils/url";
 import { zCursorV2 } from "./pagination";
 import { zAttachedByEnumSchema, zBookmarkTagSchema } from "./tags";
 
+export const MAX_CUSTOM_METADATA_BYTES = 16_384;
+
+export const zBookmarkCustomMetadataSchema = z
+  .record(z.string().min(1).max(128), z.json())
+  .refine(
+    (value) =>
+      new TextEncoder().encode(JSON.stringify(value)).length <=
+      MAX_CUSTOM_METADATA_BYTES,
+    "Custom metadata must not exceed 16384 UTF-8 bytes",
+  )
+  .meta({ type: "object", additionalProperties: {} })
+  .describe(
+    "Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key.",
+  );
+export type ZBookmarkCustomMetadata = z.infer<
+  typeof zBookmarkCustomMetadataSchema
+>;
+
 export const MAX_BOOKMARK_TITLE_LENGTH = 1000;
 export const DEFAULT_READABLE_CONTENT_MAX_CHARS = 12_000;
 export const MAX_READABLE_CONTENT_MAX_CHARS = 50_000;
@@ -195,6 +213,9 @@ export const zBareBookmarkSchema = z.object({
   summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),
   embeddingStatus: z.enum(["success", "failure", "pending"]).nullable(),
   note: z.string().nullish(),
+  customMetadata: zBookmarkCustomMetadataSchema
+    .nullish()
+    .meta({ type: "object", additionalProperties: {}, nullable: true }),
   summary: z.string().nullish(),
   source: zBookmarkSourceSchema.nullish(),
   userId: z.string(),
@@ -245,6 +266,7 @@ export const zNewBookmarkRequestSchema = z.intersection(
     archived: z.boolean().optional(),
     favourited: z.boolean().optional(),
     note: z.string().optional(),
+    customMetadata: zBookmarkCustomMetadataSchema.optional(),
     summary: z.string().optional(),
     createdAt: z.coerce
       .date()
@@ -314,6 +336,7 @@ export const zUpdateBookmarksRequestSchema = z.object({
   favourited: z.boolean().optional(),
   summary: z.string().nullish(),
   note: z.string().optional(),
+  customMetadata: zBookmarkCustomMetadataSchema.optional(),
   title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
   createdAt: z.coerce
     .date()

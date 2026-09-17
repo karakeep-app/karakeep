@@ -42,6 +42,7 @@ import { FilterQuery, getSearchClient } from "@karakeep/shared/search";
 import { parseSearchQuery } from "@karakeep/shared/searchQueryParser";
 import type {
   ZBookmarkContent,
+  ZBookmarkCustomMetadata,
   ZBookmarkSource,
 } from "@karakeep/shared/types/bookmarks";
 import {
@@ -49,6 +50,7 @@ import {
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
   MAX_NUM_BOOKMARKS_PER_PAGE,
   zBookmarkSchema,
+  zBookmarkCustomMetadataSchema,
   zBookmarkReadableContentFormatSchema,
   zBookmarkReadableContentSchema,
   zGetBookmarksRequestSchema,
@@ -80,6 +82,22 @@ import { reciprocalRankFusion } from "../lib/searchRanking";
 import { Asset } from "../models/assets";
 import { BareBookmark, Bookmark } from "../models/bookmarks";
 import { WebhooksService } from "../models/webhooks.service";
+
+function mergeCustomMetadata(
+  current: ZBookmarkCustomMetadata | null | undefined,
+  patch: ZBookmarkCustomMetadata,
+): ZBookmarkCustomMetadata {
+  const merged = Object.fromEntries(
+    Object.entries({ ...current, ...patch }).filter(
+      ([, value]) => value !== null,
+    ),
+  );
+  const result = zBookmarkCustomMetadataSchema.safeParse(merged);
+  if (!result.success) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: result.error.message });
+  }
+  return result.data;
+}
 
 const bookmarksProcedure = createScopedAuthedProcedure("bookmarks");
 const HYBRID_CANDIDATES_PER_SOURCE = MAX_NUM_BOOKMARKS_PER_PAGE;
@@ -297,15 +315,46 @@ export const bookmarksAppRouter = router({
             ...(input.note !== undefined ? { note: input.note } : {}),
             ...(input.summary !== undefined ? { summary: input.summary } : {}),
           };
-          await ctx.db
-            .update(bookmarks)
-            .set({ ...resaved, modifiedAt: now })
-            .where(
-              and(
-                eq(bookmarks.userId, ctx.user.id),
-                eq(bookmarks.id, alreadyExists.id),
-              ),
-            );
+          const saved = ctx.db.transaction((tx) => {
+            const current = tx
+              .select()
+              .from(bookmarks)
+              .where(
+                and(
+                  eq(bookmarks.userId, ctx.user.id),
+                  eq(bookmarks.id, alreadyExists.id),
+                ),
+              )
+              .get();
+            if (!current) {
+              throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "Bookmark not found",
+              });
+            }
+            return tx
+              .update(bookmarks)
+              .set({
+                ...resaved,
+                modifiedAt: now,
+                ...(input.customMetadata !== undefined
+                  ? {
+                      customMetadata: mergeCustomMetadata(
+                        current.customMetadata,
+                        input.customMetadata,
+                      ),
+                    }
+                  : {}),
+              })
+              .where(
+                and(
+                  eq(bookmarks.userId, ctx.user.id),
+                  eq(bookmarks.id, alreadyExists.id),
+                ),
+              )
+              .returning()
+              .get()!;
+          });
           await Promise.all([
             triggerSearchReindex(alreadyExists.id, {
               groupId: ctx.user.id,
@@ -322,8 +371,7 @@ export const bookmarksAppRouter = router({
 
           return {
             ...alreadyExists,
-            ...resaved,
-            modifiedAt: now,
+            ...saved,
             alreadyExists: true,
           };
         }
@@ -368,6 +416,10 @@ export const bookmarksAppRouter = router({
               archived: input.archived,
               favourited: input.favourited,
               note: input.note,
+              customMetadata:
+                input.customMetadata === undefined
+                  ? undefined
+                  : mergeCustomMetadata(null, input.customMetadata),
               summary: input.summary,
               createdAt: input.createdAt,
               source: input.source,
@@ -663,6 +715,7 @@ export const bookmarksAppRouter = router({
           favourited: boolean;
           note: string | null;
           summary: string | null;
+          customMetadata: ZBookmarkCustomMetadata;
           createdAt: Date;
           modifiedAt: Date; // Always update modifiedAt
         }> = {
@@ -682,6 +735,28 @@ export const bookmarksAppRouter = router({
         }
         if (input.summary !== undefined) {
           commonUpdateData.summary = input.summary;
+        }
+        if (input.customMetadata !== undefined) {
+          const current = tx
+            .select({ customMetadata: bookmarks.customMetadata })
+            .from(bookmarks)
+            .where(
+              and(
+                eq(bookmarks.userId, ctx.user.id),
+                eq(bookmarks.id, input.bookmarkId),
+              ),
+            )
+            .get();
+          if (!current) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Bookmark not found",
+            });
+          }
+          commonUpdateData.customMetadata = mergeCustomMetadata(
+            current.customMetadata,
+            input.customMetadata,
+          );
         }
         if (input.createdAt !== undefined) {
           commonUpdateData.createdAt = input.createdAt;

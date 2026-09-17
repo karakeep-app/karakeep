@@ -9,6 +9,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import * as sharedServer from "@karakeep/shared-server";
+import type { ZBookmarkCustomMetadata } from "@karakeep/shared/types/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { WebhooksService } from "../models/webhooks.service";
@@ -45,6 +46,145 @@ vi.mock("@karakeep/shared-server", async (original) => {
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("Bookmark Routes", () => {
+  test<CustomTestContext>("custom metadata persists, merges keys and deletes with null", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const bookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "metadata",
+      customMetadata: {
+        "github.id": 123,
+        other: { keep: true },
+        enabled: false,
+        values: [1, null, "text"],
+      },
+    });
+    expect(bookmark.customMetadata).toEqual({
+      "github.id": 123,
+      other: { keep: true },
+      enabled: false,
+      values: [1, null, "text"],
+    });
+    expect(
+      (await api.getBookmark({ bookmarkId: bookmark.id })).customMetadata,
+    ).toEqual(bookmark.customMetadata);
+    const updated = await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      customMetadata: {
+        "github.id": 456,
+        other: { replaced: true },
+        enabled: null,
+      },
+    });
+    expect(updated.customMetadata).toEqual({
+      "github.id": 456,
+      other: { replaced: true },
+      values: [1, null, "text"],
+    });
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      note: "unrelated update",
+    });
+    expect((await api.getBookmarks({})).bookmarks[0].customMetadata).toEqual(
+      updated.customMetadata,
+    );
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      customMetadata: { "github.id": null, other: null, values: null },
+    });
+    expect(
+      (await api.getBookmark({ bookmarkId: bookmark.id })).customMetadata,
+    ).toEqual({});
+  });
+
+  test<CustomTestContext>("custom metadata rejects invalid input and oversized merged state atomically", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const bookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "metadata",
+      customMetadata: { first: "x".repeat(9000) },
+    });
+    const invalidMetadata: ZBookmarkCustomMetadata[] = [
+      { "": "invalid" },
+      { ["k".repeat(129)]: 1 },
+      { value: "😀".repeat(5000) },
+      { value: Infinity },
+    ];
+    for (const customMetadata of invalidMetadata) {
+      await expect(
+        api.updateBookmark({ bookmarkId: bookmark.id, customMetadata }),
+      ).rejects.toThrow();
+    }
+    await expect(
+      api.updateBookmark({
+        bookmarkId: bookmark.id,
+        note: "must roll back",
+        customMetadata: { second: "x".repeat(9000) },
+      }),
+    ).rejects.toThrow("16384");
+    const after = await api.getBookmark({ bookmarkId: bookmark.id });
+    expect(after.customMetadata).toEqual(bookmark.customMetadata);
+    expect(after.note).toBeNull();
+  });
+
+  test<CustomTestContext>("only the owner can read or update custom metadata", async ({
+    apiCallers,
+  }) => {
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "private",
+      customMetadata: { externalId: "private-id" },
+    });
+    await expect(
+      apiCallers[1].bookmarks.getBookmark({ bookmarkId: bookmark.id }),
+    ).rejects.toThrow();
+    await expect(
+      apiCallers[1].bookmarks.updateBookmark({
+        bookmarkId: bookmark.id,
+        customMetadata: { externalId: null },
+      }),
+    ).rejects.toThrow();
+    expect(
+      (await apiCallers[0].bookmarks.getBookmark({ bookmarkId: bookmark.id }))
+        .customMetadata,
+    ).toEqual({ externalId: "private-id" });
+  });
+
+  test<CustomTestContext>("re-saving links merges metadata while import duplicates preserve existing values", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const input = {
+      type: BookmarkTypes.LINK as const,
+      url: "https://example.com/metadata",
+    };
+    const original = await api.createBookmark({
+      ...input,
+      customMetadata: { first: 1, second: 2 },
+    });
+    const resaved = await api.createBookmark({
+      ...input,
+      customMetadata: { first: null, third: 3 },
+    });
+    expect(resaved.id).toBe(original.id);
+    expect(resaved.customMetadata).toEqual({ second: 2, third: 3 });
+    expect((await api.createBookmark(input)).customMetadata).toEqual(
+      resaved.customMetadata,
+    );
+    expect(
+      (
+        await api.createBookmark({
+          ...input,
+          source: "import",
+          customMetadata: { second: 99 },
+        })
+      ).customMetadata,
+    ).toEqual(resaved.customMetadata);
+  });
+
   async function createTestTag(api: APICallerType, tagName: string) {
     const result = await api.tags.create({ name: tagName });
     return result.id;
