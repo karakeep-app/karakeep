@@ -220,14 +220,6 @@ export default function GithubStarsSettings() {
           >
             {t("settings.github_stars.disconnect_help")}
           </p>
-          <details className="text-sm text-muted-foreground">
-            <summary className="cursor-pointer">
-              {t("settings.github_stars.other_methods")}
-            </summary>
-            <p className="mt-2">
-              {t("settings.github_stars.other_methods_help")}
-            </p>
-          </details>
           <p className="text-sm text-muted-foreground">
             {t("settings.github_stars.retry_help")}
           </p>

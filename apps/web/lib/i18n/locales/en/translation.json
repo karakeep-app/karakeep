@@ -665,9 +665,7 @@
       "running_help": "A batch is running. Wait for it to finish before saving settings or disconnecting.",
       "disconnect_help": "Stops future checks and removes these settings. Imported bookmarks and tags stay in Karakeep.",
       "retry_help": "You can retry ordinary errors with Sync now. GitHub rate limits must expire first; other users on this server share the same limit.",
-      "empty_help": "No repositories appeared? The account may have no stars visible to this public importer. A completed scan does not prove access to hidden stars.",
-      "other_methods": "Other ways to import",
-      "other_methods_help": "GitHub sign-in for authorized access and one-time file import are not available here yet. This mode subscribes to public stars without connecting your GitHub account."
+      "empty_help": "No repositories appeared? The account may have no stars visible to this public importer. A completed scan does not prove access to hidden stars."
     }
   },
   "admin": {
