@@ -1,3 +1,9 @@
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import * as schema from "@karakeep/db/schema";
+import { openSqliteDatabase } from "@karakeep/db/sqlite";
 import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
@@ -17,6 +23,7 @@ import type { APICallerType, CustomTestContext } from "../testUtils";
 import {
   defaultBeforeEach,
   getApiKeyCallerForPlainKey,
+  getApiCaller,
   getTestQueueMocks,
 } from "../testUtils";
 
@@ -46,6 +53,79 @@ vi.mock("@karakeep/shared-server", async (original) => {
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("Bookmark Routes", () => {
+  for (const operation of ["update", "resave"] as const) {
+    test<CustomTestContext>(`metadata ${operation} reserves the writer before reading across connections`, async ({
+      db,
+      apiCallers,
+    }) => {
+      const bookmark = await apiCallers[0].bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com/concurrent-metadata",
+        customMetadata: { original: true },
+      });
+      const directory = await mkdtemp(
+        path.join(tmpdir(), "karakeep-metadata-"),
+      );
+      const filename = path.join(directory, "db.sqlite");
+      await db.$client.backup(filename);
+      const first = openSqliteDatabase(filename, {
+        readOnly: false,
+        walMode: true,
+      });
+      const second = openSqliteDatabase(filename, {
+        readOnly: false,
+        walMode: true,
+      });
+      second.pragma("busy_timeout = 0");
+      const firstDb = drizzle(first, { schema });
+      const secondDb = drizzle(second, { schema });
+      const owner = db.select().from(users).get()!;
+      const firstApi = getApiCaller(firstDb, owner.id).bookmarks;
+      const secondApi = getApiCaller(secondDb, owner.id).bookmarks;
+      const transaction = firstDb.transaction.bind(firstDb);
+      const spy = vi
+        .spyOn(firstDb, "transaction")
+        .mockImplementation((callback, config) =>
+          transaction((tx) => {
+            // A separate writer must be blocked before the merge reads its snapshot.
+            expect(() =>
+              second
+                .prepare("UPDATE bookmarks SET customMetadata = ? WHERE id = ?")
+                .run('{"competing":true}', bookmark.id),
+            ).toThrowError(/locked/);
+            return callback(tx);
+          }, config),
+        );
+      try {
+        if (operation === "update") {
+          await firstApi.updateBookmark({
+            bookmarkId: bookmark.id,
+            customMetadata: { first: true },
+          });
+        } else {
+          await firstApi.createBookmark({
+            type: BookmarkTypes.LINK,
+            url: "https://example.com/concurrent-metadata",
+            customMetadata: { first: true },
+          });
+        }
+        expect(spy).toHaveBeenCalled();
+        await secondApi.updateBookmark({
+          bookmarkId: bookmark.id,
+          customMetadata: { second: true },
+        });
+        expect(
+          (await firstApi.getBookmark({ bookmarkId: bookmark.id }))
+            .customMetadata,
+        ).toEqual({ original: true, first: true, second: true });
+      } finally {
+        spy.mockRestore();
+        first.close();
+        second.close();
+        await rm(directory, { recursive: true, force: true });
+      }
+    });
+  }
   test<CustomTestContext>("custom metadata persists, merges keys and deletes with null", async ({
     apiCallers,
   }) => {
