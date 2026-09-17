@@ -1335,3 +1335,34 @@ export const userReadingProgressRelations = relations(
     }),
   }),
 );
+
+// One public GitHub Stars subscription per user.
+export const githubStarsSubscriptions = sqliteTable(
+  "githubStarsSubscriptions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    userId: text("userId")
+      .notNull()
+      .unique()
+      .references(() => users.id, { onDelete: "cascade" }),
+    username: text("username").notNull(),
+    listId: text("listId")
+      .notNull()
+      .references(() => bookmarkLists.id, { onDelete: "cascade" }),
+    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    importTopics: integer("importTopics", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    nextPage: integer("nextPage").notNull().default(1),
+    nextRunAt: integer("nextRunAt", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+    leaseUntil: integer("leaseUntil", { mode: "timestamp" }),
+    lastSuccessfulSyncAt: integer("lastSuccessfulSyncAt", {
+      mode: "timestamp",
+    }),
+    lastError: text("lastError"),
+  },
+);
