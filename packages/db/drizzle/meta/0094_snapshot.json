@@ -1496,6 +1496,14 @@
           "notNull": true,
           "autoincrement": false
         },
+        "recurring": {
+          "name": "recurring",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": true
+        },
         "enabled": {
           "name": "enabled",
           "type": "integer",

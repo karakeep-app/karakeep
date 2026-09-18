@@ -83,6 +83,7 @@ export async function syncGithubStarsPage(
     }
     db.update(githubStarsSubscriptions)
       .set({
+        enabled: page.hasNext || subscription.recurring,
         nextPage: page.hasNext ? subscription.nextPage + 1 : 1,
         nextRunAt: new Date(
           Date.now() + (page.hasNext ? 60_000 : 24 * 60 * 60_000),

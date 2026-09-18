@@ -63,6 +63,7 @@ export default function GithubStarsSettings() {
               username: String(data.get("username")),
               listId: String(data.get("listId")),
               enabled: data.has("enabled"),
+              recurring: data.get("mode") === "recurring",
               importTopics: data.has("importTopics"),
             });
           }}
@@ -118,6 +119,26 @@ export default function GithubStarsSettings() {
               </p>
             )}
           </div>
+          <div className="space-y-2">
+            <label htmlFor="github-mode">
+              {t("settings.github_stars.mode")}
+            </label>
+            <select
+              id="github-mode"
+              name="mode"
+              defaultValue={current?.recurring === false ? "once" : "recurring"}
+              aria-describedby="github-mode-help"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value="once">{t("settings.github_stars.once")}</option>
+              <option value="recurring">
+                {t("settings.github_stars.recurring")}
+              </option>
+            </select>
+            <p id="github-mode-help" className="text-sm text-muted-foreground">
+              {t("settings.github_stars.mode_help")}
+            </p>
+          </div>
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -167,7 +188,9 @@ export default function GithubStarsSettings() {
           <div role="status" className="space-y-2 text-sm">
             <p>
               {!current.enabled
-                ? t("settings.github_stars.paused")
+                ? !current.recurring && current.lastSuccessfulSyncAt
+                  ? t("settings.github_stars.completed")
+                  : t("settings.github_stars.paused")
                 : running
                   ? t("settings.github_stars.importing")
                   : current.lastError

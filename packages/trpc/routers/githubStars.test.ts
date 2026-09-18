@@ -313,3 +313,39 @@ test<CustomTestContext>("local failures allow immediate manual retry", async (ct
   );
   expect(fetched).toBe(true);
 });
+
+test<CustomTestContext>("one-time imports finish all pages then stop until explicitly restarted", async (ctx) => {
+  const { api, list } = await setup(ctx);
+  const subscription = await api.githubStars.save({
+    username: "octocat",
+    listId: list.id,
+    enabled: true,
+    recurring: false,
+    importTopics: false,
+  });
+  await syncGithubStarsPage(
+    ctx.db,
+    subscription.id,
+    async () => ({ repositories: [], hasNext: true }),
+    async () => api,
+  );
+  expect(await api.githubStars.get()).toMatchObject({
+    enabled: true,
+    nextPage: 2,
+  });
+  await api.githubStars.syncNow();
+  await syncGithubStarsPage(
+    ctx.db,
+    subscription.id,
+    async () => ({ repositories: [], hasNext: false }),
+    async () => api,
+  );
+  expect(await api.githubStars.get()).toMatchObject({
+    enabled: false,
+    nextPage: 1,
+    lastSuccessfulSyncAt: expect.any(Date),
+  });
+  const read = vi.fn(async () => ({ repositories: [], hasNext: false }));
+  await syncGithubStarsPage(ctx.db, subscription.id, read, async () => api);
+  expect(read).not.toHaveBeenCalled();
+});

@@ -5,7 +5,8 @@ Karakeep can import a GitHub user's publicly starred repositories into a manual 
 1. Create a manual list in Karakeep.
 2. Open **Settings → GitHub Stars**.
 3. Enter the GitHub username and choose a list you own. This mode only reads publicly visible stars. A private profile may return no results; hidden stars and private repositories are not accessible.
-4. Optionally enable importing repository topics as tags, then save.
+4. Choose **Import once** to process all pages and stop, or **Synchronize automatically** for daily checks.
+5. Optionally enable importing repository topics as tags, then save.
 
 The workers begin importing within about a minute. Each job imports up to 100 repositories. Larger collections continue page by page. After a complete import, Karakeep checks again in 24 hours. **Sync now** requests an earlier check, unless GitHub has asked the server to wait.
 

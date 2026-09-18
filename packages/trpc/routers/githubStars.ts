@@ -13,6 +13,7 @@ const config = z.object({
     .regex(/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$/),
   listId: z.string(),
   enabled: z.boolean(),
+  recurring: z.boolean().default(true),
   importTopics: z.boolean(),
 });
 

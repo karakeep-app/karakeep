@@ -3,6 +3,7 @@ CREATE TABLE `githubStarsSubscriptions` (
 	`userId` text NOT NULL,
 	`username` text NOT NULL,
 	`listId` text NOT NULL,
+	`recurring` integer DEFAULT true NOT NULL,
 	`enabled` integer DEFAULT true NOT NULL,
 	`importTopics` integer DEFAULT false NOT NULL,
 	`nextPage` integer DEFAULT 1 NOT NULL,

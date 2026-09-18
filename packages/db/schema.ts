@@ -1351,6 +1351,9 @@ export const githubStarsSubscriptions = sqliteTable(
     listId: text("listId")
       .notNull()
       .references(() => bookmarkLists.id, { onDelete: "cascade" }),
+    recurring: integer("recurring", { mode: "boolean" })
+      .notNull()
+      .default(true),
     enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
     importTopics: integer("importTopics", { mode: "boolean" })
       .notNull()
