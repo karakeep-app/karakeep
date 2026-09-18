@@ -13,6 +13,7 @@
     "ios:preview": "SENTRY_DISABLE_AUTO_UPLOAD=true APP_VARIANT=development pnpm run ios --configuration Release",
     "ios:release": "SENTRY_DISABLE_AUTO_UPLOAD=true pnpm run ios --configuration Release",
     "web": "expo start --web",
+    "test": "vitest run",
     "format": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore --check .",
     "format:fix": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore .",
     "lint": "oxlint --ignore-path=../../.gitignore .",
@@ -53,6 +54,7 @@
     "expo-image-picker": "~56.0.20",
     "expo-keep-awake": "~56.0.3",
     "expo-linking": "~56.0.15",
+    "expo-localization": "~56.0.6",
     "expo-navigation-bar": "~56.0.3",
     "expo-network": "~56.0.5",
     "expo-router": "~56.2.14",
@@ -62,10 +64,12 @@
     "expo-status-bar": "~56.0.4",
     "expo-system-ui": "~56.0.5",
     "expo-web-browser": "~56.0.5",
+    "i18next": "^23.16.5",
     "lucide-react-native": "^0.513.0",
     "nativewind": "^4.2.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-i18next": "^15.1.1",
     "react-native": "0.85.3",
     "react-native-blob-util": "^0.21.2",
     "react-native-css-interop": "0.2.6",
@@ -97,7 +101,9 @@
     "@types/react": "19.2.15",
     "ajv": "latest",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9"
+    "typescript": "^5.9",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^3.2.4"
   },
   "expo": {
     "install": {
