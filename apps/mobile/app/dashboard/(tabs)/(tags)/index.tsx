@@ -112,10 +112,9 @@ export default function Tags() {
                 <View className="flex-1">
                   <Text className="font-medium">{item.item.name}</Text>
                   <Text className="text-sm text-muted-foreground">
-                    {item.item.numBookmarks}{" "}
-                    {item.item.numBookmarks === 1
-                      ? t("tags_tab.bookmarks_one")
-                      : t("tags_tab.bookmarks_other")}
+                    {t("tags_tab.bookmarks", {
+                      count: item.item.numBookmarks,
+                    })}
                   </Text>
                 </View>
                 <ChevronRight />

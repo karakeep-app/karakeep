@@ -25,6 +25,7 @@ import {
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { getIntlLocale } from "@/lib/i18n";
 import {
   useCommonActions,
   useCommonStrings,
@@ -628,14 +629,14 @@ const ViewBookmarkPage = () => {
         <View className="items-center gap-1 pt-2">
           <Text variant="caption1" color="tertiary" selectable>
             {t("bookmarks.created", {
-              date: bookmark.createdAt.toLocaleString(),
+              date: bookmark.createdAt.toLocaleString(getIntlLocale()),
             })}
           </Text>
           {bookmark.modifiedAt &&
             bookmark.modifiedAt.getTime() !== bookmark.createdAt.getTime() && (
               <Text variant="caption1" color="tertiary" selectable>
                 {t("bookmarks.modified", {
-                  date: bookmark.modifiedAt!.toLocaleString(),
+                  date: bookmark.modifiedAt!.toLocaleString(getIntlLocale()),
                 })}
               </Text>
             )}

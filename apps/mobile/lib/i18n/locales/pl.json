@@ -113,7 +113,9 @@
     "loading_more": "Ładowanie kolejnych...",
     "no_tags_title": "Brak tagów",
     "no_tags_subtitle": "Tagi pojawią się, gdy zaczniesz porządkować zakładki",
-    "create_tag": "Utwórz tag"
+    "create_tag": "Utwórz tag",
+    "bookmarks_few": "zakładki",
+    "bookmarks_many": "zakładek"
   },
   "search": {
     "recent_searches": "Ostatnie wyszukiwania",
@@ -432,7 +434,9 @@
     "source_unknown": "Nieznane",
     "item_one": "element",
     "item_other": "elementy",
-    "tags_empty": "Tagi pojawią się, gdy zaczniesz porządkować zakładki."
+    "tags_empty": "Tagi pojawią się, gdy zaczniesz porządkować zakładki.",
+    "item_few": "elementy",
+    "item_many": "elementów"
   },
   "sharing": {
     "still_saving": "Nadal zapisywanie...",
@@ -473,7 +477,11 @@
     "category_places": "Podróże i miejsca",
     "category_objects": "Obiekty",
     "category_symbols": "Symbole",
-    "category_flags": "Flagi"
+    "category_flags": "Flagi",
+    "results_one": "{{count}} wynik",
+    "results_few": "{{count}} wyniki",
+    "results_many": "{{count}} wyników",
+    "results_other": "{{count}} wyniki"
   },
   "headers_modal": {
     "title": "Własne nagłówki",

@@ -706,7 +706,7 @@ export default function UsageStatsScreen() {
                   value={asset.totalSize}
                   total={stats.totalAssetSize}
                   color={colors.primary}
-                  detail={`${getCountFormatter().format(asset.count)} ${asset.count === 1 ? t("stats.item_one") : t("stats.item_other")}`}
+                  detail={`${getCountFormatter().format(asset.count)} ${t("stats.item", { count: asset.count })}`}
                   valueLabel={formatBytes(asset.totalSize)}
                 />
               ))}

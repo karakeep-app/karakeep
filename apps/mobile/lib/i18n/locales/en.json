@@ -113,7 +113,9 @@
     "loading_more": "Loading more...",
     "no_tags_title": "No Tags",
     "no_tags_subtitle": "Tags will appear as you organize your bookmarks",
-    "create_tag": "Create tag"
+    "create_tag": "Create tag",
+    "bookmarks_few": "bookmarks",
+    "bookmarks_many": "bookmarks"
   },
   "search": {
     "recent_searches": "Recent Searches",
@@ -432,7 +434,9 @@
     "source_unknown": "Unknown",
     "item_one": "item",
     "item_other": "items",
-    "tags_empty": "Tags will appear as you organize your bookmarks."
+    "tags_empty": "Tags will appear as you organize your bookmarks.",
+    "item_few": "items",
+    "item_many": "items"
   },
   "sharing": {
     "still_saving": "Still saving...",
@@ -473,7 +477,11 @@
     "category_places": "Travel & places",
     "category_objects": "Objects",
     "category_symbols": "Symbols",
-    "category_flags": "Flags"
+    "category_flags": "Flags",
+    "results_one": "{{count}} result",
+    "results_few": "{{count}} results",
+    "results_many": "{{count}} results",
+    "results_other": "{{count}} results"
   },
   "headers_modal": {
     "title": "Custom Headers",

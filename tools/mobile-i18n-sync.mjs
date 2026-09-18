@@ -8,19 +8,29 @@
  * bundle JSON from outside the mobile project root, so this script copies the
  * web locale files into `apps/mobile/lib/i18n/web-translations/`.
  *
- * Usage:
- *   node tools/mobile-i18n-sync.mjs            # copy en+pl (and any new langs)
- *   node tools/mobile-i18n-sync.mjs --check    # CI: fail if copies are stale
- *                                              # or if mobile en/pl keys differ
- *   node tools/mobile-i18n-sync.mjs --lang fr  # copy a single language
+ * The set of languages is derived from the committed mobile locale files
+ * (`apps/mobile/lib/i18n/locales/*.json`), so a newly added language is
+ * automatically synced and key-checked without editing this script.
  *
- * Adding a new language to mobile afterwards only requires:
+ * Usage:
+ *   node tools/mobile-i18n-sync.mjs            # sync every shipped language
+ *   node tools/mobile-i18n-sync.mjs --check    # CI: fail on stale copies or
+ *                                              # en/<lang> key drift
+ *   node tools/mobile-i18n-sync.mjs --lang fr  # sync a single language
+ *
+ * Adding a new language to mobile only requires:
  *   1. web locale exists at apps/web/lib/i18n/locales/<lang>/translation.json
- *   2. run this script (copies the `translation` namespace)
- *   3. add apps/mobile/lib/i18n/locales/<lang>.json (the `mobile` namespace)
+ *   2. add apps/mobile/lib/i18n/locales/<lang>.json (the `mobile` namespace)
+ *   3. run this script (copies the shared `translation` namespace)
  *   4. register <lang> in SUPPORTED_LANGUAGES (apps/mobile/lib/i18n/index.ts)
  */
-import { copyFileSync, existsSync, mkdirSync, readFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,7 +48,30 @@ if (langFlagIndex >= 0 && !onlyLang) {
   process.exit(2);
 }
 
-const langs = onlyLang ? [onlyLang] : ["en", "pl"];
+const mobileLocalesDir = join(root, "apps/mobile/lib/i18n/locales");
+
+/**
+ * Languages the mobile app ships, derived from the committed mobile locale
+ * files. Deriving instead of hardcoding keeps `--check` (and CI) covering
+ * every newly registered language automatically.
+ */
+function discoverMobileLanguages() {
+  if (!existsSync(mobileLocalesDir)) {
+    return [];
+  }
+  return readdirSync(mobileLocalesDir)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) => file.slice(0, -".json".length))
+    .sort();
+}
+
+const mobileLanguages = discoverMobileLanguages();
+const langs = onlyLang ? [onlyLang] : mobileLanguages;
+
+if (langs.length === 0) {
+  console.error(`error: no mobile locales found in ${mobileLocalesDir}`);
+  process.exit(2);
+}
 
 mkdirSync(mobileTargetDir, { recursive: true });
 
@@ -100,19 +133,16 @@ function flatKeys(obj, prefix = "") {
 
 // The mobile-only `mobile` namespace must have identical keys in every
 // shipped language, otherwise the UI falls back to English silently.
-const mobileLocalesDir = join(root, "apps/mobile/lib/i18n/locales");
-const mobileEn = JSON.parse(
-  readFileSync(join(mobileLocalesDir, "en.json"), "utf8"),
+const referenceLang = "en";
+const mobileReference = JSON.parse(
+  readFileSync(join(mobileLocalesDir, `${referenceLang}.json`), "utf8"),
 );
-const mobileEnKeys = new Set(flatKeys(mobileEn));
-for (const lang of langs.filter((l) => l !== "en")) {
+const mobileEnKeys = new Set(flatKeys(mobileReference));
+for (const lang of mobileLanguages.filter((l) => l !== referenceLang)) {
   const path = join(mobileLocalesDir, `${lang}.json`);
   if (!existsSync(path)) {
-    // Not an error for --lang runs of not-yet-added languages.
-    if (!onlyLang) {
-      console.error(`error: missing mobile locale: ${path}`);
-      failed = true;
-    }
+    console.error(`error: missing mobile locale: ${path}`);
+    failed = true;
     continue;
   }
   const keys = new Set(flatKeys(JSON.parse(readFileSync(path, "utf8"))));

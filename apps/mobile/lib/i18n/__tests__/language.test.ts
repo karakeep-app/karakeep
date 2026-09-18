@@ -15,6 +15,8 @@ import enMobile from "../locales/en.json";
 import plMobile from "../locales/pl.json";
 import {
   FALLBACK_LANGUAGE,
+  getDateFnsLocale,
+  getIntlLocale,
   getSystemLanguage,
   matchSupportedLanguage,
   resolveAppLanguage,
@@ -33,6 +35,15 @@ function flatKeys(obj: unknown, prefix = ""): string[] {
     }
   }
   return keys;
+}
+
+function getByPath(obj: unknown, path: string): unknown {
+  return path.split(".").reduce<unknown>((acc, part) => {
+    if (acc !== null && typeof acc === "object") {
+      return (acc as Record<string, unknown>)[part];
+    }
+    return undefined;
+  }, obj);
 }
 
 describe("matchSupportedLanguage", () => {
@@ -190,5 +201,107 @@ describe("Polish pluralization", () => {
     [122, "few"],
   ])("pl: %i → %s", (n, expected) => {
     expect(new Intl.PluralRules("pl").select(n)).toBe(expected);
+  });
+});
+
+describe("UI plural forms", () => {
+  // i18next picks `key_<category>` from Intl.PluralRules for the language.
+  it.each([
+    ["pl", 1, "zakładka"],
+    ["pl", 2, "zakładki"],
+    ["pl", 4, "zakładki"],
+    ["pl", 5, "zakładek"],
+    ["pl", 22, "zakładki"],
+    ["pl", 25, "zakładek"],
+    ["en", 1, "bookmark"],
+    ["en", 2, "bookmarks"],
+    ["en", 5, "bookmarks"],
+  ])("tags_tab.bookmarks in %s for %i → %s", async (lang, count, expected) => {
+    await i18n.changeLanguage(lang);
+    const t = i18n.getFixedT(lang, "mobile");
+    expect(t("tags_tab.bookmarks", { count })).toBe(expected);
+  });
+
+  it("uses one/few/many for Polish storage item counts", () => {
+    const t = i18n.getFixedT("pl", "mobile");
+    expect(t("stats.item", { count: 1 })).toBe("element");
+    expect(t("stats.item", { count: 3 })).toBe("elementy");
+    expect(t("stats.item", { count: 8 })).toBe("elementów");
+  });
+
+  it("uses one/few/many for emoji result counts", () => {
+    const tPl = i18n.getFixedT("pl", "mobile");
+    expect(tPl("emoji.results", { count: 1 })).toBe("1 wynik");
+    expect(tPl("emoji.results", { count: 3 })).toBe("3 wyniki");
+    expect(tPl("emoji.results", { count: 12 })).toBe("12 wyników");
+
+    const tEn = i18n.getFixedT("en", "mobile");
+    expect(tEn("emoji.results", { count: 1 })).toBe("1 result");
+    expect(tEn("emoji.results", { count: 4 })).toBe("4 results");
+  });
+
+  it("defines a translation for every plural category a language can produce", () => {
+    const locales: Record<string, unknown> = { en: enMobile, pl: plMobile };
+    const bases = ["tags_tab.bookmarks", "stats.item", "emoji.results"];
+
+    for (const [lang, locale] of Object.entries(locales)) {
+      // Sample integers and decimals so irregular categories (pl "few"
+      // for 22, "other" for fractions) are all required to exist.
+      const samples = [...Array.from({ length: 201 }, (_, i) => i), 1.5, 2.5];
+      const rules = new Intl.PluralRules(lang);
+      const categories = [...new Set(samples.map((n) => rules.select(n)))];
+
+      for (const base of bases) {
+        for (const category of categories) {
+          const value = getByPath(locale, `${base}_${category}`);
+          expect(
+            typeof value === "string" && value.length > 0,
+            `${lang} is missing ${base}_${category}`,
+          ).toBe(true);
+        }
+      }
+    }
+  });
+});
+
+describe("locale-aware date and number helpers", () => {
+  it("follows the active app language", async () => {
+    await i18n.changeLanguage("pl");
+    expect(getIntlLocale()).toBe("pl");
+    await i18n.changeLanguage("en");
+    expect(getIntlLocale()).toBe("en");
+  });
+
+  it("formats dates in the app language, not the device locale", async () => {
+    const format = () =>
+      new Intl.DateTimeFormat(getIntlLocale(), {
+        day: "numeric",
+        month: "long",
+      }).format(new Date(2024, 0, 15));
+
+    // Polish uses the genitive month form with a day ("15 stycznia");
+    // English the other way round ("January 15").
+    await i18n.changeLanguage("pl");
+    expect(format()).toBe("15 stycznia");
+
+    await i18n.changeLanguage("en");
+    expect(format()).toBe("January 15");
+  });
+
+  it("exposes a date-fns locale matching the app language", async () => {
+    await i18n.changeLanguage("pl");
+    expect(getDateFnsLocale().code).toBe("pl");
+    await i18n.changeLanguage("en");
+    expect(getDateFnsLocale().code).toBe("en-US");
+  });
+
+  it("formats relative dates in Polish for pl", async () => {
+    await i18n.changeLanguage("pl");
+    const { formatDistanceToNow } = await import("date-fns");
+    const text = formatDistanceToNow(new Date(Date.now() - 3 * 3600 * 1000), {
+      addSuffix: true,
+      locale: getDateFnsLocale(),
+    });
+    expect(text).toMatch(/temu/);
   });
 });
