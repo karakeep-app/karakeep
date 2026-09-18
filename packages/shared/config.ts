@@ -31,6 +31,42 @@ const oauthIdTokenSignedResponseAlg = z.enum([
   "EdDSA",
 ]);
 
+/**
+ * The headers are pasted from a browser's devtools, so a Cookie among them is
+ * the norm — which is why a malformed value is reported as a zod issue with a
+ * fixed message. Throwing (or letting JSON.parse throw) would put the value
+ * itself, session cookie and all, into the crash log.
+ */
+export const instagramHeadersSchema = z
+  .string()
+  .optional()
+  .transform((s, ctx) => {
+    const invalid = () => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "CRAWLER_INSTAGRAM_HEADERS_JSON must be a JSON object of string values",
+      });
+      return z.NEVER;
+    };
+    if (!s) return {};
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(s);
+    } catch {
+      return invalid();
+    }
+    if (
+      !parsed ||
+      typeof parsed !== "object" ||
+      Array.isArray(parsed) ||
+      Object.values(parsed).some((v) => typeof v !== "string")
+    ) {
+      return invalid();
+    }
+    return parsed as Record<string, string>;
+  });
+
 const allEnv = z.object({
   PORT: z.coerce.number().default(3000),
   WORKERS_HOST: z.string().default("127.0.0.1"),
@@ -90,6 +126,7 @@ const allEnv = z.object({
   INFERENCE_FETCH_TIMEOUT_SEC: z.coerce.number().default(300),
   INFERENCE_TEXT_MODEL: z.string().default("gpt-5.6-luna"),
   INFERENCE_IMAGE_MODEL: z.string().default("gpt-4o-mini"),
+  INFERENCE_AUDIO_MODEL: z.string().default("whisper-1"),
   EMBEDDING_ENABLE_AUTO_INDEXING: optionalStringBool(),
   EMBEDDING_OPENAI_API_KEY: z.string().optional(),
   EMBEDDING_OPENAI_BASE_URL: z.string().url().optional(),
@@ -141,6 +178,16 @@ const allEnv = z.object({
   CRAWLER_FULL_PAGE_ARCHIVE: stringBool("false"),
   CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB: z.coerce.number().default(0),
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
+  CRAWLER_INSTAGRAM_ENABLED: stringBool("false"),
+  CRAWLER_INSTAGRAM_TRANSCRIBE: stringBool("false"),
+  CRAWLER_INSTAGRAM_TRANSCRIBE_MAX_DURATION_SEC: z.coerce
+    .number()
+    .positive()
+    .default(15 * 60),
+  CRAWLER_INSTAGRAM_DESCRIBE_IMAGES: stringBool("false"),
+  CRAWLER_INSTAGRAM_MAX_IMAGES: z.coerce.number().int().positive().default(10),
+  CRAWLER_INSTAGRAM_OCR_DETAIL: z.enum(["low", "high", "auto"]).default("low"),
+  CRAWLER_INSTAGRAM_HEADERS_JSON: instagramHeadersSchema,
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
@@ -349,6 +396,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       chatModel: val.CHAT_MODEL ?? val.INFERENCE_TEXT_MODEL,
       textModel: val.INFERENCE_TEXT_MODEL,
       imageModel: val.INFERENCE_IMAGE_MODEL,
+      audioModel: val.INFERENCE_AUDIO_MODEL,
       inferredTagLang: val.INFERENCE_LANG,
       contextLength: val.INFERENCE_CONTEXT_LENGTH,
       maxOutputTokens: val.INFERENCE_MAX_OUTPUT_TOKENS,
@@ -412,6 +460,14 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       fullPageArchive: val.CRAWLER_FULL_PAGE_ARCHIVE,
       fullPageArchiveMaxSizeMb: val.CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB,
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
+      instagramEnabled: val.CRAWLER_INSTAGRAM_ENABLED,
+      instagramTranscribe: val.CRAWLER_INSTAGRAM_TRANSCRIBE,
+      instagramTranscribeMaxDurationSec:
+        val.CRAWLER_INSTAGRAM_TRANSCRIBE_MAX_DURATION_SEC,
+      instagramDescribeImages: val.CRAWLER_INSTAGRAM_DESCRIBE_IMAGES,
+      instagramMaxImages: val.CRAWLER_INSTAGRAM_MAX_IMAGES,
+      instagramOcrDetail: val.CRAWLER_INSTAGRAM_OCR_DETAIL,
+      instagramHeaders: val.CRAWLER_INSTAGRAM_HEADERS_JSON,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
