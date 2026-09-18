@@ -33,6 +33,7 @@ import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 const TOOLBAR_ICON_GAP = 28;
+const TOOLBAR_HIT_SLOP = { top: 13, bottom: 13, left: 13, right: 13 };
 
 function triggerHaptic() {
   Haptics.selectionAsync().catch(() => {
@@ -428,6 +429,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
                 disabled={a.disabled}
                 key={a.id}
                 onPress={a.onClick}
+                hitSlop={TOOLBAR_HIT_SLOP}
                 className="py-auto"
               >
                 {a.icon}
@@ -442,7 +444,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
           actions={menuActionsWithEdit}
           shouldOpenOnLongPress={false}
         >
-          <Pressable onPress={() => triggerHaptic()}>
+          <Pressable hitSlop={TOOLBAR_HIT_SLOP} onPress={() => triggerHaptic()}>
             <TailwindResolver
               className="text-foreground"
               comp={(styles) => (
