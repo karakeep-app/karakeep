@@ -82,6 +82,7 @@ test<CustomTestContext>("sync preserves existing bookmarks and resumes pages wit
   );
   expect((await api.githubStars.get())?.nextPage).toBe(1);
   expect((await api.githubStars.get())?.lastSuccessfulSyncAt).not.toBeNull();
+  expect((await api.githubStars.get())?.enabled).toBe(true);
   expect((await api.bookmarks.getBookmarks({})).bookmarks).toHaveLength(1);
 });
 

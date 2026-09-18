@@ -8,7 +8,7 @@ Karakeep can import a GitHub user's publicly starred repositories into a manual 
 4. Choose **Import once** to process all pages and stop, or **Synchronize automatically** for daily checks.
 5. Optionally enable importing repository topics as tags, then save.
 
-The workers begin importing within about a minute. Each job imports up to 100 repositories. Larger collections continue page by page. After a complete import, Karakeep checks again in 24 hours. **Sync now** requests an earlier check, unless GitHub has asked the server to wait.
+The workers begin importing within about a minute. Each job imports up to 100 repositories. Larger collections continue page by page. After a complete scan, automatic synchronization checks again in 24 hours; a one-time import stops and can be restarted from the settings page. **Sync now** requests an earlier check, unless GitHub has asked the server to wait.
 
 Existing bookmarks are reused without changing their notes, favourite status or archived state. Topic import only adds tags. Removing a GitHub star, pausing or disconnecting does not remove any bookmarks or tags. Deleting the destination list also removes its synchronization configuration. Settings changes and disconnect are unavailable while a batch is running. Wait for that batch to finish, then retry. Changing settings restarts the scan; existing imported bookmarks remain. If you delete a bookmark or remove it from the destination list while the repository is still starred, the next scan imports it again.
 
