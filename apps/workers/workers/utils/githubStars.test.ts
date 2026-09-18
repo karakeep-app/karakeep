@@ -55,3 +55,31 @@ test("rate limiting uses a safe message and retry deadline", async () => {
     );
   }
 });
+
+test("connected import uses the authenticated endpoint and skips private repositories", async () => {
+  vi.mocked(fetchWithProxy).mockResolvedValueOnce(
+    new Response(
+      JSON.stringify([
+        { full_name: "owner/public", private: false },
+        { full_name: "owner/private", private: true },
+      ]),
+      {
+        headers: {
+          link: '<https://api.github.com/user/starred?page=2>; rel="next"',
+        },
+      },
+    ),
+  );
+  const page = await readStarredPage("ignored", 1, "test-access");
+  expect(page.repositories.map((repository) => repository.full_name)).toEqual([
+    "owner/public",
+  ]);
+  expect(page.hasNext).toBe(true);
+  expect(fetchWithProxy).toHaveBeenLastCalledWith(
+    "https://api.github.com/user/starred?sort=created&direction=desc&per_page=100&page=1",
+    expect.objectContaining({
+      maxRedirects: 0,
+      headers: expect.objectContaining({ Authorization: "Bearer test-access" }),
+    }),
+  );
+});

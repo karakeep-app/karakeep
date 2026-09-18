@@ -277,3 +277,12 @@ Karakeep supports distributed tracing and structured event logging via OpenTelem
 | OTEL_EVENT_LOGS_EXPORT_ENABLED     | No       | false    | Set to `true` to export event logs via OpenTelemetry OTLP. Requires `EVENT_LOGS_ENABLED=true` and `OTEL_EXPORTER_OTLP_LOGS_ENDPOINT` to be set.                                                                                                                                                                         |
 | OTEL_EXPORTER_OTLP_LOGS_ENDPOINT   | No       | Not set  | The OTLP HTTP endpoint to send event logs to (e.g., `http://otel-collector:4318/v1/logs`).                                                                                                                                                                                                                              |
 | PROMETHEUS_AUTH_TOKEN              | No       | Random   | Enable a prometheus metrics endpoint at `/api/metrics`. This endpoint will require this token being passed in the Authorization header as a Bearer token. If not set, a new random token is generated everytime at startup. This cannot contain any special characters or you may encounter a 400 Bad Request response. |
+
+### GitHub Stars account connection
+
+| Variable | Description |
+| --- | --- |
+| `GITHUB_STARS_CLIENT_ID` | Optional GitHub App client ID for connecting a GitHub account to Stars imports. Configure on web and workers. |
+| `GITHUB_STARS_CLIENT_SECRET` | Matching GitHub App client secret. Configure securely on web and workers. Both variables are required to show the connection option. |
+
+See [GitHub Stars](../05-integrations/08-github-stars.md) for permissions, callback setup and credential storage.

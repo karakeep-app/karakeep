@@ -1337,6 +1337,30 @@ export const userReadingProgressRelations = relations(
 );
 
 // One public GitHub Stars subscription per user.
+export const githubStarsConnections = sqliteTable("githubStarsConnections", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  userId: text("userId")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  login: text("login").notNull(),
+  credentials: text("credentials").notNull(),
+});
+
+export const githubStarsAuthorizations = sqliteTable(
+  "githubStarsAuthorizations",
+  {
+    userId: text("userId")
+      .primaryKey()
+      .references(() => users.id, { onDelete: "cascade" }),
+    stateHash: text("stateHash").notNull(),
+    verifier: text("verifier").notNull(),
+    expiresAt: integer("expiresAt", { mode: "timestamp" }).notNull(),
+  },
+);
+
 export const githubStarsSubscriptions = sqliteTable(
   "githubStarsSubscriptions",
   {
@@ -1347,6 +1371,10 @@ export const githubStarsSubscriptions = sqliteTable(
       .notNull()
       .unique()
       .references(() => users.id, { onDelete: "cascade" }),
+    connectionId: text("connectionId").references(
+      () => githubStarsConnections.id,
+      { onDelete: "cascade" },
+    ),
     username: text("username").notNull(),
     listId: text("listId")
       .notNull()

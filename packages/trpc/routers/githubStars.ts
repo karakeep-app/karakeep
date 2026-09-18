@@ -1,8 +1,18 @@
 import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { bookmarkLists, githubStarsSubscriptions } from "@karakeep/db/schema";
+import {
+  bookmarkLists,
+  githubStarsSubscriptions,
+  githubStarsConnections,
+  githubStarsAuthorizations,
+} from "@karakeep/db/schema";
 import { router, sessionProcedure } from "../index";
+
+import {
+  beginGithubConnection,
+  githubConnectionAvailable,
+} from "../models/githubStarsConnection";
 
 const config = z.object({
   username: z
@@ -12,6 +22,7 @@ const config = z.object({
     .max(39)
     .regex(/^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$/),
   listId: z.string(),
+  source: z.enum(["public", "connected"]).default("public"),
   enabled: z.boolean(),
   recurring: z.boolean().default(true),
   importTopics: z.boolean(),
@@ -28,6 +39,31 @@ function assertIdle(leaseUntil: Date | null | undefined) {
 }
 
 export const githubStarsRouter = router({
+  connection: sessionProcedure.query(({ ctx }) => ({
+    available: githubConnectionAvailable(),
+    account:
+      ctx.db
+        .select({ login: githubStarsConnections.login })
+        .from(githubStarsConnections)
+        .where(eq(githubStarsConnections.userId, ctx.user.id))
+        .get() ?? null,
+  })),
+  connect: sessionProcedure.mutation(({ ctx }) =>
+    beginGithubConnection(ctx.db, ctx.user.id),
+  ),
+  disconnectAccount: sessionProcedure.mutation(({ ctx }) => {
+    ctx.db.transaction(
+      (tx) => {
+        tx.delete(githubStarsAuthorizations)
+          .where(eq(githubStarsAuthorizations.userId, ctx.user.id))
+          .run();
+        tx.delete(githubStarsConnections)
+          .where(eq(githubStarsConnections.userId, ctx.user.id))
+          .run();
+      },
+      { behavior: "immediate" },
+    );
+  }),
   get: sessionProcedure.query(
     ({ ctx }) =>
       ctx.db
@@ -61,6 +97,19 @@ export const githubStarsRouter = router({
             code: "BAD_REQUEST",
             message: "Choose a manual list you own.",
           });
+        const connection =
+          input.source === "connected"
+            ? tx
+                .select()
+                .from(githubStarsConnections)
+                .where(eq(githubStarsConnections.userId, ctx.user.id))
+                .get()
+            : undefined;
+        if (input.source === "connected" && !connection)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Connect your GitHub account first.",
+          });
         // New identity invalidates any queued work using the previous configuration.
         tx.delete(githubStarsSubscriptions)
           .where(eq(githubStarsSubscriptions.userId, ctx.user.id))
@@ -69,6 +118,8 @@ export const githubStarsRouter = router({
           .insert(githubStarsSubscriptions)
           .values({
             ...input,
+            username: connection?.login ?? input.username,
+            connectionId: connection?.id ?? null,
             userId: ctx.user.id,
             ...(previous?.rateLimitUntil && previous.rateLimitUntil > new Date()
               ? {

@@ -7,16 +7,21 @@ const repositoriesSchema = z
     z.object({
       full_name: z.string().regex(/^[a-zA-Z0-9-]+\/[a-zA-Z0-9._-]+$/),
       topics: z.array(z.string().min(1).max(100)).max(100).default([]),
-      private: z.literal(false),
+      private: z.boolean(),
     }),
   )
   .max(100);
 
-export async function readStarredPage(username: string, page: number) {
+export async function readStarredPage(
+  username: string,
+  page: number,
+  accessToken?: string,
+) {
   const response = await fetchWithProxy(
-    `https://api.github.com/users/${encodeURIComponent(username)}/starred?sort=created&direction=desc&per_page=100&page=${page}`,
+    `https://api.github.com/${accessToken ? "user" : `users/${encodeURIComponent(username)}`}/starred?sort=created&direction=desc&per_page=100&page=${page}`,
     {
       headers: {
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         Accept: "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "Karakeep",
@@ -34,11 +39,13 @@ export async function readStarredPage(username: string, page: number) {
         Date.now(),
     );
     throw new GithubStarsError(
-      response.status === 404
-        ? "GitHub user not found. Check the username."
-        : response.status === 403 || response.status === 429
-          ? "GitHub rate limit reached. Synchronization will resume automatically."
-          : "GitHub is unavailable. Synchronization will retry automatically.",
+      response.status === 401 && accessToken
+        ? "GitHub authorization expired or was revoked. Connect your account again."
+        : response.status === 404
+          ? "GitHub user not found. Check the username."
+          : response.status === 403 || response.status === 429
+            ? "GitHub rate limit reached. Synchronization will resume automatically."
+            : "GitHub is unavailable. Synchronization will retry automatically.",
       new Date(
         Date.now() +
           (Number.isFinite(cooldown)
@@ -48,8 +55,11 @@ export async function readStarredPage(username: string, page: number) {
       response.status === 403 || response.status === 429,
     );
   }
+  const repositories = repositoriesSchema.parse(await response.json());
+  if (!accessToken && repositories.some((repository) => repository.private))
+    throw new Error("Unexpected private repository in public response");
   return {
-    repositories: repositoriesSchema.parse(await response.json()),
+    repositories: repositories.filter((repository) => !repository.private),
     hasNext: /rel="next"/.test(response.headers.get("link") ?? ""),
   };
 }

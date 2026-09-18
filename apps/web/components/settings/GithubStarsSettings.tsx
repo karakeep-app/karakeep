@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslation } from "@/lib/i18n/client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -17,11 +17,20 @@ export default function GithubStarsSettings() {
   const subscription = useQuery(
     api.githubStars.get.queryOptions(undefined, { refetchInterval: 10_000 }),
   );
+  const connection = useQuery(api.githubStars.connection.queryOptions());
+  const [source, setSource] = useState<"public" | "connected" | null>(null);
+  const [callbackFailed, setCallbackFailed] = useState(false);
+  useEffect(() => {
+    setCallbackFailed(
+      new URLSearchParams(window.location.search).get("github") === "failed",
+    );
+  }, []);
   const lists = useQuery(api.lists.list.queryOptions());
   const [error, setError] = useState<string | null>(null);
   const onSuccess = async () => {
     setError(null);
     await cache.invalidateQueries(api.githubStars.get.pathFilter());
+    await cache.invalidateQueries(api.githubStars.connection.pathFilter());
   };
   const onError = (error: { message: string }) => setError(error.message);
   const save = useMutation(
@@ -33,15 +42,38 @@ export default function GithubStarsSettings() {
   const disconnect = useMutation(
     api.githubStars.disconnect.mutationOptions({ onSuccess, onError }),
   );
-  if (subscription.isPending || lists.isPending) return <FullPageSpinner />;
-  if (subscription.error || lists.error)
+  const connect = useMutation(
+    api.githubStars.connect.mutationOptions({
+      onSuccess: (url) => window.location.assign(url),
+      onError,
+    }),
+  );
+  const unlink = useMutation(
+    api.githubStars.disconnectAccount.mutationOptions({
+      onSuccess: async () => {
+        setSource("public");
+        await onSuccess();
+      },
+      onError,
+    }),
+  );
+  if (subscription.isPending || lists.isPending || connection.isPending)
+    return <FullPageSpinner />;
+  if (subscription.error || lists.error || connection.error)
     return <p role="alert">{t("settings.github_stars.load_error")}</p>;
   const current = subscription.data;
+  const selectedSource =
+    source ?? (current?.connectionId ? "connected" : "public");
   const destinations =
     lists.data?.lists.filter(
       (list) => list.type === "manual" && list.userRole === "owner",
     ) ?? [];
-  const busy = save.isPending || sync.isPending || disconnect.isPending;
+  const busy =
+    save.isPending ||
+    sync.isPending ||
+    disconnect.isPending ||
+    connect.isPending ||
+    unlink.isPending;
   const running =
     current?.leaseUntil && new Date(current.leaseUntil) > new Date();
   return (
@@ -49,6 +81,43 @@ export default function GithubStarsSettings() {
       title={t("settings.github_stars.title")}
       description={t("settings.github_stars.description")}
     >
+      {(connection.data?.available || connection.data?.account) && (
+        <SettingsSection
+          title={t("settings.github_stars.github_account")}
+          description={t("settings.github_stars.connect_help")}
+        >
+          {connection.data?.account && (
+            <p>
+              {t("settings.github_stars.connected_as", {
+                login: connection.data.account.login,
+              })}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3">
+            {connection.data?.available && (
+              <Button disabled={busy} onClick={() => connect.mutate()}>
+                {t(
+                  connection.data.account
+                    ? "settings.github_stars.reconnect"
+                    : "settings.github_stars.connect",
+                )}
+              </Button>
+            )}
+            {connection.data?.account && (
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => unlink.mutate()}
+              >
+                {t("settings.github_stars.disconnect_account")}
+              </Button>
+            )}
+          </div>
+          {callbackFailed && (
+            <p role="alert">{t("settings.github_stars.connect_failed")}</p>
+          )}
+        </SettingsSection>
+      )}
       <SettingsSection
         title={t("settings.github_stars.account")}
         description={t("settings.github_stars.account_description")}
@@ -60,6 +129,7 @@ export default function GithubStarsSettings() {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
             save.mutate({
+              source: selectedSource,
               username: String(data.get("username")),
               listId: String(data.get("listId")),
               enabled: data.has("enabled"),
@@ -68,6 +138,30 @@ export default function GithubStarsSettings() {
             });
           }}
         >
+          {connection.data?.account && (
+            <div className="space-y-2">
+              <label htmlFor="github-source">
+                {t("settings.github_stars.source")}
+              </label>
+              <select
+                id="github-source"
+                value={selectedSource}
+                onChange={(event) =>
+                  setSource(
+                    event.target.value === "connected" ? "connected" : "public",
+                  )
+                }
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="public">
+                  {t("settings.github_stars.public_source")}
+                </option>
+                <option value="connected">
+                  {t("settings.github_stars.connected_source")}
+                </option>
+              </select>
+            </div>
+          )}
           <div className="space-y-2">
             <label htmlFor="github-username">
               {t("settings.github_stars.username")}
@@ -76,7 +170,13 @@ export default function GithubStarsSettings() {
               id="github-username"
               name="username"
               aria-describedby="github-username-help"
-              defaultValue={current?.username ?? ""}
+              key={selectedSource}
+              defaultValue={
+                selectedSource === "connected"
+                  ? connection.data?.account?.login
+                  : (current?.username ?? "")
+              }
+              readOnly={selectedSource === "connected"}
               required
               maxLength={39}
               placeholder="octocat"
@@ -86,7 +186,11 @@ export default function GithubStarsSettings() {
               id="github-username-help"
               className="text-sm text-muted-foreground"
             >
-              {t("settings.github_stars.username_help")}
+              {t(
+                selectedSource === "connected"
+                  ? "settings.github_stars.connected_help"
+                  : "settings.github_stars.username_help",
+              )}
             </p>
           </div>
           <div className="space-y-2">

@@ -23,7 +23,11 @@ export class GithubStarsError extends Error {
 export async function syncGithubStarsPage(
   db: DB,
   id: string,
-  readPage: (username: string, page: number) => Promise<StarredPage>,
+  readPage: (
+    username: string,
+    page: number,
+    connectionId?: string | null,
+  ) => Promise<StarredPage>,
   getClient: (
     userId: string,
     beforeBookmarkWrite: (tx: KarakeepDBTransaction) => void,
@@ -60,7 +64,11 @@ export async function syncGithubStarsPage(
       .where(ownedLease)
       .get();
   try {
-    const page = await readPage(subscription.username, subscription.nextPage);
+    const page = await readPage(
+      subscription.username,
+      subscription.nextPage,
+      subscription.connectionId,
+    );
     const api = await getClient(subscription.userId, (tx) => {
       if (
         Date.now() >= leaseUntil.getTime() ||

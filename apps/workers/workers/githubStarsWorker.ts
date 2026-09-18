@@ -7,7 +7,11 @@ import { githubStarsSubscriptions } from "@karakeep/db/schema";
 import { GithubStarsQueue } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 import { getQueueClient } from "@karakeep/shared/queueing";
-import { syncGithubStarsPage } from "@karakeep/trpc/models/githubStars.service";
+import { getGithubAccessToken } from "@karakeep/trpc/models/githubStarsConnection";
+import {
+  GithubStarsError,
+  syncGithubStarsPage,
+} from "@karakeep/trpc/models/githubStars.service";
 
 export const GithubStarsSchedulingWorker = cron.schedule(
   "* * * * *",
@@ -55,7 +59,20 @@ export class GithubStarsWorker {
           syncGithubStarsPage(
             db,
             job.data.subscriptionId,
-            readStarredPage,
+            async (username, page, connectionId) => {
+              let token: string | undefined;
+              if (connectionId) {
+                try {
+                  token = await getGithubAccessToken(db, connectionId);
+                } catch {
+                  throw new GithubStarsError(
+                    "GitHub authorization is unavailable. Connect your account again.",
+                    new Date(Date.now() + 24 * 60 * 60_000),
+                  );
+                }
+              }
+              return readStarredPage(username, page, token);
+            },
             buildImpersonatingTRPCClient,
           ),
         onError: async () => {
