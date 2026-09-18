@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
 import Animated, { LinearTransition } from "react-native-reanimated";
 import EmptyState from "@/components/ui/EmptyState";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useScrollToTop } from "expo-router";
 import { Bookmark } from "lucide-react-native";
 
@@ -25,6 +26,7 @@ export default function BookmarkList({
   isFetchingNextPage?: boolean;
 }) {
   const flatListRef = useRef(null);
+  const { t } = useTranslation();
   useScrollToTop(flatListRef);
 
   return (
@@ -42,8 +44,8 @@ export default function BookmarkList({
       ListEmptyComponent={
         <EmptyState
           icon={Bookmark}
-          title="No Bookmarks"
-          subtitle="Your saved bookmarks will appear here"
+          title={t("bookmarks.empty_title")}
+          subtitle={t("bookmarks.empty_subtitle")}
         />
       }
       data={bookmarks}

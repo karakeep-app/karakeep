@@ -2,8 +2,14 @@ import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { Text } from "@/components/ui/Text";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
+import { getDateFnsLocale } from "@/lib/i18n";
 import { ExternalLink, Trash2 } from "lucide-react-native";
 
 import type { ZHighlight } from "@karakeep/shared/types/highlights";
@@ -26,12 +32,15 @@ export default function HighlightCard({
   highlight: ZHighlight;
 }) {
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const router = useRouter();
   const api = useTRPC();
 
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -41,7 +50,7 @@ export default function HighlightCard({
     {
       onSuccess: () => {
         toast({
-          message: "Highlight has been deleted!",
+          message: t("highlights.deleted"),
           showProgress: false,
         });
       },
@@ -50,18 +59,14 @@ export default function HighlightCard({
   );
 
   const deleteHighlightAlert = () =>
-    Alert.alert(
-      "Delete highlight?",
-      "Are you sure you want to delete this highlight?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          onPress: () => deleteHighlight({ highlightId: highlight.id }),
-          style: "destructive",
-        },
-      ],
-    );
+    Alert.alert(t("highlights.delete_title"), t("highlights.delete_message"), [
+      { text: actions.cancel, style: "cancel" },
+      {
+        text: t("bookmark_actions.delete"),
+        onPress: () => deleteHighlight({ highlightId: highlight.id }),
+        style: "destructive",
+      },
+    ]);
 
   const { data: bookmark } = useQuery(
     api.bookmarks.getBookmark.queryOptions(
@@ -91,7 +96,7 @@ export default function HighlightCard({
           style={{ borderLeftColor: HIGHLIGHT_COLOR_MAP[highlight.color] }}
         >
           <Text className="italic text-foreground">
-            {highlight.text || "No text available"}
+            {highlight.text || t("highlights.no_text")}
           </Text>
         </View>
 
@@ -108,7 +113,10 @@ export default function HighlightCard({
         <View className="flex flex-row items-center justify-between">
           <View className="flex flex-row items-center gap-2">
             <Text className="text-xs text-muted-foreground">
-              {formatDistanceToNow(highlight.createdAt, { addSuffix: true })}
+              {formatDistanceToNow(highlight.createdAt, {
+                addSuffix: true,
+                locale: getDateFnsLocale(),
+              })}
             </Text>
             {bookmark && (
               <>
@@ -118,7 +126,9 @@ export default function HighlightCard({
                   className="flex flex-row items-center gap-1"
                 >
                   <ExternalLink size={12} color="gray" />
-                  <Text className="text-xs text-muted-foreground">Source</Text>
+                  <Text className="text-xs text-muted-foreground">
+                    {t("highlights.source")}
+                  </Text>
                 </Pressable>
               </>
             )}

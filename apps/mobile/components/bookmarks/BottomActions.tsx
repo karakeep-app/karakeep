@@ -8,6 +8,12 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
+import type { MobileTFunction } from "@/lib/i18n/hooks";
 import { shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
 import { shareBookmark } from "@/lib/shareBookmark";
@@ -49,52 +55,114 @@ interface ToolbarActionMeta {
 
 export const TOOLBAR_ACTION_REGISTRY: Record<
   ToolbarActionId,
-  ToolbarActionMeta
+  ToolbarActionMeta & { labelKey: string }
 > = {
   lists: {
     label: "Lists",
+    labelKey: "bookmark_actions.lists",
     render: () => "Lists",
     Icon: ClipboardList,
     sfSymbol: "list.bullet",
   },
-  tags: { label: "Tags", render: () => "Tags", Icon: Tag, sfSymbol: "tag" },
+  tags: {
+    label: "Tags",
+    labelKey: "bookmark_actions.tags",
+    render: () => "Tags",
+    Icon: Tag,
+    sfSymbol: "tag",
+  },
   info: {
     label: "Info",
+    labelKey: "bookmark_actions.info",
     render: () => "Info",
     Icon: Info,
     sfSymbol: "info.circle",
   },
   favourite: {
     label: "Favourite",
+    labelKey: "bookmark_actions.favourite",
     render: (b) => (b.favourited ? "Unfavourite" : "Favourite"),
     Icon: Star,
     sfSymbol: "star",
   },
   archive: {
     label: "Archive",
+    labelKey: "bookmark_actions.archive",
     render: (b) => (b.archived ? "Un-archive" : "Archive"),
     Icon: Archive,
     sfSymbol: "archivebox",
   },
   browser: {
     label: "Open in Browser",
+    labelKey: "bookmark_actions.open_in_browser",
     render: () => "Open in Browser",
     Icon: Globe,
     sfSymbol: "safari",
   },
   share: {
     label: "Share",
+    labelKey: "bookmark_actions.share",
     render: () => "Share",
     Icon: ShareIcon,
     sfSymbol: "square.and.arrow.up",
   },
   delete: {
     label: "Delete",
+    labelKey: "bookmark_actions.delete",
     render: () => "Delete",
     Icon: Trash2,
     sfSymbol: "trash",
   },
 };
+
+/**
+ * Translated labels for the reader toolbar actions. The static
+ * `TOOLBAR_ACTION_REGISTRY` keeps English fallbacks (used before i18n init
+ * and by the toolbar-settings screen when rendered outside a rerender);
+ * prefer this hook for anything user-visible.
+ */
+export function useToolbarActionLabels(): Record<ToolbarActionId, string> {
+  const { t } = useTranslation();
+  return {
+    lists: t("bookmark_actions.lists"),
+    tags: t("bookmark_actions.tags"),
+    info: t("bookmark_actions.info"),
+    favourite: t("bookmark_actions.favourite"),
+    archive: t("bookmark_actions.archive"),
+    browser: t("bookmark_actions.open_in_browser"),
+    share: t("bookmark_actions.share"),
+    delete: t("bookmark_actions.delete"),
+  };
+}
+
+export function translateToolbarRender(
+  t: MobileTFunction,
+  id: ToolbarActionId,
+  bookmark: ZBookmark,
+): string {
+  switch (id) {
+    case "favourite":
+      return bookmark.favourited
+        ? t("bookmark_actions.unfavourite")
+        : t("bookmark_actions.favourite");
+    case "archive":
+      return bookmark.archived
+        ? t("bookmark_actions.unarchive")
+        : t("bookmark_actions.archive");
+    case "lists":
+      return t("bookmark_actions.lists");
+    case "tags":
+      return t("bookmark_actions.tags");
+    case "info":
+      return t("bookmark_actions.info");
+    case "browser":
+      return t("bookmark_actions.open_in_browser");
+    case "share":
+      return t("bookmark_actions.share");
+    case "delete":
+      return t("bookmark_actions.delete");
+  }
+}
 
 interface ToolbarAction {
   id: ToolbarActionId;
@@ -106,6 +174,9 @@ interface ToolbarAction {
 
 function useToolbarActions(bookmark: ZBookmark) {
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const router = useRouter();
   const { settings } = useAppSettings();
   const { data: currentUser } = useWhoAmI();
@@ -117,13 +188,13 @@ function useToolbarActions(bookmark: ZBookmark) {
       onSuccess: () => {
         router.back();
         toast({
-          message: "The bookmark has been deleted!",
+          message: t("bookmark_actions.deleted"),
           showProgress: false,
         });
       },
       onError: () => {
         toast({
-          message: "Something went wrong",
+          message: strings.somethingWentWrong,
           variant: "destructive",
           showProgress: false,
         });
@@ -134,7 +205,7 @@ function useToolbarActions(bookmark: ZBookmark) {
     useUpdateBookmark({
       onError: () => {
         toast({
-          message: "Something went wrong",
+          message: strings.somethingWentWrong,
           variant: "destructive",
           showProgress: false,
         });
@@ -146,13 +217,15 @@ function useToolbarActions(bookmark: ZBookmark) {
       onSuccess: (resp) => {
         router.back();
         toast({
-          message: `The bookmark has been ${resp.archived ? "archived" : "un-archived"}!`,
+          message: resp.archived
+            ? t("bookmark_actions.archived_message")
+            : t("bookmark_actions.unarchived_message"),
           showProgress: false,
         });
       },
       onError: () => {
         toast({
-          message: "Something went wrong",
+          message: strings.somethingWentWrong,
           variant: "destructive",
           showProgress: false,
         });
@@ -161,12 +234,12 @@ function useToolbarActions(bookmark: ZBookmark) {
 
   const deleteBookmarkAlert = () =>
     Alert.alert(
-      "Delete bookmark?",
-      "Are you sure you want to delete this bookmark?",
+      t("bookmark_actions.delete_title"),
+      t("bookmark_actions.delete_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
           style: "destructive",
         },
@@ -251,7 +324,7 @@ function useToolbarActions(bookmark: ZBookmark) {
         if (bookmark.content.type !== BookmarkTypes.LINK) return;
         Linking.openURL(bookmark.content.url).catch(() => {
           toast({
-            message: "Failed to open link",
+            message: t("bookmarks.failed_open_link"),
             variant: "destructive",
             showProgress: false,
           });
@@ -357,6 +430,7 @@ interface BottomActionsProps {
 export default function BottomActions({ bookmark }: BottomActionsProps) {
   const { barActions, overflowActions, allActions } =
     useToolbarActions(bookmark);
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
@@ -370,7 +444,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
       const meta = TOOLBAR_ACTION_REGISTRY[a.id];
       return {
         id: a.id,
-        title: meta.render(bookmark),
+        title: translateToolbarRender(t, a.id, bookmark),
         image: Platform.select({ ios: meta.sfSymbol, default: undefined }),
         imageColor:
           a.id === "delete" ? destructiveMenuIconColor : menuIconColor,
@@ -388,7 +462,8 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
           {
             id: "overflow-group",
             // DisplayInline doesn't seem to be working on android
-            title: Platform.OS === "ios" ? "" : "More Actions",
+            title:
+              Platform.OS === "ios" ? "" : t("bookmark_actions.more_actions"),
             displayInline: true as const,
             subactions: menuActions,
           },
@@ -396,7 +471,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
       : []),
     {
       id: "edit-toolbar",
-      title: "Edit Toolbar...",
+      title: t("bookmark_actions.edit_toolbar"),
       image: Platform.select({
         ios: "slider.horizontal.3",
         default: undefined,

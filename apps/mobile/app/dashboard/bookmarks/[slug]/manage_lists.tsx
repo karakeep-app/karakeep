@@ -6,6 +6,7 @@ import {
 } from "@/components/lists/list-picker";
 import QueryPageState from "@/components/QueryPageState";
 import { useToast } from "@/components/ui/Toast";
+import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react-native";
@@ -35,6 +36,8 @@ const ListPickerPage = () => {
   const api = useTRPC();
   const { slug: bookmarkId } = useLocalSearchParams();
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
+  const strings = useCommonStrings();
 
   if (typeof bookmarkId !== "string") {
     throw new Error("Unexpected param type");
@@ -43,7 +46,7 @@ const ListPickerPage = () => {
   const { toast } = useToast();
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -72,7 +75,7 @@ const ListPickerPage = () => {
   } = useAddBookmarkToList({
     onSuccess: () => {
       toast({
-        message: "Added to list!",
+        message: t("manage_lists.added"),
         showProgress: false,
       });
     },
@@ -86,7 +89,7 @@ const ListPickerPage = () => {
   } = useRemoveBookmarkFromList({
     onSuccess: () => {
       toast({
-        message: "Removed from list!",
+        message: t("manage_lists.removed"),
         showProgress: false,
       });
     },
@@ -146,11 +149,11 @@ const ListPickerPage = () => {
         options={{
           headerShown: true,
           headerTransparent: false,
-          headerTitle: "Manage Lists",
+          headerTitle: t("headers.manage_lists"),
           headerRight: () => (
             <Link href="/dashboard/lists/new" asChild>
               <Pressable
-                accessibilityLabel="Create list"
+                accessibilityLabel={t("manage_lists.create_list")}
                 accessibilityRole="button"
                 hitSlop={8}
                 className="px-2"
@@ -172,7 +175,7 @@ const ListPickerPage = () => {
         <ListPicker
           options={options}
           onSelect={toggleList}
-          emptyMessage="No lists available"
+          emptyMessage={t("manage_lists.no_lists")}
         />
       </ScrollView>
     </>

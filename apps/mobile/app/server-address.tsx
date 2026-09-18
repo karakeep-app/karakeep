@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import useAppSettings from "@/lib/settings";
 import { Plus, Trash2 } from "lucide-react-native";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "nativewind";
 
 export default function ServerAddress() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#d1d5db" : "#374151";
   const { settings, setSettings } = useAppSettings();
@@ -57,12 +59,12 @@ export default function ServerAddress() {
   const handleSave = () => {
     // Validate the address
     if (!address.trim()) {
-      setError("Server address is required");
+      setError(t("auth.server_address_required"));
       return;
     }
 
     if (!address.startsWith("http://") && !address.startsWith("https://")) {
-      setError("Server address must start with http:// or https://");
+      setError(t("auth.server_address_protocol"));
       return;
     }
 
@@ -113,11 +115,11 @@ export default function ServerAddress() {
       {/* Server Address Section */}
       <View className="w-full">
         <Text className="mb-2 px-1 text-sm font-medium text-muted-foreground">
-          Server URL
+          {t("server_address.server_url")}
         </Text>
         <View className="w-full gap-3 rounded-lg bg-card px-4 py-4">
           <Text className="text-sm text-muted-foreground">
-            Enter the URL of your Karakeep server
+            {t("server_address.server_url_hint")}
           </Text>
           <Input
             placeholder="https://cloud.karakeep.app"
@@ -132,7 +134,7 @@ export default function ServerAddress() {
             inputClasses="bg-background"
           />
           <Text className="text-xs text-muted-foreground">
-            Must start with http:// or https://
+            {t("server_address.server_url_protocol_hint")}
           </Text>
         </View>
       </View>
@@ -140,21 +142,21 @@ export default function ServerAddress() {
       {/* Custom Headers Section */}
       <View className="w-full items-center">
         <Text className="mb-2 px-1 text-center text-sm font-medium text-muted-foreground">
-          Custom Headers
+          {t("server_address.custom_headers")}
           {headers.length > 0 && (
             <Text className="text-muted-foreground"> ({headers.length})</Text>
           )}
         </Text>
         <View className="w-full gap-3 rounded-lg bg-card px-4 py-4">
           <Text className="text-center text-sm text-muted-foreground">
-            Add custom HTTP headers for API requests
+            {t("server_address.custom_headers_hint")}
           </Text>
 
           {/* Existing Headers List */}
           {headers.length === 0 ? (
             <View className="py-4">
               <Text className="text-center text-sm text-muted-foreground">
-                No custom headers configured
+                {t("server_address.no_custom_headers")}
               </Text>
             </View>
           ) : (
@@ -187,16 +189,18 @@ export default function ServerAddress() {
 
           {/* Add New Header Form */}
           <View className="gap-2 border-t border-border pt-4">
-            <Text className="text-sm font-medium">Add New Header</Text>
+            <Text className="text-sm font-medium">
+              {t("server_address.add_new_header")}
+            </Text>
             <Input
-              placeholder="Header Name (e.g., X-Custom-Header)"
+              placeholder={t("server_address.header_name_placeholder")}
               value={newHeaderKey}
               onChangeText={setNewHeaderKey}
               autoCapitalize="none"
               inputClasses="bg-background"
             />
             <Input
-              placeholder="Header Value"
+              placeholder={t("server_address.header_value_placeholder")}
               value={newHeaderValue}
               onChangeText={setNewHeaderValue}
               autoCapitalize="none"
@@ -208,13 +212,15 @@ export default function ServerAddress() {
               disabled={!newHeaderKey.trim() || !newHeaderValue.trim()}
             >
               <Plus size={16} color={iconColor} />
-              <Text className="text-sm">Add Header</Text>
+              <Text className="text-sm">{t("server_address.add_header")}</Text>
             </Button>
           </View>
         </View>
       </View>
       <Pressable onPress={handleSave} className="w-full items-center">
-        <Text className="font-semibold text-primary">Save</Text>
+        <Text className="font-semibold text-primary">
+          {t("server_address.save")}
+        </Text>
       </Pressable>
     </KeyboardAwareScrollView>
   );

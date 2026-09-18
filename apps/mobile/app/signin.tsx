@@ -9,6 +9,7 @@ import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
@@ -21,22 +22,24 @@ enum LoginType {
 }
 
 const DEFAULT_SERVER_ADDRESS = "https://cloud.karakeep.app";
-const CONNECTION_ERROR_MESSAGE =
-  "Couldn’t connect to this Karakeep server. Check the server address and your internet connection, then try again.";
 
-function getLoginErrorMessage(
-  error: { data?: { code?: string } | null; message: string },
-  unauthorizedMessage: string,
-) {
-  if (error.data?.code === "UNAUTHORIZED") {
-    return unauthorizedMessage;
-  }
+function useLoginErrorMessage() {
+  const { t } = useTranslation();
+  const connectionError = t("auth.connection_error");
+  return (
+    error: { data?: { code?: string } | null; message: string },
+    unauthorizedMessage: string,
+  ) => {
+    if (error.data?.code === "UNAUTHORIZED") {
+      return unauthorizedMessage;
+    }
 
-  if (error.message.toLowerCase().includes("fetch failed")) {
-    return CONNECTION_ERROR_MESSAGE;
-  }
+    if (error.message.toLowerCase().includes("fetch failed")) {
+      return connectionError;
+    }
 
-  return error.message;
+    return error.message;
+  };
 }
 
 // The logo artboard is 598x166; derive the width so it never letterboxes.
@@ -66,10 +69,12 @@ FieldRow.displayName = "FieldRow";
 
 export default function Signin() {
   const { settings, setSettings } = useAppSettings();
+  const { t } = useTranslation();
   const router = useRouter();
   const api = useTRPC();
   const [error, setError] = useState<string | undefined>();
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
+  const getLoginErrorMessage = useLoginErrorMessage();
 
   const emailRef = useRef<string>("");
   const passwordRef = useRef<string>("");
@@ -83,7 +88,7 @@ export default function Signin() {
           setSettings({ ...settings, apiKey: resp.key, apiKeyId: resp.id });
         },
         onError: (e) => {
-          setError(getLoginErrorMessage(e, "Wrong username or password"));
+          setError(getLoginErrorMessage(e, t("auth.wrong_credentials")));
         },
       }),
     );
@@ -96,7 +101,7 @@ export default function Signin() {
           setSettings({ ...settings, apiKey: apiKey });
         },
         onError: (e) => {
-          setError(getLoginErrorMessage(e, "Invalid API key"));
+          setError(getLoginErrorMessage(e, t("auth.invalid_api_key")));
         },
       }),
     );
@@ -117,7 +122,7 @@ export default function Signin() {
 
   const onSignin = () => {
     if (!settings.address) {
-      setError("Server address is required");
+      setError(t("auth.server_address_required"));
       return;
     }
 
@@ -125,7 +130,7 @@ export default function Signin() {
       !settings.address.startsWith("http://") &&
       !settings.address.startsWith("https://")
     ) {
-      setError("Server address must start with http:// or https://");
+      setError(t("auth.server_address_protocol"));
       return;
     }
 
@@ -182,8 +187,8 @@ export default function Signin() {
               <>
                 <RowSeparator />
                 <FieldRow
-                  label="Email"
-                  placeholder="you@example.com"
+                  label={t("auth.email")}
+                  placeholder={t("auth.email_placeholder")}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -198,8 +203,8 @@ export default function Signin() {
                 <RowSeparator />
                 <FieldRow
                   ref={passwordInputRef}
-                  label="Password"
-                  placeholder="Enter your password"
+                  label={t("auth.password")}
+                  placeholder={t("auth.password_placeholder")}
                   secureTextEntry
                   autoCapitalize="none"
                   autoComplete="current-password"
@@ -214,8 +219,8 @@ export default function Signin() {
               <>
                 <RowSeparator />
                 <FieldRow
-                  label="API Key"
-                  placeholder="Paste your key"
+                  label={t("auth.api_key")}
+                  placeholder={t("auth.api_key_placeholder")}
                   secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -248,7 +253,7 @@ export default function Signin() {
             disabled={isPending}
           >
             {isPending && <ActivityIndicator size="small" color="white" />}
-            <Text>{isPending ? "Signing in…" : "Sign In"}</Text>
+            <Text>{isPending ? t("auth.signing_in") : t("auth.sign_in")}</Text>
           </Button>
         </View>
 
@@ -274,7 +279,7 @@ export default function Signin() {
               )}
             >
               <Text className="text-sm text-muted-foreground">
-                Test connection
+                {t("auth.test_connection")}
               </Text>
             </Pressable>
           </View>
@@ -293,8 +298,8 @@ export default function Signin() {
           >
             <Text className="text-sm text-muted-foreground">
               {loginType === LoginType.Password
-                ? "Use an API key instead"
-                : "Use your password instead"}
+                ? t("auth.use_api_key")
+                : t("auth.use_password")}
             </Text>
           </Pressable>
           <Pressable
@@ -304,9 +309,9 @@ export default function Signin() {
             className="active:opacity-60"
           >
             <Text className="text-sm text-muted-foreground">
-              New to Karakeep?{" "}
+              {t("auth.new_to_karakeep")}{" "}
               <Text className="text-sm font-medium text-primary">
-                Create account
+                {t("auth.create_account")}
               </Text>
             </Text>
           </Pressable>

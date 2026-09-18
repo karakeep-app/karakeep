@@ -25,6 +25,12 @@ import {
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { getIntlLocale } from "@/lib/i18n";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { shareBookmark } from "@/lib/shareBookmark";
 import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -63,12 +69,13 @@ function TitleEditor({
   isPending: boolean;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const { colors } = useColorScheme();
   return (
-    <GroupedSection header="Title">
+    <GroupedSection header={t("bookmarks.title_section")}>
       <TextInput
         editable={!isPending && !disabled}
-        placeholder="Untitled"
+        placeholder={t("bookmarks.title_placeholder")}
         placeholderTextColor={colors.grey}
         onChangeText={(text) => setTitle(text)}
         defaultValue={title ?? ""}
@@ -89,13 +96,14 @@ function NotesEditor({
   isPending: boolean;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const { colors } = useColorScheme();
   return (
-    <GroupedSection header="Notes">
+    <GroupedSection header={t("bookmarks.notes_section")}>
       <TextInput
         editable={!isPending && !disabled}
         multiline
-        placeholder="Add notes..."
+        placeholder={t("bookmarks.notes_placeholder")}
         placeholderTextColor={colors.grey}
         onChangeText={(text) => setNotes(text)}
         textAlignVertical="top"
@@ -113,6 +121,7 @@ function TagList({
   bookmark: ZBookmark;
   readOnly: boolean;
 }) {
+  const { t } = useTranslation();
   const hasTags = bookmark.tags.length > 0;
   const isTagging = isBookmarkStillTagging(bookmark);
 
@@ -121,7 +130,7 @@ function TagList({
   }
 
   return (
-    <GroupedSection header="Tags">
+    <GroupedSection header={t("bookmarks.tags_section")}>
       {isTagging ? (
         <View className="gap-3 p-4">
           <Skeleton className="h-4 w-full" />
@@ -141,7 +150,7 @@ function TagList({
       )}
       {!readOnly && (
         <NavigationRow
-          label="Manage Tags"
+          label={t("bookmarks.manage_tags")}
           onPress={() =>
             router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
           }
@@ -152,10 +161,11 @@ function TagList({
 }
 
 function ManageLists({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
   return (
-    <GroupedSection header="Lists">
+    <GroupedSection header={t("bookmarks.lists_section")}>
       <NavigationRow
-        label="Manage Lists"
+        label={t("bookmarks.manage_lists")}
         onPress={() =>
           router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`)
         }
@@ -171,6 +181,7 @@ function AISummarySection({
   bookmark: ZBookmark;
   readOnly: boolean;
 }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { colors } = useColorScheme();
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -178,7 +189,7 @@ function AISummarySection({
   const { mutate: summarize, isPending: isSummarizing } = useSummarizeBookmark({
     onError: () => {
       toast({
-        message: "Failed to generate summary",
+        message: t("bookmarks.failed_generate_summary"),
         showProgress: false,
       });
     },
@@ -187,11 +198,14 @@ function AISummarySection({
   const { mutate: resummarize, isPending: isResummarizing } =
     useSummarizeBookmark({
       onSuccess: () => {
-        toast({ message: "Summary regenerated!", showProgress: false });
+        toast({
+          message: t("bookmarks.summary_regenerated"),
+          showProgress: false,
+        });
       },
       onError: () => {
         toast({
-          message: "Failed to regenerate summary",
+          message: t("bookmarks.failed_regenerate_summary"),
           showProgress: false,
         });
       },
@@ -201,7 +215,7 @@ function AISummarySection({
     useUpdateBookmark({
       onError: () => {
         toast({
-          message: "Failed to delete summary",
+          message: t("bookmarks.failed_delete_summary"),
           showProgress: false,
         });
       },
@@ -213,7 +227,7 @@ function AISummarySection({
 
   if (bookmark.summary) {
     return (
-      <GroupedSection header="AI Summary">
+      <GroupedSection header={t("bookmarks.ai_summary")}>
         <Pressable
           onPress={() => setIsExpanded(!isExpanded)}
           className="px-4 py-3"
@@ -223,7 +237,7 @@ function AISummarySection({
           </View>
           {!isExpanded && (
             <Text variant="footnote" className="mt-1.5 text-primary">
-              Show more
+              {t("bookmarks.show_more")}
             </Text>
           )}
         </Pressable>
@@ -282,12 +296,14 @@ function AISummarySection({
         {isSummarizing ? (
           <>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text className="text-primary">Generating...</Text>
+            <Text className="text-primary">{t("bookmarks.generating")}</Text>
           </>
         ) : (
           <>
             <Sparkles size={16} color={colors.primary} />
-            <Text className="text-primary">Summarize with AI</Text>
+            <Text className="text-primary">
+              {t("bookmarks.summarize_with_ai")}
+            </Text>
           </>
         )}
       </Pressable>
@@ -296,13 +312,15 @@ function AISummarySection({
 }
 
 function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
+  const strings = useCommonStrings();
   const { toast } = useToast();
   const { settings } = useAppSettings();
   const { colors } = useColorScheme();
 
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -344,7 +362,7 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
             fill={isFavourited ? "#ebb434" : "transparent"}
           />
           <Text className="flex-1" numberOfLines={1}>
-            Favourite
+            {t("bookmarks.favourite")}
           </Text>
         </View>
         <Switch
@@ -374,7 +392,7 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
         <View className="flex-1 flex-row items-center gap-3">
           <Archive size={20} color={actionIconColor} />
           <Text className="flex-1" numberOfLines={1}>
-            Archived
+            {t("bookmarks.archived")}
           </Text>
         </View>
         {isArchivePending ? (
@@ -406,7 +424,7 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
             <View className="flex-1 flex-row items-center gap-3">
               <Highlighter size={20} color={actionIconColor} />
               <Text className="flex-1" numberOfLines={1}>
-                Highlights
+                {strings.highlights}
               </Text>
             </View>
             <ChevronRight size={16} />
@@ -422,7 +440,7 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
         className="flex-row items-center gap-3 px-4 py-3 active:opacity-70"
       >
         <Share2 size={20} color={actionIconColor} />
-        <Text numberOfLines={1}>Share Bookmark</Text>
+        <Text numberOfLines={1}>{t("bookmarks.share_bookmark")}</Text>
       </Pressable>
     </GroupedSection>
   );
@@ -431,6 +449,8 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
 // --- Main Page ---
 
 const ViewBookmarkPage = () => {
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const headerHeight = useHeaderHeight();
   const { slug } = useLocalSearchParams();
   const { toast } = useToast();
@@ -448,7 +468,7 @@ const ViewBookmarkPage = () => {
 
   const { mutate: editBookmark, isPending: isEditPending } = useUpdateBookmark({
     onSuccess: () => {
-      toast({ message: "Bookmark updated!", showProgress: false });
+      toast({ message: t("bookmarks.bookmark_updated"), showProgress: false });
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -456,7 +476,10 @@ const ViewBookmarkPage = () => {
       }
     },
     onError: () => {
-      toast({ message: "Failed to save changes", showProgress: false });
+      toast({
+        message: t("bookmarks.failed_save_changes"),
+        showProgress: false,
+      });
     },
   });
 
@@ -464,7 +487,10 @@ const ViewBookmarkPage = () => {
     useDeleteBookmark({
       onSuccess: () => {
         router.replace("dashboard");
-        toast({ message: "Bookmark deleted!", showProgress: false });
+        toast({
+          message: t("bookmarks.bookmark_deleted"),
+          showProgress: false,
+        });
       },
     });
 
@@ -501,12 +527,12 @@ const ViewBookmarkPage = () => {
   const handleDeleteBookmark = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
-      "Delete Bookmark",
-      "Are you sure you want to delete this bookmark?",
+      t("bookmarks.delete_bookmark"),
+      t("bookmark_actions.delete_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
           style: "destructive",
         },
@@ -533,7 +559,7 @@ const ViewBookmarkPage = () => {
         options={{
           headerShown: true,
           headerTransparent: false,
-          headerTitle: "Edit Bookmark",
+          headerTitle: t("headers.edit_bookmark"),
           headerRight: () => (
             <Pressable
               onPress={onDone}
@@ -548,7 +574,7 @@ const ViewBookmarkPage = () => {
                     hasChanges ? "font-semibold text-primary" : "text-primary"
                   }
                 >
-                  {hasChanges ? "Save" : "Done"}
+                  {hasChanges ? actions.save : t("bookmarks.done")}
                 </Text>
               )}
             </Pressable>
@@ -592,7 +618,9 @@ const ViewBookmarkPage = () => {
                 className="items-center px-4 py-3 active:opacity-70"
               >
                 <Text className="text-destructive" numberOfLines={1}>
-                  {isDeletionPending ? "Deleting..." : "Delete Bookmark"}
+                  {isDeletionPending
+                    ? t("bookmarks.deleting")
+                    : t("bookmarks.delete_bookmark")}
                 </Text>
               </Pressable>
             </GroupedSection>
@@ -600,12 +628,16 @@ const ViewBookmarkPage = () => {
         )}
         <View className="items-center gap-1 pt-2">
           <Text variant="caption1" color="tertiary" selectable>
-            Created {bookmark.createdAt.toLocaleString()}
+            {t("bookmarks.created", {
+              date: bookmark.createdAt.toLocaleString(getIntlLocale()),
+            })}
           </Text>
           {bookmark.modifiedAt &&
             bookmark.modifiedAt.getTime() !== bookmark.createdAt.getTime() && (
               <Text variant="caption1" color="tertiary" selectable>
-                Modified {bookmark.modifiedAt.toLocaleString()}
+                {t("bookmarks.modified", {
+                  date: bookmark.modifiedAt!.toLocaleString(getIntlLocale()),
+                })}
               </Text>
             )}
         </View>

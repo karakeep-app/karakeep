@@ -4,11 +4,13 @@ import type { SearchBarCommands } from "react-native-screens";
 import BookmarkSearchResults from "@/components/search/BookmarkSearchResults";
 import {
   SearchModeSelector,
-  SEARCH_MODE_PLACEHOLDERS,
+  SEARCH_MODE_PLACEHOLDER_KEYS,
 } from "@/components/search/SearchModeSelector";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useBookmarkSearchState } from "@/lib/useBookmarkSearchState";
 
 export default function SearchTab() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchBarRef = useRef<SearchBarCommands>(
@@ -39,7 +41,7 @@ export default function SearchTab() {
         options={{
           headerSearchBarOptions: {
             ref: searchBarRef,
-            placeholder: SEARCH_MODE_PLACEHOLDERS[state.searchMode],
+            placeholder: t(SEARCH_MODE_PLACEHOLDER_KEYS[state.searchMode]),
             onChangeText: (event) => setSearch(event.nativeEvent.text),
             onFocus: () => setIsSearchFocused(true),
             onBlur: () => {

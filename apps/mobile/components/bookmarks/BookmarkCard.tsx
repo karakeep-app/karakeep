@@ -17,6 +17,7 @@ import {
   getBookmarkTitle,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useToast } from "../ui/Toast";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkTextMarkdown from "./BookmarkTextMarkdown";
@@ -28,10 +29,8 @@ import TagList from "./card/TagList";
 import ActionBar from "./card/ActionBar";
 import { useBookmarkActions } from "./card/use-bookmark-actions";
 
-const UNTITLED_BOOKMARK_TITLE = "Untitled";
-
-function getDisplayTitle(bookmark: ZBookmark) {
-  return getBookmarkTitle(bookmark)?.trim() || UNTITLED_BOOKMARK_TITLE;
+function getDisplayTitle(bookmark: ZBookmark, untitled: string) {
+  return getBookmarkTitle(bookmark)?.trim() || untitled;
 }
 
 function BookmarkFooterMetadata({ ctx }: { ctx: BookmarkCardContext }) {
@@ -57,8 +56,10 @@ function BookmarkFooterMetadata({ ctx }: { ctx: BookmarkCardContext }) {
 
 function useLinkCardContext({
   bookmark,
+  untitled,
 }: {
   bookmark: ZBookmark;
+  untitled: string;
 }): Omit<BookmarkCardContext, "isOwner" | "bookmark" | "actions"> | undefined {
   const { settings } = useAppSettings();
 
@@ -135,7 +136,7 @@ function useLinkCardContext({
   return {
     media: contentComp,
     compactMedia,
-    title: getDisplayTitle(bookmark),
+    title: getDisplayTitle(bookmark, untitled),
     footerExtras: (
       <Text className="my-auto shrink" numberOfLines={1} selectable>
         {parsedUrl.host}
@@ -146,8 +147,10 @@ function useLinkCardContext({
 
 function useTextCardContext({
   bookmark,
+  untitled,
 }: {
   bookmark: ZBookmark;
+  untitled: string;
 }): Omit<BookmarkCardContext, "isOwner" | "bookmark" | "actions"> | undefined {
   if (bookmark.content.type !== BookmarkTypes.TEXT) {
     return undefined;
@@ -165,14 +168,16 @@ function useTextCardContext({
         {content}
       </Text>
     ),
-    title: getDisplayTitle(bookmark),
+    title: getDisplayTitle(bookmark, untitled),
   };
 }
 
 function useAssetCardContext({
   bookmark,
+  untitled,
 }: {
   bookmark: ZBookmark;
+  untitled: string;
 }): Omit<BookmarkCardContext, "isOwner" | "bookmark" | "actions"> | undefined {
   if (bookmark.content.type !== BookmarkTypes.ASSET) {
     return undefined;
@@ -195,7 +200,7 @@ function useAssetCardContext({
         className="h-28 w-24 overflow-hidden rounded-lg bg-muted"
       />
     ),
-    title: getDisplayTitle(bookmark),
+    title: getDisplayTitle(bookmark, untitled),
   };
 }
 
@@ -302,6 +307,7 @@ export default function BookmarkCard({
   const router = useRouter();
   const { settings } = useAppSettings();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const { data: currentUser } = useWhoAmI();
 
   const onOpenBookmark = (bookmark: ZBookmark) => {
@@ -311,7 +317,7 @@ export default function BookmarkCard({
     ) {
       void Linking.openURL(bookmark.content.url).catch(() => {
         toast({
-          message: "Failed to open link",
+          message: t("bookmarks.failed_open_link"),
           variant: "destructive",
           showProgress: false,
         });
@@ -324,9 +330,10 @@ export default function BookmarkCard({
     router.push(`/dashboard/bookmarks/${bookmark.id}`);
   };
 
-  const linkContext = useLinkCardContext({ bookmark });
-  const textContext = useTextCardContext({ bookmark });
-  const assetContext = useAssetCardContext({ bookmark });
+  const untitled = t("bookmarks.untitled");
+  const linkContext = useLinkCardContext({ bookmark, untitled });
+  const textContext = useTextCardContext({ bookmark, untitled });
+  const assetContext = useAssetCardContext({ bookmark, untitled });
   const ctx = linkContext ?? textContext ?? assetContext;
   const Layout = settings.bookmarkLayout === "list" ? ListLayout : CardLayout;
   const isOwner = currentUser?.id === bookmark.userId;

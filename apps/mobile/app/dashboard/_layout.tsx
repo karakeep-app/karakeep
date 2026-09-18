@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import { getFormSheetSurfaceOptions } from "@/lib/form-sheet-options";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { isIOS26 } from "@/lib/ios";
 import { useIsLoggedIn } from "@/lib/session";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -18,7 +19,10 @@ function onAppStateChange(status: AppStateStatus) {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useColorScheme();
+  const backTitle = t("app.back");
+  const settingsTitle = t("headers.settings");
   const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
   const settingsScreenOptions = {
     headerLargeTitle: false,
@@ -60,13 +64,13 @@ export default function Dashboard() {
     >
       <Stack.Screen
         name="(tabs)"
-        options={{ headerShown: false, title: "Home" }}
+        options={{ headerShown: false, title: t("headers.home") }}
       />
       <Stack.Screen
         name="favourites"
         options={{
-          headerTitle: "⭐️ Favourites",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.favourites"),
+          headerBackTitle: backTitle,
           headerRight: () => <BookmarkListHeader />,
         }}
       />
@@ -74,7 +78,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/index"
         options={{
           headerTitle: "",
-          headerBackTitle: "Back",
+          headerBackTitle: backTitle,
           // iOS 27 can leave the automatic back control empty after sign-in.
           headerBackButtonDisplayMode: "minimal",
           headerLargeTitle: false,
@@ -84,8 +88,8 @@ export default function Dashboard() {
         name="bookmarks/new"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "New Bookmark",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.new_bookmark"),
+          headerBackTitle: backTitle,
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -100,7 +104,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/manage_tags"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Manage Tags",
+          headerTitle: t("headers.manage_tags"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -115,7 +119,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/manage_lists"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Manage Lists",
+          headerTitle: t("headers.manage_lists"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -130,7 +134,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/info"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Edit Bookmark",
+          headerTitle: t("headers.edit_bookmark"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -144,7 +148,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/highlights"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Highlights",
+          headerTitle: t("headers.highlights"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -158,8 +162,8 @@ export default function Dashboard() {
         name="lists/new"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "New List",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.new_list"),
+          headerBackTitle: backTitle,
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -173,8 +177,8 @@ export default function Dashboard() {
         name="lists/[slug]/edit"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Edit List",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.edit_list"),
+          headerBackTitle: backTitle,
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -187,8 +191,8 @@ export default function Dashboard() {
       <Stack.Screen
         name="lists/select-parent"
         options={{
-          headerTitle: "Parent List",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.parent_list"),
+          headerBackTitle: backTitle,
           headerLargeTitle: false,
           headerTransparent: false,
         }}
@@ -197,8 +201,8 @@ export default function Dashboard() {
         name="tags/new"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "New Tag",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.new_tag"),
+          headerBackTitle: backTitle,
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -212,8 +216,8 @@ export default function Dashboard() {
         name="tags/[slug]/edit"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Edit Tag",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.edit_tag"),
+          headerBackTitle: backTitle,
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -226,8 +230,8 @@ export default function Dashboard() {
       <Stack.Screen
         name="archive"
         options={{
-          headerTitle: "🗄️ Archive",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.archive"),
+          headerBackTitle: backTitle,
           headerRight: () => <BookmarkListHeader />,
         }}
       />
@@ -236,85 +240,94 @@ export default function Dashboard() {
         options={{
           ...formSheetSurfaceOptions,
           ...settingsScreenOptions,
-          headerTitle: "Settings",
+          headerTitle: settingsTitle,
           headerTransparent: false,
           presentation: Platform.select({
             ios: "formSheet" as const,
             default: "modal" as const,
           }),
-          title: "Settings",
+          title: settingsTitle,
         }}
       />
       <Stack.Screen
         name="settings/reading"
         options={{
           ...settingsScreenOptions,
-          headerBackTitle: "Settings",
-          headerTitle: "Reader View",
-          title: "Reader View",
+          headerBackTitle: settingsTitle,
+          headerTitle: t("headers.reader_view"),
+          title: t("headers.reader_view"),
+        }}
+      />
+      <Stack.Screen
+        name="settings/language"
+        options={{
+          ...settingsScreenOptions,
+          headerBackTitle: settingsTitle,
+          headerTitle: t("settings.language"),
+          title: t("settings.language"),
         }}
       />
       <Stack.Screen
         name="settings/uploads"
         options={{
           ...settingsScreenOptions,
-          headerBackTitle: "Settings",
-          headerTitle: "Uploads",
-          title: "Uploads",
+          headerBackTitle: settingsTitle,
+          headerTitle: t("headers.uploads"),
+          title: t("headers.uploads"),
         }}
       />
       <Stack.Screen
         name="settings/theme"
         options={{
           ...settingsScreenOptions,
-          title: "Theme",
-          headerTitle: "Theme",
-          headerBackTitle: "Back",
+          title: t("headers.theme"),
+          headerTitle: t("headers.theme"),
+          headerBackTitle: backTitle,
         }}
       />
       <Stack.Screen
         name="settings/bookmark-default-view"
         options={{
           ...settingsScreenOptions,
-          title: "Open Bookmarks In",
-          headerTitle: "Open Bookmarks In",
-          headerBackTitle: "Back",
+          title: t("headers.open_bookmarks_in"),
+          headerTitle: t("headers.open_bookmarks_in"),
+          headerBackTitle: backTitle,
         }}
       />
       <Stack.Screen
         name="settings/reader-settings"
         options={{
           ...settingsScreenOptions,
-          title: "Text and Layout",
-          headerTitle: "Text and Layout",
-          headerBackTitle: "Back",
+          title: t("headers.text_and_layout"),
+          headerTitle: t("headers.text_and_layout"),
+          headerBackTitle: backTitle,
         }}
       />
       <Stack.Screen
         name="settings/offline"
         options={{
           ...settingsScreenOptions,
-          title: "Downloads",
-          headerTitle: "Downloads",
-          headerBackTitle: "Back",
+          title: t("headers.downloads"),
+          headerTitle: t("headers.downloads"),
+          headerBackTitle: backTitle,
         }}
       />
       <Stack.Screen
         name="settings/usage"
         options={{
           ...settingsScreenOptions,
-          title: "Statistics",
-          headerTitle: "Statistics",
-          headerBackTitle: "Back",
+          title: t("headers.statistics"),
+          headerTitle: t("headers.statistics"),
+          headerBackTitle: backTitle,
         }}
       />
       <Stack.Screen
         name="settings/toolbar-settings"
         options={{
           ...settingsScreenOptions,
-          title: "Reader Toolbar",
-          headerTitle: "Reader Toolbar",
-          headerBackTitle: "Back",
+          title: t("headers.reader_toolbar"),
+          headerTitle: t("headers.reader_toolbar"),
+          headerBackTitle: backTitle,
         }}
       />
     </Stack>

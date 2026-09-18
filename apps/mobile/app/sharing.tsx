@@ -8,6 +8,7 @@ import LoadingAnimation from "@/components/sharing/LoadingAnimation";
 import SuccessAnimation from "@/components/sharing/SuccessAnimation";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -102,6 +103,7 @@ const IDLE_ESCAPE_HATCH_MS = 5000;
 
 export default function Sharing() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [mode, setMode] = useState<Mode>({ type: "idle" });
   const [showIdleEscapeHatch, setShowIdleEscapeHatch] = useState(false);
 
@@ -170,13 +172,15 @@ export default function Sharing() {
               className="items-center gap-2"
             >
               <Text variant="body" className="text-muted-foreground">
-                Still saving...
+                {t("sharing.still_saving")}
               </Text>
               <Pressable
                 onPress={handleDismiss}
                 className="px-4 py-2 active:opacity-60"
               >
-                <Text className="text-muted-foreground">Dismiss</Text>
+                <Text className="text-muted-foreground">
+                  {t("sharing.dismiss")}
+                </Text>
               </Pressable>
             </Animated.View>
           )}
@@ -196,10 +200,12 @@ export default function Sharing() {
             className="items-center gap-2"
           >
             <Text variant="title1" className="font-semibold text-foreground">
-              {mode.type === "alreadyExists" ? "Hoarded again!" : "Hoarded!"}
+              {mode.type === "alreadyExists"
+                ? t("sharing.saved_existing")
+                : t("sharing.saved_new")}
             </Text>
             <Text variant="body" className="text-muted-foreground">
-              Saved to your collection
+              {t("sharing.saved_subtitle")}
             </Text>
           </Animated.View>
 
@@ -209,14 +215,16 @@ export default function Sharing() {
           >
             <Button onPress={handleManage} variant="primary" size="lg">
               <Text className="font-medium text-primary-foreground">
-                Manage
+                {t("sharing.manage")}
               </Text>
             </Button>
             <Pressable
               onPress={handleDismiss}
               className="px-4 py-2 active:opacity-60"
             >
-              <Text className="text-muted-foreground">Dismiss</Text>
+              <Text className="text-muted-foreground">
+                {t("sharing.dismiss")}
+              </Text>
             </Pressable>
           </Animated.View>
         </Animated.View>
@@ -235,7 +243,7 @@ export default function Sharing() {
             className="items-center gap-2"
           >
             <Text variant="title1" className="font-semibold text-foreground">
-              Oops!
+              {t("sharing.error_title")}
             </Text>
             <Text variant="body" className="text-muted-foreground">
               {mode.message}
@@ -250,7 +258,9 @@ export default function Sharing() {
               onPress={handleDismiss}
               className="px-4 py-2 active:opacity-60"
             >
-              <Text className="text-muted-foreground">Dismiss</Text>
+              <Text className="text-muted-foreground">
+                {t("sharing.dismiss")}
+              </Text>
             </Pressable>
           </Animated.View>
         </Animated.View>

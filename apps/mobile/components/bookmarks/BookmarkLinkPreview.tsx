@@ -16,6 +16,7 @@ import {
 } from "@/lib/offlineLibrary";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import useAppSettings from "@/lib/settings";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react-native";
@@ -81,6 +82,7 @@ export function BookmarkLinkBrowserPreview({
 }
 
 export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
   }
@@ -92,7 +94,7 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
   if (!asset) {
     return (
       <View className="flex-1 bg-background">
-        <Text>Asset has no PDF</Text>
+        <Text>{t("bookmarks.asset_no_pdf")}</Text>
       </View>
     );
   }
@@ -109,6 +111,7 @@ export function BookmarkLinkReaderPreview({
 }: {
   bookmark: ZBookmark;
 }) {
+  const { t } = useTranslation();
   const { isDarkColorScheme: isDark } = useColorScheme();
   const { settings: readerSettings } = useReaderSettings();
   const { settings } = useAppSettings();
@@ -211,15 +214,15 @@ export function BookmarkLinkReaderPreview({
           <BookOpen size={16} className="text-muted-foreground" />
           <Text className="flex-1 text-sm text-muted-foreground">
             {bannerPercent && bannerPercent > 0
-              ? `Continue where you left off (${bannerPercent}%)`
-              : "Continue where you left off"}
+              ? t("bookmarks.reader_continue_from", { percent: bannerPercent })
+              : t("bookmarks.reader_continue_plain")}
           </Text>
           <TouchableOpacity
             onPress={onContinue}
             className="rounded-md bg-primary px-3 py-1"
           >
             <Text className="text-xs font-medium text-primary-foreground">
-              Continue
+              {t("bookmarks.reader_continue")}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onDismiss} className="p-1">
@@ -272,6 +275,7 @@ export function BookmarkLinkArchivePreview({
 }: {
   bookmark: ZBookmark;
 }) {
+  const { t } = useTranslation();
   const asset =
     bookmark.assets.find((r) => r.assetType == "precrawledArchive") ??
     bookmark.assets.find((r) => r.assetType == "fullPageArchive");
@@ -297,7 +301,7 @@ export function BookmarkLinkArchivePreview({
   if (!asset) {
     return (
       <View className="flex-1 bg-background">
-        <Text>Asset has no offline archive</Text>
+        <Text>{t("bookmarks.asset_no_archive")}</Text>
       </View>
     );
   }
@@ -324,6 +328,7 @@ export function BookmarkLinkScreenshotPreview({
 }: {
   bookmark: ZBookmark;
 }) {
+  const { t } = useTranslation();
   const asset = bookmark.assets.find((r) => r.assetType == "screenshot");
 
   const assetSource = useAssetUrl(asset?.id ?? "");
@@ -332,7 +337,7 @@ export function BookmarkLinkScreenshotPreview({
   if (!asset) {
     return (
       <View className="flex-1 bg-background">
-        <Text>Asset has no screenshot</Text>
+        <Text>{t("bookmarks.asset_no_screenshot")}</Text>
       </View>
     );
   }

@@ -13,6 +13,7 @@ import { StatusBar } from "expo-status-bar";
 import { StyledStack } from "@/components/navigation/stack";
 import SplashScreenController from "@/components/SplashScreenController";
 import { getFormSheetSurfaceOptions } from "@/lib/form-sheet-options";
+import { useAppTranslation } from "@/lib/i18n/hooks";
 import { isIOS26 } from "@/lib/ios";
 import { Providers } from "@/lib/providers";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
@@ -37,6 +38,10 @@ export default Sentry.wrap(function RootLayout() {
   const { hasShareIntent } = useShareIntent();
   const { colorScheme, colors } = useColorScheme();
   const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
+  // RootLayout sits above <Providers>/<I18nProvider>, so the translation
+  // hook is bound to the shared singleton explicitly. Language changes still
+  // re-render this component via the hook subscription.
+  const { t } = useAppTranslation();
 
   useEffect(() => {
     if (hasShareIntent) {
@@ -98,7 +103,7 @@ export default Sentry.wrap(function RootLayout() {
               options={{
                 headerShown: true,
                 headerBackVisible: true,
-                headerBackTitle: "Back",
+                headerBackTitle: t("app.back"),
                 title: "",
               }}
             />
@@ -118,7 +123,7 @@ export default Sentry.wrap(function RootLayout() {
               name="server-address"
               options={{
                 ...formSheetSurfaceOptions,
-                title: "Server Address",
+                title: t("headers.server_address"),
                 headerShown: true,
                 headerTransparent: false,
                 headerLargeTitle: false,
@@ -132,7 +137,7 @@ export default Sentry.wrap(function RootLayout() {
               name="test-connection"
               options={{
                 ...formSheetSurfaceOptions,
-                title: "Test Connection",
+                title: t("headers.test_connection"),
                 headerShown: true,
                 headerTransparent: false,
                 headerLargeTitle: false,

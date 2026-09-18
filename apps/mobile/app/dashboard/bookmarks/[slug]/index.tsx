@@ -10,6 +10,7 @@ import BookmarkLinkView from "@/components/bookmarks/BookmarkLinkView";
 import BookmarkTextView from "@/components/bookmarks/BookmarkTextView";
 import BottomActions from "@/components/bookmarks/BottomActions";
 import QueryPageState from "@/components/QueryPageState";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { shouldUseGlassPill } from "@/lib/ios";
 import {
   getOfflineLibraryScope,
@@ -37,6 +38,7 @@ export default function BookmarkView() {
   const isDark = colorScheme === "dark";
   const { settings } = useAppSettings();
   const connectionStatus = useConnectionStatus();
+  const { t } = useTranslation();
   const api = useTRPC();
 
   const [bookmarkLinkType, setBookmarkLinkType] = useState<BookmarkLinkType>(
@@ -116,7 +118,7 @@ export default function BookmarkView() {
       <Stack.Screen
         options={{
           headerTitle: title ?? "",
-          headerBackTitle: "Back",
+          headerBackTitle: t("app.back"),
           headerTransparent: false,
           headerShown: true,
           headerStyle: {
