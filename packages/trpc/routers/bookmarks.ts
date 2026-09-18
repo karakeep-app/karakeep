@@ -348,6 +348,7 @@ export const bookmarksAppRouter = router({
 
       const bookmark = await ctx.db.transaction(
         (tx) => {
+          ctx.beforeBookmarkWrite?.(tx);
           // Check user quota
           const quotaResult = QuotaService.canCreateBookmarkInTransaction(
             tx,
@@ -1314,12 +1315,18 @@ export const bookmarksAppRouter = router({
           .filter((n) => n.length > 0); // drop empty results
 
         if (toAddTagNames.length > 0) {
-          await ctx.db
-            .insert(bookmarkTags)
-            .values(
-              toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
-            )
-            .onConflictDoNothing();
+          ctx.db.transaction(
+            (tx) => {
+              ctx.beforeBookmarkWrite?.(tx);
+              tx.insert(bookmarkTags)
+                .values(
+                  toAddTagNames.map((name) => ({ name, userId: ctx.user.id })),
+                )
+                .onConflictDoNothing()
+                .run();
+            },
+            { behavior: "immediate" },
+          );
         }
       }
 
@@ -1349,58 +1356,62 @@ export const bookmarksAppRouter = router({
       const allIdsToAttach = attachTagsWithNames.map((t) => t.id);
       const idsToRemove = detachTagsWithNames.map((t) => t.id);
 
-      const res = await ctx.db.transaction((tx) => {
-        let numChanges = 0;
-        // Detaches
-        if (idsToRemove.length > 0) {
-          const res = tx
-            .delete(tagsOnBookmarks)
-            .where(
-              and(
-                eq(tagsOnBookmarks.bookmarkId, input.bookmarkId),
-                inArray(tagsOnBookmarks.tagId, idsToRemove),
-              ),
-            )
-            .run();
-          numChanges += res.changes;
-        }
+      const res = await ctx.db.transaction(
+        (tx) => {
+          ctx.beforeBookmarkWrite?.(tx);
+          let numChanges = 0;
+          // Detaches
+          if (idsToRemove.length > 0) {
+            const res = tx
+              .delete(tagsOnBookmarks)
+              .where(
+                and(
+                  eq(tagsOnBookmarks.bookmarkId, input.bookmarkId),
+                  inArray(tagsOnBookmarks.tagId, idsToRemove),
+                ),
+              )
+              .run();
+            numChanges += res.changes;
+          }
 
-        // Attach tags
-        if (allIdsToAttach.length > 0) {
-          const res = tx
-            .insert(tagsOnBookmarks)
-            .values(
-              allIdsToAttach.map((i) => ({
-                tagId: i,
-                bookmarkId: input.bookmarkId,
-                attachedBy: tagIdToAttachedBy.get(i) ?? "human",
-              })),
-            )
-            .onConflictDoNothing()
-            .run();
-          numChanges += res.changes;
-        }
+          // Attach tags
+          if (allIdsToAttach.length > 0) {
+            const res = tx
+              .insert(tagsOnBookmarks)
+              .values(
+                allIdsToAttach.map((i) => ({
+                  tagId: i,
+                  bookmarkId: input.bookmarkId,
+                  attachedBy: tagIdToAttachedBy.get(i) ?? "human",
+                })),
+              )
+              .onConflictDoNothing()
+              .run();
+            numChanges += res.changes;
+          }
 
-        // Update bookmark modified timestamp
-        if (numChanges > 0) {
-          tx.update(bookmarks)
-            .set({ modifiedAt: new Date() })
-            .where(
-              and(
-                eq(bookmarks.id, input.bookmarkId),
-                eq(bookmarks.userId, ctx.user.id),
-              ),
-            )
-            .run();
-        }
+          // Update bookmark modified timestamp
+          if (numChanges > 0) {
+            tx.update(bookmarks)
+              .set({ modifiedAt: new Date() })
+              .where(
+                and(
+                  eq(bookmarks.id, input.bookmarkId),
+                  eq(bookmarks.userId, ctx.user.id),
+                ),
+              )
+              .run();
+          }
 
-        return {
-          bookmarkId: input.bookmarkId,
-          attached: allIdsToAttach,
-          detached: idsToRemove,
-          numChanges,
-        };
-      });
+          return {
+            bookmarkId: input.bookmarkId,
+            attached: allIdsToAttach,
+            detached: idsToRemove,
+            numChanges,
+          };
+        },
+        { behavior: "immediate" },
+      );
 
       if (res.numChanges > 0) {
         await Promise.allSettled([

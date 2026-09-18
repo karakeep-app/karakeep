@@ -349,3 +349,56 @@ test<CustomTestContext>("one-time imports finish all pages then stop until expli
   await syncGithubStarsPage(ctx.db, subscription.id, read, async () => api);
   expect(read).not.toHaveBeenCalled();
 });
+
+for (const expiresAtWrite of [1, 2, 3, 4]) {
+  test<CustomTestContext>(`expired import cannot commit write ${expiresAtWrite}`, async (ctx) => {
+    const { api, list, subscription } = await setup(ctx);
+    const { appRouter } = await import("./_app");
+    const { buildImpersonatingAuthedContext } =
+      await import("../lib/impersonate");
+    const { bookmarks, bookmarksInLists, bookmarkTags, tagsOnBookmarks } =
+      await import("@karakeep/db/schema");
+    const start = Date.now();
+    let writes = 0;
+    const clock = vi.spyOn(Date, "now");
+    try {
+      await syncGithubStarsPage(
+        ctx.db,
+        subscription.id,
+        async () => ({
+          repositories: [
+            { full_name: "example/fenced", topics: ["new-topic"] },
+          ],
+          hasNext: false,
+        }),
+        async (userId, fence) =>
+          appRouter.createCaller({
+            ...(await buildImpersonatingAuthedContext(userId, ctx.db)),
+            beforeBookmarkWrite: (tx) => {
+              if (++writes === expiresAtWrite)
+                clock.mockReturnValue(start + 11 * 60_000);
+              fence(tx);
+            },
+          }),
+      );
+    } finally {
+      clock.mockRestore();
+    }
+    expect(writes).toBe(expiresAtWrite);
+    expect(ctx.db.select().from(bookmarks).all()).toHaveLength(
+      expiresAtWrite > 1 ? 1 : 0,
+    );
+    expect(
+      ctx.db
+        .select()
+        .from(bookmarksInLists)
+        .all()
+        .filter((row) => row.listId === list.id),
+    ).toHaveLength(expiresAtWrite > 2 ? 1 : 0);
+    expect(ctx.db.select().from(bookmarkTags).all()).toHaveLength(
+      expiresAtWrite > 3 ? 1 : 0,
+    );
+    expect(ctx.db.select().from(tagsOnBookmarks).all()).toHaveLength(0);
+    expect((await api.githubStars.get())?.lastSuccessfulSyncAt).toBeNull();
+  });
+}

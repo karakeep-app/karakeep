@@ -1,5 +1,5 @@
 import { and, eq, isNull, lt, lte, or } from "drizzle-orm";
-import type { DB } from "@karakeep/db";
+import type { DB, KarakeepDBTransaction } from "@karakeep/db";
 import { githubStarsSubscriptions } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import type { appRouter } from "../routers/_app";
@@ -24,7 +24,10 @@ export async function syncGithubStarsPage(
   db: DB,
   id: string,
   readPage: (username: string, page: number) => Promise<StarredPage>,
-  getClient: (userId: string) => Promise<Client>,
+  getClient: (
+    userId: string,
+    beforeBookmarkWrite: (tx: KarakeepDBTransaction) => void,
+  ) => Promise<Client>,
 ) {
   const now = new Date();
   const leaseUntil = new Date(now.getTime() + 10 * 60_000);
@@ -58,7 +61,18 @@ export async function syncGithubStarsPage(
       .get();
   try {
     const page = await readPage(subscription.username, subscription.nextPage);
-    const api = await getClient(subscription.userId);
+    const api = await getClient(subscription.userId, (tx) => {
+      if (
+        Date.now() >= leaseUntil.getTime() ||
+        !tx
+          .select({ id: githubStarsSubscriptions.id })
+          .from(githubStarsSubscriptions)
+          .where(ownedLease)
+          .get()
+      ) {
+        throw new Error("GitHub Stars import lease expired or was revoked");
+      }
+    });
     for (const repository of page.repositories) {
       // Stop stale jobs after disconnect/reconfiguration or lease expiry.
       if (!ownsLease()) return;
