@@ -1,5 +1,6 @@
 import { View } from "react-native";
 import { Avatar } from "@/components/ui/Avatar";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { Text } from "@/components/ui/Text";
 
 interface UserProfileHeaderProps {
@@ -13,11 +14,14 @@ export function UserProfileHeader({
   name,
   email,
 }: UserProfileHeaderProps) {
+  const { t } = useTranslation();
   return (
     <View className="w-full items-center gap-2 py-6">
       <Avatar image={image} name={name} size={88} />
       <View className="items-center gap-1">
-        <Text className="text-xl font-semibold">{name || "User"}</Text>
+        <Text className="text-xl font-semibold">
+          {name || t("profile.fallback_name")}
+        </Text>
         {email && (
           <Text className="text-sm text-muted-foreground">{email}</Text>
         )}

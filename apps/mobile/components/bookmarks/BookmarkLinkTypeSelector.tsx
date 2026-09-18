@@ -1,5 +1,6 @@
 import { Platform } from "react-native";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { ChevronDown } from "lucide-react-native";
@@ -52,12 +53,13 @@ export default function BookmarkLinkTypeSelector({
   bookmark,
 }: BookmarkLinkTypeSelectorProps) {
   const availableTypes = getAvailableViewTypes(bookmark);
+  const { t } = useTranslation();
   const { menuIconColor } = useMenuIconColors();
 
   const viewActions = [
     {
       id: "reader" as const,
-      title: "Reader View",
+      title: t("bookmarks.view_reader"),
       state: type === "reader" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "doc.text",
@@ -68,7 +70,7 @@ export default function BookmarkLinkTypeSelector({
     },
     {
       id: "browser" as const,
-      title: "Browser",
+      title: t("bookmarks.view_browser"),
       state: type === "browser" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "safari",
@@ -79,7 +81,7 @@ export default function BookmarkLinkTypeSelector({
     },
     {
       id: "screenshot" as const,
-      title: "Screenshot",
+      title: t("bookmarks.view_screenshot"),
       state: type === "screenshot" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "camera",
@@ -90,7 +92,7 @@ export default function BookmarkLinkTypeSelector({
     },
     {
       id: "archive" as const,
-      title: "Archived Page",
+      title: t("bookmarks.view_archived_page"),
       state: type === "archive" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "tray.full",
@@ -101,7 +103,7 @@ export default function BookmarkLinkTypeSelector({
     },
     {
       id: "pdf" as const,
-      title: "PDF",
+      title: t("bookmarks.view_pdf"),
       state: type === "pdf" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "doc",

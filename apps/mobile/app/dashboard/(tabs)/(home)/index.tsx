@@ -12,6 +12,7 @@ import AndroidSearchBar from "@/components/ui/AndroidSearchBar";
 import { FAB } from "@/components/ui/FAB";
 import useAppSettings from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { Plus } from "lucide-react-native";
@@ -21,6 +22,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 function useNewBookmarkActions(openNewBookmarkModal: () => void) {
   const { settings } = useAppSettings();
+  const { t } = useTranslation();
   const { menuIconColor } = useMenuIconColors();
   const uploadToastIdRef = useRef<string | number | null>(null);
   const createBookmark = useCreateBookmark();
@@ -28,7 +30,9 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
   const { uploadAsset } = useUploadAsset(settings, {
     onSuccess: () => {
       if (uploadToastIdRef.current !== null) {
-        sonnerToast.success("Image saved!", { id: uploadToastIdRef.current });
+        sonnerToast.success(t("home.image_saved"), {
+          id: uploadToastIdRef.current,
+        });
         uploadToastIdRef.current = null;
       }
     },
@@ -53,7 +57,7 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
     } else if (nativeEvent.event === "library") {
       try {
         uploadToastIdRef.current = sonnerToast.loading(
-          "Opening photo library...",
+          t("home.opening_photo_library"),
         );
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ["images"],
@@ -67,7 +71,7 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
             uploadToastIdRef.current = null;
             return;
           }
-          sonnerToast.loading("Uploading image...", {
+          sonnerToast.loading(t("home.uploading_image"), {
             id: uploadToastIdRef.current,
           });
           uploadAsset({
@@ -81,22 +85,22 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
         }
       } catch {
         if (uploadToastIdRef.current !== null) {
-          sonnerToast.error("Failed to open photo library", {
+          sonnerToast.error(t("home.failed_open_photo_library"), {
             id: uploadToastIdRef.current,
           });
           uploadToastIdRef.current = null;
         } else {
-          sonnerToast.error("Failed to open photo library");
+          sonnerToast.error(t("home.failed_open_photo_library"));
         }
       }
     } else if (nativeEvent.event === "clipboard") {
       if (createBookmark.isPending) return;
 
-      const toastId = sonnerToast.loading("Reading clipboard...");
+      const toastId = sonnerToast.loading(t("home.reading_clipboard"));
       try {
         const contents = (await Clipboard.getStringAsync()).trim();
         if (!contents) {
-          sonnerToast.error("Clipboard is empty", { id: toastId });
+          sonnerToast.error(t("home.clipboard_empty"), { id: toastId });
           return;
         }
 
@@ -105,11 +109,11 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
           const parsed = new URL(contents);
           if (parsed.protocol === "http:" || parsed.protocol === "https:") {
             isUrl = true;
-            sonnerToast.loading("Saving URL...", { id: toastId });
+            sonnerToast.loading(t("home.saving_url"), { id: toastId });
           }
         } catch {
           // not a valid URL — treat as text
-          sonnerToast.loading("Saving text...", { id: toastId });
+          sonnerToast.loading(t("home.saving_text"), { id: toastId });
         }
 
         const resp = await (isUrl
@@ -123,12 +127,15 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
               text: contents,
               source: "mobile",
             }));
-        sonnerToast.success(resp.alreadyExists ? "Already exists" : "Saved!", {
-          id: toastId,
-        });
+        sonnerToast.success(
+          resp.alreadyExists ? t("home.already_exists") : t("home.saved"),
+          {
+            id: toastId,
+          },
+        );
       } catch (e) {
         sonnerToast.error(
-          e instanceof Error ? e.message : "Failed to save from clipboard",
+          e instanceof Error ? e.message : t("home.failed_save_clipboard"),
           { id: toastId },
         );
       }
@@ -138,19 +145,19 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
   const actions = [
     {
       id: "clipboard",
-      title: "Clipboard",
+      title: t("home.menu_clipboard"),
       image: Platform.select({ ios: "clipboard" }),
       imageColor: Platform.select({ ios: menuIconColor }),
     },
     {
       id: "new",
-      title: "New Bookmark",
+      title: t("home.menu_new_bookmark"),
       image: Platform.select({ ios: "square.and.pencil" }),
       imageColor: Platform.select({ ios: menuIconColor }),
     },
     {
       id: "library",
-      title: "Photo Library",
+      title: t("home.menu_photo_library"),
       image: Platform.select({ ios: "photo" }),
       imageColor: Platform.select({ ios: menuIconColor }),
     },
@@ -160,6 +167,7 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   const [searchActive, setSearchActive] = useState(false);
   const { onPressAction, actions } = useNewBookmarkActions(() =>
     router.push("/dashboard/bookmarks/new"),
@@ -173,7 +181,7 @@ export default function Home() {
     <>
       {Platform.OS === "android" && (
         <AndroidSearchBar
-          label="Search bookmarks..."
+          label={t("home.search_bookmarks")}
           onPress={() => setSearchActive(true)}
           rightElement={<ProfileAvatarButton />}
           trailingElement={<BookmarkListHeader />}

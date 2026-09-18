@@ -13,6 +13,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { cn } from "@/lib/utils";
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks";
 import { SearchIcon } from "lucide-react-native";
@@ -33,8 +34,8 @@ const SearchInput = React.forwardRef<
       value: valueProp,
       onChangeText: onChangeTextProp,
       onFocus: onFocusProp,
-      placeholder = "Search...",
-      cancelText = "Cancel",
+      placeholder: placeholderProp,
+      cancelText: cancelTextProp,
       containerClassName,
       iconContainerClassName,
       className,
@@ -45,6 +46,10 @@ const SearchInput = React.forwardRef<
     ref,
   ) => {
     const inputRef = useAugmentedRef({ ref, methods: { focus, blur, clear } });
+    const { t } = useTranslation();
+    // Default labels are translated; explicit props still win.
+    const placeholder = placeholderProp ?? t("search.placeholder_keyword");
+    const cancelText = cancelTextProp ?? t("search.close");
     const [showCancel, setShowCancel] = React.useState(false);
     const cancelButtonWidth = useSharedValue(cancelText.length * 11.2);
     const cancelButtonVisibility = useSharedValue(0);

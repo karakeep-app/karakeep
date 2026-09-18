@@ -2,11 +2,13 @@ import React from "react";
 import { Platform } from "react-native";
 import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { isIOS26 } from "@/lib/ios";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function TabLayout() {
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
   return (
     <NativeTabs
       backgroundColor={colors.grey6}
@@ -26,7 +28,7 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.home")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(lists)">
@@ -39,7 +41,7 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Lists</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.lists")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(tags)">
@@ -52,7 +54,7 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Tags</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.tags")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(highlights)">
@@ -65,7 +67,9 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Highlights</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {t("tabs.highlights")}
+        </NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger
@@ -82,7 +86,7 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.search")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

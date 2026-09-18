@@ -8,6 +8,8 @@ import {
 import EmptyState from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
+import { getIntlLocale } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -39,38 +41,67 @@ import { zUserStatsResponseSchema } from "@karakeep/shared/types/users";
 
 type UserStats = z.infer<typeof zUserStatsResponseSchema>;
 
-const numberFormatter = new Intl.NumberFormat(undefined, {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+function getNumberFormatter() {
+  return new Intl.NumberFormat(getIntlLocale(), {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  });
+}
 
-const storageFormatter = new Intl.NumberFormat(undefined, {
-  maximumFractionDigits: 1,
-});
+function getStorageFormatter() {
+  return new Intl.NumberFormat(getIntlLocale(), {
+    maximumFractionDigits: 1,
+  });
+}
 
-const countFormatter = new Intl.NumberFormat();
-const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function getCountFormatter() {
+  return new Intl.NumberFormat(getIntlLocale());
+}
+
+/**
+ * Narrow weekday names starting Sunday, localized via Intl for the active
+ * app language (i18n.language is e.g. "pl" or "en").
+ */
+function getDayNames(locale: string): string[] {
+  // 2024-01-07 was a Sunday; step through one week.
+  const base = new Date(2024, 0, 7);
+  const fmt = new Intl.DateTimeFormat(locale, { weekday: "short" });
+  return Array.from({ length: 7 }, (_, i) =>
+    fmt.format(new Date(base.getTime() + i * 86400000)),
+  );
+}
+
+type SourceLabelKey =
+  | "stats.source_api"
+  | "stats.source_web"
+  | "stats.source_cli"
+  | "stats.source_mobile"
+  | "stats.source_extension"
+  | "stats.source_singlefile"
+  | "stats.source_rss"
+  | "stats.source_import"
+  | "stats.source_unknown";
 
 const SOURCE_DETAILS: Record<
   ZBookmarkSource,
-  { label: string; icon: LucideIcon }
+  { labelKey: SourceLabelKey; icon: LucideIcon }
 > = {
-  api: { label: "API", icon: Zap },
-  web: { label: "Web", icon: Globe2 },
-  cli: { label: "CLI", icon: Code2 },
-  mobile: { label: "Mobile app", icon: Smartphone },
-  extension: { label: "Browser extension", icon: Chrome },
-  singlefile: { label: "SingleFile", icon: FileText },
-  rss: { label: "RSS feed", icon: Rss },
-  import: { label: "Import", icon: Upload },
+  api: { labelKey: "stats.source_api", icon: Zap },
+  web: { labelKey: "stats.source_web", icon: Globe2 },
+  cli: { labelKey: "stats.source_cli", icon: Code2 },
+  mobile: { labelKey: "stats.source_mobile", icon: Smartphone },
+  extension: { labelKey: "stats.source_extension", icon: Chrome },
+  singlefile: { labelKey: "stats.source_singlefile", icon: FileText },
+  rss: { labelKey: "stats.source_rss", icon: Rss },
+  import: { labelKey: "stats.source_import", icon: Upload },
 };
 
 function formatNumber(value: number) {
-  return numberFormatter.format(value);
+  return getNumberFormatter().format(value);
 }
 
 function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${countFormatter.format(bytes)} B`;
+  if (bytes < 1024) return `${getCountFormatter().format(bytes)} B`;
 
   const units = ["KB", "MB", "GB", "TB"];
   let value = bytes / 1024;
@@ -81,14 +112,13 @@ function formatBytes(bytes: number) {
     unitIndex += 1;
   }
 
-  return `${storageFormatter.format(value)} ${units[unitIndex]}`;
+  return `${getStorageFormatter().format(value)} ${units[unitIndex]}`;
 }
 
-function formatHour(hour: number) {
-  if (hour === 0) return "12 AM";
-  if (hour < 12) return `${hour} AM`;
-  if (hour === 12) return "12 PM";
-  return `${hour - 12} PM`;
+function formatHour(hour: number, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+  }).format(new Date(2024, 0, 7, hour));
 }
 
 function formatAssetType(type: string) {
@@ -96,7 +126,7 @@ function formatAssetType(type: string) {
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-function SectionLabel({ children }: { children: string }) {
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <Text className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
       {children}
@@ -198,7 +228,7 @@ function ProgressRow({
           <Text className="text-xs text-muted-foreground">{detail}</Text>
         ) : null}
         <Text selectable className="text-sm font-medium tabular-nums">
-          {valueLabel ?? countFormatter.format(value)}
+          {valueLabel ?? getCountFormatter().format(value)}
         </Text>
       </View>
       <View
@@ -246,7 +276,7 @@ function RankedList({
                 {item.label}
               </Text>
               <Text selectable className="text-sm font-medium tabular-nums">
-                {countFormatter.format(item.count)}
+                {getCountFormatter().format(item.count)}
               </Text>
             </View>
             <View
@@ -269,9 +299,18 @@ function RankedList({
   );
 }
 
+function formatHourTick(hour: number, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+  }).format(new Date(2024, 0, 7, hour));
+}
+
 function ActivityCharts({ stats }: { stats: UserStats }) {
   const { colors } = useColorScheme();
-  const activityByDay = dayNames.map((_, day) => {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language;
+  const dayNames = getDayNames(locale);
+  const activityByDay = Array.from({ length: 7 }, (_, day) => {
     return (
       stats.bookmarkingActivity.byDayOfWeek.find((entry) => entry.day === day)
         ?.count ?? 0
@@ -295,9 +334,9 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
     <View className="gap-6">
       <View className="flex-row">
         {[
-          ["This week", stats.bookmarkingActivity.thisWeek],
-          ["This month", stats.bookmarkingActivity.thisMonth],
-          ["This year", stats.bookmarkingActivity.thisYear],
+          [t("stats.this_week"), stats.bookmarkingActivity.thisWeek],
+          [t("stats.this_month"), stats.bookmarkingActivity.thisMonth],
+          [t("stats.this_year"), stats.bookmarkingActivity.thisYear],
         ].map(([label, value], index) => (
           <View
             key={String(label)}
@@ -317,7 +356,7 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
       </View>
 
       <View className="gap-3">
-        <Text className="text-sm font-medium">Days you save</Text>
+        <Text className="text-sm font-medium">{t("stats.days_you_save")}</Text>
         <View
           accessible
           accessibilityLabel={`Bookmarks by weekday. ${dayNames.map((day, index) => `${day} ${activityByDay[index]}`).join(", ")}`}
@@ -347,19 +386,21 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
 
       <View className="gap-3">
         <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-sm font-medium">Time of day</Text>
+          <Text className="text-sm font-medium">{t("stats.time_of_day")}</Text>
           <Text className="text-xs text-muted-foreground">
             {maxHour > 0
-              ? `Busiest around ${formatHour(busiestHour)}`
-              : "No pattern yet"}
+              ? t("stats.busiest_around", {
+                  time: formatHour(busiestHour, locale),
+                })
+              : t("stats.no_pattern")}
           </Text>
         </View>
         <View
           accessible
           accessibilityLabel={
             maxHour > 0
-              ? `Bookmarks by hour. Busiest around ${formatHour(busiestHour)}.`
-              : "No hourly saving pattern yet."
+              ? `Bookmarks by hour. ${t("stats.busiest_around", { time: formatHour(busiestHour, locale) })}`
+              : t("stats.no_hourly_pattern")
           }
           className="h-16 flex-row items-end gap-1"
         >
@@ -376,10 +417,18 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
           ))}
         </View>
         <View className="flex-row justify-between">
-          <Text className="text-[10px] text-muted-foreground">12 AM</Text>
-          <Text className="text-[10px] text-muted-foreground">6 AM</Text>
-          <Text className="text-[10px] text-muted-foreground">12 PM</Text>
-          <Text className="text-[10px] text-muted-foreground">6 PM</Text>
+          <Text className="text-[10px] text-muted-foreground">
+            {formatHourTick(0, locale)}
+          </Text>
+          <Text className="text-[10px] text-muted-foreground">
+            {formatHourTick(6, locale)}
+          </Text>
+          <Text className="text-[10px] text-muted-foreground">
+            {formatHourTick(12, locale)}
+          </Text>
+          <Text className="text-[10px] text-muted-foreground">
+            {formatHourTick(18, locale)}
+          </Text>
         </View>
       </View>
     </View>
@@ -388,11 +437,12 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
 
 function SourcesList({ stats }: { stats: UserStats }) {
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
 
   if (stats.bookmarksBySource.length === 0) {
     return (
       <Text className="text-sm text-muted-foreground">
-        Sources will appear after you save a bookmark.
+        {t("stats.sources_empty")}
       </Text>
     );
   }
@@ -400,9 +450,9 @@ function SourcesList({ stats }: { stats: UserStats }) {
   return (
     <View className="gap-4">
       {stats.bookmarksBySource.map(({ source, count }) => {
-        const detail = source
+        const detail: { labelKey: SourceLabelKey; icon: LucideIcon } = source
           ? SOURCE_DETAILS[source]
-          : { label: "Unknown", icon: CircleHelp };
+          : { labelKey: "stats.source_unknown", icon: CircleHelp };
         const Icon = detail.icon;
 
         return (
@@ -414,10 +464,10 @@ function SourcesList({ stats }: { stats: UserStats }) {
               <Icon size={16} color={colors.grey} />
             </View>
             <Text className="min-w-0 flex-1 text-sm" numberOfLines={1}>
-              {detail.label}
+              {t(detail.labelKey)}
             </Text>
             <Text selectable className="text-sm font-medium tabular-nums">
-              {countFormatter.format(count)}
+              {getCountFormatter().format(count)}
             </Text>
           </View>
         );
@@ -452,6 +502,7 @@ function StatsSkeleton() {
 export default function UsageStatsScreen() {
   const { width: windowWidth } = useWindowDimensions();
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
   const api = useTRPC();
   const {
     data: stats,
@@ -508,7 +559,9 @@ export default function UsageStatsScreen() {
             >
               {formatNumber(stats.numBookmarks)}
             </Text>
-            <Text className="mt-1 text-muted-foreground">Bookmarks saved</Text>
+            <Text className="mt-1 text-muted-foreground">
+              {t("stats.bookmarks_saved")}
+            </Text>
           </View>
           <View
             className="items-center justify-center bg-primary/10"
@@ -521,10 +574,10 @@ export default function UsageStatsScreen() {
         <View className="flex-row items-start gap-4">
           <View className="flex-1">
             <Text selectable className="font-semibold tabular-nums">
-              {countFormatter.format(stats.bookmarkingActivity.thisMonth)}
+              {getCountFormatter().format(stats.bookmarkingActivity.thisMonth)}
             </Text>
             <Text className="mt-1 text-xs text-muted-foreground">
-              Added this month
+              {t("stats.added_this_month")}
             </Text>
           </View>
           <View className="flex-1 items-end border-l border-border pl-4">
@@ -532,46 +585,46 @@ export default function UsageStatsScreen() {
               {formatBytes(stats.totalAssetSize)}
             </Text>
             <Text className="mt-1 text-xs text-muted-foreground">
-              Storage used
+              {t("stats.storage_used")}
             </Text>
           </View>
         </View>
       </View>
 
-      <SectionLabel>At a glance</SectionLabel>
+      <SectionLabel>{t("stats.at_a_glance")}</SectionLabel>
       <View className="flex-row flex-wrap gap-2">
         <MetricTile
-          label="Favourites"
+          label={t("stats.favourites")}
           value={formatNumber(stats.numFavorites)}
           icon={Heart}
           width={metricTileWidth}
         />
         <MetricTile
-          label="Archived"
+          label={t("stats.archived")}
           value={formatNumber(stats.numArchived)}
           icon={Archive}
           width={metricTileWidth}
         />
         <MetricTile
-          label="Tags"
+          label={t("stats.tags")}
           value={formatNumber(stats.numTags)}
           icon={Hash}
           width={metricTileWidth}
         />
         <MetricTile
-          label="Lists"
+          label={t("stats.lists")}
           value={formatNumber(stats.numLists)}
           icon={List}
           width={metricTileWidth}
         />
         <MetricTile
-          label="Highlights"
+          label={t("stats.highlights")}
           value={formatNumber(stats.numHighlights)}
           icon={Highlighter}
           width={metricTileWidth}
         />
         <MetricTile
-          label="Added this year"
+          label={t("stats.added_this_year")}
           value={formatNumber(stats.bookmarkingActivity.thisYear)}
           icon={Clock3}
           width={metricTileWidth}
@@ -585,30 +638,30 @@ export default function UsageStatsScreen() {
         >
           <EmptyState
             icon={BookOpen}
-            title="Your library is ready"
-            subtitle="Your saving patterns will appear here once you add a few bookmarks."
+            title={t("stats.library_ready_title")}
+            subtitle={t("stats.library_ready_subtitle")}
           />
         </View>
       ) : (
         <>
-          <SectionLabel>Your library</SectionLabel>
-          <SectionCard title="Bookmark types" icon={BookOpen}>
+          <SectionLabel>{t("stats.your_library")}</SectionLabel>
+          <SectionCard title={t("stats.bookmark_types")} icon={BookOpen}>
             <ProgressRow
-              label="Links"
+              label={t("stats.links")}
               value={stats.bookmarksByType.link}
               total={stats.numBookmarks}
               icon={Link2}
               color={colors.primary}
             />
             <ProgressRow
-              label="Text notes"
+              label={t("stats.text_notes")}
               value={stats.bookmarksByType.text}
               total={stats.numBookmarks}
               icon={FileText}
               color="#34C759"
             />
             <ProgressRow
-              label="Files and images"
+              label={t("stats.files_images")}
               value={stats.bookmarksByType.asset}
               total={stats.numBookmarks}
               icon={ImageIcon}
@@ -616,36 +669,36 @@ export default function UsageStatsScreen() {
             />
           </SectionCard>
 
-          <SectionCard title="Saving activity" icon={Clock3}>
+          <SectionCard title={t("stats.saving_activity")} icon={Clock3}>
             <ActivityCharts stats={stats} />
           </SectionCard>
 
-          <SectionCard title="Top domains" icon={Globe2}>
+          <SectionCard title={t("stats.top_domains")} icon={Globe2}>
             <RankedList
               items={stats.topDomains.map(({ domain, count }) => ({
                 label: domain,
                 count,
               }))}
-              emptyText="Domains will appear after you save a link."
+              emptyText={t("stats.domains_empty")}
             />
           </SectionCard>
 
-          <SectionCard title="Most used tags" icon={Hash}>
+          <SectionCard title={t("stats.most_used_tags")} icon={Hash}>
             <RankedList
               items={stats.tagUsage.map(({ name, count }) => ({
                 label: name,
                 count,
               }))}
-              emptyText="Tags will appear as you organize your bookmarks."
+              emptyText={t("stats.tags_empty")}
             />
           </SectionCard>
 
-          <SectionCard title="Saved with" icon={Upload}>
+          <SectionCard title={t("stats.saved_with")} icon={Upload}>
             <SourcesList stats={stats} />
           </SectionCard>
 
           {assetsBySize.length > 0 ? (
-            <SectionCard title="Storage breakdown" icon={Database}>
+            <SectionCard title={t("stats.storage_breakdown")} icon={Database}>
               {assetsBySize.map((asset) => (
                 <ProgressRow
                   key={asset.type}
@@ -653,7 +706,7 @@ export default function UsageStatsScreen() {
                   value={asset.totalSize}
                   total={stats.totalAssetSize}
                   color={colors.primary}
-                  detail={`${countFormatter.format(asset.count)} ${asset.count === 1 ? "item" : "items"}`}
+                  detail={`${getCountFormatter().format(asset.count)} ${asset.count === 1 ? t("stats.item_one") : t("stats.item_other")}`}
                   valueLabel={formatBytes(asset.totalSize)}
                 />
               ))}

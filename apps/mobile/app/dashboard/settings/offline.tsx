@@ -20,14 +20,18 @@ import {
   useOfflineLibrarySize,
 } from "@/lib/offlineLibrary";
 import useAppSettings from "@/lib/settings";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
+import { getDateFnsLocale, getIntlLocale } from "@/lib/i18n";
 import { BookOpen, Trash2 } from "lucide-react-native";
 
-const storageSizeFormatter = new Intl.NumberFormat(undefined, {
-  maximumFractionDigits: 1,
-});
+function getStorageSizeFormatter() {
+  return new Intl.NumberFormat(getIntlLocale(), {
+    maximumFractionDigits: 1,
+  });
+}
 
 function formatStorageSize(bytes: number) {
   if (bytes < 1024) {
@@ -42,7 +46,7 @@ function formatStorageSize(bytes: number) {
     unitIndex += 1;
   }
 
-  return `${storageSizeFormatter.format(value)} ${units[unitIndex]}`;
+  return `${getStorageSizeFormatter().format(value)} ${units[unitIndex]}`;
 }
 
 function CacheSectionHeader({ title, size }: { title: string; size: number }) {
@@ -63,6 +67,8 @@ export default function OfflineContent() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { settings } = useAppSettings();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { colors } = useColorScheme();
   const scope = getOfflineLibraryScope(settings);
   const offlineLibrary = useOfflineLibrary(scope);
@@ -75,12 +81,12 @@ export default function OfflineContent() {
 
   const confirmRemove = (bookmarkId: string, displayTitle: string) => {
     Alert.alert(
-      "Remove offline copy?",
-      `"${displayTitle}" will no longer be kept for offline reading.`,
+      t("settings.offline_remove_title"),
+      t("settings.offline_remove_message", { title: displayTitle }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Remove",
+          text: actions.remove,
           style: "destructive",
           onPress: () => removeOfflineArticle(scope, bookmarkId),
         },
@@ -90,12 +96,12 @@ export default function OfflineContent() {
 
   const confirmRemoveAll = () => {
     Alert.alert(
-      "Remove all offline content?",
-      "This removes every article you explicitly saved for offline reading.",
+      t("settings.offline_remove_all_title"),
+      t("settings.offline_remove_all_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Remove All",
+          text: t("settings.offline_remove_all_confirm"),
           style: "destructive",
           onPress: () => removeAllOfflineArticles(scope),
         },
@@ -105,17 +111,17 @@ export default function OfflineContent() {
 
   const confirmClearRecentCache = () => {
     Alert.alert(
-      "Clear recent cache?",
-      "Saved offline articles will be kept. Anything else will be re-cached as you browse.",
+      t("settings.offline_clear_title"),
+      t("settings.offline_clear_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Clear Cache",
+          text: t("settings.offline_clear_confirm"),
           style: "destructive",
           onPress: () => {
             queryClient.clear();
             clearPersistedCache();
-            toast({ message: "Recent cache cleared" });
+            toast({ message: t("settings.offline_cleared") });
           },
         },
       ],
@@ -125,22 +131,21 @@ export default function OfflineContent() {
   return (
     <SettingsScreen>
       <Text className="px-1 text-sm text-muted-foreground">
-        Saved offline articles stay on this device. Everything else is cached
-        only as you browse and can be cleared at any time.
+        {t("settings.offline_intro")}
       </Text>
 
       <View className="gap-4">
         <View className="gap-2">
           <CacheSectionHeader
-            title="Saved offline content"
+            title={t("settings.offline_saved")}
             size={offlineLibrarySize}
           />
 
           {offlineLibrary.length === 0 ? (
             <EmptyState
               icon={BookOpen}
-              title="No saved offline articles"
-              subtitle="Open an article and choose Make available offline."
+              title={t("settings.offline_empty_title")}
+              subtitle={t("settings.offline_empty_subtitle")}
             />
           ) : (
             <SettingsGroup>
@@ -166,12 +171,18 @@ export default function OfflineContent() {
                         </Text>
                       ) : null}
                       <Text className="mt-1 text-xs text-muted-foreground">
-                        Saved{" "}
-                        {formatDistanceToNow(item.savedAt, { addSuffix: true })}
+                        {t("settings.offline_saved_ago", {
+                          ago: formatDistanceToNow(item.savedAt, {
+                            addSuffix: true,
+                            locale: getDateFnsLocale(),
+                          }),
+                        })}
                       </Text>
                     </Pressable>
                     <Pressable
-                      accessibilityLabel={`Remove ${item.displayTitle} offline copy`}
+                      accessibilityLabel={t("settings.offline_remove_label", {
+                        title: item.displayTitle,
+                      })}
                       className="ml-3 p-2"
                       onPress={() =>
                         confirmRemove(item.bookmarkId, item.displayTitle)
@@ -190,7 +201,7 @@ export default function OfflineContent() {
           <SettingsGroup>
             <SettingsActionRow
               centered
-              label="Remove all offline content"
+              label={t("settings.offline_remove_all")}
               onPress={confirmRemoveAll}
             />
           </SettingsGroup>
@@ -198,11 +209,14 @@ export default function OfflineContent() {
       </View>
 
       <View className="gap-2">
-        <CacheSectionHeader title="Recent cache" size={recentCacheSize} />
+        <CacheSectionHeader
+          title={t("settings.offline_recent")}
+          size={recentCacheSize}
+        />
         <SettingsGroup>
           <SettingsActionRow
             centered
-            label="Clear recent cache"
+            label={t("settings.offline_clear_recent")}
             onPress={confirmClearRecentCache}
           />
         </SettingsGroup>

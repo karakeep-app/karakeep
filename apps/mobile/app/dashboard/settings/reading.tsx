@@ -6,30 +6,32 @@ import {
   SettingsSeparator,
   SettingsToggleRow,
 } from "@/components/settings/settings-list";
+import { useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
 
 export default function ReaderViewSettings() {
   const router = useRouter();
   const { settings, setSettings, isLoading } = useAppSettings();
+  const { t } = useTranslation();
 
   return (
     <SettingsScreen>
-      <SettingsGroup header="Reader">
+      <SettingsGroup header={t("settings.reader_group")}>
         <SettingsNavigationRow
-          label="Text and layout"
+          label={t("settings.reader_text_layout")}
           onPress={() => router.push("/dashboard/settings/reader-settings")}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
-          label="Reader toolbar"
+          label={t("settings.reader_toolbar")}
           onPress={() => router.push("/dashboard/settings/toolbar-settings")}
         />
       </SettingsGroup>
 
-      <SettingsGroup header="Behavior">
+      <SettingsGroup header={t("settings.behavior_group")}>
         <SettingsToggleRow
           disabled={isLoading}
-          label="Keep screen awake"
+          label={t("settings.keep_screen_awake")}
           onValueChange={(keepScreenOnWhileReading) =>
             setSettings({ ...settings, keepScreenOnWhileReading })
           }

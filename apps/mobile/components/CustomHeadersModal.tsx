@@ -4,6 +4,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Plus, Trash2, X } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { Button } from "./ui/Button";
 import { Input } from "./ui/Input";
 import { Text } from "./ui/Text";
@@ -21,6 +22,8 @@ export function CustomHeadersModal({
   onClose,
   onSave,
 }: CustomHeadersModalProps) {
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { colorScheme } = useColorScheme();
   const iconColor = colorScheme === "dark" ? "#d1d5db" : "#374151";
 
@@ -102,21 +105,23 @@ export function CustomHeadersModal({
           >
             {/* Header */}
             <View className="mb-4 flex flex-row items-center justify-between">
-              <Text className="text-lg font-semibold">Custom Headers</Text>
+              <Text className="text-lg font-semibold">
+                {t("headers_modal.title")}
+              </Text>
               <Pressable onPress={handleCancel} className="p-2">
                 <X size={24} color={iconColor} />
               </Pressable>
             </View>
 
             <Text className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-              Add custom HTTP headers that will be sent with every API request.
+              {t("headers_modal.description")}
             </Text>
 
             {/* Existing Headers List */}
             <View className="mb-4 max-h-64">
               {headers.length === 0 ? (
                 <Text className="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                  No custom headers configured
+                  {t("headers_modal.empty")}
                 </Text>
               ) : (
                 <ScrollView>
@@ -150,16 +155,18 @@ export function CustomHeadersModal({
 
             {/* Add New Header */}
             <View className="gap-2 border-t border-border pt-4">
-              <Text className="text-sm font-semibold">Add New Header</Text>
+              <Text className="text-sm font-semibold">
+                {t("headers_modal.add_new")}
+              </Text>
               <Input
-                placeholder="Header Name (e.g., X-Custom-Header)"
+                placeholder={t("headers_modal.name_placeholder")}
                 value={newHeaderKey}
                 onChangeText={setNewHeaderKey}
                 autoCapitalize="none"
                 inputClasses="bg-background"
               />
               <Input
-                placeholder="Header Value"
+                placeholder={t("headers_modal.value_placeholder")}
                 value={newHeaderValue}
                 onChangeText={setNewHeaderValue}
                 autoCapitalize="none"
@@ -171,7 +178,7 @@ export function CustomHeadersModal({
                 disabled={!newHeaderKey.trim() || !newHeaderValue.trim()}
               >
                 <Plus size={16} color={iconColor} />
-                <Text className="text-sm">Add Header</Text>
+                <Text className="text-sm">{t("headers_modal.add")}</Text>
               </Button>
             </View>
 
@@ -182,14 +189,14 @@ export function CustomHeadersModal({
                 onPress={handleCancel}
                 androidRootClassName="flex-1"
               >
-                <Text>Cancel</Text>
+                <Text>{actions.cancel}</Text>
               </Button>
               <Button
                 variant="primary"
                 onPress={handleSave}
                 androidRootClassName="flex-1"
               >
-                <Text>Save</Text>
+                <Text>{actions.save}</Text>
               </Button>
             </View>
           </KeyboardAwareScrollView>

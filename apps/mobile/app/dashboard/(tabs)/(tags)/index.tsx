@@ -14,6 +14,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { FAB } from "@/components/ui/FAB";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Tag } from "lucide-react-native";
 
@@ -29,6 +30,7 @@ interface TagItem {
 }
 
 export default function Tags() {
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const api = useTRPC();
@@ -86,7 +88,7 @@ export default function Tags() {
         ListHeaderComponent={
           <SearchInput
             containerClassName="mx-2 mb-2"
-            placeholder="Search tags..."
+            placeholder={t("tags_tab.search_tags")}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -111,7 +113,9 @@ export default function Tags() {
                   <Text className="font-medium">{item.item.name}</Text>
                   <Text className="text-sm text-muted-foreground">
                     {item.item.numBookmarks}{" "}
-                    {item.item.numBookmarks === 1 ? "bookmark" : "bookmarks"}
+                    {item.item.numBookmarks === 1
+                      ? t("tags_tab.bookmarks_one")
+                      : t("tags_tab.bookmarks_other")}
                   </Text>
                 </View>
                 <ChevronRight />
@@ -128,7 +132,7 @@ export default function Tags() {
           isFetchingNextPage ? (
             <View className="py-4">
               <Text className="text-center text-muted-foreground">
-                Loading more...
+                {t("tags_tab.loading_more")}
               </Text>
             </View>
           ) : null
@@ -137,15 +141,15 @@ export default function Tags() {
           !isPending ? (
             <EmptyState
               icon={Tag}
-              title="No Tags"
-              subtitle="Tags will appear as you organize your bookmarks"
+              title={t("tags_tab.no_tags_title")}
+              subtitle={t("tags_tab.no_tags_subtitle")}
             />
           ) : null
         }
       />
       <FAB>
         <Pressable
-          accessibilityLabel="Create tag"
+          accessibilityLabel={t("tags_tab.create_tag")}
           accessibilityRole="button"
           className="h-full w-full items-center justify-center"
           onPress={() => {

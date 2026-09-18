@@ -7,6 +7,11 @@ import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { useQuery } from "@tanstack/react-query";
 
 import { useUpdateTag } from "@karakeep/shared-react/hooks/tags";
@@ -19,6 +24,9 @@ export default function EditTagPage() {
   const [name, setName] = useState("");
   const api = useTRPC();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
 
   if (typeof tagId !== "string") {
     throw new Error("Unexpected param type");
@@ -31,7 +39,7 @@ export default function EditTagPage() {
   } = useQuery(api.tags.get.queryOptions({ tagId }));
   const { mutate: updateTag, isPending } = useUpdateTag({
     onSuccess: () => {
-      toast({ message: "Tag updated", variant: "success" });
+      toast({ message: t("tags.updated"), variant: "success" });
       router.back();
     },
     onError: (mutationError) => {
@@ -41,7 +49,7 @@ export default function EditTagPage() {
             .join("\n")
         : mutationError.message;
       toast({
-        message: message || "Something went wrong",
+        message: message || strings.somethingWentWrong,
         variant: "destructive",
       });
     },
@@ -56,7 +64,7 @@ export default function EditTagPage() {
   const onSubmit = () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      toast({ message: "Tag name can't be empty", variant: "destructive" });
+      toast({ message: t("tags.name_empty"), variant: "destructive" });
       return;
     }
 
@@ -78,20 +86,20 @@ export default function EditTagPage() {
       contentContainerClassName="gap-4 px-4 pb-8"
     >
       <Input
-        label="Tag Name"
+        label={t("tags.name_label")}
         labelClasses="text-sm text-muted-foreground"
         inputClasses="bg-card"
         onChangeText={setName}
         onSubmitEditing={onSubmit}
         value={name}
-        placeholder="Reading"
+        placeholder={t("tags.name_placeholder")}
         autoFocus
         autoCapitalize="sentences"
         returnKeyType="done"
       />
 
       <Button disabled={isPending} onPress={onSubmit}>
-        <Text>Save</Text>
+        <Text>{actions.save}</Text>
       </Button>
     </ScrollView>
   );

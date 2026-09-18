@@ -3,6 +3,7 @@ import { Pressable, TextInput, View } from "react-native";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
 import { useAugmentedRef, useControllableState } from "@rn-primitives/hooks";
@@ -18,7 +19,7 @@ const SearchInput = React.forwardRef<
     {
       value: valueProp,
       onChangeText: onChangeTextProp,
-      placeholder = "Search...",
+      placeholder: placeholderProp,
       containerClassName,
       iconContainerClassName,
       className,
@@ -28,6 +29,10 @@ const SearchInput = React.forwardRef<
     ref,
   ) => {
     const { colors } = useColorScheme();
+    const { t } = useTranslation();
+    // Default labels are translated; explicit props still win.
+    const placeholder = placeholderProp ?? t("search.placeholder_keyword");
+
     const inputRef = useAugmentedRef({ ref, methods: { focus, blur, clear } });
     const [value = "", onChangeText] = useControllableState({
       prop: valueProp,

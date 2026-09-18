@@ -6,6 +6,7 @@ import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { Check, Plus } from "lucide-react-native";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -29,9 +30,11 @@ const TagPickerPage = () => {
   }
 
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const strings = useCommonStrings();
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -150,11 +153,11 @@ const TagPickerPage = () => {
       toast({
         message: isAttaching
           ? isBulkUpdate
-            ? "Tags added!"
-            : "Tag added!"
+            ? t("manage_tags.tags_added")
+            : t("manage_tags.tag_added")
           : isBulkUpdate
-            ? "Tags removed!"
-            : "Tag removed!",
+            ? t("manage_tags.tags_removed")
+            : t("manage_tags.tag_removed"),
         showProgress: false,
       });
     },
@@ -217,7 +220,7 @@ const TagPickerPage = () => {
       <Stack.Screen
         options={{
           headerSearchBarOptions: {
-            placeholder: "Search Tags",
+            placeholder: t("manage_tags.search_placeholder"),
             onChangeText: (event) => setSearch(event.nativeEvent.text),
             autoCapitalize: "none",
             hideWhenScrolling: false,
@@ -228,7 +231,7 @@ const TagPickerPage = () => {
               disabled={optimisticTags.length === 0}
               className={`px-2 ${optimisticTags.length === 0 ? "opacity-50" : ""}`}
             >
-              <Text className="text-primary">Clear</Text>
+              <Text className="text-primary">{t("manage_tags.clear")}</Text>
             </Pressable>
           ),
         }}
@@ -244,7 +247,7 @@ const TagPickerPage = () => {
         className="flex-1 bg-background"
       >
         {optimisticTags.length > 0 && (
-          <GroupedSection header="Attached">
+          <GroupedSection header={t("manage_tags.attached")}>
             {optimisticTags.map((tag, index) => (
               <React.Fragment key={tag.id}>
                 {index > 0 && <RowSeparator />}
@@ -260,7 +263,7 @@ const TagPickerPage = () => {
           </GroupedSection>
         )}
         {filteredAllTags.length > 0 && (
-          <GroupedSection header="All Tags">
+          <GroupedSection header={t("manage_tags.all_tags")}>
             {filteredAllTags.map((tag, index) => (
               <React.Fragment key={tag.id}>
                 {index > 0 && <RowSeparator />}
@@ -271,7 +274,7 @@ const TagPickerPage = () => {
                   {tag.id === NEW_TAG_ID ? (
                     <>
                       <Text className="flex-1 pr-3 text-primary">
-                        Create &ldquo;{tag.name}&rdquo;
+                        {t("manage_tags.create_tag", { name: tag.name })}
                       </Text>
                       <Plus size={20} color={colors.primary} strokeWidth={2} />
                     </>
@@ -285,7 +288,7 @@ const TagPickerPage = () => {
         )}
         {optimisticTags.length === 0 && filteredAllTags.length === 0 && (
           <View className="items-center py-12">
-            <Text color="tertiary">No tags found</Text>
+            <Text color="tertiary">{t("manage_tags.no_tags_found")}</Text>
           </View>
         )}
       </ScrollView>

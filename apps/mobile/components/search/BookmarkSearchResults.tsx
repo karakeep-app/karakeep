@@ -2,6 +2,7 @@ import { FlatList, Pressable, View } from "react-native";
 import BookmarkList from "@/components/bookmarks/BookmarkList";
 import QueryPageState from "@/components/QueryPageState";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 
 import type { BookmarkSearchState } from "@/lib/useBookmarkSearchState";
 
@@ -19,6 +20,7 @@ export default function BookmarkSearchResults({
   onSelectHistory,
   header,
 }: BookmarkSearchResultsProps) {
+  const { t } = useTranslation();
   const {
     history,
     filteredHistory,
@@ -53,11 +55,13 @@ export default function BookmarkSearchResults({
             {header}
             <View className="flex-row items-center justify-between p-3">
               <Text className="text-sm font-bold text-gray-500">
-                Recent Searches
+                {t("search.recent_searches")}
               </Text>
               {history.length > 0 && (
                 <Pressable onPress={clearHistory}>
-                  <Text className="text-sm text-blue-500">Clear</Text>
+                  <Text className="text-sm text-blue-500">
+                    {t("search.clear")}
+                  </Text>
                 </Pressable>
               )}
             </View>
@@ -65,7 +69,7 @@ export default function BookmarkSearchResults({
         }
         ListEmptyComponent={
           <Text className="p-3 text-center text-gray-500">
-            No recent searches
+            {t("search.no_recent_searches")}
           </Text>
         }
         keyboardShouldPersistTaps="handled"

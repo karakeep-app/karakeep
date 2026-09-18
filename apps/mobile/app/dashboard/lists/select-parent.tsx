@@ -6,6 +6,7 @@ import {
   listPathToPickerOption,
 } from "@/components/lists/list-picker";
 import QueryPageState from "@/components/QueryPageState";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
@@ -21,6 +22,7 @@ export default function SelectListParentPage() {
     selectedParentId?: string | string[];
     hideSubtreeOf?: string | string[];
   }>();
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const { data, error, refetch } = useBookmarkLists();
   const returnTo = stringParam(params.returnTo);
@@ -76,7 +78,7 @@ export default function SelectListParentPage() {
       : [
           {
             id: NO_PARENT_VALUE,
-            label: "No parent",
+            label: t("lists.no_parent"),
             state: selectedId === null ? ("selected" as const) : undefined,
           },
         ]),
@@ -90,9 +92,9 @@ export default function SelectListParentPage() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: "Parent List",
+          headerTitle: t("headers.parent_list"),
           headerSearchBarOptions: {
-            placeholder: "Search Lists",
+            placeholder: t("lists.search_lists"),
             autoCapitalize: "none",
             hideWhenScrolling: false,
             onChangeText: (event) => setSearch(event.nativeEvent.text),
@@ -108,7 +110,7 @@ export default function SelectListParentPage() {
         <ListPicker
           options={options}
           onSelect={(id) => selectParent(id === NO_PARENT_VALUE ? null : id)}
-          emptyMessage="No lists found"
+          emptyMessage={t("lists.no_lists_found")}
         />
       </ScrollView>
     </>

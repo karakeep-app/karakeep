@@ -5,10 +5,12 @@ import {
   SettingsScreen,
   SettingsSeparator,
 } from "@/components/settings/settings-list";
+import { useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
 
 export default function ThemePage() {
   const { settings, setSettings } = useAppSettings();
+  const { t } = useTranslation();
 
   const themes = ["light", "dark", "system"] as const;
 
@@ -21,9 +23,9 @@ export default function ThemePage() {
             <SettingsChoiceRow
               label={
                 {
-                  dark: "Dark Mode",
-                  light: "Light Mode",
-                  system: "System",
+                  dark: t("settings.theme_dark"),
+                  light: t("settings.theme_light"),
+                  system: t("settings.theme_system"),
                 }[theme]
               }
               onPress={() => setSettings({ ...settings, theme })}

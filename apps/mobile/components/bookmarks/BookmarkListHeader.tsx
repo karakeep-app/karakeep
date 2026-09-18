@@ -2,6 +2,7 @@ import { Platform, View } from "react-native";
 import { MenuAction, MenuView } from "@react-native-menu/menu";
 import { MoreHorizontal } from "lucide-react-native";
 
+import { useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 
@@ -11,19 +12,20 @@ function useBookmarkListLayoutMenu(): {
   menuIconColor: string;
 } {
   const { settings, setSettings } = useAppSettings();
+  const { t } = useTranslation();
   const { menuIconColor } = useMenuIconColors();
 
   const layoutModeActions: MenuAction[] = [
     {
       id: "card",
-      title: "Card",
+      title: t("bookmarks.layout_card"),
       state: settings.bookmarkLayout === "card" ? "on" : "off",
       image: Platform.select({ ios: "rectangle.grid.1x2" }),
       imageColor: Platform.select({ ios: menuIconColor }),
     },
     {
       id: "list",
-      title: "List",
+      title: t("bookmarks.layout_list"),
       state: settings.bookmarkLayout === "list" ? "on" : "off",
       image: Platform.select({ ios: "list.bullet" }),
       imageColor: Platform.select({ ios: menuIconColor }),
@@ -31,7 +33,7 @@ function useBookmarkListLayoutMenu(): {
   ];
   const showNotesAction: MenuAction = {
     id: "show_notes",
-    title: "Show Notes",
+    title: t("bookmarks.show_notes"),
     state: settings.showNotes ? "on" : "off",
     image: Platform.select({ ios: "note.text" }),
     imageColor: Platform.select({ ios: menuIconColor }),
@@ -40,7 +42,7 @@ function useBookmarkListLayoutMenu(): {
   const layoutActions: MenuAction[] = [
     {
       id: "layout",
-      title: "Layout",
+      title: t("bookmarks.layout_menu"),
       image: Platform.select({ ios: "rectangle.grid.1x2" }),
       imageColor: Platform.select({ ios: menuIconColor }),
       subactions: layoutModeActions,
@@ -48,20 +50,20 @@ function useBookmarkListLayoutMenu(): {
     showNotesAction,
     {
       id: "sort",
-      title: "Sort",
+      title: t("bookmarks.sort_menu"),
       image: Platform.select({ ios: "arrow.up.arrow.down" }),
       imageColor: Platform.select({ ios: menuIconColor }),
       subactions: [
         {
           id: "sort_desc",
-          title: "Newest First",
+          title: t("bookmarks.sort_newest"),
           state: settings.bookmarkSortOrder === "desc" ? "on" : "off",
           image: Platform.select({ ios: "arrow.down" }),
           imageColor: Platform.select({ ios: menuIconColor }),
         },
         {
           id: "sort_asc",
-          title: "Oldest First",
+          title: t("bookmarks.sort_oldest"),
           state: settings.bookmarkSortOrder === "asc" ? "on" : "off",
           image: Platform.select({ ios: "arrow.up" }),
           imageColor: Platform.select({ ios: menuIconColor }),

@@ -4,6 +4,11 @@ import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { useColorScheme } from "nativewind";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
@@ -18,6 +23,9 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
     throw new Error("Wrong content type rendered");
   }
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const { colorScheme } = useColorScheme();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -27,14 +35,14 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
   const { mutate, isPending } = useUpdateBookmark({
     onError: () => {
       toast({
-        message: "Something went wrong",
+        message: strings.somethingWentWrong,
         variant: "destructive",
       });
     },
     onSuccess: () => {
       setIsEditing(false);
       toast({
-        message: "Text updated successfully",
+        message: t("bookmarks.text_updated"),
         showProgress: false,
       });
     },
@@ -63,10 +71,10 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
             disabled={isPending}
             variant="plain"
           >
-            <Text>Cancel</Text>
+            <Text>{actions.cancel}</Text>
           </Button>
           <Button size="sm" onPress={handleSave} disabled={isPending}>
-            <Text>{isPending ? "Saving..." : "Save"}</Text>
+            <Text>{isPending ? t("bookmarks.saving") : actions.save}</Text>
           </Button>
         </View>
 
@@ -76,7 +84,7 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
           multiline
           autoFocus
           editable={!isPending}
-          placeholder="Enter your text here..."
+          placeholder={t("bookmarks.text_placeholder")}
           placeholderTextColor={colorScheme === "dark" ? "#666" : "#999"}
           style={{
             flex: 1,
@@ -102,7 +110,7 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
           <BookmarkTextMarkdown text={content} />
           {content.trim() === "" && (
             <Text className="italic text-muted-foreground">
-              Tap to add text...
+              {t("bookmarks.tap_to_add_text")}
             </Text>
           )}
         </View>
