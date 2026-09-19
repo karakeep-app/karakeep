@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 
 import { TRPCError } from "@trpc/server";
 import {
@@ -24,12 +24,14 @@ import {
   AssetTypes,
   bookmarkAssets,
   bookmarkLinks,
+  bookmarkPublicShares,
   bookmarks,
   bookmarksInLists,
   bookmarkTags,
   bookmarkTexts,
   rssFeedImportsTable,
   tagsOnBookmarks,
+  users,
 } from "@karakeep/db/schema";
 import {
   deleteAsset,
@@ -60,8 +62,9 @@ import {
 } from "@karakeep/shared/utils/bookmarkUtils";
 import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 
-import { AuthedContext } from "..";
+import { AuthedContext, Context } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
+import { buildImpersonatingAuthedContext } from "../lib/impersonate";
 import { getPreferredLinkPreview } from "../lib/linkPreview";
 import { Asset } from "./assets";
 import { List } from "./lists";
@@ -153,6 +156,33 @@ export class BareBookmark {
         message: "User is not allowed to access resource",
       });
     }
+  }
+
+  async getPublicShareToken(): Promise<string | null> {
+    this.ensureOwnership();
+    const share = await this.ctx.db.query.bookmarkPublicShares.findFirst({
+      where: eq(bookmarkPublicShares.bookmarkId, this.id),
+    });
+    return share?.token ?? null;
+  }
+
+  async setPublicShare(enabled: boolean): Promise<string | null> {
+    this.ensureOwnership();
+    if (!enabled) {
+      await this.ctx.db
+        .delete(bookmarkPublicShares)
+        .where(eq(bookmarkPublicShares.bookmarkId, this.id));
+      return null;
+    }
+    // Keep the existing link if the bookmark is already shared.
+    await this.ctx.db
+      .insert(bookmarkPublicShares)
+      .values({
+        bookmarkId: this.id,
+        token: randomBytes(32).toString("hex"),
+      })
+      .onConflictDoNothing({ target: bookmarkPublicShares.bookmarkId });
+    return await this.getPublicShareToken();
   }
 }
 
@@ -859,6 +889,40 @@ export class Bookmark extends BareBookmark {
       format,
       content,
       contentVersion,
+    };
+  }
+
+  static async getByPublicShareToken(ctx: Context, token: string) {
+    const [share] = await ctx.db
+      .select({
+        bookmarkId: bookmarkPublicShares.bookmarkId,
+        userId: bookmarks.userId,
+        ownerName: users.name,
+      })
+      .from(bookmarkPublicShares)
+      .innerJoin(bookmarks, eq(bookmarks.id, bookmarkPublicShares.bookmarkId))
+      .innerJoin(users, eq(users.id, bookmarks.userId))
+      .where(eq(bookmarkPublicShares.token, token));
+    if (!share) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Bookmark not found",
+      });
+    }
+    // Same as public lists: the token acts as an authed context, so we can
+    // impersonate the bookmark owner as long as we don't leak the context.
+    const authedCtx = await buildImpersonatingAuthedContext(
+      share.userId,
+      ctx.db,
+    );
+    const bookmark = await Bookmark.fromId(
+      authedCtx,
+      share.bookmarkId,
+      /* includeContent: */ false,
+    );
+    return {
+      bookmark: bookmark.asPublicBookmark(),
+      ownerName: share.ownerName,
     };
   }
 
