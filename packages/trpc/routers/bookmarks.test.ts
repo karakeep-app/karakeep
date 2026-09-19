@@ -26,6 +26,9 @@ vi.mock("@karakeep/shared-server", async (original) => {
     LinkCrawlerQueue: {
       enqueue: vi.fn(),
     },
+    LowPriorityCrawlerQueue: {
+      enqueue: vi.fn(),
+    },
     OpenAIQueue: {
       enqueue: vi.fn(),
     },
@@ -1119,10 +1122,12 @@ describe("Bookmark Routes", () => {
     );
     await db
       .update(bookmarkLinks)
-      .set({ crawlStatus: "pending", crawlStatusCode: 403 })
+      .set({ crawlStatus: "failure", crawlStatusCode: 403 })
       .where(eq(bookmarkLinks.id, brokenBookmark.id));
+    await api.recrawlBookmark({ bookmarkId: brokenBookmark.id });
     expect((await api.getBrokenLinks()).bookmarks[0]).toMatchObject({
       isCrawling: true,
+      isCrawlingFailure: false,
       statusCode: 403,
     });
 

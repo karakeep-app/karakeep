@@ -843,6 +843,10 @@ export const bookmarksAppRouter = router({
         priority: QueuePriority.Low,
         idempotencyKey: buildCrawlIdempotencyKey(payload),
       });
+      await ctx.db
+        .update(bookmarkLinks)
+        .set({ crawlStatus: "pending" })
+        .where(eq(bookmarkLinks.id, input.bookmarkId));
     }),
   updateReadingProgress: bookmarksProcedure
     .input(

@@ -148,7 +148,7 @@ export default function BrokenLinksPage() {
     [bookmarks, category, searchQuery, sort],
   );
   const selection = filtered.filter((bookmark) => selected.has(bookmark.id));
-  const hasFilters = !!search || category !== "all";
+  const hasFilters = !!searchQuery || category !== "all";
   const clearFilters = () => {
     setSearch("");
     setCategory("all");
@@ -178,9 +178,12 @@ export default function BrokenLinksPage() {
             ]
           : []),
       ]);
-      const failed = results.filter((r) => r.status === "rejected").length;
-      setSelected(new Set());
-      if (action === "delete") setDeleting([]);
+      const failedIds = ids.filter(
+        (_, index) => results[index].status === "rejected",
+      );
+      const failed = failedIds.length;
+      setSelected(new Set(failedIds));
+      if (action === "delete") setDeleting(failedIds);
       toast({
         description: failed
           ? t("settings.broken_links.action_failed", {
