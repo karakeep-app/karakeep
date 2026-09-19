@@ -48,11 +48,14 @@ import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkTagsEditor } from "./BookmarkTagsEditor";
 
-const formSchema = zUpdateBookmarksRequestSchema.extend({
-  createdAt: z.date().optional(),
-  datePublished: z.date().nullish(),
-  dateModified: z.date().nullish(),
-});
+// The editor has no custom metadata input; exclude recursive JSON from form paths.
+const formSchema = zUpdateBookmarksRequestSchema
+  .omit({ customMetadata: true })
+  .extend({
+    createdAt: z.date().optional(),
+    datePublished: z.date().nullish(),
+    dateModified: z.date().nullish(),
+  });
 type BookmarkFormValues = z.infer<typeof formSchema>;
 
 export function EditBookmarkDialog({
