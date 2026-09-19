@@ -11,6 +11,7 @@
     "lint": "oxlint --ignore-path=../../.gitignore --ignore-pattern='setup/docker-logs/**' .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore --ignore-pattern='setup/docker-logs/**' . --fix",
     "test": "vitest run",
+    "test:web": "vitest run tests/web",
     "test:watch": "vitest",
     "test:no-build": "E2E_TEST_NO_BUILD=1 vitest run"
   },
@@ -28,6 +29,7 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/adm-zip": "^0.5.7",
     "adm-zip": "^0.6.1",
+    "playwright": "^1.59.1",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
   }

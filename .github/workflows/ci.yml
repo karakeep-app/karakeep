@@ -80,6 +80,10 @@ jobs:
       #   working-directory: packages/plugins
       #   run: pnpm test
 
+      - name: Install Playwright Chromium
+        working-directory: packages/e2e_tests
+        run: pnpm exec playwright install --with-deps chromium
+
       - name: E2E Tests
         working-directory: packages/e2e_tests
         run: pnpm test
