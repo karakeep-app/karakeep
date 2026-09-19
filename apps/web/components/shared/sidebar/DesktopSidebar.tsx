@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ButtonWithTooltip } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
@@ -15,6 +16,7 @@ export default function DesktopSidebar({
 }: {
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
@@ -87,8 +89,8 @@ export default function DesktopSidebar({
         {children}
       </div>
       <ButtonWithTooltip
-        tooltip={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        tooltip={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
+        aria-label={collapsed ? t("sidebar.expand") : t("sidebar.collapse")}
         variant="outline"
         size="icon"
         className={cn(
@@ -102,13 +104,13 @@ export default function DesktopSidebar({
       {!collapsed && (
         <div
           role="separator"
-          aria-label="Resize sidebar"
+          aria-label={t("sidebar.resize")}
           aria-orientation="vertical"
           aria-valuemin={MIN_WIDTH}
           aria-valuemax={MAX_WIDTH}
           aria-valuenow={width}
           tabIndex={0}
-          className="absolute inset-y-0 right-0 z-10 w-1 cursor-col-resize bg-transparent transition-colors hover:bg-primary/40 focus:bg-primary/40 focus:outline-none"
+          className="absolute inset-y-0 right-0 z-10 w-1 cursor-col-resize touch-none bg-transparent transition-colors hover:bg-primary/40 focus:bg-primary/40 focus:outline-none"
           onPointerDown={(event) => {
             event.currentTarget.setPointerCapture(event.pointerId);
             dragStart.current = { pointerX: event.clientX, width };
