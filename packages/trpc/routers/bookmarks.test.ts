@@ -2,8 +2,12 @@ import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
+  assets,
+  AssetTypes,
+  bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  imageCollectionItems,
   rssFeedImportsTable,
   tagsOnBookmarks,
   users,
@@ -77,6 +81,197 @@ describe("Bookmark Routes", () => {
     expect(res.favourited).toEqual(false);
     expect(res.archived).toEqual(false);
     expect(res.content.type).toEqual(BookmarkTypes.LINK);
+  });
+
+  test<CustomTestContext>("create and reorder image collection bookmark", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, "test1@test.com"),
+    });
+    assert(user);
+
+    await db.insert(assets).values([
+      {
+        id: "collection-asset-1",
+        assetType: AssetTypes.UNKNOWN,
+        bookmarkId: null,
+        userId: user.id,
+        contentType: "image/png",
+        size: 100,
+        fileName: "one.png",
+      },
+      {
+        id: "collection-asset-2",
+        assetType: AssetTypes.UNKNOWN,
+        bookmarkId: null,
+        userId: user.id,
+        contentType: "image/png",
+        size: 200,
+        fileName: "two.png",
+      },
+    ]);
+
+    const firstImage = await api.createBookmark({
+      type: BookmarkTypes.ASSET,
+      assetType: "image",
+      assetId: "collection-asset-1",
+      fileName: "one.png",
+      title: "First image",
+    });
+    const secondImage = await api.createBookmark({
+      type: BookmarkTypes.ASSET,
+      assetType: "image",
+      assetId: "collection-asset-2",
+      fileName: "two.png",
+      title: "Second image",
+    });
+
+    await db
+      .update(bookmarkAssets)
+      .set({ content: "First image OCR" })
+      .where(eq(bookmarkAssets.id, firstImage.id));
+    await db
+      .update(bookmarkAssets)
+      .set({ content: "Second image OCR" })
+      .where(eq(bookmarkAssets.id, secondImage.id));
+
+    const collection = await api.createBookmark({
+      type: BookmarkTypes.COLLECTION,
+      title: "2 images",
+      bookmarkIds: [firstImage.id, secondImage.id],
+    });
+
+    assert(collection.content.type === BookmarkTypes.COLLECTION);
+    expect(collection.content.items.map((item) => item.bookmarkId)).toEqual([
+      firstImage.id,
+      secondImage.id,
+    ]);
+    expect(collection.content.items.map((item) => item.assetId)).toEqual([
+      "collection-asset-1",
+      "collection-asset-2",
+    ]);
+
+    const reordered = await api.reorderImageCollectionItems({
+      bookmarkId: collection.id,
+      bookmarkIds: [secondImage.id, firstImage.id],
+    });
+
+    assert(reordered.content.type === BookmarkTypes.COLLECTION);
+    expect(reordered.content.items.map((item) => item.bookmarkId)).toEqual([
+      secondImage.id,
+      firstImage.id,
+    ]);
+    expect(reordered.content.items.map((item) => item.fileName)).toEqual([
+      "two.png",
+      "one.png",
+    ]);
+
+    await api.updateTags({
+      bookmarkId: firstImage.id,
+      attach: [
+        { tagName: "shared-image-tag", attachedBy: "ai" },
+        { tagName: "first-image-tag", attachedBy: "ai" },
+        { tagName: "child-human-tag", attachedBy: "human" },
+      ],
+      detach: [],
+    });
+    await api.updateTags({
+      bookmarkId: secondImage.id,
+      attach: [
+        { tagName: "shared-image-tag", attachedBy: "ai" },
+        { tagName: "second-image-tag", attachedBy: "ai" },
+      ],
+      detach: [],
+    });
+    await api.updateTags({
+      bookmarkId: collection.id,
+      attach: [{ tagName: "collection-human-tag", attachedBy: "human" }],
+      detach: [],
+    });
+
+    const collectionWhileTagging = await api.getBookmark({
+      bookmarkId: collection.id,
+    });
+    expect(collectionWhileTagging.taggingStatus).toBe("pending");
+
+    await db
+      .update(bookmarks)
+      .set({ taggingStatus: "success" })
+      .where(eq(bookmarks.id, firstImage.id));
+    await db
+      .update(bookmarks)
+      .set({ taggingStatus: "success" })
+      .where(eq(bookmarks.id, secondImage.id));
+
+    const collectionWithTags = await api.getBookmark({
+      bookmarkId: collection.id,
+    });
+    expect(collectionWithTags.taggingStatus).toBe("success");
+    expect(
+      collectionWithTags.tags.map((tag) => ({
+        name: tag.name,
+        attachedBy: tag.attachedBy,
+      })),
+    ).toEqual(
+      expect.arrayContaining([
+        { name: "collection-human-tag", attachedBy: "human" },
+        { name: "shared-image-tag", attachedBy: "ai" },
+        { name: "first-image-tag", attachedBy: "ai" },
+        { name: "second-image-tag", attachedBy: "ai" },
+      ]),
+    );
+    expect(
+      collectionWithTags.tags.filter((tag) => tag.name === "shared-image-tag"),
+    ).toHaveLength(1);
+
+    const collectionWithContent = await api.getBookmark({
+      bookmarkId: collection.id,
+      includeContent: true,
+    });
+    assert(collectionWithContent.content.type === BookmarkTypes.COLLECTION);
+    expect(collectionWithContent.content.content).toBe(
+      "Second image\nSecond image OCR\nFirst image\nFirst image OCR",
+    );
+
+    const storedItems = await db.query.imageCollectionItems.findMany({
+      where: eq(imageCollectionItems.collectionId, collection.id),
+    });
+    expect(
+      storedItems
+        .sort((a, b) => a.position - b.position)
+        .map((item) => item.bookmarkId),
+    ).toEqual([secondImage.id, firstImage.id]);
+    const afterDelete = await api.deleteImageCollectionItem({
+      bookmarkId: collection.id,
+      itemBookmarkId: firstImage.id,
+    });
+
+    assert(afterDelete.content.type === BookmarkTypes.COLLECTION);
+    expect(afterDelete.content.items.map((item) => item.bookmarkId)).toEqual([
+      secondImage.id,
+    ]);
+    expect(afterDelete.content.items.map((item) => item.fileName)).toEqual([
+      "two.png",
+    ]);
+
+    const storedItemsAfterDelete = await db.query.imageCollectionItems.findMany(
+      {
+        where: eq(imageCollectionItems.collectionId, collection.id),
+      },
+    );
+    expect(storedItemsAfterDelete).toHaveLength(1);
+    expect(storedItemsAfterDelete[0].bookmarkId).toBe(secondImage.id);
+    expect(storedItemsAfterDelete[0].position).toBe(0);
+
+    await expect(() =>
+      api.deleteImageCollectionItem({
+        bookmarkId: collection.id,
+        itemBookmarkId: secondImage.id,
+      }),
+    ).rejects.toThrow(/last image/i);
   });
 
   test<CustomTestContext>("get readable bookmark content as markdown or text", async ({

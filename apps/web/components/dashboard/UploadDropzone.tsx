@@ -4,15 +4,23 @@ import React, { useCallback, useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import useUpload from "@/lib/hooks/upload-file";
+import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { TRPCClientError } from "@trpc/client";
 import DropZone from "react-dropzone";
 
-import { useCreateBookmarkWithPostHook } from "@karakeep/shared-react/hooks/bookmarks";
+import {
+  useCreateBookmark,
+  useCreateBookmarkWithPostHook,
+} from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import LoadingSpinner from "../ui/spinner";
 import BookmarkSavedToast from "../utils/BookmarkSavedToast";
+
+function isImageFile(file: File) {
+  return file.type.startsWith("image/");
+}
 
 export function useUploadAsset() {
   const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook({
@@ -85,12 +93,70 @@ function useUploadAssets({
   onFileError: (name: string, e: Error) => void;
   onAllUploaded: () => void;
 }) {
+  const { t } = useTranslation();
   const runUpload = useUploadAsset();
+  const { mutateAsync: createBookmark } = useCreateBookmarkWithPostHook({
+    onSuccess: (resp) => {
+      if (resp.alreadyExists) {
+        toast({
+          description: <BookmarkSavedToast bookmarkId={resp.id} />,
+          variant: "default",
+        });
+      } else {
+        toast({ description: "Bookmark uploaded" });
+      }
+    },
+    onError: () => {
+      toast({ description: "Something went wrong", variant: "destructive" });
+    },
+  });
+  const { mutateAsync: createImageBookmark } = useCreateBookmark();
+  const { mutateAsync: uploadFile } = useUpload({});
 
   return async (files: File[]) => {
     if (files.length == 0) {
       return;
     }
+
+    if (files.length > 1 && files.every(isImageFile)) {
+      const createdImageBookmarks = [];
+      for (const file of files) {
+        try {
+          const uploadedAsset = await uploadFile(file);
+          const imageBookmark = await createImageBookmark({
+            ...uploadedAsset,
+            type: BookmarkTypes.ASSET,
+            assetType: "image",
+            archived: true,
+            source: "web",
+          });
+          createdImageBookmarks.push(imageBookmark);
+          onFileUpload();
+        } catch (e) {
+          if (e instanceof TRPCClientError || e instanceof Error) {
+            onFileError(file.name, e);
+            toast({
+              description: `${file.name}: ${e.message}`,
+              variant: "destructive",
+            });
+          }
+        }
+      }
+
+      if (createdImageBookmarks.length > 0) {
+        await createBookmark({
+          type: BookmarkTypes.COLLECTION,
+          title: t("common.image_count", {
+            count: createdImageBookmarks.length,
+          }),
+          bookmarkIds: createdImageBookmarks.map((bookmark) => bookmark.id),
+          source: "web",
+        });
+      }
+      onAllUploaded();
+      return;
+    }
+
     for (const file of files) {
       try {
         await runUpload(file);

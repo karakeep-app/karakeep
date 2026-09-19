@@ -41,6 +41,9 @@
     "quota": "Quota",
     "bookmarks": "Bookmarks",
     "storage": "Storage",
+    "image_count_one": "{{count}} image",
+    "image_count_other": "{{count}} images",
+    "collection_cover": "Collection cover",
     "default": "Default",
     "id": "ID",
     "last_used": "Last Used"
@@ -1083,7 +1086,16 @@
     "crawling_in_progress": "Fetching page content…",
     "continue_reading": "Continue where you left off",
     "continue_reading_percent": "Continue where you left off ({{percent}}%)",
-    "continue_button": "Continue"
+    "continue_button": "Continue",
+    "failed_to_reorder_images": "Failed to reorder images",
+    "collection_image": "Collection image {{index}}",
+    "image_removed_from_collection": "Image removed from collection",
+    "failed_to_delete_image": "Failed to delete image",
+    "move_image_up": "Move image up",
+    "move_image_down": "Move image down",
+    "delete_image": "Delete",
+    "remove_image_from_collection_title": "Remove image from collection?",
+    "remove_image_from_collection_description": "This removes the image from this collection. The original bookmark will not be deleted."
   },
   "toasts": {
     "bookmarks": {
@@ -1114,7 +1126,9 @@
     "bookmarks": {
       "delete_confirmation_title": "Delete Bookmark?",
       "delete_confirmation_description": "Are you sure you want to delete this bookmark?",
-      "bulk_delete_confirmation_description": "Are you sure you want to delete {{count}} bookmarks?"
+      "bulk_delete_confirmation_description": "Are you sure you want to delete {{count}} bookmarks?",
+      "merge_confirmation_title": "Merge image bookmarks?",
+      "merge_confirmation_description": "Combine these images into one multi-image bookmark?"
     }
   },
   "banners": {
