@@ -434,6 +434,19 @@ export const userReadingProgress = sqliteTable(
   ],
 );
 
+// A bookmark is publicly shared as long as it has a row in this table.
+// Kept out of the bookmarks table so that the token never leaks through the
+// places that spread the bookmark row.
+export const bookmarkPublicShares = sqliteTable("bookmarkPublicShares", {
+  bookmarkId: text("bookmarkId")
+    .notNull()
+    .primaryKey()
+    .references(() => bookmarks.id, { onDelete: "cascade" }),
+  // Whoever have access to this token can read the bookmark
+  token: text("token").notNull().unique(),
+  createdAt: createdAtField(),
+});
+
 export const bookmarkTexts = sqliteTable("bookmarkTexts", {
   id: text("id")
     .notNull()

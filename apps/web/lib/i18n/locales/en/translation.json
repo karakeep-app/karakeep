@@ -85,6 +85,7 @@
     "select_all": "Select All",
     "unselect_all": "Unselect All",
     "copy_link": "Copy Link",
+    "share": "Share",
     "close_bulk_edit": "Close Bulk Edit",
     "bulk_edit": "Bulk Edit",
     "manage_lists": "Manage Lists",
@@ -1058,7 +1059,13 @@
     "bookmarks": {
       "delete_confirmation_title": "Delete Bookmark?",
       "delete_confirmation_description": "Are you sure you want to delete this bookmark?",
-      "bulk_delete_confirmation_description": "Are you sure you want to delete {{count}} bookmarks?"
+      "bulk_delete_confirmation_description": "Are you sure you want to delete {{count}} bookmarks?",
+      "share_bookmark": "Share Bookmark",
+      "public_link": {
+        "title": "Public Link",
+        "description": "Anyone with the link can view this bookmark without signing in",
+        "share_link": "Share Link"
+      }
     }
   },
   "toasts": {
