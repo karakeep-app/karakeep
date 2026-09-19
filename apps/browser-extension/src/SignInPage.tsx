@@ -6,7 +6,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import Logo from "./Logo";
 import usePluginSettings from "./utils/settings";
-import { useTRPC } from "./utils/trpc";
+import { useTRPC, getErrorMessage } from "./utils/trpc";
 
 const enum LoginState {
   NONE = "NONE",
@@ -86,7 +86,8 @@ export default function SignInPage() {
       break;
   }
   if (loginError) {
-    errorMessage = loginError.message || "Wrong username or password";
+    // Use the improved error message handler
+    errorMessage = getErrorMessage(loginError);
   }
 
   return (
