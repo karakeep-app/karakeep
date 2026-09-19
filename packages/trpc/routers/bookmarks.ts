@@ -48,6 +48,7 @@ import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
   MAX_NUM_BOOKMARKS_PER_PAGE,
+  zBookmarkPublicShareSchema,
   zBookmarkSchema,
   zBookmarkReadableContentFormatSchema,
   zBookmarkReadableContentSchema,
@@ -919,6 +920,20 @@ export const bookmarksAppRouter = router({
       return (
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
+    }),
+  getPublicShare: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .output(zBookmarkPublicShareSchema)
+    .use(ensureBookmarkOwnership)
+    .query(async ({ ctx }) => {
+      return { token: await ctx.bookmark.getPublicShareToken() };
+    }),
+  setPublicShare: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string(), enabled: z.boolean() }))
+    .output(zBookmarkPublicShareSchema)
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      return { token: await ctx.bookmark.setPublicShare(input.enabled) };
     }),
   getBookmarkReadableContent: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())

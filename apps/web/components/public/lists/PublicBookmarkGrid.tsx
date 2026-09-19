@@ -38,7 +38,11 @@ function TagPill({ tag }: { tag: string }) {
   );
 }
 
-function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
+export function PublicBookmarkCard({
+  bookmark,
+}: {
+  bookmark: ZPublicBookmark;
+}) {
   const renderContent = () => {
     switch (bookmark.content.type) {
       case BookmarkTypes.LINK:
@@ -237,7 +241,7 @@ export default function PublicBookmarkGrid({
         breakpointCols={breakpointConfig}
       >
         {bookmarks.map((bookmark) => (
-          <BookmarkCard key={bookmark.id} bookmark={bookmark} />
+          <PublicBookmarkCard key={bookmark.id} bookmark={bookmark} />
         ))}
       </Masonry>
       {hasNextPage && (
