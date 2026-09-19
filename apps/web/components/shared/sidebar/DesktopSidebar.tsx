@@ -68,10 +68,12 @@ export default function DesktopSidebar({
     window.addEventListener("pointermove", onPointerMove);
     window.addEventListener("pointerup", stopDragging);
     window.addEventListener("pointercancel", stopDragging);
+    window.addEventListener("blur", stopDragging);
     return () => {
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", stopDragging);
       window.removeEventListener("pointercancel", stopDragging);
+      window.removeEventListener("blur", stopDragging);
       stopDragging();
     };
   }, []);
@@ -108,10 +110,12 @@ export default function DesktopSidebar({
           tabIndex={0}
           className="absolute inset-y-0 right-0 z-10 w-1 cursor-col-resize bg-transparent transition-colors hover:bg-primary/40 focus:bg-primary/40 focus:outline-none"
           onPointerDown={(event) => {
+            event.currentTarget.setPointerCapture(event.pointerId);
             dragStart.current = { pointerX: event.clientX, width };
             document.body.style.cursor = "col-resize";
             document.body.style.userSelect = "none";
           }}
+          onLostPointerCapture={stopDragging}
           onKeyDown={(event) => {
             if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
             event.preventDefault();
