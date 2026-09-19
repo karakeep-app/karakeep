@@ -1098,6 +1098,7 @@ describe("Bookmark Routes", () => {
     const brokenBookmark = await api.createBookmark({
       url: "https://broken-link.com",
       type: BookmarkTypes.LINK,
+      title: "Broken page",
     });
     await db
       .update(bookmarkLinks)
@@ -1111,11 +1112,24 @@ describe("Bookmark Routes", () => {
     ).toBeTruthy();
     expect(result.bookmarks[0].url).toEqual("https://broken-link.com");
     expect(result.bookmarks[0].isCrawlingFailure).toBeTruthy();
+    expect(result.bookmarks[0].title).toBe("Broken page");
+    expect(result.bookmarks[0].isCrawling).toBe(false);
+    expect((await apiCallers[1].bookmarks.getBrokenLinks()).bookmarks).toEqual(
+      [],
+    );
+    await db
+      .update(bookmarkLinks)
+      .set({ crawlStatus: "pending", crawlStatusCode: 403 })
+      .where(eq(bookmarkLinks.id, brokenBookmark.id));
+    expect((await api.getBrokenLinks()).bookmarks[0]).toMatchObject({
+      isCrawling: true,
+      statusCode: 403,
+    });
 
     // Test with no broken links
     await db
       .update(bookmarkLinks)
-      .set({ crawlStatus: "success" })
+      .set({ crawlStatus: "success", crawlStatusCode: 200 })
       .where(eq(bookmarkLinks.id, brokenBookmark.id));
     const emptyResult = await api.getBrokenLinks();
     expect(emptyResult.bookmarks.length).toEqual(0);
