@@ -84,15 +84,7 @@ usersCmd
         });
       } else {
         const data: string[][] = [
-          [
-            "id",
-            "Name",
-            "Email",
-            "Num Bookmarks",
-            "Asset Sizes",
-            "Role",
-            "Local User",
-          ],
+          ["id", "Name", "Email", "Num Bookmarks", "Asset Sizes", "Role"],
         ];
 
         usersResp.users.forEach((user) => {
@@ -111,7 +103,6 @@ usersCmd
             numBookmarksDisplay,
             assetSizesDisplay,
             user.role ?? "",
-            user.localUser ? "✓" : "✗",
           ]);
         });
 

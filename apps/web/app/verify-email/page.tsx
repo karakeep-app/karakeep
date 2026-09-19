@@ -11,17 +11,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { sendVerificationEmail, verifyEmail } from "@/lib/auth/client";
 import { useMutation } from "@tanstack/react-query";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 
-import { useTRPC } from "@karakeep/shared-react/trpc";
 import {
   isMobileAppRedirect,
   validateRedirectUrl,
 } from "@karakeep/shared/utils/redirectUrl";
 
 export default function VerifyEmailPage() {
-  const api = useTRPC();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
@@ -34,61 +33,69 @@ export default function VerifyEmailPage() {
   const redirectUrl =
     validateRedirectUrl(searchParams.get("redirectUrl")) ?? "/";
 
-  const verifyEmailMutation = useMutation(
-    api.users.verifyEmail.mutationOptions({
-      onSuccess: () => {
-        setStatus("success");
-        if (isMobileAppRedirect(redirectUrl)) {
-          setMessage(
-            "Your email has been successfully verified! Redirecting to the app...",
-          );
-          // Redirect to mobile app after a brief delay
-          setTimeout(() => {
-            window.location.href = redirectUrl;
-          }, 1500);
-        } else {
-          setMessage(
-            "Your email has been successfully verified! You can now sign in.",
-          );
-        }
-      },
-      onError: (error) => {
-        setStatus("error");
+  const verifyEmailMutation = useMutation({
+    mutationFn: async (verificationToken: string) => {
+      const result = await verifyEmail(verificationToken);
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
+    },
+    onSuccess: () => {
+      setStatus("success");
+      if (isMobileAppRedirect(redirectUrl)) {
         setMessage(
-          error.message ||
-            "Failed to verify email. The link may be invalid or expired.",
+          "Your email has been successfully verified! Redirecting to the app...",
         );
-      },
-    }),
-  );
+        // Redirect to mobile app after a brief delay
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1500);
+      } else {
+        setMessage(
+          "Your email has been successfully verified! You can now sign in.",
+        );
+      }
+    },
+    onError: (error) => {
+      setStatus("error");
+      setMessage(
+        error.message ||
+          "Failed to verify email. The link may be invalid or expired.",
+      );
+    },
+  });
 
-  const resendEmailMutation = useMutation(
-    api.users.resendVerificationEmail.mutationOptions({
-      onSuccess: () => {
-        setMessage(
-          "A new verification email has been sent to your email address.",
-        );
-      },
-      onError: (error) => {
-        setMessage(error.message || "Failed to resend verification email.");
-      },
-    }),
-  );
+  const resendEmailMutation = useMutation({
+    mutationFn: async (input: { email: string; callbackUrl: string }) => {
+      const result = await sendVerificationEmail(input);
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
+    },
+    onSuccess: () => {
+      setMessage(
+        "A new verification email has been sent to your email address.",
+      );
+    },
+    onError: (error) => {
+      setMessage(error.message || "Failed to resend verification email.");
+    },
+  });
 
   const isMobileRedirect = isMobileAppRedirect(redirectUrl);
 
   useEffect(() => {
-    if (token && email) {
-      verifyEmailMutation.mutate({ token, email });
+    if (token) {
+      verifyEmailMutation.mutate(token);
     } else {
       setStatus("error");
-      setMessage("Invalid verification link. Missing token or email.");
+      setMessage("Invalid verification link. Missing token.");
     }
-  }, [token, email]);
+  }, [token]);
 
   const handleResendEmail = () => {
     if (email) {
-      resendEmailMutation.mutate({ email, redirectUrl });
+      resendEmailMutation.mutate({ email, callbackUrl: redirectUrl });
     }
   };
 

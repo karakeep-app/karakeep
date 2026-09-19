@@ -1,14 +1,14 @@
 import { TestProject } from "vitest/node";
 
+import { signUpUser } from "../utils/api";
 import { getTrpcClient } from "../utils/trpc";
 
 export async function setup({ provide }: TestProject) {
   const trpc = getTrpcClient();
-  await trpc.users.create.mutate({
+  await signUpUser({
     name: "Test User",
     email: "admin@example.com",
     password: "test1234",
-    confirmPassword: "test1234",
   });
 
   const { key } = await trpc.apiKeys.exchange.mutate({

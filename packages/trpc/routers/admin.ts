@@ -8,6 +8,7 @@ import {
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  sessions,
   subscriptions,
   users,
 } from "@karakeep/db/schema";
@@ -41,7 +42,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
-import { generatePasswordSalt, hashPassword } from "../auth";
+import { setUserPassword } from "../auth";
 import { createAdminScopedProcedure, router } from "../index";
 import { Bookmark } from "../models/bookmarks";
 import { User } from "../models/users";
@@ -521,7 +522,14 @@ export const adminAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      return await User.create(ctx, input, input.role);
+      // Users created by an admin don't need to verify their email.
+      return await User.createRaw(ctx.db, {
+        name: input.name,
+        email: input.email,
+        password: input.password,
+        role: input.role,
+        emailVerified: true,
+      });
     }),
   updateUser: adminUsersProcedure
     .input(updateUserSchema)
@@ -579,19 +587,20 @@ export const adminAppRouter = router({
           message: "Cannot reset own password",
         });
       }
-      const newSalt = generatePasswordSalt();
-      const hashedPassword = await hashPassword(input.newPassword, newSalt);
-      const result = await ctx.db
-        .update(users)
-        .set({ password: hashedPassword, salt: newSalt })
-        .where(eq(users.id, input.userId));
-
-      if (result.changes == 0) {
+      const user = await ctx.db.query.users.findFirst({
+        columns: { id: true },
+        where: eq(users.id, input.userId),
+      });
+      if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "User not found",
         });
       }
+      await setUserPassword(ctx.db, user.id, input.newPassword);
+      // Someone else might know the old password, so sign the user out
+      // everywhere.
+      await ctx.db.delete(sessions).where(eq(sessions.userId, user.id));
     }),
   getAdminNoticies: adminSystemProcedure
     .output(

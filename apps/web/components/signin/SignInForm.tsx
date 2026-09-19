@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { authOptions } from "@/server/auth";
+import { oauthProviders } from "@/server/auth";
 import { Info } from "lucide-react";
 
 import serverConfig from "@karakeep/shared/config";
@@ -16,14 +16,7 @@ import OAuthAutoRedirect from "./OAuthAutoRedirect";
 import SignInProviderButton from "./SignInProviderButton";
 
 export default async function SignInForm() {
-  const providers = authOptions.providers;
-  let providerValues;
-  if (providers) {
-    providerValues = Object.values(providers).filter(
-      // Credentials are handled manually by the sign in form
-      (p) => p.id != "credentials",
-    );
-  }
+  const providerValues = oauthProviders;
 
   return (
     <div className="w-full">

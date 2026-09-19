@@ -198,7 +198,6 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
 
                 // Sign in the user after successful account creation
                 const resp = await signIn("credentials", {
-                  redirect: false,
                   email: inviteData.email,
                   password: value.password,
                 });
