@@ -1,8 +1,8 @@
-import { GlobalSetupContext } from "vitest/node";
+import { TestProject } from "vitest/node";
 
 import { getTrpcClient } from "../utils/trpc";
 
-export async function setup({ provide }: GlobalSetupContext) {
+export async function setup({ provide }: TestProject) {
   const trpc = getTrpcClient();
   await trpc.users.create.mutate({
     name: "Test User",

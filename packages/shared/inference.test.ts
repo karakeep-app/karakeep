@@ -8,19 +8,21 @@ const capturedBodies: Record<string, unknown>[] = [];
 const tagSchema = z.object({ tags: z.array(z.string()) });
 
 vi.mock("openai", () => {
-  const OpenAIMock = vi.fn().mockImplementation(() => ({
-    chat: {
-      completions: {
-        create: vi.fn(async (body: Record<string, unknown>) => {
-          capturedBodies.push(body);
-          return {
-            choices: [{ message: { content: "{}" } }],
-            usage: { total_tokens: 1 },
-          };
-        }),
+  const OpenAIMock = vi.fn().mockImplementation(function () {
+    return {
+      chat: {
+        completions: {
+          create: vi.fn(async (body: Record<string, unknown>) => {
+            capturedBodies.push(body);
+            return {
+              choices: [{ message: { content: "{}" } }],
+              usage: { total_tokens: 1 },
+            };
+          }),
+        },
       },
-    },
-  }));
+    };
+  });
 
   return { default: OpenAIMock };
 });

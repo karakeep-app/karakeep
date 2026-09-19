@@ -2,7 +2,7 @@ import { execSync } from "child_process";
 import net from "net";
 import path from "path";
 import { fileURLToPath } from "url";
-import type { GlobalSetupContext } from "vitest/node";
+import type { TestProject } from "vitest/node";
 
 import { waitUntil } from "../utils.js";
 
@@ -44,7 +44,7 @@ async function waitForHealthy(
   );
 }
 
-export default async function ({ provide }: GlobalSetupContext) {
+export default async function ({ provide }: TestProject) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const ingressPort = await getRandomPort();
   const adminPort = await getRandomPort();

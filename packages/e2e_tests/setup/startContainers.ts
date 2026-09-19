@@ -2,7 +2,7 @@ import { execSync } from "child_process";
 import net from "net";
 import path from "path";
 import { fileURLToPath } from "url";
-import type { GlobalSetupContext } from "vitest/node";
+import type { TestProject } from "vitest/node";
 
 import { waitUntil } from "../utils/general";
 
@@ -43,7 +43,7 @@ async function waitForAimockHealthy(
   );
 }
 
-export default async function ({ provide }: GlobalSetupContext) {
+export default async function ({ provide }: TestProject) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const karakeepPort = await getRandomPort();
   const aimockPort = await getRandomPort();

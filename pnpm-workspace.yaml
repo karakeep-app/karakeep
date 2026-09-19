@@ -53,8 +53,17 @@ minimumReleaseAgeExclude:
   ]
 
 overrides:
+  # OpenAPI's Postman converter pins both YAML parsers to vulnerable releases.
+  "openapi-to-postmanv2@6>js-yaml": 4.3.2
+  "openapi-to-postmanv2@6>yaml": 1.10.3
+  # The current OpenTelemetry exporters pin older 2.x core versions exactly.
+  "@opentelemetry/core@>=2.0.0 <2.8.0": 2.8.0
+  # refractor 3 restricts prismjs to ~1.27.0.
+  "refractor@3>prismjs": 1.30.0
+  # Docusaurus's webpack plugins require v6. v7 keeps the API and needs Node 20+.
+  "serialize-javascript@>=6.0.0 <7.0.5": 7.0.5
   i18next-fs-backend: 2.6.6
-  shell-quote: 1.8.4
+  shell-quote: 1.9.0
   # React Native vendors a renderer built against one exact React version and
   # asserts on it at runtime, so the whole workspace has to agree. React's
   # experimental types also contain unique symbols, so separate @types/react

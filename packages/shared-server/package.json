@@ -24,7 +24,7 @@
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
