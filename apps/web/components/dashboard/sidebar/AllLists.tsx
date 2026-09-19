@@ -140,13 +140,13 @@ function DroppableListSidebarItem({
           <Button size="none" variant="ghost" className="relative">
             <MoreHorizontal
               className={cn(
-                "absolute inset-0 m-auto size-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100",
+                "group-hover:opacity-100 absolute inset-0 m-auto size-4 opacity-0 transition-opacity duration-100",
                 selectedListId == node.item.id ? "opacity-100" : "opacity-0",
               )}
             />
             <span
               className={cn(
-                "px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100 group-hover:opacity-0",
+                "group-hover:opacity-0 px-2.5 text-xs font-light text-muted-foreground opacity-100 transition-opacity duration-100",
                 selectedListId == node.item.id || numBookmarks === undefined
                   ? "opacity-0"
                   : "opacity-100",

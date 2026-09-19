@@ -93,7 +93,7 @@ export const TagPill = React.memo(function TagPill({
         <Button
           size="none"
           variant="secondary"
-          className="-translate-1/2 absolute -right-1 -top-1 hidden rounded-full group-hover:block"
+          className="-translate-1/2 group-hover:block absolute -right-1 -top-1 hidden rounded-full"
           onClick={() => onOpenDialog({ id, name })}
         >
           <X className="size-3" />

@@ -111,7 +111,7 @@ function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
   if (!owner) return null;
 
   return (
-    <div className="absolute right-2 top-2 z-40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+    <div className="group-hover:opacity-100 absolute right-2 top-2 z-40 opacity-0 transition-opacity duration-200">
       <BookmarkOwnerIcon ownerName={owner.name} ownerAvatar={owner.image} />
     </div>
   );
@@ -194,7 +194,7 @@ function DragHandle({
       draggable
       onDragStart={handleDragStart}
       className={cn(
-        "absolute z-40 hidden cursor-grab rounded bg-background/70 p-0.5 opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100 [@media(pointer:fine)]:block",
+        "group-hover:opacity-100 absolute z-40 hidden cursor-grab rounded bg-background/70 p-0.5 opacity-0 shadow-sm transition-opacity duration-200 [@media(pointer:fine)]:block",
         className,
       )}
     >
@@ -242,7 +242,7 @@ function HoverActionBar({
         inline ? "shrink-0" : "absolute right-2 top-2",
         isBulkEditEnabled
           ? "pointer-events-auto flex opacity-100"
-          : "pointer-events-none hidden opacity-0 group-hover:opacity-100 [@media(pointer:fine)]:pointer-events-auto [@media(pointer:fine)]:flex",
+          : "group-hover:opacity-100 pointer-events-none hidden opacity-0 [@media(pointer:fine)]:pointer-events-auto [@media(pointer:fine)]:flex",
       )}
     >
       <button
