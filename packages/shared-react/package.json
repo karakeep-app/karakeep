@@ -15,6 +15,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.501.0",
+    "pdfjs-dist": "^4.10.38",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.1"
   },

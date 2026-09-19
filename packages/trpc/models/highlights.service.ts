@@ -1,7 +1,9 @@
 import { TRPCError } from "@trpc/server";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
+import { assets } from "@karakeep/db/schema";
 import {
   zHighlightSchema,
   zNewHighlightSchema,
@@ -18,7 +20,7 @@ type Highlight = z.infer<typeof zHighlightSchema>;
 export class HighlightsService {
   private repo: HighlightsRepo;
 
-  constructor(db: DB) {
+  constructor(private db: DB) {
     this.repo = new HighlightsRepo(db);
   }
 
@@ -37,6 +39,21 @@ export class HighlightsService {
     actor: Actor,
     input: z.infer<typeof zNewHighlightSchema>,
   ): Promise<Highlight> {
+    if (input.pdfLocation) {
+      const asset = await this.db.query.assets.findFirst({
+        where: and(
+          eq(assets.id, input.pdfLocation.assetId),
+          eq(assets.bookmarkId, input.bookmarkId),
+          eq(assets.userId, actorUserId(actor)),
+        ),
+      });
+      if (!asset || asset.contentType !== "application/pdf") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "PDF asset does not belong to this bookmark",
+        });
+      }
+    }
     return await this.repo.create(actorUserId(actor), input);
   }
 
