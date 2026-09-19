@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
+import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -28,9 +29,12 @@ import { SettingsSection } from "./SettingsPage";
 export function ChangePassword() {
   const api = useTRPC();
   const { t } = useTranslation();
+  const clientConfig = useClientConfig();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const isPasswordAuthDisabled = clientConfig.auth.disablePasswordAuth;
+
   const form = useForm<z.infer<typeof zChangePasswordSchema>>({
     resolver: zodResolver(zChangePasswordSchema),
     defaultValues: {
@@ -67,6 +71,10 @@ export function ChangePassword() {
       currentPassword: value.currentPassword,
       newPassword: value.newPassword,
     });
+  }
+
+  if (isPasswordAuthDisabled) {
+    return null;
   }
 
   return (
