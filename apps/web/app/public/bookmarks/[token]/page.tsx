@@ -60,5 +60,8 @@ export default async function PublicBookmarkPage(props: {
     if (e instanceof TRPCError && e.code === "NOT_FOUND") {
       notFound();
     }
+    // Anything else is not a missing share. Let it reach the error boundary
+    // rather than returning nothing from the component.
+    throw e;
   }
 }
