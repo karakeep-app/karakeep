@@ -319,7 +319,7 @@
     },
     "webhooks": {
       "webhooks": "Webhooks",
-      "description": "You can use webhooks to trigger actions when bookmarks are created, changed or crawled.",
+      "description": "You can use webhooks to trigger actions when bookmarks are created, changed or crawled, or from a rule.",
       "events": {
         "title": "Events",
         "crawled": "Crawled",
@@ -334,7 +334,8 @@
       "create_webhook": "Create Webhook",
       "delete_webhook_confirmation": "Are you sure you want to delete this webhook?",
       "edit_webhook": "Edit Webhook",
-      "webhook_url": "Webhook URL"
+      "webhook_url": "Webhook URL",
+      "no_events_rules_only": "No events (rules only)"
     },
     "import": {
       "import_export": "Import / Export",
@@ -514,7 +515,8 @@
         "remove_from_list": "Remove from List",
         "download_full_page_archive": "Download Full Page Archive",
         "favourite_bookmark": "Favorite Bookmark",
-        "archive_bookmark": "Archive Bookmark"
+        "archive_bookmark": "Archive Bookmark",
+        "trigger_webhook": "Trigger Webhook"
       },
       "events_types": {
         "bookmark_added": "A bookmark is added",
@@ -524,7 +526,10 @@
         "removed_from_list": "A bookmark is removed from this list",
         "favourited": "A bookmark is favorited",
         "archived": "A bookmark is archived"
-      }
+      },
+      "select_a_webhook": "Select a webhook",
+      "no_webhooks_configured": "You don't have any webhooks configured yet.",
+      "failed_to_load_webhooks": "Failed to load webhooks."
     },
     "stats": {
       "usage_statistics": "Usage Statistics",

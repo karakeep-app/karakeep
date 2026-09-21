@@ -11,8 +11,10 @@ import {
 } from "@karakeep/shared/types/rules";
 
 import { AuthedContext, createScopedAuthedProcedure, router } from "../index";
+import { actorFromContext } from "../lib/actor";
 import { List } from "../models/lists";
 import { RuleEngineRuleModel } from "../models/rules";
+import { WebhooksService } from "../models/webhooks.service";
 
 const rulesProcedure = createScopedAuthedProcedure("rules");
 
@@ -29,7 +31,7 @@ const ensureRuleOwnership = experimental_trpcMiddleware<{
   });
 });
 
-const ensureTagListOwnership = experimental_trpcMiddleware<{
+const ensureReferencesOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
   input: Omit<RuleEngineRule, "id">;
 }>().create(async (opts) => {
@@ -77,9 +79,16 @@ const ensureTagListOwnership = experimental_trpcMiddleware<{
     ),
   ];
 
-  const [_tags, _lists] = await Promise.all([
+  const webhookIds = opts.input.actions.flatMap((a) =>
+    a.type == "triggerWebhook" ? [a.webhookId] : [],
+  );
+  const webhooksService = new WebhooksService(opts.ctx.db);
+  const actor = actorFromContext(opts.ctx);
+
+  const [_tags, _lists, _webhooks] = await Promise.all([
     validateTags(),
     Promise.all(listIds.map((l) => List.fromId(opts.ctx, l))),
+    Promise.all(webhookIds.map((w) => webhooksService.get(actor, w))),
   ]);
   return opts.next();
 });
@@ -88,7 +97,7 @@ export const rulesAppRouter = router({
   create: rulesProcedure
     .input(zNewRuleEngineRuleSchema)
     .output(zRuleEngineRuleSchema)
-    .use(ensureTagListOwnership)
+    .use(ensureReferencesOwnership)
     .mutation(async ({ input, ctx }) => {
       const newRule = await RuleEngineRuleModel.create(ctx, input);
       return newRule.rule;
@@ -97,7 +106,7 @@ export const rulesAppRouter = router({
     .input(zUpdateRuleEngineRuleSchema)
     .output(zRuleEngineRuleSchema)
     .use(ensureRuleOwnership)
-    .use(ensureTagListOwnership)
+    .use(ensureReferencesOwnership)
     .mutation(async ({ ctx, input }) => {
       await ctx.rule.update(input);
       return ctx.rule.rule;
