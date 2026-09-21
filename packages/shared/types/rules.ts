@@ -198,6 +198,11 @@ const zArchiveBookmarkAction = z.object({
   type: z.literal("archiveBookmark"),
 });
 
+const zTriggerWebhookAction = z.object({
+  type: z.literal("triggerWebhook"),
+  webhookId: z.string(),
+});
+
 export const zRuleEngineActionSchema = z.discriminatedUnion("type", [
   zAddTagAction,
   zRemoveTagAction,
@@ -206,6 +211,7 @@ export const zRuleEngineActionSchema = z.discriminatedUnion("type", [
   zDownloadFullPageArchiveAction,
   zFavouriteBookmarkAction,
   zArchiveBookmarkAction,
+  zTriggerWebhookAction,
 ]);
 export type RuleEngineAction = z.infer<typeof zRuleEngineActionSchema>;
 
@@ -360,6 +366,16 @@ const ruleValidaitorFn = (
             code: "custom",
             message: "You must specify a list for this action type",
             path: ["actions", "listId"],
+          });
+          return false;
+        }
+        return true;
+      case "triggerWebhook":
+        if (action.webhookId.length == 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: "You must specify a webhook for this action type",
+            path: ["actions", "webhookId"],
           });
           return false;
         }

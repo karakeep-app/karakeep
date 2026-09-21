@@ -120,6 +120,8 @@ export class RuleEngineRuleModel {
                 action.type === "addTag" || action.type === "removeTag"
                   ? action.tagId
                   : null,
+              webhookId:
+                action.type === "triggerWebhook" ? action.webhookId : null,
             })),
           )
           .run();
@@ -182,6 +184,8 @@ export class RuleEngineRuleModel {
                 action.type === "addTag" || action.type === "removeTag"
                   ? action.tagId
                   : null,
+              webhookId:
+                action.type === "triggerWebhook" ? action.webhookId : null,
             })),
           )
           .run();

@@ -22,15 +22,17 @@ export const zWebhookSchema = z.object({
 
 export type ZWebhook = z.infer<typeof zWebhookSchema>;
 
+// An empty list of events is allowed: such a webhook is never delivered to by
+// the automatic events, only when a rule engine action explicitly targets it.
 export const zNewWebhookSchema = z.object({
   url: z.string().max(MAX_WEBHOOK_URL_LENGTH).url(),
-  events: z.array(zWebhookEventSchema).min(1),
+  events: z.array(zWebhookEventSchema),
   token: z.string().max(MAX_WEBHOOK_TOKEN_LENGTH).optional(),
 });
 
 export const zUpdateWebhookSchema = z.object({
   webhookId: z.string(),
   url: z.string().max(MAX_WEBHOOK_URL_LENGTH).url().optional(),
-  events: z.array(zWebhookEventSchema).min(1).optional(),
+  events: z.array(zWebhookEventSchema).optional(),
   token: z.string().max(MAX_WEBHOOK_TOKEN_LENGTH).nullish(),
 });
