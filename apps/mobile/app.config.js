@@ -96,6 +96,8 @@ export default {
         {
           photosPermission:
             "The app access your photo gallary on your request to hoard them.",
+          cameraPermission:
+            "The app accesses your camera on your request to save photos.",
         },
       ],
       [
