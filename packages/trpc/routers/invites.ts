@@ -60,6 +60,7 @@ export const invitesAppRouter = router({
         .returning();
 
       // Send invite email
+      let emailSent = true;
       try {
         await sendInviteEmail(
           input.email,
@@ -67,13 +68,14 @@ export const invitesAppRouter = router({
           ctx.user.name || "A Karakeep admin",
         );
       } catch (error) {
+        emailSent = false;
         console.error("Failed to send invite email:", error);
-        // Don't fail the invite creation if email sending fails
       }
 
       return {
         id: invite.id,
         email: invite.email,
+        emailSent,
       };
     }),
 
@@ -260,6 +262,7 @@ export const invitesAppRouter = router({
         .where(eq(invites.id, input.inviteId));
 
       // Send invite email with new token
+      let emailSent = true;
       try {
         await sendInviteEmail(
           invite.email,
@@ -267,13 +270,14 @@ export const invitesAppRouter = router({
           ctx.user.name || "A Karakeep admin",
         );
       } catch (error) {
+        emailSent = false;
         console.error("Failed to send invite email:", error);
-        // Don't fail the resend if email sending fails
       }
 
       return {
         id: invite.id,
         email: invite.email,
+        emailSent,
       };
     }),
 });

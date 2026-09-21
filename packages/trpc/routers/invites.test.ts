@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { invites, users } from "@karakeep/db/schema";
 
 import type { CustomTestContext } from "../testUtils";
+import * as emailModule from "../email";
 import { defaultBeforeEach, getApiCaller } from "../testUtils";
 
 // Mock server config with email settings
@@ -32,7 +33,11 @@ vi.mock("../email", () => ({
   sendInviteEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
-beforeEach<CustomTestContext>(defaultBeforeEach(false));
+beforeEach<CustomTestContext>(async (ctx) => {
+  await defaultBeforeEach(false)(ctx);
+  vi.mocked(emailModule.sendInviteEmail).mockReset();
+  vi.mocked(emailModule.sendInviteEmail).mockResolvedValue(undefined);
+});
 
 describe("Invites Router", () => {
   test<CustomTestContext>("admin can create invite", async ({
@@ -655,12 +660,6 @@ describe("Invites Router", () => {
     db,
     unauthedAPICaller,
   }) => {
-    // Mock the email module
-    const mockSendInviteEmail = vi.fn().mockResolvedValue(undefined);
-    vi.doMock("../email", () => ({
-      sendInviteEmail: mockSendInviteEmail,
-    }));
-
     const admin = await unauthedAPICaller.users.create({
       name: "Admin User",
       email: "admin@test.com",
@@ -674,8 +673,70 @@ describe("Invites Router", () => {
       email: "newuser@test.com",
     });
 
-    // Note: In a real test environment, we'd need to properly mock the email module
-    // This test demonstrates the structure but may not actually verify the mock call
-    // due to how the module is imported in the router
+    expect(emailModule.sendInviteEmail).toHaveBeenCalledWith(
+      "newuser@test.com",
+      expect.any(String),
+      "A Karakeep admin",
+    );
+  });
+
+  test<CustomTestContext>("create reports emailSent false when invite email cannot be sent", async ({
+    db,
+    unauthedAPICaller,
+  }) => {
+    vi.mocked(emailModule.sendInviteEmail).mockRejectedValue(
+      new Error("SMTP is not configured"),
+    );
+
+    const admin = await unauthedAPICaller.users.create({
+      name: "Admin User",
+      email: "admin@test.com",
+      password: "pass1234",
+      confirmPassword: "pass1234",
+    });
+
+    const adminCaller = getApiCaller(db, admin.id, admin.email, "admin");
+
+    const result = await adminCaller.invites.create({
+      email: "newuser@test.com",
+    });
+
+    expect(result.emailSent).toBe(false);
+    expect(result.email).toBe("newuser@test.com");
+
+    const dbInvite = await db.query.invites.findFirst({
+      where: eq(invites.email, "newuser@test.com"),
+    });
+    expect(dbInvite).toBeDefined();
+  });
+
+  test<CustomTestContext>("resend reports emailSent false when invite email cannot be sent", async ({
+    db,
+    unauthedAPICaller,
+  }) => {
+    const admin = await unauthedAPICaller.users.create({
+      name: "Admin User",
+      email: "admin@test.com",
+      password: "pass1234",
+      confirmPassword: "pass1234",
+    });
+
+    const adminCaller = getApiCaller(db, admin.id, admin.email, "admin");
+
+    const invite = await adminCaller.invites.create({
+      email: "newuser@test.com",
+    });
+    expect(invite.emailSent).toBe(true);
+
+    vi.mocked(emailModule.sendInviteEmail).mockRejectedValue(
+      new Error("SMTP is not configured"),
+    );
+
+    const result = await adminCaller.invites.resend({
+      inviteId: invite.id,
+    });
+
+    expect(result.emailSent).toBe(false);
+    expect(result.id).toBe(invite.id);
   });
 });
