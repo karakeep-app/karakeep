@@ -18,7 +18,7 @@ services:
     volumes:
       - "${SEED_SNAPSHOT_DATA_DIR:?SEED_SNAPSHOT_DATA_DIR is required}:/data"
   meilisearch:
-    image: getmeili/meilisearch:v1.41.0
+    image: getmeili/meilisearch:v1.53.2
     restart: unless-stopped
     environment:
       MEILI_NO_ANALYTICS: "true"

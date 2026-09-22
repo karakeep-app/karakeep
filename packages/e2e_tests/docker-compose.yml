@@ -26,7 +26,7 @@ services:
       EMBEDDING_ENABLE_AUTO_INDEXING: "true"
       INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
   meilisearch:
-    image: getmeili/meilisearch:v1.41.0
+    image: getmeili/meilisearch:v1.53.2
     restart: unless-stopped
     ports:
       - "${MEILI_PORT:-7700}:7700"
