@@ -13,6 +13,10 @@ import {
 import type { AssetMetadata, AssetStore } from "@karakeep/shared/assetdb";
 import { SUPPORTED_ASSET_TYPES } from "@karakeep/shared/assetdb";
 import logger from "@karakeep/shared/logger";
+import {
+  decodeS3MetadataValue,
+  encodeS3MetadataValue,
+} from "@karakeep/shared/s3MetadataEncoding";
 
 export class S3AssetStore implements AssetStore {
   constructor(
@@ -29,7 +33,7 @@ export class S3AssetStore implements AssetStore {
   ): Record<string, string> {
     return {
       ...(metadata.fileName
-        ? { "x-amz-meta-file-name": metadata.fileName }
+        ? { "x-amz-meta-file-name": encodeS3MetadataValue(metadata.fileName) }
         : {}),
       "x-amz-meta-content-type": metadata.contentType,
     };
@@ -44,7 +48,9 @@ export class S3AssetStore implements AssetStore {
 
     return {
       contentType: s3Metadata["x-amz-meta-content-type"] || "",
-      fileName: s3Metadata["x-amz-meta-file-name"] ?? null,
+      fileName: s3Metadata["x-amz-meta-file-name"]
+        ? decodeS3MetadataValue(s3Metadata["x-amz-meta-file-name"])
+        : null,
     };
   }
 
