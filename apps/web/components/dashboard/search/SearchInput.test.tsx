@@ -107,4 +107,32 @@ describe("SearchInput keyboard handling", () => {
 
     expect(onKeyDown).toHaveBeenCalledTimes(2);
   });
+
+  it("forwards keys that cmdk handles to a caller-supplied onKeyDown", () => {
+    const onKeyDown = vi.fn();
+    render(<SearchInput onKeyDown={onKeyDown} />);
+    const input = screen.getByRole("combobox");
+
+    // Both are cancelled by cmdk's root handler, but our input-level handler
+    // runs first and must not short-circuit the caller.
+    expect(fireEvent.keyDown(input, { key: "ArrowDown" })).toBe(false);
+    expect(fireEvent.keyDown(input, { key: "Enter" })).toBe(false);
+    expect(onKeyDown).toHaveBeenCalledTimes(2);
+  });
+
+  it("honours a caller preventDefault without breaking the Home/End fix", () => {
+    const onKeyDown = vi.fn((e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+      }
+    });
+    render(<SearchInput onKeyDown={onKeyDown} />);
+    const input = screen.getByRole("combobox");
+
+    // Cancelled by the caller.
+    expect(fireEvent.keyDown(input, { key: "ArrowLeft" })).toBe(false);
+    // Not cancelled by the caller, and cmdk must not cancel it either.
+    expect(fireEvent.keyDown(input, { key: "Home" })).toBe(true);
+    expect(onKeyDown).toHaveBeenCalledTimes(2);
+  });
 });
