@@ -264,7 +264,11 @@ const SearchInput = React.forwardRef<
                   className,
                 )}
                 {...props}
-                onKeyDown={handleInputKeyDown}
+                {...props}
+                onKeyDown={(e) => {
+                  props.onKeyDown?.(e);
+                  handleInputKeyDown(e);
+                }}
               />
             </div>
           </PopoverTrigger>
