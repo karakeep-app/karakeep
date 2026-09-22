@@ -96,4 +96,15 @@ describe("SearchInput keyboard handling", () => {
     expect(fireEvent.keyDown(input, { key: "ArrowDown" })).toBe(false);
     expect(fireEvent.keyDown(input, { key: "ArrowUp" })).toBe(false);
   });
+
+  it("invokes a caller-supplied onKeyDown without losing the Home/End fix", () => {
+    const onKeyDown = vi.fn();
+    render(<SearchInput onKeyDown={onKeyDown} />);
+    const input = screen.getByRole("combobox");
+
+    expect(fireEvent.keyDown(input, { key: "a" })).toBe(true);
+    expect(fireEvent.keyDown(input, { key: "Home" })).toBe(true);
+
+    expect(onKeyDown).toHaveBeenCalledTimes(2);
+  });
 });
