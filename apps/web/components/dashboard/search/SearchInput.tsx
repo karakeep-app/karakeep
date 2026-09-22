@@ -128,6 +128,18 @@ const SearchInput = React.forwardRef<
     [debounceSearch],
   );
 
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // cmdk's root handler prevents the default for Home/End to move the
+      // list selection. The search box is a text field, so let the browser
+      // move the caret (and handle shift-selection) instead.
+      if (e.key === "Home" || e.key === "End") {
+        e.stopPropagation();
+      }
+    },
+    [],
+  );
+
   const {
     suggestionGroups,
     hasSuggestions,
@@ -250,6 +262,7 @@ const SearchInput = React.forwardRef<
                   className,
                 )}
                 {...props}
+                onKeyDown={handleInputKeyDown}
               />
             </div>
           </PopoverTrigger>
