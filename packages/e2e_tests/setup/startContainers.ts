@@ -54,7 +54,7 @@ export default async function ({ provide }: GlobalSetupContext) {
   console.log(
     `Starting docker compose on ports karakeep=${karakeepPort} aimock=${aimockPort} meili=${meiliPort}...`,
   );
-  execSync(`docker compose up ${buildArg} -d`, {
+  execSync(`docker compose up ${buildArg} -d --wait --wait-timeout 60`, {
     cwd: __dirname,
     stdio: "inherit",
     env: {
@@ -93,7 +93,7 @@ export default async function ({ provide }: GlobalSetupContext) {
         "meilisearch",
         "chrome",
         "nginx",
-        "minio",
+        "garage",
         "aimock",
       ];
       for (const service of services) {

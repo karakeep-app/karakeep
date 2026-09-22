@@ -38,7 +38,7 @@ async function captureDockerLogs(composeDir: string): Promise<void> {
     // ignore
   }
 
-  const services = ["web", "meilisearch", "chrome", "nginx", "minio"];
+  const services = ["web", "meilisearch", "chrome", "nginx", "garage"];
   for (const service of services) {
     try {
       execSync(
@@ -69,7 +69,7 @@ export async function startContainers(): Promise<RunningContainers> {
   const buildArg = skipBuild ? "" : "--build";
 
   logStep(`Starting docker compose on port ${port}`);
-  execSync(`docker compose up ${buildArg} -d`, {
+  execSync(`docker compose up ${buildArg} -d --wait --wait-timeout 60`, {
     cwd: composeDir,
     stdio: "inherit",
     env: { ...process.env, KARAKEEP_PORT: String(port) },

@@ -37,18 +37,25 @@ services:
     restart: unless-stopped
     volumes:
       - ./setup/html:/usr/share/nginx/html
-  minio:
-    image: minio/minio:latest
+  garage:
+    image: dxflrs/garage:v2.3.0
     restart: unless-stopped
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:3900"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
+      # Fixed credentials for local tests only.
+      GARAGE_DEFAULT_ACCESS_KEY: GK0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_SECRET_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_BUCKET: karakeep-test
+    command: /garage server --single-node --default-bucket
     volumes:
-      - minio_data:/data
+      - ../../docker/garage/garage.toml:/etc/garage.toml:ro
+      - garage_data:/data
+    healthcheck:
+      test: ["CMD", "/garage", "bucket", "info", "karakeep-test"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
 
 volumes:
-  minio_data:
+  garage_data:
