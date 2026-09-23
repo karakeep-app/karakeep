@@ -203,6 +203,46 @@ export abstract class List {
     };
   }
 
+  // Returns the public lists around a public list. Only lists that are public
+  // themselves and owned by the same user are exposed, and the ancestor chain
+  // stops at the first non-public list so private list names never leak.
+  static async getPublicListNavigation(ctx: Context, listId: string) {
+    const listdb = await this.getPublicList(ctx, listId, /* token */ null);
+    const columns = { id: true, name: true, icon: true } as const;
+
+    const parents: { id: string; name: string; icon: string }[] = [];
+    const visited = new Set([listdb.id]);
+    let parentId = listdb.parentId;
+    while (parentId && !visited.has(parentId)) {
+      visited.add(parentId);
+      const parent = await ctx.db.query.bookmarkLists.findFirst({
+        columns: { ...columns, parentId: true },
+        where: and(
+          eq(bookmarkLists.id, parentId),
+          eq(bookmarkLists.userId, listdb.userId),
+          eq(bookmarkLists.public, true),
+        ),
+      });
+      if (!parent) {
+        break;
+      }
+      parents.unshift({ id: parent.id, name: parent.name, icon: parent.icon });
+      parentId = parent.parentId;
+    }
+
+    const children = await ctx.db.query.bookmarkLists.findMany({
+      columns,
+      where: and(
+        eq(bookmarkLists.parentId, listdb.id),
+        eq(bookmarkLists.userId, listdb.userId),
+        eq(bookmarkLists.public, true),
+      ),
+      orderBy: (lists, { asc }) => [asc(lists.name)],
+    });
+
+    return { parents, children };
+  }
+
   static async getPublicListContents(
     ctx: Context,
     listId: string,
