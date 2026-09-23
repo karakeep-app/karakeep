@@ -1,13 +1,3 @@
-################# Monolith Builder ##############
-FROM rust:1-bookworm AS monolith_builder
-
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y \
-        libssl-dev \
-        pkg-config \
-    && rm -rf /var/lib/apt/lists/* \
-    && cargo install monolith --locked
-
 ################# Base Builder ##############
 # Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
 FROM node:24.18.1-slim AS base
@@ -143,8 +133,15 @@ RUN case ${TARGETARCH} in \
 # changes to the worker. Fixes karakeep-app/karakeep#2758.
 RUN echo "--js-runtimes node" > /etc/yt-dlp.conf
 
-# Copy monolith binary from builder
-COPY --from=monolith_builder /usr/local/cargo/bin/monolith /usr/local/bin/monolith
+# Install monolith from prebuilt release binaries
+ARG MONOLITH_VERSION=v2.10.1
+RUN case ${TARGETARCH} in \
+        "amd64")  MONOLITH_FILE=monolith-gnu-linux-x86_64 ;; \
+        "arm64")  MONOLITH_FILE=monolith-gnu-linux-aarch64 ;; \
+        *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+    esac \
+    && curl -fsSL https://github.com/Y2Z/monolith/releases/download/${MONOLITH_VERSION}/${MONOLITH_FILE} -o /usr/local/bin/monolith \
+    && chmod +x /usr/local/bin/monolith
 
 ######################
 # Prepare the web app
