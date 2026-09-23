@@ -6,6 +6,9 @@ import {
   zNewBookmarkRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { zNewBookmarkListSchema } from "@karakeep/shared/types/lists";
+import { eq, sql } from "drizzle-orm";
+
+import { bookmarkLists } from "@karakeep/db/schema";
 
 import type { APICallerType, CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
@@ -1203,6 +1206,36 @@ describe("list privacy", () => {
     ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
+  test<CustomTestContext>("a failed cascade leaves the whole subtree unchanged", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child, grandchild } = await createTree(api);
+    await api.lists.edit({
+      listId: root.id,
+      public: true,
+      applyPublicToChildren: true,
+    });
+    // Make the descendant update fail midway through the cascade.
+    db.run(
+      sql.raw(`CREATE TRIGGER fail_grandchild BEFORE UPDATE OF public ON bookmarkLists
+        WHEN NEW.id = '${grandchild.id}'
+        BEGIN SELECT RAISE(ABORT, 'forced failure'); END`),
+    );
+
+    await expect(
+      api.lists.edit({
+        listId: root.id,
+        public: false,
+        applyPublicToChildren: true,
+      }),
+    ).rejects.toThrow();
+
+    expect(await isPublic(api, root.id)).toBe(true);
+    expect(await isPublic(api, child.id)).toBe(true);
+  });
+
   test<CustomTestContext>("create accepts public", async ({ apiCallers }) => {
     const api = apiCallers[0];
     const list = await api.lists.create({
@@ -1228,5 +1261,56 @@ describe("list privacy", () => {
     });
 
     expect(child.public).toBe(false);
+  });
+});
+
+describe("list hierarchy", () => {
+  test<CustomTestContext>("rejects moving a list under its own descendant", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const parent = await api.lists.create({ name: "parent", icon: "📁" });
+    const child = await api.lists.create({
+      name: "child",
+      icon: "📁",
+      parentId: parent.id,
+    });
+    const grandchild = await api.lists.create({
+      name: "grandchild",
+      icon: "📁",
+      parentId: child.id,
+    });
+
+    await expect(
+      api.lists.edit({ listId: parent.id, parentId: grandchild.id }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect((await api.lists.get({ listId: parent.id })).parentId).toBeNull();
+  });
+
+  test<CustomTestContext>("cascade terminates on an existing cycle", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const a = await api.lists.create({ name: "a", icon: "📁" });
+    const b = await api.lists.create({
+      name: "b",
+      icon: "📁",
+      parentId: a.id,
+    });
+    // Cycles can no longer be created through the API, but older data may
+    // still contain them.
+    await db
+      .update(bookmarkLists)
+      .set({ parentId: b.id })
+      .where(eq(bookmarkLists.id, a.id));
+
+    await api.lists.edit({
+      listId: a.id,
+      public: true,
+      applyPublicToChildren: true,
+    });
+
+    expect((await api.lists.get({ listId: b.id })).public).toBe(true);
   });
 });

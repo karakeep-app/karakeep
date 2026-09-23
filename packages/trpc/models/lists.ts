@@ -35,6 +35,34 @@ interface ListCollaboratorEntry {
   membershipId: string;
 }
 
+// Returns the ids of all descendants of `rootId`. The traversal tracks visited
+// lists, so a cyclic hierarchy in existing data can't make it loop forever.
+function collectDescendantIds(
+  lists: { id: string; parentId: string | null }[],
+  rootId: string,
+): string[] {
+  const childrenOf = new Map<string, string[]>();
+  for (const l of lists) {
+    if (l.parentId) {
+      childrenOf.set(l.parentId, [...(childrenOf.get(l.parentId) ?? []), l.id]);
+    }
+  }
+
+  const visited = new Set([rootId]);
+  const result: string[] = [];
+  const queue = [rootId];
+  while (queue.length > 0) {
+    for (const childId of childrenOf.get(queue.pop()!) ?? []) {
+      if (!visited.has(childId)) {
+        visited.add(childId);
+        result.push(childId);
+        queue.push(childId);
+      }
+    }
+  }
+  return result;
+}
+
 export abstract class List {
   protected constructor(
     protected ctx: AuthedContext,
@@ -641,86 +669,88 @@ export abstract class List {
     });
   }
 
-  async setPublicOnChildren(isPublic: boolean): Promise<void> {
-    this.ensureCanManage();
-    const children = await this.getChildren();
-    if (children.length === 0) {
-      return;
-    }
-    await this.ctx.db
-      .update(bookmarkLists)
-      .set({ public: isPublic })
-      .where(
-        and(
-          inArray(
-            bookmarkLists.id,
-            children.map((c) => c.id),
-          ),
-          eq(bookmarkLists.userId, this.ctx.user.id),
-        ),
-      );
-  }
-
   async getChildren(): Promise<(ManualList | SmartList)[]> {
     const lists = await List.getAllOwned(this.ctx);
     const listById = new Map(lists.map((l) => [l.id, l]));
-
-    const adjecencyList = new Map<string, string[]>();
-
-    // Initialize all lists with empty arrays first
-    lists.forEach((l) => {
-      adjecencyList.set(l.id, []);
-    });
-
-    // Then populate the parent-child relationships
-    lists.forEach((l) => {
-      const parentId = l.asZBookmarkList().parentId;
-      if (parentId) {
-        const currentChildren = adjecencyList.get(parentId) ?? [];
-        currentChildren.push(l.id);
-        adjecencyList.set(parentId, currentChildren);
-      }
-    });
-
-    const resultIds: string[] = [];
-    const queue: string[] = [this.list.id];
-
-    while (queue.length > 0) {
-      const id = queue.pop()!;
-      const children = adjecencyList.get(id) ?? [];
-      children.forEach((childId) => {
-        queue.push(childId);
-        resultIds.push(childId);
-      });
-    }
-
-    return resultIds.map((id) => listById.get(id)!);
+    const descendantIds = collectDescendantIds(
+      lists.map((l) => ({ id: l.id, parentId: l.asZBookmarkList().parentId })),
+      this.list.id,
+    );
+    return descendantIds.map((id) => listById.get(id)!);
   }
 
   async update(
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {
     this.ensureCanManage();
-    const result = await this.ctx.db
-      .update(bookmarkLists)
-      .set({
-        name: input.name,
-        description: input.description,
-        icon: input.icon,
-        parentId: input.parentId,
-        query: input.query,
-        public: input.public,
-      })
-      .where(
-        and(
-          eq(bookmarkLists.id, this.list.id),
-          eq(bookmarkLists.userId, this.ctx.user.id),
-        ),
-      )
-      .returning();
-    if (result.length == 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
+    const needsHierarchy =
+      !!input.parentId ||
+      (input.applyPublicToChildren && input.public !== undefined);
+    // The list and its descendants must change together, so everything runs
+    // in a single transaction.
+    const result = await this.ctx.db.transaction(
+      (tx) => {
+        const descendantIds = needsHierarchy
+          ? collectDescendantIds(
+              tx
+                .select({
+                  id: bookmarkLists.id,
+                  parentId: bookmarkLists.parentId,
+                })
+                .from(bookmarkLists)
+                .where(eq(bookmarkLists.userId, this.ctx.user.id))
+                .all(),
+              this.list.id,
+            )
+          : [];
+        if (input.parentId && descendantIds.includes(input.parentId)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "A list can't be moved under one of its own sub-lists",
+          });
+        }
+
+        const rows = tx
+          .update(bookmarkLists)
+          .set({
+            name: input.name,
+            description: input.description,
+            icon: input.icon,
+            parentId: input.parentId,
+            query: input.query,
+            public: input.public,
+          })
+          .where(
+            and(
+              eq(bookmarkLists.id, this.list.id),
+              eq(bookmarkLists.userId, this.ctx.user.id),
+            ),
+          )
+          .returning()
+          .all();
+        if (rows.length == 0) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        if (
+          input.applyPublicToChildren &&
+          input.public !== undefined &&
+          descendantIds.length > 0
+        ) {
+          tx.update(bookmarkLists)
+            .set({ public: input.public })
+            .where(
+              and(
+                inArray(bookmarkLists.id, descendantIds),
+                eq(bookmarkLists.userId, this.ctx.user.id),
+              ),
+            )
+            .run();
+        }
+        return rows;
+      },
+      { behavior: "immediate" },
+    );
     invariant(result[0].userId === this.ctx.user.id);
     // Fetch current collaborators to update hasCollaborators
     const collaboratorsCount =
