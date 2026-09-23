@@ -315,6 +315,10 @@
       "import_bookmarks_from_instapaper_export": "Import Bookmarks from Instapaper export",
       "import_bookmarks_from_readwise_reader_export": "Import Bookmarks from Readwise Reader export",
       "import_bookmarks_from_onetab_export": "Import Bookmarks from OneTab export",
+      "import_bookmarks_from_instagram_saved_export": "Import saved posts & reels from Instagram's data export",
+      "import_bookmarks_from_instagram_saved_export_details": "Requires your_instagram_activity/saved/saved_posts.html from your export zip. Optionally also attach saved_collections.html from the same folder to sort posts into per-collection lists alongside the main one.",
+      "import_bookmarks_from_tiktok_favorites_export": "Import favorited videos from TikTok's data export",
+      "import_bookmarks_from_tiktok_favorites_export_details": "Requires user_data_tiktok.json from your TikTok data export. Only videos under Activity > Likes and Favorites > Favorite Videos are imported — not your larger Like List.",
       "export_links_and_notes": "Export Links and Notes",
       "imported_bookmarks": "Imported Bookmarks"
     },
