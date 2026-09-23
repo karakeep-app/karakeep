@@ -16,6 +16,17 @@ const optionalStringSchema = z.preprocess(
   z.string().optional(),
 );
 
+// rss-parser normalizes both the RSS `<pubDate>` and the Atom
+// `<updated>`/`<published>` elements into `isoDate`, so we prefer it and fall
+// back to the raw `pubDate` when the normalized value is missing.
+function parseFeedDate(value: string | undefined): Date | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
 const feedItemSchema = z
   .object({
     id: optionalStringSchema,
@@ -23,10 +34,13 @@ const feedItemSchema = z
     guid: z.string().optional(),
     title: z.string().optional(),
     categories: z.array(categorySchema).optional(),
+    isoDate: optionalStringSchema,
+    pubDate: optionalStringSchema,
   })
   .transform((item) => ({
     ...item,
     guid: item.guid ?? item.id ?? item.link,
+    publishedAt: parseFeedDate(item.isoDate ?? item.pubDate),
   }));
 
 export type ParsedFeedItem = z.infer<typeof feedItemSchema>;
