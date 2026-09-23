@@ -8,15 +8,23 @@ export interface ZBookmarkListTreeNode {
 export type ZBookmarkListRoot = Record<string, ZBookmarkListTreeNode>;
 
 export function listsToTree(lists: ZBookmarkList[]) {
-  const idToList = lists.reduce<Record<string, ZBookmarkList>>((acc, list) => {
-    acc[list.id] = list;
-    return acc;
-  }, {});
+  // Sort by name upfront so that the roots, the children of every node and
+  // allPaths all end up in the same order, no matter how the lists were
+  // ordered by the caller.
+  const sortedLists = [...lists].sort((a, b) => a.name.localeCompare(b.name));
+
+  const idToList = sortedLists.reduce<Record<string, ZBookmarkList>>(
+    (acc, list) => {
+      acc[list.id] = list;
+      return acc;
+    },
+    {},
+  );
 
   const root: ZBookmarkListRoot = {};
 
   // Prepare all refs
-  const refIdx = lists.reduce<Record<string, ZBookmarkListTreeNode>>(
+  const refIdx = sortedLists.reduce<Record<string, ZBookmarkListTreeNode>>(
     (acc, l) => {
       acc[l.id] = {
         item: l,
@@ -28,7 +36,7 @@ export function listsToTree(lists: ZBookmarkList[]) {
   );
 
   // Build the tree
-  lists.forEach((list) => {
+  sortedLists.forEach((list) => {
     const node = refIdx[list.id];
     if (list.parentId) {
       refIdx[list.parentId].children.push(node);
