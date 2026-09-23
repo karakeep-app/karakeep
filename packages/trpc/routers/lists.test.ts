@@ -1119,3 +1119,114 @@ describe("Nested smart lists", () => {
     ).toBeUndefined();
   });
 });
+
+describe("list privacy", () => {
+  async function createTree(api: APICallerType) {
+    const root = await api.lists.create({ name: "root", icon: "📁" });
+    const child = await api.lists.create({
+      name: "child",
+      icon: "📁",
+      parentId: root.id,
+    });
+    const grandchild = await api.lists.create({
+      name: "grandchild",
+      icon: "📁",
+      parentId: child.id,
+    });
+    const unrelated = await api.lists.create({ name: "unrelated", icon: "📁" });
+    return { root, child, grandchild, unrelated };
+  }
+
+  async function isPublic(api: APICallerType, listId: string) {
+    return (await api.lists.get({ listId })).public;
+  }
+
+  test<CustomTestContext>("applyPublicToChildren makes all descendants public", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child, grandchild, unrelated } = await createTree(api);
+
+    await api.lists.edit({
+      listId: root.id,
+      public: true,
+      applyPublicToChildren: true,
+    });
+
+    expect(await isPublic(api, root.id)).toBe(true);
+    expect(await isPublic(api, child.id)).toBe(true);
+    expect(await isPublic(api, grandchild.id)).toBe(true);
+    expect(await isPublic(api, unrelated.id)).toBe(false);
+  });
+
+  test<CustomTestContext>("applyPublicToChildren makes all descendants private", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child, grandchild } = await createTree(api);
+    for (const list of [root, child, grandchild]) {
+      await api.lists.edit({ listId: list.id, public: true });
+    }
+    expect(await isPublic(api, grandchild.id)).toBe(true);
+
+    await api.lists.edit({
+      listId: root.id,
+      public: false,
+      applyPublicToChildren: true,
+    });
+
+    expect(await isPublic(api, root.id)).toBe(false);
+    expect(await isPublic(api, child.id)).toBe(false);
+    expect(await isPublic(api, grandchild.id)).toBe(false);
+  });
+
+  test<CustomTestContext>("changing privacy without the flag leaves descendants alone", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child } = await createTree(api);
+
+    await api.lists.edit({ listId: root.id, public: true });
+
+    expect(await isPublic(api, root.id)).toBe(true);
+    expect(await isPublic(api, child.id)).toBe(false);
+  });
+
+  test<CustomTestContext>("rejects applyPublicToChildren without public", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root } = await createTree(api);
+
+    await expect(
+      api.lists.edit({ listId: root.id, applyPublicToChildren: true }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  test<CustomTestContext>("create accepts public", async ({ apiCallers }) => {
+    const api = apiCallers[0];
+    const list = await api.lists.create({
+      name: "public",
+      icon: "📁",
+      public: true,
+    });
+
+    expect(list.public).toBe(true);
+    expect(await isPublic(api, list.id)).toBe(true);
+  });
+
+  test<CustomTestContext>("create under a public parent stays private by default", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const parent = await api.lists.create({ name: "parent", icon: "📁" });
+    await api.lists.edit({ listId: parent.id, public: true });
+    const child = await api.lists.create({
+      name: "child",
+      icon: "📁",
+      parentId: parent.id,
+    });
+
+    expect(child.public).toBe(false);
+  });
+});
