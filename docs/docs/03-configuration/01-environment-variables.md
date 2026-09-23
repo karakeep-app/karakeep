@@ -105,6 +105,7 @@ Either `OPENAI_API_KEY` or `OLLAMA_BASE_URL` need to be set for automatic taggin
 | SEMANTIC_SEARCH_ENABLED              | No       | true                    | Enables the hybrid and semantic bookmark search modes. **Experimental.** `EMBEDDING_ENABLE_AUTO_INDEXING` must also be enabled.                                                                                                                                                                                                                                                       |
 | INFERENCE_TEXT_MODEL                 | No       | gpt-5.6-luna            | The model to use for text inference. You'll need to change this to some other model if you're using ollama.                                                                                                                                                                                                                                                                           |
 | INFERENCE_IMAGE_MODEL                | No       | gpt-4o-mini             | The model to use for image inference. You'll need to change this to some other model if you're using ollama and that model needs to support vision APIs (e.g. llava).                                                                                                                                                                                                                 |
+| INFERENCE_AUDIO_MODEL                | No       | whisper-1               | The speech-to-text model used to transcribe audio (currently only Instagram videos, see `CRAWLER_INSTAGRAM_TRANSCRIBE`). OpenAI-compatible providers only; Ollama has no transcription endpoint, so transcription is skipped there. |
 | EMBEDDING_ENABLE_AUTO_INDEXING       | No       | enabled if using OpenAI | Whether bookmark embedding generation and vector indexing are enabled. This is enabled by default if you're using the default OpenAI settings (i.e. no Ollama, no OpenAI base URL override). Otherwise, you need to manually enable it after configuring the embedding model and its dimensions.      |
 | EMBEDDING_OPENAI_API_KEY             | No       | `OPENAI_API_KEY`        | The API key used for OpenAI-compatible embedding requests. If unset, embedding requests use `OPENAI_API_KEY`.                                                                                                                                                                                                                                                                          |
 | EMBEDDING_OPENAI_BASE_URL            | No       | `OPENAI_BASE_URL`       | The OpenAI-compatible API base URL used for embedding requests. If unset, embedding requests use `OPENAI_BASE_URL`.                                                                                                                                                                                                                                                                    |
@@ -158,6 +159,13 @@ Either `OPENAI_API_KEY` or `OLLAMA_BASE_URL` need to be set for automatic taggin
 | CRAWLER_ENABLE_ADBLOCKER                 | No       | true      | Whether to enable an adblocker in the crawler or not. If you're facing troubles downloading the adblocking lists on worker startup, you can disable this.                                                                                                                                                                                                                     |
 | CRAWLER_ENABLE_AUTOCONSENT               | No       | true      | Whether to automatically opt out of supported consent dialogs during browser-based crawls. When a consent management platform is detected, the crawler waits up to 3 seconds for the opt-out to finish before extracting content and capturing page assets. Set to `false` to disable this behavior.                                                                          |
 | CRAWLER_YTDLP_ARGS                       | No       | []        | Include additional yt-dlp arguments to be passed at crawl time separated by %%: https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#general-options                                                                                                                                                                                                                           |
+| CRAWLER_INSTAGRAM_ENABLED                | No       | false     | When enabled, Instagram post/reel URLs are read from Instagram's own page instead of the normal browser crawl: the caption, author, date and every image and video in the post become the bookmark's searchable content. Public posts need no cookies. yt-dlp (with any cookies in `CRAWLER_YTDLP_ARGS`) is only used as a fallback when the page carries no post data. |
+| CRAWLER_INSTAGRAM_TRANSCRIBE             | No       | false     | Transcribe the videos of an Instagram post (reels, and videos inside carousels) with the inference provider's speech-to-text (`INFERENCE_AUDIO_MODEL`). Requires ffmpeg. Costs one transcription call per video. |
+| CRAWLER_INSTAGRAM_TRANSCRIBE_MAX_DURATION_SEC | No  | 900       | Only the first N seconds of each video are transcribed, which bounds the cost of a long video. |
+| CRAWLER_INSTAGRAM_DESCRIBE_IMAGES        | No       | false     | Run each image of an Instagram post through the LLM OCR prompt (`INFERENCE_IMAGE_MODEL`) so the text on slide-style posts becomes searchable. Instagram's own alt text is always stored, with or without this flag. Costs one image inference call per image. |
+| CRAWLER_INSTAGRAM_MAX_IMAGES             | No       | 10        | Cap on the number of images per post sent to the model when `CRAWLER_INSTAGRAM_DESCRIBE_IMAGES` is on. Alt text is kept for the rest. |
+| CRAWLER_INSTAGRAM_OCR_DETAIL             | No       | low       | Vision detail for Instagram image OCR: `low`, `high` or `auto`. `low` is ~85 tokens per image and misses small text on dense slides; `high` reads them but costs roughly 10× per image. Applies to OpenAI-compatible vision APIs only; Ollama ignores it. |
+| CRAWLER_INSTAGRAM_HEADERS_JSON           | No       | Not set   | JSON object of request headers merged over the built-in browser-like set used to read Instagram pages. Lets you refresh the User-Agent / client hints without a rebuild when Instagram stops serving post data. |
 | CRAWLER_MONOLITH_TIMEOUT_SEC             | No       | 5         | How long to let monolith run when archiving the full page before timing out (in seconds). Increase this if bookmarks from slow servers frequently fail to archive. Monolith's own default is 120 seconds.                                                                                                                                                                     |
 | CRAWLER_MONOLITH_ARGS                    | No       | []        | Include additional monolith arguments to be passed when archiving a full page, separated by `%%`. For example, `--no-fonts%%--no-audio%%--no-video` to exclude web fonts, audio, and video from archives. Do not re-specify `-t`, `-b`, or `-o` as these are managed internally. See [monolith options](https://github.com/Y2Z/monolith#command-line-options).                |
 | BROWSER_COOKIE_PATH                      | No       | Not set   | Path to a JSON file containing cookies to be loaded into the browser context. The file should be an array of cookie objects, each with name and value (required), and optional fields like domain, path, expires, httpOnly, secure, and sameSite (e.g., `[{"name": "session", "value": "xxx", "domain": ".example.com"}`]).                                                   |
@@ -191,6 +199,65 @@ Example JSON file:
   }
 ]
 ```
+
+</details>
+
+<details>
+
+  <summary>Setting up Instagram text extraction (CRAWLER_INSTAGRAM_ENABLED)</summary>
+
+With `CRAWLER_INSTAGRAM_ENABLED=true`, Instagram post and reel URLs are read
+from Instagram's page rather than crawled in the browser. Instagram embeds the
+post as JSON in the page it serves to browser-like requests, so for a public
+post this needs no login and no cookies. The bookmark's content becomes:
+
+- the caption, author and date;
+- for every image in the post (including each slide of a carousel), Instagram's
+  own alt text — and, with `CRAWLER_INSTAGRAM_DESCRIBE_IMAGES=true`, the text
+  in the image read by the LLM OCR prompt;
+- with `CRAWLER_INSTAGRAM_TRANSCRIBE=true`, a transcript of every video
+  (reels, and videos inside carousels), produced by fetching the video, taking
+  its audio with ffmpeg and sending that to `INFERENCE_AUDIO_MODEL`.
+
+Both the transcription and the image description are off by default because
+each is a paid inference call per video/image.
+
+```yaml
+services:
+  karakeep:
+    environment:
+      - CRAWLER_INSTAGRAM_ENABLED=true
+      - CRAWLER_INSTAGRAM_TRANSCRIBE=true
+      - CRAWLER_INSTAGRAM_DESCRIBE_IMAGES=true
+```
+
+Posts that are not public (private accounts, login-gated content) carry no
+data on the anonymous page. For those, extraction falls back to yt-dlp, which
+can read them if you give it your session cookies:
+
+1. Log in to instagram.com in a browser and export its cookies to a
+   Netscape-format `cookies.txt` (for example with a "Get cookies.txt" browser
+   extension). Export only the `instagram.com` cookies — the file holds a live
+   session, so treat it like a password and keep it out of version control.
+2. Make the file available inside the container and point yt-dlp at it via
+   `CRAWLER_YTDLP_ARGS`. Arguments are split on `%%`, so `--cookies` and the path
+   are two separate entries:
+
+```yaml
+    environment:
+      - CRAWLER_YTDLP_ARGS=--cookies%%/cookies/instagram.txt
+    volumes:
+      - ./instagram-cookies.txt:/cookies/instagram.txt:ro
+```
+
+Notes:
+
+- yt-dlp is given a private copy of the jar on every run, so the mounted file
+  is never rewritten and can be read-only (`:ro`).
+- `--cookies-from-browser` does not work in the headless container; use a
+  `cookies.txt` file.
+- Instagram sessions expire. If the fallback starts failing, re-export the
+  cookies; using a dedicated/secondary account avoids disrupting your main login.
 
 </details>
 

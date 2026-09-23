@@ -41,6 +41,7 @@ function makeConfig(
     apiKey: "test-key",
     textModel: "test-text-model",
     imageModel: "test-image-model",
+    audioModel: "test-audio-model",
     contextLength: 2048,
     maxOutputTokens: 1024,
     useMaxCompletionTokens: false,
@@ -92,5 +93,29 @@ describe("OpenAIInferenceClient response_format", () => {
       type: "json_schema",
       json_schema: { name: "schema" },
     });
+  });
+
+  it("passes the requested image detail through to the vision call", async () => {
+    const client = new OpenAIInferenceClient(makeConfig("plain"));
+    await client.inferFromImage("p", "image/jpeg", "AAAA", {
+      schema: null,
+      imageDetail: "high",
+    });
+    const body = capturedBodies[capturedBodies.length - 1] as {
+      messages: { content: { image_url?: { detail: string } }[] }[];
+    };
+    const part = body.messages[0].content.find((c) => c.image_url);
+    expect(part?.image_url?.detail).toBe("high");
+  });
+
+  it("defaults image detail to low", async () => {
+    const client = new OpenAIInferenceClient(makeConfig("plain"));
+    await client.inferFromImage("p", "image/jpeg", "AAAA", { schema: null });
+    const body = capturedBodies[capturedBodies.length - 1] as {
+      messages: { content: { image_url?: { detail: string } }[] }[];
+    };
+    expect(
+      body.messages[0].content.find((c) => c.image_url)?.image_url?.detail,
+    ).toBe("low");
   });
 });
