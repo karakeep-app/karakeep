@@ -2047,6 +2047,7 @@ export interface operations {
           type?: "manual" | "smart";
           query?: string;
           parentId?: string | null;
+          public?: boolean;
         };
       };
     };
@@ -2180,6 +2181,7 @@ export interface operations {
           parentId?: string | null;
           query?: string;
           public?: boolean;
+          applyPublicToChildren?: boolean;
         };
       };
     };

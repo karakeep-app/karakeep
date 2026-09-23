@@ -90,6 +90,9 @@ export const listsAppRouter = router({
     .use(ensureListAtLeastOwner)
     .mutation(async ({ input, ctx }) => {
       await ctx.list.update(input);
+      if (input.applyPublicToChildren && input.public !== undefined) {
+        await ctx.list.setPublicOnChildren(input.public);
+      }
       if (input.public !== undefined) {
         logEvent({
           "event.name": "list.share",

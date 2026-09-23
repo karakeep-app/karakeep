@@ -2627,6 +2627,9 @@
                   "parentId": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "public": {
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -2815,6 +2818,9 @@
                     "minLength": 1
                   },
                   "public": {
+                    "type": "boolean"
+                  },
+                  "applyPublicToChildren": {
                     "type": "boolean"
                   }
                 }

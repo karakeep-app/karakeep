@@ -360,6 +360,7 @@ export abstract class List {
             parentId: input.parentId,
             type: input.type,
             query: input.query,
+            public: input.public,
           })
           .returning()
           .get();
@@ -691,6 +692,26 @@ export abstract class List {
       }
       this.cleanupRulesAfterListDeletion(tx);
     });
+  }
+
+  async setPublicOnChildren(isPublic: boolean): Promise<void> {
+    this.ensureCanManage();
+    const children = await this.getChildren();
+    if (children.length === 0) {
+      return;
+    }
+    await this.ctx.db
+      .update(bookmarkLists)
+      .set({ public: isPublic })
+      .where(
+        and(
+          inArray(
+            bookmarkLists.id,
+            children.map((c) => c.id),
+          ),
+          eq(bookmarkLists.userId, this.ctx.user.id),
+        ),
+      );
   }
 
   async getChildren(): Promise<(ManualList | SmartList)[]> {
