@@ -482,6 +482,7 @@
         "archive_bookmark": "Archive Bookmark",
         "skip_ai_tagging": "Skip AI Tagging"
       },
+      "skip_ai_tagging_requires_event": "Skip AI Tagging requires the Before AI tagging event. Change the event or remove this action before saving.",
       "events_types": {
         "bookmark_added": "A bookmark is added",
         "before_ai_tagging": "Before AI tagging",

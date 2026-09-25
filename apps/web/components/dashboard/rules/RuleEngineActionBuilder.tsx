@@ -18,7 +18,10 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { RuleEngineAction } from "@karakeep/shared/types/rules";
+import type {
+  RuleEngineAction,
+  RuleEngineRuleEvent,
+} from "@karakeep/shared/types/rules";
 
 import { BookmarkListSelector } from "../lists/BookmarkListSelector";
 import { TagAutocomplete } from "../tags/TagAutocomplete";
@@ -26,9 +29,14 @@ import { TagAutocomplete } from "../tags/TagAutocomplete";
 interface ActionBuilderProps {
   value: RuleEngineAction[];
   onChange: (actions: RuleEngineAction[]) => void;
+  eventType: RuleEngineRuleEvent["type"];
 }
 
-export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
+export function ActionBuilder({
+  value,
+  onChange,
+  eventType,
+}: ActionBuilderProps) {
   const { t } = useTranslation();
   const handleAddAction = () => {
     onChange([...value, { type: "addTag", tagId: "" }]);
@@ -157,7 +165,10 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
                       <SelectItem value="archiveBookmark">
                         {t("settings.rules.actions_types.archive_bookmark")}
                       </SelectItem>
-                      <SelectItem value="skipAiTagging">
+                      <SelectItem
+                        value="skipAiTagging"
+                        disabled={eventType !== "beforeAiTagging"}
+                      >
                         {t("settings.rules.actions_types.skip_ai_tagging")}
                       </SelectItem>
                     </SelectContent>

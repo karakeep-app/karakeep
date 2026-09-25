@@ -93,6 +93,9 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
   });
 
   const [editedRule, setEditedRule] = useState<typeof rule>({ ...rule });
+  const hasIncompatibleSkipAction =
+    editedRule.event.type !== "beforeAiTagging" &&
+    editedRule.actions.some((action) => action.type === "skipAiTagging");
 
   useEffect(() => {
     setEditedRule({ ...rule });
@@ -112,6 +115,7 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (hasIncompatibleSkipAction) return;
     const rule = editedRule;
     if (rule.id) {
       updateRule({
@@ -184,7 +188,13 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
             <ActionBuilder
               value={editedRule.actions}
               onChange={handleActionsChange}
+              eventType={editedRule.event.type}
             />
+            {hasIncompatibleSkipAction && (
+              <p role="alert" className="text-sm text-destructive">
+                {t("settings.rules.skip_ai_tagging_requires_event")}
+              </p>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
@@ -192,7 +202,11 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
               <X className="mr-2 h-4 w-4" />
               {t("actions.cancel")}
             </Button>
-            <ActionButton loading={isCreating || isUpdating} type="submit">
+            <ActionButton
+              loading={isCreating || isUpdating}
+              type="submit"
+              disabled={hasIncompatibleSkipAction}
+            >
               <Save className="mr-2 h-4 w-4" />
               {t("settings.rules.save_rule")}
             </ActionButton>
