@@ -479,10 +479,12 @@
         "remove_from_list": "Remove from List",
         "download_full_page_archive": "Download Full Page Archive",
         "favourite_bookmark": "Favourite Bookmark",
-        "archive_bookmark": "Archive Bookmark"
+        "archive_bookmark": "Archive Bookmark",
+        "skip_ai_tagging": "Skip AI Tagging"
       },
       "events_types": {
         "bookmark_added": "A bookmark is added",
+        "before_ai_tagging": "Before AI tagging",
         "tag_added": "This tag is added to a bookmark",
         "tag_removed": "This tag is removed from a bookmark",
         "added_to_list": "A bookmark is added to this list",

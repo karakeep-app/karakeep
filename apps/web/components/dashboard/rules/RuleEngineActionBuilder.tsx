@@ -68,6 +68,9 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
       case "archiveBookmark":
         newActions[index] = { type: "archiveBookmark" };
         break;
+      case "skipAiTagging":
+        newActions[index] = { type: "skipAiTagging" };
+        break;
       default: {
         const _exhaustiveCheck: never = type;
         return null;
@@ -153,6 +156,9 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
                       </SelectItem>
                       <SelectItem value="archiveBookmark">
                         {t("settings.rules.actions_types.archive_bookmark")}
+                      </SelectItem>
+                      <SelectItem value="skipAiTagging">
+                        {t("settings.rules.actions_types.skip_ai_tagging")}
                       </SelectItem>
                     </SelectContent>
                   </Select>
