@@ -4,6 +4,13 @@ services:
       dockerfile: docker/Dockerfile
       context: ../../
       target: aio
+      # Reuse the layers (deps install, monolith, ...) that the docker workflow
+      # pushes from main. The checked-out source is still what gets built; only
+      # unchanged layers are reused. The cache is public so that it's readable
+      # without credentials (e.g. from fork PRs). If it's unavailable, buildkit
+      # just warns and builds from scratch.
+      cache_from:
+        - type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:aio-amd64
     restart: unless-stopped
     ports:
       - "${KARAKEEP_PORT:-3000}:3000"
