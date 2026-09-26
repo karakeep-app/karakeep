@@ -98,3 +98,7 @@ Go to the [quick sharing page](../04-using-karakeep/quick-sharing.md) to install
 Edit the `KARAKEEP_VERSION` variable in the `kustomization.yaml` file and run `make clean deploy`.
 
 If you have chosen `release` as the image tag you can also destroy the web pod, since the deployment has an ImagePullPolicy set to always the pod always pulls the image from the registry, this way we can ensure that the newest release image is pulled.
+
+:::warning
+Existing installs only: if your Meilisearch PVC was created with `v1.41.0` or older, the new image will refuse to open it until a one-time migration is run. See the [Upgrading Meilisearch](../06-administration/10-meilisearch-upgrade.md) guide before redeploying.
+:::
