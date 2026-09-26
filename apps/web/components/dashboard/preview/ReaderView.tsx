@@ -153,7 +153,9 @@ export default function ReaderView({
           className={className}
           style={style}
           htmlContent={cachedContent || ""}
-          highlights={highlights?.highlights ?? []}
+          highlights={
+            highlights?.highlights.filter((h) => !h.pdfLocation) ?? []
+          }
           readOnly={readOnly}
           onDeleteHighlight={(h) =>
             deleteHighlight({
