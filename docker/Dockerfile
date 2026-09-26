@@ -55,23 +55,36 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-# Build the db migration script
+# Each app is built in its own stage so that images only build the apps they
+# ship (e.g. the cli image doesn't compile the web app) and BuildKit can build
+# them in parallel.
+
+################# DB Migrations Builder ##############
+FROM base AS db_migrations_builder
+
 RUN cd packages/db && \
     pnpm exec ncc build migrate.ts -o /db_migrations && \
     cp -R drizzle /db_migrations
 
+################# Web Builder ##############
+FROM base AS web_builder
 
-# Compile the web app
 RUN (cd apps/web && pnpm exec next build --experimental-build-mode compile)
 
-# Build the worker code
+################# Workers Builder ##############
+FROM base AS workers_builder
+
 RUN (cd apps/workers && pnpm --config.verify-deps-before-run=false build)
 RUN CI=true pnpm deploy --node-linker=isolated --legacy --filter @karakeep/workers --prod /prod/workers
 
-# Build the cli
+################# CLI Builder ##############
+FROM base AS cli_builder
+
 RUN (cd apps/cli && pnpm --config.verify-deps-before-run=false build)
 
-# Build the mcp server
+################# MCP Builder ##############
+FROM base AS mcp_builder
+
 RUN (cd apps/mcp && pnpm --config.verify-deps-before-run=false build)
 
 ################# The All-in-one builder ##############
@@ -154,21 +167,21 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NEXTAUTH_URL_INTERNAL=http://localhost:${PORT}
 
-COPY --from=base --chown=node:node /app/apps/web/.next/standalone ./
-COPY --from=base /app/apps/web/public ./apps/web/public
-COPY --from=base /db_migrations /db_migrations
+COPY --from=web_builder --chown=node:node /app/apps/web/.next/standalone ./
+COPY --from=web_builder /app/apps/web/public ./apps/web/public
+COPY --from=db_migrations_builder /db_migrations /db_migrations
 
 # Set the correct permission for prerender cache
 RUN mkdir -p ./apps/web/.next && chown node:node ./apps/web/.next
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=base --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=web_builder --chown=node:node /app/apps/web/.next/static ./apps/web/.next/static
 
 ######################
 # Prepare the workers app
 ######################
-COPY --from=base /prod/workers /app/apps/workers
+COPY --from=workers_builder /prod/workers /app/apps/workers
 
 ENTRYPOINT ["/init"]
 
@@ -209,7 +222,7 @@ FROM node:24.18.1-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
-COPY --from=base /app/apps/cli/dist/index.mjs apps/cli/index.mjs
+COPY --from=cli_builder /app/apps/cli/dist/index.mjs apps/cli/index.mjs
 
 WORKDIR /app/apps/cli
 
@@ -225,7 +238,7 @@ FROM node:24.18.1-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
-COPY --from=base /app/apps/mcp/dist/index.js apps/mcp/index.js
+COPY --from=mcp_builder /app/apps/mcp/dist/index.js apps/mcp/index.js
 
 WORKDIR /app/apps/mcp
 

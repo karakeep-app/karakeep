@@ -84,6 +84,11 @@ jobs:
         working-directory: packages/e2e_tests
         run: pnpm exec playwright install --with-deps chromium
 
+      # The default docker driver can't import the registry build cache that
+      # the e2e docker-compose file uses, so build with a buildx builder.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
       - name: E2E Tests
         working-directory: packages/e2e_tests
         run: pnpm test
