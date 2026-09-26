@@ -24,6 +24,7 @@ import {
   bookmarks,
   bookmarksInLists,
   bookmarkTags,
+  highlights,
   rssFeedImportsTable,
   rssFeedsTable,
   tagsOnBookmarks,
@@ -346,6 +347,41 @@ async function getIds(
           and(
             eq(bookmarks.userId, userId),
             eq(bookmarks.favourited, matcher.favourited),
+          ),
+        );
+    }
+    case "hasNotes": {
+      return db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            matcher.hasNotes
+              ? and(isNotNull(bookmarks.note), ne(bookmarks.note, ""))
+              : or(isNull(bookmarks.note), eq(bookmarks.note, "")),
+          ),
+        );
+    }
+    case "hasHighlights": {
+      const comp = matcher.hasHighlights ? exists : notExists;
+      return db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            comp(
+              db
+                .select()
+                .from(highlights)
+                .where(
+                  and(
+                    eq(highlights.bookmarkId, bookmarks.id),
+                    eq(highlights.userId, userId),
+                  ),
+                ),
+            ),
           ),
         );
     }
