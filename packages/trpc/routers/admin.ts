@@ -766,6 +766,7 @@ export const adminAppRouter = router({
           BookmarkTypes.LINK,
           BookmarkTypes.TEXT,
           BookmarkTypes.ASSET,
+          BookmarkTypes.COLLECTION,
         ]),
         source: z
           .enum([

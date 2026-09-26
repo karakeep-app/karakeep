@@ -4,7 +4,7 @@ import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
-import { bookmarks } from "@karakeep/db/schema";
+import { bookmarks, imageCollectionItems } from "@karakeep/db/schema";
 import {
   addLogFields,
   OpenAIQueue,
@@ -36,6 +36,42 @@ async function attemptMarkStatus(
         ...(request.type === "tag" ? { taggingStatus: status } : {}),
       })
       .where(eq(bookmarks.id, request.bookmarkId));
+
+    if (request.type === "tag") {
+      const collectionId =
+        request.collectionId ??
+        (
+          await db.query.imageCollectionItems.findFirst({
+            where: eq(imageCollectionItems.bookmarkId, request.bookmarkId),
+            columns: { collectionId: true },
+          })
+        )?.collectionId;
+
+      if (collectionId) {
+        const childStatuses = await db
+          .select({ taggingStatus: bookmarks.taggingStatus })
+          .from(imageCollectionItems)
+          .innerJoin(
+            bookmarks,
+            eq(bookmarks.id, imageCollectionItems.bookmarkId),
+          )
+          .where(eq(imageCollectionItems.collectionId, collectionId));
+        const statuses = childStatuses.map((child) => child.taggingStatus);
+        const collectionStatus = statuses.includes("pending")
+          ? "pending"
+          : statuses.includes("failure")
+            ? "failure"
+            : statuses.length > 0 &&
+                statuses.every((childStatus) => childStatus === "success")
+              ? "success"
+              : null;
+
+        await db
+          .update(bookmarks)
+          .set({ taggingStatus: collectionStatus })
+          .where(eq(bookmarks.id, collectionId));
+      }
+    }
   } catch (e) {
     logger.error(`Something went wrong when marking the tagging status: ${e}`);
   }

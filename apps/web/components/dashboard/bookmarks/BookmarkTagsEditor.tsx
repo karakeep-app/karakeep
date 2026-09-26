@@ -7,25 +7,30 @@ import { TagsEditor } from "./TagsEditor";
 
 export function BookmarkTagsEditor({
   bookmark,
+  collectionId,
   disabled,
 }: {
   bookmark: ZBookmark;
+  collectionId?: string;
   disabled?: boolean;
 }) {
-  const { mutate } = useUpdateBookmarkTags({
-    onSuccess: () => {
-      toast({
-        description: "Tags has been updated!",
-      });
+  const { mutate } = useUpdateBookmarkTags(
+    {
+      onSuccess: () => {
+        toast({
+          description: "Tags has been updated!",
+        });
+      },
+      onError: () => {
+        toast({
+          variant: "destructive",
+          title: "Something went wrong",
+          description: "There was a problem with your request.",
+        });
+      },
     },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Something went wrong",
-        description: "There was a problem with your request.",
-      });
-    },
-  });
+    collectionId,
+  );
 
   return (
     <TagsEditor
