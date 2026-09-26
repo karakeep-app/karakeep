@@ -106,6 +106,11 @@ export default {
             targetSdkVersion: 36,
             ndkVersion: "27.1.12297006",
           },
+          ios: {
+            // Apps built with the iOS 27 SDK (Xcode 27) must use the UIScene
+            // lifecycle. Can be removed on SDK 58+, where it's the default.
+            enableSceneSupport: true,
+          },
         },
       ],
       "expo-sharing",
