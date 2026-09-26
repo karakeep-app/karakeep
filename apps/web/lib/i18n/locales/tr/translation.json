@@ -63,6 +63,7 @@
     "download_full_page_archive": "Tüm Sayfa Arşivini İndir",
     "edit_tags": "Etiketleri Düzenle",
     "add_to_list": "Listeye Ekle",
+    "select": "Seç",
     "select_all": "Tümünü Seç",
     "unselect_all": "Seçimi Kaldır",
     "copy_link": "Bağlantıyı Kopyala",
@@ -939,6 +940,9 @@
     "view_original": "Orijinali Görüntüle",
     "cached_content": "Önbelleğe Alınmış İçerik",
     "reader_view": "Okuyucu Görünümü",
+    "page_overview": "Sayfaya Genel Bakış",
+    "try_reader_view": "Okuyucu Görünümünü Dene",
+    "archived_page": "Arşivlenmiş Sayfa",
     "tabs": {
       "content": "İçerik",
       "details": "Ayrıntılar"
