@@ -77,7 +77,7 @@ function useFocusSearchOnKeyPress(
 const SearchInput = React.forwardRef<
   HTMLInputElement,
   React.HTMLAttributes<HTMLInputElement> & { loading?: boolean }
->(({ className, ...props }, ref) => {
+>(({ className, onKeyDown, ...props }, ref) => {
   const { t } = useTranslation();
   const { semanticSearchEnabled } = useClientConfig().search;
   const {
@@ -126,6 +126,20 @@ const SearchInput = React.forwardRef<
       debounceSearch(target.value);
     },
     [debounceSearch],
+  );
+
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Let callers handle the event first, then apply our Home/End fix.
+      onKeyDown?.(e);
+      // cmdk's root handler prevents the default for Home/End to move the
+      // list selection. The search box is a text field, so let the browser
+      // move the caret (and handle shift-selection) instead.
+      if (e.key === "Home" || e.key === "End") {
+        e.stopPropagation();
+      }
+    },
+    [onKeyDown],
   );
 
   const {
@@ -250,6 +264,7 @@ const SearchInput = React.forwardRef<
                   className,
                 )}
                 {...props}
+                onKeyDown={handleInputKeyDown}
               />
             </div>
           </PopoverTrigger>
