@@ -8,6 +8,29 @@ const zHighlightColorSchema = z.enum(["yellow", "red", "green", "blue"]);
 export type ZHighlightColor = z.infer<typeof zHighlightColorSchema>;
 export const SUPPORTED_HIGHLIGHT_COLORS = zHighlightColorSchema.options;
 
+export const zHighlightContentSchema = z.object({
+  version: z.literal(1),
+  parts: z
+    .array(
+      z.discriminatedUnion("type", [
+        z.object({ type: z.literal("text"), text: z.string() }),
+        z.object({
+          type: z.literal("image"),
+          index: z.number().int().nonnegative(),
+          src: z
+            .url()
+            .refine(
+              (url) => /^https?:\/\//i.test(url),
+              "Expected an HTTP(S) image URL",
+            ),
+          alt: z.string(),
+        }),
+      ]),
+    )
+    .max(1000),
+});
+export type ZHighlightContent = z.infer<typeof zHighlightContentSchema>;
+
 const zHighlightBaseSchema = z.object({
   bookmarkId: z.string(),
   startOffset: z.number(),
@@ -15,6 +38,8 @@ const zHighlightBaseSchema = z.object({
   color: zHighlightColorSchema.default("yellow"),
   text: z.string().nullable(),
   note: z.string().nullable(),
+  // Older clients can continue using text without understanding rich content.
+  content: zHighlightContentSchema.nullish(),
 });
 
 export const zHighlightSchema = zHighlightBaseSchema.extend(
