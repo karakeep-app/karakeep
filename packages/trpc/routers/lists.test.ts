@@ -6,6 +6,9 @@ import {
   zNewBookmarkRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import { zNewBookmarkListSchema } from "@karakeep/shared/types/lists";
+import { eq, sql } from "drizzle-orm";
+
+import { bookmarkLists } from "@karakeep/db/schema";
 
 import type { APICallerType, CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
@@ -1117,5 +1120,197 @@ describe("Nested smart lists", () => {
     expect(
       bookmarksInSmartList.bookmarks.find((b) => b.id === bookmark2.id),
     ).toBeUndefined();
+  });
+});
+
+describe("list privacy", () => {
+  async function createTree(api: APICallerType) {
+    const root = await api.lists.create({ name: "root", icon: "📁" });
+    const child = await api.lists.create({
+      name: "child",
+      icon: "📁",
+      parentId: root.id,
+    });
+    const grandchild = await api.lists.create({
+      name: "grandchild",
+      icon: "📁",
+      parentId: child.id,
+    });
+    const unrelated = await api.lists.create({ name: "unrelated", icon: "📁" });
+    return { root, child, grandchild, unrelated };
+  }
+
+  async function isPublic(api: APICallerType, listId: string) {
+    return (await api.lists.get({ listId })).public;
+  }
+
+  test<CustomTestContext>("applyPublicToChildren makes all descendants public", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child, grandchild, unrelated } = await createTree(api);
+
+    await api.lists.edit({
+      listId: root.id,
+      public: true,
+      applyPublicToChildren: true,
+    });
+
+    expect(await isPublic(api, root.id)).toBe(true);
+    expect(await isPublic(api, child.id)).toBe(true);
+    expect(await isPublic(api, grandchild.id)).toBe(true);
+    expect(await isPublic(api, unrelated.id)).toBe(false);
+  });
+
+  test<CustomTestContext>("applyPublicToChildren makes all descendants private", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child, grandchild } = await createTree(api);
+    for (const list of [root, child, grandchild]) {
+      await api.lists.edit({ listId: list.id, public: true });
+    }
+    expect(await isPublic(api, grandchild.id)).toBe(true);
+
+    await api.lists.edit({
+      listId: root.id,
+      public: false,
+      applyPublicToChildren: true,
+    });
+
+    expect(await isPublic(api, root.id)).toBe(false);
+    expect(await isPublic(api, child.id)).toBe(false);
+    expect(await isPublic(api, grandchild.id)).toBe(false);
+  });
+
+  test<CustomTestContext>("changing privacy without the flag leaves descendants alone", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child } = await createTree(api);
+
+    await api.lists.edit({ listId: root.id, public: true });
+
+    expect(await isPublic(api, root.id)).toBe(true);
+    expect(await isPublic(api, child.id)).toBe(false);
+  });
+
+  test<CustomTestContext>("rejects applyPublicToChildren without public", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const { root } = await createTree(api);
+
+    await expect(
+      api.lists.edit({ listId: root.id, applyPublicToChildren: true }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  test<CustomTestContext>("a failed cascade leaves the whole subtree unchanged", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const { root, child, grandchild } = await createTree(api);
+    await api.lists.edit({
+      listId: root.id,
+      public: true,
+      applyPublicToChildren: true,
+    });
+    // Make the descendant update fail midway through the cascade.
+    db.run(
+      sql.raw(`CREATE TRIGGER fail_grandchild BEFORE UPDATE OF public ON bookmarkLists
+        WHEN NEW.id = '${grandchild.id}'
+        BEGIN SELECT RAISE(ABORT, 'forced failure'); END`),
+    );
+
+    await expect(
+      api.lists.edit({
+        listId: root.id,
+        public: false,
+        applyPublicToChildren: true,
+      }),
+    ).rejects.toThrow();
+
+    expect(await isPublic(api, root.id)).toBe(true);
+    expect(await isPublic(api, child.id)).toBe(true);
+  });
+
+  test<CustomTestContext>("create accepts public", async ({ apiCallers }) => {
+    const api = apiCallers[0];
+    const list = await api.lists.create({
+      name: "public",
+      icon: "📁",
+      public: true,
+    });
+
+    expect(list.public).toBe(true);
+    expect(await isPublic(api, list.id)).toBe(true);
+  });
+
+  test<CustomTestContext>("create under a public parent stays private by default", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const parent = await api.lists.create({ name: "parent", icon: "📁" });
+    await api.lists.edit({ listId: parent.id, public: true });
+    const child = await api.lists.create({
+      name: "child",
+      icon: "📁",
+      parentId: parent.id,
+    });
+
+    expect(child.public).toBe(false);
+  });
+});
+
+describe("list hierarchy", () => {
+  test<CustomTestContext>("rejects moving a list under its own descendant", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0];
+    const parent = await api.lists.create({ name: "parent", icon: "📁" });
+    const child = await api.lists.create({
+      name: "child",
+      icon: "📁",
+      parentId: parent.id,
+    });
+    const grandchild = await api.lists.create({
+      name: "grandchild",
+      icon: "📁",
+      parentId: child.id,
+    });
+
+    await expect(
+      api.lists.edit({ listId: parent.id, parentId: grandchild.id }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect((await api.lists.get({ listId: parent.id })).parentId).toBeNull();
+  });
+
+  test<CustomTestContext>("cascade terminates on an existing cycle", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const a = await api.lists.create({ name: "a", icon: "📁" });
+    const b = await api.lists.create({
+      name: "b",
+      icon: "📁",
+      parentId: a.id,
+    });
+    // Cycles can no longer be created through the API, but older data may
+    // still contain them.
+    await db
+      .update(bookmarkLists)
+      .set({ parentId: b.id })
+      .where(eq(bookmarkLists.id, a.id));
+
+    await api.lists.edit({
+      listId: a.id,
+      public: true,
+      applyPublicToChildren: true,
+    });
+
+    expect((await api.lists.get({ listId: b.id })).public).toBe(true);
   });
 });
