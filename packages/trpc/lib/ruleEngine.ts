@@ -68,6 +68,12 @@ export interface RuleEngineEvaluationResult {
 }
 
 export class RuleEngine {
+  private skipAiTagging = false;
+
+  get shouldSkipAiTagging(): boolean {
+    return this.skipAiTagging;
+  }
+
   private constructor(
     private ctx: AuthedContext,
     private bookmark: Omit<ReturnedBookmark, "user">,
@@ -267,6 +273,10 @@ export class RuleEngine {
 
   async executeAction(action: RuleEngineAction): Promise<string> {
     switch (action.type) {
+      case "skipAiTagging": {
+        this.skipAiTagging = true;
+        return "Skipped AI tagging";
+      }
       case "addTag": {
         await this.ctx.db
           .insert(tagsOnBookmarks)

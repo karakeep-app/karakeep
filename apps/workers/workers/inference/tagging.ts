@@ -1,6 +1,9 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { getBookmarkDomain } from "network";
-import { buildImpersonatingTRPCClient } from "trpc";
+import {
+  buildImpersonatingAuthedContext,
+  buildImpersonatingTRPCClient,
+} from "trpc";
 import { z } from "zod";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
@@ -661,6 +664,25 @@ export async function runTagging(
       `[inference][${jobId}] Skipping tagging job for bookmark with id "${bookmarkId}" because user has disabled auto-tagging.`,
     );
     return;
+  }
+
+  // Evaluate synchronously: the rule queue can run after the inference queue.
+  if (
+    await RuleEngine.matchesAnyRule(bookmark.userId, [
+      { type: "beforeAiTagging" },
+    ])
+  ) {
+    const ctx = await buildImpersonatingAuthedContext(bookmark.userId);
+    const ruleEngine = await RuleEngine.forBookmark(ctx, bookmarkId);
+    if (ruleEngine) {
+      await ruleEngine.onEvent({ type: "beforeAiTagging" });
+      if (ruleEngine.shouldSkipAiTagging) {
+        logger.info(
+          `[inference][${jobId}] Skipping AI tagging for bookmark "${bookmarkId}" because a rule matched.`,
+        );
+        return;
+      }
+    }
   }
 
   // Resolve curated tag names if configured
