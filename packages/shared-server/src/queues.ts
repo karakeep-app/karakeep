@@ -293,8 +293,18 @@ export const AssetPreprocessingQueue =
 // Webhook worker
 export const zWebhookRequestSchema = z.object({
   bookmarkId: z.string(),
-  operation: z.enum(["crawled", "created", "edited", "ai tagged", "deleted"]),
+  operation: z.enum([
+    "crawled",
+    "created",
+    "edited",
+    "ai tagged",
+    "deleted",
+    "rule triggered",
+  ]),
   userId: z.string().optional(),
+  // When set, the request is delivered to this webhook only, regardless of the
+  // events it's subscribed to.
+  webhookId: z.string().optional(),
 });
 export type ZWebhookRequest = z.infer<typeof zWebhookRequestSchema>;
 export const WebhookQueue = createDeferredQueue<ZWebhookRequest>(

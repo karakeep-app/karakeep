@@ -15,6 +15,7 @@ import {
   Star,
   Tag,
   Trash2,
+  Webhook,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +23,7 @@ import type { RuleEngineAction } from "@karakeep/shared/types/rules";
 
 import { BookmarkListSelector } from "../lists/BookmarkListSelector";
 import { TagAutocomplete } from "../tags/TagAutocomplete";
+import { WebhookSelector } from "./WebhookSelector";
 
 interface ActionBuilderProps {
   value: RuleEngineAction[];
@@ -68,6 +70,9 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
       case "archiveBookmark":
         newActions[index] = { type: "archiveBookmark" };
         break;
+      case "triggerWebhook":
+        newActions[index] = { type: "triggerWebhook", webhookId: "" };
+        break;
       default: {
         const _exhaustiveCheck: never = type;
         return null;
@@ -100,6 +105,8 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
         return <Star className="h-4 w-4" />;
       case "archiveBookmark":
         return <Archive className="h-4 w-4" />;
+      case "triggerWebhook":
+        return <Webhook className="h-4 w-4" />;
       default:
         return null;
     }
@@ -154,6 +161,9 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
                       <SelectItem value="archiveBookmark">
                         {t("settings.rules.actions_types.archive_bookmark")}
                       </SelectItem>
+                      <SelectItem value="triggerWebhook">
+                        {t("settings.rules.actions_types.trigger_webhook")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -181,6 +191,19 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
                         handleActionFieldChange(index, {
                           type: action.type,
                           listId: e,
+                        })
+                      }
+                    />
+                  )}
+
+                  {action.type === "triggerWebhook" && (
+                    <WebhookSelector
+                      className="ml-2 h-8 flex-1"
+                      value={action.webhookId}
+                      onChange={(webhookId) =>
+                        handleActionFieldChange(index, {
+                          type: action.type,
+                          webhookId,
                         })
                       }
                     />

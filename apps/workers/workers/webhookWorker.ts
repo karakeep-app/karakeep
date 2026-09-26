@@ -15,6 +15,8 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
+import { shouldDeliverToWebhook } from "./utils/webhookDelivery";
+
 export class WebhookWorker {
   static async build() {
     logger.info("Starting webhook worker ...");
@@ -115,7 +117,7 @@ async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
   );
 
   const matchingWebhooks = webhooks.filter((w) =>
-    w.events.includes(job.data.operation),
+    shouldDeliverToWebhook(w, job.data),
   );
   addLogFields<"webhookWorker.run">({
     "webhook.matching_count": matchingWebhooks.length,
