@@ -493,7 +493,14 @@ export async function archiveWebpage(
           size: await getAssetSize({ userId, assetId }),
         };
       } finally {
-        await tryCatch(fs.rm(tempDir, { recursive: true, force: true }));
+        const { error: cleanupError } = await tryCatch(
+          fs.rm(tempDir, { recursive: true, force: true }),
+        );
+        if (cleanupError) {
+          logger.warn(
+            `[Crawler][${jobId}] Failed to clean up archive temporary directory: ${cleanupError.message}`,
+          );
+        }
       }
     },
   );

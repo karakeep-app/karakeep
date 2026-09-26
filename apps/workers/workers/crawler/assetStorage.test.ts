@@ -10,6 +10,7 @@ import {
   saveAssetFromFile,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
+import logger from "@karakeep/shared/logger";
 import { QuotaApproved } from "@karakeep/shared/storageQuota";
 
 import { archiveWebpage } from "./assetStorage";
@@ -108,6 +109,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   vi.unstubAllEnvs();
   await fs.rm(scratch, { recursive: true, force: true });
 });
@@ -155,6 +157,33 @@ describe("archiveWebpage temporary files", () => {
     await expect(archive()).rejects.toBe(error);
     expect(await fs.readdir(tempDir)).toEqual([]);
   });
+
+  it.each([false, true])(
+    "warns on cleanup failure without changing the result (save fails: %s)",
+    async (saveFails) => {
+      const cleanupError = new Error("permission denied");
+      const saveError = new Error("storage unavailable");
+      const remove = fs.rm;
+      vi.spyOn(fs, "rm").mockImplementation((target, options) => {
+        if (typeof target === "string" && path.dirname(target) === tempDir) {
+          return Promise.reject(cleanupError);
+        }
+        return remove(target, options);
+      });
+      if (saveFails) {
+        vi.mocked(saveAssetFromFile).mockRejectedValueOnce(saveError);
+        await expect(archive()).rejects.toBe(saveError);
+      } else {
+        await expect(archive()).resolves.toMatchObject({
+          contentType: "text/html",
+          size: 26,
+        });
+      }
+      expect(logger.warn).toHaveBeenCalledWith(
+        "[Crawler][job] Failed to clean up archive temporary directory: permission denied",
+      );
+    },
+  );
 
   it("cleans up archives rejected by the size limit", async () => {
     serverConfig.crawler.fullPageArchiveMaxSizeMb = 1 / (1024 * 1024);
