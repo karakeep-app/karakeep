@@ -79,27 +79,6 @@ Check the [configuration docs](../03-configuration/01-environment-variables.md) 
 
 Go to the [quick sharing page](../04-using-karakeep/quick-sharing.md) to install the mobile apps and the browser extensions. Those will help you hoard things faster!
 
-## Running as a non-root user
-
-The image runs fine as the built-in `node` user (uid 1000):
-
-```yaml
-services:
-  karakeep:
-    user: "1000:1000"
-```
-
-Make sure the host directory mounted at `/data` is owned by uid 1000.
-
-A different uid additionally needs `/run` owned by that user, since the s6 init writes there. With docker you can mount a tmpfs with the right owner:
-
-```yaml
-    tmpfs:
-      - /run:uid=150,gid=150,exec
-```
-
-Kubernetes has no per-volume uid option — either build a derived image with `RUN chown <uid>:<gid> /run`, or use a root init container to chown a `/run` volume.
-
 ## Updating
 
 Updating Karakeep will depend on what you used for the `KARAKEEP_VERSION` env variable.
