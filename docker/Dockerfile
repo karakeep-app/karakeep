@@ -183,6 +183,12 @@ COPY --from=web_builder --chown=node:node /app/apps/web/.next/static ./apps/web/
 ######################
 COPY --from=workers_builder /prod/workers /app/apps/workers
 
+# s6-overlay requires /run to be owned by the container user. Its init fixes
+# this at runtime via the setuid suexec helper, which Kubernetes runAsNonRoot
+# (no_new_privs), rootless docker and no-new-privileges setups deny — so bake
+# it for the node user.
+RUN chown node:node /run
+
 ENTRYPOINT ["/init"]
 
 ################# The AIO ##############
