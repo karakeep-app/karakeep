@@ -846,6 +846,10 @@ export interface components {
       /** @enum {string|null} */
       embeddingStatus: "success" | "failure" | "pending" | null;
       note?: string | null;
+      /** @description Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key. */
+      customMetadata?: {
+        [key: string]: unknown;
+      } | null;
       summary?: string | null;
       /** @enum {string|null} */
       source?:
@@ -1145,6 +1149,10 @@ export interface operations {
           archived?: boolean;
           favourited?: boolean;
           note?: string;
+          /** @description Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key. */
+          customMetadata?: {
+            [key: string]: unknown;
+          };
           summary?: string;
           /** Format: date-time */
           createdAt?: string;
@@ -1404,6 +1412,10 @@ export interface operations {
           favourited?: boolean;
           summary?: string | null;
           note?: string;
+          /** @description Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key. */
+          customMetadata?: {
+            [key: string]: unknown;
+          };
           title?: string | null;
           /** Format: date-time */
           createdAt?: string;
@@ -1446,6 +1458,10 @@ export interface operations {
             /** @enum {string|null} */
             embeddingStatus: "success" | "failure" | "pending" | null;
             note?: string | null;
+            /** @description Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key. */
+            customMetadata?: {
+              [key: string]: unknown;
+            } | null;
             summary?: string | null;
             /** @enum {string|null} */
             source?:
@@ -1584,6 +1600,10 @@ export interface operations {
             /** @enum {string|null} */
             embeddingStatus: "success" | "failure" | "pending" | null;
             note?: string | null;
+            /** @description Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key. */
+            customMetadata?: {
+              [key: string]: unknown;
+            } | null;
             summary?: string | null;
             /** @enum {string|null} */
             source?:
