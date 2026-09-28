@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,12 +41,24 @@ export default function ManageListsModal() {
     }
   };
 
+  // Radix keeps DialogContent mounted for its close animation after `open`
+  // flips to false. bookmarkId is cleared immediately at that point, so
+  // rendering content off of it directly would make the closing dialog
+  // flash empty. Keep showing the last open bookmark's content instead
+  // until the dialog is fully closed and reopened for a new one.
+  const [lastBookmarkId, setLastBookmarkId] = useState<string | null>(null);
+  useEffect(() => {
+    if (bookmarkId !== null) {
+      setLastBookmarkId(bookmarkId);
+    }
+  }, [bookmarkId]);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
-        {bookmarkId && (
+        {lastBookmarkId && (
           <ManageListsModalContent
-            bookmarkId={bookmarkId}
+            bookmarkId={lastBookmarkId}
             onDone={() => setOpen(false)}
           />
         )}
