@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,12 +46,15 @@ export default function ManageListsModal() {
   // rendering content off of it directly would make the closing dialog
   // flash empty. Keep showing the last open bookmark's content instead
   // until the dialog is fully closed and reopened for a new one.
+  //
+  // Adjusted during render (React's "store info from previous renders"
+  // pattern) rather than in a useEffect, so the render that opens the
+  // dialog - or switches it to a different bookmark - already uses the
+  // new id instead of committing one stale/empty frame first.
   const [lastBookmarkId, setLastBookmarkId] = useState<string | null>(null);
-  useEffect(() => {
-    if (bookmarkId !== null) {
-      setLastBookmarkId(bookmarkId);
-    }
-  }, [bookmarkId]);
+  if (bookmarkId !== null && bookmarkId !== lastBookmarkId) {
+    setLastBookmarkId(bookmarkId);
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
