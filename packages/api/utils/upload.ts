@@ -16,6 +16,8 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import { AuthedContext } from "@karakeep/trpc";
 
+import { sanitizeUploadFileName } from "./fileName";
+
 const MAX_UPLOAD_SIZE_BYTES = serverConfig.maxAssetSizeMb * 1024 * 1024;
 
 // Helper to convert Web Stream to Node Stream (requires Node >= 16.5 / 14.18)
@@ -70,8 +72,7 @@ export async function uploadAsset(
   const contentType =
     detectedType?.mime ?? fallbackType ?? "application/octet-stream";
 
-  // Replace all non-ascii characters with underscores
-  const fileName = data.name.replace(/[^\x20-\x7E]/g, "_");
+  const fileName = sanitizeUploadFileName(data.name);
   if (!SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)) {
     return { error: "Unsupported asset type", status: 400 };
   }
