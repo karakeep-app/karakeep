@@ -24,6 +24,7 @@ import type { ParseSubprocessOutput } from "../utils/parseHtmlSubprocessIpc";
 import { isLikelyChallengePage } from "../utils/metadataResolver";
 import { runParseSubprocess } from "./parseSubprocess";
 import {
+  decodeHtmlResponse,
   normalizeContentType,
   shouldRetryCrawlStatusCode,
   truncateUrl,
@@ -169,7 +170,7 @@ export async function getContentTypeAndMetadata(
       // that would regress the asset-vs-webpage routing decision.
       const metadata = (async () => {
         try {
-          const htmlContent = await response.text();
+          const htmlContent = await decodeHtmlResponse(response);
           const { metadata: parsedMetadata } = await runParseSubprocess(
             htmlContent,
             response.url,

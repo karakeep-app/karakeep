@@ -47,7 +47,7 @@ import {
   trackContext,
   untrackContext,
 } from "./browser";
-import { truncateUrl } from "./utils";
+import { decodeHtmlResponse, truncateUrl } from "./utils";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -97,7 +97,7 @@ async function browserlessCrawlPage(
         `[Crawler][${jobId}] Successfully fetched the content of "${truncateUrl(url)}". Status: ${response.status}, Size: ${response.size}`,
       );
       return {
-        htmlContent: await response.text(),
+        htmlContent: await decodeHtmlResponse(response),
         statusCode: response.status,
         screenshot: undefined,
         pdf: undefined,
