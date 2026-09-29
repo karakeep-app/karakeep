@@ -4,6 +4,7 @@ import { decode as decodeHtmlEntities } from "html-entities";
 import { fetchWithProxy } from "network";
 import { z } from "zod";
 
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 /**
@@ -105,11 +106,71 @@ const decodeRedditUrl = (url?: string): string | undefined => {
   return decoded || undefined;
 };
 
-const buildJsonUrl = (url: string): string => {
+let redditAccessToken: string | null = null;
+let redditAccessTokenExpiresAt: number = 0;
+let redditAccessTokenPromise: Promise<string | null> | null = null;
+
+const getRedditAccessToken = async (): Promise<string | null> => {
+  const { clientId, clientSecret } = serverConfig.reddit;
+  if (!clientId || !clientSecret) {
+    return null;
+  }
+
+  const now = Date.now();
+  if (redditAccessToken && redditAccessTokenExpiresAt > now) {
+    return redditAccessToken;
+  }
+
+  if (redditAccessTokenPromise) {
+    return redditAccessTokenPromise;
+  }
+
+  redditAccessTokenPromise = (async () => {
+    try {
+      const response = await fetchWithProxy("https://www.reddit.com/api/v1/access_token", {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+          "User-Agent": "KarakeepBot/1.0",
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: "grant_type=client_credentials",
+      });
+
+      if (!response.ok) {
+        logger.warn(`[MetascraperReddit] Failed to obtain access token: ${response.status}`);
+        return null;
+      }
+
+      const data = (await response.json()) as { access_token: string; expires_in: number };
+      if (!data.access_token) {
+        return null;
+      }
+
+      redditAccessToken = data.access_token;
+      // Expire 5 minutes before the actual expiration to be safe
+      redditAccessTokenExpiresAt = now + Math.max(0, data.expires_in - 300) * 1000;
+      return redditAccessToken;
+    } catch (error) {
+      logger.warn("[MetascraperReddit] Error obtaining access token", error);
+      return null;
+    } finally {
+      redditAccessTokenPromise = null;
+    }
+  })();
+
+  return redditAccessTokenPromise;
+};
+
+const buildJsonUrl = (url: string, useOauth: boolean): string => {
   const urlObj = new URL(url);
 
   if (!urlObj.pathname.endsWith(".json")) {
     urlObj.pathname = urlObj.pathname.replace(/\/?$/, ".json");
+  }
+
+  if (useOauth) {
+    urlObj.hostname = "oauth.reddit.com";
   }
 
   return urlObj.toString();
@@ -221,9 +282,12 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
   }
 
   const promise = (async () => {
+    const accessToken = await getRedditAccessToken();
+    const useOauth = !!accessToken;
+
     let jsonUrl: string;
     try {
-      jsonUrl = buildJsonUrl(url);
+      jsonUrl = buildJsonUrl(url, useOauth);
     } catch (error) {
       logger.warn(
         "[MetascraperReddit] Failed to construct Reddit JSON URL",
@@ -234,9 +298,13 @@ const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
 
     let response;
     try {
-      response = await fetchWithProxy(jsonUrl, {
-        headers: { accept: "application/json" },
-      });
+      const headers: Record<string, string> = { accept: "application/json" };
+      if (accessToken) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
+        headers["User-Agent"] = "KarakeepBot/1.0";
+      }
+      
+      response = await fetchWithProxy(jsonUrl, { headers });
     } catch (error) {
       logger.warn(
         `[MetascraperReddit] Failed to fetch Reddit JSON for ${jsonUrl}`,
