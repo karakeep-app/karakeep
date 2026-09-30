@@ -48,7 +48,6 @@ import {
   handleAsAssetBookmark,
 } from "./crawler/crawlAndParse";
 import { handleInstagramBookmark, isInstagramUrl } from "./crawler/instagram";
-import { InstagramTransientError } from "./crawler/instagramPage";
 import {
   getContentTypeAndMetadata,
   loadStoredProbeMetadata,
@@ -387,29 +386,24 @@ async function runCrawler(
   // an empty shell. When enabled, extract caption + transcript via yt-dlp
   // instead, then run the same downstream jobs (inference, search, video).
   if (serverConfig.crawler.instagramEnabled && isInstagramUrl(url)) {
-    let extracted = false;
-    try {
-      extracted = await handleInstagramBookmark({
-        url,
-        jobId,
-        bookmarkId,
-        runProxy,
-        abortSignal: job.abortSignal,
-      });
-    } catch (e) {
-      // A rate-limit or an empty answer from Instagram is worth another run,
-      // and once the retries run out the bookmark ends as crawlStatus:
-      // "failure". Rethrowing on every attempt is what gets both: the queue's
-      // own schedule paces the retries, and on the last one (numRetriesLeft
-      // == 0) the same rethrow reaches the runner's onError handler, which
-      // sets that "failure" — no separate "give up" path needed.
-      if (e instanceof InstagramTransientError) {
-        throw e;
-      }
-      logger.warn(`[Crawler][${jobId}] Instagram extraction gave up: ${e}`);
-    }
-    // On a rate-limit or expired-cookie failure nothing was written, so there
-    // is no new content for tagging/summarization/embedding to work on.
+    // Expected extraction failures (private post, no yt-dlp dump, ...) come
+    // back as `false` from the handler. Anything that throws is either an
+    // InstagramTransientError (rate limit, empty answer) or an unexpected
+    // failure such as the database write, and both must reach the runner:
+    // the queue's own schedule paces the retries, and on the last attempt
+    // the same throw lands in onError, which marks the crawl as "failure"
+    // instead of quietly reporting success with nothing stored.
+    const extracted = await handleInstagramBookmark({
+      url,
+      jobId,
+      bookmarkId,
+      userId,
+      oldContentAssetId: oldContentAssetId ?? null,
+      runProxy,
+      abortSignal: job.abortSignal,
+    });
+    // On a failed extraction nothing was written, so there is no new content
+    // for tagging/summarization/embedding to work on.
     if (extracted) {
       await enqueuePostCrawlJobs(job, bookmarkId, userId, url);
     }

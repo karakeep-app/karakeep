@@ -10,7 +10,8 @@ import type { RunProxyConfig } from "network";
 import { fetchWithProxy } from "network";
 
 import { db } from "@karakeep/db";
-import { bookmarkLinks } from "@karakeep/db/schema";
+import { assets, bookmarkLinks } from "@karakeep/db/schema";
+import { silentDeleteAsset } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import type { InferenceClient } from "@karakeep/shared/inference";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
@@ -208,9 +209,72 @@ async function transcribeAudioFile(
   client: InferenceClient,
   path: string,
   name: string,
+  abortSignal: AbortSignal,
 ): Promise<string | null> {
   const audio = await readFile(path);
-  return await client.transcribeAudio(audio, name);
+  return await client.transcribeAudio(audio, name, { abortSignal });
+}
+
+/**
+ * Order yt-dlp output files by the playlist_index prefix of the output
+ * template. A plain string sort is lexicographic (1, 10, 2, ...), which would
+ * scramble the transcript of a carousel with ten or more videos.
+ */
+export function byPlaylistIndex(a: string, b: string): number {
+  const ia = parseInt(a, 10);
+  const ib = parseInt(b, 10);
+  if (Number.isNaN(ia) || Number.isNaN(ib)) {
+    return a.localeCompare(b);
+  }
+  return ia - ib || a.localeCompare(b);
+}
+
+/**
+ * Byte cap for a directly downloaded video. Same contract as videoWorker: a
+ * non-positive CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE (the documented -1) disables
+ * the limit instead of becoming a negative cap that rejects every video.
+ */
+export function videoByteLimit(): number {
+  const mb = serverConfig.crawler.maxVideoDownloadSize;
+  return mb > 0 ? mb * 1024 * 1024 : Infinity;
+}
+
+/** Byte cap for an image sent to the vision model; reuses MAX_ASSET_SIZE_MB. */
+export function imageByteLimit(): number {
+  const mb = serverConfig.maxAssetSizeMb;
+  return mb > 0 ? mb * 1024 * 1024 : Infinity;
+}
+
+const IMAGE_OVER_LIMIT = "instagram image exceeds the download limit";
+
+/**
+ * Read a response body into memory, but never more than `maxBytes` of it:
+ * the declared length is checked first, then the bytes as they arrive, so an
+ * oversized (or lying) response is dropped mid-stream rather than buffered.
+ */
+async function readBodyBounded(
+  response: { headers: { get(name: string): string | null }; body: unknown },
+  maxBytes: number,
+): Promise<Buffer> {
+  const declared = Number(response.headers.get("content-length") ?? 0);
+  if (declared > maxBytes) {
+    throw new Error(IMAGE_OVER_LIMIT);
+  }
+  if (!response.body) {
+    throw new Error("empty body");
+  }
+  const chunks: Buffer[] = [];
+  let bytesRead = 0;
+  // Both a node-fetch body (Node Readable) and a Web ReadableStream are async
+  // iterables of byte chunks.
+  for await (const chunk of response.body as AsyncIterable<Uint8Array>) {
+    bytesRead += chunk.length;
+    if (bytesRead > maxBytes) {
+      throw new Error(IMAGE_OVER_LIMIT);
+    }
+    chunks.push(Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
 }
 
 /**
@@ -279,7 +343,7 @@ export async function transcribeInstagramAudio(
     }
     const audioFiles = (await readdir(dir))
       .filter((f) => f.endsWith(".mp3"))
-      .sort();
+      .sort(byPlaylistIndex);
     if (audioFiles.length === 0) {
       return { transcript: "", transcribed: 0 };
     }
@@ -294,6 +358,7 @@ export async function transcribeInstagramAudio(
           inferenceClient,
           join(dir, file),
           file,
+          abortSignal,
         );
         if (text) {
           transcripts.push(text);
@@ -363,7 +428,7 @@ export async function transcribeInstagramVideos(
     );
     return { transcript: "", transcribed: 0, noAudioStream: 0 };
   }
-  const maxBytes = serverConfig.crawler.maxVideoDownloadSize * 1024 * 1024;
+  const maxBytes = videoByteLimit();
   const maxDuration = serverConfig.crawler.instagramTranscribeMaxDurationSec;
   const dir = await mkdtemp(join(tmpdir(), "karakeep-ig-video-"));
   try {
@@ -452,6 +517,7 @@ export async function transcribeInstagramVideos(
           inferenceClient,
           mp3,
           "audio.mp3",
+          abortSignal,
         );
         if (text) {
           transcripts.push(text);
@@ -535,9 +601,9 @@ export async function describeInstagramImages(
         }
         const contentType =
           response.headers.get("content-type")?.split(";")[0] ?? "image/jpeg";
-        const base64 = Buffer.from(await response.arrayBuffer()).toString(
-          "base64",
-        );
+        const base64 = (
+          await readBodyBounded(response, imageByteLimit())
+        ).toString("base64");
         const ocr = await inferenceClient.inferFromImage(
           buildOCRPrompt(),
           contentType,
@@ -788,10 +854,21 @@ export async function handleInstagramBookmark(args: {
   url: string;
   jobId: string;
   bookmarkId: string;
+  userId: string;
+  /** Content asset a previous crawl stored; replaced by the inline text. */
+  oldContentAssetId: string | null;
   runProxy: RunProxyConfig;
   abortSignal: AbortSignal;
 }): Promise<boolean> {
-  const { url, jobId, bookmarkId, runProxy, abortSignal } = args;
+  const {
+    url,
+    jobId,
+    bookmarkId,
+    userId,
+    oldContentAssetId,
+    runProxy,
+    abortSignal,
+  } = args;
   const content = await extractInstagramContent(
     url,
     jobId,
@@ -818,18 +895,35 @@ export async function handleInstagramBookmark(args: {
   } else {
     logger.info(`[Crawler][${jobId}] [ig] path=ytdlp status=ok url="${url}"`);
   }
-  await db
-    .update(bookmarkLinks)
-    .set({
-      htmlContent: composeInstagramHtml(content),
-      ...(summary
-        ? { title: summary.slice(0, 100), description: summary.slice(0, 300) }
-        : {}),
-      ...(content.author ? { author: content.author } : {}),
-      crawledAt: new Date(),
-      crawlStatusCode: 200,
-    })
-    .where(eq(bookmarkLinks.id, bookmarkId));
+  // The text goes inline. Readers prefer contentAssetId when it is set, so a
+  // content asset left by an earlier (browser) crawl has to be unlinked in
+  // the same transaction, or search and summarization keep seeing the old
+  // page. Same replacement the normal crawl path does in crawlAndParse.
+  await db.transaction((txn) => {
+    txn
+      .update(bookmarkLinks)
+      .set({
+        htmlContent: composeInstagramHtml(content),
+        contentAssetId: null,
+        ...(summary
+          ? {
+              title: summary.slice(0, 100),
+              description: summary.slice(0, 300),
+            }
+          : {}),
+        ...(content.author ? { author: content.author } : {}),
+        crawledAt: new Date(),
+        crawlStatusCode: 200,
+      })
+      .where(eq(bookmarkLinks.id, bookmarkId))
+      .run();
+    if (oldContentAssetId) {
+      txn.delete(assets).where(eq(assets.id, oldContentAssetId)).run();
+    }
+  });
+  if (oldContentAssetId) {
+    await silentDeleteAsset(userId, oldContentAssetId);
+  }
   logger.info(`[Crawler][${jobId}] Stored Instagram text content for "${url}"`);
   return true;
 }

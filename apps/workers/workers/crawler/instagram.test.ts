@@ -19,6 +19,7 @@ import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
 
 import {
+  byPlaylistIndex,
   composeInstagramHtml,
   extractInstagramContent,
   extractionStatus,
@@ -28,8 +29,14 @@ import {
   parseVtt,
   privateYtDlpArgs,
   transcribeInstagramAudio,
+  videoByteLimit,
 } from "./instagram";
 import { InstagramTransientError } from "./instagramPage";
+
+/** The top-level config is typed read-only; the tests still need to vary it. */
+function setMaxAssetSizeMb(mb: number) {
+  (serverConfig as unknown as { maxAssetSizeMb: number }).maxAssetSizeMb = mb;
+}
 
 /** Point InferenceClientFactory at a stub whose transcribeAudio we control. */
 function stubTranscriber(impl: (file: string) => Promise<string | null>) {
@@ -327,7 +334,7 @@ describe("transcribeInstagramAudio", () => {
         signal,
       ),
     ).toEqual({
-      transcript: "text of 1-A.mp3\n\ntext of 10-C.mp3\n\ntext of 2-B.mp3",
+      transcript: "text of 1-A.mp3\n\ntext of 2-B.mp3\n\ntext of 10-C.mp3",
       transcribed: 3,
     });
   });
@@ -560,6 +567,39 @@ function servePage(html: string) {
     throw new Error(`unexpected fetch ${url}`);
   }) as unknown as typeof fetchWithProxy);
 }
+
+describe("byPlaylistIndex", () => {
+  it("orders by the numeric playlist prefix, not lexicographically", () => {
+    expect(
+      ["10-C.mp3", "2-B.mp3", "1-A.mp3", "11-D.mp3"].sort(byPlaylistIndex),
+    ).toEqual(["1-A.mp3", "2-B.mp3", "10-C.mp3", "11-D.mp3"]);
+  });
+
+  it("falls back to string order for names without a numeric prefix", () => {
+    // A standalone reel has playlist_index "NA".
+    expect(["NA-b.mp3", "NA-a.mp3"].sort(byPlaylistIndex)).toEqual([
+      "NA-a.mp3",
+      "NA-b.mp3",
+    ]);
+  });
+});
+
+describe("videoByteLimit", () => {
+  const saved = serverConfig.crawler.maxVideoDownloadSize;
+  afterEach(() => {
+    serverConfig.crawler.maxVideoDownloadSize = saved;
+  });
+
+  it("converts the configured megabytes to bytes", () => {
+    serverConfig.crawler.maxVideoDownloadSize = 2;
+    expect(videoByteLimit()).toBe(2 * 1024 * 1024);
+  });
+
+  it("treats the documented -1 as no limit", () => {
+    serverConfig.crawler.maxVideoDownloadSize = -1;
+    expect(videoByteLimit()).toBe(Infinity);
+  });
+});
 
 describe("extractInstagramContent (page)", () => {
   const proxy = {
@@ -935,6 +975,133 @@ describe("extractInstagramContent (page)", () => {
     );
     expect(bodyRead).toBe(false);
     expect(content?.stats?.videos).toEqual({ expected: 1, got: 0 });
+  });
+
+  it("downloads and transcribes a video when the size limit is disabled with -1", async () => {
+    serverConfig.crawler.instagramTranscribe = true;
+    serverConfig.crawler.maxVideoDownloadSize = -1;
+    const transcribeAudio = vi.fn(async () => "spoken words");
+    vi.mocked(InferenceClientFactory.build).mockReturnValue({
+      transcribeAudio,
+    } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+    vi.mocked(fetchWithProxy).mockImplementation((async (url: string) => {
+      if (url.startsWith("https://www.instagram.com/"))
+        return new Response(carouselHtml(), { status: 200 });
+      if (url.endsWith(".mp4")) {
+        return new NodeFetchResponse(Readable.from([Buffer.from("abc")]), {
+          status: 200,
+          headers: { "content-length": "3" },
+        });
+      }
+      return new Response(new Uint8Array([1]), {
+        status: 200,
+        headers: { "content-type": "image/jpeg" },
+      });
+    }) as unknown as typeof fetchWithProxy);
+    vi.mocked(execa).mockImplementation((async (
+      _file: string,
+      args: string[],
+    ) => {
+      await writeFile(args[args.length - 1], "mp3");
+    }) as unknown as typeof execa);
+    const content = await extractInstagramContent(
+      "https://www.instagram.com/p/ABC123/",
+      "job1",
+      proxy,
+      signal,
+    );
+    expect(content?.transcript).toBe("spoken words");
+    expect(content?.stats?.videos).toEqual({ expected: 1, got: 1 });
+  });
+
+  it("does not buffer an image past the asset size cap, keeping its alt text", async () => {
+    serverConfig.crawler.instagramDescribeImages = true;
+    const savedMax = serverConfig.maxAssetSizeMb;
+    setMaxAssetSizeMb(1);
+    try {
+      const inferFromImage = vi.fn(async () => ({
+        response: "ocr text",
+        totalTokens: 1,
+      }));
+      vi.mocked(InferenceClientFactory.build).mockReturnValue({
+        inferFromImage,
+      } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+      let bodyRead = false;
+      vi.mocked(fetchWithProxy).mockImplementation((async (url: string) => {
+        if (url.startsWith("https://www.instagram.com/"))
+          return new Response(carouselHtml(), { status: 200 });
+        // Every image claims to be far over the cap.
+        const nodeStream = new Readable({
+          read() {
+            bodyRead = true;
+          },
+        });
+        return new NodeFetchResponse(nodeStream, {
+          status: 200,
+          headers: {
+            "content-type": "image/jpeg",
+            "content-length": String(5 * 1024 * 1024),
+          },
+        });
+      }) as unknown as typeof fetchWithProxy);
+      const content = await extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      );
+      expect(bodyRead).toBe(false);
+      expect(inferFromImage).not.toHaveBeenCalled();
+      // Alt text still comes through; only the OCR is skipped.
+      expect(content?.images?.[0]).toBe("May be an image of text");
+      expect(content?.stats?.images.got).toBe(0);
+    } finally {
+      setMaxAssetSizeMb(savedMax);
+    }
+  });
+
+  it("stops reading an image whose body streams past the cap", async () => {
+    serverConfig.crawler.instagramDescribeImages = true;
+    const savedMax = serverConfig.maxAssetSizeMb;
+    setMaxAssetSizeMb(1);
+    try {
+      const inferFromImage = vi.fn(async () => ({
+        response: "ocr text",
+        totalTokens: 1,
+      }));
+      vi.mocked(InferenceClientFactory.build).mockReturnValue({
+        inferFromImage,
+      } as unknown as ReturnType<typeof InferenceClientFactory.build>);
+      let chunksServed = 0;
+      vi.mocked(fetchWithProxy).mockImplementation((async (url: string) => {
+        if (url.startsWith("https://www.instagram.com/"))
+          return new Response(carouselHtml(), { status: 200 });
+        // No content-length, and a body that would go on forever.
+        const chunk = Buffer.alloc(512 * 1024);
+        const nodeStream = new Readable({
+          read() {
+            chunksServed += 1;
+            this.push(chunk);
+          },
+        });
+        return new NodeFetchResponse(nodeStream, {
+          status: 200,
+          headers: { "content-type": "image/jpeg" },
+        });
+      }) as unknown as typeof fetchWithProxy);
+      const content = await extractInstagramContent(
+        "https://www.instagram.com/p/ABC123/",
+        "job1",
+        proxy,
+        signal,
+      );
+      expect(inferFromImage).not.toHaveBeenCalled();
+      // Two images in the carousel; each is cut off just past 1 MiB.
+      expect(chunksServed).toBeLessThan(20);
+      expect(content?.images?.[0]).toBe("May be an image of text");
+    } finally {
+      setMaxAssetSizeMb(savedMax);
+    }
   });
 
   it("streams a node-fetch video body to disk and transcribes it through ffmpeg", async () => {

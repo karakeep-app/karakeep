@@ -145,7 +145,16 @@ export interface InferenceClient extends EmbeddingClient {
    * Returns null when the provider exposes no speech-to-text endpoint, so
    * callers can degrade (skip the transcript) rather than fail the whole job.
    */
-  transcribeAudio(audio: Uint8Array, filename: string): Promise<string | null>;
+  transcribeAudio(
+    audio: Uint8Array,
+    filename: string,
+    opts?: TranscriptionOptions,
+  ): Promise<string | null>;
+}
+
+export interface TranscriptionOptions {
+  /** Cancels the in-flight request when the calling job is aborted. */
+  abortSignal?: AbortSignal;
 }
 
 const mapInferenceOutputSchema = <
@@ -401,14 +410,20 @@ export class OpenAIInferenceClient implements InferenceClient {
   async transcribeAudio(
     audio: Uint8Array,
     filename: string,
+    opts: TranscriptionOptions = {},
   ): Promise<string | null> {
     // `toFile` builds the multipart entry the transcription endpoint expects.
     // The filename matters: the API picks the decoder from its extension.
-    const transcription = await this.openAI.audio.transcriptions.create({
-      file: await toFile(audio, filename),
-      model: this.config.audioModel,
-      response_format: "text",
-    });
+    const transcription = await this.openAI.audio.transcriptions.create(
+      {
+        file: await toFile(audio, filename),
+        model: this.config.audioModel,
+        response_format: "text",
+      },
+      // Like the text/image calls: a timed-out or retried crawl must not leave
+      // a paid speech-to-text request running behind it.
+      { signal: opts.abortSignal },
+    );
     // With response_format "text" the SDK hands back a bare string, but a
     // gateway pointed at by OPENAI_BASE_URL may still answer with the JSON
     // object shape. Accept either rather than trusting one.
