@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import serverConfig from "@karakeep/shared/config";
+
+// The module under test imports the workers' `network` helper for the live
+// fetch; these tests only exercise the parsers, so keep it out of the graph.
+vi.mock("network", () => ({ fetchWithProxy: vi.fn() }));
 
 import {
   instagramRequestHeaders,
