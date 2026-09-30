@@ -55,6 +55,8 @@ const zSettingsSchema = z.object({
     .max(1000)
     .optional()
     .default(0),
+  automaticOfflineWifiOnly: z.boolean().optional().default(true),
+  automaticOfflineChargingOnly: z.boolean().optional().default(false),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
   // Reader settings (local device overrides)
   readerFontSize: z.number().int().min(12).max(24).optional(),
@@ -92,6 +94,8 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       showNotes: false,
       keepScreenOnWhileReading: false,
       automaticOfflineCount: 0,
+      automaticOfflineWifiOnly: true,
+      automaticOfflineChargingOnly: false,
       customHeaders: {},
       toolbarActions: DEFAULT_TOOLBAR_ACTIONS,
       overflowActions: DEFAULT_OVERFLOW_ACTIONS,

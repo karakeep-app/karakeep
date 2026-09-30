@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import type { ZGetBookmarksRequest } from "@karakeep/shared/types/bookmarks";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
+import * as Battery from "expo-battery";
+import * as Network from "expo-network";
 import { onlineManager } from "@tanstack/react-query";
 
 import { useTRPCClient } from "@karakeep/shared-react/trpc";
@@ -16,6 +18,26 @@ import type { OfflineSyncProgress } from "./offlineSync";
 import { syncOfflineArticles } from "./offlineSync";
 import useAppSettings, { useSettings } from "./settings";
 import { useConnectionStatus } from "./useConnectionStatus";
+import type { DownloadConditions } from "./offlineDownloadConditions";
+import {
+  downloadBlockedReason,
+  watchDownloadConditions,
+} from "./offlineDownloadConditions";
+
+function isWifi(state: Network.NetworkState): boolean | null {
+  if (!state.type || state.type === Network.NetworkStateType.UNKNOWN)
+    return null;
+  return (
+    state.type === Network.NetworkStateType.WIFI && state.isConnected === true
+  );
+}
+function isCharging(state: Battery.BatteryState): boolean | null {
+  if (state === Battery.BatteryState.UNKNOWN) return null;
+  return (
+    state === Battery.BatteryState.CHARGING ||
+    state === Battery.BatteryState.FULL
+  );
+}
 
 const SYNC_INTERVAL = 15 * 60_000;
 interface SyncState extends OfflineSyncProgress {
@@ -30,6 +52,7 @@ const initialState: SyncState = {
 };
 const AutomaticOfflineContext = createContext<{
   state: SyncState;
+  blockedReason?: string;
   refresh: () => void;
   cancel: () => void;
 } | null>(null);
@@ -44,6 +67,14 @@ export function AutomaticOfflineProvider({
   const connection = useConnectionStatus();
   const scope = getOfflineLibraryScope(settings);
   const [state, setState] = useState(initialState);
+  const [conditions, setConditions] = useState<DownloadConditions>({
+    wifi: null,
+    charging: null,
+  });
+  const currentConditions = useRef(conditions);
+  const refreshConditions = useRef<(() => void) | null>(null);
+  const blockedReason = downloadBlockedReason(settings, conditions);
+  const enabled = settings.automaticOfflineCount > 0;
   const activeRun = useRef<AbortController | null>(null);
   const lastAttempt = useRef(0);
   const run = useRef<((force?: boolean) => void) | null>(null);
@@ -65,6 +96,7 @@ export function AutomaticOfflineProvider({
       settings.automaticOfflineCount === 0 ||
       connection !== "online" ||
       AppState.currentState !== "active" ||
+      !!downloadBlockedReason(settings, currentConditions.current) ||
       (!force && Date.now() - lastAttempt.current < SYNC_INTERVAL)
     )
       return;
@@ -78,6 +110,11 @@ export function AutomaticOfflineProvider({
         getOfflineLibraryScope(current) !== scope ||
         current.apiKey !== settings.apiKey ||
         current.automaticOfflineCount !== settings.automaticOfflineCount ||
+        current.automaticOfflineWifiOnly !==
+          settings.automaticOfflineWifiOnly ||
+        current.automaticOfflineChargingOnly !==
+          settings.automaticOfflineChargingOnly ||
+        !!downloadBlockedReason(current, currentConditions.current) ||
         !onlineManager.isOnline() ||
         AppState.currentState !== "active"
       )
@@ -87,8 +124,9 @@ export function AutomaticOfflineProvider({
     void syncOfflineArticles({
       count: settings.automaticOfflineCount,
       signal: controller.signal,
-      list: (cursor: ZGetBookmarksRequest["cursor"]) =>
-        client.bookmarks.getBookmarks.query(
+      list: (cursor: ZGetBookmarksRequest["cursor"]) => {
+        checkCurrentSettings();
+        return client.bookmarks.getBookmarks.query(
           {
             cursor,
             limit: 100,
@@ -97,12 +135,15 @@ export function AutomaticOfflineProvider({
             useCursorV2: true,
           },
           { signal: controller.signal },
-        ),
-      download: (bookmarkId) =>
-        client.bookmarks.getBookmark.query(
+        );
+      },
+      download: (bookmarkId) => {
+        checkCurrentSettings();
+        return client.bookmarks.getBookmark.query(
           { bookmarkId, includeContent: true },
           { signal: controller.signal },
-        ),
+        );
+      },
       save: (bookmark) => {
         checkCurrentSettings();
         saveOfflineArticle(
@@ -157,17 +198,80 @@ export function AutomaticOfflineProvider({
     lastAttempt.current = 0;
     setState(initialState);
     return cancel;
-  }, [scope, settings.apiKey, settings.automaticOfflineCount]);
+  }, [
+    scope,
+    settings.apiKey,
+    settings.automaticOfflineCount,
+    settings.automaticOfflineWifiOnly,
+    settings.automaticOfflineChargingOnly,
+  ]);
 
   useEffect(() => {
-    if (connection !== "online") cancel();
+    if (!enabled) return;
+    const monitor = watchDownloadConditions(
+      {
+        wifi: {
+          read: async () => isWifi(await Network.getNetworkStateAsync()),
+          subscribe: (listener) => {
+            const subscription = Network.addNetworkStateListener((value) =>
+              listener(isWifi(value)),
+            );
+            return () => subscription.remove();
+          },
+        },
+        charging: {
+          read: async () => isCharging(await Battery.getBatteryStateAsync()),
+          subscribe: (listener) => {
+            const subscription = Battery.addBatteryStateListener(
+              ({ batteryState }) => listener(isCharging(batteryState)),
+            );
+            return () => subscription.remove();
+          },
+        },
+      },
+      (next) => {
+        currentConditions.current = next;
+        setConditions(next);
+        const current = useSettings.getState().settings.settings;
+        if (downloadBlockedReason(current, next)) {
+          if (activeRun.current) {
+            cancel();
+            // A policy interruption can resume as soon as conditions permit.
+            lastAttempt.current = 0;
+          }
+        } else run.current?.();
+      },
+    );
+    refreshConditions.current = monitor.refresh;
+    return () => {
+      refreshConditions.current = null;
+      monitor.dispose();
+      currentConditions.current = { wifi: null, charging: null };
+    };
+  }, [enabled]);
+
+  useEffect(() => {
+    if (
+      connection !== "online" ||
+      downloadBlockedReason(settings, currentConditions.current)
+    )
+      cancel();
     else run.current?.();
-  }, [connection, scope, settings.apiKey, settings.automaticOfflineCount]);
+  }, [
+    connection,
+    scope,
+    settings.apiKey,
+    settings.automaticOfflineCount,
+    settings.automaticOfflineWifiOnly,
+    settings.automaticOfflineChargingOnly,
+  ]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (next) => {
-      if (next === "active") run.current?.();
-      else cancel();
+      if (next === "active") {
+        refreshConditions.current?.();
+        run.current?.();
+      } else cancel();
     });
     const interval = setInterval(() => run.current?.(), SYNC_INTERVAL);
     return () => {
@@ -179,7 +283,12 @@ export function AutomaticOfflineProvider({
 
   return (
     <AutomaticOfflineContext.Provider
-      value={{ state, refresh: () => run.current?.(true), cancel }}
+      value={{
+        state,
+        blockedReason,
+        refresh: () => run.current?.(true),
+        cancel,
+      }}
     >
       {children}
     </AutomaticOfflineContext.Provider>

@@ -22,6 +22,7 @@ import {
   useOfflineLibrarySize,
 } from "@/lib/offlineLibrary";
 import useAppSettings from "@/lib/settings";
+import type { Settings } from "@/lib/settings";
 import { useAutomaticOffline } from "@/lib/automaticOffline";
 import { useConnectionStatus } from "@/lib/useConnectionStatus";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -67,7 +68,7 @@ export default function OfflineContent() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { settings, setSettings } = useAppSettings();
-  const { state: sync, refresh, cancel } = useAutomaticOffline();
+  const { state: sync, blockedReason, refresh, cancel } = useAutomaticOffline();
   const connection = useConnectionStatus();
   const [count, setCount] = useState(
     String(settings.automaticOfflineCount || 100),
@@ -79,10 +80,10 @@ export default function OfflineContent() {
   const offlineLibrarySize = useOfflineLibrarySize();
   const recentCacheSize = usePersistedCacheSize();
 
-  const updateCount = async (value: number) => {
+  const updateDownloadSettings = async (changes: Partial<Settings>) => {
     setSavingSettings(true);
     try {
-      await setSettings({ ...settings, automaticOfflineCount: value });
+      await setSettings({ ...settings, ...changes });
       return true;
     } catch {
       toast({
@@ -109,7 +110,7 @@ export default function OfflineContent() {
       });
       return;
     }
-    void updateCount(value);
+    void updateDownloadSettings({ automaticOfflineCount: value });
   };
 
   useEffect(() => {
@@ -142,7 +143,8 @@ export default function OfflineContent() {
           style: "destructive",
           onPress: async () => {
             cancel();
-            if (await updateCount(0)) removeAllOfflineArticles(scope);
+            if (await updateDownloadSettings({ automaticOfflineCount: 0 }))
+              removeAllOfflineArticles(scope);
           },
         },
       ],
@@ -177,7 +179,7 @@ export default function OfflineContent() {
 
       <SettingsGroup
         header="Automatic downloads"
-        footer="Downloads run while the app is open and connected, at most every 15 minutes. Article text is saved; remote images and full archived pages may still need a connection. Manual saves are never removed by automatic cleanup."
+        footer="Downloads run while the app is open and connected, at most every 15 minutes. Wi-Fi and charging restrictions also apply to Download now. A full battery on power counts as charging. Article text is saved; remote images and full archived pages may still need a connection. Manual saves are never removed by automatic cleanup."
       >
         <SettingsToggleRow
           label="Keep recent articles offline"
@@ -187,8 +189,30 @@ export default function OfflineContent() {
             if (enabled) applyCount();
             else {
               cancel();
-              void updateCount(0);
+              void updateDownloadSettings({ automaticOfflineCount: 0 });
             }
+          }}
+        />
+        <SettingsSeparator />
+        <SettingsToggleRow
+          label="Download only on Wi-Fi"
+          value={settings.automaticOfflineWifiOnly}
+          disabled={savingSettings}
+          onValueChange={(enabled) => {
+            cancel();
+            void updateDownloadSettings({ automaticOfflineWifiOnly: enabled });
+          }}
+        />
+        <SettingsSeparator />
+        <SettingsToggleRow
+          label="Download only while charging"
+          value={settings.automaticOfflineChargingOnly}
+          disabled={savingSettings}
+          onValueChange={(enabled) => {
+            cancel();
+            void updateDownloadSettings({
+              automaticOfflineChargingOnly: enabled,
+            });
           }}
         />
         <View className="px-4 py-2">
@@ -219,11 +243,17 @@ export default function OfflineContent() {
               }
               tone="primary"
               disabled={
-                !sync.running && (savingSettings || connection !== "online")
+                !sync.running &&
+                (savingSettings || connection !== "online" || !!blockedReason)
               }
               onPress={sync.running ? cancel : refresh}
             />
           </>
+        ) : null}
+        {blockedReason && settings.automaticOfflineCount > 0 ? (
+          <Text className="px-4 py-2 text-sm text-muted-foreground">
+            {blockedReason}
+          </Text>
         ) : null}
         {sync.running || sync.message ? (
           <Text

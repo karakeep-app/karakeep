@@ -41,6 +41,7 @@
     "clsx": "^2.1.0",
     "date-fns": "^3.6.0",
     "expo": "~57.0.25",
+    "expo-battery": "~57.0.3",
     "expo-blur": "~57.0.3",
     "expo-build-properties": "~57.0.22",
     "expo-checkbox": "~57.0.0",
