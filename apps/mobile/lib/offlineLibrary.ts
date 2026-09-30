@@ -47,6 +47,7 @@ const zOfflineLibraryItem = z.object({
   savedAt: z.number(),
   displayTitle: z.string(),
   url: z.string().optional(),
+  automatic: z.boolean().optional(),
 });
 
 const zOfflineLibraryManifest = z.array(zOfflineLibraryItem);
@@ -241,7 +242,15 @@ function restoreKey(key: string, raw: string | undefined) {
   }
 }
 
-export function saveOfflineArticle(scope: string, article: OfflineArticle) {
+export function getOfflineLibrary(scope: string) {
+  return parseManifest(offlineLibraryStorage.getString(manifestKey(scope)));
+}
+
+export function saveOfflineArticle(
+  scope: string,
+  article: OfflineArticle,
+  automatic = false,
+) {
   const parsed = zOfflineArticle.safeParse(article);
   const split = parsed.success
     ? splitArticleContent(parsed.data.bookmark)
@@ -294,6 +303,14 @@ export function saveOfflineArticle(scope: string, article: OfflineArticle) {
       savedAt: parsed.data.savedAt,
       displayTitle: getDisplayTitle(parsed.data.bookmark),
       ...(sourceUrl ? { url: sourceUrl } : {}),
+      // Old records are manual saves. An automatic refresh must never turn
+      // a manual save into an evictable copy; an explicit save pins a copy.
+      automatic:
+        automatic &&
+        !current.some(
+          (entry) =>
+            entry.bookmarkId === parsed.data.bookmarkId && !entry.automatic,
+        ),
     };
     writeManifest(scope, [
       item,
@@ -317,6 +334,17 @@ export function removeOfflineArticle(scope: string, bookmarkId: string) {
   );
   offlineLibraryStorage.remove(articleKey(scope, bookmarkId));
   offlineLibraryStorage.remove(contentKey(scope, bookmarkId));
+}
+
+export function pruneAutomaticOfflineArticles(
+  scope: string,
+  keep: ReadonlySet<string>,
+) {
+  for (const item of getOfflineLibrary(scope)) {
+    if (item.automatic && !keep.has(item.bookmarkId)) {
+      removeOfflineArticle(scope, item.bookmarkId);
+    }
+  }
 }
 
 export function removeAllOfflineArticles(scope: string) {

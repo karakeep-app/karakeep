@@ -17,7 +17,8 @@
     "format:fix": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore .",
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@emoji-mart/data": "^1.1.2",
@@ -97,7 +98,8 @@
     "@types/react": "19.2.15",
     "ajv": "latest",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9"
+    "typescript": "^5.9",
+    "vitest": "^4.1.11"
   },
   "expo": {
     "install": {

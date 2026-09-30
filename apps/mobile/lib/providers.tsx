@@ -17,6 +17,7 @@ import { ClientConfigProvider } from "./client-config";
 import { ConnectionStatusProvider } from "./useConnectionStatus";
 import { ReaderSettingsProvider } from "./readerSettings";
 import useAppSettings from "./settings";
+import { AutomaticOfflineProvider } from "./automaticOffline";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const { settings, isLoading, load } = useAppSettings();
@@ -54,7 +55,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ClientConfigProvider>
           <ConnectionStatusProvider enabled={!!settings.apiKey}>
             <ReaderSettingsProvider>
-              {children}
+              <AutomaticOfflineProvider>{children}</AutomaticOfflineProvider>
               <Toaster />
             </ReaderSettingsProvider>
           </ConnectionStatusProvider>

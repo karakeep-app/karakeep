@@ -48,6 +48,13 @@ const zSettingsSchema = z.object({
   bookmarkSortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
   showNotes: z.boolean().optional().default(false),
   keepScreenOnWhileReading: z.boolean().optional().default(false),
+  automaticOfflineCount: z
+    .number()
+    .int()
+    .min(0)
+    .max(1000)
+    .optional()
+    .default(0),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
   // Reader settings (local device overrides)
   readerFontSize: z.number().int().min(12).max(24).optional(),
@@ -84,6 +91,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       bookmarkSortOrder: "desc",
       showNotes: false,
       keepScreenOnWhileReading: false,
+      automaticOfflineCount: 0,
       customHeaders: {},
       toolbarActions: DEFAULT_TOOLBAR_ACTIONS,
       overflowActions: DEFAULT_OVERFLOW_ACTIONS,
