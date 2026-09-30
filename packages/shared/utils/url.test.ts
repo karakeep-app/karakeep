@@ -135,6 +135,30 @@ describe("resolveShortenedBookmarkUrl", () => {
     ).toBeUndefined();
   });
 
+  it("ignores differences that are only URL normalization", () => {
+    // The crawler reports the URL as the browser (or fetch) serializes it,
+    // so a no-redirect input can come back with a lowercased host, a default
+    // port dropped, or a "/" path added. None of that is a resolution.
+    expect(
+      resolveShortenedBookmarkUrl(
+        "https://SEARCH.APP/abc",
+        "https://search.app/abc",
+      ),
+    ).toBeUndefined();
+    expect(
+      resolveShortenedBookmarkUrl(
+        "https://search.app:443/abc",
+        "https://search.app/abc",
+      ),
+    ).toBeUndefined();
+    expect(
+      resolveShortenedBookmarkUrl(
+        "https://share.google",
+        "https://share.google/",
+      ),
+    ).toBeUndefined();
+  });
+
   it("returns undefined when the resolved URL is not a safe web URL", () => {
     // A shortener must never be able to rewrite a bookmark to a dangerous scheme.
     expect(

@@ -38,12 +38,18 @@ export function resolveShortenedBookmarkUrl(
   originalUrl: string,
   crawledUrl: string,
 ): string | undefined {
-  if (
-    isKnownLinkShortener(originalUrl) &&
-    crawledUrl !== originalUrl &&
-    isAllowedBookmarkUrl(crawledUrl)
-  ) {
-    return crawledUrl;
+  if (!isKnownLinkShortener(originalUrl) || !isAllowedBookmarkUrl(crawledUrl)) {
+    return undefined;
   }
-  return undefined;
+  // The crawler reports the URL as the browser serializes it, so compare the
+  // parsed forms: a lowercased host or an added trailing slash is not a
+  // redirect, and storing it would just re-save the opaque shortener.
+  try {
+    if (new URL(crawledUrl).href === new URL(originalUrl).href) {
+      return undefined;
+    }
+  } catch {
+    return undefined;
+  }
+  return crawledUrl;
 }
