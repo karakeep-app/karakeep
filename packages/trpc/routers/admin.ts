@@ -21,7 +21,6 @@ import {
   LowPriorityCrawlerQueue,
   OpenAIQueue,
   QueuePriority,
-  readAsset,
   SearchIndexingQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
@@ -331,11 +330,14 @@ export const adminAppRouter = router({
         let html = bookmark.htmlContent ?? "";
         if (!html && bookmark.contentAssetId) {
           try {
-            const asset = await readAsset({
-              userId: bookmark.userId,
-              assetId: bookmark.contentAssetId,
-            });
-            html = asset.asset.toString("utf8");
+            html =
+              (await Bookmark.getBookmarkHtmlContent(
+                {
+                  contentAssetId: bookmark.contentAssetId,
+                  htmlContent: bookmark.htmlContent,
+                },
+                bookmark.userId,
+              )) ?? "";
           } catch (error) {
             logger.warn(
               `[admin] Unable to inspect saved content for transcript retry on bookmark ${bookmark.id}: ${error instanceof Error ? error.message : String(error)}`,
