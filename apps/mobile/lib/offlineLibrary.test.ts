@@ -4,7 +4,10 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 const { entries, failWrite } = vi.hoisted(() => ({
   entries: new Map<string, string>(),
-  failWrite: { key: undefined as string | undefined },
+  failWrite: {
+    key: undefined as string | undefined,
+    removeKey: undefined as string | undefined,
+  },
 }));
 vi.mock("react-native-mmkv", () => ({
   createMMKV: () => ({
@@ -16,7 +19,13 @@ vi.mock("react-native-mmkv", () => ({
       }
       entries.set(key, value);
     },
-    remove: (key: string) => entries.delete(key),
+    remove: (key: string) => {
+      if (failWrite.removeKey === key) {
+        failWrite.removeKey = undefined;
+        throw new Error("remove failed");
+      }
+      return entries.delete(key);
+    },
     getAllKeys: () => [...entries.keys()],
     clearAll: () => entries.clear(),
   }),
@@ -28,6 +37,7 @@ import {
   getOfflineLibrary,
   pruneAutomaticOfflineArticles,
   saveOfflineArticle,
+  reconcileOfflineLibrary,
 } from "./offlineLibrary";
 
 const article = (id: string): OfflineArticle => ({
@@ -53,6 +63,7 @@ const article = (id: string): OfflineArticle => ({
 beforeEach(() => {
   entries.clear();
   failWrite.key = undefined;
+  failWrite.removeKey = undefined;
 });
 describe("automatic versus manual retention", () => {
   it("marks new automatic copies and keeps separate account scopes", () => {
@@ -107,5 +118,76 @@ describe("automatic versus manual retention", () => {
     expect(getOfflineLibrary("account").map((item) => item.bookmarkId)).toEqual(
       ["recent", "manual"],
     );
+  });
+  it("keeps complete listed copies when committing the cleanup manifest fails", () => {
+    saveOfflineArticle("account", article("old"), true);
+    saveOfflineArticle("account", article("manual"));
+    const previous = new Map(entries);
+    failWrite.key = "manifest:v3:account";
+    expect(() => pruneAutomaticOfflineArticles("account", new Set())).toThrow(
+      "disk full",
+    );
+    for (const [key, value] of previous) expect(entries.get(key)).toBe(value);
+    reconcileOfflineLibrary("account");
+    expect(entries).toEqual(previous);
+  });
+
+  it("does not change the manifest if journaling fails", () => {
+    saveOfflineArticle("account", article("old"), true);
+    const previous = new Map(entries);
+    failWrite.key = "automatic-cleanup:v1:account";
+    expect(() => pruneAutomaticOfflineArticles("account", new Set())).toThrow(
+      "disk full",
+    );
+    expect(entries).toEqual(previous);
+  });
+
+  it.each([
+    "article:v3:account:old",
+    "content:v3:account:old",
+    "automatic-cleanup:v1:account",
+  ])(
+    "recovers interrupted cleanup at %s without affecting retained copies",
+    (key) => {
+      saveOfflineArticle("account", article("old"), true);
+      saveOfflineArticle("account", article("manual"));
+      saveOfflineArticle("account", article("recent"), true);
+      // Exercise separate body deletion using a link rather than a text note.
+      const old = article("old");
+      old.bookmark.content = {
+        type: BookmarkTypes.LINK,
+        url: "https://example.com",
+        htmlContent: "<p>body</p>",
+      };
+      saveOfflineArticle("account", old, true);
+      failWrite.removeKey = key;
+      expect(() =>
+        pruneAutomaticOfflineArticles("account", new Set(["recent"])),
+      ).toThrow("remove failed");
+      expect(
+        getOfflineLibrary("account").map((item) => item.bookmarkId),
+      ).toEqual(["recent", "manual"]);
+      expect(entries.has("automatic-cleanup:v1:account")).toBe(true);
+      reconcileOfflineLibrary("account");
+      expect(entries.has("article:v3:account:old")).toBe(false);
+      expect(entries.has("content:v3:account:old")).toBe(false);
+      expect(entries.has("automatic-cleanup:v1:account")).toBe(false);
+      expect(
+        getOfflineLibrary("account").map((item) => item.bookmarkId),
+      ).toEqual(["recent", "manual"]);
+    },
+  );
+
+  it("recovers pending deletions before resaving the same article", () => {
+    saveOfflineArticle("account", article("old"), true);
+    failWrite.removeKey = "article:v3:account:old";
+    expect(() => pruneAutomaticOfflineArticles("account", new Set())).toThrow();
+    saveOfflineArticle("account", article("old"));
+    reconcileOfflineLibrary("account");
+    expect(getOfflineLibrary("account")[0]).toMatchObject({
+      bookmarkId: "old",
+      automatic: false,
+    });
+    expect(entries.has("article:v3:account:old")).toBe(true);
   });
 });

@@ -35,7 +35,8 @@ function isCharging(state: Battery.BatteryState): boolean | null {
   if (state === Battery.BatteryState.UNKNOWN) return null;
   return (
     state === Battery.BatteryState.CHARGING ||
-    state === Battery.BatteryState.FULL
+    state === Battery.BatteryState.FULL ||
+    state === Battery.BatteryState.NOT_CHARGING
   );
 }
 
@@ -79,8 +80,9 @@ export function AutomaticOfflineProvider({
   const lastAttempt = useRef(0);
   const run = useRef<((force?: boolean) => void) | null>(null);
 
-  const cancel = () => {
+  const cancel = (allowRetry = false) => {
     if (!activeRun.current) return;
+    if (allowRetry) lastAttempt.current = 0;
     activeRun.current.abort();
     activeRun.current = null;
     setState((previous) => ({
@@ -110,6 +112,8 @@ export function AutomaticOfflineProvider({
         getOfflineLibraryScope(current) !== scope ||
         current.apiKey !== settings.apiKey ||
         current.automaticOfflineCount !== settings.automaticOfflineCount ||
+        current.automaticOfflineExcludeArchived !==
+          settings.automaticOfflineExcludeArchived ||
         current.automaticOfflineWifiOnly !==
           settings.automaticOfflineWifiOnly ||
         current.automaticOfflineChargingOnly !==
@@ -123,6 +127,7 @@ export function AutomaticOfflineProvider({
     };
     void syncOfflineArticles({
       count: settings.automaticOfflineCount,
+      excludeArchived: settings.automaticOfflineExcludeArchived,
       signal: controller.signal,
       list: (cursor: ZGetBookmarksRequest["cursor"]) => {
         checkCurrentSettings();
@@ -133,6 +138,9 @@ export function AutomaticOfflineProvider({
             sortOrder: "desc",
             includeContent: false,
             useCursorV2: true,
+            ...(settings.automaticOfflineExcludeArchived
+              ? { archived: false }
+              : {}),
           },
           { signal: controller.signal },
         );
@@ -167,18 +175,24 @@ export function AutomaticOfflineProvider({
       },
     })
       .then((progress) => {
-        if (activeRun.current === controller && !controller.signal.aborted)
+        if (activeRun.current === controller && !controller.signal.aborted) {
+          if (progress.failed > 0 || progress.incomplete)
+            lastAttempt.current = 0;
           setState({
             ...progress,
             running: false,
             message:
               progress.failed > 0
                 ? `${progress.failed} articles could not be downloaded. Existing copies were kept.`
-                : `${progress.total} recent articles available offline.`,
+                : progress.incomplete
+                  ? `${progress.total} articles processed. The scan was incomplete; existing copies were kept.`
+                  : `${progress.total} recent articles available offline.`,
           });
+        }
       })
       .catch((error: unknown) => {
         if (activeRun.current !== controller) return;
+        lastAttempt.current = 0;
         setState((previous) => ({
           ...previous,
           running: false,
@@ -197,11 +211,12 @@ export function AutomaticOfflineProvider({
   useEffect(() => {
     lastAttempt.current = 0;
     setState(initialState);
-    return cancel;
+    return () => cancel();
   }, [
     scope,
     settings.apiKey,
     settings.automaticOfflineCount,
+    settings.automaticOfflineExcludeArchived,
     settings.automaticOfflineWifiOnly,
     settings.automaticOfflineChargingOnly,
   ]);
@@ -235,9 +250,7 @@ export function AutomaticOfflineProvider({
         const current = useSettings.getState().settings.settings;
         if (downloadBlockedReason(current, next)) {
           if (activeRun.current) {
-            cancel();
-            // A policy interruption can resume as soon as conditions permit.
-            lastAttempt.current = 0;
+            cancel(true);
           }
         } else run.current?.();
       },
@@ -255,13 +268,14 @@ export function AutomaticOfflineProvider({
       connection !== "online" ||
       downloadBlockedReason(settings, currentConditions.current)
     )
-      cancel();
+      cancel(true);
     else run.current?.();
   }, [
     connection,
     scope,
     settings.apiKey,
     settings.automaticOfflineCount,
+    settings.automaticOfflineExcludeArchived,
     settings.automaticOfflineWifiOnly,
     settings.automaticOfflineChargingOnly,
   ]);
@@ -271,7 +285,7 @@ export function AutomaticOfflineProvider({
       if (next === "active") {
         refreshConditions.current?.();
         run.current?.();
-      } else cancel();
+      } else cancel(true);
     });
     const interval = setInterval(() => run.current?.(), SYNC_INTERVAL);
     return () => {
@@ -287,7 +301,7 @@ export function AutomaticOfflineProvider({
         state,
         blockedReason,
         refresh: () => run.current?.(true),
-        cancel,
+        cancel: () => cancel(),
       }}
     >
       {children}

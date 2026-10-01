@@ -179,7 +179,7 @@ export default function OfflineContent() {
 
       <SettingsGroup
         header="Automatic downloads"
-        footer="Downloads run while the app is open and connected, at most every 15 minutes. Wi-Fi and charging restrictions also apply to Download now. A full battery on power counts as charging. Article text is saved; remote images and full archived pages may still need a connection. Manual saves are never removed by automatic cleanup."
+        footer="Downloads run while the app is open and connected, at most every 15 minutes. Wi-Fi and charging restrictions also apply to Download now. A full or paused battery on power counts as charging. Article text is saved; remote images and full archived pages may still need a connection. Manual saves are never removed by automatic cleanup."
       >
         <SettingsToggleRow
           label="Keep recent articles offline"
@@ -191,6 +191,18 @@ export default function OfflineContent() {
               cancel();
               void updateDownloadSettings({ automaticOfflineCount: 0 });
             }
+          }}
+        />
+        <SettingsSeparator />
+        <SettingsToggleRow
+          label="Exclude archived articles"
+          value={settings.automaticOfflineExcludeArchived}
+          disabled={savingSettings}
+          onValueChange={(enabled) => {
+            cancel();
+            void updateDownloadSettings({
+              automaticOfflineExcludeArchived: enabled,
+            });
           }}
         />
         <SettingsSeparator />

@@ -3,16 +3,19 @@
 export interface OfflineSyncItem {
   id: string;
   content: { type: string };
+  archived?: boolean;
 }
 
 export interface OfflineSyncProgress {
   completed: number;
   total: number;
   failed: number;
+  incomplete?: boolean;
 }
 
 export async function syncOfflineArticles<T extends OfflineSyncItem, C>({
   count,
+  excludeArchived = false,
   signal,
   list,
   download,
@@ -21,6 +24,7 @@ export async function syncOfflineArticles<T extends OfflineSyncItem, C>({
   onProgress,
 }: {
   count: number;
+  excludeArchived?: boolean;
   signal: AbortSignal;
   list: (cursor: C | null) => Promise<{ bookmarks: T[]; nextCursor: C | null }>;
   download: (id: string) => Promise<T>;
@@ -38,6 +42,7 @@ export async function syncOfflineArticles<T extends OfflineSyncItem, C>({
   const seen = new Set<string>();
   const cursors = new Set<string>();
   let cursor: C | null = null;
+  let incomplete = false;
   // Mixed libraries can contain many unsupported assets. Bound pagination
   // even when there are fewer readable articles than requested.
   for (let page = 0; page < 50; page++) {
@@ -47,6 +52,7 @@ export async function syncOfflineArticles<T extends OfflineSyncItem, C>({
     for (const bookmark of result.bookmarks) {
       if (seen.has(bookmark.id)) continue;
       seen.add(bookmark.id);
+      if (excludeArchived && bookmark.archived) continue;
       if (bookmark.content.type !== "link" && bookmark.content.type !== "text")
         continue;
       selected.push(bookmark.id);
@@ -55,15 +61,19 @@ export async function syncOfflineArticles<T extends OfflineSyncItem, C>({
     if (selected.length === count || result.nextCursor === null) break;
     const cursorKey = JSON.stringify(result.nextCursor);
     if (cursors.has(cursorKey) || page === 49) {
-      throw new Error(
-        "Could not finish listing recent articles. Existing copies were kept.",
-      );
+      incomplete = true;
+      break;
     }
     cursors.add(cursorKey);
     cursor = result.nextCursor;
   }
 
-  const progress = { completed: 0, total: selected.length, failed: 0 };
+  const progress: OfflineSyncProgress = {
+    completed: 0,
+    total: selected.length,
+    failed: 0,
+    ...(incomplete ? { incomplete: true } : {}),
+  };
   onProgress({ ...progress });
   for (const id of selected) {
     checkCancelled();
@@ -71,7 +81,10 @@ export async function syncOfflineArticles<T extends OfflineSyncItem, C>({
       const bookmark = await download(id);
       checkCancelled();
       if (bookmark.id !== id) throw new Error("Unexpected article returned.");
-      save(bookmark);
+      if (excludeArchived && bookmark.archived) {
+        // The bookmark changed after selection. Keep old copies until a fresh scan.
+        progress.incomplete = true;
+      } else save(bookmark);
     } catch {
       checkCancelled();
       progress.failed++;
@@ -81,6 +94,6 @@ export async function syncOfflineArticles<T extends OfflineSyncItem, C>({
   }
   checkCancelled();
   // Partial failure must not evict previously available articles.
-  if (progress.failed === 0) prune(new Set(selected));
+  if (progress.failed === 0 && !progress.incomplete) prune(new Set(selected));
   return progress;
 }

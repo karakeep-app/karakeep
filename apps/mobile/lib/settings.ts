@@ -55,6 +55,7 @@ const zSettingsSchema = z.object({
     .max(1000)
     .optional()
     .default(0),
+  automaticOfflineExcludeArchived: z.boolean().optional().default(false),
   automaticOfflineWifiOnly: z.boolean().optional().default(true),
   automaticOfflineChargingOnly: z.boolean().optional().default(false),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
@@ -94,6 +95,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       showNotes: false,
       keepScreenOnWhileReading: false,
       automaticOfflineCount: 0,
+      automaticOfflineExcludeArchived: false,
       automaticOfflineWifiOnly: true,
       automaticOfflineChargingOnly: false,
       customHeaders: {},
