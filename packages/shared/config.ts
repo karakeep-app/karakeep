@@ -143,6 +143,12 @@ const allEnv = z.object({
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
+  CRAWLER_YOUTUBE_TRANSCRIPT: stringBool("false"),
+  CRAWLER_YOUTUBE_TRANSCRIPT_LANGUAGES: z
+    .string()
+    .prefault("ja,en")
+    .transform((value) => value.split(",").map((language) => language.trim()).filter(Boolean)),
+  CRAWLER_YOUTUBE_TRANSCRIPT_TIMEOUT_SEC: z.coerce.number().int().positive().default(30),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_ENABLE_AUTOCONSENT: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z
@@ -414,6 +420,9 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
+      youtubeTranscript: val.CRAWLER_YOUTUBE_TRANSCRIPT,
+      youtubeTranscriptLanguages: val.CRAWLER_YOUTUBE_TRANSCRIPT_LANGUAGES,
+      youtubeTranscriptTimeoutSec: val.CRAWLER_YOUTUBE_TRANSCRIPT_TIMEOUT_SEC,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       enableAutoconsent: val.CRAWLER_ENABLE_AUTOCONSENT,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,

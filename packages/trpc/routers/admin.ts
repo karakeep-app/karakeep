@@ -1,6 +1,6 @@
 import * as dns from "dns";
 import { TRPCError } from "@trpc/server";
-import { and, asc, count, eq, gt, gte, inArray, or, sum } from "drizzle-orm";
+import { and, asc, count, eq, gt, gte, inArray, like, or, sum } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -21,6 +21,7 @@ import {
   LowPriorityCrawlerQueue,
   OpenAIQueue,
   QueuePriority,
+  readAsset,
   SearchIndexingQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
@@ -297,6 +298,63 @@ export const adminAppRouter = router({
         }),
       );
     }),
+  retryMissingYouTubeTranscripts: adminBookmarksProcedure.mutation(
+    async ({ ctx }) => {
+      if (!serverConfig.crawler.youtubeTranscript) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "YouTube transcript crawling is disabled",
+        });
+      }
+
+      const candidates = await ctx.db
+        .select({
+          id: bookmarkLinks.id,
+          url: bookmarkLinks.url,
+          htmlContent: bookmarkLinks.htmlContent,
+          contentAssetId: bookmarkLinks.contentAssetId,
+          userId: bookmarks.userId,
+        })
+        .from(bookmarkLinks)
+        .innerJoin(bookmarks, eq(bookmarkLinks.id, bookmarks.id))
+        .where(
+          or(
+            like(bookmarkLinks.url, "%youtube.com/watch%"),
+            like(bookmarkLinks.url, "%youtube.com/shorts/%"),
+            like(bookmarkLinks.url, "%youtube.com/live/%"),
+            like(bookmarkLinks.url, "%youtu.be/%"),
+          ),
+        );
+
+      let missingCount = 0;
+      for (const bookmark of candidates) {
+        let html = bookmark.htmlContent ?? "";
+        if (!html && bookmark.contentAssetId) {
+          try {
+            const asset = await readAsset({
+              userId: bookmark.userId,
+              assetId: bookmark.contentAssetId,
+            });
+            html = asset.asset.toString("utf8");
+          } catch (error) {
+            logger.warn(
+              `[admin] Unable to inspect saved content for transcript retry on bookmark ${bookmark.id}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+          }
+        }
+        if (html.includes('class="youtube-transcript"')) continue;
+
+        const payload = { bookmarkId: bookmark.id, runInference: false };
+        await LowPriorityCrawlerQueue.enqueue(payload, {
+          priority: QueuePriority.Low,
+          groupId: "admin",
+          idempotencyKey: buildCrawlIdempotencyKey(payload),
+        });
+        missingCount++;
+      }
+      return { queued: missingCount };
+    },
+  ),
   reindexAllBookmarks: adminBookmarksProcedure
     .input(
       z

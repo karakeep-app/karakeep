@@ -276,6 +276,20 @@ function useJobActions() {
       }),
     );
 
+  const {
+    mutateAsync: retryMissingYouTubeTranscripts,
+    isPending: isRetryTranscriptsPending,
+  } = useMutation(
+    api.admin.retryMissingYouTubeTranscripts.mutationOptions({
+      onSuccess: ({ queued }) => {
+        toast({ description: `Queued transcript retry for ${queued} YouTube links` });
+      },
+      onError: (e) => {
+        toast({ variant: "destructive", description: e.message });
+      },
+    }),
+  );
+
   const { mutateAsync: reindexBookmarks, isPending: isReindexPending } =
     useMutation(
       api.admin.reindexAllBookmarks.mutationOptions({
@@ -371,6 +385,11 @@ function useJobActions() {
 
   return {
     crawlActions: [
+      {
+        label: t("admin.background_jobs.actions.retry_missing_youtube_transcripts"),
+        onClick: () => retryMissingYouTubeTranscripts(),
+        loading: isRetryTranscriptsPending,
+      },
       {
         label: t("admin.background_jobs.actions.recrawl_pending_links_only"),
         onClick: () =>

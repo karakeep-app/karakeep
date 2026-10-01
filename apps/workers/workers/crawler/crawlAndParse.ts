@@ -50,6 +50,7 @@ import {
 import { crawlPage } from "./crawlPage";
 import { runParseSubprocess } from "./parseSubprocess";
 import { redactUrlCredentials, shouldRetryCrawlStatusCode } from "./utils";
+import { fetchYouTubeTranscript, transcriptToHtml } from "./youtubeTranscript";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -351,6 +352,33 @@ export async function crawlAndParseUrl(
         .where(eq(bookmarkLinks.id, bookmarkId));
 
       let readableContent = parsedReadableContent;
+
+      if (serverConfig.crawler.youtubeTranscript) {
+        try {
+          const transcript = await fetchYouTubeTranscript(
+            browserUrl,
+            serverConfig.crawler.youtubeTranscriptLanguages,
+            serverConfig.crawler.youtubeTranscriptTimeoutSec,
+            abortSignal,
+          );
+          if (transcript.length > 0) {
+            const transcriptHtml = transcriptToHtml(transcript, browserUrl);
+            readableContent = {
+              content: [readableContent?.content ?? "", transcriptHtml]
+                .filter(Boolean)
+                .join("\n"),
+            };
+            logger.info(
+              `[Crawler][${jobId}] Added ${transcript.length} YouTube transcript language(s): ${transcript.map((item) => `${item.language}/${item.source}/${item.segments.length} segments`).join(", ")}`,
+            );
+          }
+        } catch (error) {
+          if (abortSignal.aborted) throw error;
+          logger.warn(
+            `[Crawler][${jobId}] Failed to fetch YouTube transcript: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      }
 
       const screenshotAssetInfo = await raceWith(
         storeScreenshot(screenshot, userId, jobId),
