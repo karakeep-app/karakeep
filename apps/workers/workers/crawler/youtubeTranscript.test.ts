@@ -5,11 +5,11 @@ import { transcriptToHtml } from "./youtubeTranscript";
 describe("transcriptToHtml", () => {
   it("preserves timestamps and escapes caption text", () => {
     const html = transcriptToHtml(
-      {
+      [{
         language: "ja",
         source: "automatic",
         segments: [{ startMs: 155000, durationMs: 1000, text: "<script>alert('x')</script> & hello" }],
-      },
+      }],
       "https://www.youtube.com/watch?v=abc123",
     );
 
@@ -23,9 +23,24 @@ describe("transcriptToHtml", () => {
 
   it("supports timestamps longer than one hour", () => {
     const html = transcriptToHtml(
-      { language: "en", source: "manual", segments: [{ startMs: 3_661_000, text: "After an hour" }] },
+      [{ language: "en", source: "manual", segments: [{ startMs: 3_661_000, text: "After an hour" }] }],
       "https://youtu.be/abc123",
     );
     expect(html).toContain("01:01:01");
+  });
+
+  it("includes multiple configured languages", () => {
+    const html = transcriptToHtml(
+      [
+        { language: "ja", source: "manual", segments: [{ startMs: 0, text: "こんにちは" }] },
+        { language: "en", source: "automatic", segments: [{ startMs: 0, text: "Hello" }] },
+      ],
+      "https://www.youtube.com/watch?v=abc123",
+    );
+
+    expect(html).toContain('data-transcript-language="ja"');
+    expect(html).toContain('data-transcript-language="en"');
+    expect(html).toContain("こんにちは");
+    expect(html).toContain("Hello");
   });
 });

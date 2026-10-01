@@ -359,7 +359,7 @@ export async function crawlAndParseUrl(
             serverConfig.crawler.youtubeTranscriptTimeoutSec,
             abortSignal,
           );
-          if (transcript) {
+          if (transcript.length > 0) {
             const transcriptHtml = transcriptToHtml(transcript, browserUrl);
             readableContent = {
               content: [readableContent?.content ?? "", transcriptHtml]
@@ -367,7 +367,7 @@ export async function crawlAndParseUrl(
                 .join("\n"),
             };
             logger.info(
-              `[Crawler][${jobId}] Added YouTube transcript (${transcript.language}, ${transcript.source}, ${transcript.segments.length} segments, ${transcript.segments.reduce((total, segment) => total + segment.text.length, 0)} characters)`,
+              `[Crawler][${jobId}] Added ${transcript.length} YouTube transcript language(s): ${transcript.map((item) => `${item.language}/${item.source}/${item.segments.length} segments`).join(", ")}`,
             );
           }
         } catch (error) {

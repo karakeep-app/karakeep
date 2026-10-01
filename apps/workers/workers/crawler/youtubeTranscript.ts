@@ -36,19 +36,19 @@ function isYouTubeUrl(value: string): boolean {
   }
 }
 
-function selectLanguage(
+function selectLanguages(
   info: YtDlpInfo,
   preferredLanguages: string[],
-): { language: string; source: "manual" | "automatic" } | null {
-  for (const language of preferredLanguages) {
+): Array<{ language: string; source: "manual" | "automatic" }> {
+  const selected: Array<{ language: string; source: "manual" | "automatic" }> = [];
+  for (const language of [...new Set(preferredLanguages)]) {
     if (info.subtitles?.[language]?.length) {
-      return { language, source: "manual" };
-    }
-    if (info.automatic_captions?.[language]?.length) {
-      return { language, source: "automatic" };
+      selected.push({ language, source: "manual" });
+    } else if (info.automatic_captions?.[language]?.length) {
+      selected.push({ language, source: "automatic" });
     }
   }
-  return null;
+  return selected;
 }
 
 function escapeHtml(value: string): string {
@@ -96,15 +96,17 @@ function parseVtt(vtt: string): TranscriptSegment[] {
 }
 
 export function transcriptToHtml(
-  transcript: YouTubeTranscript,
+  transcripts: YouTubeTranscript[],
   videoUrl: string,
 ): string {
   const safeVideoUrl = escapeHtml(videoUrl);
-  const body = transcript.segments.map((segment) => {
-    const seconds = Math.floor(segment.startMs / 1000);
-    return `<p class="youtube-transcript-segment" data-start-ms="${segment.startMs}"><a class="youtube-transcript-timestamp" href="${safeVideoUrl}&amp;t=${seconds}s">${formatTimestamp(seconds)}</a> ${escapeHtml(segment.text)}</p>`;
+  return transcripts.map((transcript) => {
+    const body = transcript.segments.map((segment) => {
+      const seconds = Math.floor(segment.startMs / 1000);
+      return `<p class="youtube-transcript-segment" data-start-ms="${segment.startMs}"><a class="youtube-transcript-timestamp" href="${safeVideoUrl}&amp;t=${seconds}s">${formatTimestamp(seconds)}</a> ${escapeHtml(segment.text)}</p>`;
+    }).join("\n");
+    return `<section class="youtube-transcript" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript (${escapeHtml(transcript.language)})</h2>\n${body}\n</section>`;
   }).join("\n");
-  return `<section class="youtube-transcript" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript</h2>\n${body}\n</section>`;
 }
 
 export async function fetchYouTubeTranscript(
@@ -112,8 +114,8 @@ export async function fetchYouTubeTranscript(
   preferredLanguages: string[],
   timeoutSec: number,
   signal?: AbortSignal,
-): Promise<YouTubeTranscript | null> {
-  if (!isYouTubeUrl(videoUrl)) return null;
+): Promise<YouTubeTranscript[]> {
+  if (!isYouTubeUrl(videoUrl)) return [];
   const timeout = AbortSignal.timeout(timeoutSec * 1000);
   const combinedSignal = signal
     ? AbortSignal.any([signal, timeout])
@@ -124,27 +126,33 @@ export async function fetchYouTubeTranscript(
     reject: true,
   });
   const info = JSON.parse(stdout) as YtDlpInfo;
-  const selected = selectLanguage(info, preferredLanguages);
-  if (!selected) return null;
+  const selected = selectLanguages(info, preferredLanguages);
+  if (selected.length === 0) return [];
 
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "youtube-transcript-"));
   try {
-    const args = ["--skip-download", "--sub-format", "vtt", "--sub-langs", selected.language];
-    if (selected.source === "automatic") {
-      args.push("--write-auto-subs");
-    } else {
-      args.push("--write-subs", "--no-write-auto-subs");
-    }
+    const languages = selected.map(({ language }) => language);
+    const hasManual = selected.some(({ source }) => source === "manual");
+    const hasAutomatic = selected.some(({ source }) => source === "automatic");
+    const args = ["--skip-download", "--sub-format", "vtt", "--sub-langs", languages.join(",")];
+    if (hasManual) args.push("--write-subs");
+    else args.push("--no-write-subs");
+    if (hasAutomatic) args.push("--write-auto-subs");
+    else args.push("--no-write-auto-subs");
     args.push("--output", path.join(directory, "%(id)s.%(ext)s"), videoUrl);
     await execa("yt-dlp", args, {
       cancelSignal: combinedSignal,
       timeout: timeoutSec * 1000,
     });
     const files = await fs.readdir(directory);
-    const subtitle = files.find((file) => file.endsWith(`.${selected.language}.vtt`) || file.endsWith(".vtt"));
-    if (!subtitle) return null;
-    const segments = parseVtt(await fs.readFile(path.join(directory, subtitle), "utf8"));
-    return segments.length ? { ...selected, segments } : null;
+    const transcripts: YouTubeTranscript[] = [];
+    for (const selection of selected) {
+      const subtitle = files.find((file) => file.endsWith(`.${selection.language}.vtt`));
+      if (!subtitle) continue;
+      const segments = parseVtt(await fs.readFile(path.join(directory, subtitle), "utf8"));
+      if (segments.length) transcripts.push({ ...selection, segments });
+    }
+    return transcripts;
   } finally {
     await fs.rm(directory, { recursive: true, force: true });
   }
