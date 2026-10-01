@@ -19,6 +19,7 @@ import {
   OpenAIQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
+  YouTubeTranscriptQueue,
   withSpan,
   zCrawlLinkRequestSchema,
 } from "@karakeep/shared-server";
@@ -56,6 +57,7 @@ import {
 } from "./crawler/probe";
 import type { UrlProbeResult } from "./crawler/probe";
 import { redactUrlCredentials, truncateUrl } from "./crawler/utils";
+import { isYouTubeUrl } from "./crawler/youtubeTranscript";
 
 // Re-exported for the adhoc crawl CLI (scripts/crawlAdhoc.ts).
 export { crawlPage } from "./crawler/crawlPage";
@@ -136,6 +138,21 @@ export class CrawlerWorker {
                 crawlStatus: "success",
               })
               .where(eq(bookmarkLinks.id, bookmarkId));
+
+            // Enqueue transcript extraction only after the crawler has
+            // finished writing the bookmark's content. The transcript worker
+            // also checks crawlStatus to guard already queued retry jobs.
+            const { url, userId } = await getBookmarkDetails(bookmarkId);
+            if (serverConfig.crawler.youtubeTranscript && isYouTubeUrl(url)) {
+              await YouTubeTranscriptQueue.enqueue(
+                { bookmarkId },
+                {
+                  priority: job.priority,
+                  groupId: userId,
+                  idempotencyKey: `youtube-transcript:${bookmarkId}`,
+                },
+              );
+            }
           }
         },
         onError: async (job: DequeuedJobError<ZCrawlLinkRequest>) => {

@@ -70,6 +70,10 @@ type EventLogInternal =
       "bookmark.id"?: string;
     }
   | {
+      ["event.name"]: "youtubeTranscriptWorker.run";
+      "bookmark.id"?: string;
+    }
+  | {
       ["event.name"]: "webhookWorker.run";
       "bookmark.id"?: string;
       "webhook.operation"?: string;

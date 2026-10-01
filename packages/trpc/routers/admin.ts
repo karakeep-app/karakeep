@@ -24,6 +24,7 @@ import {
   SearchIndexingQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
+  YouTubeTranscriptQueue,
   WebhookQueue,
   zAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
@@ -108,6 +109,10 @@ export const adminAppRouter = router({
         videoStats: z.object({
           queued: z.number(),
         }),
+        youtubeTranscriptStats: z.object({
+          queued: z.number(),
+          running: z.number(),
+        }),
         webhookStats: z.object({
           queued: z.number(),
         }),
@@ -145,6 +150,9 @@ export const adminAppRouter = router({
 
         // Video
         queuedVideo,
+
+        // YouTube transcripts
+        queuedYouTubeTranscripts,
 
         // Webhook
         queuedWebhook,
@@ -208,6 +216,8 @@ export const adminAppRouter = router({
         // Video
         VideoWorkerQueue.stats(),
 
+        YouTubeTranscriptQueue.stats(),
+
         // Webhook
         WebhookQueue.stats(),
 
@@ -248,6 +258,12 @@ export const adminAppRouter = router({
         },
         videoStats: {
           queued: queuedVideo.pending + queuedVideo.pending_retry,
+        },
+        youtubeTranscriptStats: {
+          queued:
+            queuedYouTubeTranscripts.pending +
+            queuedYouTubeTranscripts.pending_retry,
+          running: queuedYouTubeTranscripts.running,
         },
         webhookStats: {
           queued: queuedWebhook.pending + queuedWebhook.pending_retry,
@@ -346,11 +362,10 @@ export const adminAppRouter = router({
         }
         if (html.includes('class="youtube-transcript"')) continue;
 
-        const payload = { bookmarkId: bookmark.id, runInference: false };
-        await LowPriorityCrawlerQueue.enqueue(payload, {
+        await YouTubeTranscriptQueue.enqueue({ bookmarkId: bookmark.id }, {
           priority: QueuePriority.Low,
           groupId: "admin",
-          idempotencyKey: buildCrawlIdempotencyKey(payload),
+          idempotencyKey: `youtube-transcript:${bookmark.id}`,
         });
         missingCount++;
       }

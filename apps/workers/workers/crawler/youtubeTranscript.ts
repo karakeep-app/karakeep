@@ -20,7 +20,7 @@ type YtDlpInfo = {
   automatic_captions?: Record<string, Array<{ ext?: string; url?: string }>>;
 };
 
-function isYouTubeUrl(value: string): boolean {
+export function isYouTubeUrl(value: string): boolean {
   try {
     const url = new URL(value);
     const host = url.hostname.toLowerCase().replace(/^www\./, "");
@@ -114,13 +114,15 @@ export async function fetchYouTubeTranscript(
   preferredLanguages: string[],
   timeoutSec: number,
   signal?: AbortSignal,
+  proxy?: string,
 ): Promise<YouTubeTranscript[]> {
   if (!isYouTubeUrl(videoUrl)) return [];
   const timeout = AbortSignal.timeout(timeoutSec * 1000);
   const combinedSignal = signal
     ? AbortSignal.any([signal, timeout])
     : timeout;
-  const { stdout } = await execa("yt-dlp", ["--skip-download", "--dump-single-json", videoUrl], {
+  const proxyArgs = proxy ? ["--proxy", proxy] : [];
+  const { stdout } = await execa("yt-dlp", [...proxyArgs, "--skip-download", "--dump-single-json", videoUrl], {
     cancelSignal: combinedSignal,
     timeout: timeoutSec * 1000,
     reject: true,
@@ -134,7 +136,7 @@ export async function fetchYouTubeTranscript(
     const languages = selected.map(({ language }) => language);
     const hasManual = selected.some(({ source }) => source === "manual");
     const hasAutomatic = selected.some(({ source }) => source === "automatic");
-    const args = ["--skip-download", "--sub-format", "vtt", "--sub-langs", languages.join(",")];
+    const args = [...proxyArgs, "--skip-download", "--sub-format", "vtt", "--sub-langs", languages.join(",")];
     if (hasManual) args.push("--write-subs");
     else args.push("--no-write-subs");
     if (hasAutomatic) args.push("--write-auto-subs");

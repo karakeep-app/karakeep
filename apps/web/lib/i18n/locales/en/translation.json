@@ -681,6 +681,10 @@
           "title": "Video Download Jobs",
           "description": "Video extraction and download"
         },
+        "youtube_transcript": {
+          "title": "YouTube Transcript Jobs",
+          "description": "Fetching and saving YouTube transcripts"
+        },
         "webhook": {
           "title": "Webhook Jobs",
           "description": "External webhook notifications"
@@ -696,6 +700,9 @@
       "available_actions": "Available Actions",
       "status": {
         "title": "Understanding Job States",
+        "running": {
+          "title": "Running"
+        },
         "queued": {
           "title": "Queued",
           "description": "Jobs waiting in line to be processed. They will start automatically when resources are available."

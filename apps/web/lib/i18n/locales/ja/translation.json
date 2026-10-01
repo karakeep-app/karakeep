@@ -117,6 +117,10 @@
           "title": "ビデオダウンロードジョブ",
           "description": "動画の抽出とダウンロード"
         },
+        "youtube_transcript": {
+          "title": "YouTube字幕ジョブ",
+          "description": "YouTube字幕の取得と保存"
+        },
         "webhook": {
           "title": "Webhookジョブ",
           "description": "外部Webhook通知"
@@ -135,6 +139,9 @@
       "available_actions": "利用可能なアクション",
       "status": {
         "title": "ジョブの状態について",
+        "running": {
+          "title": "実行中"
+        },
         "queued": {
           "title": "キューに追加済み",
           "description": "処理待ちのジョブが並んでいます。リソースが利用可能になると自動的に開始されます。"
@@ -149,6 +156,7 @@
         }
       },
       "actions": {
+        "retry_missing_youtube_transcripts": "未取得のYouTube字幕を再取得",
         "recrawl_failed_links_only": "失敗したリンクのみを再クロール",
         "recrawl_all_links": "すべてのリンクを再クロール",
         "without_inference": "推論なし",
