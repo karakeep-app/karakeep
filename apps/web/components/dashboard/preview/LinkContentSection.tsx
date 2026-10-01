@@ -23,6 +23,7 @@ import {
   Archive,
   BookOpen,
   Camera,
+  Captions,
   ExpandIcon,
   FileText,
   Info,
@@ -43,6 +44,16 @@ import { contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
 import SavedPageOverview from "./SavedPageOverview";
+import YoutubeTranscriptView from "./YoutubeTranscriptView";
+
+function isYouTubeLink(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    return host === "youtube.com" || host === "m.youtube.com" || host === "youtu.be";
+  } catch {
+    return false;
+  }
+}
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
   return (
@@ -176,6 +187,8 @@ export default function LinkContentSection({
     content = <FullPageArchiveSection link={bookmark.content} />;
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
+  } else if (section === "video_transcript") {
+    content = <YoutubeTranscriptView bookmark={bookmark} />;
   } else if (section === "pdf") {
     content = <PDFSection link={bookmark.content} />;
   } else if (section === "screenshot") {
@@ -217,6 +230,14 @@ export default function LinkContentSection({
                   {t("preview.page_overview")}
                 </div>
               </SelectItem>
+              {isYouTubeLink(bookmark.content.url) && (
+                <SelectItem value="video_transcript">
+                  <div className="flex items-center">
+                    <Captions className="mr-2 h-4 w-4" />
+                    {t("preview.youtube_transcript.view")}
+                  </div>
+                </SelectItem>
+              )}
               <SelectItem
                 value="cached"
                 disabled={bookmark.content.readerViewStatus === "unavailable"}
