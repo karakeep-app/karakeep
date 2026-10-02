@@ -1,3 +1,5 @@
+import { promises as fs } from "node:fs";
+import path from "node:path";
 import { eq } from "drizzle-orm";
 import { getProxyAgent, selectRunProxies } from "network";
 import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
@@ -5,10 +7,14 @@ import { updateAsset } from "workerUtils";
 
 import type { ZYouTubeTranscriptRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
-import { assets, AssetTypes, bookmarkLinks, bookmarks } from "@karakeep/db/schema";
+import {
+  assets,
+  AssetTypes,
+  bookmarkLinks,
+  bookmarks,
+} from "@karakeep/db/schema";
 import {
   addLogFields,
-  getTracer,
   triggerSearchReindex,
   YouTubeTranscriptQueue,
 } from "@karakeep/shared-server";
@@ -27,11 +33,19 @@ import {
 } from "@karakeep/shared/queueing";
 
 import { storeHtmlContent } from "./crawler/assetStorage";
-import { fetchYouTubeTranscript, isYouTubeUrl, transcriptToHtml } from "./crawler/youtubeTranscript";
+import {
+  fetchYouTubeTranscript,
+  isYouTubeUrl,
+  transcriptToHtml,
+  TRANSLATED_CAPTION_SLEEP_SEC,
+} from "./crawler/youtubeTranscript";
 
-const tracer = getTracer("@karakeep/workers");
 const RATE_LIMIT_COOLDOWN_MS = 30 * 60 * 1000;
 const CRAWL_WAIT_RETRY_MS = 15 * 1000;
+const RATE_LIMIT_STATE_FILE = path.join(
+  serverConfig.dataDir,
+  "youtube-transcript-rate-limit-until",
+);
 let youtubeRateLimitUntil = 0;
 
 export class YouTubeTranscriptWorker {
@@ -59,7 +73,11 @@ export class YouTubeTranscriptWorker {
       },
       {
         pollIntervalMs: 1000,
-        timeoutSecs: serverConfig.crawler.youtubeTranscriptTimeoutSec * 2 + 10,
+        timeoutSecs:
+          serverConfig.crawler.youtubeTranscriptTimeoutSec * 2 +
+          serverConfig.crawler.youtubeTranscriptLanguages.length *
+            TRANSLATED_CAPTION_SLEEP_SEC +
+          10,
         concurrency: 1,
       },
     );
@@ -71,12 +89,19 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
   const { bookmarkId } = job.data;
   addLogFields<"youtubeTranscriptWorker.run">({ "bookmark.id": bookmarkId });
 
+  youtubeRateLimitUntil = Math.max(
+    youtubeRateLimitUntil,
+    await readRateLimitUntil(),
+  );
   if (youtubeRateLimitUntil > Date.now()) {
     const delayMs = youtubeRateLimitUntil - Date.now();
     logger.warn(
       `[YouTubeTranscript][${jobId}] Pausing transcript requests after YouTube rate limiting for ${Math.ceil(delayMs / 60_000)} more minute(s)`,
     );
-    throw new QueueRetryAfterError("YouTube transcript requests are cooling down", delayMs);
+    throw new QueueRetryAfterError(
+      "YouTube transcript requests are cooling down",
+      delayMs,
+    );
   }
 
   const [bookmark] = await db
@@ -93,7 +118,9 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
     .limit(1);
 
   if (!bookmark || !isYouTubeUrl(bookmark.url)) {
-    logger.info(`[YouTubeTranscript][${jobId}] Skipping non-YouTube or missing bookmark`);
+    logger.info(
+      `[YouTubeTranscript][${jobId}] Skipping non-YouTube or missing bookmark`,
+    );
     return;
   }
 
@@ -131,11 +158,16 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
       serverConfig.crawler.youtubeTranscriptTimeoutSec,
       job.abortSignal,
       proxy,
+      (summary) =>
+        logger.info(
+          `[YouTubeTranscript][${jobId}] Selected caption tracks: ${summary}`,
+        ),
     );
   } catch (error) {
     const detail = getErrorDetail(error);
     if (/HTTP Error 429|Too Many Requests/i.test(detail)) {
       youtubeRateLimitUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+      await persistRateLimitUntil(youtubeRateLimitUntil);
       logger.warn(
         `[YouTubeTranscript][${jobId}] YouTube returned HTTP 429; pausing transcript jobs for ${RATE_LIMIT_COOLDOWN_MS / 60_000} minutes. ${detail}`,
       );
@@ -148,7 +180,9 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
   }
 
   if (transcripts.length === 0) {
-    logger.info(`[YouTubeTranscript][${jobId}] No configured transcript languages are available`);
+    logger.info(
+      `[YouTubeTranscript][${jobId}] No configured transcript languages are available`,
+    );
     return;
   }
 
@@ -156,7 +190,9 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
   const combinedHtml = [htmlContent, transcriptHtml].filter(Boolean).join("\n");
   const stored = await storeHtmlContent(combinedHtml, bookmark.userId, jobId);
   if (stored.result === "not_stored") {
-    logger.warn(`[YouTubeTranscript][${jobId}] Could not store transcript content`);
+    logger.warn(
+      `[YouTubeTranscript][${jobId}] Could not store transcript content`,
+    );
     return;
   }
 
@@ -194,12 +230,42 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
   });
 
   await Promise.all(
-    obsoleteAssetIds.map((assetId) => silentDeleteAsset(bookmark.userId, assetId)),
+    obsoleteAssetIds.map((assetId) =>
+      silentDeleteAsset(bookmark.userId, assetId),
+    ),
   );
   await triggerSearchReindex(bookmarkId, { groupId: bookmark.userId });
   logger.info(
     `[YouTubeTranscript][${jobId}] Added ${transcripts.length} transcript language(s): ${transcripts.map((item) => `${item.language}/${item.source}/${item.segments.length} segments`).join(", ")}`,
   );
+}
+
+async function readRateLimitUntil(): Promise<number> {
+  try {
+    const value = Number(await fs.readFile(RATE_LIMIT_STATE_FILE, "utf8"));
+    if (Number.isFinite(value) && value > Date.now()) return value;
+    await fs.rm(RATE_LIMIT_STATE_FILE, { force: true });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      logger.warn(
+        `Could not read YouTube transcript cooldown state: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+  return 0;
+}
+
+async function persistRateLimitUntil(timestamp: number): Promise<void> {
+  const temporaryFile = `${RATE_LIMIT_STATE_FILE}.${process.pid}.tmp`;
+  try {
+    await fs.writeFile(temporaryFile, `${timestamp}\n`, { mode: 0o600 });
+    await fs.rename(temporaryFile, RATE_LIMIT_STATE_FILE);
+  } catch (error) {
+    await fs.rm(temporaryFile, { force: true });
+    logger.warn(
+      `Could not persist YouTube transcript cooldown state: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 function getErrorDetail(error: unknown): string {

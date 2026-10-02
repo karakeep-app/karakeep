@@ -15,10 +15,19 @@ export interface YouTubeTranscript {
   segments: TranscriptSegment[];
 }
 
-type YtDlpInfo = {
-  subtitles?: Record<string, Array<{ ext?: string; url?: string }>>;
-  automatic_captions?: Record<string, Array<{ ext?: string; url?: string }>>;
-};
+export const TRANSLATED_CAPTION_SLEEP_SEC = 60;
+
+interface YtDlpInfo {
+  subtitles?: Record<string, { ext?: string; url?: string }[]>;
+  automatic_captions?: Record<string, { ext?: string; url?: string }[]>;
+}
+
+export interface SelectedTranscriptLanguage {
+  language: string;
+  trackLanguage: string;
+  source: "manual" | "automatic";
+  translated: boolean;
+}
 
 export function isYouTubeUrl(value: string): boolean {
   try {
@@ -36,29 +45,78 @@ export function isYouTubeUrl(value: string): boolean {
   }
 }
 
-function selectLanguages(
+export function selectLanguages(
   info: YtDlpInfo,
   preferredLanguages: string[],
-): Array<{ language: string; source: "manual" | "automatic" }> {
-  const selected: Array<{ language: string; source: "manual" | "automatic" }> = [];
-  for (const language of [...new Set(preferredLanguages)]) {
+): SelectedTranscriptLanguage[] {
+  const selected: SelectedTranscriptLanguage[] = [];
+  for (const language of new Set(preferredLanguages)) {
     if (info.subtitles?.[language]?.length) {
-      selected.push({ language, source: "manual" });
-    } else if (info.automatic_captions?.[language]?.length) {
-      selected.push({ language, source: "automatic" });
+      selected.push({
+        language,
+        trackLanguage: language,
+        source: "manual",
+        translated: false,
+      });
+      continue;
+    }
+
+    const automaticCaptions = info.automatic_captions ?? {};
+    const available = Object.entries(automaticCaptions).filter(
+      ([trackLanguage, tracks]) =>
+        tracks.length > 0 &&
+        (trackLanguage === language ||
+          trackLanguage.startsWith(`${language}-`)),
+    );
+    const candidates = available.map(([trackLanguage, tracks]) => ({
+      language: trackLanguage,
+      source: "automatic" as const,
+      translated: tracks.some((track) => isTranslatedCaption(track.url)),
+      original: trackLanguage === `${language}-orig`,
+    }));
+
+    // YouTube's subtitle track IDs changed: for example, `en` may now refer
+    // to an auto-translated track while the spoken-language captions use
+    // `en-orig`. Prefer native/manual captions to avoid needless 429s.
+    const native = candidates
+      .filter((candidate) => !candidate.translated)
+      .sort((left, right) => Number(right.original) - Number(left.original))[0];
+    const chosen =
+      native ?? candidates.find((candidate) => candidate.translated);
+    if (chosen) {
+      selected.push({
+        language,
+        trackLanguage: chosen.language,
+        source: chosen.source,
+        translated: chosen.translated,
+      });
     }
   }
   return selected;
 }
 
+function isTranslatedCaption(url?: string): boolean {
+  if (!url) return false;
+  try {
+    return new URL(url).searchParams.has("tlang");
+  } catch {
+    return false;
+  }
+}
+
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => {
     switch (character) {
-      case "&": return "&amp;";
-      case "<": return "&lt;";
-      case ">": return "&gt;";
-      case '"': return "&quot;";
-      default: return "&#39;";
+      case "&":
+        return "&amp;";
+      case "<":
+        return "&lt;";
+      case ">":
+        return "&gt;";
+      case '"':
+        return "&quot;";
+      default:
+        return "&#39;";
     }
   });
 }
@@ -84,13 +142,27 @@ function parseVtt(vtt: string): TranscriptSegment[] {
     const parseTime = (value: string) => {
       const match = value.trim().match(/(?:(\d+):)?(\d{2}):(\d{2})[.,](\d{3})/);
       if (!match) return null;
-      return ((Number(match[1] ?? 0) * 3600 + Number(match[2]) * 60 + Number(match[3])) * 1000) + Number(match[4]);
+      return (
+        (Number(match[1] ?? 0) * 3600 +
+          Number(match[2]) * 60 +
+          Number(match[3])) *
+          1000 +
+        Number(match[4])
+      );
     };
     const startMs = parseTime(timing[0] ?? "");
     const endMs = parseTime(timing[1] ?? "");
-    const text = lines.slice(timingIndex + 1).join(" ").replace(/<[^>]*>/g, "").trim();
+    const text = lines
+      .slice(timingIndex + 1)
+      .join(" ")
+      .replace(/<[^>]*>/g, "")
+      .trim();
     if (startMs === null || !text) continue;
-    segments.push({ startMs, ...(endMs !== null ? { durationMs: Math.max(0, endMs - startMs) } : {}), text });
+    segments.push({
+      startMs,
+      ...(endMs !== null ? { durationMs: Math.max(0, endMs - startMs) } : {}),
+      text,
+    });
   }
   return segments;
 }
@@ -100,13 +172,17 @@ export function transcriptToHtml(
   videoUrl: string,
 ): string {
   const safeVideoUrl = escapeHtml(videoUrl);
-  return transcripts.map((transcript) => {
-    const body = transcript.segments.map((segment) => {
-      const seconds = Math.floor(segment.startMs / 1000);
-      return `<p class="youtube-transcript-segment" data-start-ms="${segment.startMs}"><a class="youtube-transcript-timestamp" href="${safeVideoUrl}&amp;t=${seconds}s">${formatTimestamp(seconds)}</a> ${escapeHtml(segment.text)}</p>`;
-    }).join("\n");
-    return `<section class="youtube-transcript" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript (${escapeHtml(transcript.language)})</h2>\n${body}\n</section>`;
-  }).join("\n");
+  return transcripts
+    .map((transcript) => {
+      const body = transcript.segments
+        .map((segment) => {
+          const seconds = Math.floor(segment.startMs / 1000);
+          return `<p class="youtube-transcript-segment" data-start-ms="${segment.startMs}"><a class="youtube-transcript-timestamp" href="${safeVideoUrl}&amp;t=${seconds}s">${formatTimestamp(seconds)}</a> ${escapeHtml(segment.text)}</p>`;
+        })
+        .join("\n");
+      return `<section class="youtube-transcript" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript (${escapeHtml(transcript.language)})</h2>\n${body}\n</section>`;
+    })
+    .join("\n");
 }
 
 export async function fetchYouTubeTranscript(
@@ -115,43 +191,81 @@ export async function fetchYouTubeTranscript(
   timeoutSec: number,
   signal?: AbortSignal,
   proxy?: string,
+  onTrackSelection?: (summary: string) => void,
 ): Promise<YouTubeTranscript[]> {
   if (!isYouTubeUrl(videoUrl)) return [];
-  const timeout = AbortSignal.timeout(timeoutSec * 1000);
-  const combinedSignal = signal
-    ? AbortSignal.any([signal, timeout])
-    : timeout;
+  const infoTimeout = AbortSignal.timeout(timeoutSec * 1000);
+  const infoSignal = signal
+    ? AbortSignal.any([signal, infoTimeout])
+    : infoTimeout;
   const proxyArgs = proxy ? ["--proxy", proxy] : [];
-  const { stdout } = await execa("yt-dlp", [...proxyArgs, "--skip-download", "--dump-single-json", videoUrl], {
-    cancelSignal: combinedSignal,
-    timeout: timeoutSec * 1000,
-    reject: true,
-  });
+  const { stdout } = await execa(
+    "yt-dlp",
+    [...proxyArgs, "--skip-download", "--dump-single-json", videoUrl],
+    {
+      cancelSignal: infoSignal,
+      timeout: timeoutSec * 1000,
+      reject: true,
+    },
+  );
   const info = JSON.parse(stdout) as YtDlpInfo;
   const selected = selectLanguages(info, preferredLanguages);
   if (selected.length === 0) return [];
+  onTrackSelection?.(
+    selected
+      .map(
+        (item) =>
+          `${item.trackLanguage}/${item.source}/${item.translated ? "translated" : "original"}`,
+      )
+      .join(", "),
+  );
 
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "youtube-transcript-"));
+  const directory = await fs.mkdtemp(
+    path.join(os.tmpdir(), "youtube-transcript-"),
+  );
   try {
-    const languages = selected.map(({ language }) => language);
+    const languages = selected.map(({ trackLanguage }) => trackLanguage);
     const hasManual = selected.some(({ source }) => source === "manual");
     const hasAutomatic = selected.some(({ source }) => source === "automatic");
-    const args = [...proxyArgs, "--skip-download", "--sub-format", "vtt", "--sub-langs", languages.join(",")];
+    const translatedCount = selected.filter((item) => item.translated).length;
+    const subtitleSleepSec =
+      translatedCount > 0 ? TRANSLATED_CAPTION_SLEEP_SEC : 0;
+    const args = [
+      ...proxyArgs,
+      "--skip-download",
+      "--sub-format",
+      "vtt",
+      "--sub-langs",
+      languages.join(","),
+    ];
+    if (subtitleSleepSec > 0) {
+      args.push("--sleep-subtitles", String(subtitleSleepSec));
+    }
     if (hasManual) args.push("--write-subs");
     else args.push("--no-write-subs");
     if (hasAutomatic) args.push("--write-auto-subs");
     else args.push("--no-write-auto-subs");
     args.push("--output", path.join(directory, "%(id)s.%(ext)s"), videoUrl);
+    const downloadTimeoutMs =
+      (timeoutSec + subtitleSleepSec * translatedCount) * 1000;
+    const downloadTimeout = AbortSignal.timeout(downloadTimeoutMs);
+    const downloadSignal = signal
+      ? AbortSignal.any([signal, downloadTimeout])
+      : downloadTimeout;
     await execa("yt-dlp", args, {
-      cancelSignal: combinedSignal,
-      timeout: timeoutSec * 1000,
+      cancelSignal: downloadSignal,
+      timeout: downloadTimeoutMs,
     });
     const files = await fs.readdir(directory);
     const transcripts: YouTubeTranscript[] = [];
     for (const selection of selected) {
-      const subtitle = files.find((file) => file.endsWith(`.${selection.language}.vtt`));
+      const subtitle = files.find((file) =>
+        file.endsWith(`.${selection.trackLanguage}.vtt`),
+      );
       if (!subtitle) continue;
-      const segments = parseVtt(await fs.readFile(path.join(directory, subtitle), "utf8"));
+      const segments = parseVtt(
+        await fs.readFile(path.join(directory, subtitle), "utf8"),
+      );
       if (segments.length) transcripts.push({ ...selection, segments });
     }
     return transcripts;
