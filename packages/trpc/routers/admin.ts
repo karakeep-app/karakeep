@@ -1,6 +1,17 @@
 import * as dns from "dns";
 import { TRPCError } from "@trpc/server";
-import { and, asc, count, eq, gt, gte, inArray, like, or, sum } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  eq,
+  gt,
+  gte,
+  inArray,
+  like,
+  or,
+  sum,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -24,6 +35,7 @@ import {
   SearchIndexingQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
+  YouTubeTranscriptQueue,
   WebhookQueue,
   zAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
@@ -108,6 +120,11 @@ export const adminAppRouter = router({
         videoStats: z.object({
           queued: z.number(),
         }),
+        youtubeTranscriptStats: z.object({
+          queued: z.number(),
+          running: z.number(),
+          failed: z.number(),
+        }),
         webhookStats: z.object({
           queued: z.number(),
         }),
@@ -145,6 +162,9 @@ export const adminAppRouter = router({
 
         // Video
         queuedVideo,
+
+        // YouTube transcripts
+        queuedYouTubeTranscripts,
 
         // Webhook
         queuedWebhook,
@@ -208,6 +228,8 @@ export const adminAppRouter = router({
         // Video
         VideoWorkerQueue.stats(),
 
+        YouTubeTranscriptQueue.stats(),
+
         // Webhook
         WebhookQueue.stats(),
 
@@ -248,6 +270,13 @@ export const adminAppRouter = router({
         },
         videoStats: {
           queued: queuedVideo.pending + queuedVideo.pending_retry,
+        },
+        youtubeTranscriptStats: {
+          queued:
+            queuedYouTubeTranscripts.pending +
+            queuedYouTubeTranscripts.pending_retry,
+          running: queuedYouTubeTranscripts.running,
+          failed: queuedYouTubeTranscripts.failed,
         },
         webhookStats: {
           queued: queuedWebhook.pending + queuedWebhook.pending_retry,
@@ -326,6 +355,7 @@ export const adminAppRouter = router({
         );
 
       let missingCount = 0;
+      const retryBatchId = Date.now();
       for (const bookmark of candidates) {
         let html = bookmark.htmlContent ?? "";
         if (!html && bookmark.contentAssetId) {
@@ -346,12 +376,14 @@ export const adminAppRouter = router({
         }
         if (html.includes('class="youtube-transcript"')) continue;
 
-        const payload = { bookmarkId: bookmark.id, runInference: false };
-        await LowPriorityCrawlerQueue.enqueue(payload, {
-          priority: QueuePriority.Low,
-          groupId: "admin",
-          idempotencyKey: buildCrawlIdempotencyKey(payload),
-        });
+        await YouTubeTranscriptQueue.enqueue(
+          { bookmarkId: bookmark.id },
+          {
+            priority: QueuePriority.Low,
+            groupId: "admin",
+            idempotencyKey: `youtube-transcript:${bookmark.id}:retry:${retryBatchId}`,
+          },
+        );
         missingCount++;
       }
       return { queued: missingCount };

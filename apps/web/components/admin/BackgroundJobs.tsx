@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Clock,
   Database,
+  FileText,
   Globe,
   HelpCircle,
   Image,
@@ -38,6 +39,7 @@ import { AdminCard } from "./AdminCard";
 
 interface JobStats {
   queued: number;
+  running?: number;
   pending?: number;
   failed?: number;
 }
@@ -167,7 +169,11 @@ function JobCard({
   actions?: JobAction[];
 }) {
   const { t } = useTranslation();
-  const total = stats.queued + (stats.pending || 0) + (stats.failed || 0);
+  const total =
+    stats.queued +
+    (stats.running || 0) +
+    (stats.pending || 0) +
+    (stats.failed || 0);
   const hasActivity = total > 0;
 
   return (
@@ -200,6 +206,15 @@ function JobCard({
             </span>
             <Badge variant="outline">{stats.queued}</Badge>
           </div>
+          {stats.running !== undefined && (
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 animate-pulse text-primary" />
+              <span className="font-medium">
+                {t("admin.background_jobs.status.running.title")}
+              </span>
+              <Badge variant="outline">{stats.running}</Badge>
+            </div>
+          )}
           {stats.pending !== undefined && (
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 text-yellow-500" />
@@ -282,7 +297,9 @@ function useJobActions() {
   } = useMutation(
     api.admin.retryMissingYouTubeTranscripts.mutationOptions({
       onSuccess: ({ queued }) => {
-        toast({ description: `Queued transcript retry for ${queued} YouTube links` });
+        toast({
+          description: `Queued transcript retry for ${queued} YouTube links`,
+        });
       },
       onError: (e) => {
         toast({ variant: "destructive", description: e.message });
@@ -386,11 +403,6 @@ function useJobActions() {
   return {
     crawlActions: [
       {
-        label: t("admin.background_jobs.actions.retry_missing_youtube_transcripts"),
-        onClick: () => retryMissingYouTubeTranscripts(),
-        loading: isRetryTranscriptsPending,
-      },
-      {
         label: t("admin.background_jobs.actions.recrawl_pending_links_only"),
         onClick: () =>
           recrawlLinks({ crawlStatus: "pending", runInference: true }),
@@ -414,6 +426,17 @@ function useJobActions() {
         onClick: () =>
           recrawlLinks({ crawlStatus: "all", runInference: false }),
         loading: isRecrawlPending,
+      },
+    ],
+    youtubeTranscriptActions: [
+      {
+        label: t(
+          "admin.background_jobs.actions.retry_missing_youtube_transcripts",
+        ),
+        onClick: async () => {
+          await retryMissingYouTubeTranscripts();
+        },
+        loading: isRetryTranscriptsPending,
       },
     ],
     inferenceActions: [
@@ -623,6 +646,19 @@ export default function BackgroundJobs() {
       stats: { queued: serverStats.videoStats.queued },
       description: t("admin.background_jobs.jobs.video.description"),
       actions: [],
+    },
+    {
+      title: t("admin.background_jobs.jobs.youtube_transcript.title"),
+      icon: FileText,
+      stats: {
+        queued: serverStats.youtubeTranscriptStats.queued,
+        running: serverStats.youtubeTranscriptStats.running,
+        failed: serverStats.youtubeTranscriptStats.failed,
+      },
+      description: t(
+        "admin.background_jobs.jobs.youtube_transcript.description",
+      ),
+      actions: actions.youtubeTranscriptActions,
     },
     {
       title: t("admin.background_jobs.jobs.webhook.title"),

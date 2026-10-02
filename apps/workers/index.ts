@@ -21,6 +21,7 @@ import {
   shutdownTracing,
   startQueue,
   VideoWorkerQueue,
+  YouTubeTranscriptQueue,
   WebhookQueue,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
@@ -72,6 +73,12 @@ const workerBuilders = {
     const { VideoWorker } = await import("./workers/videoWorker");
     await VideoWorkerQueue.ensureInit();
     return VideoWorker.build();
+  },
+  youtubeTranscript: async () => {
+    const { YouTubeTranscriptWorker } =
+      await import("./workers/youtubeTranscriptWorker");
+    await YouTubeTranscriptQueue.ensureInit();
+    return YouTubeTranscriptWorker.build();
   },
   feed: async () => {
     const { FeedRefreshingWorker, FeedWorker } =
