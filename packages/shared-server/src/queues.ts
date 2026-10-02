@@ -262,6 +262,7 @@ export const VideoWorkerQueue = createDeferredQueue<ZVideoRequest>(
 
 export const zYouTubeTranscriptRequestSchema = z.object({
   bookmarkId: z.string(),
+  rateLimitRetry: z.number().int().min(0).max(3).optional(),
 });
 export type ZYouTubeTranscriptRequest = z.infer<
   typeof zYouTubeTranscriptRequestSchema

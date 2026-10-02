@@ -15,6 +15,7 @@ import {
 } from "@karakeep/db/schema";
 import {
   addLogFields,
+  QueuePriority,
   triggerSearchReindex,
   YouTubeTranscriptQueue,
 } from "@karakeep/shared-server";
@@ -41,6 +42,7 @@ import {
 } from "./crawler/youtubeTranscript";
 
 const RATE_LIMIT_COOLDOWN_MS = 30 * 60 * 1000;
+const MAX_RATE_LIMIT_RETRIES = 3;
 const CRAWL_WAIT_RETRY_MS = 15 * 1000;
 const TRANSCRIPT_REQUEST_INTERVAL_MS = 15 * 1000;
 const RATE_LIMIT_STATE_FILE = path.join(
@@ -54,14 +56,18 @@ export class YouTubeTranscriptWorker {
   static async build() {
     logger.info("Starting YouTube transcript worker ...");
 
-    return (await getQueueClient())!.createRunner<ZYouTubeTranscriptRequest>(
+    return (await getQueueClient())!.createRunner<
+      ZYouTubeTranscriptRequest,
+      "completed" | "deferred"
+    >(
       YouTubeTranscriptQueue,
       {
         run: withWorkerTracing(
           "youtubeTranscriptWorker.run",
           withWorkerEventLog("youtubeTranscriptWorker.run", runWorker),
         ),
-        onComplete: async (job) => {
+        onComplete: async (job, result) => {
+          if (result === "deferred") return;
           logger.info(
             `[YouTubeTranscript][${job.id}] Transcript job completed successfully`,
           );
@@ -82,7 +88,9 @@ export class YouTubeTranscriptWorker {
   }
 }
 
-async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
+async function runWorker(
+  job: DequeuedJob<ZYouTubeTranscriptRequest>,
+): Promise<"completed" | "deferred"> {
   const jobId = job.id;
   const { bookmarkId } = job.data;
   addLogFields<"youtubeTranscriptWorker.run">({ "bookmark.id": bookmarkId });
@@ -119,7 +127,7 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
     logger.info(
       `[YouTubeTranscript][${jobId}] Skipping non-YouTube or missing bookmark`,
     );
-    return;
+    return "completed";
   }
 
   if (bookmark.crawlStatus === "pending") {
@@ -143,7 +151,7 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
 
   if (htmlContent.includes('class="youtube-transcript"')) {
     logger.info(`[YouTubeTranscript][${jobId}] A transcript is already saved`);
-    return;
+    return "completed";
   }
 
   if (nextTranscriptRequestAt > Date.now()) {
@@ -180,13 +188,27 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
     if (/HTTP Error 429|Too Many Requests/i.test(detail)) {
       youtubeRateLimitUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
       await persistRateLimitUntil(youtubeRateLimitUntil);
+      const retry = job.data.rateLimitRetry ?? 0;
+      if (retry >= MAX_RATE_LIMIT_RETRIES) {
+        logger.warn(
+          `[YouTubeTranscript][${jobId}] YouTube returned HTTP 429 after ${retry} retries; recording failure. ${detail}`,
+        );
+        throw error;
+      }
+      const nextRetry = retry + 1;
+      await YouTubeTranscriptQueue.enqueue(
+        { bookmarkId, rateLimitRetry: nextRetry },
+        {
+          delayMs: RATE_LIMIT_COOLDOWN_MS,
+          priority: job.priority ?? QueuePriority.Low,
+          groupId: bookmark.userId,
+          idempotencyKey: `youtube-transcript:${bookmarkId}:429:${jobId}:${nextRetry}`,
+        },
+      );
       logger.warn(
-        `[YouTubeTranscript][${jobId}] YouTube returned HTTP 429; pausing transcript jobs for ${RATE_LIMIT_COOLDOWN_MS / 60_000} minutes. ${detail}`,
+        `[YouTubeTranscript][${jobId}] YouTube returned HTTP 429; scheduled retry ${nextRetry}/${MAX_RATE_LIMIT_RETRIES} after ${RATE_LIMIT_COOLDOWN_MS / 60_000} minutes. ${detail}`,
       );
-      throw new QueueRetryAfterError(
-        "YouTube returned HTTP 429 while fetching subtitles",
-        RATE_LIMIT_COOLDOWN_MS,
-      );
+      return "deferred";
     }
     throw error;
   }
@@ -195,7 +217,7 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
     logger.info(
       `[YouTubeTranscript][${jobId}] No configured transcript languages are available`,
     );
-    return;
+    return "completed";
   }
 
   const transcriptHtml = transcriptToHtml(transcripts, bookmark.url);
@@ -205,7 +227,7 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
     logger.warn(
       `[YouTubeTranscript][${jobId}] Could not store transcript content`,
     );
-    return;
+    return "completed";
   }
 
   const oldContentAssetId = bookmark.contentAssetId;
@@ -250,6 +272,7 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
   logger.info(
     `[YouTubeTranscript][${jobId}] Added ${transcripts.length} transcript language(s): ${transcripts.map((item) => `${item.language}/${item.source}/${item.segments.length} segments`).join(", ")}`,
   );
+  return "completed";
 }
 
 async function readRateLimitUntil(): Promise<number> {
