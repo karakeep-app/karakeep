@@ -19,4 +19,8 @@ LABEL org.opencontainers.image.title="Karakeep Chrome" \
       org.opencontainers.image.base.name="docker.io/chromedp/headless-shell:${HEADLESS_SHELL_VERSION}" \
       org.opencontainers.image.base.digest="${HEADLESS_SHELL_DIGEST}"
 
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y fonts-noto-cjk \
+    && rm -rf /var/lib/apt/lists/*
+
 USER 65534:65534
