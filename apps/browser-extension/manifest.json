@@ -4,9 +4,9 @@
   "description": "An extension to bookmark links to karakeep.app",
   "version": "1.2.11",
   "icons": {
-    "16": "public/logo-16.png",
-    "48": "public/logo-48.png",
-    "128": "public/logo-128.png"
+    "16": "public/logo-16-context.png",
+    "48": "public/logo-48-context.png",
+    "128": "public/logo-128-context.png"
   },
   "action": {
     "default_popup": "index.html",
