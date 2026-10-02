@@ -15,8 +15,6 @@ export interface YouTubeTranscript {
   segments: TranscriptSegment[];
 }
 
-export const TRANSLATED_CAPTION_SLEEP_SEC = 60;
-
 interface YtDlpInfo {
   subtitles?: Record<string, { ext?: string; url?: string }[]>;
   automatic_captions?: Record<string, { ext?: string; url?: string }[]>;
@@ -27,6 +25,13 @@ export interface SelectedTranscriptLanguage {
   trackLanguage: string;
   source: "manual" | "automatic";
   translated: boolean;
+}
+
+export class TranslatedCaptionRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TranslatedCaptionRateLimitError";
+  }
 }
 
 export function isYouTubeUrl(value: string): boolean {
@@ -49,50 +54,61 @@ export function selectLanguages(
   info: YtDlpInfo,
   preferredLanguages: string[],
 ): SelectedTranscriptLanguage[] {
-  const selected: SelectedTranscriptLanguage[] = [];
-  for (const language of new Set(preferredLanguages)) {
-    if (info.subtitles?.[language]?.length) {
-      selected.push({
-        language,
-        trackLanguage: language,
+  const preferred = [...new Set(preferredLanguages)];
+  const manual = Object.entries(info.subtitles ?? {}).filter(([, tracks]) =>
+    tracks.some((track) => track.ext === "vtt"),
+  );
+  const manualTrack =
+    preferred
+      .map((language) => manual.find(([key]) => key === language))
+      .find(Boolean) ?? manual[0];
+  if (manualTrack) {
+    return [
+      {
+        language: manualTrack[0],
+        trackLanguage: manualTrack[0],
         source: "manual",
         translated: false,
-      });
-      continue;
-    }
-
-    const automaticCaptions = info.automatic_captions ?? {};
-    const available = Object.entries(automaticCaptions).filter(
-      ([trackLanguage, tracks]) =>
-        tracks.length > 0 &&
-        (trackLanguage === language ||
-          trackLanguage.startsWith(`${language}-`)),
-    );
-    const candidates = available.map(([trackLanguage, tracks]) => ({
-      language: trackLanguage,
-      source: "automatic" as const,
-      translated: tracks.some((track) => isTranslatedCaption(track.url)),
-      original: trackLanguage === `${language}-orig`,
-    }));
-
-    // YouTube's subtitle track IDs changed: for example, `en` may now refer
-    // to an auto-translated track while the spoken-language captions use
-    // `en-orig`. Prefer native/manual captions to avoid needless 429s.
-    const native = candidates
-      .filter((candidate) => !candidate.translated)
-      .sort((left, right) => Number(right.original) - Number(left.original))[0];
-    const chosen =
-      native ?? candidates.find((candidate) => candidate.translated);
-    if (chosen) {
-      selected.push({
-        language,
-        trackLanguage: chosen.language,
-        source: chosen.source,
-        translated: chosen.translated,
-      });
-    }
+      },
+    ];
   }
-  return selected;
+
+  const automatic = Object.entries(info.automatic_captions ?? {})
+    .filter(([, tracks]) => tracks.some((track) => track.ext === "vtt"))
+    .map(([trackLanguage, tracks]) => ({
+      trackLanguage,
+      language: trackLanguage.replace(/-orig$/, ""),
+      source: "automatic" as const,
+      translated: tracks.some(
+        (track) => track.ext === "vtt" && isTranslatedCaption(track.url),
+      ),
+    }));
+  const original = automatic.filter((track) => !track.translated);
+  const originalTrack =
+    preferred
+      .map((language) =>
+        original.find(
+          (track) =>
+            track.language === language &&
+            track.trackLanguage.endsWith("-orig"),
+        ),
+      )
+      .find(Boolean) ??
+    preferred
+      .map((language) => original.find((track) => track.language === language))
+      .find(Boolean) ??
+    original.find((track) => track.trackLanguage.endsWith("-orig")) ??
+    original[0];
+  if (originalTrack) return [originalTrack];
+
+  const translatedTrack = preferred
+    .map((language) =>
+      automatic.find(
+        (track) => track.language === language && track.translated,
+      ),
+    )
+    .find(Boolean);
+  return translatedTrack ? [translatedTrack] : [];
 }
 
 function isTranslatedCaption(url?: string): boolean {
@@ -224,45 +240,58 @@ export async function fetchYouTubeTranscript(
     path.join(os.tmpdir(), "youtube-transcript-"),
   );
   try {
-    const languages = selected.map(({ trackLanguage }) => trackLanguage);
-    const hasManual = selected.some(({ source }) => source === "manual");
-    const hasAutomatic = selected.some(({ source }) => source === "automatic");
-    const translatedCount = selected.filter((item) => item.translated).length;
-    const subtitleSleepSec =
-      translatedCount > 0 ? TRANSLATED_CAPTION_SLEEP_SEC : 0;
+    const selection = selected[0]!;
+    const infoPath = path.join(directory, "video.info.json");
+    await fs.writeFile(infoPath, stdout);
     const args = [
       ...proxyArgs,
       "--skip-download",
       "--sub-format",
       "vtt",
       "--sub-langs",
-      languages.join(","),
+      selection.trackLanguage,
     ];
-    if (subtitleSleepSec > 0) {
-      args.push("--sleep-subtitles", String(subtitleSleepSec));
-    }
-    if (hasManual) args.push("--write-subs");
+    if (selection.source === "manual") args.push("--write-subs");
     else args.push("--no-write-subs");
-    if (hasAutomatic) args.push("--write-auto-subs");
+    if (selection.source === "automatic") args.push("--write-auto-subs");
     else args.push("--no-write-auto-subs");
-    args.push("--output", path.join(directory, "%(id)s.%(ext)s"), videoUrl);
-    const downloadTimeoutMs =
-      (timeoutSec + subtitleSleepSec * translatedCount) * 1000;
+    args.push(
+      "--output",
+      path.join(directory, "%(id)s.%(ext)s"),
+      "--load-info-json",
+      infoPath,
+    );
+    const downloadTimeoutMs = timeoutSec * 1000;
     const downloadTimeout = AbortSignal.timeout(downloadTimeoutMs);
     const downloadSignal = signal
       ? AbortSignal.any([signal, downloadTimeout])
       : downloadTimeout;
-    await execa("yt-dlp", args, {
-      cancelSignal: downloadSignal,
-      timeout: downloadTimeoutMs,
-    });
+    try {
+      await execa("yt-dlp", args, {
+        cancelSignal: downloadSignal,
+        timeout: downloadTimeoutMs,
+      });
+    } catch (error) {
+      const detail =
+        error instanceof Error &&
+        "stderr" in error &&
+        typeof error.stderr === "string"
+          ? error.stderr
+          : String(error);
+      if (
+        selection.translated &&
+        /HTTP Error 429|Too Many Requests/i.test(detail)
+      ) {
+        throw new TranslatedCaptionRateLimitError(detail);
+      }
+      throw error;
+    }
     const files = await fs.readdir(directory);
     const transcripts: YouTubeTranscript[] = [];
-    for (const selection of selected) {
-      const subtitle = files.find((file) =>
-        file.endsWith(`.${selection.trackLanguage}.vtt`),
-      );
-      if (!subtitle) continue;
+    const subtitle = files.find((file) =>
+      file.endsWith(`.${selection.trackLanguage}.vtt`),
+    );
+    if (subtitle) {
       const segments = parseVtt(
         await fs.readFile(path.join(directory, subtitle), "utf8"),
       );

@@ -267,15 +267,13 @@ export type ZYouTubeTranscriptRequest = z.infer<
   typeof zYouTubeTranscriptRequestSchema
 >;
 
-export const YouTubeTranscriptQueue = createDeferredQueue<ZYouTubeTranscriptRequest>(
-  "youtube_transcript_queue",
-  {
+export const YouTubeTranscriptQueue =
+  createDeferredQueue<ZYouTubeTranscriptRequest>("youtube_transcript_queue", {
     defaultJobArgs: {
-      numRetries: 3,
+      numRetries: 0,
     },
-    keepFailedJobs: false,
-  },
-);
+    keepFailedJobs: true,
+  });
 
 // Feed Worker
 export const zFeedRequestSchema = z.object({

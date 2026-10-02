@@ -297,7 +297,9 @@ function useJobActions() {
   } = useMutation(
     api.admin.retryMissingYouTubeTranscripts.mutationOptions({
       onSuccess: ({ queued }) => {
-        toast({ description: `Queued transcript retry for ${queued} YouTube links` });
+        toast({
+          description: `Queued transcript retry for ${queued} YouTube links`,
+        });
       },
       onError: (e) => {
         toast({ variant: "destructive", description: e.message });
@@ -428,7 +430,9 @@ function useJobActions() {
     ],
     youtubeTranscriptActions: [
       {
-        label: t("admin.background_jobs.actions.retry_missing_youtube_transcripts"),
+        label: t(
+          "admin.background_jobs.actions.retry_missing_youtube_transcripts",
+        ),
         onClick: async () => {
           await retryMissingYouTubeTranscripts();
         },
@@ -649,6 +653,7 @@ export default function BackgroundJobs() {
       stats: {
         queued: serverStats.youtubeTranscriptStats.queued,
         running: serverStats.youtubeTranscriptStats.running,
+        failed: serverStats.youtubeTranscriptStats.failed,
       },
       description: t(
         "admin.background_jobs.jobs.youtube_transcript.description",

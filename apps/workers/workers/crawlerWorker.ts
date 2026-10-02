@@ -149,7 +149,7 @@ export class CrawlerWorker {
                 {
                   priority: job.priority,
                   groupId: userId,
-                  idempotencyKey: `youtube-transcript:${bookmarkId}`,
+                  idempotencyKey: `youtube-transcript:${bookmarkId}:crawl:${job.id}`,
                 },
               );
             }

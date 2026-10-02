@@ -3,17 +3,97 @@ import { describe, expect, it } from "vitest";
 import { selectLanguages, transcriptToHtml } from "./youtubeTranscript";
 
 describe("selectLanguages", () => {
-  it("prefers the original automatic caption track over a translated track", () => {
+  it("selects one preferred manual track instead of an auto-translation", () => {
+    const selected = selectLanguages(
+      {
+        subtitles: {
+          en: [
+            {
+              ext: "vtt",
+              url: "https://www.youtube.com/api/timedtext?lang=en",
+            },
+          ],
+        },
+        automatic_captions: {
+          ja: [
+            {
+              ext: "vtt",
+              url: "https://www.youtube.com/api/timedtext?lang=en&tlang=ja",
+            },
+          ],
+        },
+      },
+      ["ja", "en"],
+    );
+
+    expect(selected).toEqual([
+      {
+        language: "en",
+        trackLanguage: "en",
+        source: "manual",
+        translated: false,
+      },
+    ]);
+  });
+
+  it("uses a manual track in another language before any automatic track", () => {
+    const selected = selectLanguages(
+      {
+        subtitles: {
+          fr: [
+            {
+              ext: "vtt",
+              url: "https://www.youtube.com/api/timedtext?lang=fr",
+            },
+          ],
+        },
+        automatic_captions: {
+          ja: [
+            {
+              ext: "vtt",
+              url: "https://www.youtube.com/api/timedtext?lang=en&tlang=ja",
+            },
+          ],
+        },
+      },
+      ["ja", "en"],
+    );
+
+    expect(selected).toEqual([
+      {
+        language: "fr",
+        trackLanguage: "fr",
+        source: "manual",
+        translated: false,
+      },
+    ]);
+  });
+
+  it("uses the original auto-caption instead of a preferred translated language", () => {
     const selected = selectLanguages(
       {
         automatic_captions: {
-          en: [
-            { url: "https://www.youtube.com/api/timedtext?lang=en&tlang=en" },
+          ja: [
+            {
+              ext: "vtt",
+              url: "https://www.youtube.com/api/timedtext?lang=en&tlang=ja",
+            },
           ],
-          "en-orig": [{ url: "https://www.youtube.com/api/timedtext?lang=en" }],
+          en: [
+            {
+              ext: "vtt",
+              url: "https://www.youtube.com/api/timedtext?lang=en",
+            },
+          ],
+          "en-orig": [
+            {
+              ext: "vtt",
+              url: "https://www.youtube.com/api/timedtext?lang=en",
+            },
+          ],
         },
       },
-      ["en"],
+      ["ja", "en"],
     );
 
     expect(selected).toEqual([
@@ -26,47 +106,33 @@ describe("selectLanguages", () => {
     ]);
   });
 
-  it("marks translated captions as a fallback when no original track exists", () => {
-    const selected = selectLanguages(
-      {
-        automatic_captions: {
-          en: [
-            { url: "https://www.youtube.com/api/timedtext?lang=ja&tlang=en" },
-          ],
+  it("falls back to one translated track only when no manual or original exists", () => {
+    expect(
+      selectLanguages(
+        {
+          automatic_captions: {
+            ja: [
+              {
+                ext: "vtt",
+                url: "https://www.youtube.com/api/timedtext?lang=ko&tlang=ja",
+              },
+            ],
+            en: [
+              {
+                ext: "vtt",
+                url: "https://www.youtube.com/api/timedtext?lang=ko&tlang=en",
+              },
+            ],
+          },
         },
-      },
-      ["en"],
-    );
-
-    expect(selected).toEqual([
-      {
-        language: "en",
-        trackLanguage: "en",
-        source: "automatic",
-        translated: true,
-      },
-    ]);
-  });
-
-  it("prefers manual captions over automatic captions for a configured language", () => {
-    const selected = selectLanguages(
-      {
-        subtitles: {
-          ja: [{ url: "https://www.youtube.com/api/timedtext?lang=ja" }],
-        },
-        automatic_captions: {
-          "ja-orig": [{ url: "https://www.youtube.com/api/timedtext?lang=ja" }],
-        },
-      },
-      ["ja"],
-    );
-
-    expect(selected).toEqual([
+        ["ja", "en"],
+      ),
+    ).toEqual([
       {
         language: "ja",
         trackLanguage: "ja",
-        source: "manual",
-        translated: false,
+        source: "automatic",
+        translated: true,
       },
     ]);
   });

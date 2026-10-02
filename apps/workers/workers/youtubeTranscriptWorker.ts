@@ -37,16 +37,18 @@ import {
   fetchYouTubeTranscript,
   isYouTubeUrl,
   transcriptToHtml,
-  TRANSLATED_CAPTION_SLEEP_SEC,
+  TranslatedCaptionRateLimitError,
 } from "./crawler/youtubeTranscript";
 
 const RATE_LIMIT_COOLDOWN_MS = 30 * 60 * 1000;
 const CRAWL_WAIT_RETRY_MS = 15 * 1000;
+const TRANSCRIPT_REQUEST_INTERVAL_MS = 15 * 1000;
 const RATE_LIMIT_STATE_FILE = path.join(
   serverConfig.dataDir,
   "youtube-transcript-rate-limit-until",
 );
 let youtubeRateLimitUntil = 0;
+let nextTranscriptRequestAt = 0;
 
 export class YouTubeTranscriptWorker {
   static async build() {
@@ -73,11 +75,7 @@ export class YouTubeTranscriptWorker {
       },
       {
         pollIntervalMs: 1000,
-        timeoutSecs:
-          serverConfig.crawler.youtubeTranscriptTimeoutSec * 2 +
-          serverConfig.crawler.youtubeTranscriptLanguages.length *
-            TRANSLATED_CAPTION_SLEEP_SEC +
-          10,
+        timeoutSecs: serverConfig.crawler.youtubeTranscriptTimeoutSec * 2 + 10,
         concurrency: 1,
       },
     );
@@ -148,6 +146,14 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
     return;
   }
 
+  if (nextTranscriptRequestAt > Date.now()) {
+    throw new QueueRetryAfterError(
+      "Spacing YouTube transcript requests",
+      nextTranscriptRequestAt - Date.now(),
+    );
+  }
+  nextTranscriptRequestAt = Date.now() + TRANSCRIPT_REQUEST_INTERVAL_MS;
+
   const runProxy = selectRunProxies();
   const proxy = getProxyAgent(bookmark.url, runProxy)?.proxy.toString();
   let transcripts;
@@ -165,6 +171,12 @@ async function runWorker(job: DequeuedJob<ZYouTubeTranscriptRequest>) {
     );
   } catch (error) {
     const detail = getErrorDetail(error);
+    if (error instanceof TranslatedCaptionRateLimitError) {
+      logger.warn(
+        `[YouTubeTranscript][${jobId}] Auto-translated subtitles returned HTTP 429; recording failure and continuing with the next video. ${detail}`,
+      );
+      throw error;
+    }
     if (/HTTP Error 429|Too Many Requests/i.test(detail)) {
       youtubeRateLimitUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
       await persistRateLimitUntil(youtubeRateLimitUntil);

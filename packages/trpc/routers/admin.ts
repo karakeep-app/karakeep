@@ -1,6 +1,17 @@
 import * as dns from "dns";
 import { TRPCError } from "@trpc/server";
-import { and, asc, count, eq, gt, gte, inArray, like, or, sum } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  eq,
+  gt,
+  gte,
+  inArray,
+  like,
+  or,
+  sum,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -112,6 +123,7 @@ export const adminAppRouter = router({
         youtubeTranscriptStats: z.object({
           queued: z.number(),
           running: z.number(),
+          failed: z.number(),
         }),
         webhookStats: z.object({
           queued: z.number(),
@@ -264,6 +276,7 @@ export const adminAppRouter = router({
             queuedYouTubeTranscripts.pending +
             queuedYouTubeTranscripts.pending_retry,
           running: queuedYouTubeTranscripts.running,
+          failed: queuedYouTubeTranscripts.failed,
         },
         webhookStats: {
           queued: queuedWebhook.pending + queuedWebhook.pending_retry,
@@ -342,6 +355,7 @@ export const adminAppRouter = router({
         );
 
       let missingCount = 0;
+      const retryBatchId = Date.now();
       for (const bookmark of candidates) {
         let html = bookmark.htmlContent ?? "";
         if (!html && bookmark.contentAssetId) {
@@ -362,11 +376,14 @@ export const adminAppRouter = router({
         }
         if (html.includes('class="youtube-transcript"')) continue;
 
-        await YouTubeTranscriptQueue.enqueue({ bookmarkId: bookmark.id }, {
-          priority: QueuePriority.Low,
-          groupId: "admin",
-          idempotencyKey: `youtube-transcript:${bookmark.id}`,
-        });
+        await YouTubeTranscriptQueue.enqueue(
+          { bookmarkId: bookmark.id },
+          {
+            priority: QueuePriority.Low,
+            groupId: "admin",
+            idempotencyKey: `youtube-transcript:${bookmark.id}:retry:${retryBatchId}`,
+          },
+        );
         missingCount++;
       }
       return { queued: missingCount };
