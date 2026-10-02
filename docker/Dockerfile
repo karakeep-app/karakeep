@@ -122,6 +122,7 @@ COPY --chmod=755 ./docker/root/etc/s6-overlay /etc/s6-overlay
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         curl \
+        unzip \
         graphicsmagick \
         ghostscript \
         ffmpeg \
@@ -129,12 +130,16 @@ RUN apt-get update \
 
 ARG TARGETARCH
 RUN case ${TARGETARCH} in \
-        "amd64")  YTDLP_FILE=yt-dlp_linux ;; \
-        "arm64")  YTDLP_FILE=yt-dlp_linux_aarch64 ;; \
+        "amd64")  YTDLP_FILE=yt-dlp_linux.zip ;; \
+        "arm64")  YTDLP_FILE=yt-dlp_linux_aarch64.zip ;; \
         *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
     esac \
-    && curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_FILE} -o /usr/local/bin/yt-dlp \
-    && chmod +x /usr/local/bin/yt-dlp
+    && curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_FILE} -o /tmp/yt-dlp.zip \
+    && mkdir -p /opt/yt-dlp \
+    && unzip -q /tmp/yt-dlp.zip -d /opt/yt-dlp \
+    && chmod +x /opt/yt-dlp/${YTDLP_FILE%.zip} \
+    && ln -s /opt/yt-dlp/${YTDLP_FILE%.zip} /usr/local/bin/yt-dlp \
+    && rm /tmp/yt-dlp.zip
 
 # yt-dlp >=2025.x requires a JavaScript runtime to extract YouTube formats.
 # Deno is yt-dlp's default but is not present in this image. Node is the
