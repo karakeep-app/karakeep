@@ -52,6 +52,7 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
+import { hasCurrentYouTubeTranscript } from "@karakeep/shared/youtubeTranscript";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { createAdminScopedProcedure, router } from "../index";
@@ -374,7 +375,7 @@ export const adminAppRouter = router({
             );
           }
         }
-        if (html.includes('class="youtube-transcript"')) continue;
+        if (hasCurrentYouTubeTranscript(html)) continue;
 
         await YouTubeTranscriptQueue.enqueue(
           { bookmarkId: bookmark.id },

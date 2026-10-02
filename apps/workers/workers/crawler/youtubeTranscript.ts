@@ -3,6 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import { execa } from "execa";
 
+import { YOUTUBE_TRANSCRIPT_FORMAT } from "@karakeep/shared/youtubeTranscript";
+
 export interface TranscriptSegment {
   startMs: number;
   durationMs?: number;
@@ -147,40 +149,203 @@ function formatTimestamp(seconds: number): string {
     : `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
 }
 
-function parseVtt(vtt: string): TranscriptSegment[] {
+interface VttCue {
+  startMs: number;
+  endMs: number;
+  lines: string[];
+}
+
+interface SpokenLine {
+  startMs: number;
+  endMs: number;
+  raw: string;
+  text: string;
+  timed: boolean;
+  fromTwoLineCue: boolean;
+}
+
+const inlineTime = /<(\d{2}:\d{2}:\d{2}\.\d{3})>/g;
+const hasInlineTime = /<\d{2}:\d{2}:\d{2}\.\d{3}>/;
+
+function parseTime(value: string): number | null {
+  const match = value.trim().match(/(?:(\d+):)?(\d{2}):(\d{2})[.,](\d{3})/);
+  if (!match) return null;
+  return (
+    (Number(match[1] ?? 0) * 3600 + Number(match[2]) * 60 + Number(match[3])) *
+      1000 +
+    Number(match[4])
+  );
+}
+
+function stripVttTags(value: string): string {
+  return value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ");
+}
+
+function parseCues(vtt: string): VttCue[] {
+  const cues: VttCue[] = [];
+  let current: VttCue | undefined;
+  // YouTube sometimes puts a whitespace-only line between the cue timing and
+  // its text, so splitting on blank lines loses captions.
+  for (const rawLine of vtt.replace(/^\uFEFF/, "").split(/\r?\n/)) {
+    const line = rawLine.trim();
+    const timing = line.match(/^(.+?)\s+-->\s+(.+)$/);
+    if (timing) {
+      const startMs = parseTime(timing[1]!);
+      const endMs = parseTime(timing[2]!);
+      current =
+        startMs !== null && endMs !== null
+          ? { startMs, endMs, lines: [] }
+          : undefined;
+      if (current) cues.push(current);
+    } else if (current && line && !line.startsWith("NOTE ")) {
+      current.lines.push(line);
+    }
+  }
+  return cues;
+}
+
+function extractSpokenLines(cues: VttCue[]): SpokenLine[] {
+  const lines: SpokenLine[] = [];
+  for (const cue of cues) {
+    const previous = lines.at(-1);
+    const carried =
+      cue.lines.length > 1 &&
+      stripVttTags(cue.lines[0]!).trim() === previous?.text;
+    const candidates = carried ? cue.lines.slice(1) : cue.lines;
+    for (const raw of candidates) {
+      const text = stripVttTags(raw).trim();
+      if (!text) continue;
+      const timed = hasInlineTime.test(raw);
+      const last = lines.at(-1);
+      const adjacent =
+        last && cue.startMs >= last.endMs && cue.startMs - last.endMs <= 20;
+      // Plain one-line cues immediately after a timed or roll-up line only
+      // keep that line visible. Fresh timed lines and new roll-up lines are
+      // retained even if the speaker says exactly the same thing again.
+      if (
+        cue.lines.length === 1 &&
+        !timed &&
+        adjacent &&
+        last.text === text &&
+        (last.timed || last.fromTwoLineCue)
+      ) {
+        continue;
+      }
+      if (cue.endMs - cue.startMs <= 20 && !timed && last?.text === text) {
+        continue;
+      }
+      lines.push({
+        startMs: cue.startMs,
+        endMs: cue.endMs,
+        raw,
+        text,
+        timed,
+        fromTwoLineCue: carried,
+      });
+    }
+  }
+  return lines;
+}
+
+function timedFragments(line: SpokenLine): { startMs: number; text: string }[] {
+  const fragments: { startMs: number; text: string }[] = [];
+  let startMs = line.startMs;
+  let cursor = 0;
+  for (const match of line.raw.matchAll(inlineTime)) {
+    const text = stripVttTags(line.raw.slice(cursor, match.index));
+    if (text) fragments.push({ startMs, text });
+    startMs = parseTime(match[1]!) ?? startMs;
+    cursor = match.index! + match[0].length;
+  }
+  const text = stripVttTags(line.raw.slice(cursor));
+  if (text) fragments.push({ startMs, text });
+  return fragments;
+}
+
+function splitSentences(lines: SpokenLine[]): TranscriptSegment[] {
   const segments: TranscriptSegment[] = [];
-  const blocks = vtt.replace(/^\uFEFF/, "").split(/\r?\n\s*\r?\n/);
-  for (const block of blocks) {
-    const lines = block.split(/\r?\n/).map((line) => line.trim());
-    const timingIndex = lines.findIndex((line) => line.includes("-->"));
-    if (timingIndex < 0) continue;
-    const timing = lines[timingIndex]!.split("-->");
-    const parseTime = (value: string) => {
-      const match = value.trim().match(/(?:(\d+):)?(\d{2}):(\d{2})[.,](\d{3})/);
-      if (!match) return null;
-      return (
-        (Number(match[1] ?? 0) * 3600 +
-          Number(match[2]) * 60 +
-          Number(match[3])) *
-          1000 +
-        Number(match[4])
-      );
-    };
-    const startMs = parseTime(timing[0] ?? "");
-    const endMs = parseTime(timing[1] ?? "");
-    const text = lines
-      .slice(timingIndex + 1)
-      .join(" ")
-      .replace(/<[^>]*>/g, "")
-      .trim();
-    if (startMs === null || !text) continue;
-    segments.push({
-      startMs,
-      ...(endMs !== null ? { durationMs: Math.max(0, endMs - startMs) } : {}),
-      text,
-    });
+  let text = "";
+  let startMs = 0;
+  const flush = () => {
+    const normalized = text.replace(/\s+/g, " ").trim();
+    if (normalized) segments.push({ startMs, text: normalized });
+    text = "";
+  };
+  for (const line of lines) {
+    const nonSpeech = /^\[[^\]]+\]$/.test(line.text);
+    if (nonSpeech) flush();
+    if (
+      text &&
+      /[A-Za-z0-9]$/.test(text.trimEnd()) &&
+      /^[A-Za-z0-9]/.test(line.text)
+    ) {
+      text += " ";
+    }
+    for (const fragment of timedFragments(line)) {
+      const trimmed = fragment.text.trimStart();
+      const startsNewEnglishSentence =
+        /^(?:While|When|But|However|So|Now|Then|Next|Although|Meanwhile|The|This|That|These|Those|We|They|He|She|It|I)\b/.test(
+          trimmed,
+        ) &&
+        text.trim().split(/\s+/).length >= 3 &&
+        /[a-z]$/.test(text.trim());
+      if (startsNewEnglishSentence) flush();
+      const characters = [...fragment.text];
+      for (const [index, character] of characters.entries()) {
+        if (!text && !character.trim()) continue;
+        if (!text) startMs = fragment.startMs;
+        text += character;
+        if (/[。！？.!?]/.test(character)) {
+          const previous = text.at(-2);
+          const next = characters[index + 1];
+          if (
+            character === "." &&
+            /\d/.test(previous ?? "") &&
+            /\d/.test(next ?? "")
+          ) {
+            continue;
+          }
+          flush();
+        }
+      }
+    }
+    if (
+      nonSpeech ||
+      text.length > 120 ||
+      text.trim().split(/\s+/).length > 18
+    ) {
+      flush();
+    }
+  }
+  flush();
+  for (let index = 0; index < segments.length - 1; index++) {
+    segments[index]!.durationMs = Math.max(
+      0,
+      segments[index + 1]!.startMs - segments[index]!.startMs,
+    );
   }
   return segments;
+}
+
+export function parseVtt(
+  vtt: string,
+  source: "manual" | "automatic",
+): TranscriptSegment[] {
+  const cues = parseCues(vtt);
+  const rollup =
+    source === "automatic" &&
+    cues.some((cue) => cue.lines.some((line) => hasInlineTime.test(line))) &&
+    cues.some((cue) => cue.endMs - cue.startMs <= 20);
+  if (!rollup) {
+    return cues
+      .map((cue) => ({
+        startMs: cue.startMs,
+        durationMs: Math.max(0, cue.endMs - cue.startMs),
+        text: stripVttTags(cue.lines.join(" ")).trim(),
+      }))
+      .filter((segment) => segment.text);
+  }
+  return splitSentences(extractSpokenLines(cues));
 }
 
 export function transcriptToHtml(
@@ -196,7 +361,7 @@ export function transcriptToHtml(
           return `<p class="youtube-transcript-segment" data-start-ms="${segment.startMs}"><a class="youtube-transcript-timestamp" href="${safeVideoUrl}&amp;t=${seconds}s">${formatTimestamp(seconds)}</a> ${escapeHtml(segment.text)}</p>`;
         })
         .join("\n");
-      return `<section class="youtube-transcript" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript (${escapeHtml(transcript.language)})</h2>\n${body}\n</section>`;
+      return `<section class="youtube-transcript" data-transcript-format="${YOUTUBE_TRANSCRIPT_FORMAT}" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript (${escapeHtml(transcript.language)})</h2>\n${body}\n</section>`;
     })
     .join("\n");
 }
@@ -294,6 +459,7 @@ export async function fetchYouTubeTranscript(
     if (subtitle) {
       const segments = parseVtt(
         await fs.readFile(path.join(directory, subtitle), "utf8"),
+        selection.source,
       );
       if (segments.length) transcripts.push({ ...selection, segments });
     }

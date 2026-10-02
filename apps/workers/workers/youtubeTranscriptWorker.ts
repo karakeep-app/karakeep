@@ -16,14 +16,12 @@ import {
 import {
   addLogFields,
   QueuePriority,
+  readAsset,
+  silentDeleteAsset,
   triggerSearchReindex,
   YouTubeTranscriptQueue,
 } from "@karakeep/shared-server";
-import {
-  ASSET_TYPES,
-  readAsset,
-  silentDeleteAsset,
-} from "@karakeep/shared/assetdb";
+import { ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
@@ -32,6 +30,10 @@ import {
   getQueueClient,
   QueueRetryAfterError,
 } from "@karakeep/shared/queueing";
+import {
+  hasCurrentYouTubeTranscript,
+  removeYouTubeTranscripts,
+} from "@karakeep/shared/youtubeTranscript";
 
 import { storeHtmlContent } from "./crawler/assetStorage";
 import {
@@ -149,8 +151,10 @@ async function runWorker(
     htmlContent = storedContent.asset.toString("utf8");
   }
 
-  if (htmlContent.includes('class="youtube-transcript"')) {
-    logger.info(`[YouTubeTranscript][${jobId}] A transcript is already saved`);
+  if (hasCurrentYouTubeTranscript(htmlContent)) {
+    logger.info(
+      `[YouTubeTranscript][${jobId}] Current transcript format is already saved`,
+    );
     return "completed";
   }
 
@@ -221,7 +225,9 @@ async function runWorker(
   }
 
   const transcriptHtml = transcriptToHtml(transcripts, bookmark.url);
-  const combinedHtml = [htmlContent, transcriptHtml].filter(Boolean).join("\n");
+  const combinedHtml = [removeYouTubeTranscripts(htmlContent), transcriptHtml]
+    .filter(Boolean)
+    .join("\n");
   const stored = await storeHtmlContent(combinedHtml, bookmark.userId, jobId);
   if (stored.result === "not_stored") {
     logger.warn(

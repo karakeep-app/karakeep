@@ -1,6 +1,100 @@
 import { describe, expect, it } from "vitest";
 
-import { selectLanguages, transcriptToHtml } from "./youtubeTranscript";
+import {
+  parseVtt,
+  selectLanguages,
+  transcriptToHtml,
+} from "./youtubeTranscript";
+
+describe("parseVtt", () => {
+  it("removes roll-up display copies and keeps rapid repeated speech", () => {
+    const segments = parseVtt(
+      `WEBVTT
+Kind: captions
+Language: ja
+
+00:00:01.000 --> 00:00:01.500 align:start position:0%
+${" "}
+はい<00:00:01.250><c>。</c>
+
+00:00:01.500 --> 00:00:01.510 align:start position:0%
+はい。
+
+00:00:01.510 --> 00:00:02.000 align:start position:0%
+はい。
+はい<00:00:01.760><c>。</c>
+
+00:00:02.000 --> 00:00:02.010 align:start position:0%
+はい。
+
+00:00:02.010 --> 00:00:02.500 align:start position:0%
+はい。
+はい。
+
+00:00:02.500 --> 00:00:03.000 align:start position:0%
+はい。
+`,
+      "automatic",
+    );
+    expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
+      { startMs: 1000, text: "はい。" },
+      { startMs: 1510, text: "はい。" },
+      { startMs: 2010, text: "はい。" },
+    ]);
+  });
+
+  it("uses inline timing for the next sentence and preserves its text", () => {
+    const segments = parseVtt(
+      `WEBVTT
+
+00:00:00.960 --> 00:00:03.350
+${" "}
+ロボット<00:00:01.695><c>の皆さん。 </c><00:00:01.842><c>もう</c><00:00:02.100><c>一度試します。</c>
+
+00:00:03.350 --> 00:00:03.360
+ロボットの皆さん。 もう一度試します。
+`,
+      "automatic",
+    );
+    expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
+      { startMs: 960, text: "ロボットの皆さん。" },
+      { startMs: 1842, text: "もう一度試します。" },
+    ]);
+  });
+
+  it("starts an unpunctuated English sentence at its timed word", () => {
+    const segments = parseVtt(
+      `WEBVTT
+
+00:01:03.300 --> 00:01:06.770
+inside<00:01:04.199><c> the</c><00:01:04.559><c> motor</c><00:01:05.000><c> While</c><00:01:06.000><c> most</c><00:01:06.360><c> Motors</c>
+
+00:01:06.770 --> 00:01:06.780
+inside the motor While most Motors
+`,
+      "automatic",
+    );
+    expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
+      { startMs: 63300, text: "inside the motor" },
+      { startMs: 65000, text: "While most Motors" },
+    ]);
+  });
+
+  it("keeps ordinary manual captions", () => {
+    const segments = parseVtt(
+      `WEBVTT
+
+00:00:01.000 --> 00:00:02.000
+First line
+Second line
+`,
+      "manual",
+    );
+    expect(segments).toEqual([
+      { startMs: 1000, durationMs: 1000, text: "First line Second line" },
+    ]);
+  });
+});
 
 describe("selectLanguages", () => {
   it("selects one preferred manual track instead of an auto-translation", () => {
@@ -159,6 +253,7 @@ describe("transcriptToHtml", () => {
 
     expect(html).toContain('data-transcript-language="ja"');
     expect(html).toContain('data-transcript-source="automatic"');
+    expect(html).toContain('data-transcript-format="sentence-v1"');
     expect(html).toContain('data-start-ms="155000"');
     expect(html).toContain("02:35");
     expect(html).toContain(
