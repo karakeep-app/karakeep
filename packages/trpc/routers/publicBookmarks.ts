@@ -10,6 +10,7 @@ import { zBookmarkListSchema } from "@karakeep/shared/types/lists";
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 import { publicProcedure, router } from "../index";
+import { Bookmark } from "../models/bookmarks";
 import { List } from "../models/lists";
 
 export const publicBookmarks = router({
@@ -73,5 +74,20 @@ export const publicBookmarks = router({
           cursor: input.cursor,
         },
       );
+    }),
+  getPublicBookmark: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        bookmark: zPublicBookmarkSchema,
+        ownerName: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return await Bookmark.getByPublicShareToken(ctx, input.token);
     }),
 });

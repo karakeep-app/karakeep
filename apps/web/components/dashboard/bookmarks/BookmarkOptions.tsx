@@ -29,6 +29,7 @@ import {
   MoreHorizontal,
   Pencil,
   RotateCw,
+  Share2,
   SquarePen,
   Trash2,
 } from "lucide-react";
@@ -58,6 +59,7 @@ import DeleteBookmarkConfirmationDialog from "./DeleteBookmarkConfirmationDialog
 import { EditBookmarkDialog } from "./EditBookmarkDialog";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
 import { useManageListsModal } from "./ManageListsModal";
+import { ShareBookmarkModal } from "./ShareBookmarkModal";
 
 interface ActionItem {
   id: string;
@@ -128,6 +130,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     useState(false);
   const [isTextEditorOpen, setTextEditorOpen] = useState(false);
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
+  const [isShareDialogOpen, setShareDialogOpen] = useState(false);
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -319,6 +322,14 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
       },
     },
     {
+      id: "share",
+      title: t("actions.share"),
+      icon: <Share2 className="mr-2 size-4" />,
+      visible: isOwner,
+      disabled: false,
+      onClick: () => setShareDialogOpen(true),
+    },
+    {
       id: "manage-lists",
       title: t("actions.manage_lists"),
       icon: <List className="mr-2 size-4" />,
@@ -482,6 +493,11 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         bookmark={bookmark}
         open={isEditBookmarkDialogOpen}
         setOpen={setEditBookmarkDialogOpen}
+      />
+      <ShareBookmarkModal
+        bookmarkId={bookmark.id}
+        open={isShareDialogOpen}
+        setOpen={setShareDialogOpen}
       />
       <DeleteBookmarkConfirmationDialog
         bookmark={bookmark}
