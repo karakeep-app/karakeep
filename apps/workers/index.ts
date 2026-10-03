@@ -8,6 +8,7 @@ import {
   BackupQueue,
   EmbeddingsQueue,
   FeedQueue,
+  GithubStarsQueue,
   initEventLogger,
   initTracing,
   LinkCrawlerQueue,
@@ -35,7 +36,18 @@ let feedRefreshingWorker:
   | typeof import("./workers/feedWorker").FeedRefreshingWorker
   | undefined;
 
+let githubStarsSchedulingWorker:
+  | typeof import("./workers/githubStarsWorker").GithubStarsSchedulingWorker
+  | undefined;
+
 const workerBuilders = {
+  githubStars: async () => {
+    const { GithubStarsWorker, GithubStarsSchedulingWorker } =
+      await import("./workers/githubStarsWorker");
+    githubStarsSchedulingWorker = GithubStarsSchedulingWorker;
+    await GithubStarsQueue.ensureInit();
+    return GithubStarsWorker.build();
+  },
   crawler: async () => {
     const { CrawlerWorker } = await import("./workers/crawlerWorker");
     await LinkCrawlerQueue.ensureInit();
@@ -143,6 +155,7 @@ async function main() {
   );
 
   await startQueue();
+  githubStarsSchedulingWorker?.start();
 
   if (workers.some((w) => w.name === "feed")) {
     feedRefreshingWorker?.start();
@@ -183,6 +196,7 @@ async function main() {
   if (workers.some((w) => w.name === "backup")) {
     backupSchedulingWorker?.stop();
   }
+  githubStarsSchedulingWorker?.stop();
   if (importWorker) {
     importWorker.stop();
   }

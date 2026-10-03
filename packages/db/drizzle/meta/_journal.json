@@ -659,6 +659,20 @@
       "when": 1785586065846,
       "tag": "0093_reader_view_assessment",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "6",
+      "when": 1789667823579,
+      "tag": "0094_github_stars",
+      "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "6",
+      "when": 1789769102060,
+      "tag": "0095_github_stars_connections",
+      "breakpoints": true
     }
   ]
 }

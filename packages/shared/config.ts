@@ -62,6 +62,8 @@ const allEnv = z.object({
   NEXTAUTH_SECRET: z.string().optional(),
   DISABLE_SIGNUPS: stringBool("false"),
   DISABLE_PASSWORD_AUTH: stringBool("false"),
+  GITHUB_STARS_CLIENT_ID: z.string().optional(),
+  GITHUB_STARS_CLIENT_SECRET: z.string().optional(),
   OAUTH_AUTO_REDIRECT: stringBool("false"),
   OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING: stringBool("false"),
   OAUTH_WELLKNOWN_URL: z.string().url().optional(),
@@ -294,6 +296,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     apiUrl: val.API_URL,
     publicUrl: val.NEXTAUTH_URL,
     publicApiUrl: `${val.NEXTAUTH_URL}/api`,
+    githubStars: {
+      clientId: val.GITHUB_STARS_CLIENT_ID,
+      clientSecret: val.GITHUB_STARS_CLIENT_SECRET,
+    },
     signingSecret: () => {
       if (!val.NEXTAUTH_SECRET) {
         throw new Error("NEXTAUTH_SECRET is not set");
