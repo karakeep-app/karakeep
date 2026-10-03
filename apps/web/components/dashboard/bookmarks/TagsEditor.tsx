@@ -15,7 +15,7 @@ import {
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { isServer, keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
 import { Check, Loader2, Plus, Sparkles, X } from "lucide-react";
 
@@ -114,7 +114,13 @@ export function TagsEditor({
                 : ("ai" as const),
           })),
         placeholderData: keepPreviousData,
-        gcTime: inputValue.length > 0 ? 60_000 : 3_600_000,
+        // A finite gcTime on the server schedules a timer that pins the
+        // request's query cache in memory; keep the default (Infinity) there.
+        gcTime: isServer
+          ? Infinity
+          : inputValue.length > 0
+            ? 60_000
+            : 3_600_000,
       },
     ),
   );
