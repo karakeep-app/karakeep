@@ -166,6 +166,9 @@ interface SpokenLine {
 
 const inlineTime = /<(\d{2}:\d{2}:\d{2}\.\d{3})>/g;
 const hasInlineTime = /<\d{2}:\d{2}:\d{2}\.\d{3}>/;
+const maxUnpunctuatedSegmentDurationMs = 6_000;
+const noSpaceScripts =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}\p{Script=Lao}\p{Script=Khmer}\p{Script=Myanmar}]/u;
 
 function parseTime(value: string): number | null {
   const match = value.trim().match(/(?:(\d+):)?(\d{2}):(\d{2})[.,](\d{3})/);
@@ -262,60 +265,114 @@ function timedFragments(line: SpokenLine): { startMs: number; text: string }[] {
   return fragments;
 }
 
-function splitSentences(lines: SpokenLine[]): TranscriptSegment[] {
+function splitSentences(
+  lines: SpokenLine[],
+  language: string,
+): TranscriptSegment[] {
   const segments: TranscriptSegment[] = [];
+  const sentenceSegmenter = new Intl.Segmenter(language, {
+    granularity: "sentence",
+  });
   let text = "";
-  let startMs = 0;
-  const flush = () => {
-    const normalized = text.replace(/\s+/g, " ").trim();
+  let characterStartTimes: number[] = [];
+  const emit = (value: string, startMs: number) => {
+    const normalized = value.replace(/\s+/g, " ").trim();
     if (normalized) segments.push({ startMs, text: normalized });
+  };
+  const flush = () => {
+    emit(text, characterStartTimes[0] ?? 0);
     text = "";
+    characterStartTimes = [];
+  };
+  const flushCompleteSentences = () => {
+    const rawSentenceParts = [...sentenceSegmenter.segment(text)];
+    if (!rawSentenceParts.length) return;
+    const sentenceParts: { index: number; segment: string }[] = [];
+    for (let index = 0; index < rawSentenceParts.length; index++) {
+      const part = rawSentenceParts[index]!;
+      let segment = part.segment;
+      while (
+        /(?:^|\s)\p{Lu}\p{Ll}{0,2}\.$/u.test(segment.trimEnd()) &&
+        rawSentenceParts[index + 1] &&
+        /^\s*\p{Lu}/u.test(rawSentenceParts[index + 1]!.segment)
+      ) {
+        segment += rawSentenceParts[++index]!.segment;
+      }
+      sentenceParts.push({ index: part.index, segment });
+    }
+    const lastSentenceIsComplete =
+      /[\p{Sentence_Terminal}…][」』】）)\]}"'’”]*$/u.test(text.trimEnd());
+    let completeParts = lastSentenceIsComplete
+      ? sentenceParts.length
+      : sentenceParts.length - 1;
+    if (
+      /(?:^|\s)\p{Lu}\p{Ll}{0,2}\.$/u.test(
+        sentenceParts.at(-1)!.segment.trimEnd(),
+      )
+    ) {
+      completeParts = Math.min(completeParts, sentenceParts.length - 1);
+    }
+    if (completeParts <= 0) return;
+    const completed = sentenceParts.slice(0, completeParts);
+    const consumed = completed.reduce(
+      (length, part) => length + part.segment.length,
+      0,
+    );
+    for (const part of completed) {
+      emit(part.segment, characterStartTimes[part.index] ?? 0);
+    }
+    text = text.slice(consumed);
+    characterStartTimes = characterStartTimes.slice(consumed);
   };
   for (const line of lines) {
     const nonSpeech = /^\[[^\]]+\]$/.test(line.text);
     if (nonSpeech) flush();
+    for (const fragment of timedFragments(line)) {
+      const leadingTerminal = fragment.text.match(
+        /^\s*([\p{Sentence_Terminal}…]+)/u,
+      )?.[1];
+      if (
+        !text &&
+        leadingTerminal &&
+        /^[\s\p{Sentence_Terminal}…]+$/u.test(fragment.text) &&
+        segments.length
+      ) {
+        segments.at(-1)!.text += leadingTerminal;
+        continue;
+      }
+      const previousCharacter = [...text].at(-1) ?? "";
+      const firstCharacter = [...fragment.text].find((character) =>
+        character.trim(),
+      );
+      if (
+        text &&
+        previousCharacter &&
+        firstCharacter &&
+        !/^\s/u.test(fragment.text) &&
+        /[\p{L}\p{N}]$/u.test(previousCharacter) &&
+        /^[\p{L}\p{N}]/u.test(firstCharacter) &&
+        !noSpaceScripts.test(`${previousCharacter}${firstCharacter}`)
+      ) {
+        text += " ";
+        characterStartTimes.push(fragment.startMs);
+      }
+      for (const character of fragment.text) {
+        if (!text && !character.trim()) continue;
+        text += character;
+        characterStartTimes.push(
+          ...Array<number>(character.length).fill(fragment.startMs),
+        );
+      }
+      flushCompleteSentences();
+    }
     if (
       text &&
-      /[A-Za-z0-9]$/.test(text.trimEnd()) &&
-      /^[A-Za-z0-9]/.test(line.text)
-    ) {
-      text += " ";
-    }
-    for (const fragment of timedFragments(line)) {
-      const trimmed = fragment.text.trimStart();
-      const startsNewEnglishSentence =
-        /^(?:While|When|But|However|So|Now|Then|Next|Although|Meanwhile|The|This|That|These|Those|We|They|He|She|It|I)\b/.test(
-          trimmed,
-        ) &&
-        text.trim().split(/\s+/).length >= 3 &&
-        /[a-z]$/.test(text.trim());
-      if (startsNewEnglishSentence) flush();
-      const characters = [...fragment.text];
-      for (const [index, character] of characters.entries()) {
-        if (!text && !character.trim()) continue;
-        if (!text) startMs = fragment.startMs;
-        text += character;
-        if (/[。！？.!?]/.test(character)) {
-          const previous = text.at(-2);
-          const next = characters[index + 1];
-          if (
-            character === "." &&
-            /\d/.test(previous ?? "") &&
-            /\d/.test(next ?? "")
-          ) {
-            continue;
-          }
-          flush();
-        }
-      }
-    }
-    if (
-      nonSpeech ||
-      text.length > 120 ||
-      text.trim().split(/\s+/).length > 18
+      line.endMs - (characterStartTimes[0] ?? line.endMs) >=
+        maxUnpunctuatedSegmentDurationMs
     ) {
       flush();
     }
+    if (nonSpeech) flush();
   }
   flush();
   for (let index = 0; index < segments.length - 1; index++) {
@@ -330,6 +387,7 @@ function splitSentences(lines: SpokenLine[]): TranscriptSegment[] {
 export function parseVtt(
   vtt: string,
   source: "manual" | "automatic",
+  language = "und",
 ): TranscriptSegment[] {
   const cues = parseCues(vtt);
   const rollup =
@@ -345,7 +403,7 @@ export function parseVtt(
       }))
       .filter((segment) => segment.text);
   }
-  return splitSentences(extractSpokenLines(cues));
+  return splitSentences(extractSpokenLines(cues), language);
 }
 
 export function transcriptToHtml(
@@ -460,6 +518,7 @@ export async function fetchYouTubeTranscript(
       const segments = parseVtt(
         await fs.readFile(path.join(directory, subtitle), "utf8"),
         selection.source,
+        selection.language,
       );
       if (segments.length) transcripts.push({ ...selection, segments });
     }

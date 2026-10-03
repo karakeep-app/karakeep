@@ -75,7 +75,34 @@ ${" "}
     ]);
   });
 
-  it("starts an unpunctuated English sentence at its timed word", () => {
+  it.each([
+    ["ja", "これは一文です", "次の文です", "。"],
+    ["zh", "这是第一句", "这是第二句", "。"],
+    ["es", "Esta es la primera oración", "Esta es la segunda oración", "."],
+    ["hi", "यह पहला वाक्य है", "यह दूसरा वाक्य है", "।"],
+    ["ar", "هذه جملة أولى", "هذه جملة ثانية", "."],
+  ])(
+    "uses the same sentence-boundary algorithm for %s captions",
+    (language, first, second, punctuation) => {
+      const segments = parseVtt(
+        `WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+${first}<00:00:02.000><c>${punctuation} </c><00:00:02.500><c>${second}${punctuation}</c>
+
+00:00:04.000 --> 00:00:04.010
+`,
+        "automatic",
+        language,
+      );
+      expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
+        { startMs: 1000, text: `${first}${punctuation}` },
+        { startMs: 2500, text: `${second}${punctuation}` },
+      ]);
+    },
+  );
+
+  it("preserves the source boundary when an English caption has no punctuation", () => {
     const segments = parseVtt(
       `WEBVTT
 
@@ -88,8 +115,51 @@ inside the motor While most Motors
       "automatic",
     );
     expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
-      { startMs: 63300, text: "inside the motor" },
-      { startMs: 65000, text: "While most Motors" },
+      { startMs: 63300, text: "inside the motor While most Motors" },
+    ]);
+  });
+
+  it("does not treat a short title abbreviation as a sentence boundary", () => {
+    const segments = parseVtt(
+      `WEBVTT
+
+00:00:01.000 --> 00:00:05.000
+We met Dr.<00:00:02.000><c> Smith arrived.</c><00:00:04.000><c> Then we left.</c>
+
+00:00:05.000 --> 00:00:05.010
+`,
+      "automatic",
+      "en",
+    );
+    expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
+      { startMs: 1000, text: "We met Dr. Smith arrived." },
+      { startMs: 4000, text: "Then we left." },
+    ]);
+  });
+
+  it("uses one duration limit for long captions without sentence punctuation", () => {
+    const segments = parseVtt(
+      `WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+First<00:00:02.000><c> part</c>
+
+00:00:04.000 --> 00:00:04.010
+
+00:00:04.010 --> 00:00:09.000
+Second<00:00:05.000><c> part</c>
+
+00:00:09.000 --> 00:00:09.010
+
+00:00:09.010 --> 00:00:10.000
+Third<00:00:09.500><c> part</c>
+`,
+      "automatic",
+      "en",
+    );
+    expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
+      { startMs: 1000, text: "First part Second part" },
+      { startMs: 9010, text: "Third part" },
     ]);
   });
 
