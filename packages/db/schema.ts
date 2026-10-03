@@ -240,7 +240,12 @@ export const bookmarks = sqliteTable(
     summary: text("summary"),
     note: text("note"),
     type: text("type", {
-      enum: [BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET],
+      enum: [
+        BookmarkTypes.LINK,
+        BookmarkTypes.TEXT,
+        BookmarkTypes.ASSET,
+        BookmarkTypes.COLLECTION,
+      ],
     }).notNull(),
     source: text("source", {
       enum: [
@@ -1055,6 +1060,40 @@ export const importStagingBookmarks = sqliteTable(
     ),
   ],
 );
+// collections for multiple images
+export const imageCollections = sqliteTable("imageCollections", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .references(() => bookmarks.id, { onDelete: "cascade" }),
+  createdAt: createdAtField(),
+  modifiedAt: modifiedAtField(),
+});
+
+export const imageCollectionItems = sqliteTable(
+  "imageCollectionItems",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    collectionId: text("collectionId")
+      .notNull()
+      .references(() => imageCollections.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    bookmarkId: text("bookmarkId")
+      .notNull()
+      .references(() => bookmarks.id, { onDelete: "cascade" }),
+    addedAt: createdAtField("addedAt"),
+  },
+  (ic) => [
+    index("imageCollectionItems_collectionId_position_idx").on(
+      ic.collectionId,
+      ic.position,
+    ),
+    unique().on(ic.bookmarkId),
+  ],
+);
 
 // Relations
 
@@ -1088,6 +1127,10 @@ export const bookmarkRelations = relations(bookmarks, ({ many, one }) => ({
   asset: one(bookmarkAssets, {
     fields: [bookmarks.id],
     references: [bookmarkAssets.id],
+  }),
+  collection: one(imageCollections, {
+    fields: [bookmarks.id],
+    references: [imageCollections.id],
   }),
   tagsOnBookmarks: many(tagsOnBookmarks),
   bookmarksInLists: many(bookmarksInLists),
@@ -1332,6 +1375,32 @@ export const userReadingProgressRelations = relations(
     user: one(users, {
       fields: [userReadingProgress.userId],
       references: [users.id],
+    }),
+  }),
+);
+
+export const imageCollectionsRelations = relations(
+  imageCollections,
+  ({ one, many }) => ({
+    bookmark: one(bookmarks, {
+      fields: [imageCollections.id],
+      references: [bookmarks.id],
+    }),
+
+    items: many(imageCollectionItems),
+  }),
+);
+
+export const imageCollectionItemsRelations = relations(
+  imageCollectionItems,
+  ({ one }) => ({
+    collection: one(imageCollections, {
+      fields: [imageCollectionItems.collectionId],
+      references: [imageCollections.id],
+    }),
+    bookmark: one(bookmarks, {
+      fields: [imageCollectionItems.bookmarkId],
+      references: [bookmarks.id],
     }),
   }),
 );

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getBookmarkRefreshInterval } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { useTRPC } from "../trpc";
@@ -122,6 +124,14 @@ export function useUpdateBookmark(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
+        // A collection update may modify the selected child image's content.
+        if (req.selectedImageBookmarkId) {
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmark.queryFilter({
+              bookmarkId: req.selectedImageBookmarkId,
+            }),
+          );
+        }
         scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -175,6 +185,7 @@ export function useRecrawlBookmark(
 
 export function useUpdateBookmarkTags(
   opts?: Parameters<TRPCApi["bookmarks"]["updateTags"]["mutationOptions"]>[0],
+  collectionId?: string,
 ) {
   const api = useTRPC();
   const queryClient = useQueryClient();
@@ -185,6 +196,30 @@ export function useUpdateBookmarkTags(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
+
+        // A collection's displayed tags are aggregated from its child images.
+        // Find cached parent collections without refetching unrelated bookmarks.
+        const collectionIds = new Set(collectionId ? [collectionId] : []);
+        queryClient
+          .getQueriesData<ZBookmark>(api.bookmarks.getBookmark.pathFilter())
+          .forEach(([, bookmark]) => {
+            if (
+              bookmark?.content.type === BookmarkTypes.COLLECTION &&
+              bookmark.content.items.some(
+                (item) => item.bookmarkId === req.bookmarkId,
+              )
+            ) {
+              collectionIds.add(bookmark.id);
+            }
+          });
+
+        collectionIds.forEach((id) => {
+          queryClient.invalidateQueries(
+            api.bookmarks.getBookmark.queryFilter({
+              bookmarkId: id,
+            }),
+          );
+        });
 
         [...res.attached, ...res.detached].forEach((id) => {
           queryClient.invalidateQueries(

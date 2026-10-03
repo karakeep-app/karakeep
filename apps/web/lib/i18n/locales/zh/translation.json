@@ -40,6 +40,9 @@
     "quota": "配额",
     "bookmarks": "书签",
     "storage": "存储",
+    "image_count_one": "{{count}} 张图片",
+    "image_count_other": "{{count}} 张图片",
+    "collection_cover": "图片集合封面",
     "pdf": "已存档的 PDF",
     "default": "默认",
     "id": "ID",
@@ -946,7 +949,16 @@
     "crawling_in_progress": "正在获取页面内容……",
     "continue_reading": "从上次结束的地方继续",
     "continue_reading_percent": "从上次结束的地方继续（{{percent}}%）",
-    "continue_button": "继续"
+    "continue_button": "继续",
+    "failed_to_reorder_images": "重新排序图片失败",
+    "collection_image": "图片集合第 {{index}} 张",
+    "image_removed_from_collection": "已从图片集合中移除图片",
+    "failed_to_delete_image": "删除图片失败",
+    "move_image_up": "上移图片",
+    "move_image_down": "下移图片",
+    "delete_image": "删除",
+    "remove_image_from_collection_title": "从图片集合中移除这张图片？",
+    "remove_image_from_collection_description": "这会从当前集合中移除该图片，但不会删除原始书签。"
   },
   "editor": {
     "quickly_focus": "您可以按⌘ + E快速聚焦到此字段",
@@ -1100,11 +1112,13 @@
     "semantic_placeholder": "描述你记忆中的内容…"
   },
   "dialogs": {
-    "bookmarks": {
-      "delete_confirmation_title": "删除书签？",
-      "delete_confirmation_description": "是否确定要删除此标签？",
-      "bulk_delete_confirmation_description": "您确定要删除 {{count}} 个书签吗？"
-    }
+   "bookmarks": {
+  "delete_confirmation_title": "删除书签？",
+  "delete_confirmation_description": "是否确定要删除此标签？",
+  "bulk_delete_confirmation_description": "您确定要删除 {{count}} 个书签吗？",
+  "merge_confirmation_title": "合并图片书签？",
+  "merge_confirmation_description": "将这些图片合并为一个多图片书签？"
+}
   },
   "highlights": {
     "no_highlights": "你目前没有高亮的地方。"
