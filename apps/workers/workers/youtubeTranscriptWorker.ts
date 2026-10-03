@@ -36,12 +36,12 @@ import {
 } from "@karakeep/shared/youtubeTranscript";
 
 import { storeHtmlContent } from "./crawler/assetStorage";
+import { isYouTubeUrl, transcriptToHtml } from "./crawler/youtubeTranscript";
 import {
   fetchYouTubeTranscript,
-  isYouTubeUrl,
-  transcriptToHtml,
+  TranscriptFetchError,
   TranslatedCaptionRateLimitError,
-} from "./crawler/youtubeTranscript";
+} from "./crawler/youtubeTranscriptFetch";
 
 const RATE_LIMIT_COOLDOWN_MS = 30 * 60 * 1000;
 const MAX_RATE_LIMIT_RETRIES = 3;
@@ -77,7 +77,7 @@ export class YouTubeTranscriptWorker {
         onError: async (job: DequeuedJobError<ZYouTubeTranscriptRequest>) => {
           const detail = getErrorDetail(job.error);
           logger.error(
-            `[YouTubeTranscript][${job.id}] Transcript job failed (retries left: ${job.numRetriesLeft}): ${detail}`,
+            `[YouTubeTranscript][${job.id}] Transcript job failed for bookmark ${job.data?.bookmarkId ?? "unknown"} (retries left: ${job.numRetriesLeft}): ${detail}`,
           );
         },
       },
@@ -182,6 +182,11 @@ async function runWorker(
         ),
     );
   } catch (error) {
+    if (error instanceof TranscriptFetchError) {
+      addLogFields<"youtubeTranscriptWorker.run">({
+        "transcript.stage": error.stage,
+      });
+    }
     const detail = getErrorDetail(error);
     if (error instanceof TranslatedCaptionRateLimitError) {
       logger.warn(
@@ -218,8 +223,11 @@ async function runWorker(
   }
 
   if (transcripts.length === 0) {
+    addLogFields<"youtubeTranscriptWorker.run">({
+      "transcript.outcome": "no_track",
+    });
     logger.info(
-      `[YouTubeTranscript][${jobId}] No configured transcript languages are available`,
+      `[YouTubeTranscript][${jobId}] No usable caption track is available for this video`,
     );
     return "completed";
   }
@@ -230,10 +238,10 @@ async function runWorker(
     .join("\n");
   const stored = await storeHtmlContent(combinedHtml, bookmark.userId, jobId);
   if (stored.result === "not_stored") {
-    logger.warn(
-      `[YouTubeTranscript][${jobId}] Could not store transcript content`,
-    );
-    return "completed";
+    addLogFields<"youtubeTranscriptWorker.run">({
+      "transcript.stage": "storage",
+    });
+    throw new Error(`Transcript content was not stored: ${stored.reason}`);
   }
 
   const oldContentAssetId = bookmark.contentAssetId;
@@ -275,6 +283,9 @@ async function runWorker(
     ),
   );
   await triggerSearchReindex(bookmarkId, { groupId: bookmark.userId });
+  addLogFields<"youtubeTranscriptWorker.run">({
+    "transcript.outcome": "stored",
+  });
   logger.info(
     `[YouTubeTranscript][${jobId}] Added ${transcripts.length} transcript language(s): ${transcripts.map((item) => `${item.language}/${item.source}/${item.segments.length} segments`).join(", ")}`,
   );

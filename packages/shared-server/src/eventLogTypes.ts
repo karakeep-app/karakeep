@@ -72,6 +72,12 @@ type EventLogInternal =
   | {
       ["event.name"]: "youtubeTranscriptWorker.run";
       "bookmark.id"?: string;
+      "transcript.stage"?:
+        | "metadata"
+        | "download"
+        | "subtitle file"
+        | "storage";
+      "transcript.outcome"?: "no_track" | "stored";
     }
   | {
       ["event.name"]: "webhookWorker.run";

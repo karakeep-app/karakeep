@@ -52,7 +52,10 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
-import { hasCurrentYouTubeTranscript } from "@karakeep/shared/youtubeTranscript";
+import {
+  getYouTubeVideoId,
+  hasCurrentYouTubeTranscript,
+} from "@karakeep/shared/youtubeTranscript";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { createAdminScopedProcedure, router } from "../index";
@@ -61,6 +64,14 @@ import { User } from "../models/users";
 import { syncStripeDataToDatabase } from "./subscriptions";
 
 const adminBookmarksProcedure = createAdminScopedProcedure("bookmarks");
+const youtubeVideoUrlPrefixes = [
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "www.m.youtube.com",
+  "youtu.be",
+  "www.youtu.be",
+].flatMap((host) => [`https://${host}/`, `http://${host}/`]);
 const adminJobsProcedure = createAdminScopedProcedure("jobs");
 const adminSystemProcedure = createAdminScopedProcedure("system");
 const adminUsersProcedure = createAdminScopedProcedure("users");
@@ -352,10 +363,9 @@ export const adminAppRouter = router({
           and(
             input?.cursor ? gt(bookmarkLinks.id, input.cursor) : undefined,
             or(
-              like(bookmarkLinks.url, "%youtube.com/watch%"),
-              like(bookmarkLinks.url, "%youtube.com/shorts/%"),
-              like(bookmarkLinks.url, "%youtube.com/live/%"),
-              like(bookmarkLinks.url, "%youtu.be/%"),
+              ...youtubeVideoUrlPrefixes.map((prefix) =>
+                like(bookmarkLinks.url, `${prefix}%`),
+              ),
             ),
           ),
         )
@@ -363,9 +373,10 @@ export const adminAppRouter = router({
         .limit(batchSize + 1);
       const candidates = rows.slice(0, batchSize);
 
-      let missingCount = 0;
-      const retryBatchId = Date.now();
-      for (const bookmark of candidates) {
+      const enqueueCandidate = async (
+        bookmark: (typeof candidates)[number],
+      ) => {
+        if (!getYouTubeVideoId(bookmark.url)) return 0;
         let html = bookmark.htmlContent ?? "";
         if (bookmark.contentAssetId) {
           try {
@@ -381,22 +392,30 @@ export const adminAppRouter = router({
             logger.warn(
               `[admin] Unable to inspect saved content for transcript retry on bookmark ${bookmark.id}: ${error instanceof Error ? error.message : String(error)}`,
             );
+            return 0;
           }
         }
-        if (hasCurrentYouTubeTranscript(html)) continue;
+        if (hasCurrentYouTubeTranscript(html)) return 0;
 
-        await YouTubeTranscriptQueue.enqueue(
+        const jobId = await YouTubeTranscriptQueue.enqueue(
           { bookmarkId: bookmark.id },
           {
             priority: QueuePriority.Low,
             groupId: "admin",
-            idempotencyKey: `youtube-transcript:${bookmark.id}:retry:${retryBatchId}`,
+            idempotencyKey: `youtube-transcript:${bookmark.id}:retry`,
           },
         );
-        missingCount++;
+        return jobId ? 1 : 0;
+      };
+      let queued = 0;
+      for (let offset = 0; offset < candidates.length; offset += 5) {
+        const results = await Promise.all(
+          candidates.slice(offset, offset + 5).map(enqueueCandidate),
+        );
+        queued += results.reduce<number>((total, count) => total + count, 0);
       }
       return {
-        queued: missingCount,
+        queued,
         nextCursor:
           rows.length > batchSize ? (candidates.at(-1)?.id ?? null) : null,
       };

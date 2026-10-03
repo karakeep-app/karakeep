@@ -203,12 +203,13 @@ describe("Admin Routes", () => {
         await Promise.all(
           Array.from({ length: 101 }, (_, index) =>
             apiCallers[0].bookmarks.createBookmark({
-              url: `https://www.youtube.com/watch?v=video${index}`,
+              url: `https://www.youtube.com/watch?v=${String(index).padStart(11, "0")}`,
               type: BookmarkTypes.LINK,
             }),
           ),
         );
-        testQueueMocks.youtubeTranscriptEnqueue.mockClear();
+        testQueueMocks.youtubeTranscriptEnqueue.mockReset();
+        testQueueMocks.youtubeTranscriptEnqueue.mockResolvedValue("queued-job");
 
         const first = await adminApi.retryMissingYouTubeTranscripts();
         expect(first.queued).toBe(100);
@@ -220,6 +221,38 @@ describe("Admin Routes", () => {
         expect(testQueueMocks.youtubeTranscriptEnqueue).toHaveBeenCalledTimes(
           101,
         );
+        expect(testQueueMocks.youtubeTranscriptEnqueue).toHaveBeenCalledWith(
+          expect.objectContaining({ bookmarkId: expect.any(String) }),
+          expect.objectContaining({
+            idempotencyKey: expect.stringMatching(
+              /^youtube-transcript:.+:retry$/,
+            ),
+          }),
+        );
+      } finally {
+        testQueueMocks.youtubeTranscriptEnqueue.mockReset();
+        serverConfig.crawler.youtubeTranscript = wasEnabled;
+      }
+    });
+
+    test<CustomTestContext>("does not queue lookalike YouTube URLs", async ({
+      apiCallers,
+      db,
+    }) => {
+      const adminApi = await getAdminApi(db);
+      const wasEnabled = serverConfig.crawler.youtubeTranscript;
+      serverConfig.crawler.youtubeTranscript = true;
+      try {
+        await apiCallers[0].bookmarks.createBookmark({
+          url: "https://example.com/?next=youtube.com/watch?v=abcdefghijk",
+          type: BookmarkTypes.LINK,
+        });
+        testQueueMocks.youtubeTranscriptEnqueue.mockClear();
+        expect(await adminApi.retryMissingYouTubeTranscripts()).toEqual({
+          queued: 0,
+          nextCursor: null,
+        });
+        expect(testQueueMocks.youtubeTranscriptEnqueue).not.toHaveBeenCalled();
       } finally {
         serverConfig.crawler.youtubeTranscript = wasEnabled;
       }

@@ -11,6 +11,7 @@ import { Captions, Play } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { getYouTubeVideoId } from "@karakeep/shared/youtubeTranscript";
 
 interface Segment {
   startMs: number;
@@ -31,7 +32,7 @@ interface YouTubePlayer {
 let youtubeIframeApiPromise: Promise<void> | undefined;
 
 function loadYouTubeIframeApi(): Promise<void> {
-  if (window.YT) return Promise.resolve();
+  if (window.YT?.Player) return Promise.resolve();
   youtubeIframeApiPromise ??= new Promise<void>((resolve, reject) => {
     const previousCallback = window.onYouTubeIframeAPIReady;
     let script = document.querySelector<HTMLScriptElement>(
@@ -83,39 +84,12 @@ declare global {
           playerVars?: Record<string, number | string>;
           events?: {
             onReady?: (event: { target: YouTubePlayer }) => void;
+            onError?: () => void;
           };
         },
       ) => YouTubePlayer;
     };
     onYouTubeIframeAPIReady?: () => void;
-  }
-}
-
-function getVideoId(url: string): string | null {
-  try {
-    const parsed = new URL(url);
-    if (
-      (parsed.protocol !== "https:" && parsed.protocol !== "http:") ||
-      parsed.port
-    ) {
-      return null;
-    }
-    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-    let videoId: string | null = null;
-    if (host === "youtu.be") {
-      videoId = parsed.pathname.slice(1).split("/")[0] ?? null;
-    } else if (host === "youtube.com" || host === "m.youtube.com") {
-      if (parsed.pathname === "/watch") {
-        videoId = parsed.searchParams.get("v");
-      } else {
-        videoId =
-          parsed.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)/)?.[1] ??
-          null;
-      }
-    }
-    return videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId) ? videoId : null;
-  } catch {
-    return null;
   }
 }
 
@@ -216,37 +190,55 @@ export default function YoutubeTranscriptView({
   );
   const videoId =
     bookmark.content.type === BookmarkTypes.LINK
-      ? getVideoId(bookmark.content.url)
+      ? getYouTubeVideoId(bookmark.content.url)
       : null;
 
   useEffect(() => {
     if (isPending || !videoId || !playerHostRef.current) return;
     let cancelled = false;
     let player: YouTubePlayer | null = null;
+    let readyTimeout: number | undefined;
     setPlayerReady(false);
     setPlayerError(false);
     const createPlayer = () => {
-      if (cancelled || !window.YT || !playerHostRef.current) return;
-      player = new window.YT.Player(playerHostRef.current, {
-        videoId,
-        width: "100%",
-        height: "100%",
-        playerVars: {
-          enablejsapi: 1,
-          playsinline: 1,
-          origin: window.location.origin,
-        },
-        events: {
-          onReady: ({ target }) => {
-            if (cancelled) {
-              target.destroy();
-              return;
-            }
-            playerRef.current = target;
-            setPlayerReady(true);
+      if (cancelled || !window.YT?.Player || !playerHostRef.current) return;
+      readyTimeout = window.setTimeout(() => {
+        if (!cancelled) setPlayerError(true);
+      }, 15_000);
+      try {
+        player = new window.YT.Player(playerHostRef.current, {
+          videoId,
+          width: "100%",
+          height: "100%",
+          playerVars: {
+            enablejsapi: 1,
+            playsinline: 1,
+            origin: window.location.origin,
           },
-        },
-      });
+          events: {
+            onReady: ({ target }) => {
+              window.clearTimeout(readyTimeout);
+              if (cancelled) {
+                target.destroy();
+                return;
+              }
+              playerRef.current = target;
+              setPlayerError(false);
+              setPlayerReady(true);
+            },
+            onError: () => {
+              window.clearTimeout(readyTimeout);
+              if (!cancelled) {
+                setPlayerReady(false);
+                setPlayerError(true);
+              }
+            },
+          },
+        });
+      } catch {
+        window.clearTimeout(readyTimeout);
+        if (!cancelled) setPlayerError(true);
+      }
     };
 
     void loadYouTubeIframeApi().then(createPlayer, () => {
@@ -255,6 +247,7 @@ export default function YoutubeTranscriptView({
 
     return () => {
       cancelled = true;
+      window.clearTimeout(readyTimeout);
       player?.destroy();
       playerRef.current = null;
     };

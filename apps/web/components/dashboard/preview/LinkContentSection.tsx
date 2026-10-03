@@ -39,30 +39,13 @@ import {
   ZBookmarkedLink,
 } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
+import { getYouTubeVideoId } from "@karakeep/shared/youtubeTranscript";
 
 import { contentRendererRegistry } from "./content-renderers";
 import ReaderSettingsPopover from "./ReaderSettingsPopover";
 import ReaderView from "./ReaderView";
 import SavedPageOverview from "./SavedPageOverview";
 import YoutubeTranscriptView from "./YoutubeTranscriptView";
-
-function isYouTubeLink(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    if (
-      (parsed.protocol !== "https:" && parsed.protocol !== "http:") ||
-      parsed.port
-    ) {
-      return false;
-    }
-    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-    return (
-      host === "youtube.com" || host === "m.youtube.com" || host === "youtu.be"
-    );
-  } catch {
-    return false;
-  }
-}
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
   return (
@@ -239,7 +222,7 @@ export default function LinkContentSection({
                   {t("preview.page_overview")}
                 </div>
               </SelectItem>
-              {isYouTubeLink(bookmark.content.url) && (
+              {getYouTubeVideoId(bookmark.content.url) && (
                 <SelectItem value="video_transcript">
                   <div className="flex items-center">
                     <Captions className="mr-2 h-4 w-4" />

@@ -10,7 +10,9 @@ import {
 
 describe("isYouTubeUrl", () => {
   it("recognizes mobile YouTube watch URLs", () => {
-    expect(isYouTubeUrl("https://m.youtube.com/watch?v=example123")).toBe(true);
+    expect(isYouTubeUrl("https://m.youtube.com/watch?v=example1234")).toBe(
+      true,
+    );
   });
 
   it("rejects unrelated hosts that contain youtube.com as a suffix", () => {
@@ -23,6 +25,14 @@ describe("isYouTubeUrl", () => {
     expect(isYouTubeUrl("file://youtube.com/watch?v=abc123")).toBe(false);
     expect(isYouTubeUrl("ftp://youtube.com/watch?v=abc123")).toBe(false);
     expect(isYouTubeUrl("https://youtube.com:444/watch?v=abc123")).toBe(false);
+  });
+
+  it("rejects playlist and malformed video URLs", () => {
+    expect(isYouTubeUrl("https://www.youtube.com/playlist?list=abc")).toBe(
+      false,
+    );
+    expect(isYouTubeUrl("https://www.youtube.com/watch?list=abc")).toBe(false);
+    expect(isYouTubeUrl("https://youtu.be/not-a-video-id")).toBe(false);
   });
 });
 
@@ -373,7 +383,7 @@ describe("transcriptToHtml", () => {
           ],
         },
       ],
-      "https://www.youtube.com/watch?v=abc123",
+      "https://www.youtube.com/watch?v=abcdefghijk",
     );
 
     expect(html).toContain('data-transcript-language="ja"');
@@ -396,10 +406,10 @@ describe("transcriptToHtml", () => {
           segments: [{ startMs: 3_661_000, text: "After an hour" }],
         },
       ],
-      "https://youtu.be/abc123",
+      "https://youtu.be/abcdefghijk",
     );
     expect(html).toContain("01:01:01");
-    expect(html).toContain('href="https://youtu.be/abc123?t=3661s"');
+    expect(html).toContain('href="https://youtu.be/abcdefghijk?t=3661s"');
   });
 
   it("includes multiple configured languages", () => {
@@ -416,7 +426,7 @@ describe("transcriptToHtml", () => {
           segments: [{ startMs: 0, text: "Hello" }],
         },
       ],
-      "https://www.youtube.com/watch?v=abc123",
+      "https://www.youtube.com/watch?v=abcdefghijk",
     );
 
     expect(html).toContain('data-transcript-language="ja"');

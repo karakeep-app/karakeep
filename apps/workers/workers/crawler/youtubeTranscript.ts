@@ -1,9 +1,7 @@
-import { promises as fs } from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { execa } from "execa";
-
-import { YOUTUBE_TRANSCRIPT_FORMAT } from "@karakeep/shared/youtubeTranscript";
+import {
+  getYouTubeVideoId,
+  YOUTUBE_TRANSCRIPT_FORMAT,
+} from "@karakeep/shared/youtubeTranscript";
 
 export interface TranscriptSegment {
   startMs: number;
@@ -17,7 +15,7 @@ export interface YouTubeTranscript {
   segments: TranscriptSegment[];
 }
 
-interface YtDlpInfo {
+export interface YtDlpInfo {
   subtitles?: Record<string, { ext?: string; url?: string }[]>;
   automatic_captions?: Record<string, { ext?: string; url?: string }[]>;
 }
@@ -29,30 +27,8 @@ export interface SelectedTranscriptLanguage {
   translated: boolean;
 }
 
-export class TranslatedCaptionRateLimitError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "TranslatedCaptionRateLimitError";
-  }
-}
-
 export function isYouTubeUrl(value: string): boolean {
-  try {
-    const url = new URL(value);
-    if ((url.protocol !== "https:" && url.protocol !== "http:") || url.port) {
-      return false;
-    }
-    const host = url.hostname.toLowerCase().replace(/^www\./, "");
-    return (
-      ((host === "youtube.com" || host === "m.youtube.com") &&
-        (url.pathname === "/watch" ||
-          url.pathname.startsWith("/shorts/") ||
-          url.pathname.startsWith("/live/"))) ||
-      (host === "youtu.be" && url.pathname.length > 1)
-    );
-  } catch {
-    return false;
-  }
+  return getYouTubeVideoId(value) !== null;
 }
 
 export function selectLanguages(
@@ -450,108 +426,4 @@ export function transcriptToHtml(
       return `<section class="youtube-transcript" data-transcript-format="${YOUTUBE_TRANSCRIPT_FORMAT}" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript (${escapeHtml(transcript.language)})</h2>\n${body}\n</section>`;
     })
     .join("\n");
-}
-
-export async function fetchYouTubeTranscript(
-  videoUrl: string,
-  preferredLanguages: string[],
-  timeoutSec: number,
-  signal?: AbortSignal,
-  proxy?: string,
-  onTrackSelection?: (summary: string) => void,
-): Promise<YouTubeTranscript[]> {
-  if (!isYouTubeUrl(videoUrl)) return [];
-  const infoTimeout = AbortSignal.timeout(timeoutSec * 1000);
-  const infoSignal = signal
-    ? AbortSignal.any([signal, infoTimeout])
-    : infoTimeout;
-  const proxyArgs = proxy ? ["--proxy", proxy] : [];
-  const { stdout } = await execa(
-    "yt-dlp",
-    [...proxyArgs, "--skip-download", "--dump-single-json", videoUrl],
-    {
-      cancelSignal: infoSignal,
-      timeout: timeoutSec * 1000,
-      reject: true,
-    },
-  );
-  const info = JSON.parse(stdout) as YtDlpInfo;
-  const selected = selectLanguages(info, preferredLanguages);
-  if (selected.length === 0) return [];
-  onTrackSelection?.(
-    selected
-      .map(
-        (item) =>
-          `${item.trackLanguage}/${item.source}/${item.translated ? "translated" : "original"}`,
-      )
-      .join(", "),
-  );
-
-  const directory = await fs.mkdtemp(
-    path.join(os.tmpdir(), "youtube-transcript-"),
-  );
-  try {
-    const selection = selected[0]!;
-    const infoPath = path.join(directory, "video.info.json");
-    await fs.writeFile(infoPath, stdout);
-    const args = [
-      ...proxyArgs,
-      "--skip-download",
-      "--sub-format",
-      "vtt",
-      "--sub-langs",
-      exactSubtitleLanguagePattern(selection.trackLanguage),
-    ];
-    if (selection.source === "manual") args.push("--write-subs");
-    else args.push("--no-write-subs");
-    if (selection.source === "automatic") args.push("--write-auto-subs");
-    else args.push("--no-write-auto-subs");
-    args.push(
-      "--output",
-      path.join(directory, "%(id)s.%(ext)s"),
-      "--load-info-json",
-      infoPath,
-    );
-    const downloadTimeoutMs = timeoutSec * 1000;
-    const downloadTimeout = AbortSignal.timeout(downloadTimeoutMs);
-    const downloadSignal = signal
-      ? AbortSignal.any([signal, downloadTimeout])
-      : downloadTimeout;
-    try {
-      await execa("yt-dlp", args, {
-        cancelSignal: downloadSignal,
-        timeout: downloadTimeoutMs,
-      });
-    } catch (error) {
-      const detail =
-        error instanceof Error &&
-        "stderr" in error &&
-        typeof error.stderr === "string"
-          ? error.stderr
-          : String(error);
-      if (
-        selection.translated &&
-        /HTTP Error 429|Too Many Requests/i.test(detail)
-      ) {
-        throw new TranslatedCaptionRateLimitError(detail);
-      }
-      throw error;
-    }
-    const files = await fs.readdir(directory);
-    const transcripts: YouTubeTranscript[] = [];
-    const subtitle = files.find((file) =>
-      file.endsWith(`.${selection.trackLanguage}.vtt`),
-    );
-    if (subtitle) {
-      const segments = parseVtt(
-        await fs.readFile(path.join(directory, subtitle), "utf8"),
-        selection.source,
-        selection.language,
-      );
-      if (segments.length) transcripts.push({ ...selection, segments });
-    }
-    return transcripts;
-  } finally {
-    await fs.rm(directory, { recursive: true, force: true });
-  }
 }

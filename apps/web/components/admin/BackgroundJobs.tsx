@@ -302,6 +302,9 @@ function useJobActions() {
   );
   const [isRetryTranscriptsPending, setRetryTranscriptsPending] =
     useState(false);
+  const [retryTranscriptsCursor, setRetryTranscriptsCursor] =
+    useState<string>();
+  const [retryTranscriptsQueued, setRetryTranscriptsQueued] = useState(0);
 
   const { mutateAsync: reindexBookmarks, isPending: isReindexPending } =
     useMutation(
@@ -427,21 +430,24 @@ function useJobActions() {
     youtubeTranscriptActions: [
       {
         label: t(
-          "admin.background_jobs.actions.retry_missing_youtube_transcripts",
+          retryTranscriptsCursor
+            ? "admin.background_jobs.actions.continue_youtube_transcript_retry"
+            : "admin.background_jobs.actions.retry_missing_youtube_transcripts",
         ),
         onClick: async () => {
           setRetryTranscriptsPending(true);
           try {
-            let cursor: string | undefined;
-            let queued = 0;
-            do {
-              const batch = await retryMissingYouTubeTranscripts({ cursor });
-              queued += batch.queued;
-              cursor = batch.nextCursor ?? undefined;
-            } while (cursor);
+            const batch = await retryMissingYouTubeTranscripts({
+              cursor: retryTranscriptsCursor,
+            });
+            const queued = retryTranscriptsQueued + batch.queued;
+            setRetryTranscriptsCursor(batch.nextCursor ?? undefined);
+            setRetryTranscriptsQueued(batch.nextCursor ? queued : 0);
             toast({
               description: t(
-                "admin.background_jobs.actions.retry_youtube_transcripts_queued",
+                batch.nextCursor
+                  ? "admin.background_jobs.actions.retry_youtube_transcripts_more"
+                  : "admin.background_jobs.actions.retry_youtube_transcripts_queued",
                 { count: queued },
               ),
             });

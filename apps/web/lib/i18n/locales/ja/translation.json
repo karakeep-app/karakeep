@@ -156,7 +156,9 @@
         }
       },
       "actions": {
-        "retry_missing_youtube_transcripts": "未取得・旧形式のYouTube字幕を再取得",
+        "retry_missing_youtube_transcripts": "未取得・旧形式のYouTube字幕を再取得（最初の100件）",
+        "continue_youtube_transcript_retry": "YouTube字幕の再取得を続ける（次の100件）",
+        "retry_youtube_transcripts_more": "ここまでに{{count}}件の再取得を予約しました。次の100件も確認できます。",
         "retry_youtube_transcripts_queued": "{{count}}件のYouTubeリンクで字幕の再取得を予約しました",
         "recrawl_failed_links_only": "失敗したリンクのみを再クロール",
         "recrawl_all_links": "すべてのリンクを再クロール",
