@@ -140,3 +140,11 @@ This is a server-side implementation that targets the internal tRPC API used by 
 :::
 
 Get it [here](https://github.com/gowinder/karaclone) (AGPL-3.0).
+
+### bagcarry (wallabag import)
+
+_By [@Rezarys](https://github.com/Rezarys)._
+
+A one-page tool that converts a wallabag JSON export into a Karakeep export file, so that the import keeps tags, dates, archived state, starred articles (as a list) and annotations (as bookmark notes). It runs in the browser and the file is not uploaded.
+
+Get it [here](https://rezarys.github.io/bagcarry/).
