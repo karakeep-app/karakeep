@@ -49,10 +49,18 @@ export default function InvitesList() {
 
   const { mutateAsync: resendInvite, isPending: isResendPending } = useMutation(
     api.invites.resend.mutationOptions({
-      onSuccess: () => {
-        toast({
-          description: "Invite resent successfully",
-        });
+      onSuccess: (data) => {
+        if (data.emailSent) {
+          toast({
+            description: "Invite resent successfully",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            description:
+              "The email could not be sent. Check that SMTP is configured.",
+          });
+        }
         queryClient.invalidateQueries(api.invites.list.pathFilter());
       },
       onError: (e) => {
