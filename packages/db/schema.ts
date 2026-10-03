@@ -736,7 +736,10 @@ export const webhooksTable = sqliteTable(
       .$type<("created" | "edited" | "crawled" | "ai tagged" | "deleted")[]>(),
     token: text("token"),
   },
-  (bl) => [index("webhooks_userId_idx").on(bl.userId)],
+  (bl) => [
+    index("webhooks_userId_idx").on(bl.userId),
+    unique("webhooks_userId_id_idx").on(bl.userId, bl.id),
+  ],
 );
 
 export const rssFeedImportsTable = sqliteTable(
@@ -851,6 +854,7 @@ export const ruleEngineActionsTable = sqliteTable(
     // References
     listId: text("listId"),
     tagId: text("tagId"),
+    webhookId: text("webhookId"),
   },
   (rl) => [
     index("ruleEngineActions_userId_idx").on(rl.userId),
@@ -865,6 +869,11 @@ export const ruleEngineActionsTable = sqliteTable(
       columns: [rl.userId, rl.listId],
       foreignColumns: [bookmarkLists.userId, bookmarkLists.id],
       name: "ruleEngineActions_userId_listId_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [rl.userId, rl.webhookId],
+      foreignColumns: [webhooksTable.userId, webhooksTable.id],
+      name: "ruleEngineActions_userId_webhookId_fk",
     }).onDelete("cascade"),
   ],
 );
