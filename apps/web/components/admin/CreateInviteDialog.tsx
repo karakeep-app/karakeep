@@ -53,21 +53,27 @@ export default function CreateInviteDialog({
 
   const createInviteMutation = useMutation(
     api.invites.create.mutationOptions({
-      onSuccess: () => {
-        toast({
-          description: "Invite sent successfully",
-        });
+      onSuccess: (data) => {
+        if (data.emailSent) {
+          toast({
+            description: "Invite sent successfully",
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            description:
+              "Invite created, but the email could not be sent. Check that SMTP is configured, then use the resend button.",
+          });
+        }
         queryClient.invalidateQueries(api.invites.list.pathFilter());
         setOpen(false);
         form.reset();
         setErrorMessage("");
       },
       onError: (e) => {
-        if (e instanceof TRPCClientError) {
-          setErrorMessage(e.message);
-        } else {
-          setErrorMessage("Failed to send invite");
-        }
+        const message =
+          e instanceof TRPCClientError ? e.message : "Failed to send invite";
+        setErrorMessage(message);
       },
     }),
   );
