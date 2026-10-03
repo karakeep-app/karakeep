@@ -843,6 +843,10 @@ export const bookmarksAppRouter = router({
         priority: QueuePriority.Low,
         idempotencyKey: buildCrawlIdempotencyKey(payload),
       });
+      await ctx.db
+        .update(bookmarkLinks)
+        .set({ crawlStatus: "pending" })
+        .where(eq(bookmarkLinks.id, input.bookmarkId));
     }),
   updateReadingProgress: bookmarksProcedure
     .input(
@@ -1442,6 +1446,8 @@ export const bookmarksAppRouter = router({
           z.object({
             id: z.string(),
             url: z.string(),
+            title: z.string().nullable(),
+            isCrawling: z.boolean(),
             statusCode: z.number().nullable(),
             isCrawlingFailure: z.boolean(),
             crawledAt: z.date().nullable(),
@@ -1455,6 +1461,8 @@ export const bookmarksAppRouter = router({
         .select({
           id: bookmarkLinks.id,
           url: bookmarkLinks.url,
+          userTitle: bookmarks.title,
+          linkTitle: bookmarkLinks.title,
           crawlStatusCode: bookmarkLinks.crawlStatusCode,
           crawlingStatus: bookmarkLinks.crawlStatus,
           crawledAt: bookmarkLinks.crawledAt,
@@ -1476,6 +1484,8 @@ export const bookmarksAppRouter = router({
         bookmarks: brokenLinkBookmarks.map((b) => ({
           id: b.id,
           url: b.url,
+          title: b.userTitle || b.linkTitle || null,
+          isCrawling: b.crawlingStatus === "pending",
           statusCode: b.crawlStatusCode,
           isCrawlingFailure: b.crawlingStatus === "failure",
           crawledAt: b.crawledAt,
