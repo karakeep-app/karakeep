@@ -16,6 +16,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import { QueuePriority } from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
@@ -189,6 +190,39 @@ describe("Admin Routes", () => {
           priority: QueuePriority.Low,
         }),
       );
+    });
+
+    test<CustomTestContext>("scans YouTube transcript retries in bounded pages", async ({
+      apiCallers,
+      db,
+    }) => {
+      const adminApi = await getAdminApi(db);
+      const wasEnabled = serverConfig.crawler.youtubeTranscript;
+      serverConfig.crawler.youtubeTranscript = true;
+      try {
+        await Promise.all(
+          Array.from({ length: 101 }, (_, index) =>
+            apiCallers[0].bookmarks.createBookmark({
+              url: `https://www.youtube.com/watch?v=video${index}`,
+              type: BookmarkTypes.LINK,
+            }),
+          ),
+        );
+        testQueueMocks.youtubeTranscriptEnqueue.mockClear();
+
+        const first = await adminApi.retryMissingYouTubeTranscripts();
+        expect(first.queued).toBe(100);
+        expect(first.nextCursor).toBeTruthy();
+        const second = await adminApi.retryMissingYouTubeTranscripts({
+          cursor: first.nextCursor!,
+        });
+        expect(second).toEqual({ queued: 1, nextCursor: null });
+        expect(testQueueMocks.youtubeTranscriptEnqueue).toHaveBeenCalledTimes(
+          101,
+        );
+      } finally {
+        serverConfig.crawler.youtubeTranscript = wasEnabled;
+      }
     });
 
     test<CustomTestContext>("preserves the search index for a time-limited reindex", async ({

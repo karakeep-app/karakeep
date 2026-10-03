@@ -12,14 +12,64 @@ import { Captions, Play } from "lucide-react";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-type Segment = { startMs: number; text: string };
-type Transcript = { language: string; source: string; segments: Segment[] };
-type YouTubePlayer = {
+interface Segment {
+  startMs: number;
+  text: string;
+}
+interface Transcript {
+  language: string;
+  source: string;
+  segments: Segment[];
+}
+interface YouTubePlayer {
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   playVideo: () => void;
   getCurrentTime: () => number;
   destroy: () => void;
-};
+}
+
+let youtubeIframeApiPromise: Promise<void> | undefined;
+
+function loadYouTubeIframeApi(): Promise<void> {
+  if (window.YT) return Promise.resolve();
+  youtubeIframeApiPromise ??= new Promise<void>((resolve, reject) => {
+    const previousCallback = window.onYouTubeIframeAPIReady;
+    let script = document.querySelector<HTMLScriptElement>(
+      'script[src="https://www.youtube.com/iframe_api"]',
+    );
+    const createdScript = !script;
+    script ??= document.createElement("script");
+    const apiScript = script;
+    let timeout: number;
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      apiScript.removeEventListener("error", onError);
+      if (window.onYouTubeIframeAPIReady === onReady) {
+        window.onYouTubeIframeAPIReady = previousCallback;
+      }
+    };
+    const onReady = () => {
+      cleanup();
+      resolve();
+      previousCallback?.();
+    };
+    const onError = () => {
+      cleanup();
+      apiScript.remove();
+      youtubeIframeApiPromise = undefined;
+      reject(new Error("Failed to load the YouTube IFrame API"));
+    };
+    window.onYouTubeIframeAPIReady = onReady;
+    apiScript.addEventListener("error", onError, { once: true });
+    timeout = window.setTimeout(onError, 15_000);
+    if (createdScript) {
+      apiScript.src = "https://www.youtube.com/iframe_api";
+      apiScript.async = true;
+      document.head.appendChild(apiScript);
+    }
+  });
+  return youtubeIframeApiPromise;
+}
 
 declare global {
   interface Window {
@@ -44,14 +94,26 @@ declare global {
 function getVideoId(url: string): string | null {
   try {
     const parsed = new URL(url);
-    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
-    if (host === "youtu.be") {
-      return parsed.pathname.slice(1).split("/")[0] ?? null;
+    if (
+      (parsed.protocol !== "https:" && parsed.protocol !== "http:") ||
+      parsed.port
+    ) {
+      return null;
     }
-    if (host !== "youtube.com" && host !== "m.youtube.com") return null;
-    if (parsed.pathname === "/watch") return parsed.searchParams.get("v");
-    const match = parsed.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)/);
-    return match?.[1] ?? null;
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    let videoId: string | null = null;
+    if (host === "youtu.be") {
+      videoId = parsed.pathname.slice(1).split("/")[0] ?? null;
+    } else if (host === "youtube.com" || host === "m.youtube.com") {
+      if (parsed.pathname === "/watch") {
+        videoId = parsed.searchParams.get("v");
+      } else {
+        videoId =
+          parsed.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)/)?.[1] ??
+          null;
+      }
+    }
+    return videoId && /^[a-zA-Z0-9_-]{11}$/.test(videoId) ? videoId : null;
   } catch {
     return null;
   }
@@ -70,7 +132,9 @@ function readTranscripts(html: string): Transcript[] {
         ),
       ).flatMap((element) => {
         const startMs = Number(element.dataset.startMs);
-        const timestamp = element.querySelector(".youtube-transcript-timestamp");
+        const timestamp = element.querySelector(
+          ".youtube-transcript-timestamp",
+        );
         const text = Array.from(element.childNodes)
           .filter((node) => node !== timestamp)
           .map((node) => node.textContent ?? "")
@@ -100,6 +164,22 @@ function formatTimestamp(startMs: number): string {
     : `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
+function findActiveSegmentIndex(segments: Segment[], currentTimeMs: number) {
+  let low = 0;
+  let high = segments.length - 1;
+  let active = -1;
+  while (low <= high) {
+    const middle = Math.floor((low + high) / 2);
+    if (segments[middle]!.startMs <= currentTimeMs) {
+      active = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+  return active;
+}
+
 export default function YoutubeTranscriptView({
   bookmark,
 }: {
@@ -111,7 +191,8 @@ export default function YoutubeTranscriptView({
   const playerRef = useRef<YouTubePlayer | null>(null);
   const segmentRefs = useRef(new Map<number, HTMLButtonElement>());
   const [playerReady, setPlayerReady] = useState(false);
-  const [currentTimeMs, setCurrentTimeMs] = useState(0);
+  const [playerError, setPlayerError] = useState(false);
+  const [activeSegmentIndex, setActiveSegmentIndex] = useState(-1);
   const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
 
   const { data, isPending } = useQuery(
@@ -120,14 +201,19 @@ export default function YoutubeTranscriptView({
       includeContent: true,
     }),
   );
-  const html = data?.content.type === BookmarkTypes.LINK ? data.content.htmlContent ?? "" : "";
+  const html =
+    data?.content.type === BookmarkTypes.LINK
+      ? (data.content.htmlContent ?? "")
+      : "";
   const transcripts = useMemo(() => readTranscripts(html), [html]);
   const activeLanguage = transcripts.some(
     (item) => item.language === selectedLanguage,
   )
     ? selectedLanguage!
     : (transcripts[0]?.language ?? "");
-  const transcript = transcripts.find((item) => item.language === activeLanguage);
+  const transcript = transcripts.find(
+    (item) => item.language === activeLanguage,
+  );
   const videoId =
     bookmark.content.type === BookmarkTypes.LINK
       ? getVideoId(bookmark.content.url)
@@ -137,6 +223,8 @@ export default function YoutubeTranscriptView({
     if (isPending || !videoId || !playerHostRef.current) return;
     let cancelled = false;
     let player: YouTubePlayer | null = null;
+    setPlayerReady(false);
+    setPlayerError(false);
     const createPlayer = () => {
       if (cancelled || !window.YT || !playerHostRef.current) return;
       player = new window.YT.Player(playerHostRef.current, {
@@ -150,6 +238,10 @@ export default function YoutubeTranscriptView({
         },
         events: {
           onReady: ({ target }) => {
+            if (cancelled) {
+              target.destroy();
+              return;
+            }
             playerRef.current = target;
             setPlayerReady(true);
           },
@@ -157,24 +249,9 @@ export default function YoutubeTranscriptView({
       });
     };
 
-    if (window.YT) {
-      createPlayer();
-    } else {
-      const existingScript = document.querySelector<HTMLScriptElement>(
-        'script[src="https://www.youtube.com/iframe_api"]',
-      );
-      const previousCallback = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        previousCallback?.();
-        createPlayer();
-      };
-      if (!existingScript) {
-        const script = document.createElement("script");
-        script.src = "https://www.youtube.com/iframe_api";
-        script.async = true;
-        document.head.appendChild(script);
-      }
-    }
+    void loadYouTubeIframeApi().then(createPlayer, () => {
+      if (!cancelled) setPlayerError(true);
+    });
 
     return () => {
       cancelled = true;
@@ -189,7 +266,13 @@ export default function YoutubeTranscriptView({
       const player = playerRef.current;
       if (!player) return;
       try {
-        setCurrentTimeMs(player.getCurrentTime() * 1000);
+        const nextIndex = findActiveSegmentIndex(
+          transcript.segments,
+          player.getCurrentTime() * 1000,
+        );
+        setActiveSegmentIndex((previous) =>
+          previous === nextIndex ? previous : nextIndex,
+        );
       } catch {
         // The IFrame API can briefly reject calls while the player changes state.
       }
@@ -197,12 +280,11 @@ export default function YoutubeTranscriptView({
     return () => window.clearInterval(timer);
   }, [playerReady, transcript]);
 
-  const activeSegmentIndex = transcript?.segments.reduce((active, segment, index) =>
-    segment.startMs <= currentTimeMs ? index : active, -1) ?? -1;
-
   useEffect(() => {
     if (activeSegmentIndex >= 0) {
-      segmentRefs.current.get(activeSegmentIndex)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      segmentRefs.current
+        .get(activeSegmentIndex)
+        ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
     }
   }, [activeSegmentIndex]);
 
@@ -226,7 +308,14 @@ export default function YoutubeTranscriptView({
       <div className="flex min-w-0 flex-col gap-3 lg:min-h-0">
         <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-black shadow-sm">
           <div ref={playerHostRef} className="absolute inset-0 h-full w-full" />
-          {!playerReady && <div className="absolute inset-0 animate-pulse bg-muted/20" />}
+          {(playerError || !videoId) && (
+            <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-sm text-white">
+              {t("preview.youtube_transcript.player_unavailable")}
+            </div>
+          )}
+          {!playerReady && !playerError && videoId && (
+            <div className="absolute inset-0 animate-pulse bg-muted/20" />
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="gap-1.5">
@@ -244,8 +333,12 @@ export default function YoutubeTranscriptView({
       <div className="flex min-h-64 min-w-0 flex-col overflow-hidden rounded-lg border bg-card shadow-sm lg:min-h-0">
         <div className="border-b px-4 py-3">
           <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="font-semibold">{t("preview.youtube_transcript.title")}</h2>
-            {transcript && <Badge variant="secondary">{transcript.segments.length}</Badge>}
+            <h2 className="font-semibold">
+              {t("preview.youtube_transcript.title")}
+            </h2>
+            {transcript && (
+              <Badge variant="secondary">{transcript.segments.length}</Badge>
+            )}
           </div>
           {transcripts.length > 1 && (
             <div
@@ -257,8 +350,13 @@ export default function YoutubeTranscriptView({
                   key={item.language}
                   type="button"
                   size="sm"
-                  variant={item.language === activeLanguage ? "secondary" : "ghost"}
-                  onClick={() => setSelectedLanguage(item.language)}
+                  variant={
+                    item.language === activeLanguage ? "secondary" : "ghost"
+                  }
+                  onClick={() => {
+                    setSelectedLanguage(item.language);
+                    setActiveSegmentIndex(-1);
+                  }}
                   aria-pressed={item.language === activeLanguage}
                 >
                   {item.language.toUpperCase()}
@@ -274,7 +372,9 @@ export default function YoutubeTranscriptView({
                 <Captions className="h-6 w-6 text-muted-foreground" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-medium">{t("preview.youtube_transcript.empty_title")}</h3>
+                <h3 className="font-medium">
+                  {t("preview.youtube_transcript.empty_title")}
+                </h3>
                 <p className="max-w-sm text-sm text-muted-foreground">
                   {t("preview.youtube_transcript.empty_description")}
                 </p>
@@ -292,7 +392,9 @@ export default function YoutubeTranscriptView({
                   type="button"
                   onClick={() => seekTo(segment.startMs)}
                   className={`group flex w-full items-start gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${index === activeSegmentIndex ? "bg-accent text-accent-foreground" : "text-foreground"}`}
-                  aria-current={index === activeSegmentIndex ? "time" : undefined}
+                  aria-current={
+                    index === activeSegmentIndex ? "time" : undefined
+                  }
                 >
                   <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-xs tabular-nums text-muted-foreground group-hover:text-foreground">
                     {formatTimestamp(segment.startMs)}

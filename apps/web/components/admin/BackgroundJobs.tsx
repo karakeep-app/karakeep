@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -291,21 +293,15 @@ function useJobActions() {
       }),
     );
 
-  const {
-    mutateAsync: retryMissingYouTubeTranscripts,
-    isPending: isRetryTranscriptsPending,
-  } = useMutation(
+  const { mutateAsync: retryMissingYouTubeTranscripts } = useMutation(
     api.admin.retryMissingYouTubeTranscripts.mutationOptions({
-      onSuccess: ({ queued }) => {
-        toast({
-          description: `Queued transcript retry for ${queued} YouTube links`,
-        });
-      },
       onError: (e) => {
         toast({ variant: "destructive", description: e.message });
       },
     }),
   );
+  const [isRetryTranscriptsPending, setRetryTranscriptsPending] =
+    useState(false);
 
   const { mutateAsync: reindexBookmarks, isPending: isReindexPending } =
     useMutation(
@@ -434,7 +430,24 @@ function useJobActions() {
           "admin.background_jobs.actions.retry_missing_youtube_transcripts",
         ),
         onClick: async () => {
-          await retryMissingYouTubeTranscripts();
+          setRetryTranscriptsPending(true);
+          try {
+            let cursor: string | undefined;
+            let queued = 0;
+            do {
+              const batch = await retryMissingYouTubeTranscripts({ cursor });
+              queued += batch.queued;
+              cursor = batch.nextCursor ?? undefined;
+            } while (cursor);
+            toast({
+              description: t(
+                "admin.background_jobs.actions.retry_youtube_transcripts_queued",
+                { count: queued },
+              ),
+            });
+          } finally {
+            setRetryTranscriptsPending(false);
+          }
         },
         loading: isRetryTranscriptsPending,
       },

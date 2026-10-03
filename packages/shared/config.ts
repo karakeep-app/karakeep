@@ -147,8 +147,17 @@ const allEnv = z.object({
   CRAWLER_YOUTUBE_TRANSCRIPT_LANGUAGES: z
     .string()
     .prefault("ja,en")
-    .transform((value) => value.split(",").map((language) => language.trim()).filter(Boolean)),
-  CRAWLER_YOUTUBE_TRANSCRIPT_TIMEOUT_SEC: z.coerce.number().int().positive().default(30),
+    .transform((value) =>
+      value
+        .split(",")
+        .map((language) => language.trim())
+        .filter(Boolean),
+    ),
+  CRAWLER_YOUTUBE_TRANSCRIPT_TIMEOUT_SEC: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(30),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_ENABLE_AUTOCONSENT: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z

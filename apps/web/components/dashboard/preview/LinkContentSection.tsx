@@ -48,8 +48,17 @@ import YoutubeTranscriptView from "./YoutubeTranscriptView";
 
 function isYouTubeLink(url: string): boolean {
   try {
-    const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
-    return host === "youtube.com" || host === "m.youtube.com" || host === "youtu.be";
+    const parsed = new URL(url);
+    if (
+      (parsed.protocol !== "https:" && parsed.protocol !== "http:") ||
+      parsed.port
+    ) {
+      return false;
+    }
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+    return (
+      host === "youtube.com" || host === "m.youtube.com" || host === "youtu.be"
+    );
   } catch {
     return false;
   }

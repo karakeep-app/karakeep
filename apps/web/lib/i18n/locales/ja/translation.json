@@ -157,6 +157,7 @@
       },
       "actions": {
         "retry_missing_youtube_transcripts": "未取得・旧形式のYouTube字幕を再取得",
+        "retry_youtube_transcripts_queued": "{{count}}件のYouTubeリンクで字幕の再取得を予約しました",
         "recrawl_failed_links_only": "失敗したリンクのみを再クロール",
         "recrawl_all_links": "すべてのリンクを再クロール",
         "without_inference": "推論なし",
@@ -1004,6 +1005,15 @@
     "cached_content": "キャッシュされたコンテンツ",
     "view_original": "オリジナルを見る",
     "reader_view": "リーダー表示",
+    "youtube_transcript": {
+      "view": "動画と字幕",
+      "title": "字幕",
+      "languages": "字幕の言語",
+      "player": "YouTubeプレーヤー",
+      "player_unavailable": "YouTubeプレーヤーを読み込めませんでした。",
+      "empty_title": "字幕がありません",
+      "empty_description": "この動画の字幕は保存されていません。字幕取得を有効にし、バックグラウンドジョブから再取得してください。"
+    },
     "tabs": {
       "content": "コンテンツ",
       "details": "詳細"

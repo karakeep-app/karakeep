@@ -722,6 +722,7 @@
         "recrawl_failed_links_only": "Recrawl Failed Links Only",
         "recrawl_all_links": "Recrawl All Links",
         "retry_missing_youtube_transcripts": "Retry Missing or Outdated YouTube Transcripts",
+        "retry_youtube_transcripts_queued": "Queued transcript retry for {{count}} YouTube links",
         "without_inference": "Without Inference",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI Tags for Pending Bookmarks Only",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
@@ -994,6 +995,7 @@
       "title": "Transcript",
       "languages": "Transcript languages",
       "player": "YouTube Player",
+      "player_unavailable": "The YouTube player could not be loaded.",
       "empty_title": "No transcript available",
       "empty_description": "No YouTube transcript was saved for this video. Enable transcript fetching and retry the bookmark crawl from Background Jobs."
     },

@@ -39,6 +39,9 @@ export class TranslatedCaptionRateLimitError extends Error {
 export function isYouTubeUrl(value: string): boolean {
   try {
     const url = new URL(value);
+    if ((url.protocol !== "https:" && url.protocol !== "http:") || url.port) {
+      return false;
+    }
     const host = url.hostname.toLowerCase().replace(/^www\./, "");
     return (
       ((host === "youtube.com" || host === "m.youtube.com") &&
@@ -57,8 +60,11 @@ export function selectLanguages(
   preferredLanguages: string[],
 ): SelectedTranscriptLanguage[] {
   const preferred = [...new Set(preferredLanguages)];
-  const manual = Object.entries(info.subtitles ?? {}).filter(([, tracks]) =>
-    tracks.some((track) => track.ext === "vtt"),
+  const safeTrackLanguage = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+  const manual = Object.entries(info.subtitles ?? {}).filter(
+    ([language, tracks]) =>
+      safeTrackLanguage.test(language) &&
+      tracks.some((track) => track.ext === "vtt"),
   );
   const manualTrack =
     preferred
@@ -76,7 +82,11 @@ export function selectLanguages(
   }
 
   const automatic = Object.entries(info.automatic_captions ?? {})
-    .filter(([, tracks]) => tracks.some((track) => track.ext === "vtt"))
+    .filter(
+      ([language, tracks]) =>
+        safeTrackLanguage.test(language) &&
+        tracks.some((track) => track.ext === "vtt"),
+    )
     .map(([trackLanguage, tracks]) => ({
       trackLanguage,
       language: trackLanguage.replace(/-orig$/, ""),
@@ -120,6 +130,10 @@ function isTranslatedCaption(url?: string): boolean {
   } catch {
     return false;
   }
+}
+
+export function exactSubtitleLanguagePattern(language: string): string {
+  return `^${language.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`;
 }
 
 function escapeHtml(value: string): string {
@@ -167,6 +181,8 @@ interface SpokenLine {
 const inlineTime = /<(\d{2}:\d{2}:\d{2}\.\d{3})>/g;
 const hasInlineTime = /<\d{2}:\d{2}:\d{2}\.\d{3}>/;
 const maxUnpunctuatedSegmentDurationMs = 6_000;
+const maxPendingSegmentLength = 4_096;
+const sentenceTerminal = /[\p{Sentence_Terminal}…]/u;
 const noSpaceScripts =
   /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Thai}\p{Script=Lao}\p{Script=Khmer}\p{Script=Myanmar}]/u;
 
@@ -270,9 +286,17 @@ function splitSentences(
   language: string,
 ): TranscriptSegment[] {
   const segments: TranscriptSegment[] = [];
-  const sentenceSegmenter = new Intl.Segmenter(language, {
-    granularity: "sentence",
-  });
+  let sentenceSegmenter: Intl.Segmenter;
+  try {
+    sentenceSegmenter = new Intl.Segmenter(language, {
+      granularity: "sentence",
+    });
+  } catch (error) {
+    if (!(error instanceof RangeError)) throw error;
+    sentenceSegmenter = new Intl.Segmenter("und", {
+      granularity: "sentence",
+    });
+  }
   let text = "";
   let characterStartTimes: number[] = [];
   const emit = (value: string, startMs: number) => {
@@ -340,10 +364,8 @@ function splitSentences(
         segments.at(-1)!.text += leadingTerminal;
         continue;
       }
-      const previousCharacter = [...text].at(-1) ?? "";
-      const firstCharacter = [...fragment.text].find((character) =>
-        character.trim(),
-      );
+      const previousCharacter = text.at(-1) ?? "";
+      const firstCharacter = fragment.text.match(/\S/u)?.[0];
       if (
         text &&
         previousCharacter &&
@@ -359,11 +381,13 @@ function splitSentences(
       for (const character of fragment.text) {
         if (!text && !character.trim()) continue;
         text += character;
-        characterStartTimes.push(
-          ...Array<number>(character.length).fill(fragment.startMs),
-        );
+        characterStartTimes.push(fragment.startMs);
+        if (character.length === 2) characterStartTimes.push(fragment.startMs);
       }
-      flushCompleteSentences();
+      // Sentence segmentation examines the whole pending text. Run it only
+      // when new punctuation can introduce a boundary.
+      if (sentenceTerminal.test(fragment.text)) flushCompleteSentences();
+      if (text.length >= maxPendingSegmentLength) flush();
     }
     if (
       text &&
@@ -410,13 +434,17 @@ export function transcriptToHtml(
   transcripts: YouTubeTranscript[],
   videoUrl: string,
 ): string {
-  const safeVideoUrl = escapeHtml(videoUrl);
+  if (!isYouTubeUrl(videoUrl)) {
+    throw new Error("Expected a YouTube video URL");
+  }
+  const timestampUrl = new URL(videoUrl);
   return transcripts
     .map((transcript) => {
       const body = transcript.segments
         .map((segment) => {
           const seconds = Math.floor(segment.startMs / 1000);
-          return `<p class="youtube-transcript-segment" data-start-ms="${segment.startMs}"><a class="youtube-transcript-timestamp" href="${safeVideoUrl}&amp;t=${seconds}s">${formatTimestamp(seconds)}</a> ${escapeHtml(segment.text)}</p>`;
+          timestampUrl.searchParams.set("t", `${seconds}s`);
+          return `<p class="youtube-transcript-segment" data-start-ms="${segment.startMs}"><a class="youtube-transcript-timestamp" href="${escapeHtml(timestampUrl.toString())}">${formatTimestamp(seconds)}</a> ${escapeHtml(segment.text)}</p>`;
         })
         .join("\n");
       return `<section class="youtube-transcript" data-transcript-format="${YOUTUBE_TRANSCRIPT_FORMAT}" data-transcript-language="${escapeHtml(transcript.language)}" data-transcript-source="${transcript.source}"><h2>Transcript (${escapeHtml(transcript.language)})</h2>\n${body}\n</section>`;
@@ -472,7 +500,7 @@ export async function fetchYouTubeTranscript(
       "--sub-format",
       "vtt",
       "--sub-langs",
-      selection.trackLanguage,
+      exactSubtitleLanguagePattern(selection.trackLanguage),
     ];
     if (selection.source === "manual") args.push("--write-subs");
     else args.push("--no-write-subs");

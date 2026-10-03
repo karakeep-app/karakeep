@@ -327,8 +327,9 @@ export const adminAppRouter = router({
         }),
       );
     }),
-  retryMissingYouTubeTranscripts: adminBookmarksProcedure.mutation(
-    async ({ ctx }) => {
+  retryMissingYouTubeTranscripts: adminBookmarksProcedure
+    .input(z.object({ cursor: z.string().optional() }).optional())
+    .mutation(async ({ ctx, input }) => {
       if (!serverConfig.crawler.youtubeTranscript) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
@@ -336,7 +337,8 @@ export const adminAppRouter = router({
         });
       }
 
-      const candidates = await ctx.db
+      const batchSize = 100;
+      const rows = await ctx.db
         .select({
           id: bookmarkLinks.id,
           url: bookmarkLinks.url,
@@ -347,19 +349,25 @@ export const adminAppRouter = router({
         .from(bookmarkLinks)
         .innerJoin(bookmarks, eq(bookmarkLinks.id, bookmarks.id))
         .where(
-          or(
-            like(bookmarkLinks.url, "%youtube.com/watch%"),
-            like(bookmarkLinks.url, "%youtube.com/shorts/%"),
-            like(bookmarkLinks.url, "%youtube.com/live/%"),
-            like(bookmarkLinks.url, "%youtu.be/%"),
+          and(
+            input?.cursor ? gt(bookmarkLinks.id, input.cursor) : undefined,
+            or(
+              like(bookmarkLinks.url, "%youtube.com/watch%"),
+              like(bookmarkLinks.url, "%youtube.com/shorts/%"),
+              like(bookmarkLinks.url, "%youtube.com/live/%"),
+              like(bookmarkLinks.url, "%youtu.be/%"),
+            ),
           ),
-        );
+        )
+        .orderBy(asc(bookmarkLinks.id))
+        .limit(batchSize + 1);
+      const candidates = rows.slice(0, batchSize);
 
       let missingCount = 0;
       const retryBatchId = Date.now();
       for (const bookmark of candidates) {
         let html = bookmark.htmlContent ?? "";
-        if (!html && bookmark.contentAssetId) {
+        if (bookmark.contentAssetId) {
           try {
             html =
               (await Bookmark.getBookmarkHtmlContent(
@@ -387,9 +395,12 @@ export const adminAppRouter = router({
         );
         missingCount++;
       }
-      return { queued: missingCount };
-    },
-  ),
+      return {
+        queued: missingCount,
+        nextCursor:
+          rows.length > batchSize ? (candidates.at(-1)?.id ?? null) : null,
+      };
+    }),
   reindexAllBookmarks: adminBookmarksProcedure
     .input(
       z

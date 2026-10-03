@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  exactSubtitleLanguagePattern,
   isYouTubeUrl,
   parseVtt,
   selectLanguages,
@@ -16,6 +17,12 @@ describe("isYouTubeUrl", () => {
     expect(isYouTubeUrl("https://youtube.com.example.org/watch?v=abc123")).toBe(
       false,
     );
+  });
+
+  it("rejects non-HTTP URLs even when the hostname is YouTube", () => {
+    expect(isYouTubeUrl("file://youtube.com/watch?v=abc123")).toBe(false);
+    expect(isYouTubeUrl("ftp://youtube.com/watch?v=abc123")).toBe(false);
+    expect(isYouTubeUrl("https://youtube.com:444/watch?v=abc123")).toBe(false);
   });
 });
 
@@ -163,6 +170,24 @@ Third<00:00:09.500><c> part</c>
     ]);
   });
 
+  it("falls back when a caption track has an invalid locale tag", () => {
+    const segments = parseVtt(
+      `WEBVTT
+
+00:00:01.000 --> 00:00:03.000
+First sentence.<00:00:02.000><c> Second sentence.</c>
+
+00:00:03.000 --> 00:00:03.010
+`,
+      "automatic",
+      "live_chat",
+    );
+    expect(segments.map(({ startMs, text }) => ({ startMs, text }))).toEqual([
+      { startMs: 1000, text: "First sentence." },
+      { startMs: 2000, text: "Second sentence." },
+    ]);
+  });
+
   it("keeps ordinary manual captions", () => {
     const segments = parseVtt(
       `WEBVTT
@@ -180,6 +205,17 @@ Second line
 });
 
 describe("selectLanguages", () => {
+  it("treats subtitle language keys as literal names", () => {
+    const pattern = new RegExp(exactSubtitleLanguagePattern("en.*"));
+    expect(pattern.test("en.*")).toBe(true);
+    expect(pattern.test("en-US")).toBe(false);
+    expect(
+      selectLanguages({ subtitles: { "en,all": [{ ext: "vtt" }] } }, [
+        "en,all",
+      ]),
+    ).toEqual([]);
+  });
+
   it("selects one preferred manual track instead of an auto-translation", () => {
     const selected = selectLanguages(
       {
@@ -316,6 +352,12 @@ describe("selectLanguages", () => {
 });
 
 describe("transcriptToHtml", () => {
+  it("rejects an unsafe video URL in generated links", () => {
+    expect(() => transcriptToHtml([], "javascript:alert(1)")).toThrow(
+      "Expected a YouTube video URL",
+    );
+  });
+
   it("preserves timestamps and escapes caption text", () => {
     const html = transcriptToHtml(
       [
@@ -357,6 +399,7 @@ describe("transcriptToHtml", () => {
       "https://youtu.be/abc123",
     );
     expect(html).toContain("01:01:01");
+    expect(html).toContain('href="https://youtu.be/abc123?t=3661s"');
   });
 
   it("includes multiple configured languages", () => {
