@@ -47,6 +47,7 @@ const zOfflineLibraryItem = z.object({
   savedAt: z.number(),
   displayTitle: z.string(),
   url: z.string().optional(),
+  automatic: z.boolean().optional(),
 });
 
 const zOfflineLibraryManifest = z.array(zOfflineLibraryItem);
@@ -241,7 +242,15 @@ function restoreKey(key: string, raw: string | undefined) {
   }
 }
 
-export function saveOfflineArticle(scope: string, article: OfflineArticle) {
+export function getOfflineLibrary(scope: string) {
+  return parseManifest(offlineLibraryStorage.getString(manifestKey(scope)));
+}
+
+export function saveOfflineArticle(
+  scope: string,
+  article: OfflineArticle,
+  automatic = false,
+) {
   const parsed = zOfflineArticle.safeParse(article);
   const split = parsed.success
     ? splitArticleContent(parsed.data.bookmark)
@@ -254,6 +263,7 @@ export function saveOfflineArticle(scope: string, article: OfflineArticle) {
     throw new Error("The article does not contain a complete offline copy.");
   }
 
+  recoverAutomaticCleanup(scope);
   const key = articleKey(scope, article.bookmarkId);
   const bodyKey = contentKey(scope, article.bookmarkId);
   const currentManifestRaw = offlineLibraryStorage.getString(
@@ -294,6 +304,14 @@ export function saveOfflineArticle(scope: string, article: OfflineArticle) {
       savedAt: parsed.data.savedAt,
       displayTitle: getDisplayTitle(parsed.data.bookmark),
       ...(sourceUrl ? { url: sourceUrl } : {}),
+      // Old records are manual saves. An automatic refresh must never turn
+      // a manual save into an evictable copy; an explicit save pins a copy.
+      automatic:
+        automatic &&
+        !current.some(
+          (entry) =>
+            entry.bookmarkId === parsed.data.bookmarkId && !entry.automatic,
+        ),
     };
     writeManifest(scope, [
       item,
@@ -319,7 +337,54 @@ export function removeOfflineArticle(scope: string, bookmarkId: string) {
   offlineLibraryStorage.remove(contentKey(scope, bookmarkId));
 }
 
+const CLEANUP_PREFIX = "automatic-cleanup:v1:";
+
+function cleanupKey(scope: string) {
+  return `${CLEANUP_PREFIX}${encodeKeyPart(scope)}`;
+}
+
+// Detach evicted entries in one manifest write before deleting their records.
+// The durable journal tracks orphan keys until deletion succeeds. If the app
+// stops before the manifest is committed, still-listed copies remain intact.
+function recoverAutomaticCleanup(scope: string) {
+  const key = cleanupKey(scope);
+  const raw = offlineLibraryStorage.getString(key);
+  if (!raw) return;
+  const pending = z.array(z.string()).parse(superjson.parse(raw));
+  const retained = new Set(
+    getOfflineLibrary(scope).map((item) => item.bookmarkId),
+  );
+  for (const id of pending) {
+    if (retained.has(id)) continue;
+    offlineLibraryStorage.remove(articleKey(scope, id));
+    offlineLibraryStorage.remove(contentKey(scope, id));
+  }
+  offlineLibraryStorage.remove(key);
+}
+
+export function pruneAutomaticOfflineArticles(
+  scope: string,
+  keep: ReadonlySet<string>,
+) {
+  recoverAutomaticCleanup(scope);
+  const current = getOfflineLibrary(scope);
+  const removed = current.filter(
+    (item) => item.automatic && !keep.has(item.bookmarkId),
+  );
+  if (removed.length === 0) return;
+  offlineLibraryStorage.set(
+    cleanupKey(scope),
+    superjson.stringify(removed.map((item) => item.bookmarkId)),
+  );
+  writeManifest(
+    scope,
+    current.filter((item) => !item.automatic || keep.has(item.bookmarkId)),
+  );
+  recoverAutomaticCleanup(scope);
+}
+
 export function removeAllOfflineArticles(scope: string) {
+  recoverAutomaticCleanup(scope);
   writeManifest(scope, []);
   for (const key of offlineLibraryStorage.getAllKeys()) {
     if (
@@ -355,6 +420,7 @@ export function useOfflineLibrarySize() {
 }
 
 export function reconcileOfflineLibrary(scope: string) {
+  recoverAutomaticCleanup(scope);
   const current = parseManifest(
     offlineLibraryStorage.getString(manifestKey(scope)),
   );
