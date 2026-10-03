@@ -31,7 +31,7 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkHtmlHighlighterDom from "./BookmarkHtmlHighlighterDom";
-import { PDFViewer } from "./PDFViewer";
+import PDFHighlightViewer from "./PDFHighlightViewer";
 
 function openUrlExternally(url: string) {
   if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -87,8 +87,6 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
 
   const asset = bookmark.assets.find((r) => r.assetType == "pdf");
 
-  const assetSource = useAssetUrl(asset?.id ?? "");
-
   if (!asset) {
     return (
       <View className="flex-1 bg-background">
@@ -99,7 +97,11 @@ export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
 
   return (
     <View className="flex flex-1">
-      <PDFViewer source={assetSource.uri ?? ""} headers={assetSource.headers} />
+      <PDFHighlightViewer
+        bookmarkId={bookmark.id}
+        assetId={asset.id}
+        ownerId={bookmark.userId}
+      />
     </View>
   );
 }
@@ -231,7 +233,7 @@ export function BookmarkLinkReaderPreview({
         htmlContent={displayedBookmarkWithContent.content.htmlContent ?? ""}
         contentStyle={contentStyle}
         isDark={isDark}
-        highlights={highlights?.highlights ?? []}
+        highlights={highlights?.highlights.filter((h) => !h.pdfLocation) ?? []}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}
         restoreReadingPosition={restorePosition}
