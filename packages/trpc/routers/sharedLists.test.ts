@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 
+import { bookmarkLists } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { APICallerType, CustomTestContext } from "../testUtils";
@@ -925,6 +926,144 @@ describe("Shared Lists", () => {
       expect(publicView.bookmarks.map((b) => b.id).sort()).toEqual(
         [ownerBookmark.id, collabBookmark.id].sort(),
       );
+    });
+  });
+
+  describe("Public List Navigation", () => {
+    async function createList(
+      api: APICallerType,
+      name: string,
+      opts: { parentId?: string; isPublic: boolean },
+    ) {
+      const list = await api.lists.create({
+        name,
+        icon: "📚",
+        type: "manual",
+        parentId: opts.parentId,
+      });
+      if (opts.isPublic) {
+        await api.lists.edit({ listId: list.id, public: true });
+      }
+      return list;
+    }
+
+    test<CustomTestContext>("returns public ancestors root-first and public children", async ({
+      apiCallers,
+      unauthedAPICaller,
+    }) => {
+      const api = apiCallers[0];
+      const root = await createList(api, "Root", { isPublic: true });
+      const mid = await createList(api, "Mid", {
+        parentId: root.id,
+        isPublic: true,
+      });
+      const childB = await createList(api, "B child", {
+        parentId: mid.id,
+        isPublic: true,
+      });
+      const childA = await createList(api, "A child", {
+        parentId: mid.id,
+        isPublic: true,
+      });
+
+      const nav =
+        await unauthedAPICaller.publicBookmarks.getPublicListNavigation({
+          listId: mid.id,
+        });
+
+      expect(nav.parents).toEqual([{ id: root.id, name: "Root", icon: "📚" }]);
+      expect(nav.children).toEqual([
+        { id: childA.id, name: "A child", icon: "📚" },
+        { id: childB.id, name: "B child", icon: "📚" },
+      ]);
+    });
+
+    test<CustomTestContext>("stops the breadcrumb at the first private ancestor", async ({
+      apiCallers,
+      unauthedAPICaller,
+    }) => {
+      const api = apiCallers[0];
+      const root = await createList(api, "Public root", { isPublic: true });
+      const privateMid = await createList(api, "Secret mid", {
+        parentId: root.id,
+        isPublic: false,
+      });
+      const leaf = await createList(api, "Leaf", {
+        parentId: privateMid.id,
+        isPublic: true,
+      });
+
+      const nav =
+        await unauthedAPICaller.publicBookmarks.getPublicListNavigation({
+          listId: leaf.id,
+        });
+
+      expect(nav.parents).toEqual([]);
+    });
+
+    test<CustomTestContext>("hides private children", async ({
+      apiCallers,
+      unauthedAPICaller,
+    }) => {
+      const api = apiCallers[0];
+      const parent = await createList(api, "Parent", { isPublic: true });
+      await createList(api, "Private child", {
+        parentId: parent.id,
+        isPublic: false,
+      });
+      const publicChild = await createList(api, "Public child", {
+        parentId: parent.id,
+        isPublic: true,
+      });
+
+      const nav =
+        await unauthedAPICaller.publicBookmarks.getPublicListNavigation({
+          listId: parent.id,
+        });
+
+      expect(nav.children.map((c) => c.id)).toEqual([publicChild.id]);
+    });
+
+    test<CustomTestContext>("never includes lists owned by another user", async ({
+      apiCallers,
+      unauthedAPICaller,
+      db,
+    }) => {
+      const parent = await createList(apiCallers[0], "Parent", {
+        isPublic: true,
+      });
+      const otherUser = await apiCallers[1].users.whoami();
+      // The API refuses cross-user parents, so insert directly.
+      await db.insert(bookmarkLists).values({
+        name: "Foreign child",
+        icon: "🚫",
+        type: "manual",
+        userId: otherUser.id,
+        parentId: parent.id,
+        public: true,
+      });
+
+      const nav =
+        await unauthedAPICaller.publicBookmarks.getPublicListNavigation({
+          listId: parent.id,
+        });
+
+      expect(nav.children).toEqual([]);
+    });
+
+    test<CustomTestContext>("returns NOT_FOUND for a private list", async ({
+      apiCallers,
+      unauthedAPICaller,
+    }) => {
+      const list = await createList(apiCallers[0], "Private", {
+        isPublic: false,
+      });
+
+      await expect(
+        unauthedAPICaller.publicBookmarks.getPublicListNavigation({
+          listId: list.id,
+        }),
+      ).rejects.toMatchObject({ code: "NOT_FOUND" });
     });
   });
 
