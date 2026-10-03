@@ -2,6 +2,7 @@
 
 import type { UserLocalSettings } from "@/lib/userLocalSettings/types";
 import React, { useState } from "react";
+import { ThemeColorSync } from "@/components/theme-color-sync";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Session, SessionProvider } from "@/lib/auth/client";
@@ -92,6 +93,7 @@ export default function Providers({
                   enableSystem
                   disableTransitionOnChange
                 >
+                  <ThemeColorSync />
                   <TooltipProvider delayDuration={0}>
                     {children}
                   </TooltipProvider>

@@ -7,6 +7,7 @@ import "@karakeep/tailwind-config/globals.css";
 import type { Viewport } from "next";
 import React from "react";
 import Providers from "@/lib/providers";
+import { THEME_COLORS } from "@/lib/themeColors";
 import { getUserLocalSettings } from "@/lib/userLocalSettings/userLocalSettings";
 import { getServerAuthSession } from "@/server/auth";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -55,6 +56,13 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  // Values match the `--background` token in tooling/tailwind/globals.css.
+  // These cover the pre-hydration and no-JavaScript cases; once mounted,
+  // <ThemeColorSync /> updates them to follow an in-app theme override.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
+  ],
 };
 
 export default async function RootLayout({
