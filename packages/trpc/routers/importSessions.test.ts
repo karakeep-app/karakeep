@@ -25,6 +25,34 @@ import { defaultBeforeEach } from "../testUtils";
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("ImportSessions Routes", () => {
+  test<CustomTestContext>("stages custom metadata without losing nested values", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0].importSessions;
+    const session = await api.createImportSession({ name: "Metadata import" });
+    const customMetadata = {
+      "github.id": 123,
+      nested: { values: [true, null] },
+    };
+    await api.stageImportedBookmarks({
+      importSessionId: session.id,
+      bookmarks: [
+        {
+          type: "text",
+          content: "imported",
+          customMetadata,
+          tags: [],
+          listIds: [],
+        },
+      ],
+    });
+    const staged = await db.query.importStagingBookmarks.findFirst({
+      where: eq(importStagingBookmarks.importSessionId, session.id),
+    });
+    expect(staged?.customMetadata).toEqual(customMetadata);
+  });
+
   async function createTestList(api: APICallerType) {
     const newListInput: z.infer<typeof zNewBookmarkListSchema> = {
       name: "Test Import List",

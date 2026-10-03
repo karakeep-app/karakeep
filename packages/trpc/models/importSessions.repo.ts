@@ -2,6 +2,7 @@ import { and, count, eq, gt, lte } from "drizzle-orm";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
+import type { ZBookmarkCustomMetadata } from "@karakeep/shared/types/bookmarks";
 import {
   importSessionBookmarks,
   importSessions,
@@ -77,6 +78,7 @@ export class ImportSessionsRepo {
       title?: string;
       content?: string;
       note?: string;
+      customMetadata?: ZBookmarkCustomMetadata;
       tags: string[];
       listIds: string[];
       sourceAddedAt?: Date;

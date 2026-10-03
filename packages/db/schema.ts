@@ -16,7 +16,10 @@ import {
 import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
+import type {
+  ZBookmarkCustomMetadata,
+  ZReaderViewReason,
+} from "@karakeep/shared/types/bookmarks";
 
 function createdAtField(colName = "createdAt") {
   return integer(colName, { mode: "timestamp" })
@@ -239,6 +242,9 @@ export const bookmarks = sqliteTable(
     }).default("pending"),
     summary: text("summary"),
     note: text("note"),
+    customMetadata: text("customMetadata", {
+      mode: "json",
+    }).$type<ZBookmarkCustomMetadata>(),
     type: text("type", {
       enum: [BookmarkTypes.LINK, BookmarkTypes.TEXT, BookmarkTypes.ASSET],
     }).notNull(),
@@ -1014,6 +1020,9 @@ export const importStagingBookmarks = sqliteTable(
     title: text("title"),
     content: text("content"),
     note: text("note"),
+    customMetadata: text("customMetadata", {
+      mode: "json",
+    }).$type<ZBookmarkCustomMetadata>(),
     tags: text("tags", { mode: "json" }).$type<string[]>(),
     listIds: text("listIds", { mode: "json" }).$type<string[]>(),
     sourceAddedAt: integer("sourceAddedAt", { mode: "timestamp" }),

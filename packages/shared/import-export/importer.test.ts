@@ -29,6 +29,7 @@ describe("importBookmarksFromFile", () => {
             addDate: 200,
             paths: [["Personal"]],
             notes: "Additional context",
+            customMetadata: { "github.id": 123 },
             archived: true,
           },
           {
@@ -146,6 +147,7 @@ describe("importBookmarksFromFile", () => {
     }
     expect(textBookmark.content).toBe("Important notes about the project");
     expect(textBookmark.note).toBe("Additional context");
+    expect(textBookmark.customMetadata).toEqual({ "github.id": 123 });
     expect(textBookmark.listIds).toEqual(["Imported/Personal"]);
     expect(textBookmark.archived).toBe(true);
 
