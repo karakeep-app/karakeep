@@ -41,7 +41,7 @@ export function isYouTubeUrl(value: string): boolean {
     const url = new URL(value);
     const host = url.hostname.toLowerCase().replace(/^www\./, "");
     return (
-      (host === "youtube.com" &&
+      ((host === "youtube.com" || host === "m.youtube.com") &&
         (url.pathname === "/watch" ||
           url.pathname.startsWith("/shorts/") ||
           url.pathname.startsWith("/live/"))) ||

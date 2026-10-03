@@ -1,10 +1,23 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isYouTubeUrl,
   parseVtt,
   selectLanguages,
   transcriptToHtml,
 } from "./youtubeTranscript";
+
+describe("isYouTubeUrl", () => {
+  it("recognizes mobile YouTube watch URLs", () => {
+    expect(isYouTubeUrl("https://m.youtube.com/watch?v=example123")).toBe(true);
+  });
+
+  it("rejects unrelated hosts that contain youtube.com as a suffix", () => {
+    expect(isYouTubeUrl("https://youtube.com.example.org/watch?v=abc123")).toBe(
+      false,
+    );
+  });
+});
 
 describe("parseVtt", () => {
   it("removes roll-up display copies and keeps rapid repeated speech", () => {
