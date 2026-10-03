@@ -1012,6 +1012,10 @@
       "title": "字幕",
       "languages": "字幕の言語",
       "player": "YouTubeプレーヤー",
+      "source": {
+        "manual": "手動字幕",
+        "automatic": "自動生成字幕"
+      },
       "player_unavailable": "YouTubeプレーヤーを読み込めませんでした。",
       "empty_title": "字幕がありません",
       "empty_description": "この動画の字幕は保存されていません。字幕取得を有効にし、バックグラウンドジョブから再取得してください。"

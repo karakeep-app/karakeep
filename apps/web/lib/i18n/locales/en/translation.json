@@ -997,6 +997,10 @@
       "title": "Transcript",
       "languages": "Transcript languages",
       "player": "YouTube Player",
+      "source": {
+        "manual": "Manual captions",
+        "automatic": "Automatic captions"
+      },
       "player_unavailable": "The YouTube player could not be loaded.",
       "empty_title": "No transcript available",
       "empty_description": "No YouTube transcript was saved for this video. Enable transcript fetching and retry the bookmark crawl from Background Jobs."

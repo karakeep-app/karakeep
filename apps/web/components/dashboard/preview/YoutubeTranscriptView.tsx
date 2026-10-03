@@ -19,7 +19,7 @@ interface Segment {
 }
 interface Transcript {
   language: string;
-  source: string;
+  source: "manual" | "automatic" | null;
   segments: Segment[];
 }
 interface YouTubePlayer {
@@ -100,6 +100,7 @@ function readTranscripts(html: string): Transcript[] {
     .map((section) => {
       const language = section.getAttribute("data-transcript-language");
       if (!language) return null;
+      const rawSource = section.getAttribute("data-transcript-source");
       const segments = Array.from(
         section.querySelectorAll<HTMLElement>(
           ".youtube-transcript-segment[data-start-ms]",
@@ -118,7 +119,10 @@ function readTranscripts(html: string): Transcript[] {
       });
       return {
         language,
-        source: section.getAttribute("data-transcript-source") ?? "",
+        source:
+          rawSource === "manual" || rawSource === "automatic"
+            ? rawSource
+            : null,
         segments,
       };
     })
@@ -315,11 +319,20 @@ export default function YoutubeTranscriptView({
             <Play className="h-3 w-3" />
             {t("preview.youtube_transcript.player")}
           </Badge>
-          {transcripts.map((item) => (
-            <Badge key={item.language} variant="outline">
-              {item.language.toUpperCase()} · {item.source}
-            </Badge>
-          ))}
+          {transcripts.map((item) => {
+            const sourceLabel =
+              item.source === "manual"
+                ? t("preview.youtube_transcript.source.manual")
+                : item.source === "automatic"
+                  ? t("preview.youtube_transcript.source.automatic")
+                  : null;
+            return (
+              <Badge key={item.language} variant="outline">
+                {item.language.toUpperCase()}
+                {sourceLabel && ` · ${sourceLabel}`}
+              </Badge>
+            );
+          })}
         </div>
       </div>
 
