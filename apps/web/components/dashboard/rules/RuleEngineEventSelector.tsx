@@ -25,6 +25,9 @@ export function EventSelector({ value, onChange }: EventSelectorProps) {
       case "bookmarkAdded":
         onChange({ type: "bookmarkAdded" });
         break;
+      case "beforeAiTagging":
+        onChange({ type: "beforeAiTagging" });
+        break;
       case "tagAdded":
         onChange({ type: "tagAdded", tagId: "" });
         break;
@@ -61,6 +64,9 @@ export function EventSelector({ value, onChange }: EventSelectorProps) {
             <SelectContent>
               <SelectItem value="bookmarkAdded">
                 {t("settings.rules.events_types.bookmark_added")}
+              </SelectItem>
+              <SelectItem value="beforeAiTagging">
+                {t("settings.rules.events_types.before_ai_tagging")}
               </SelectItem>
               <SelectItem value="tagAdded">
                 {t("settings.rules.events_types.tag_added")}

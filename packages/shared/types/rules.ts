@@ -7,6 +7,10 @@ const zBookmarkAddedEvent = z.object({
   type: z.literal("bookmarkAdded"),
 });
 
+const zBeforeAiTaggingEvent = z.object({
+  type: z.literal("beforeAiTagging"),
+});
+
 const zTagAddedEvent = z.object({
   type: z.literal("tagAdded"),
   tagId: z.string(),
@@ -47,6 +51,7 @@ const zRemovedFromListRuleEvent = z.object({
 
 export const zRuleEngineEventSchema = z.discriminatedUnion("type", [
   zBookmarkAddedEvent,
+  zBeforeAiTaggingEvent,
   zTagAddedEvent,
   zTagRemovedEvent,
   zAddedToListEvent,
@@ -58,6 +63,7 @@ export type RuleEngineEvent = z.infer<typeof zRuleEngineEventSchema>;
 
 export const zRuleEngineRuleEventSchema = z.discriminatedUnion("type", [
   zBookmarkAddedEvent,
+  zBeforeAiTaggingEvent,
   zTagAddedEvent,
   zTagRemovedEvent,
   zAddedToListRuleEvent,
@@ -198,6 +204,10 @@ const zArchiveBookmarkAction = z.object({
   type: z.literal("archiveBookmark"),
 });
 
+const zSkipAiTaggingAction = z.object({
+  type: z.literal("skipAiTagging"),
+});
+
 export const zRuleEngineActionSchema = z.discriminatedUnion("type", [
   zAddTagAction,
   zRemoveTagAction,
@@ -206,6 +216,7 @@ export const zRuleEngineActionSchema = z.discriminatedUnion("type", [
   zDownloadFullPageArchiveAction,
   zFavouriteBookmarkAction,
   zArchiveBookmarkAction,
+  zSkipAiTaggingAction,
 ]);
 export type RuleEngineAction = z.infer<typeof zRuleEngineActionSchema>;
 
@@ -227,6 +238,7 @@ const ruleValidaitorFn = (
   const validateEvent = (event: RuleEngineRuleEvent) => {
     switch (event.type) {
       case "bookmarkAdded":
+      case "beforeAiTagging":
       case "favourited":
       case "archived":
         return true;
@@ -342,6 +354,16 @@ const ruleValidaitorFn = (
   };
   const validateAction = (action: RuleEngineAction): boolean => {
     switch (action.type) {
+      case "skipAiTagging":
+        if (r.event.type !== "beforeAiTagging") {
+          ctx.addIssue({
+            code: "custom",
+            message: "Skip AI tagging requires the Before AI tagging event",
+            path: ["actions"],
+          });
+          return false;
+        }
+        return true;
       case "addTag":
       case "removeTag":
         if (action.tagId.length == 0) {
