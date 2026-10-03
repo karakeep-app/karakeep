@@ -246,6 +246,7 @@ export function BookmarkLinkReaderPreview({
             color: h.color,
             bookmarkId: bookmark.id,
             text: h.text,
+            content: h.content,
             note: h.note ?? null,
           })
         }

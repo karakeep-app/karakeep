@@ -35,6 +35,7 @@ export class HighlightsRepo {
         color: input.color,
         text: input.text,
         note: input.note,
+        content: input.content,
         userId,
       })
       .returning();
