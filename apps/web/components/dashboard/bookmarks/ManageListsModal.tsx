@@ -12,6 +12,7 @@ import {
 import { toast } from "@/components/ui/sonner";
 import LoadingSpinner from "@/components/ui/spinner";
 import { useTranslation } from "@/lib/i18n/client";
+import { useManageListsModalStore } from "@/lib/store/useManageListsModalStore";
 import { useQuery } from "@tanstack/react-query";
 import { Archive, X } from "lucide-react";
 
@@ -25,30 +26,66 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkListSelector } from "../lists/BookmarkListSelector";
 import ArchiveBookmarkButton from "./action-buttons/ArchiveBookmarkButton";
 
-export default function ManageListsModal({
+// Rendered once from a stable ancestor (BookmarksGrid) and driven by
+// useManageListsModalStore, rather than being mounted per-bookmark-card.
+// See the store for why.
+export default function ManageListsModal() {
+  const bookmarkId = useManageListsModalStore((state) => state.bookmarkId);
+  const setBookmarkId = useManageListsModalStore(
+    (state) => state.setBookmarkId,
+  );
+  const open = bookmarkId !== null;
+  const setOpen = (open: boolean) => {
+    if (!open) {
+      setBookmarkId(null);
+    }
+  };
+
+  // Radix keeps DialogContent mounted for its close animation after `open`
+  // flips to false. bookmarkId is cleared immediately at that point, so
+  // rendering content off of it directly would make the closing dialog
+  // flash empty. Keep showing the last open bookmark's content instead
+  // until the dialog is fully closed and reopened for a new one.
+  //
+  // Adjusted during render (React's "store info from previous renders"
+  // pattern) rather than in a useEffect, so the render that opens the
+  // dialog - or switches it to a different bookmark - already uses the
+  // new id instead of committing one stale/empty frame first.
+  const [lastBookmarkId, setLastBookmarkId] = useState<string | null>(null);
+  if (bookmarkId !== null && bookmarkId !== lastBookmarkId) {
+    setLastBookmarkId(bookmarkId);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        {lastBookmarkId && (
+          <ManageListsModalContent
+            bookmarkId={lastBookmarkId}
+            onDone={() => setOpen(false)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ManageListsModalContent({
   bookmarkId,
-  open,
-  setOpen,
+  onDone,
 }: {
   bookmarkId: string;
-  open: boolean;
-  setOpen: (open: boolean) => void;
+  onDone: () => void;
 }) {
   const api = useTRPC();
   const { t } = useTranslation();
 
-  const { data: allLists, isPending: isAllListsPending } = useBookmarkLists(
-    undefined,
-    { enabled: open },
-  );
+  const { data: allLists, isPending: isAllListsPending } = useBookmarkLists();
 
   const { data: alreadyInList, isPending: isAlreadyInListPending } = useQuery(
-    api.lists.getListsOfBookmark.queryOptions(
-      {
-        bookmarkId,
-      },
-      { enabled: open },
-    ),
+    api.lists.getListsOfBookmark.queryOptions({
+      bookmarkId,
+    }),
   );
 
   const isLoading = isAllListsPending || isAlreadyInListPending;
@@ -98,88 +135,74 @@ export default function ManageListsModal({
     });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("actions.manage_lists")}</DialogTitle>
-        </DialogHeader>
-        {isLoading ? (
-          <LoadingSpinner className="my-4" />
-        ) : (
-          <ul className="flex flex-col gap-2 pb-2 pt-4">
-            {alreadyInList?.lists.map((list) => {
-              const path = allLists?.getPathById(list.id);
-              return (
-                <li
-                  key={list.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-background px-2 py-1 text-foreground"
+    <>
+      <DialogHeader>
+        <DialogTitle>{t("actions.manage_lists")}</DialogTitle>
+      </DialogHeader>
+      {isLoading ? (
+        <LoadingSpinner className="my-4" />
+      ) : (
+        <ul className="flex flex-col gap-2 pb-2 pt-4">
+          {alreadyInList?.lists.map((list) => {
+            const path = allLists?.getPathById(list.id);
+            return (
+              <li
+                key={list.id}
+                className="flex items-center justify-between rounded-lg border border-border bg-background px-2 py-1 text-foreground"
+              >
+                <p>
+                  {path
+                    ? path.map((l) => `${l.icon} ${l.name}`).join(" / ")
+                    : list.name}
+                </p>
+                <ActionButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  loading={isDeleteFromListPending}
+                  onClick={() =>
+                    deleteFromList({ bookmarkId, listId: list.id })
+                  }
+                  aria-label={t("actions.remove_from_list")}
                 >
-                  <p>
-                    {path
-                      ? path.map((l) => `${l.icon} ${l.name}`).join(" / ")
-                      : list.name}
-                  </p>
-                  <ActionButton
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    loading={isDeleteFromListPending}
-                    onClick={() =>
-                      deleteFromList({ bookmarkId, listId: list.id })
-                    }
-                    aria-label={t("actions.remove_from_list")}
-                  >
-                    <X className="size-4" />
-                  </ActionButton>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                  <X className="size-4" />
+                </ActionButton>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
-        <div className="pb-4">
-          <BookmarkListSelector
-            hideBookmarkIds={alreadyInList?.lists.map((l) => l.id)}
-            onChange={(listId) => {
-              if (!isLoading && !isAddingToListPending) {
-                addToList({
-                  bookmarkId: bookmarkId,
-                  listId: listId,
-                });
-              }
-            }}
-            listTypes={["manual"]}
-            disabled={isLoading || isAddingToListPending}
-          />
-        </div>
-        <DialogFooter className="sm:justify-end">
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              {t("actions.close")}
-            </Button>
-          </DialogClose>
-          <ArchiveBookmarkButton
-            type="button"
-            bookmarkId={bookmarkId}
-            onDone={() => setOpen(false)}
-            variant="secondary"
-          >
-            <Archive className="mr-2 size-4" /> {t("actions.archive")}
-          </ArchiveBookmarkButton>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <div className="pb-4">
+        <BookmarkListSelector
+          hideBookmarkIds={alreadyInList?.lists.map((l) => l.id)}
+          onChange={(listId) => {
+            if (!isLoading && !isAddingToListPending) {
+              addToList({
+                bookmarkId: bookmarkId,
+                listId: listId,
+              });
+            }
+          }}
+          listTypes={["manual"]}
+          disabled={isLoading || isAddingToListPending}
+        />
+      </div>
+      <DialogFooter className="sm:justify-end">
+        <DialogClose asChild>
+          <Button type="button" variant="secondary">
+            {t("actions.close")}
+          </Button>
+        </DialogClose>
+        <ArchiveBookmarkButton
+          type="button"
+          bookmarkId={bookmarkId}
+          onDone={onDone}
+          variant="secondary"
+        >
+          <Archive className="mr-2 size-4" /> {t("actions.archive")}
+        </ArchiveBookmarkButton>
+      </DialogFooter>
+    </>
   );
-}
-
-export function useManageListsModal(bookmarkId: string) {
-  const [open, setOpen] = useState(false);
-
-  return {
-    open,
-    setOpen,
-    content: open && (
-      <ManageListsModal bookmarkId={bookmarkId} open={open} setOpen={setOpen} />
-    ),
-  };
 }
