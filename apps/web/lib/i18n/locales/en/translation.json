@@ -682,6 +682,10 @@
           "title": "Video Download Jobs",
           "description": "Video extraction and download"
         },
+        "youtube_transcript": {
+          "title": "YouTube Transcript Jobs",
+          "description": "Fetching and saving YouTube transcripts"
+        },
         "webhook": {
           "title": "Webhook Jobs",
           "description": "External webhook notifications"
@@ -697,6 +701,9 @@
       "available_actions": "Available Actions",
       "status": {
         "title": "Understanding Job States",
+        "running": {
+          "title": "Running"
+        },
         "queued": {
           "title": "Queued",
           "description": "Jobs waiting in line to be processed. They will start automatically when resources are available."
@@ -714,6 +721,10 @@
         "recrawl_pending_links_only": "Recrawl Pending Links Only",
         "recrawl_failed_links_only": "Recrawl Failed Links Only",
         "recrawl_all_links": "Recrawl All Links",
+        "retry_missing_youtube_transcripts": "Retry Missing or Outdated YouTube Transcripts (First 100)",
+        "continue_youtube_transcript_retry": "Continue YouTube Transcript Retry (Next 100)",
+        "retry_youtube_transcripts_more": "Queued {{count}} transcript retries so far. Continue to scan the next 100 links.",
+        "retry_youtube_transcripts_queued": "Queued transcript retry for {{count}} YouTube links",
         "without_inference": "Without Inference",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI Tags for Pending Bookmarks Only",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
@@ -985,6 +996,19 @@
     "view_original": "View Original",
     "cached_content": "Cached Content",
     "reader_view": "Reader View",
+    "youtube_transcript": {
+      "view": "Video & Transcript",
+      "title": "Transcript",
+      "languages": "Transcript languages",
+      "player": "YouTube Player",
+      "source": {
+        "manual": "Manual captions",
+        "automatic": "Automatic captions"
+      },
+      "player_unavailable": "The YouTube player could not be loaded.",
+      "empty_title": "No transcript available",
+      "empty_description": "No YouTube transcript was saved for this video. Enable transcript fetching and retry the bookmark crawl from Background Jobs."
+    },
     "page_overview": "Page Overview",
     "try_reader_view": "Try Reader View",
     "archived_page": "Archived Page",

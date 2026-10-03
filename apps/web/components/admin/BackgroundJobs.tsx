@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +21,7 @@ import {
   AlertTriangle,
   Clock,
   Database,
+  FileText,
   Globe,
   HelpCircle,
   Image,
@@ -38,6 +41,7 @@ import { AdminCard } from "./AdminCard";
 
 interface JobStats {
   queued: number;
+  running?: number;
   pending?: number;
   failed?: number;
 }
@@ -167,7 +171,11 @@ function JobCard({
   actions?: JobAction[];
 }) {
   const { t } = useTranslation();
-  const total = stats.queued + (stats.pending || 0) + (stats.failed || 0);
+  const total =
+    stats.queued +
+    (stats.running || 0) +
+    (stats.pending || 0) +
+    (stats.failed || 0);
   const hasActivity = total > 0;
 
   return (
@@ -200,6 +208,15 @@ function JobCard({
             </span>
             <Badge variant="outline">{stats.queued}</Badge>
           </div>
+          {stats.running !== undefined && (
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 animate-pulse text-primary" />
+              <span className="font-medium">
+                {t("admin.background_jobs.status.running.title")}
+              </span>
+              <Badge variant="outline">{stats.running}</Badge>
+            </div>
+          )}
           {stats.pending !== undefined && (
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 text-yellow-500" />
@@ -275,6 +292,19 @@ function useJobActions() {
         },
       }),
     );
+
+  const { mutateAsync: retryMissingYouTubeTranscripts } = useMutation(
+    api.admin.retryMissingYouTubeTranscripts.mutationOptions({
+      onError: (e) => {
+        toast({ variant: "destructive", description: e.message });
+      },
+    }),
+  );
+  const [isRetryTranscriptsPending, setRetryTranscriptsPending] =
+    useState(false);
+  const [retryTranscriptsCursor, setRetryTranscriptsCursor] =
+    useState<string>();
+  const [retryTranscriptsQueued, setRetryTranscriptsQueued] = useState(0);
 
   const { mutateAsync: reindexBookmarks, isPending: isReindexPending } =
     useMutation(
@@ -395,6 +425,37 @@ function useJobActions() {
         onClick: () =>
           recrawlLinks({ crawlStatus: "all", runInference: false }),
         loading: isRecrawlPending,
+      },
+    ],
+    youtubeTranscriptActions: [
+      {
+        label: t(
+          retryTranscriptsCursor
+            ? "admin.background_jobs.actions.continue_youtube_transcript_retry"
+            : "admin.background_jobs.actions.retry_missing_youtube_transcripts",
+        ),
+        onClick: async () => {
+          setRetryTranscriptsPending(true);
+          try {
+            const batch = await retryMissingYouTubeTranscripts({
+              cursor: retryTranscriptsCursor,
+            });
+            const queued = retryTranscriptsQueued + batch.queued;
+            setRetryTranscriptsCursor(batch.nextCursor ?? undefined);
+            setRetryTranscriptsQueued(batch.nextCursor ? queued : 0);
+            toast({
+              description: t(
+                batch.nextCursor
+                  ? "admin.background_jobs.actions.retry_youtube_transcripts_more"
+                  : "admin.background_jobs.actions.retry_youtube_transcripts_queued",
+                { count: queued },
+              ),
+            });
+          } finally {
+            setRetryTranscriptsPending(false);
+          }
+        },
+        loading: isRetryTranscriptsPending,
       },
     ],
     inferenceActions: [
@@ -604,6 +665,19 @@ export default function BackgroundJobs() {
       stats: { queued: serverStats.videoStats.queued },
       description: t("admin.background_jobs.jobs.video.description"),
       actions: [],
+    },
+    {
+      title: t("admin.background_jobs.jobs.youtube_transcript.title"),
+      icon: FileText,
+      stats: {
+        queued: serverStats.youtubeTranscriptStats.queued,
+        running: serverStats.youtubeTranscriptStats.running,
+        failed: serverStats.youtubeTranscriptStats.failed,
+      },
+      description: t(
+        "admin.background_jobs.jobs.youtube_transcript.description",
+      ),
+      actions: actions.youtubeTranscriptActions,
     },
     {
       title: t("admin.background_jobs.jobs.webhook.title"),
