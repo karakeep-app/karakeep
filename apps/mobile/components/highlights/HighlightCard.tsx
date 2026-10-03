@@ -7,6 +7,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ExternalLink, Trash2 } from "lucide-react-native";
 
 import type { ZHighlight } from "@karakeep/shared/types/highlights";
+import { highlightTextForDisplay } from "@karakeep/shared/utils/highlightUtils";
 import { useDeleteHighlight } from "@karakeep/shared-react/hooks/highlights";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
@@ -91,7 +92,7 @@ export default function HighlightCard({
           style={{ borderLeftColor: HIGHLIGHT_COLOR_MAP[highlight.color] }}
         >
           <Text className="italic text-foreground">
-            {highlight.text || "No text available"}
+            {highlightTextForDisplay(highlight.text) || "No text available"}
           </Text>
         </View>
 
