@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { EDITOR_TRANSFORMERS } from "@/components/ui/markdown/transformers";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
-  TRANSFORMERS,
 } from "@lexical/markdown";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
@@ -228,11 +228,14 @@ export default function ToolbarPlugin({
       const firstChild = root.getFirstChild();
       if (isRawMarkdownMode) {
         if (firstChild) {
-          $convertFromMarkdownString(firstChild.getTextContent(), TRANSFORMERS);
+          $convertFromMarkdownString(
+            firstChild.getTextContent(),
+            EDITOR_TRANSFORMERS,
+          );
         }
         setIsRawMarkdownMode(false);
       } else {
-        const markdown = $convertToMarkdownString(TRANSFORMERS);
+        const markdown = $convertToMarkdownString(EDITOR_TRANSFORMERS);
         const pNode = $createParagraphNode();
         pNode.append($createTextNode(markdown));
         root.clear().append(pNode);

@@ -54,6 +54,7 @@ import type {
   ZPublicBookmark,
 } from "@karakeep/shared/types/bookmarks";
 import type { ZCursor } from "@karakeep/shared/types/pagination";
+import { rewriteAssetUrls } from "@karakeep/shared/utils/assetUtils";
 import {
   getBookmarkLinkAssetIdOrUrl,
   getBookmarkTitle,
@@ -311,6 +312,7 @@ export class Bookmark extends BareBookmark {
 
     const PRIVACY_REDACTED_ASSET_TYPES = new Set<AssetTypes>([
       AssetTypes.USER_UPLOADED,
+      AssetTypes.NOTE_IMAGE,
       AssetTypes.BOOKMARK_ASSET,
     ]);
 
@@ -882,9 +884,19 @@ export class Bookmark extends BareBookmark {
           };
         }
         case BookmarkTypes.TEXT: {
+          // this.bookmark.assets is already scoped to assets attached to
+          // this bookmark, so any of them referenced inline in the note's
+          // own text can be safely made public alongside it.
+          const attachedAssetIds = new Set(
+            this.bookmark.assets.map((a) => a.id),
+          );
           return {
             type: BookmarkTypes.TEXT,
-            text: content.text,
+            text: rewriteAssetUrls(content.text, (assetId) =>
+              attachedAssetIds.has(assetId)
+                ? getPublicSignedAssetUrl(assetId)
+                : undefined,
+            ),
           };
         }
         case BookmarkTypes.ASSET: {

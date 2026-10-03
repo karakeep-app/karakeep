@@ -1,6 +1,8 @@
 import { memo, useMemo, useState } from "react";
+import ImagesPlugin from "@/components/ui/markdown/plugins/images-plugin";
 import ToolbarPlugin from "@/components/ui/markdown/plugins/toolbar-plugin";
 import { MarkdownEditorTheme } from "@/components/ui/markdown/theme";
+import { EDITOR_TRANSFORMERS } from "@/components/ui/markdown/transformers";
 import {
   CodeHighlightNode,
   CodeNode,
@@ -11,7 +13,6 @@ import { ListItemNode, ListNode } from "@lexical/list";
 import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
-  TRANSFORMERS,
 } from "@lexical/markdown";
 import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
 import {
@@ -31,6 +32,8 @@ import { TabIndentationPlugin } from "@lexical/react/LexicalTabIndentationPlugin
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { $getRoot, EditorState, LexicalEditor } from "lexical";
 
+import { ImageNode } from "./nodes/image-node";
+
 function onError(error: Error) {
   console.error(error);
 }
@@ -44,16 +47,23 @@ const EDITOR_NODES = [
   CodeNode,
   HorizontalRuleNode,
   CodeHighlightNode,
+  ImageNode,
 ];
 
 interface MarkdownEditorProps {
   children: string;
+  bookmarkId: string;
   onSave?: (markdown: string) => void;
   isSaving?: boolean;
 }
 
 const MarkdownEditor = memo(
-  ({ children: initialMarkdown, onSave, isSaving }: MarkdownEditorProps) => {
+  ({
+    children: initialMarkdown,
+    bookmarkId,
+    onSave,
+    isSaving,
+  }: MarkdownEditorProps) => {
     const [isRawMarkdownMode, setIsRawMarkdownMode] = useState(false);
     const [rawMarkdown, setRawMarkdown] = useState(initialMarkdown);
 
@@ -65,7 +75,7 @@ const MarkdownEditor = memo(
         nodes: EDITOR_NODES,
         editorState: (editor: LexicalEditor) => {
           registerCodeHighlighting(editor);
-          $convertFromMarkdownString(initialMarkdown, TRANSFORMERS);
+          $convertFromMarkdownString(initialMarkdown, EDITOR_TRANSFORMERS);
         },
       }),
       [initialMarkdown],
@@ -77,7 +87,7 @@ const MarkdownEditor = memo(
         if (isRawMarkdownMode) {
           markdownString = $getRoot()?.getFirstChild()?.getTextContent() ?? "";
         } else {
-          markdownString = $convertToMarkdownString(TRANSFORMERS);
+          markdownString = $convertToMarkdownString(EDITOR_TRANSFORMERS);
         }
         setRawMarkdown(markdownString);
       });
@@ -111,9 +121,10 @@ const MarkdownEditor = memo(
         <HistoryPlugin />
         <AutoFocusPlugin />
         <TabIndentationPlugin />
-        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+        <MarkdownShortcutPlugin transformers={EDITOR_TRANSFORMERS} />
         <OnChangePlugin onChange={handleOnChange} />
         <ListPlugin />
+        <ImagesPlugin bookmarkId={bookmarkId} disabled={isRawMarkdownMode} />
       </LexicalComposer>
     );
   },

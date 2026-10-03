@@ -18,6 +18,7 @@ export function mapDBAssetTypeToUserType(assetType: AssetTypes): ZAssetType {
     [AssetTypes.LINK_HTML_CONTENT]: "linkHtmlContent",
     [AssetTypes.BOOKMARK_ASSET]: "bookmarkAsset",
     [AssetTypes.USER_UPLOADED]: "userUploaded",
+    [AssetTypes.NOTE_IMAGE]: "noteImage",
     [AssetTypes.AVATAR]: "avatar",
     [AssetTypes.BACKUP]: "unknown", // Backups are not displayed as regular assets
     [AssetTypes.UNKNOWN]: "bannerImage",
@@ -39,6 +40,7 @@ export function mapSchemaAssetTypeToDB(
     bookmarkAsset: AssetTypes.BOOKMARK_ASSET,
     linkHtmlContent: AssetTypes.LINK_HTML_CONTENT,
     userUploaded: AssetTypes.USER_UPLOADED,
+    noteImage: AssetTypes.NOTE_IMAGE,
     avatar: AssetTypes.AVATAR,
     unknown: AssetTypes.UNKNOWN,
   };
@@ -57,12 +59,19 @@ export function humanFriendlyNameForAssertType(type: ZAssetType) {
     bookmarkAsset: "Bookmark Asset",
     linkHtmlContent: "HTML Content",
     userUploaded: "User Uploaded File",
+    noteImage: "Note Image",
     avatar: "Avatar",
     unknown: "Unknown",
   };
   return map[type];
 }
 
+// Note images are attached programmatically when a paste/drop upload
+// completes (see the note editor's images plugin) but aren't meant to be
+// managed like a regular attachment: they're only ever added or removed by
+// editing the note text itself, so they're excluded from the generic
+// attach/detach UI and its detach codepath (which doesn't know to keep the
+// note text in sync).
 export function isAllowedToAttachAsset(type: ZAssetType) {
   const map: Record<ZAssetType, boolean> = {
     screenshot: true,
@@ -75,6 +84,7 @@ export function isAllowedToAttachAsset(type: ZAssetType) {
     bookmarkAsset: false,
     linkHtmlContent: false,
     userUploaded: true,
+    noteImage: true,
     avatar: false,
     unknown: false,
   };
@@ -93,6 +103,7 @@ export function isAllowedToDetachAsset(type: ZAssetType) {
     bookmarkAsset: false,
     linkHtmlContent: false,
     userUploaded: true,
+    noteImage: false,
     avatar: false,
     unknown: false,
   };
