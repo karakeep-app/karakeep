@@ -212,6 +212,26 @@ Second line
       { startMs: 1000, durationMs: 1000, text: "First line Second line" },
     ]);
   });
+
+  it("decodes non-breaking spaces and other entities in manual captions", () => {
+    const segments = parseVtt(
+      `WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nmathematics that we we we developed it's just&nbsp; a precise language to describe it really really&nbsp;&nbsp;\n\n00:00:02.000 --> 00:00:03.000\nTom &amp; Jerry&#160;talk\n`,
+      "manual",
+    );
+    expect(segments.map(({ text }) => text)).toEqual([
+      "mathematics that we we we developed it's just a precise language to describe it really really",
+      "Tom & Jerry talk",
+    ]);
+  });
+
+  it("decodes entities in timed automatic captions before splitting sentences", () => {
+    const segments = parseVtt(
+      `WEBVTT\n\n00:00:01.000 --> 00:00:03.000\nIt is just&nbsp;<00:00:02.000><c> a test.&nbsp;&nbsp;</c>\n\n00:00:03.000 --> 00:00:03.010\nIt is just&nbsp; a test.&nbsp;&nbsp;\n`,
+      "automatic",
+      "en",
+    );
+    expect(segments.map(({ text }) => text)).toEqual(["It is just a test."]);
+  });
 });
 
 describe("selectLanguages", () => {
@@ -394,6 +414,19 @@ describe("transcriptToHtml", () => {
     expect(html).toContain(
       "&lt;script&gt;alert(&#39;x&#39;)&lt;/script&gt; &amp; hello",
     );
+    expect(html).not.toContain("<script>");
+  });
+
+  it("keeps decoded VTT markup escaped in saved HTML", () => {
+    const segments = parseVtt(
+      `WEBVTT\n\n00:00:01.000 --> 00:00:02.000\n&lt;script&gt;alert(1)&lt;/script&gt; &amp; text\n`,
+      "manual",
+    );
+    const html = transcriptToHtml(
+      [{ language: "en", source: "manual", segments }],
+      "https://www.youtube.com/watch?v=abcdefghijk",
+    );
+    expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt; &amp; text");
     expect(html).not.toContain("<script>");
   });
 

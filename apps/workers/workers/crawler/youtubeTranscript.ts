@@ -2,6 +2,7 @@ import {
   getYouTubeVideoId,
   YOUTUBE_TRANSCRIPT_FORMAT,
 } from "@karakeep/shared/youtubeTranscript";
+import { decode as decodeHtmlEntities } from "html-entities";
 
 export interface TranscriptSegment {
   startMs: number;
@@ -173,7 +174,7 @@ function parseTime(value: string): number | null {
 }
 
 function stripVttTags(value: string): string {
-  return value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ");
+  return decodeHtmlEntities(value.replace(/<[^>]*>/g, "")).replace(/\s+/g, " ");
 }
 
 function parseCues(vtt: string): VttCue[] {

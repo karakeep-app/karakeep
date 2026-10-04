@@ -40,6 +40,28 @@ describe("YouTube transcript refresh", () => {
     ).toBe(false);
   });
 
+  it("offers retries only for transcript sections with escaped non-breaking spaces", () => {
+    const transcript = (text: string) =>
+      `<section class="youtube-transcript" data-transcript-format="sentence-v1"><p>${text}</p></section>`;
+    expect(
+      hasCurrentYouTubeTranscript(transcript("hello&amp;nbsp; world")),
+    ).toBe(false);
+    expect(
+      hasCurrentYouTubeTranscript(transcript("hello&amp;#160; world")),
+    ).toBe(false);
+    expect(
+      hasCurrentYouTubeTranscript(transcript("hello&amp;#xA0; world")),
+    ).toBe(false);
+    expect(hasCurrentYouTubeTranscript(transcript("Tom &amp; Jerry"))).toBe(
+      true,
+    );
+    expect(
+      hasCurrentYouTubeTranscript(
+        `<article>Original page has &amp;nbsp;</article>${transcript("Clean caption")}`,
+      ),
+    ).toBe(true);
+  });
+
   it("replaces old transcript sections without removing article content", () => {
     const html =
       '<article>Saved article</article>\n<section class="youtube-transcript" data-transcript-language="en"><p>old caption</p></section>\n<section class="youtube-transcript" data-transcript-language="ja"><p>old Japanese caption</p></section>';

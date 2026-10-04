@@ -30,12 +30,17 @@ export function getYouTubeVideoId(value: string): string | null {
 
 export function hasCurrentYouTubeTranscript(html: string): boolean {
   const sections = [
-    ...html.matchAll(/<section class="youtube-transcript"[^>]*>/g),
+    ...html.matchAll(
+      /<section class="youtube-transcript"[^>]*>[\s\S]*?<\/section>/g,
+    ),
   ];
   return (
     sections.length > 0 &&
-    sections.every(([tag]) =>
-      tag.includes(`data-transcript-format="${YOUTUBE_TRANSCRIPT_FORMAT}"`),
+    sections.every(
+      ([section]) =>
+        section.includes(
+          `data-transcript-format="${YOUTUBE_TRANSCRIPT_FORMAT}"`,
+        ) && !/&amp;(?:nbsp|#(?:0*160|x0*a0));/i.test(section),
     )
   );
 }
