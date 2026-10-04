@@ -335,3 +335,8 @@ export const BackupQueue = createDeferredQueue<ZBackupRequest>("backup_queue", {
   },
   keepFailedJobs: false,
 });
+
+export const GithubStarsQueue = createDeferredQueue<{ subscriptionId: string }>(
+  "github_stars_queue",
+  { defaultJobArgs: { numRetries: 0 }, keepFailedJobs: false },
+);
