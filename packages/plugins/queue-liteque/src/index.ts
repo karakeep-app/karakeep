@@ -1,4 +1,5 @@
 import path from "node:path";
+import { sql } from "drizzle-orm";
 import {
   buildDBClient,
   SqliteQueue as LQ,
@@ -24,7 +25,7 @@ import {
   queueOptionsEqual,
 } from "@karakeep/shared/queueing";
 
-class LitequeQueueWrapper<T> implements Queue<T> {
+export class LitequeQueueWrapper<T> implements Queue<T> {
   constructor(
     private readonly _name: string,
     private readonly lq: LQ<T>,
@@ -50,6 +51,20 @@ class LitequeQueueWrapper<T> implements Queue<T> {
 
   async stats() {
     return this.lq.stats();
+  }
+
+  async clearFailedJobsForBookmark(bookmarkId: string): Promise<number> {
+    const query = sql`
+      DELETE FROM tasks
+      WHERE queue = ${this._name}
+        AND status = 'failed'
+        AND json_extract(payload, '$.bookmarkId') = ${bookmarkId}
+    `;
+    // Liteque bundles a separate Drizzle version, but both share this SQL format.
+    const result = this.lq.db.run(
+      query as unknown as Parameters<typeof this.lq.db.run>[0],
+    );
+    return result.changes;
   }
 
   async cancelAllNonRunning(): Promise<number> {

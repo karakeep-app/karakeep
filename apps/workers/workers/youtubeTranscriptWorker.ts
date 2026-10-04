@@ -152,6 +152,7 @@ async function runWorker(
   }
 
   if (hasCurrentYouTubeTranscript(htmlContent)) {
+    await clearFailedTranscriptJobs(bookmarkId);
     logger.info(
       `[YouTubeTranscript][${jobId}] Current transcript format is already saved`,
     );
@@ -283,6 +284,7 @@ async function runWorker(
     ),
   );
   await triggerSearchReindex(bookmarkId, { groupId: bookmark.userId });
+  await clearFailedTranscriptJobs(bookmarkId);
   addLogFields<"youtubeTranscriptWorker.run">({
     "transcript.outcome": "stored",
   });
@@ -290,6 +292,16 @@ async function runWorker(
     `[YouTubeTranscript][${jobId}] Added ${transcripts.length} transcript language(s): ${transcripts.map((item) => `${item.language}/${item.source}/${item.segments.length} segments`).join(", ")}`,
   );
   return "completed";
+}
+
+async function clearFailedTranscriptJobs(bookmarkId: string): Promise<void> {
+  try {
+    await YouTubeTranscriptQueue.clearFailedJobsForBookmark(bookmarkId);
+  } catch (error) {
+    logger.warn(
+      `[YouTubeTranscript] Could not clear previous failed jobs for bookmark ${bookmarkId}: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
 }
 
 async function readRateLimitUntil(): Promise<number> {

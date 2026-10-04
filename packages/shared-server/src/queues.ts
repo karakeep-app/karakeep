@@ -60,6 +60,9 @@ function createDeferredQueue<T>(name: string, options: QueueOptions): Queue<T> {
     async stats() {
       return (await ensureQueue()).stats();
     },
+    async clearFailedJobsForBookmark(bookmarkId: string) {
+      return (await ensureQueue()).clearFailedJobsForBookmark(bookmarkId);
+    },
     async cancelAllNonRunning() {
       const q = await ensureQueue();
       return q.cancelAllNonRunning?.() ?? 0;

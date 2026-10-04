@@ -89,6 +89,11 @@ class RestateQueueWrapper<T> implements Queue<T> {
     };
   }
 
+  async clearFailedJobsForBookmark(_bookmarkId: string): Promise<number> {
+    // Restate does not retain failed jobs in the queue statistics.
+    return 0;
+  }
+
   async cancelAllNonRunning(): Promise<number> {
     throw new Error("Method not implemented.");
   }

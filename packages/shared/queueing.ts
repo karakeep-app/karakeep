@@ -82,6 +82,8 @@ export interface Queue<T> {
     running: number;
     failed: number;
   }>;
+  /** Remove retained failures for one bookmark without affecting active jobs. */
+  clearFailedJobsForBookmark(bookmarkId: string): Promise<number>;
   cancelAllNonRunning?(): Promise<number>;
 }
 
