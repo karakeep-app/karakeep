@@ -1,6 +1,18 @@
 import * as dns from "dns";
+import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, asc, count, eq, gt, gte, inArray, or, sum } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  eq,
+  gt,
+  gte,
+  inArray,
+  like,
+  or,
+  sum,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -24,6 +36,7 @@ import {
   SearchIndexingQueue,
   triggerSearchReindex,
   VideoWorkerQueue,
+  YouTubeTranscriptQueue,
   WebhookQueue,
   zAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
@@ -40,6 +53,10 @@ import {
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
+import {
+  getYouTubeVideoId,
+  hasCurrentYouTubeTranscript,
+} from "@karakeep/shared/youtubeTranscript";
 
 import { generatePasswordSalt, hashPassword } from "../auth";
 import { createAdminScopedProcedure, router } from "../index";
@@ -48,6 +65,14 @@ import { User } from "../models/users";
 import { syncStripeDataToDatabase } from "./subscriptions";
 
 const adminBookmarksProcedure = createAdminScopedProcedure("bookmarks");
+const youtubeVideoUrlPrefixes = [
+  "youtube.com",
+  "www.youtube.com",
+  "m.youtube.com",
+  "www.m.youtube.com",
+  "youtu.be",
+  "www.youtu.be",
+].flatMap((host) => [`https://${host}/`, `http://${host}/`]);
 const adminJobsProcedure = createAdminScopedProcedure("jobs");
 const adminSystemProcedure = createAdminScopedProcedure("system");
 const adminUsersProcedure = createAdminScopedProcedure("users");
@@ -108,6 +133,11 @@ export const adminAppRouter = router({
         videoStats: z.object({
           queued: z.number(),
         }),
+        youtubeTranscriptStats: z.object({
+          queued: z.number(),
+          running: z.number(),
+          failed: z.number(),
+        }),
         webhookStats: z.object({
           queued: z.number(),
         }),
@@ -145,6 +175,9 @@ export const adminAppRouter = router({
 
         // Video
         queuedVideo,
+
+        // YouTube transcripts
+        queuedYouTubeTranscripts,
 
         // Webhook
         queuedWebhook,
@@ -208,6 +241,8 @@ export const adminAppRouter = router({
         // Video
         VideoWorkerQueue.stats(),
 
+        YouTubeTranscriptQueue.stats(),
+
         // Webhook
         WebhookQueue.stats(),
 
@@ -248,6 +283,13 @@ export const adminAppRouter = router({
         },
         videoStats: {
           queued: queuedVideo.pending + queuedVideo.pending_retry,
+        },
+        youtubeTranscriptStats: {
+          queued:
+            queuedYouTubeTranscripts.pending +
+            queuedYouTubeTranscripts.pending_retry,
+          running: queuedYouTubeTranscripts.running,
+          failed: queuedYouTubeTranscripts.failed,
         },
         webhookStats: {
           queued: queuedWebhook.pending + queuedWebhook.pending_retry,
@@ -296,6 +338,90 @@ export const adminAppRouter = router({
           });
         }),
       );
+    }),
+  retryMissingYouTubeTranscripts: adminBookmarksProcedure
+    .input(z.object({ cursor: z.string().optional() }).optional())
+    .mutation(async ({ ctx, input }) => {
+      if (!serverConfig.crawler.youtubeTranscript) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "YouTube transcript crawling is disabled",
+        });
+      }
+
+      const batchSize = 100;
+      // Failed jobs retain their keys, so each admin run needs a new one.
+      const retryRunId = randomUUID();
+      const rows = await ctx.db
+        .select({
+          id: bookmarkLinks.id,
+          url: bookmarkLinks.url,
+          htmlContent: bookmarkLinks.htmlContent,
+          contentAssetId: bookmarkLinks.contentAssetId,
+          userId: bookmarks.userId,
+        })
+        .from(bookmarkLinks)
+        .innerJoin(bookmarks, eq(bookmarkLinks.id, bookmarks.id))
+        .where(
+          and(
+            input?.cursor ? gt(bookmarkLinks.id, input.cursor) : undefined,
+            or(
+              ...youtubeVideoUrlPrefixes.map((prefix) =>
+                like(bookmarkLinks.url, `${prefix}%`),
+              ),
+            ),
+          ),
+        )
+        .orderBy(asc(bookmarkLinks.id))
+        .limit(batchSize + 1);
+      const candidates = rows.slice(0, batchSize);
+
+      const enqueueCandidate = async (
+        bookmark: (typeof candidates)[number],
+      ) => {
+        if (!getYouTubeVideoId(bookmark.url)) return 0;
+        let html = bookmark.htmlContent ?? "";
+        if (bookmark.contentAssetId) {
+          try {
+            html =
+              (await Bookmark.getBookmarkHtmlContent(
+                {
+                  contentAssetId: bookmark.contentAssetId,
+                  htmlContent: bookmark.htmlContent,
+                },
+                bookmark.userId,
+              )) ?? "";
+          } catch (error) {
+            logger.warn(
+              `[admin] Unable to inspect saved content for transcript retry on bookmark ${bookmark.id}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+            return 0;
+          }
+        }
+        if (hasCurrentYouTubeTranscript(html)) return 0;
+
+        const jobId = await YouTubeTranscriptQueue.enqueue(
+          { bookmarkId: bookmark.id },
+          {
+            priority: QueuePriority.Low,
+            groupId: "admin",
+            idempotencyKey: `youtube-transcript:${bookmark.id}:retry:${retryRunId}`,
+          },
+        );
+        return jobId ? 1 : 0;
+      };
+      let queued = 0;
+      for (let offset = 0; offset < candidates.length; offset += 5) {
+        const results = await Promise.all(
+          candidates.slice(offset, offset + 5).map(enqueueCandidate),
+        );
+        queued += results.reduce<number>((total, count) => total + count, 0);
+      }
+      return {
+        queued,
+        nextCursor:
+          rows.length > batchSize ? (candidates.at(-1)?.id ?? null) : null,
+      };
     }),
   reindexAllBookmarks: adminBookmarksProcedure
     .input(

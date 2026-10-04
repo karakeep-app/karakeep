@@ -22,6 +22,7 @@ import {
   IMAGE_ASSET_TYPES,
   newAssetId,
   QuotaService,
+  StorageQuotaError,
   saveAsset,
   saveAssetFromFile,
   withSpan,
@@ -496,7 +497,10 @@ export async function archiveWebpage(
 export type StoreHtmlResult =
   | { result: "stored"; assetId: string; size: number }
   | { result: "store_inline" }
-  | { result: "not_stored" };
+  | {
+      result: "not_stored";
+      reason: "empty_content" | "quota_exceeded" | "quota_check_failed";
+    };
 
 export async function storeHtmlContent(
   htmlContent: string | undefined,
@@ -517,7 +521,7 @@ export async function storeHtmlContent(
     },
     async () => {
       if (!htmlContent) {
-        return { result: "not_stored" };
+        return { result: "not_stored", reason: "empty_content" };
       }
 
       const contentSize = Buffer.byteLength(htmlContent, "utf8");
@@ -535,9 +539,15 @@ export async function storeHtmlContent(
       );
       if (quotaError) {
         logger.warn(
-          `[Crawler][${jobId}] Skipping HTML content storage due to quota exceeded: ${quotaError.message}`,
+          `[Crawler][${jobId}] Skipping HTML content storage: ${quotaError.message}`,
         );
-        return { result: "not_stored" };
+        return {
+          result: "not_stored",
+          reason:
+            quotaError instanceof StorageQuotaError
+              ? "quota_exceeded"
+              : "quota_check_failed",
+        };
       }
 
       const assetId = newAssetId();

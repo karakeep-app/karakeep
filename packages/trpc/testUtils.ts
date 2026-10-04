@@ -16,6 +16,7 @@ const testQueueMocks = vi.hoisted(() => ({
   ruleEngineEnqueue: vi.fn(),
   searchIndexingEnqueue: vi.fn(),
   triggerSearchReindex: vi.fn(),
+  youtubeTranscriptEnqueue: vi.fn(),
 }));
 
 export function getTestQueueMocks() {
@@ -128,6 +129,15 @@ export function defaultBeforeEach(seedDB = true) {
         },
         LowPriorityCrawlerQueue: {
           enqueue: testQueueMocks.lowPriorityCrawlerEnqueue,
+        },
+        YouTubeTranscriptQueue: {
+          enqueue: testQueueMocks.youtubeTranscriptEnqueue,
+          stats: vi.fn().mockResolvedValue({
+            pending: 0,
+            pending_retry: 0,
+            running: 0,
+            failed: 0,
+          }),
         },
         OpenAIQueue: {
           enqueue: testQueueMocks.openAIEnqueue,

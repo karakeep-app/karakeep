@@ -117,6 +117,10 @@
           "title": "ビデオダウンロードジョブ",
           "description": "動画の抽出とダウンロード"
         },
+        "youtube_transcript": {
+          "title": "YouTube字幕ジョブ",
+          "description": "YouTube字幕の取得と保存"
+        },
         "webhook": {
           "title": "Webhookジョブ",
           "description": "外部Webhook通知"
@@ -135,6 +139,9 @@
       "available_actions": "利用可能なアクション",
       "status": {
         "title": "ジョブの状態について",
+        "running": {
+          "title": "実行中"
+        },
         "queued": {
           "title": "キューに追加済み",
           "description": "処理待ちのジョブが並んでいます。リソースが利用可能になると自動的に開始されます。"
@@ -149,6 +156,10 @@
         }
       },
       "actions": {
+        "retry_missing_youtube_transcripts": "未取得・旧形式のYouTube字幕を再取得（最初の100件）",
+        "continue_youtube_transcript_retry": "YouTube字幕の再取得を続ける（次の100件）",
+        "retry_youtube_transcripts_more": "ここまでに{{count}}件の再取得を予約しました。次の100件も確認できます。",
+        "retry_youtube_transcripts_queued": "{{count}}件のYouTubeリンクで字幕の再取得を予約しました",
         "recrawl_failed_links_only": "失敗したリンクのみを再クロール",
         "recrawl_all_links": "すべてのリンクを再クロール",
         "without_inference": "推論なし",
@@ -996,6 +1007,19 @@
     "cached_content": "キャッシュされたコンテンツ",
     "view_original": "オリジナルを見る",
     "reader_view": "リーダー表示",
+    "youtube_transcript": {
+      "view": "動画と字幕",
+      "title": "字幕",
+      "languages": "字幕の言語",
+      "player": "YouTubeプレーヤー",
+      "source": {
+        "manual": "手動字幕",
+        "automatic": "自動生成字幕"
+      },
+      "player_unavailable": "YouTubeプレーヤーを読み込めませんでした。",
+      "empty_title": "字幕がありません",
+      "empty_description": "この動画の字幕は保存されていません。字幕取得を有効にし、バックグラウンドジョブから再取得してください。"
+    },
     "tabs": {
       "content": "コンテンツ",
       "details": "詳細"
