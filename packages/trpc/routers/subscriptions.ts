@@ -604,7 +604,7 @@ export const subscriptionsRouter = router({
   updateSubscriptionTier: adminSubscriptionsProcedure
     .input(
       z.object({
-        email: z.string().email(),
+        email: z.string().trim().toLowerCase().email(),
         manualTierName: z.string().trim().min(1).max(100).nullable(),
         bookmarkQuota: z.number().int().min(0).nullable().optional(),
         storageQuota: z.number().int().min(0).nullable().optional(),

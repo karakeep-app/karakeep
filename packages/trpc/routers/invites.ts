@@ -21,7 +21,7 @@ export const invitesAppRouter = router({
   create: adminUsersProcedure
     .input(
       z.object({
-        email: z.string().email(),
+        email: z.string().trim().toLowerCase().email(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -177,7 +177,7 @@ export const invitesAppRouter = router({
       }
 
       const existingUser = await ctx.db.query.users.findFirst({
-        where: eq(users.email, invite.email),
+        where: eq(users.email, invite.email.toLowerCase()),
       });
 
       if (existingUser) {
