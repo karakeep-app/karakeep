@@ -6,6 +6,7 @@ import QueryPageState from "@/components/QueryPageState";
 import { Button } from "@/components/ui/Button";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
+import { GroupedSection, NavigationRow } from "@/components/ui/GroupedList";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
@@ -166,6 +167,17 @@ const EditListPage = () => {
               })
             }
           />
+
+          {list.userRole === "owner" && (
+            <GroupedSection>
+              <NavigationRow
+                label="Sharing & Access"
+                onPress={() =>
+                  router.push(`/dashboard/lists/${listId}/sharing`)
+                }
+              />
+            </GroupedSection>
+          )}
 
           {/* Smart List Query Input */}
           {list?.type === "smart" && (

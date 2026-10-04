@@ -24,6 +24,7 @@ import {
   bookmarks,
   bookmarksInLists,
   bookmarkTags,
+  highlights,
   rssFeedImportsTable,
   rssFeedsTable,
   tagsOnBookmarks,
@@ -100,6 +101,23 @@ async function getIds(
 
   switch (matcher.type) {
     case "tagName": {
+      if (!matcher.inverse) {
+        return db
+          .selectDistinct({ id: bookmarks.id })
+          .from(bookmarkTags)
+          .crossJoin(tagsOnBookmarks)
+          .crossJoin(bookmarks)
+          .where(
+            and(
+              eq(bookmarkTags.userId, userId),
+              eq(bookmarkTags.name, matcher.tagName),
+              eq(tagsOnBookmarks.tagId, bookmarkTags.id),
+              eq(bookmarks.id, tagsOnBookmarks.bookmarkId),
+              eq(bookmarks.userId, userId),
+            ),
+          );
+      }
+
       const comp = matcher.inverse ? notExists : exists;
       return db
         .selectDistinct({ id: bookmarks.id })
@@ -329,6 +347,41 @@ async function getIds(
           and(
             eq(bookmarks.userId, userId),
             eq(bookmarks.favourited, matcher.favourited),
+          ),
+        );
+    }
+    case "hasNotes": {
+      return db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            matcher.hasNotes
+              ? and(isNotNull(bookmarks.note), ne(bookmarks.note, ""))
+              : or(isNull(bookmarks.note), eq(bookmarks.note, "")),
+          ),
+        );
+    }
+    case "hasHighlights": {
+      const comp = matcher.hasHighlights ? exists : notExists;
+      return db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, userId),
+            comp(
+              db
+                .select()
+                .from(highlights)
+                .where(
+                  and(
+                    eq(highlights.bookmarkId, bookmarks.id),
+                    eq(highlights.userId, userId),
+                  ),
+                ),
+            ),
           ),
         );
     }

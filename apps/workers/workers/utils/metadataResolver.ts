@@ -15,6 +15,7 @@ const CHALLENGE_PAGE_TITLES = new Set([
   // PerimeterX
   "access to this page has been denied",
   "access to this page has been denied.",
+  "robot or human?",
   // Amazon / Bloomberg
   "robot check",
   "are you a robot?",
@@ -79,6 +80,24 @@ export function isLikelyChallengePage({
   }
   const lowered = htmlContent.toLowerCase();
   return CHALLENGE_PAGE_BODY_MARKERS.some((marker) => lowered.includes(marker));
+}
+
+// DataDome's captcha page (as opposed to its self-clearing device check) needs
+// a human to solve it, so there's no point waiting for it to clear.
+const DATADOME_HARD_CAPTCHA = /['"]rt['"]\s*:\s*['"]c['"]/;
+
+/**
+ * Whether the page is a bot challenge that may clear by itself (and reload
+ * into the real page) if the browser keeps waiting.
+ */
+export function isWaitableChallenge(
+  title: string,
+  htmlContent: string,
+): boolean {
+  return (
+    isLikelyChallengePage({ title, htmlContent }) &&
+    !DATADOME_HARD_CAPTCHA.test(htmlContent)
+  );
 }
 
 /**

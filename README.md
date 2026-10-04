@@ -8,9 +8,6 @@
     <a href="https://discord.gg/NrgeYywsFh">
         <img alt="Discord" src="https://img.shields.io/discord/1223681308962721802?label=chat%20on%20discord" />
     </a>
-    <a href="https://hosted.weblate.org/engage/hoarder/">
-        <img src="https://hosted.weblate.org/widget/hoarder/hoarder/svg-badge.svg" alt="Translation status" />
-    </a>
 </div>
 
 # <img height="50px" src="./screenshots/logo.png" />
@@ -98,7 +95,7 @@ I'm a systems engineer in my day job (and have been for the past 7 years). I did
 
 ## Translations
 
-Karakeep uses Weblate for managing translations. If you want to help translate Karakeep, you can do so [here](https://hosted.weblate.org/engage/hoarder/).
+Translations live in [`apps/web/lib/i18n/locales`](apps/web/lib/i18n/locales), one `translation.json` per language, with English (`en`) as the source. To fix or improve a translation, open a pull request that edits the relevant file.
 
 ## Karakeep Cloud ☁️
 

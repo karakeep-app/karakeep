@@ -19,10 +19,10 @@
     "@tsconfig/node22": "^22.0.0",
     "@types/turndown": "^5.0.5",
     "shx": "^0.4.0",
-    "tsx": "^4.8.1",
-    "vite": "^7.0.6",
+    "tsx": "^4.23.13",
+    "vite": "^8.3.0",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "build": "vite build && shx chmod +x dist/index.js",

@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
-    "tsx": "^4.8.1"
+    "tsx": "^4.23.13"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

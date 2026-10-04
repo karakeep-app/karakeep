@@ -132,6 +132,13 @@ function ListActionsMenu({
           }),
         },
         {
+          id: "sharing",
+          title: role === "owner" ? "Sharing & Access" : "People with Access",
+          attributes: { hidden: role === "public" },
+          image: Platform.select({ ios: "person.2" }),
+          imageColor: Platform.select({ ios: menuIconColor }),
+        },
+        {
           id: "delete_list",
           title: "Delete List",
           attributes: {
@@ -170,6 +177,8 @@ function ListActionsMenu({
           handleDelete();
         } else if (nativeEvent.event === "leave") {
           handleLeave();
+        } else if (nativeEvent.event === "sharing") {
+          router.push(`/dashboard/lists/${listId}/sharing`);
         } else if (nativeEvent.event === "edit") {
           handleEdit();
         }

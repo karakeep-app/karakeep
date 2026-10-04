@@ -16,17 +16,17 @@
     "typecheck": "astro check && tsc --noEmit"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/react": "^5.0.2",
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/react": "^6.0.6",
     "@astrojs/sitemap": "^3.7.3",
     "@radix-ui/react-slot": "^1.2.4",
-    "astro": "^6.4.8",
+    "astro": "^7.2.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "lucide-react": "^0.501.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "sharp": "^0.33.3",
+    "sharp": "^0.35.4",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7"
   },
@@ -38,8 +38,9 @@
     "@types/react-dom": "19.2.3",
     "autoprefixer": "^10.4.17",
     "portless": "^0.10.3",
-    "postcss": "^8.4.35",
+    "postcss": "^8.5.28",
     "tailwindcss": "^3.4.1",
+    "vite": "^8.3.0",
     "vite-plugin-svgr": "^4.3.0"
   }
 }

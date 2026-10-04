@@ -48,21 +48,15 @@ export function TagOptions({
       />
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setRenameTagDialogOpen(true)}
-        >
+        <DropdownMenuItem onClick={() => setRenameTagDialogOpen(true)}>
           <Pencil className="size-4" />
           <span>{t("actions.rename")}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setMergeTagDialogOpen(true)}
-        >
+        <DropdownMenuItem onClick={() => setMergeTagDialogOpen(true)}>
           <Combine className="size-4" />
           <span>{t("actions.merge")}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="flex gap-2" onClick={onClickShowArchived}>
+        <DropdownMenuItem onClick={onClickShowArchived}>
           {showArchived ? (
             <SquareCheck className="size-4" />
           ) : (
@@ -70,10 +64,7 @@ export function TagOptions({
           )}
           <span>{t("actions.toggle_show_archived")}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          className="flex gap-2"
-          onClick={() => setDeleteTagDialogOpen(true)}
-        >
+        <DropdownMenuItem onClick={() => setDeleteTagDialogOpen(true)}>
           <Trash2 className="size-4" />
           <span>{t("actions.delete")}</span>
         </DropdownMenuItem>

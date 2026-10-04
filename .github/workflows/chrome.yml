@@ -19,7 +19,8 @@ concurrency:
 
 env:
   IMAGE: ghcr.io/karakeep-app/karakeep-chrome
-  HEADLESS_SHELL_VERSION: 151.0.7922.47
+  # Google Chrome version (amd64); arm64 images use Debian's Chromium.
+  GOOGLE_CHROME_VERSION: 154.0.8037.57
   IMAGE_REVISION: r1
 
 jobs:
@@ -63,6 +64,7 @@ jobs:
           build-args: |
             BUILD_REVISION=${{ github.sha }}
             BUILD_CREATED=${{ needs.metadata.outputs.created }}
+            GOOGLE_CHROME_VERSION=${{ env.GOOGLE_CHROME_VERSION }}
           context: .
           file: docker/chrome/Dockerfile
           load: true
@@ -111,7 +113,7 @@ jobs:
 
       - name: Refuse to overwrite the immutable tag
         env:
-          VERSION_TAG: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}
+          VERSION_TAG: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}
         run: |
           if docker buildx imagetools inspect "$VERSION_TAG" >/dev/null 2>&1; then
             echo "Refusing to overwrite published image $VERSION_TAG"
@@ -124,11 +126,12 @@ jobs:
           build-args: |
             BUILD_REVISION=${{ github.sha }}
             BUILD_CREATED=${{ needs.metadata.outputs.created }}
+            GOOGLE_CHROME_VERSION=${{ env.GOOGLE_CHROME_VERSION }}
           context: .
           file: docker/chrome/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}-${{ matrix.suffix }}
+          tags: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}-${{ matrix.suffix }}
 
   publish-manifest:
     name: Publish multi-architecture manifest
@@ -158,7 +161,7 @@ jobs:
         env:
           LATEST_TAG: ${{ env.IMAGE }}:latest
           RELEASE_TAG: ${{ env.IMAGE }}:release
-          VERSION_TAG: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}
+          VERSION_TAG: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}
         run: |
           docker buildx imagetools create \
             --tag "$VERSION_TAG" \
@@ -171,7 +174,7 @@ jobs:
         env:
           LATEST_TAG: ${{ env.IMAGE }}:latest
           RELEASE_TAG: ${{ env.IMAGE }}:release
-          VERSION_TAG: ${{ env.IMAGE }}:${{ env.HEADLESS_SHELL_VERSION }}-${{ env.IMAGE_REVISION }}
+          VERSION_TAG: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}
         run: |
           docker buildx imagetools inspect "$VERSION_TAG"
           docker buildx imagetools inspect "$LATEST_TAG"

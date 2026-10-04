@@ -283,6 +283,60 @@ describe("API Keys Routes", () => {
         unauthedAPICaller.apiKeys.revoke({ id: "some-id" }),
       ).rejects.toThrow(/UNAUTHORIZED/);
     });
+
+    test<CustomTestContext>("an API key can revoke itself", async ({
+      unauthedAPICaller,
+      db,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "test@test.com",
+        password: "password123",
+        confirmPassword: "password123",
+      });
+
+      const key = await unauthedAPICaller.apiKeys.exchange({
+        keyName: "Mobile App",
+        email: user.email,
+        password: "password123",
+      });
+      const keyCaller = await getApiKeyCallerForPlainKey(db, key.key);
+
+      await keyCaller.apiKeys.revoke({ id: key.id });
+
+      const remainingKeys = await db
+        .select()
+        .from(apiKeys)
+        .where(eq(apiKeys.id, key.id));
+      expect(remainingKeys).toHaveLength(0);
+    });
+
+    test<CustomTestContext>("an API key cannot revoke other keys", async ({
+      unauthedAPICaller,
+      db,
+    }) => {
+      const user = await unauthedAPICaller.users.create({
+        name: "Test User",
+        email: "test@test.com",
+        password: "password123",
+        confirmPassword: "password123",
+      });
+
+      const api = getApiCaller(db, user.id, user.email).apiKeys;
+      const otherKey = await api.create({ name: "Other Key" });
+      const key = await api.create({ name: "Caller Key" });
+      const keyCaller = await getApiKeyCallerForPlainKey(db, key.key);
+
+      await expect(
+        keyCaller.apiKeys.revoke({ id: otherKey.id }),
+      ).rejects.toThrow(/API keys can only revoke themselves/);
+
+      const remainingKeys = await db
+        .select()
+        .from(apiKeys)
+        .where(eq(apiKeys.id, otherKey.id));
+      expect(remainingKeys).toHaveLength(1);
+    });
   });
 
   describe("validate", () => {

@@ -4,6 +4,13 @@ services:
       dockerfile: docker/Dockerfile
       context: ../../
       target: aio
+      # Reuse the layers (deps install, monolith, ...) that the docker workflow
+      # pushes from main. The checked-out source is still what gets built; only
+      # unchanged layers are reused. The cache is public so that it's readable
+      # without credentials (e.g. from fork PRs). If it's unavailable, buildkit
+      # just warns and builds from scratch.
+      cache_from:
+        - type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:aio-amd64
     restart: unless-stopped
     ports:
       - "${KARAKEEP_PORT:-3000}:3000"
@@ -52,18 +59,25 @@ services:
     volumes:
       - ./setup/html:/usr/share/nginx/html
       - ./setup/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-  minio:
-    image: minio/minio:latest
+  garage:
+    image: dxflrs/garage:v2.3.0
     restart: unless-stopped
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:3900"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
+      # Fixed credentials for local tests only.
+      GARAGE_DEFAULT_ACCESS_KEY: GK0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_SECRET_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_BUCKET: karakeep-test
+    command: /garage server --single-node --default-bucket
     volumes:
-      - minio_data:/data
+      - ../../docker/garage/garage.toml:/etc/garage.toml:ro
+      - garage_data:/data
+    healthcheck:
+      test: ["CMD", "/garage", "bucket", "info", "karakeep-test"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
   aimock:
     image: ghcr.io/copilotkit/aimock:latest
     restart: unless-stopped
@@ -88,4 +102,4 @@ services:
       retries: 20
 
 volumes:
-  minio_data:
+  garage_data:

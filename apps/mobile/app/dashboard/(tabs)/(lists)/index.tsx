@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Link, router } from "expo-router";
+import { PendingListInvitations } from "@/components/lists/pending-list-invitations";
 import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { FAB } from "@/components/ui/FAB";
@@ -112,6 +113,7 @@ export default function Lists() {
   const onRefresh = () => {
     queryClient.invalidateQueries(api.lists.list.pathFilter());
     queryClient.invalidateQueries(api.lists.stats.pathFilter());
+    queryClient.invalidateQueries(api.lists.getPendingInvitations.pathFilter());
   };
 
   const links: ListLink[] = [
@@ -184,6 +186,7 @@ export default function Lists() {
   return (
     <>
       <FlatList
+        ListHeaderComponent={PendingListInvitations}
         className="h-full"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{

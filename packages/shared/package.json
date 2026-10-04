@@ -8,11 +8,11 @@
     "cheerio": "^1.2.0",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^9.1.1",
     "ollama": "^0.5.14",
     "openai": "^6.34.0",
     "typescript-parsec": "^0.3.4",
-    "undici": "^6.28.0",
+    "undici": "^6.28.1",
     "winston": "^3.11.0",
     "zod": "^4.2.0"
   },
@@ -21,7 +21,7 @@
     "@types/html-to-text": "^9.0.4",
     "@types/nodemailer": "^6.4.17",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

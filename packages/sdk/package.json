@@ -21,9 +21,9 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "openapi-typescript": "^7.6.1",
-    "tsx": "^4.8.1",
-    "vite": "^7.0.6",
-    "vite-plugin-dts": "^4.4.0"
+    "tsx": "^4.23.13",
+    "vite": "^8.3.0",
+    "vite-plugin-dts": "^4.5.4"
   },
   "scripts": {
     "build": "vite build",

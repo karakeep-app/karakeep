@@ -17,7 +17,7 @@ import {
   BrowserContextOptions,
   CDPSession,
   Page,
-} from "playwright";
+} from "patchright";
 import { abortRace, abortRaceResolve, raceWith, timeoutRace } from "utils";
 
 import { db } from "@karakeep/db";
@@ -31,7 +31,6 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
-import type { AutoconsentHandle } from "./autoconsent";
 import {
   installAutoconsent,
   waitForPageLoadAndAutoconsent,
@@ -41,12 +40,14 @@ import {
   PAGE_CLOSE_TIMEOUT_MS,
   getGlobalBlocker,
   getGlobalBrowser,
+  getBrowserUserAgent,
   getGlobalCookies,
   getPlaywrightProxyConfig,
   startBrowserInstance,
   trackContext,
   untrackContext,
 } from "./browser";
+import { waitForChallengeToClear } from "./challenge";
 import { truncateUrl } from "./utils";
 
 const tracer = getTracer("@karakeep/workers");
@@ -217,7 +218,7 @@ async function installRedirectGuard(
  */
 interface SetupPageResult {
   page: Page;
-  autoconsent: AutoconsentHandle | undefined;
+  autoconsentEnabled: boolean;
 }
 
 async function setupPage(
@@ -305,7 +306,7 @@ async function setupPage(
       // Install autoconsent AFTER the redirect guard and SSRF request router
       // are in place (conservative ordering; it injects scripts). No-op unless
       // enabled and the bundle loaded.
-      const autoconsent = await installAutoconsent(nextPage, jobId);
+      const autoconsentEnabled = await installAutoconsent(nextPage, jobId);
 
       // On abort, immediately stop intercepting requests so that
       // in-flight route handlers don't block page/context closure.
@@ -322,7 +323,7 @@ async function setupPage(
         { once: true },
       );
 
-      return { page: nextPage, autoconsent };
+      return { page: nextPage, autoconsentEnabled };
     },
   );
 }
@@ -634,6 +635,7 @@ export async function crawlPage(
       }
 
       const proxyConfig = getPlaywrightProxyConfig(runProxy);
+      const userAgent = await getBrowserUserAgent(browser);
       const isRunningInProxyContext =
         proxyConfig !== undefined &&
         !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
@@ -648,8 +650,10 @@ export async function crawlPage(
         async () =>
           browser.newContext({
             viewport: { width: 1440, height: 900 },
-            userAgent:
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            userAgent,
+            // A UTC browser behind a proxy that geolocates elsewhere is a
+            // strong bot signal; this should match the proxy's location.
+            timezoneId: serverConfig.crawler.browserTimezone,
             proxy: proxyConfig,
             serviceWorkers: "block",
           }),
@@ -668,7 +672,6 @@ export async function crawlPage(
 
         const setup = await setupPage(context, jobId, proxyConfig, abortSignal);
         page = setup.page;
-        const autoconsentHandle = setup.autoconsent;
 
         // page is guaranteed to be assigned here; alias to a const for
         // TypeScript narrowing so the rest of the try block sees `Page`.
@@ -693,6 +696,18 @@ export async function crawlPage(
           );
         }
         const targetUrl = navigationValidation.url.toString();
+        // Tracks the status of the latest main-frame document, which differs
+        // from the initial navigation's when a bot challenge clears and
+        // reloads into the real page.
+        let mainDocumentStatus: number | undefined;
+        activePage.on("response", (res) => {
+          if (
+            res.request().isNavigationRequest() &&
+            res.frame() === activePage.mainFrame()
+          ) {
+            mainDocumentStatus = res.status();
+          }
+        });
         logger.info(`[Crawler][${jobId}] Navigating to "${targetUrl}"`);
         const response = await withSpan(
           tracer,
@@ -744,12 +759,25 @@ export async function crawlPage(
         );
 
         await waitForPageLoadAndAutoconsent(
+          activePage,
           pageLoad,
-          autoconsentHandle,
+          setup.autoconsentEnabled,
           abortSignal,
         );
-
         abortSignal.throwIfAborted();
+
+        await withSpan(
+          tracer,
+          "crawlerWorker.crawlPage.waitForChallenge",
+          { attributes: { "job.id": jobId } },
+          () =>
+            waitForChallengeToClear(
+              activePage,
+              mainDocumentStatus ?? response?.status() ?? 0,
+              jobId,
+              abortSignal,
+            ),
+        );
 
         logger.info(
           `[Crawler][${jobId}] Finished waiting for the page to load.`,
@@ -764,7 +792,7 @@ export async function crawlPage(
 
         return {
           htmlContent,
-          statusCode: response?.status() ?? 0,
+          statusCode: mainDocumentStatus ?? response?.status() ?? 0,
           screenshot,
           pdf,
           url: activePage.url(),

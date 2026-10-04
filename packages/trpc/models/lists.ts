@@ -218,7 +218,10 @@ export abstract class List {
     // The token here acts as an authed context, so we can create
     // an impersonating context for the list owner as long as
     // we don't leak the context.
-    const authedCtx = await buildImpersonatingAuthedContext(listdb.userId);
+    const authedCtx = await buildImpersonatingAuthedContext(
+      listdb.userId,
+      ctx.db,
+    );
     const listObj = List.fromData(
       authedCtx,
       {
@@ -228,11 +231,13 @@ export abstract class List {
       },
       null,
     );
-    const bookmarkIds = await listObj.getBookmarkIds();
+    const numItems = await listObj.getSize();
     const list = listObj.asZBookmarkList();
 
+    // Filtering by listId instead of by ids, because the ids path is scoped to
+    // the list owner and would hide the bookmarks added by collaborators.
     const bookmarks = await Bookmark.loadMulti(authedCtx, {
-      ids: bookmarkIds,
+      listId: listObj.id,
       includeContent: false,
       limit: pagination.limit,
       sortOrder: pagination.order,
@@ -245,7 +250,7 @@ export abstract class List {
         name: list.name,
         description: list.description,
         ownerName: listdb.user.name,
-        numItems: bookmarkIds.length,
+        numItems,
       },
       bookmarks: bookmarks.bookmarks.map((b) => b.asPublicBookmark()),
       nextCursor: bookmarks.nextCursor,

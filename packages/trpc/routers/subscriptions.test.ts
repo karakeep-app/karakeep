@@ -43,7 +43,9 @@ const mockStripeInstance = vi.hoisted(() => ({
 
 vi.mock("stripe", () => {
   return {
-    default: vi.fn(() => mockStripeInstance),
+    default: vi.fn(function () {
+      return mockStripeInstance;
+    }),
   };
 });
 

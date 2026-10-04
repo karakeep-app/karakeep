@@ -136,7 +136,7 @@ describe("S3AssetStore - S3-Specific Behaviors", () => {
   });
 
   describe("S3 Eventual Consistency", () => {
-    it("should handle immediate read after write (MinIO strong consistency)", async () => {
+    it("should handle immediate read after write", async () => {
       const testData = createTestAssetData();
 
       await store.saveAsset({
@@ -146,7 +146,7 @@ describe("S3AssetStore - S3-Specific Behaviors", () => {
         metadata: testData.metadata,
       });
 
-      // Immediately try to read - should work with MinIO's strong consistency
+      // A completed write should be immediately readable.
       const { asset, metadata } = await store.readAsset({
         userId: testData.userId,
         assetId: testData.assetId,

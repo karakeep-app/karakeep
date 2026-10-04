@@ -131,10 +131,11 @@ export function createLocalFileSystemStore(
 export function createS3Store(bucketName: string): S3AssetStore {
   const s3Client = new S3Client({
     region: "us-east-1",
-    endpoint: "http://localhost:9000", // MinIO endpoint for testing
+    endpoint: "http://localhost:9000", // Garage endpoint for testing
     credentials: {
-      accessKeyId: "minioadmin",
-      secretAccessKey: "minioadmin",
+      accessKeyId: "GK0123456789abcdef0123456789abcdef",
+      secretAccessKey:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     },
     forcePathStyle: true,
   });
@@ -147,8 +148,9 @@ export async function createTestBucket(bucketName: string): Promise<S3Client> {
     region: "us-east-1",
     endpoint: "http://localhost:9000",
     credentials: {
-      accessKeyId: "minioadmin",
-      secretAccessKey: "minioadmin",
+      accessKeyId: "GK0123456789abcdef0123456789abcdef",
+      secretAccessKey:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     },
     forcePathStyle: true,
   });

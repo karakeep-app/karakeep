@@ -738,6 +738,71 @@ describe("recursive delete", () => {
   });
 });
 
+describe("Smart list qualifiers", () => {
+  test<CustomTestContext>("smart list applies note and highlight qualifiers per user", async ({
+    apiCallers,
+  }) => {
+    const ownerApi = apiCallers[0];
+    const otherApi = apiCallers[1];
+
+    const withNote = await ownerApi.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Bookmark with a note",
+      note: "Owner note",
+    });
+    await ownerApi.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Bookmark with an empty note",
+      note: "",
+    });
+    const withHighlight = await ownerApi.bookmarks.createBookmark({
+      type: BookmarkTypes.LINK,
+      url: "https://example.com/owner-highlight",
+    });
+    await ownerApi.highlights.create({
+      bookmarkId: withHighlight.id,
+      startOffset: 0,
+      endOffset: 4,
+      color: "yellow",
+      text: "Test highlight",
+      note: "",
+    });
+
+    await otherApi.bookmarks.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "Other user's bookmark with a note",
+      note: "Other user note",
+    });
+    const otherWithHighlight = await otherApi.bookmarks.createBookmark({
+      type: BookmarkTypes.LINK,
+      url: "https://example.com/other-highlight",
+    });
+    await otherApi.highlights.create({
+      bookmarkId: otherWithHighlight.id,
+      startOffset: 0,
+      endOffset: 4,
+      color: "yellow",
+      text: "Other user's highlight",
+      note: "",
+    });
+
+    const smartList = await ownerApi.lists.create({
+      name: "Notes or highlights",
+      type: "smart",
+      query: "has:notes or has:highlights",
+      icon: "📝",
+    });
+
+    const result = await ownerApi.bookmarks.getBookmarks({
+      listId: smartList.id,
+    });
+
+    expect(result.bookmarks.map((bookmark) => bookmark.id).sort()).toEqual(
+      [withNote.id, withHighlight.id].sort(),
+    );
+  });
+});
+
 describe("Nested smart lists", () => {
   test<CustomTestContext>("smart list can reference another smart list", async ({
     apiCallers,

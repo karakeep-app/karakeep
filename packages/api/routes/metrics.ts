@@ -18,7 +18,7 @@ const prometheusHandlers = (globalForPrometheus.__karakeepApiPrometheus ??=
   prometheus({
     registry: register,
     prefix: "karakeep_",
-    collectDefaultMetrics: true,
+    collectDefaultMetrics: serverConfig.prometheus.enabled,
   }));
 
 export const { printMetrics, registerMetrics } = prometheusHandlers;
