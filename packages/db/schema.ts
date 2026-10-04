@@ -14,6 +14,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
+import type { ZHighlightContent } from "@karakeep/shared/types/highlights";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
@@ -399,6 +400,7 @@ export const highlights = sqliteTable(
       .notNull(),
     text: text("text"),
     note: text("note"),
+    content: text("content", { mode: "json" }).$type<ZHighlightContent>(),
     createdAt: createdAtField(),
   },
   (tb) => [

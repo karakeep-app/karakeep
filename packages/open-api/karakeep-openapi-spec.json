@@ -669,6 +669,76 @@
             "type": "string",
             "nullable": true
           },
+          "content": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "version": {
+                "type": "number",
+                "enum": [
+                  1
+                ]
+              },
+              "parts": {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "text"
+                          ]
+                        },
+                        "text": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "text"
+                      ]
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "image"
+                          ]
+                        },
+                        "index": {
+                          "type": "integer",
+                          "minimum": 0
+                        },
+                        "src": {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        "alt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "index",
+                        "src",
+                        "alt"
+                      ]
+                    }
+                  ]
+                },
+                "maxItems": 1000
+              }
+            },
+            "required": [
+              "version",
+              "parts"
+            ]
+          },
           "id": {
             "type": "string"
           },
@@ -3612,6 +3682,76 @@
                   "note": {
                     "type": "string",
                     "nullable": true
+                  },
+                  "content": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "version": {
+                        "type": "number",
+                        "enum": [
+                          1
+                        ]
+                      },
+                      "parts": {
+                        "type": "array",
+                        "items": {
+                          "oneOf": [
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "text"
+                                  ]
+                                },
+                                "text": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "text"
+                              ]
+                            },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "image"
+                                  ]
+                                },
+                                "index": {
+                                  "type": "integer",
+                                  "minimum": 0
+                                },
+                                "src": {
+                                  "type": "string",
+                                  "format": "uri"
+                                },
+                                "alt": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "type",
+                                "index",
+                                "src",
+                                "alt"
+                              ]
+                            }
+                          ]
+                        },
+                        "maxItems": 1000
+                      }
+                    },
+                    "required": [
+                      "version",
+                      "parts"
+                    ]
                   }
                 },
                 "required": [
