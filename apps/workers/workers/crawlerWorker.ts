@@ -1068,13 +1068,13 @@ const crawlAndParseUrl = traced(
     let readableContent = parsedReadableContent;
 
     const screenshotAssetInfo = await raceWith(
-      storeScreenshot(screenshot, userId, jobId),
+      storeCapturedAsset("screenshot", screenshot, userId, jobId),
       abortRace(abortSignal),
     );
     abortSignal.throwIfAborted();
 
     const pdfAssetInfo = await raceWith(
-      storePdf(pdf, userId, jobId),
+      storeCapturedAsset("pdf", pdf, userId, jobId),
       abortRace(abortSignal),
     );
     abortSignal.throwIfAborted();
@@ -1086,11 +1086,12 @@ const crawlAndParseUrl = traced(
     );
     abortSignal.throwIfAborted();
     let imageAssetInfo: DBAssetType | null = null;
-    if (meta.image) {
-      const downloaded = await downloadAndStoreImage(
+    if (meta.image && serverConfig.crawler.downloadBannerImage) {
+      const downloaded = await downloadAndStoreFile(
         meta.image,
         userId,
         jobId,
+        "image",
         abortSignal,
         runProxy,
       );
@@ -1547,7 +1548,7 @@ const capturePageAssets = traced(
             await tryCatch(
               raceWith<Buffer>(
                 activePage.screenshot({
-                  // If you change this, you need to change the asset type in the store function.
+                  // If you change this, change the content type in CAPTURED_ASSETS too.
                   type: "jpeg",
                   fullPage: serverConfig.crawler.fullPageScreenshot,
                   quality: 80,
@@ -1812,91 +1813,63 @@ async function enqueuePostCrawlJobs(
 // Asset storage: screenshots, PDFs, images, HTML content, archives
 // ---------------------------------------------------------------------------
 
-const storeScreenshot = traced(
-  "storeScreenshot",
-  async (screenshot: Buffer | undefined, userId: string, jobId: string) => {
-    setSpanAttributes({ "asset.size": screenshot?.byteLength ?? 0 });
-    if (!serverConfig.crawler.storeScreenshot) {
-      logger.info(
-        `[Crawler][${jobId}] Skipping storing the screenshot as per the config.`,
-      );
-      return null;
-    }
-    if (!screenshot) {
-      logger.info(
-        `[Crawler][${jobId}] Skipping storing the screenshot as it's empty.`,
-      );
-      return null;
-    }
-    const assetId = newAssetId();
-    const contentType = "image/jpeg";
-    const fileName = "screenshot.jpeg";
+const CAPTURED_ASSETS = {
+  screenshot: {
+    spanName: "storeScreenshot",
+    label: "screenshot",
+    // Must match the format capturePageAssets takes the screenshot in.
+    contentType: "image/jpeg",
+    fileName: "screenshot.jpeg",
+  },
+  pdf: {
+    spanName: "storePdf",
+    label: "PDF",
+    contentType: "application/pdf",
+    fileName: "page.pdf",
+  },
+} as const;
 
-    // Check storage quota before saving the screenshot
+/** Stores a screenshot or PDF captured from the page, if within quota. */
+function storeCapturedAsset(
+  kind: keyof typeof CAPTURED_ASSETS,
+  data: Buffer | undefined,
+  userId: string,
+  jobId: string,
+) {
+  const { spanName, label, contentType, fileName } = CAPTURED_ASSETS[kind];
+  return span(spanName, async () => {
+    setSpanAttributes({ "asset.size": data?.byteLength ?? 0 });
+    if (!data) {
+      logger.info(
+        `[Crawler][${jobId}] Skipping storing the ${label} as it's empty.`,
+      );
+      return null;
+    }
+
     const { data: quotaApproved, error: quotaError } = await tryCatch(
-      QuotaService.checkStorageQuota(db, userId, screenshot.byteLength),
+      QuotaService.checkStorageQuota(db, userId, data.byteLength),
     );
-
     if (quotaError) {
       logger.warn(
-        `[Crawler][${jobId}] Skipping screenshot storage due to quota exceeded: ${quotaError.message}`,
+        `[Crawler][${jobId}] Skipping ${label} storage due to quota exceeded: ${quotaError.message}`,
       );
       return null;
     }
 
+    const assetId = newAssetId();
     await saveAsset({
       userId,
       assetId,
       metadata: { contentType, fileName },
-      asset: screenshot,
+      asset: data,
       quotaApproved,
     });
     logger.info(
-      `[Crawler][${jobId}] Stored the screenshot as assetId: ${assetId} (${screenshot.byteLength} bytes)`,
+      `[Crawler][${jobId}] Stored the ${label} as assetId: ${assetId} (${data.byteLength} bytes)`,
     );
-    return { assetId, contentType, fileName, size: screenshot.byteLength };
-  },
-);
-
-const storePdf = traced(
-  "storePdf",
-  async (pdf: Buffer | undefined, userId: string, jobId: string) => {
-    setSpanAttributes({ "asset.size": pdf?.byteLength ?? 0 });
-    if (!pdf) {
-      logger.info(
-        `[Crawler][${jobId}] Skipping storing the PDF as it's empty.`,
-      );
-      return null;
-    }
-    const assetId = newAssetId();
-    const contentType = "application/pdf";
-    const fileName = "page.pdf";
-
-    // Check storage quota before saving the PDF
-    const { data: quotaApproved, error: quotaError } = await tryCatch(
-      QuotaService.checkStorageQuota(db, userId, pdf.byteLength),
-    );
-
-    if (quotaError) {
-      logger.warn(
-        `[Crawler][${jobId}] Skipping PDF storage due to quota exceeded: ${quotaError.message}`,
-      );
-      return null;
-    }
-
-    await saveAsset({
-      userId,
-      assetId,
-      metadata: { contentType, fileName },
-      asset: pdf,
-      quotaApproved,
-    });
-    logger.info(
-      `[Crawler][${jobId}] Stored the PDF as assetId: ${assetId} (${pdf.byteLength} bytes)`,
-    );
-    return { assetId, contentType, fileName, size: pdf.byteLength };
-  },
-);
+    return { assetId, contentType, fileName, size: data.byteLength };
+  });
+}
 
 /**
  * SingleFile / precrawled archives inline images as `data:` URIs, so the image
@@ -2087,29 +2060,6 @@ const downloadAndStoreFile = traced(
     }
   },
 );
-
-async function downloadAndStoreImage(
-  url: string,
-  userId: string,
-  jobId: string,
-  abortSignal: AbortSignal,
-  runProxy: RunProxyConfig,
-) {
-  if (!serverConfig.crawler.downloadBannerImage) {
-    logger.info(
-      `[Crawler][${jobId}] Skipping downloading the image as per the config.`,
-    );
-    return null;
-  }
-  return downloadAndStoreFile(
-    url,
-    userId,
-    jobId,
-    "image",
-    abortSignal,
-    runProxy,
-  );
-}
 
 const archiveWebpage = traced(
   "archiveWebpage",
