@@ -88,7 +88,7 @@ const allEnv = z.object({
   SEMANTIC_SEARCH_ENABLED: stringBool("true"),
   INFERENCE_JOB_TIMEOUT_SEC: z.coerce.number().default(30),
   INFERENCE_FETCH_TIMEOUT_SEC: z.coerce.number().default(300),
-  INFERENCE_TEXT_MODEL: z.string().default("gpt-5.6-luna"),
+  INFERENCE_TEXT_MODEL: z.string().default("gpt-6-luna"),
   INFERENCE_IMAGE_MODEL: z.string().default("gpt-4o-mini"),
   EMBEDDING_ENABLE_AUTO_INDEXING: optionalStringBool(),
   EMBEDDING_OPENAI_API_KEY: z.string().optional(),
@@ -105,7 +105,7 @@ const allEnv = z.object({
   EMBEDDING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   INFERENCE_CONTEXT_LENGTH: z.coerce.number().default(2048),
   INFERENCE_MAX_OUTPUT_TOKENS: z.coerce.number().default(2048),
-  INFERENCE_USE_MAX_COMPLETION_TOKENS: stringBool("false"),
+  INFERENCE_USE_MAX_COMPLETION_TOKENS: optionalStringBool(),
   INFERENCE_SUPPORTS_STRUCTURED_OUTPUT: optionalStringBool(),
   INFERENCE_OUTPUT_SCHEMA: z
     .enum(["structured", "json", "plain"])
@@ -126,6 +126,21 @@ const allEnv = z.object({
   BROWSER_COOKIE_PATH: z.string().optional(),
   CRAWLER_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_NAVIGATE_TIMEOUT_SEC: z.coerce.number().default(30),
+  CRAWLER_CHALLENGE_WAIT_SEC: z.coerce.number().default(15),
+  CRAWLER_BROWSER_TIMEZONE: z
+    .string()
+    .refine(
+      (tz) => {
+        try {
+          new Intl.DateTimeFormat("en-US", { timeZone: tz });
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      { message: "must be a valid IANA timezone (e.g. America/New_York)" },
+    )
+    .optional(),
   CRAWLER_NUM_WORKERS: z.coerce.number().default(1),
   INFERENCE_NUM_WORKERS: z.coerce.number().default(1),
   SEARCH_NUM_WORKERS: z.coerce.number().default(1),
@@ -139,6 +154,7 @@ const allEnv = z.object({
   CRAWLER_FULL_PAGE_SCREENSHOT: stringBool("false"),
   CRAWLER_STORE_PDF: stringBool("false"),
   CRAWLER_FULL_PAGE_ARCHIVE: stringBool("false"),
+  CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB: z.coerce.number().default(0),
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
@@ -161,10 +177,12 @@ const allEnv = z.object({
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   CRAWLER_PREFLIGHT_USER_AGENT: z.string().optional(),
   LOG_LEVEL: z.string().default("debug"),
-  NO_COLOR: stringBool("false"),
+  // https://no-color.org/: any nonempty value disables colors.
+  NO_COLOR: z.string().optional().transform(Boolean),
   DEMO_MODE: stringBool("false"),
   DEMO_MODE_EMAIL: z.string().optional(),
   DEMO_MODE_PASSWORD: z.string().optional(),
+  DEGRADED_MODE: stringBool("false"),
   DATA_DIR: z.string().default(""),
   ASSETS_DIR: z.string().optional(),
   MAX_ASSET_SIZE_MB: z.coerce.number().default(50),
@@ -350,7 +368,16 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       inferredTagLang: val.INFERENCE_LANG,
       contextLength: val.INFERENCE_CONTEXT_LENGTH,
       maxOutputTokens: val.INFERENCE_MAX_OUTPUT_TOKENS,
-      useMaxCompletionTokens: val.INFERENCE_USE_MAX_COMPLETION_TOKENS,
+      // The new default model (5.6 series) requires this being set to true.
+      // So if someone explicitly sets it to false, we'll respect that. If
+      // someone using the default openai based configuration, we'll default
+      // to true.
+      useMaxCompletionTokens:
+        val.INFERENCE_USE_MAX_COMPLETION_TOKENS !== undefined
+          ? val.INFERENCE_USE_MAX_COMPLETION_TOKENS
+          : !val.OLLAMA_BASE_URL && !val.OPENAI_BASE_URL && !!val.OPENAI_API_KEY
+            ? true
+            : false,
       outputSchema:
         val.INFERENCE_SUPPORTS_STRUCTURED_OUTPUT !== undefined
           ? val.INFERENCE_SUPPORTS_STRUCTURED_OUTPUT
@@ -394,11 +421,14 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       browserCookiePath: val.BROWSER_COOKIE_PATH,
       jobTimeoutSec: val.CRAWLER_JOB_TIMEOUT_SEC,
       navigateTimeoutSec: val.CRAWLER_NAVIGATE_TIMEOUT_SEC,
+      challengeWaitSec: val.CRAWLER_CHALLENGE_WAIT_SEC,
+      browserTimezone: val.CRAWLER_BROWSER_TIMEZONE,
       downloadBannerImage: val.CRAWLER_DOWNLOAD_BANNER_IMAGE,
       storeScreenshot: val.CRAWLER_STORE_SCREENSHOT,
       fullPageScreenshot: val.CRAWLER_FULL_PAGE_SCREENSHOT,
       storePdf: val.CRAWLER_STORE_PDF,
       fullPageArchive: val.CRAWLER_FULL_PAGE_ARCHIVE,
+      fullPageArchiveMaxSizeMb: val.CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB,
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
@@ -443,6 +473,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           password: val.DEMO_MODE_PASSWORD,
         }
       : undefined,
+    degradedMode: val.DEGRADED_MODE,
     dataDir: val.DATA_DIR,
     assetsDir: val.ASSETS_DIR ?? path.join(val.DATA_DIR, "assets"),
     maxAssetSizeMb: val.MAX_ASSET_SIZE_MB,
@@ -490,6 +521,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       },
     },
     prometheus: {
+      enabled: val.PROMETHEUS_AUTH_TOKEN !== undefined,
       metricsToken:
         val.PROMETHEUS_AUTH_TOKEN ?? crypto.randomBytes(64).toString("hex"),
     },

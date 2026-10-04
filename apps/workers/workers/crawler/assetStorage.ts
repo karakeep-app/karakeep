@@ -15,15 +15,17 @@ import { fetchWithProxy, getBookmarkDomain } from "network";
 import type { RunProxyConfig } from "network";
 
 import { db } from "@karakeep/db";
-import { getTracer, QuotaService, withSpan } from "@karakeep/shared-server";
 import {
   ASSET_TYPES,
   getAssetSize,
+  getTracer,
   IMAGE_ASSET_TYPES,
   newAssetId,
+  QuotaService,
   saveAsset,
   saveAssetFromFile,
-} from "@karakeep/shared/assetdb";
+  withSpan,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
@@ -327,6 +329,10 @@ export async function downloadAndStoreFile(
         logger.error(
           `[Crawler][${jobId}] Failed to download and store ${fileType}: ${e}`,
         );
+        // A crawler timeout aborts the job-wide signal. Do not turn that abort
+        // into a best-effort download miss: the queue runner must observe it so
+        // the crawl is retried and is not reported as successfully completed.
+        abortSignal.throwIfAborted();
         return null;
       } finally {
         if (assetPath) {
@@ -439,6 +445,18 @@ export async function archiveWebpage(
       // Get file size and check quota before saving
       const stats = await fs.stat(assetPath);
       const fileSize = stats.size;
+
+      // Discard oversized archives: media-rich pages can produce 1GB+
+      // monolith files that never render and only hang/crash browsers.
+      // 0 (default) disables the limit.
+      const maxArchiveSizeMb = serverConfig.crawler.fullPageArchiveMaxSizeMb;
+      if (maxArchiveSizeMb > 0 && fileSize > maxArchiveSizeMb * 1024 * 1024) {
+        logger.warn(
+          `[Crawler][${jobId}] Discarding page archive of ${fileSize} bytes as it exceeds CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB=${maxArchiveSizeMb}.`,
+        );
+        await tryCatch(fs.unlink(assetPath));
+        return null;
+      }
 
       const { data: quotaApproved, error: quotaError } = await tryCatch(
         QuotaService.checkStorageQuota(db, userId, fileSize),

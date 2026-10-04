@@ -1,5 +1,6 @@
 // Implementation inspired from Outline
 
+import type { AssetStore } from "./assetdb";
 import type { QueueClient } from "./queueing";
 import type { RateLimitClient } from "./ratelimiting";
 import type { VectorStoreClient } from "./vectorStore";
@@ -7,6 +8,7 @@ import logger from "./logger";
 import { SearchIndexClient } from "./search";
 
 export enum PluginType {
+  AssetStore = "assetstore",
   Search = "search",
   Queue = "queue",
   RateLimit = "ratelimit",
@@ -14,6 +16,7 @@ export enum PluginType {
 }
 
 interface PluginTypeMap {
+  [PluginType.AssetStore]: AssetStore;
   [PluginType.Search]: SearchIndexClient;
   [PluginType.Queue]: QueueClient;
   [PluginType.RateLimit]: RateLimitClient;
@@ -37,6 +40,7 @@ const pluginProvidersKey = "__karakeep_plugins_providers__";
 
 function createProviderMap(): ProviderMap {
   return {
+    [PluginType.AssetStore]: [],
     [PluginType.Search]: [],
     [PluginType.Queue]: [],
     [PluginType.RateLimit]: [],

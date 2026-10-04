@@ -197,14 +197,34 @@ export const zTidyAssetsRequestSchema = z.object({
 });
 export type ZTidyAssetsRequest = z.infer<typeof zTidyAssetsRequestSchema>;
 
+const zTidyAssetsTaskSchema = z.object({
+  type: z.literal("tidy_assets"),
+  args: zTidyAssetsRequestSchema,
+});
+
+const zMigrateLargeLinkHtmlTaskSchema = z.object({
+  type: z.literal("migrate_large_link_html"),
+});
+
+const zPurgeBookmarksOverQuotaTaskSchema = z.object({
+  type: z.literal("purge_bookmarks_over_quota"),
+  args: z.object({
+    userId: z.string(),
+  }),
+});
+
+// System-wide tasks that can be triggered through the generic
+// `runAdminMaintenanceTask` endpoint. User-scoped (and destructive) tasks
+// have their own dedicated endpoints.
+export const zSystemAdminMaintenanceTaskSchema = z.discriminatedUnion("type", [
+  zTidyAssetsTaskSchema,
+  zMigrateLargeLinkHtmlTaskSchema,
+]);
+
 export const zAdminMaintenanceTaskSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("tidy_assets"),
-    args: zTidyAssetsRequestSchema,
-  }),
-  z.object({
-    type: z.literal("migrate_large_link_html"),
-  }),
+  zTidyAssetsTaskSchema,
+  zMigrateLargeLinkHtmlTaskSchema,
+  zPurgeBookmarksOverQuotaTaskSchema,
 ]);
 
 export type ZAdminMaintenanceTask = z.infer<typeof zAdminMaintenanceTaskSchema>;
@@ -216,6 +236,10 @@ export type ZAdminMaintenanceTidyAssetsTask = Extract<
 export type ZAdminMaintenanceMigrateLargeLinkHtmlTask = Extract<
   ZAdminMaintenanceTask,
   { type: "migrate_large_link_html" }
+>;
+export type ZAdminMaintenancePurgeBookmarksOverQuotaTask = Extract<
+  ZAdminMaintenanceTask,
+  { type: "purge_bookmarks_over_quota" }
 >;
 
 export const AdminMaintenanceQueue = createDeferredQueue<ZAdminMaintenanceTask>(

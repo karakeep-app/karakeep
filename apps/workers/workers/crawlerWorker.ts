@@ -14,19 +14,17 @@ import { db } from "@karakeep/db";
 import { bookmarkLinks, bookmarks } from "@karakeep/db/schema";
 import {
   addLogFields,
+  ASSET_TYPES,
   EmbeddingsQueue,
   getTracer,
+  IMAGE_ASSET_TYPES,
   OpenAIQueue,
+  SUPPORTED_UPLOAD_ASSET_TYPES,
   triggerSearchReindex,
   VideoWorkerQueue,
   withSpan,
   zCrawlLinkRequestSchema,
 } from "@karakeep/shared-server";
-import {
-  ASSET_TYPES,
-  IMAGE_ASSET_TYPES,
-  SUPPORTED_UPLOAD_ASSET_TYPES,
-} from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import {
@@ -149,15 +147,14 @@ export class CrawlerWorker {
           );
           const bookmarkId = job.data?.bookmarkId;
           if (bookmarkId && job.numRetriesLeft == 0) {
-            await db.transaction(async (tx) => {
-              await tx
-                .update(bookmarkLinks)
+            await db.transaction((tx) => {
+              tx.update(bookmarkLinks)
                 .set({
                   crawlStatus: "failure",
                 })
-                .where(eq(bookmarkLinks.id, bookmarkId));
-              await tx
-                .update(bookmarks)
+                .where(eq(bookmarkLinks.id, bookmarkId))
+                .run();
+              tx.update(bookmarks)
                 .set({
                   taggingStatus: null,
                 })
@@ -166,9 +163,9 @@ export class CrawlerWorker {
                     eq(bookmarks.id, bookmarkId),
                     eq(bookmarks.taggingStatus, "pending"),
                   ),
-                );
-              await tx
-                .update(bookmarks)
+                )
+                .run();
+              tx.update(bookmarks)
                 .set({
                   summarizationStatus: null,
                 })
@@ -177,9 +174,9 @@ export class CrawlerWorker {
                     eq(bookmarks.id, bookmarkId),
                     eq(bookmarks.summarizationStatus, "pending"),
                   ),
-                );
-              await tx
-                .update(bookmarks)
+                )
+                .run();
+              tx.update(bookmarks)
                 .set({
                   embeddingStatus: null,
                 })
@@ -188,7 +185,8 @@ export class CrawlerWorker {
                     eq(bookmarks.id, bookmarkId),
                     eq(bookmarks.embeddingStatus, "pending"),
                   ),
-                );
+                )
+                .run();
             });
           }
         },
@@ -346,6 +344,11 @@ async function runCrawler(
   }
 
   const { bookmarkId, archiveFullPage, storePdf } = request.data;
+  // Add the bookmark id before any database or network work so failed and
+  // aborted crawler events remain discoverable by bookmark id.
+  addLogFields<"crawlerWorker.run">({
+    "bookmark.id": bookmarkId,
+  });
   const {
     url,
     userId,
@@ -366,6 +369,7 @@ async function runCrawler(
   const runProxy = selectRunProxies();
 
   addLogFields<"crawlerWorker.run">({
+    "user.id": userId,
     "crawler.url": url,
     "crawler.domain": getBookmarkDomain(url),
     "crawler.proxy": redactUrlCredentials(

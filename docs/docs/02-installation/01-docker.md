@@ -86,4 +86,7 @@ Updating Karakeep will depend on what you used for the `KARAKEEP_VERSION` env va
 - If you pinned the app to a specific version, bump the version and re-run `docker compose up -d`. This should pull the new version for you.
 - If you used `KARAKEEP_VERSION=release`, you'll need to force docker to pull the latest version by running `docker compose up --pull always -d`.
 
+If your custom Compose file still uses the old Alpine Chrome image, follow the
+[Chrome image migration guide](../06-administration/09-chrome-image-migration.md).
+
 Note that if you want to upgrade/migrate `Meilisearch` versions, refer to the [troubleshooting](../06-administration/05-troubleshooting.md) page.

@@ -4,11 +4,19 @@ services:
       dockerfile: docker/Dockerfile
       context: ../../
       target: aio
+      # Reuse the layers (deps install, monolith, ...) that the docker workflow
+      # pushes from main. The checked-out source is still what gets built; only
+      # unchanged layers are reused. The cache is public so that it's readable
+      # without credentials (e.g. from fork PRs). If it's unavailable, buildkit
+      # just warns and builds from scratch.
+      cache_from:
+        - type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:aio-amd64
     restart: unless-stopped
     ports:
       - "${KARAKEEP_PORT:-3000}:3000"
     environment:
       DATA_DIR: /tmp
+      DB_WAL_MODE: "true"
       NEXTAUTH_SECRET: secret
       NEXTAUTH_URL: http://localhost:${KARAKEEP_PORT:-3000}
       MEILI_MASTER_KEY: dummy
@@ -16,11 +24,12 @@ services:
       BROWSER_WEB_URL: http://chrome:9222
       CRAWLER_NUM_WORKERS: 6
       CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+      CRAWLER_STORE_PDF: "true"
       CRAWLER_VIDEO_DOWNLOAD: "true"
       CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: -1
       OPENAI_API_KEY: aimock-test-key
       OPENAI_BASE_URL: http://aimock:4010/v1
-      EMBEDDING_DIMENSIONS: 96
+      EMBEDDING_DIMENSIONS: 384
       EMBEDDING_ENABLE_AUTO_INDEXING: "true"
       INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
   meilisearch:
@@ -32,33 +41,43 @@ services:
       MEILI_NO_ANALYTICS: "true"
       MEILI_MASTER_KEY: dummy
   chrome:
-    image: gcr.io/zenika-hub/alpine-chrome:124
+    image: ${KARAKEEP_CHROME_IMAGE:-karakeep-chrome:e2e}
+    build:
+      context: ../..
+      dockerfile: docker/chrome/Dockerfile
     restart: unless-stopped
+    init: true
     command:
-      - --no-sandbox
       - --disable-gpu
       - --disable-dev-shm-usage
-      - --remote-debugging-address=0.0.0.0
-      - --remote-debugging-port=9222
       - --hide-scrollbars
+      - --disable-blink-features=AutomationControlled
+      - --window-size=1440,900
   nginx:
     image: nginx:alpine
     restart: unless-stopped
     volumes:
       - ./setup/html:/usr/share/nginx/html
       - ./setup/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-  minio:
-    image: minio/minio:latest
+  garage:
+    image: dxflrs/garage:v2.3.0
     restart: unless-stopped
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:3900"
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
+      # Fixed credentials for local tests only.
+      GARAGE_DEFAULT_ACCESS_KEY: GK0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_SECRET_KEY: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+      GARAGE_DEFAULT_BUCKET: karakeep-test
+    command: /garage server --single-node --default-bucket
     volumes:
-      - minio_data:/data
+      - ../../docker/garage/garage.toml:/etc/garage.toml:ro
+      - garage_data:/data
+    healthcheck:
+      test: ["CMD", "/garage", "bucket", "info", "karakeep-test"]
+      interval: 1s
+      timeout: 5s
+      retries: 30
   aimock:
     image: ghcr.io/copilotkit/aimock:latest
     restart: unless-stopped
@@ -83,4 +102,4 @@ services:
       retries: 20
 
 volumes:
-  minio_data:
+  garage_data:

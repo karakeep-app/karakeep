@@ -335,12 +335,6 @@ describe("Bookmark Routes", () => {
       expect(bookmarks.bookmarks[0].id).toEqual(bookmark1.id);
     }
 
-    {
-      const bookmarks = await api.getBookmarks({ ids: [bookmark1.id] });
-      expect(bookmarks.bookmarks.length).toEqual(1);
-      expect(bookmarks.bookmarks[0].id).toEqual(bookmark1.id);
-    }
-
     // Test tagId filter
     {
       const tagId = await createTestTag(apiCallers[0], "testTag");

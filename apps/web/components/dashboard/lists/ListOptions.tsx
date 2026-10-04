@@ -118,7 +118,7 @@ export function ListOptions({
       icon: <DoorOpen className="size-4" />,
       visible: isCollaborator,
       disabled: false,
-      className: "flex gap-2 text-destructive",
+      variant: "destructive" as const,
       onClick: () => setLeaveListDialogOpen(true),
     },
     {
@@ -127,7 +127,7 @@ export function ListOptions({
       icon: <Trash2 className="size-4" />,
       visible: isOwner,
       disabled: false,
-      className: "flex gap-2 text-destructive",
+      variant: "destructive" as const,
       onClick: () => setDeleteListDialogOpen(true),
     },
   ];
@@ -185,7 +185,7 @@ export function ListOptions({
         {visibleItems.map((item) => (
           <DropdownMenuItem
             key={item.id}
-            className={item.className ?? "flex gap-2"}
+            variant={item.variant}
             disabled={item.disabled}
             onClick={item.onClick}
           >

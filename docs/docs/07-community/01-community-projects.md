@@ -14,6 +14,14 @@ A user-friendly Raycast extension that seamlessly integrates with Karakeep, brin
 
 Get it [here](https://www.raycast.com/luolei/karakeep).
 
+### Alfred Workflow (inline search)
+
+_By [@Kyzcreig](https://github.com/Kyzcreig)_
+
+An Alfred workflow for inline bookmark search — type `kk <query>` and see live results (title, tags, URL) directly in Alfred, using Karakeep's full query language (`is:fav`, `#tag`, `list:`, `age:`). Enter opens the original URL; Cmd-Enter opens the bookmark in Karakeep. Responses are cached per-query so typing stays lag-free.
+
+Get it [here](https://github.com/Kyzcreig/alfred-karakeep).
+
 ### Alfred Workflow
 
 _By [@yinan-c](https://github.com/yinan-c)_
@@ -109,3 +117,26 @@ _By [@thiswillbeyourgithub](https://github.com/thiswillbeyourgithub/)_
 Ask questions about your Karakeep bookmarks. wdoc is a Retrieval-Augmented Generation tool (CLI and Python library) that turns your saved content into a searchable, queryable knowledge base, with recently added native Karakeep support on top of 20+ other filetypes.
 
 Get it [here](https://github.com/thiswillbeyourgithub/wdoc/).
+
+### Quick Capture - Supasend (Quick Capture app for Karakeep)
+
+_By [@pradeepb28](https://github.com/pradeepb28)._
+
+Supasend aims to remove the friction between the thought in your brain and the app in which you capture. Think of its like a Quick capture app for your second brain apps including Karakeep. You can capture photos and links in Karakeep from Supasend faster.
+
+Get it [here](https://supasend.app/#karakeep).
+Download: [Download](https://apps.apple.com/us/app/quick-capture-supasend/id6504688166?ppid=3e1b600d-b03e-411d-b2ba-b2ef034ce0d6)
+
+### KaraClone
+
+_By [@gowinder](https://github.com/gowinder)._
+
+A from-scratch reimplementation of the Karakeep server API that runs entirely on the **Cloudflare Workers free tier** (D1, R2, Queues, Workers AI, Cron). It's aimed at people who want to self-host their bookmarks but don't have a VPS or home server: no machine to patch, no container to run, no backups to script.
+
+The official clients (mobile app and browser extension) log in with a server URL + API key, unmodified. Bookmarks are persisted immediately on save; title extraction, AI tagging, and summaries run asynchronously in a background queue.
+
+:::note
+This is a server-side implementation that targets the internal tRPC API used by the official clients, which — unlike the public REST API — carries no compatibility guarantees. It tracks specific client versions (currently Mobile 1.11.0 / Extension 1.2.11); clients newer than that may or may not work against it.
+:::
+
+Get it [here](https://github.com/gowinder/karaclone) (AGPL-3.0).

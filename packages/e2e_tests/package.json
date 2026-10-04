@@ -11,23 +11,26 @@
     "lint": "oxlint --ignore-path=../../.gitignore --ignore-pattern='setup/docker-logs/**' .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore --ignore-pattern='setup/docker-logs/**' . --fix",
     "test": "vitest run",
+    "test:web": "vitest run tests/web",
     "test:watch": "vitest",
     "test:no-build": "E2E_TEST_NO_BUILD=1 vitest run"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1014.0",
+    "@aws-sdk/client-s3": "^3.1135.0",
+    "@karakeep/plugins": "workspace:^0.1.0",
     "@karakeep/sdk": "workspace:*",
     "@karakeep/shared": "workspace:^0.1.0",
     "@karakeep/trpc": "workspace:^0.1.0",
     "@trpc/client": "^11.9.0",
     "superjson": "^2.2.1",
-    "zod": "^4.0.0"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/adm-zip": "^0.5.7",
-    "adm-zip": "^0.5.16",
+    "adm-zip": "^0.6.1",
+    "playwright": "^1.59.1",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.11"
   }
 }

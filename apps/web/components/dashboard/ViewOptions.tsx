@@ -12,6 +12,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -138,37 +139,31 @@ export default function ViewOptions() {
         </ButtonWithTooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">
-        <div className="px-2 py-1.5 text-sm font-semibold">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
           {t("view_options.layout")}
-        </div>
+        </DropdownMenuLabel>
         {(Object.keys(iconMap) as LayoutType[]).map((key) => (
           <DropdownMenuItem
             key={key}
-            className="cursor-pointer justify-between"
+            className="cursor-pointer"
             onSelect={(e) => {
               e.preventDefault();
               handleLayoutChange(key);
             }}
           >
-            <div className="flex items-center gap-2">
-              {createElement(iconMap[key as LayoutType], { size: 18 })}
-              <span>{t(`layouts.${key}`)}</span>
-            </div>
-            {optimisticLayout === key && <Check className="ml-2 size-4" />}
+            {createElement(iconMap[key])}
+            <span>{t(`layouts.${key}`)}</span>
+            {optimisticLayout === key && <Check className="ml-auto" />}
           </DropdownMenuItem>
         ))}
 
         {showColumnSlider && (
           <>
             <DropdownMenuSeparator />
-            <div className="px-2 py-3">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-semibold">
-                  {t("view_options.columns")}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {tempColumns}
-                </span>
+            <div className="px-2 pb-3 pt-1.5">
+              <div className="mb-3 flex items-center justify-between text-xs font-medium text-muted-foreground">
+                <span>{t("view_options.columns")}</span>
+                <span>{tempColumns}</span>
               </div>
               <Slider
                 value={[tempColumns]}
@@ -179,103 +174,83 @@ export default function ViewOptions() {
                 step={1}
                 className="w-full"
               />
-              <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                <span>1</span>
-                <span>6</span>
-              </div>
             </div>
           </>
         )}
 
         <DropdownMenuSeparator />
-        <div className="px-2 py-1.5 text-sm font-semibold">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
           {t("view_options.display_options")}
+        </DropdownMenuLabel>
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <Label
+            htmlFor="show-notes"
+            className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
+          >
+            <NotepadText className="size-4 text-muted-foreground" />
+            <span>{t("view_options.show_note_previews")}</span>
+          </Label>
+          <Switch
+            id="show-notes"
+            checked={optimisticDisplaySettings.showNotes}
+            onCheckedChange={handleShowNotesChange}
+          />
         </div>
-
-        <div className="space-y-3 px-2 py-2">
-          <div className="flex items-center justify-between">
-            <Label
-              htmlFor="show-notes"
-              className="flex cursor-pointer items-center gap-2 text-sm"
-            >
-              <NotepadText size={16} />
-              <span>{t("view_options.show_note_previews")}</span>
-            </Label>
-            <Switch
-              id="show-notes"
-              checked={optimisticDisplaySettings.showNotes}
-              onCheckedChange={handleShowNotesChange}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label
-              htmlFor="show-tags"
-              className="flex cursor-pointer items-center gap-2 text-sm"
-            >
-              <Tag size={16} />
-              <span>{t("view_options.show_tags")}</span>
-            </Label>
-            <Switch
-              id="show-tags"
-              checked={optimisticDisplaySettings.showTags}
-              onCheckedChange={handleShowTagsChange}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <Label
-              htmlFor="show-title"
-              className="flex cursor-pointer items-center gap-2 text-sm"
-            >
-              <Heading size={16} />
-              <span>{t("view_options.show_title")}</span>
-            </Label>
-            <Switch
-              id="show-title"
-              checked={optimisticDisplaySettings.showTitle}
-              onCheckedChange={handleShowTitleChange}
-            />
-          </div>
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <Label
+            htmlFor="show-tags"
+            className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
+          >
+            <Tag className="size-4 text-muted-foreground" />
+            <span>{t("view_options.show_tags")}</span>
+          </Label>
+          <Switch
+            id="show-tags"
+            checked={optimisticDisplaySettings.showTags}
+            onCheckedChange={handleShowTagsChange}
+          />
+        </div>
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <Label
+            htmlFor="show-title"
+            className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
+          >
+            <Heading className="size-4 text-muted-foreground" />
+            <span>{t("view_options.show_title")}</span>
+          </Label>
+          <Switch
+            id="show-title"
+            checked={optimisticDisplaySettings.showTitle}
+            onCheckedChange={handleShowTitleChange}
+          />
         </div>
 
         <DropdownMenuSeparator />
-        <div className="px-2 py-1.5 text-sm font-semibold">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
           {t("view_options.image_options")}
-        </div>
-
-        <div className="space-y-1 px-2 py-2">
-          <DropdownMenuItem
-            className="cursor-pointer justify-between"
-            onSelect={(e) => {
-              e.preventDefault();
-              handleImageFitChange("cover");
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Image size={16} />
-              <span>{t("view_options.image_fit_cover")}</span>
-            </div>
-            {optimisticImageFit === "cover" && (
-              <Check className="ml-2 size-4" />
-            )}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="cursor-pointer justify-between"
-            onSelect={(e) => {
-              e.preventDefault();
-              handleImageFitChange("contain");
-            }}
-          >
-            <div className="flex items-center gap-2">
-              <Image size={16} />
-              <span>{t("view_options.image_fit_contain")}</span>
-            </div>
-            {optimisticImageFit === "contain" && (
-              <Check className="ml-2 size-4" />
-            )}
-          </DropdownMenuItem>
-        </div>
+        </DropdownMenuLabel>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={(e) => {
+            e.preventDefault();
+            handleImageFitChange("cover");
+          }}
+        >
+          <Image />
+          <span>{t("view_options.image_fit_cover")}</span>
+          {optimisticImageFit === "cover" && <Check className="ml-auto" />}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onSelect={(e) => {
+            e.preventDefault();
+            handleImageFitChange("contain");
+          }}
+        >
+          <Image />
+          <span>{t("view_options.image_fit_contain")}</span>
+          {optimisticImageFit === "contain" && <Check className="ml-auto" />}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

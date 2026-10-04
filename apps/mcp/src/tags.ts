@@ -1,7 +1,7 @@
-import { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import { CallToolResult } from "@modelcontextprotocol/server";
 import { z } from "zod";
 
-import { karakeepClient, mcpServer } from "./shared";
+import { karakeepClient, registerTool } from "./shared";
 import {
   compactBookmark,
   compactTag,
@@ -9,12 +9,14 @@ import {
   toMcpToolError,
 } from "./utils";
 
-mcpServer.tool(
+registerTool(
   "attach-tag-to-bookmark",
-  `Attach a tag to a bookmark.`,
   {
-    bookmarkId: z.string().describe(`The bookmarkId to attach the tag to.`),
-    tagsToAttach: z.array(z.string()).describe(`The tag names to attach.`),
+    description: `Attach a tag to a bookmark.`,
+    inputSchema: z.object({
+      bookmarkId: z.string().describe(`The bookmarkId to attach the tag to.`),
+      tagsToAttach: z.array(z.string()).describe(`The tag names to attach.`),
+    }),
   },
   async ({ bookmarkId, tagsToAttach }): Promise<CallToolResult> => {
     const res = await karakeepClient.POST(`/bookmarks/{bookmarkId}/tags`, {
@@ -41,12 +43,14 @@ mcpServer.tool(
   },
 );
 
-mcpServer.tool(
+registerTool(
   "detach-tag-from-bookmark",
-  `Detach a tag from a bookmark.`,
   {
-    bookmarkId: z.string().describe(`The bookmarkId to detach the tag from.`),
-    tagsToDetach: z.array(z.string()).describe(`The tag names to detach.`),
+    description: `Detach a tag from a bookmark.`,
+    inputSchema: z.object({
+      bookmarkId: z.string().describe(`The bookmarkId to detach the tag from.`),
+      tagsToDetach: z.array(z.string()).describe(`The tag names to detach.`),
+    }),
   },
   async ({ bookmarkId, tagsToDetach }): Promise<CallToolResult> => {
     const res = await karakeepClient.DELETE(`/bookmarks/{bookmarkId}/tags`, {
@@ -126,10 +130,12 @@ export async function getTagsHandler(
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-tags",
-  `List tags with their bookmark counts. Supports filtering and pagination.`,
-  getTagsInputSchema,
+  {
+    description: `List tags with their bookmark counts. Supports filtering and pagination.`,
+    inputSchema: z.object(getTagsInputSchema),
+  },
   getTagsHandler,
 );
 
@@ -153,10 +159,12 @@ export async function getTagHandler({
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-tag",
-  `Retrieve a single tag by id, including its bookmark counts.`,
-  getTagInputSchema,
+  {
+    description: `Retrieve a single tag by id, including its bookmark counts.`,
+    inputSchema: z.object(getTagInputSchema),
+  },
   getTagHandler,
 );
 
@@ -191,10 +199,12 @@ export async function updateTagHandler(
   };
 }
 
-mcpServer.tool(
+registerTool(
   "update-tag",
-  `Rename a tag. The new name is normalized by the server.`,
-  updateTagInputSchema,
+  {
+    description: `Rename a tag. The new name is normalized by the server.`,
+    inputSchema: z.object(updateTagInputSchema),
+  },
   updateTagHandler,
 );
 
@@ -231,10 +241,12 @@ export async function deleteTagHandler({
   };
 }
 
-mcpServer.tool(
+registerTool(
   "delete-tag",
-  `Delete a tag by id. Bookmarks that had this tag are not deleted; the tag is just removed from them.`,
-  deleteTagInputSchema,
+  {
+    description: `Delete a tag by id. Bookmarks that had this tag are not deleted; the tag is just removed from them.`,
+    inputSchema: z.object(deleteTagInputSchema),
+  },
   deleteTagHandler,
 );
 
@@ -299,9 +311,11 @@ export async function getTagBookmarksHandler(
   };
 }
 
-mcpServer.tool(
+registerTool(
   "get-tag-bookmarks",
-  `List bookmarks that have a given tag, with pagination.`,
-  getTagBookmarksInputSchema,
+  {
+    description: `List bookmarks that have a given tag, with pagination.`,
+    inputSchema: z.object(getTagBookmarksInputSchema),
+  },
   getTagBookmarksHandler,
 );

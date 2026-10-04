@@ -1,12 +1,16 @@
 import { prometheus } from "@hono/prometheus";
 import { Counter, Histogram, Registry } from "prom-client";
 
+import serverConfig from "@karakeep/shared/config";
+
 export const registry = new Registry();
 
 export const { printMetrics } = prometheus({
   registry: registry,
   prefix: "karakeep_",
-  collectDefaultMetrics: true,
+  // Default metrics start a recurring event-loop sampler and a GC observer.
+  // Without a configured token, the metrics endpoint is inaccessible.
+  collectDefaultMetrics: serverConfig.prometheus.enabled,
 });
 
 export const workerStatsCounter = new Counter({

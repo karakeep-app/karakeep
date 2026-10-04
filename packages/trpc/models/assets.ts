@@ -3,7 +3,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { assets } from "@karakeep/db/schema";
-import { deleteAsset } from "@karakeep/shared/assetdb";
+import { deleteAsset } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { createSignedToken } from "@karakeep/shared/signedTokens";
 import { zAssetSignedTokenSchema } from "@karakeep/shared/types/assets";
@@ -147,15 +147,15 @@ export class Asset {
       });
     }
 
-    await ctx.db.transaction(async (tx) => {
-      await tx.delete(assets).where(eq(assets.id, input.oldAssetId));
-      await tx
-        .update(assets)
+    await ctx.db.transaction((tx) => {
+      tx.delete(assets).where(eq(assets.id, input.oldAssetId)).run();
+      tx.update(assets)
         .set({
           bookmarkId: input.bookmarkId,
           assetType: oldAsset.asset.assetType,
         })
-        .where(eq(assets.id, input.newAssetId));
+        .where(eq(assets.id, input.newAssetId))
+        .run();
     });
 
     await deleteAsset({

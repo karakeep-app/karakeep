@@ -79,7 +79,12 @@ export const highlightsAppRouter = router({
     .input(
       z.object({
         cursor: z.any().nullish(),
-        limit: z.number().optional().default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
       }),
     )
     .output(zGetAllHighlightsResponseSchema)
@@ -95,7 +100,12 @@ export const highlightsAppRouter = router({
       z.object({
         text: z.string(),
         cursor: zCursorV2.nullish(),
-        limit: z.number().optional().default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .optional()
+          .default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
       }),
     )
     .output(zGetAllHighlightsResponseSchema)

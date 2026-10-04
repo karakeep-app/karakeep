@@ -8,7 +8,6 @@ import {
   eq,
   getTableColumns,
   gt,
-  gte,
   inArray,
   lt,
   lte,
@@ -32,10 +31,14 @@ import {
   rssFeedImportsTable,
   tagsOnBookmarks,
 } from "@karakeep/db/schema";
-import { EmbeddingsQueue, SearchIndexingQueue } from "@karakeep/shared-server";
+import {
+  deleteAsset,
+  EmbeddingsQueue,
+  readAsset,
+  SearchIndexingQueue,
+} from "@karakeep/shared-server";
 
 import { WebhooksService } from "./webhooks.service";
-import { deleteAsset, readAsset } from "@karakeep/shared/assetdb";
 import { getAlignedExpiry } from "@karakeep/shared/signedTokens";
 import {
   BookmarkTypes,
@@ -425,7 +428,9 @@ export class Bookmark extends BareBookmark {
 
   static async loadMulti(
     ctx: AuthedContext,
-    input: z.infer<typeof zGetBookmarksRequestSchema>,
+    // `ids` is intentionally not part of the public getBookmarks API; it's
+    // only settable by server-side callers (search, smart lists, public lists).
+    input: z.infer<typeof zGetBookmarksRequestSchema> & { ids?: string[] },
   ): Promise<{
     bookmarks: Bookmark[];
     nextCursor: ZCursor | null;
@@ -434,7 +439,11 @@ export class Bookmark extends BareBookmark {
       return { bookmarks: [], nextCursor: null };
     }
     if (!input.limit) {
-      input.limit = DEFAULT_NUM_BOOKMARKS_PER_PAGE;
+      // When loading by ids, callers expect all requested bookmarks back,
+      // not a single default-sized page.
+      input.limit = input.ids
+        ? input.ids.length
+        : DEFAULT_NUM_BOOKMARKS_PER_PAGE;
     }
 
     // Validate that only one of listId, tagId, or rssFeedId is specified
@@ -471,7 +480,7 @@ export class Bookmark extends BareBookmark {
           gt(createdAtCol, input.cursor.createdAt),
           and(
             eq(createdAtCol, input.cursor.createdAt),
-            gte(idCol, input.cursor.id),
+            lte(idCol, input.cursor.id),
           ),
         );
       }

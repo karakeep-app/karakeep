@@ -196,8 +196,7 @@ export const listsAppRouter = router({
     )
     .query(async ({ ctx }) => {
       const lists = await List.getAll(ctx);
-      const sizes = await Promise.all(lists.map((l) => l.getSize()));
-      return { stats: new Map(lists.map((l, i) => [l.id, sizes[i]])) };
+      return { stats: await List.getSizes(ctx, lists) };
     }),
 
   // Rss endpoints

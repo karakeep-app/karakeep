@@ -11,11 +11,11 @@ import { db } from "@karakeep/db";
 import { bookmarkLinks } from "@karakeep/db/schema";
 import {
   addLogFields,
+  ASSET_TYPES,
   getTracer,
   setSpanAttributes,
   withSpan,
 } from "@karakeep/shared-server";
-import { ASSET_TYPES } from "@karakeep/shared/assetdb";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";

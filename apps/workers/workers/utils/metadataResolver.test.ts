@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { isLikelyChallengePage, resolveMetadata } from "./metadataResolver";
+import {
+  isLikelyChallengePage,
+  isWaitableChallenge,
+  resolveMetadata,
+} from "./metadataResolver";
 
 function meta(fields: Record<string, string | null | undefined>) {
   return {
@@ -80,6 +84,7 @@ describe("isLikelyChallengePage", () => {
     ).toBe(true);
     expect(isLikelyChallengePage({ title: "Access Denied" })).toBe(true);
     expect(isLikelyChallengePage({ title: "Robot Check" })).toBe(true);
+    expect(isLikelyChallengePage({ title: "Robot or human?" })).toBe(true);
   });
 
   it("does not match challenge titles as substrings of real titles", () => {
@@ -136,5 +141,43 @@ describe("isLikelyChallengePage", () => {
     expect(isLikelyChallengePage({ title: null, htmlContent: null })).toBe(
       false,
     );
+  });
+});
+
+describe("isWaitableChallenge", () => {
+  it("waits on Cloudflare's interstitial", () => {
+    expect(
+      isWaitableChallenge(
+        "Just a moment...",
+        "<html><head><title>Just a moment...</title></head><body><script>window._cf_chl_opt={}</script></body></html>",
+      ),
+    ).toBe(true);
+  });
+
+  it("waits on DataDome's device check", () => {
+    expect(
+      isWaitableChallenge(
+        "wsj.com",
+        "<html><body><script>var dd={'rt':'i','cid':'x','host':'geo.captcha-delivery.com'}</script></body></html>",
+      ),
+    ).toBe(true);
+  });
+
+  it("doesn't wait on DataDome's captcha, which needs a human", () => {
+    expect(
+      isWaitableChallenge(
+        "wsj.com",
+        "<html><body><script>var dd={'rt':'c','cid':'x','host':'geo.captcha-delivery.com'}</script></body></html>",
+      ),
+    ).toBe(false);
+  });
+
+  it("doesn't wait on regular pages", () => {
+    expect(
+      isWaitableChallenge(
+        "Example Domain",
+        "<html><head><title>Example Domain</title></head><body><p>Hello</p></body></html>",
+      ),
+    ).toBe(false);
   });
 });

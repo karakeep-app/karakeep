@@ -15,6 +15,7 @@ import {
 
 import { apiKeyScopeMiddleware } from "../middlewares/apiKeyScopes";
 import { authMiddleware } from "../middlewares/auth";
+import { rejectMutationInReadOnlyMode } from "../middlewares/readOnlyMode";
 import { adaptPagination, zPagination } from "../utils/pagination";
 import {
   chunkReadableContent,
@@ -119,6 +120,7 @@ const app = new Hono()
 
   .post(
     "/singlefile",
+    rejectMutationInReadOnlyMode,
     apiKeyScopeMiddleware("assets", "readwrite"),
     apiKeyScopeMiddleware("bookmarks", "readwrite"),
     zValidator(

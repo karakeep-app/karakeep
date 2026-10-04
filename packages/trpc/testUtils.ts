@@ -8,6 +8,7 @@ import { createCallerFactory } from "./index";
 import { appRouter } from "./routers/_app";
 
 const testQueueMocks = vi.hoisted(() => ({
+  adminMaintenanceEnqueue: vi.fn(),
   assetPreprocessingEnqueue: vi.fn(),
   embeddingsEnqueue: vi.fn(),
   linkCrawlerEnqueue: vi.fn(),
@@ -120,6 +121,9 @@ export function defaultBeforeEach(seedDB = true) {
         (await original()) as typeof import("@karakeep/shared-server");
       return {
         ...mod,
+        AdminMaintenanceQueue: {
+          enqueue: testQueueMocks.adminMaintenanceEnqueue,
+        },
         AssetPreprocessingQueue: {
           enqueue: testQueueMocks.assetPreprocessingEnqueue,
         },

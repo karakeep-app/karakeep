@@ -20,6 +20,10 @@ export default function Dashboard() {
   const router = useRouter();
   const { colors } = useColorScheme();
   const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
+  const settingsScreenOptions = {
+    headerLargeTitle: false,
+    sheetGrabberVisible: true,
+  };
 
   const isLoggedIn = useIsLoggedIn();
   useEffect(() => {
@@ -71,6 +75,8 @@ export default function Dashboard() {
         options={{
           headerTitle: "",
           headerBackTitle: "Back",
+          // iOS 27 can leave the automatic back control empty after sign-in.
+          headerBackButtonDisplayMode: "minimal",
           headerLargeTitle: false,
         }}
       />
@@ -179,6 +185,59 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="lists/[slug]/sharing"
+        options={{
+          ...formSheetSurfaceOptions,
+          headerTitle: "Sharing & Access",
+          headerLargeTitle: false,
+          headerTransparent: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
+        name="lists/select-parent"
+        options={{
+          headerTitle: "Parent List",
+          headerBackTitle: "Back",
+          headerLargeTitle: false,
+          headerTransparent: false,
+        }}
+      />
+      <Stack.Screen
+        name="tags/new"
+        options={{
+          ...formSheetSurfaceOptions,
+          headerTitle: "New Tag",
+          headerBackTitle: "Back",
+          headerLargeTitle: false,
+          headerTransparent: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
+        name="tags/[slug]/edit"
+        options={{
+          ...formSheetSurfaceOptions,
+          headerTitle: "Edit Tag",
+          headerBackTitle: "Back",
+          headerLargeTitle: false,
+          headerTransparent: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
         name="archive"
         options={{
           headerTitle: "🗄️ Archive",
@@ -190,19 +249,38 @@ export default function Dashboard() {
         name="settings/index"
         options={{
           ...formSheetSurfaceOptions,
+          ...settingsScreenOptions,
           headerTitle: "Settings",
           headerTransparent: false,
-          headerLargeTitle: false,
           presentation: Platform.select({
             ios: "formSheet" as const,
             default: "modal" as const,
           }),
-          sheetGrabberVisible: true,
+          title: "Settings",
+        }}
+      />
+      <Stack.Screen
+        name="settings/reading"
+        options={{
+          ...settingsScreenOptions,
+          headerBackTitle: "Settings",
+          headerTitle: "Reader View",
+          title: "Reader View",
+        }}
+      />
+      <Stack.Screen
+        name="settings/uploads"
+        options={{
+          ...settingsScreenOptions,
+          headerBackTitle: "Settings",
+          headerTitle: "Uploads",
+          title: "Uploads",
         }}
       />
       <Stack.Screen
         name="settings/theme"
         options={{
+          ...settingsScreenOptions,
           title: "Theme",
           headerTitle: "Theme",
           headerBackTitle: "Back",
@@ -211,32 +289,45 @@ export default function Dashboard() {
       <Stack.Screen
         name="settings/bookmark-default-view"
         options={{
-          title: "Bookmark View Mode",
-          headerTitle: "Bookmark View Mode",
+          ...settingsScreenOptions,
+          title: "Open Bookmarks In",
+          headerTitle: "Open Bookmarks In",
           headerBackTitle: "Back",
         }}
       />
       <Stack.Screen
         name="settings/reader-settings"
         options={{
-          title: "Reader Settings",
-          headerTitle: "Reader Settings",
+          ...settingsScreenOptions,
+          title: "Text and Layout",
+          headerTitle: "Text and Layout",
           headerBackTitle: "Back",
         }}
       />
       <Stack.Screen
         name="settings/offline"
         options={{
-          title: "Offline Content",
-          headerTitle: "Offline Content",
+          ...settingsScreenOptions,
+          title: "Downloads",
+          headerTitle: "Downloads",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen
+        name="settings/usage"
+        options={{
+          ...settingsScreenOptions,
+          title: "Statistics",
+          headerTitle: "Statistics",
           headerBackTitle: "Back",
         }}
       />
       <Stack.Screen
         name="settings/toolbar-settings"
         options={{
-          title: "Toolbar Buttons",
-          headerTitle: "Toolbar Buttons",
+          ...settingsScreenOptions,
+          title: "Reader Toolbar",
+          headerTitle: "Reader Toolbar",
           headerBackTitle: "Back",
         }}
       />

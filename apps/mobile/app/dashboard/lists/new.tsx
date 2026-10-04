@@ -1,23 +1,37 @@
 import React, { useState } from "react";
-import { View } from "react-native";
-import { router } from "expo-router";
+import { ScrollView, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { ListParentField } from "@/components/lists/list-parent-field";
 import { Button } from "@/components/ui/Button";
+import { EmojiPicker } from "@/components/ui/emoji-picker";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
 
 import { useCreateBookmarkList } from "@karakeep/shared-react/hooks/lists";
 
 type ListType = "manual" | "smart";
 
 const NewListPage = () => {
+  const { selectedParentId } = useLocalSearchParams<{
+    selectedParentId?: string | string[];
+  }>();
   const dismiss = () => {
     router.back();
   };
   const { toast } = useToast();
   const [text, setText] = useState("");
+  const [icon, setIcon] = useState("📁");
   const [listType, setListType] = useState<ListType>("manual");
   const [query, setQuery] = useState("");
+  const [parentId, setParentId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (typeof selectedParentId !== "string") return;
+    setParentId(selectedParentId === NO_PARENT_VALUE ? null : selectedParentId);
+    router.setParams({ selectedParentId: undefined });
+  }, [selectedParentId]);
 
   const { mutate, isPending } = useCreateBookmarkList({
     onSuccess: () => {
@@ -52,14 +66,19 @@ const NewListPage = () => {
 
     mutate({
       name: text,
-      icon: "📁",
+      icon,
       type: listType,
       query: listType === "smart" ? query : undefined,
+      parentId,
     });
   };
 
   return (
-    <View className="gap-3 px-4">
+    <ScrollView
+      contentInsetAdjustmentBehavior="automatic"
+      keyboardShouldPersistTaps="handled"
+      contentContainerClassName="gap-4 px-4 pb-8"
+    >
       {/* List Type Selector */}
       <View className="gap-2">
         <Text className="text-sm text-muted-foreground">List Type</Text>
@@ -83,17 +102,30 @@ const NewListPage = () => {
         </View>
       </View>
 
-      {/* List Name */}
-      <View className="flex flex-row items-center gap-1">
-        <Text className="shrink p-2">📁</Text>
-        <Input
-          className="flex-1 bg-card"
-          onChangeText={setText}
-          placeholder="List Name"
-          autoFocus
-          autoCapitalize={"none"}
-        />
-      </View>
+      <EmojiPicker value={icon} onChange={setIcon} />
+
+      <Input
+        className="bg-card"
+        label="List Name"
+        labelClasses="text-sm text-muted-foreground"
+        onChangeText={setText}
+        placeholder="Reading list"
+        autoFocus
+        autoCapitalize="sentences"
+      />
+
+      <ListParentField
+        value={parentId}
+        onPress={() =>
+          router.push({
+            pathname: "/dashboard/lists/select-parent",
+            params: {
+              returnTo: "new",
+              selectedParentId: parentId ?? NO_PARENT_VALUE,
+            },
+          })
+        }
+      />
 
       {/* Smart List Query Input */}
       {listType === "smart" && (
@@ -115,7 +147,7 @@ const NewListPage = () => {
       <Button disabled={isPending} onPress={onSubmit}>
         <Text>Save</Text>
       </Button>
-    </View>
+    </ScrollView>
   );
 };
 

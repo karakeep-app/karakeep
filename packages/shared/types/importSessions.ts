@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+export const DEFAULT_NUM_IMPORT_SESSION_RESULTS_PER_PAGE = 50;
+export const MAX_NUM_IMPORT_SESSION_RESULTS_PER_PAGE = 100;
+
 export const zImportSessionStatusSchema = z.enum([
   "staging",
   "pending",

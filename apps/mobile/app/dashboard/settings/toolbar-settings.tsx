@@ -1,12 +1,17 @@
 import type { ToolbarActionId } from "@/lib/settings";
 import { useCallback } from "react";
-import { Pressable, ScrollView, TouchableOpacity, View } from "react-native";
+import { Pressable, View } from "react-native";
 import DraggableFlatList, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import { TOOLBAR_ACTION_REGISTRY } from "@/components/bookmarks/BottomActions";
+import {
+  SettingsActionRow,
+  SettingsGroup,
+  SettingsScreen,
+  SettingsSeparator,
+} from "@/components/settings/settings-list";
 import { TailwindResolver } from "@/components/TailwindResolver";
-import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import useAppSettings, {
   DEFAULT_OVERFLOW_ACTIONS,
@@ -71,11 +76,10 @@ export default function ToolbarSettingsPage() {
       const meta = TOOLBAR_ACTION_REGISTRY[item];
       return (
         <ScaleDecorator>
-          <TouchableOpacity
-            activeOpacity={0.7}
+          <Pressable
             onLongPress={drag}
             disabled={isActive}
-            className="flex flex-row items-center gap-3 bg-card px-4 py-3"
+            className="flex-row items-center gap-3 bg-card px-4 py-3 active:opacity-70"
           >
             <TailwindResolver
               className="text-muted-foreground"
@@ -98,7 +102,7 @@ export default function ToolbarSettingsPage() {
                 )}
               />
             </Pressable>
-          </TouchableOpacity>
+          </Pressable>
         </ScaleDecorator>
       );
     },
@@ -119,11 +123,10 @@ export default function ToolbarSettingsPage() {
       const canPromote = visible.length < MAX_VISIBLE;
       return (
         <ScaleDecorator>
-          <TouchableOpacity
-            activeOpacity={0.7}
+          <Pressable
             onLongPress={drag}
             disabled={isActive}
-            className="flex flex-row items-center gap-3 bg-card px-4 py-3"
+            className="flex-row items-center gap-3 bg-card px-4 py-3 active:opacity-70"
           >
             <TailwindResolver
               className="text-muted-foreground"
@@ -154,7 +157,7 @@ export default function ToolbarSettingsPage() {
                 )}
               />
             </Pressable>
-          </TouchableOpacity>
+          </Pressable>
         </ScaleDecorator>
       );
     },
@@ -162,18 +165,8 @@ export default function ToolbarSettingsPage() {
   );
 
   return (
-    <ScrollView
-      className="w-full"
-      contentContainerClassName="gap-4 px-4 py-2"
-      contentInsetAdjustmentBehavior="automatic"
-    >
-      <Text className="px-1 text-xs uppercase tracking-wide text-muted-foreground">
-        Visible Actions (max {MAX_VISIBLE})
-      </Text>
-      <View
-        className="w-full overflow-hidden rounded-xl bg-card"
-        style={{ borderCurve: "continuous" }}
-      >
+    <SettingsScreen>
+      <SettingsGroup header={`Visible actions (max ${MAX_VISIBLE})`}>
         {visible.length === 0 ? (
           <View className="px-4 py-3">
             <Text className="text-sm text-muted-foreground">
@@ -187,20 +180,12 @@ export default function ToolbarSettingsPage() {
             keyExtractor={(item) => item}
             onDragEnd={({ data }) => save(data, overflow)}
             scrollEnabled={false}
-            ItemSeparatorComponent={() => (
-              <Divider orientation="horizontal" className="mx-6" />
-            )}
+            ItemSeparatorComponent={SettingsSeparator}
           />
         )}
-      </View>
+      </SettingsGroup>
 
-      <Text className="px-1 text-xs uppercase tracking-wide text-muted-foreground">
-        Overflow Actions
-      </Text>
-      <View
-        className="w-full overflow-hidden rounded-xl bg-card"
-        style={{ borderCurve: "continuous" }}
-      >
+      <SettingsGroup header="Overflow actions">
         {overflow.length === 0 ? (
           <View className="px-4 py-3">
             <Text className="text-sm text-muted-foreground">
@@ -214,20 +199,19 @@ export default function ToolbarSettingsPage() {
             keyExtractor={(item) => item}
             onDragEnd={({ data }) => save(visible, data)}
             scrollEnabled={false}
-            ItemSeparatorComponent={() => (
-              <Divider orientation="horizontal" className="mx-6" />
-            )}
+            ItemSeparatorComponent={SettingsSeparator}
           />
         )}
-      </View>
+      </SettingsGroup>
 
-      <Pressable
-        onPress={resetToDefaults}
-        className="w-full rounded-xl bg-card px-4 py-3"
-        style={{ borderCurve: "continuous" }}
-      >
-        <Text className="text-center text-blue-500">Reset to Defaults</Text>
-      </Pressable>
-    </ScrollView>
+      <SettingsGroup>
+        <SettingsActionRow
+          centered
+          label="Reset to Defaults"
+          onPress={resetToDefaults}
+          tone="primary"
+        />
+      </SettingsGroup>
+    </SettingsScreen>
   );
 }

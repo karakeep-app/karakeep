@@ -25,7 +25,7 @@ import {
   triggerSearchReindex,
   VideoWorkerQueue,
   WebhookQueue,
-  zAdminMaintenanceTaskSchema,
+  zSystemAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
@@ -464,7 +464,7 @@ export const adminAppRouter = router({
       );
     }),
   runAdminMaintenanceTask: adminJobsProcedure
-    .input(zAdminMaintenanceTaskSchema)
+    .input(zSystemAdminMaintenanceTaskSchema)
     .mutation(async ({ input }) => {
       await AdminMaintenanceQueue.enqueue(input);
     }),
@@ -592,6 +592,61 @@ export const adminAppRouter = router({
           message: "User not found",
         });
       }
+    }),
+  purgeBookmarksOverQuota: adminUsersProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        dryRun: z.boolean().optional().default(false),
+      }),
+    )
+    .output(
+      z.object({
+        numBookmarks: z.number(),
+        bookmarkQuota: z.number(),
+        numBookmarksToDelete: z.number(),
+        enqueued: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+        columns: { bookmarkQuota: true },
+      });
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+      if (user.bookmarkQuota === null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User doesn't have a bookmark quota",
+        });
+      }
+      const [{ numBookmarks }] = await ctx.db
+        .select({ numBookmarks: count() })
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, input.userId));
+      const numBookmarksToDelete = Math.max(
+        0,
+        numBookmarks - user.bookmarkQuota,
+      );
+
+      const enqueued = !input.dryRun && numBookmarksToDelete > 0;
+      if (enqueued) {
+        await AdminMaintenanceQueue.enqueue({
+          type: "purge_bookmarks_over_quota",
+          args: { userId: input.userId },
+        });
+      }
+      return {
+        numBookmarks,
+        bookmarkQuota: user.bookmarkQuota,
+        numBookmarksToDelete,
+        enqueued,
+      };
     }),
   getAdminNoticies: adminSystemProcedure
     .output(

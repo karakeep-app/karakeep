@@ -34,25 +34,25 @@
     "lucide-react": "^0.501.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-router-dom": "^6.22.0",
+    "react-router-dom": "^6.30.6",
     "single-file-core": "^1.5.84",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.0.0"
+    "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "2.2.0",
+    "@crxjs/vite-plugin": "2.7.1",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/chrome": "^0.0.260",
     "@types/react": "19.2.15",
     "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react-swc": "^4.0.1",
+    "@vitejs/plugin-react-swc": "^4.3.3",
     "autoprefixer": "^10.4.17",
-    "postcss": "^8.4.35",
+    "postcss": "^8.5.28",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.9",
-    "vite": "^7.0.6"
+    "vite": "^8.3.0"
   }
 }

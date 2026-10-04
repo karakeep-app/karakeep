@@ -4,8 +4,8 @@ import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 import { themes as prismThemes } from "prism-react-renderer";
 
 const config: Config = {
-  title: "Karakeep Docs",
-  tagline: "Dinosaurs are cool",
+  title: "Karakeep",
+  tagline: "The bookmark everything app",
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here

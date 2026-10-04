@@ -657,4 +657,133 @@ describe("Admin Routes", () => {
       );
     });
   });
+
+  describe("purgeBookmarksOverQuota", () => {
+    async function setup(
+      db: CustomTestContext["db"],
+      bookmarkQuota: number | null,
+      numBookmarks: number,
+    ) {
+      const [adminUser] = await db
+        .insert(users)
+        .values({
+          name: "Admin User",
+          email: "purge-admin@test.com",
+          role: "admin",
+        })
+        .returning();
+      const [user] = await db
+        .insert(users)
+        .values({
+          name: "Over Quota User",
+          email: "over-quota@test.com",
+          bookmarkQuota,
+        })
+        .returning();
+      if (numBookmarks > 0) {
+        await db.insert(bookmarks).values(
+          Array.from(
+            { length: numBookmarks },
+            (): typeof bookmarks.$inferInsert => ({
+              userId: user.id,
+              type: BookmarkTypes.TEXT,
+            }),
+          ),
+        );
+      }
+      return {
+        adminApi: getApiCaller(db, adminUser.id, adminUser.email, "admin")
+          .admin,
+        user,
+      };
+    }
+
+    test<CustomTestContext>("enqueues a purge for users over quota", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 2, 5);
+
+      const res = await adminApi.purgeBookmarksOverQuota({ userId: user.id });
+
+      expect(res).toEqual({
+        numBookmarks: 5,
+        bookmarkQuota: 2,
+        numBookmarksToDelete: 3,
+        enqueued: true,
+      });
+      expect(testQueueMocks.adminMaintenanceEnqueue).toHaveBeenCalledTimes(1);
+      expect(testQueueMocks.adminMaintenanceEnqueue).toHaveBeenCalledWith({
+        type: "purge_bookmarks_over_quota",
+        args: { userId: user.id },
+      });
+    });
+
+    test<CustomTestContext>("dry run doesn't enqueue anything", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 2, 5);
+
+      const res = await adminApi.purgeBookmarksOverQuota({
+        userId: user.id,
+        dryRun: true,
+      });
+
+      expect(res.numBookmarksToDelete).toEqual(3);
+      expect(res.enqueued).toEqual(false);
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
+    });
+
+    test<CustomTestContext>("doesn't enqueue for users within quota", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 5, 5);
+
+      const res = await adminApi.purgeBookmarksOverQuota({ userId: user.id });
+
+      expect(res.numBookmarksToDelete).toEqual(0);
+      expect(res.enqueued).toEqual(false);
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
+    });
+
+    test<CustomTestContext>("rejects users without a quota and unknown users", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, null, 5);
+
+      await expect(() =>
+        adminApi.purgeBookmarksOverQuota({ userId: user.id }),
+      ).rejects.toThrow(/bookmark quota/);
+      await expect(() =>
+        adminApi.purgeBookmarksOverQuota({ userId: "does-not-exist" }),
+      ).rejects.toThrow(/User not found/);
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
+    });
+
+    test<CustomTestContext>("non-admins can't purge", async ({
+      apiCallers,
+      db,
+    }) => {
+      const { user } = await setup(db, 2, 5);
+
+      await expect(() =>
+        apiCallers[0].admin.purgeBookmarksOverQuota({ userId: user.id }),
+      ).rejects.toThrow(/FORBIDDEN/);
+    });
+
+    test<CustomTestContext>("can't be triggered through the generic maintenance endpoint", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 2, 5);
+
+      const input: unknown = {
+        type: "purge_bookmarks_over_quota",
+        args: { userId: user.id },
+      };
+      await expect(() =>
+        // @ts-expect-error purge isn't a system maintenance task
+        adminApi.runAdminMaintenanceTask(input),
+      ).rejects.toThrow();
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
+    });
+  });
 });

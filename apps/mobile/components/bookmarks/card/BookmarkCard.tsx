@@ -5,6 +5,7 @@ import { createContext, useContext } from "react";
 import { Pressable, View } from "react-native";
 
 import { NotePreview } from "../NotePreview";
+import type { BookmarkActionController } from "./use-bookmark-actions";
 
 export interface BookmarkCardContext {
   bookmark: ZBookmark;
@@ -15,6 +16,7 @@ export interface BookmarkCardContext {
   compactBody?: React.ReactNode;
   footerExtras?: React.ReactNode;
   isOwner?: boolean;
+  actions: BookmarkActionController;
   mediaOnPress?: () => void;
   bodyOnPress?: () => void;
   titleOnPress?: () => void;

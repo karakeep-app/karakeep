@@ -10,18 +10,12 @@ import serverConfig from "@karakeep/shared/config";
 import dbConfig from "./drizzle.config";
 import { instrumentDatabase } from "./instrumentation";
 import * as schema from "./schema";
+import { openSqliteDatabase } from "./sqlite";
 
-const sqlite = new Database(dbConfig.dbCredentials.url);
-
-if (serverConfig.database.walMode) {
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.pragma("synchronous = NORMAL");
-} else {
-  sqlite.pragma("journal_mode = DELETE");
-}
-sqlite.pragma("cache_size = -65536");
-sqlite.pragma("foreign_keys = ON");
-sqlite.pragma("temp_store = MEMORY");
+const sqlite = openSqliteDatabase(dbConfig.dbCredentials.url, {
+  readOnly: serverConfig.degradedMode,
+  walMode: serverConfig.database.walMode,
+});
 
 instrumentDatabase(sqlite);
 

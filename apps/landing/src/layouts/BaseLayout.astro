@@ -2,21 +2,22 @@
 import { ClientRouter } from "astro:transitions";
 import "@karakeep/tailwind-config/globals.css";
 
+import { BASE_URL } from "../constants";
+
 interface Props {
   title?: string;
   description?: string;
-  path?: string;
 }
 
-const BASE_URL = "https://karakeep.app";
 const DEFAULT_TITLE =
   "Karakeep - The Bookmark Everything App | Save, Organize & Tag with AI";
 const DEFAULT_DESCRIPTION =
   "Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI. Self-hostable, with apps for iOS, Android, Chrome, and Firefox.";
 
-const { title, description = DEFAULT_DESCRIPTION, path = "/" } = Astro.props;
+const { title, description = DEFAULT_DESCRIPTION } = Astro.props;
 const fullTitle = title ? `${title} | Karakeep` : DEFAULT_TITLE;
-const url = `${BASE_URL}${path}`;
+const canonicalPath = `${Astro.url.pathname.replace(/\/+$/, "")}/`;
+const url = `${BASE_URL}${canonicalPath}`;
 ---
 
 <!doctype html>
@@ -61,8 +62,36 @@ const url = `${BASE_URL}${path}`;
       content="Karakeep bookmark manager app screenshot"
     />
 
-    <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="16x16" />
+    <link
+      rel="icon"
+      href="/icons/logo-icon.svg"
+      type="image/svg+xml"
+      sizes="any"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="icon"
+      href="/icons/logo-icon-dark.svg"
+      type="image/svg+xml"
+      sizes="any"
+      media="(prefers-color-scheme: dark)"
+    />
     <link rel="apple-touch-icon" href="/icons/apple-icon.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&display=swap"
+    />
+
+    <style is:global>
+      :root {
+        /* Headline font (font-display utility): applied to h1/h2/h3 and the
+           big stat numbers only. Body copy stays on the system stack. */
+        --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+      }
+    </style>
 
     <ClientRouter />
     <slot name="head" />

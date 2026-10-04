@@ -16,15 +16,15 @@
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix"
   },
   "dependencies": {
-    "@auth/core": "^0.27.0",
+    "@auth/core": "^0.41.3",
     "@karakeep/shared": "workspace:*",
     "@opentelemetry/api": "^1.9.0",
     "@paralleldrive/cuid2": "^2.2.2",
-    "better-sqlite3": "^11.3.0",
+    "better-sqlite3": "^13.0.3",
     "dotenv": "^16.4.1",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
-    "tsx": "^4.8.1"
+    "tsx": "^4.23.13"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",

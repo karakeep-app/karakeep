@@ -6,12 +6,13 @@ import { pipeline } from "stream/promises";
 import { fileTypeFromBlob, supportedMimeTypes } from "file-type";
 
 import { assets, AssetTypes } from "@karakeep/db/schema";
-import { QuotaService, StorageQuotaError } from "@karakeep/shared-server";
 import {
   newAssetId,
+  QuotaService,
   saveAssetFromFile,
+  StorageQuotaError,
   SUPPORTED_UPLOAD_ASSET_TYPES,
-} from "@karakeep/shared/assetdb";
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { AuthedContext } from "@karakeep/trpc";
 
@@ -95,7 +96,8 @@ export async function uploadAsset(
   let tempFilePath: string | undefined;
 
   try {
-    tempFilePath = path.join(os.tmpdir(), `karakeep-upload-${Date.now()}`);
+    const assetId = newAssetId();
+    tempFilePath = path.join(os.tmpdir(), `karakeep-upload-${assetId}`);
     await pipeline(
       webStreamToNode(data.stream()),
       fs.createWriteStream(tempFilePath),
@@ -103,7 +105,7 @@ export async function uploadAsset(
     const [assetDb] = await db
       .insert(assets)
       .values({
-        id: newAssetId(),
+        id: assetId,
         // Initially, uploads are uploaded for unknown purpose
         // And without an attached bookmark.
         assetType: AssetTypes.UNKNOWN,

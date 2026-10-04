@@ -6,20 +6,7 @@ import {
   SpanStatusCode,
   trace,
 } from "@opentelemetry/api";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { resourceFromAttributes } from "@opentelemetry/resources";
-import {
-  BatchSpanProcessor,
-  ConsoleSpanExporter,
-  ParentBasedSampler,
-  SimpleSpanProcessor,
-  TraceIdRatioBasedSampler,
-} from "@opentelemetry/sdk-trace-base";
-import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
-import {
-  ATTR_SERVICE_NAME,
-  ATTR_SERVICE_VERSION,
-} from "@opentelemetry/semantic-conventions";
+import type { NodeTracerProvider } from "@opentelemetry/sdk-trace-node";
 
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
@@ -35,7 +22,7 @@ let isInitialized = false;
  * Initialize the OpenTelemetry tracing infrastructure.
  * Should be called once at application startup.
  */
-export function initTracing(serviceSuffix?: string): void {
+export async function initTracing(serviceSuffix?: string): Promise<void> {
   if (isInitialized) {
     logger.debug("Tracing already initialized, skipping");
     return;
@@ -46,6 +33,24 @@ export function initTracing(serviceSuffix?: string): void {
     isInitialized = true;
     return;
   }
+
+  const [
+    { resourceFromAttributes },
+    {
+      BatchSpanProcessor,
+      ConsoleSpanExporter,
+      ParentBasedSampler,
+      SimpleSpanProcessor,
+      TraceIdRatioBasedSampler,
+    },
+    { NodeTracerProvider },
+    { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION },
+  ] = await Promise.all([
+    import("@opentelemetry/resources"),
+    import("@opentelemetry/sdk-trace-base"),
+    import("@opentelemetry/sdk-trace-node"),
+    import("@opentelemetry/semantic-conventions"),
+  ]);
 
   const serviceName = serviceSuffix
     ? `${serverConfig.tracing.serviceName}-${serviceSuffix}`
@@ -63,6 +68,8 @@ export function initTracing(serviceSuffix?: string): void {
 
   if (serverConfig.tracing.otlpTracesEndpoint) {
     // OTLP exporter (Jaeger, Zipkin, etc.)
+    const { OTLPTraceExporter } =
+      await import("@opentelemetry/exporter-trace-otlp-http");
     const otlpExporter = new OTLPTraceExporter({
       url: serverConfig.tracing.otlpTracesEndpoint,
     });

@@ -8,11 +8,14 @@ export default defineConfig({
   build: {
     lib: {
       entry: "src/index.ts",
-      formats: ["es", "cjs"],
-      fileName: (format) => `index.${format === "es" ? "mjs" : "js"}`,
     },
-    rollupOptions: {
+    rolldownOptions: {
       external: ["openapi-fetch"],
+      // Preserve the published entry points in Vite 8's SSR build.
+      output: [
+        { format: "es", entryFileNames: "index.mjs" },
+        { format: "cjs", entryFileNames: "index.js" },
+      ],
     },
     ssr: true,
     sourcemap: true,

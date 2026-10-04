@@ -41,19 +41,34 @@ export function useBookmarkSearchState(rawSearch: string) {
     queryClient.invalidateQueries(api.bookmarks.searchBookmarks.pathFilter());
   };
 
-  const { data, error, refetch, isPending, fetchNextPage, isFetchingNextPage } =
-    useInfiniteQuery(
-      api.bookmarks.searchBookmarks.infiniteQueryOptions(
-        { text: query, searchMode: effectiveSearchMode },
-        {
-          enabled: query.trim().length > 0,
-          placeholderData: keepPreviousData,
-          gcTime: 0,
-          initialCursor: null,
-          getNextPageParam: (lastPage) => lastPage.nextCursor,
-        },
-      ),
-    );
+  const {
+    data,
+    error,
+    refetch,
+    isPending,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+  } = useInfiniteQuery(
+    api.bookmarks.searchBookmarks.infiniteQueryOptions(
+      { text: query, searchMode: effectiveSearchMode },
+      {
+        enabled: query.trim().length > 0,
+        placeholderData: keepPreviousData,
+        gcTime: 0,
+        initialCursor: null,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      },
+    ),
+  );
+
+  const onEndReached = () => {
+    if (!hasNextPage || isFetching) {
+      return;
+    }
+    void fetchNextPage({ cancelRefetch: false });
+  };
 
   const filteredHistory = useMemo(() => {
     if (rawSearch.trim().length === 0) {
@@ -85,7 +100,7 @@ export function useBookmarkSearchState(rawSearch: string) {
     error,
     refetch,
     isPending,
-    fetchNextPage,
+    onEndReached,
     isFetchingNextPage,
     onRefresh,
   };

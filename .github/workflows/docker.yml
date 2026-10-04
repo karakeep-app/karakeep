@@ -12,40 +12,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [linux/amd64, linux/arm64]
-        image: [web, workers, cli, mcp, aio]
         include:
-          - platform: linux/amd64
-            suffix: amd64
+          - arch: amd64
             os: ubuntu-latest
-          - platform: linux/arm64
-            suffix: arm64
+          - arch: arm64
             os: ubuntu-24.04-arm
-          - image: web
-            name: karakeep-web
-            target: web
-            tags_latest: ghcr.io/hoarder-app/hoarder-web:latest,ghcr.io/karakeep-app/karakeep-web:latest
-            tags_release: ghcr.io/hoarder-app/hoarder-web:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-web:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-web:release,ghcr.io/karakeep-app/karakeep-web:release
-          - image: workers
-            name: karakeep-workers
-            target: workers
-            tags_latest: ghcr.io/hoarder-app/hoarder-workers:latest,ghcr.io/karakeep-app/karakeep-workers:latest
-            tags_release: ghcr.io/hoarder-app/hoarder-workers:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-workers:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-workers:release,ghcr.io/karakeep-app/karakeep-workers:release
-          - image: cli
-            name: karakeep-cli
-            target: cli
-            tags_latest: ghcr.io/hoarder-app/hoarder-cli:latest,ghcr.io/karakeep-app/karakeep-cli:latest
-            tags_release: ghcr.io/hoarder-app/hoarder-cli:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-cli:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder-cli:release,ghcr.io/karakeep-app/karakeep-cli:release
-          - image: mcp
-            name: karakeep-mcp
-            target: mcp
-            tags_latest: ghcr.io/karakeep-app/karakeep-mcp:latest
-            tags_release: ghcr.io/karakeep-app/karakeep-mcp:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep-mcp:release
-          - image: aio
-            name: karakeep-aio
-            target: aio
-            tags_latest: ghcr.io/hoarder-app/hoarder:latest,ghcr.io/karakeep-app/karakeep:latest
-            tags_release: ghcr.io/hoarder-app/hoarder:${{ github.event.release.name }},ghcr.io/karakeep-app/karakeep:${{ github.event.release.name }},ghcr.io/hoarder-app/hoarder:release,ghcr.io/karakeep-app/karakeep:release
     runs-on: ${{ matrix.os }}
     permissions:
       packages: write
@@ -65,50 +36,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_GITHUB_PAT }}
 
-      - name: Prepare tags
-        id: tags
-        run: |
-          set -euo pipefail
-          add_suffix() {
-            local value="$1"
-            local out=""
-            IFS=',' read -ra items <<< "$value"
-            for item in "${items[@]}"; do
-              out+="${item}-${{ matrix.suffix }},"
-            done
-            echo "${out%,}"
-          }
-
-          all_tags=""
-
-          # Only push 'latest' tags on pushes to main, not on releases
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            latest_with_suffix=$(add_suffix "${{ matrix.tags_latest }}")
-            all_tags="${latest_with_suffix}"
-            echo "latest=${latest_with_suffix}" >> "$GITHUB_OUTPUT"
-          fi
-
-          # Only push release-specific tags on releases
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            release_with_suffix=$(add_suffix "${{ matrix.tags_release }}")
-            all_tags="${release_with_suffix}"
-            echo "release=${release_with_suffix}" >> "$GITHUB_OUTPUT"
-          fi
-
-          echo "all=${all_tags}" >> "$GITHUB_OUTPUT"
-
-      - name: Build ${{ matrix.name }}
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+      # Builds all the images in a single BuildKit session so that the stages
+      # they share are only built once. Tags and caches are defined in the bake
+      # file: pushes to main get the 'latest' tags, releases get the
+      # release-specific ones.
+      - name: Build images (${{ matrix.arch }})
+        uses: docker/bake-action@3acf805d94d93a86cce4ca44798a76464a75b88c # v6.9.0
+        env:
+          ARCH: ${{ matrix.arch }}
+          RELEASE: ${{ github.event_name == 'release' && github.event.release.name || '' }}
+          SERVER_VERSION: ${{ github.event_name == 'release' && github.event.release.name || 'nightly' }}
         with:
-          context: .
-          build-args: SERVER_VERSION=${{ github.event_name == 'release' && github.event.release.name || 'nightly' }}
-          file: docker/Dockerfile
-          target: ${{ matrix.target }}
-          platforms: ${{ matrix.platform }}
+          source: .
+          files: docker/docker-bake.hcl
           push: true
-          tags: ${{ steps.tags.outputs.all }}
-          cache-from: type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}-${{ matrix.suffix }}
-          cache-to: type=registry,mode=max,ref=ghcr.io/karakeep-app/karakeep-build-cache:${{ matrix.target }}-${{ matrix.suffix }}
 
   manifest:
     needs: build

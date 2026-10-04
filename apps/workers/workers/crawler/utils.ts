@@ -40,3 +40,14 @@ export function shouldRetryCrawlStatusCode(statusCode: number | null): boolean {
   }
   return statusCode === 403 || statusCode === 429 || statusCode >= 500;
 }
+
+/**
+ * Turns the browser's own user agent into the one a regular (non-headless)
+ * Chrome of the same version and platform would send: drops the "Headless"
+ * marker and applies Chrome's user-agent reduction (minor version zeroed).
+ */
+export function normalizeBrowserUserAgent(userAgent: string): string {
+  return userAgent
+    .replace("HeadlessChrome/", "Chrome/")
+    .replace(/Chrome\/(\d+)\.[\d.]+/, "Chrome/$1.0.0.0");
+}

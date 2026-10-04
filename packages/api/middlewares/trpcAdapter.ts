@@ -1,41 +1,26 @@
 import { TRPCError } from "@trpc/server";
+import { getHTTPStatusCodeFromError } from "@trpc/server/http";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 
-function trpcCodeToHttpCode(code: TRPCError["code"]) {
-  switch (code) {
-    case "BAD_REQUEST":
-    case "PARSE_ERROR":
-      return 400;
-    case "UNAUTHORIZED":
-      return 401;
-    case "FORBIDDEN":
-      return 403;
-    case "NOT_FOUND":
-      return 404;
-    case "METHOD_NOT_SUPPORTED":
-      return 405;
-    case "TIMEOUT":
-      return 408;
-    case "PAYLOAD_TOO_LARGE":
-      return 413;
-    case "TOO_MANY_REQUESTS":
-      return 429;
-    case "INTERNAL_SERVER_ERROR":
-      return 500;
-    default:
-      return 500;
-  }
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+
+// trpc maps CLIENT_CLOSED_REQUEST to 499, which isn't part of hono's status
+// code union; everything else it emits is a standard contentful 4xx/5xx.
+function isContentfulStatusCode(
+  status: number,
+): status is ContentfulStatusCode {
+  return status >= 400 && status <= 511 && status !== 499;
 }
 
 const trpcAdapter = createMiddleware(async (c, next) => {
   await next();
   const e = c.error;
   if (e instanceof TRPCError) {
-    const code = trpcCodeToHttpCode(e.code);
+    const status = getHTTPStatusCodeFromError(e);
     const isInternalError = e.code === "INTERNAL_SERVER_ERROR";
     const isProd = process.env.NODE_ENV === "production";
-    throw new HTTPException(code, {
+    throw new HTTPException(isContentfulStatusCode(status) ? status : 500, {
       message: isInternalError && isProd ? "Internal server error" : e.message,
       cause: isInternalError && isProd ? undefined : e.cause,
     });
