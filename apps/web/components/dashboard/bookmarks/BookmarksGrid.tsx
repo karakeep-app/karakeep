@@ -8,6 +8,7 @@ import { useBookmarkKeyboardNavigation } from "@/lib/hooks/useBookmarkKeyboardNa
 import { useTranslation } from "@/lib/i18n/client";
 import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
 import { useKeyboardNavigationStore } from "@/lib/store/useKeyboardNavigationStore";
+import { useManageListsModalStore } from "@/lib/store/useManageListsModalStore";
 import {
   bookmarkLayoutSwitch,
   useBookmarkLayout,
@@ -26,6 +27,7 @@ import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-li
 
 import BookmarkCard from "./BookmarkCard";
 import EditorCard from "./EditorCard";
+import ManageListsModal from "./ManageListsModal";
 import UnknownCard from "./UnknownCard";
 
 function StyledBookmarkCard({
@@ -167,6 +169,9 @@ export default function BookmarksGrid({
   const setInBookmarkGrid = useInBookmarkGridStore(
     (state) => state.setInBookmarkGrid,
   );
+  const setManageListsModalBookmarkId = useManageListsModalStore(
+    (state) => state.setBookmarkId,
+  );
   const withinListContext = useBookmarkListContext();
   const breakpointConfig = useMemo(
     () => getBreakpointConfig(gridColumns),
@@ -212,6 +217,16 @@ export default function BookmarksGrid({
     };
   }, [setInBookmarkGrid]);
 
+  // The Manage Lists dialog is rendered from this component (see below) so
+  // that it survives individual bookmark cards being unmounted, but it
+  // still needs to close when the whole grid goes away (e.g. navigating to
+  // a different page) instead of leaking its open bookmarkId across pages.
+  useEffect(() => {
+    return () => {
+      setManageListsModalBookmarkId(null);
+    };
+  }, [setManageListsModalBookmarkId]);
+
   useEffect(() => {
     if (loadMoreButtonInView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -226,6 +241,7 @@ export default function BookmarksGrid({
           open={helpDialogOpen}
           setOpen={setHelpDialogOpen}
         />
+        <ManageListsModal />
       </>
     );
   }
@@ -282,6 +298,7 @@ export default function BookmarksGrid({
         open={helpDialogOpen}
         setOpen={setHelpDialogOpen}
       />
+      <ManageListsModal />
 
       <ActionConfirmingDialog
         open={deleteDialogOpen}

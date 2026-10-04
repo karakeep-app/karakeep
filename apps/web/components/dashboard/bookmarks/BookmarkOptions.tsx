@@ -16,6 +16,7 @@ import useBulkActionsStore from "@/lib/bulkActions";
 import { useClientConfig } from "@/lib/clientConfig";
 import useUpload from "@/lib/hooks/upload-file";
 import { useTranslation } from "@/lib/i18n/client";
+import { useManageListsModalStore } from "@/lib/store/useManageListsModalStore";
 import {
   Archive,
   Circle,
@@ -57,7 +58,6 @@ import { BookmarkedTextEditor } from "./BookmarkedTextEditor";
 import DeleteBookmarkConfirmationDialog from "./DeleteBookmarkConfirmationDialog";
 import { EditBookmarkDialog } from "./EditBookmarkDialog";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
-import { useManageListsModal } from "./ManageListsModal";
 
 interface ActionItem {
   id: string;
@@ -121,8 +121,9 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     };
   }, []);
 
-  const { setOpen: setManageListsModalOpen, content: manageListsModal } =
-    useManageListsModal(bookmark.id);
+  const setManageListsModalBookmarkId = useManageListsModalStore(
+    (state) => state.setBookmarkId,
+  );
 
   const [deleteBookmarkDialogOpen, setDeleteBookmarkDialogOpen] =
     useState(false);
@@ -324,7 +325,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
       icon: <List className="mr-2 size-4" />,
       visible: isOwner,
       disabled: false,
-      onClick: () => setManageListsModalOpen(true),
+      onClick: () => setManageListsModalBookmarkId(bookmark.id),
     },
     {
       id: "remove-from-list",
@@ -477,7 +478,6 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
 
   return (
     <>
-      {manageListsModal}
       <EditBookmarkDialog
         bookmark={bookmark}
         open={isEditBookmarkDialogOpen}
