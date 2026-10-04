@@ -100,6 +100,8 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
       <CardContent className="space-y-6">
         <Form {...form}>
           <form
+            // POST so a submit before hydration doesn't put the password in the URL.
+            method="post"
             onSubmit={form.handleSubmit(async (value) => {
               if (turnstileSiteKey && !value.turnstileToken) {
                 form.setError("turnstileToken", {

@@ -75,7 +75,12 @@ export function ChangePassword() {
   return (
     <SettingsSection id="security" title="Security">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          // POST so a submit before hydration doesn't put the password in the URL.
+          method="post"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="currentPassword"
