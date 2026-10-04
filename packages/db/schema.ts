@@ -14,6 +14,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
+import type { ZPdfHighlightLocation } from "@karakeep/shared/types/highlights";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
@@ -392,6 +393,9 @@ export const highlights = sqliteTable(
       .references(() => users.id, { onDelete: "cascade" }),
     startOffset: integer("startOffset").notNull(),
     endOffset: integer("endOffset").notNull(),
+    pdfLocation: text("pdfLocation", {
+      mode: "json",
+    }).$type<ZPdfHighlightLocation>(),
     color: text("color", {
       enum: ["red", "green", "blue", "yellow"],
     })
