@@ -1059,11 +1059,19 @@ export class ManualList extends List {
     this.ensureCanEdit();
 
     try {
-      await this.ctx.db.insert(bookmarksInLists).values({
-        listId: this.list.id,
-        bookmarkId,
-        listMembershipId: this.collaboratorEntry?.membershipId,
-      });
+      this.ctx.db.transaction(
+        (tx) => {
+          this.ctx.beforeBookmarkWrite?.(tx);
+          tx.insert(bookmarksInLists)
+            .values({
+              listId: this.list.id,
+              bookmarkId,
+              listMembershipId: this.collaboratorEntry?.membershipId,
+            })
+            .run();
+        },
+        { behavior: "immediate" },
+      );
       const bookmark = await this.ctx.db.query.bookmarks.findFirst({
         where: eq(bookmarks.id, bookmarkId),
         columns: { userId: true },

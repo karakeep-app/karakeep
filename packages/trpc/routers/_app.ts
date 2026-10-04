@@ -1,3 +1,4 @@
+import { githubStarsRouter } from "./githubStars";
 import { router } from "../index";
 import { adminAppRouter } from "./admin";
 import { apiKeysAppRouter } from "./apiKeys";
@@ -19,6 +20,7 @@ import { usersAppRouter } from "./users";
 import { webhooksAppRouter } from "./webhooks";
 
 export const appRouter = router({
+  githubStars: githubStarsRouter,
   bookmarks: bookmarksAppRouter,
   apiKeys: apiKeysAppRouter,
   users: usersAppRouter,
