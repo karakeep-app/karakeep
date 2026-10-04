@@ -10,6 +10,7 @@ import {
   AssetTypes,
   bookmarkAssets,
   bookmarks,
+  imageCollectionItems,
 } from "@karakeep/db/schema";
 import {
   addLogFields,
@@ -475,10 +476,17 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
     groupId: bookmark.userId,
   };
   if (!isFixMode || anythingChanged) {
+    const collectionItem = await db.query.imageCollectionItems.findFirst({
+      where: eq(imageCollectionItems.bookmarkId, bookmarkId),
+      columns: { collectionId: true },
+    });
+    const collectionId = collectionItem?.collectionId;
+
     if (serverConfig.embedding.enableAutoIndexing) {
       await EmbeddingsQueue.enqueue(
         {
           bookmarkId,
+          collectionId,
           type: "embed",
           runTaggingOnComplete: true,
         },
@@ -488,6 +496,7 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       await OpenAIQueue.enqueue(
         {
           bookmarkId,
+          collectionId,
           type: "tag",
         },
         enqueueOpts,

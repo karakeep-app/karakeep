@@ -107,6 +107,11 @@ export function getBookmarkTitle(bookmark: ZBookmark) {
     case BookmarkTypes.ASSET:
       title = bookmark.content.fileName ?? null;
       break;
+    case BookmarkTypes.COLLECTION:
+      title = `${bookmark.content.items.length} ${
+        bookmark.content.items.length === 1 ? "image" : "images"
+      }`;
+      break;
   }
 
   return bookmark.title ? bookmark.title : title;

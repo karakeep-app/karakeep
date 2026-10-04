@@ -427,6 +427,51 @@
                   "type": {
                     "type": "string",
                     "enum": [
+                      "collection"
+                    ]
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "bookmarkId": {
+                          "type": "string"
+                        },
+                        "assetId": {
+                          "type": "string"
+                        },
+                        "fileName": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "position": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "bookmarkId",
+                        "assetId",
+                        "position"
+                      ]
+                    }
+                  },
+                  "content": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "type",
+                  "items"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
                       "unknown"
                     ]
                   }
@@ -1163,6 +1208,28 @@
                           "assetType",
                           "assetId"
                         ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "collection"
+                            ]
+                          },
+                          "bookmarkIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "minItems": 1
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "bookmarkIds"
+                        ]
                       }
                     ]
                   }
@@ -1519,6 +1586,9 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "selectedImageBookmarkId": {
+                    "type": "string"
+                  },
                   "archived": {
                     "type": "boolean"
                   },

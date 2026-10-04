@@ -22,6 +22,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -69,6 +76,21 @@ export function EditBookmarkDialog({
   const api = useTRPC();
   const { t } = useTranslation();
 
+  // If the bookmark is a collection, the OCR content will be fetched additionally
+  const isCollection = bookmark.content.type === BookmarkTypes.COLLECTION;
+  const collectionItems =
+    bookmark.content.type === BookmarkTypes.COLLECTION
+      ? [...bookmark.content.items].sort((a, b) => a.position - b.position)
+      : [];
+  const [selectedImageBookmarkId, setSelectedImageBookmarkId] =
+    React.useState<string>();
+  React.useEffect(() => {
+    if (!open || !isCollection) {
+      return;
+    }
+    setSelectedImageBookmarkId(collectionItems[0]?.bookmarkId);
+  }, [bookmark.id, isCollection, open]);
+
   const { data: assetContent, isLoading: isAssetContentLoading } = useQuery(
     api.bookmarks.getBookmark.queryOptions(
       {
@@ -79,6 +101,25 @@ export function EditBookmarkDialog({
         enabled: open && bookmark.content.type == BookmarkTypes.ASSET,
         select: (b) =>
           b.content.type == BookmarkTypes.ASSET ? b.content.content : null,
+      },
+    ),
+  );
+
+  const {
+    data: selectedImageContent,
+    isLoading: isSelectedImageContentLoading,
+  } = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      {
+        bookmarkId: selectedImageBookmarkId ?? "",
+        includeContent: true,
+      },
+      {
+        enabled: open && isCollection && !!selectedImageBookmarkId,
+        select: (b) =>
+          b.content.type === BookmarkTypes.ASSET
+            ? { bookmarkId: b.id, content: b.content.content }
+            : null,
       },
     ),
   );
@@ -138,6 +179,16 @@ export function EditBookmarkDialog({
     });
 
   function onSubmit(values: BookmarkFormValues) {
+    if (isCollection && selectedImageBookmarkId) {
+      const payload = {
+        ...values,
+        title: values.title ?? null,
+        selectedImageBookmarkId,
+      };
+      updateBookmarkMutate(payload);
+      return;
+    }
+
     // Ensure optional fields that are empty strings are sent as null/undefined if appropriate
     const payload = {
       ...values,
@@ -158,8 +209,23 @@ export function EditBookmarkDialog({
     }
   }, [assetContent, bookmark.content.type, form]);
 
+  // Update assetContent field when a new image is selected in a collection
+  React.useEffect(() => {
+    if (
+      !isCollection ||
+      !selectedImageContent ||
+      selectedImageContent.bookmarkId !== selectedImageBookmarkId
+    ) {
+      return;
+    }
+    form.setValue("assetContent", selectedImageContent.content ?? "");
+  }, [form, isCollection, selectedImageBookmarkId, selectedImageContent]);
+
   const isLink = bookmark.content.type === BookmarkTypes.LINK;
   const isAsset = bookmark.content.type === BookmarkTypes.ASSET;
+
+  const isCollectionImageContentLoading =
+    isCollection && (!selectedImageBookmarkId || isSelectedImageContentLoading);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -265,18 +331,47 @@ export function EditBookmarkDialog({
               />
             )}
 
-            {isAsset && (
+            {(isAsset || isCollection) && (
               <FormField
                 control={form.control}
                 name="assetContent"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {t("bookmark_editor.extracted_content")}
-                    </FormLabel>
+                    <div className="flex items-center justify-between gap-4">
+                      <FormLabel>
+                        {t("bookmark_editor.extracted_content")}
+                      </FormLabel>
+                      {isCollection && (
+                        <Select
+                          value={selectedImageBookmarkId}
+                          onValueChange={(bookmarkId) => {
+                            setSelectedImageBookmarkId(bookmarkId);
+                            form.setValue("assetContent", "");
+                          }}
+                        >
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select image" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {collectionItems.map((item, index) => (
+                              <SelectItem
+                                key={item.bookmarkId}
+                                value={item.bookmarkId}
+                              >
+                                {item.fileName || `Image ${index + 1}`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
                     <FormControl>
                       <Textarea
-                        disabled={isAssetContentLoading}
+                        disabled={
+                          isCollection
+                            ? isCollectionImageContentLoading
+                            : isAssetContentLoading
+                        }
                         placeholder="Extracted Content"
                         {...field}
                         value={field.value ?? ""}
