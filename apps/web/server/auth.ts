@@ -24,6 +24,7 @@ import { getReadOnlyModeError } from "@karakeep/shared/readOnlyMode";
 import {
   containsUnsafeUserNameMarkup,
   normalizeUserNameInput,
+  resolveOAuthDisplayName,
 } from "@karakeep/shared/utils/userName";
 import { logEvent } from "@karakeep/shared-server";
 import { validatePassword } from "@karakeep/trpc/auth";
@@ -205,9 +206,15 @@ if (oauth.wellKnownUrl) {
         isFirstUser(),
       ]);
 
+      const displayName = resolveOAuthDisplayName(
+        profile.name,
+        profile.given_name,
+        profile.family_name,
+      );
+
       return {
         id: profile.sub,
-        name: normalizeSafeDisplayName(profile.name),
+        name: normalizeSafeDisplayName(displayName),
         email: profile.email,
         role: admin || firstUser ? "admin" : "user",
       };
