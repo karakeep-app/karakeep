@@ -106,6 +106,7 @@ export const zAssetTypesSchema = z.enum([
   "bookmarkAsset",
   "precrawledArchive",
   "userUploaded",
+  "noteImage",
   "avatar",
   "unknown",
 ]);

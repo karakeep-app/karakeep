@@ -96,9 +96,14 @@ export default function AttachmentBox({
     },
   });
 
-  bookmark.assets.sort((a, b) => a.assetType.localeCompare(b.assetType));
+  // Note images are managed by editing the note text (paste/drop an image,
+  // or delete it from the text) rather than through this attachment list.
+  const manageableAssets = bookmark.assets.filter(
+    (asset) => asset.assetType !== "noteImage",
+  );
+  manageableAssets.sort((a, b) => a.assetType.localeCompare(b.assetType));
 
-  const hasAssets = bookmark.assets.length > 0;
+  const hasAssets = manageableAssets.length > 0;
 
   return (
     <Collapsible defaultOpen={true}>
@@ -169,7 +174,7 @@ export default function AttachmentBox({
         </div>
       </div>
       <CollapsibleContent className="flex flex-col gap-1 py-3 text-sm">
-        {bookmark.assets.map((asset) => (
+        {manageableAssets.map((asset) => (
           <div key={asset.id} className="flex items-center justify-between">
             <Link
               target="_blank"
