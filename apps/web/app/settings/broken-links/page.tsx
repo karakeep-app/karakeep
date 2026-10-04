@@ -1,5 +1,6 @@
 "use client";
 
+import { EditBrokenLinkDialog } from "@/components/settings/EditBrokenLinkDialog";
 import {
   SettingsPage,
   SettingsSection,
@@ -110,6 +111,7 @@ export default function BrokenLinksPage() {
                     )}
                   </TableCell>
                   <TableCell className="flex gap-2">
+                    <EditBrokenLinkDialog bookmarkId={b.id} url={b.url} />
                     <ActionButton
                       variant="secondary"
                       loading={isRecrawling}
