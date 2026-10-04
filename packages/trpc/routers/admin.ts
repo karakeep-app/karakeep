@@ -1,4 +1,5 @@
 import * as dns from "dns";
+import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import {
   and,
@@ -349,6 +350,8 @@ export const adminAppRouter = router({
       }
 
       const batchSize = 100;
+      // Failed jobs retain their keys, so each admin run needs a new one.
+      const retryRunId = randomUUID();
       const rows = await ctx.db
         .select({
           id: bookmarkLinks.id,
@@ -402,7 +405,7 @@ export const adminAppRouter = router({
           {
             priority: QueuePriority.Low,
             groupId: "admin",
-            idempotencyKey: `youtube-transcript:${bookmark.id}:retry`,
+            idempotencyKey: `youtube-transcript:${bookmark.id}:retry:${retryRunId}`,
           },
         );
         return jobId ? 1 : 0;

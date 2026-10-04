@@ -225,10 +225,47 @@ describe("Admin Routes", () => {
           expect.objectContaining({ bookmarkId: expect.any(String) }),
           expect.objectContaining({
             idempotencyKey: expect.stringMatching(
-              /^youtube-transcript:.+:retry$/,
+              /^youtube-transcript:.+:retry:[\da-f-]{36}$/,
             ),
           }),
         );
+      } finally {
+        testQueueMocks.youtubeTranscriptEnqueue.mockReset();
+        serverConfig.crawler.youtubeTranscript = wasEnabled;
+      }
+    });
+
+    test<CustomTestContext>("can retry a transcript again after a failed job is retained", async ({
+      apiCallers,
+      db,
+    }) => {
+      const adminApi = await getAdminApi(db);
+      const wasEnabled = serverConfig.crawler.youtubeTranscript;
+      serverConfig.crawler.youtubeTranscript = true;
+      try {
+        await apiCallers[0].bookmarks.createBookmark({
+          url: "https://www.youtube.com/watch?v=abcdefghijk",
+          type: BookmarkTypes.LINK,
+        });
+        const retainedKeys = new Set<string>();
+        testQueueMocks.youtubeTranscriptEnqueue.mockReset();
+        testQueueMocks.youtubeTranscriptEnqueue.mockImplementation(
+          async (_payload: unknown, options: { idempotencyKey: string }) => {
+            if (retainedKeys.has(options.idempotencyKey)) return undefined;
+            retainedKeys.add(options.idempotencyKey);
+            return "queued-job";
+          },
+        );
+
+        expect(await adminApi.retryMissingYouTubeTranscripts()).toEqual({
+          queued: 1,
+          nextCursor: null,
+        });
+        expect(await adminApi.retryMissingYouTubeTranscripts()).toEqual({
+          queued: 1,
+          nextCursor: null,
+        });
+        expect(retainedKeys.size).toBe(2);
       } finally {
         testQueueMocks.youtubeTranscriptEnqueue.mockReset();
         serverConfig.crawler.youtubeTranscript = wasEnabled;
