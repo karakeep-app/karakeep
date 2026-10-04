@@ -653,6 +653,7 @@ describe("Shared Lists", () => {
         archived: true,
         favourited: true,
         note: "Private note",
+        customMetadata: { externalId: "private-id" },
       });
 
       await ownerApi.lists.addToList({
@@ -681,6 +682,9 @@ describe("Shared Lists", () => {
       expect(ownerBookmark?.favourited).toBe(true);
       expect(ownerBookmark?.archived).toBe(true);
       expect(ownerBookmark?.note).toBe("Private note");
+      expect(ownerBookmark?.customMetadata).toEqual({
+        externalId: "private-id",
+      });
 
       const collaboratorBookmark = collaboratorView.bookmarks.find(
         (b) => b.id === bookmark.id,
@@ -688,6 +692,26 @@ describe("Shared Lists", () => {
       expect(collaboratorBookmark?.favourited).toBe(false);
       expect(collaboratorBookmark?.archived).toBe(false);
       expect(collaboratorBookmark?.note).toBeNull();
+      expect(collaboratorBookmark?.customMetadata).toBeNull();
+      expect(
+        (
+          await collaboratorApi.bookmarks.getBookmark({
+            bookmarkId: bookmark.id,
+          })
+        ).customMetadata,
+      ).toBeNull();
+      await expect(
+        collaboratorApi.bookmarks.updateBookmark({
+          bookmarkId: bookmark.id,
+          customMetadata: { externalId: "changed" },
+        }),
+      ).rejects.toThrow();
+      await ownerApi.lists.edit({ listId: list.id, public: true });
+      const publicView =
+        await collaboratorApi.publicBookmarks.getPublicBookmarksInList({
+          listId: list.id,
+        });
+      expect(publicView.bookmarks[0]).not.toHaveProperty("customMetadata");
     });
 
     // Note: Asset handling for shared bookmarks is tested via the REST API in e2e tests

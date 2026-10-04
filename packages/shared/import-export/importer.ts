@@ -1,3 +1,4 @@
+import type { ZBookmarkCustomMetadata } from "../types/bookmarks";
 import { MAX_LIST_NAME_LENGTH } from "../types/lists";
 import { ImportSource, ParsedImportFile, parseImportFile } from "./parsers";
 
@@ -14,6 +15,7 @@ export interface StagedBookmark {
   title?: string;
   content?: string;
   note?: string;
+  customMetadata?: ZBookmarkCustomMetadata;
   tags: string[];
   listIds: string[];
   sourceAddedAt?: Date;
@@ -248,6 +250,7 @@ export async function importBookmarksFromFile(
       title: bookmark.title,
       content: textContent,
       note: bookmark.notes,
+      customMetadata: bookmark.customMetadata,
       tags: bookmark.tags ?? [],
       listIds,
       sourceAddedAt: bookmark.addDate
