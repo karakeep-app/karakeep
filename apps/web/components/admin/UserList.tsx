@@ -18,7 +18,7 @@ import {
   useQueryClient,
   useSuspenseQuery,
 } from "@tanstack/react-query";
-import { Check, KeyRound, Pencil, Trash, UserPlus, X } from "lucide-react";
+import { KeyRound, Pencil, Trash, UserPlus } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
@@ -83,7 +83,6 @@ export default function UsersSection() {
               <TableHead>{t("admin.users_list.num_bookmarks")}</TableHead>
               <TableHead>{t("admin.users_list.asset_sizes")}</TableHead>
               <TableHead>{t("common.role")}</TableHead>
-              <TableHead>{t("admin.users_list.local_user")}</TableHead>
               <TableHead>{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -104,9 +103,6 @@ export default function UsersSection() {
                 </TableCell>
                 <TableCell className="py-1">
                   {u.role && t(`common.roles.${u.role}`)}
-                </TableCell>
-                <TableCell className="py-1">
-                  {u.localUser ? <Check /> : <X />}
                 </TableCell>
                 <TableCell className="flex gap-1 py-1">
                   <ActionConfirmingDialog
@@ -142,7 +138,7 @@ export default function UsersSection() {
                     <ButtonWithTooltip
                       tooltip={t("admin.users_list.reset_password")}
                       variant="outline"
-                      disabled={session!.user.id == u.id || !u.localUser}
+                      disabled={session!.user.id == u.id}
                     >
                       <KeyRound size={16} color="red" />
                     </ButtonWithTooltip>

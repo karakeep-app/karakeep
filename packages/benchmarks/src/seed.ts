@@ -5,7 +5,7 @@ import type { ZTagBasic } from "@karakeep/shared/types/tags";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { logInfo, logStep, logSuccess } from "./log";
-import { getTrpcClient, TrpcClient } from "./trpc";
+import { getTrpcClient, signUpUser, TrpcClient } from "./trpc";
 import { waitUntil } from "./utils";
 
 export interface SeedConfig {
@@ -66,11 +66,10 @@ async function seedUserData(
   const password = "benchmarks1234";
 
   logStep(`Creating user ${userIndex + 1}/${config.userCount}`);
-  await authlessClient.users.create.mutate({
+  await signUpUser({
     name: `Benchmark User ${userIndex + 1}`,
     email,
     password,
-    confirmPassword: password,
   });
   const { key } = await authlessClient.apiKeys.exchange.mutate({
     email,

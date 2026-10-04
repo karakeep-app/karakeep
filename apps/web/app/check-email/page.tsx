@@ -11,14 +11,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { sendVerificationEmail } from "@/lib/auth/client";
 import { useMutation } from "@tanstack/react-query";
 import { Loader2, Mail } from "lucide-react";
 
-import { useTRPC } from "@karakeep/shared-react/trpc";
 import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 export default function CheckEmailPage() {
-  const api = useTRPC();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [message, setMessage] = useState("");
@@ -27,22 +26,26 @@ export default function CheckEmailPage() {
   const redirectUrl =
     validateRedirectUrl(searchParams.get("redirectUrl")) ?? "/";
 
-  const resendEmailMutation = useMutation(
-    api.users.resendVerificationEmail.mutationOptions({
-      onSuccess: () => {
-        setMessage(
-          "A new verification email has been sent to your email address.",
-        );
-      },
-      onError: (error) => {
-        setMessage(error.message || "Failed to resend verification email.");
-      },
-    }),
-  );
+  const resendEmailMutation = useMutation({
+    mutationFn: async (input: { email: string; callbackUrl: string }) => {
+      const result = await sendVerificationEmail(input);
+      if (!result.ok) {
+        throw new Error(result.error);
+      }
+    },
+    onSuccess: () => {
+      setMessage(
+        "A new verification email has been sent to your email address.",
+      );
+    },
+    onError: (error) => {
+      setMessage(error.message || "Failed to resend verification email.");
+    },
+  });
 
   const handleResendEmail = () => {
     if (email) {
-      resendEmailMutation.mutate({ email, redirectUrl });
+      resendEmailMutation.mutate({ email, callbackUrl: redirectUrl });
     }
   };
 

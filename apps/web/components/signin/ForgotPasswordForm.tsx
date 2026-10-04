@@ -20,21 +20,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { requestPasswordReset } from "@/lib/auth/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-import { useTRPC } from "@karakeep/shared-react/trpc";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
 });
 
 export default function ForgotPasswordForm() {
-  const api = useTRPC();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
@@ -43,22 +39,16 @@ export default function ForgotPasswordForm() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const forgotPasswordMutation = useMutation(
-    api.users.forgotPassword.mutationOptions(),
-  );
-
   const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
-    try {
-      setErrorMessage("");
-      await forgotPasswordMutation.mutateAsync(values);
-      setIsSubmitted(true);
-    } catch (error) {
-      if (error instanceof TRPCClientError) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage("An unexpected error occurred. Please try again.");
-      }
+    setErrorMessage("");
+    const result = await requestPasswordReset(values.email);
+    if (!result.ok) {
+      setErrorMessage(
+        result.error ?? "An unexpected error occurred. Please try again.",
+      );
+      return;
     }
+    setIsSubmitted(true);
   };
 
   return (

@@ -70,7 +70,7 @@ The name Karakeep is inspired by the Arabic word "كراكيب" (karakeeb), a co
 
 - [NextJS](https://nextjs.org/) for the web app. Using app router.
 - [Drizzle](https://orm.drizzle.team/) for the database and its migrations.
-- [NextAuth](https://next-auth.js.org) for authentication.
+- [Better Auth](https://www.better-auth.com) for authentication.
 - [tRPC](https://trpc.io) for client->server communication.
 - [Puppeteer](https://pptr.dev/) for crawling the bookmarks.
 - [OpenAI](https://openai.com/) because AI is so hot right now.

@@ -7,6 +7,9 @@
     "baseUrl": ".",
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
     "strictNullChecks": true,
+    // The tRPC router types pull in shared code that uses DOM types. These
+    // used to come in by accident through next-auth's preact dependency.
+    "lib": ["es2024", "ESNext.Array", "ESNext.Collection", "ESNext.Iterator", "DOM"],
     "paths": {
       "@/*": ["./src/*"]
     },
