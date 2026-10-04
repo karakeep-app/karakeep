@@ -11,10 +11,7 @@ import { setSpanAttributes } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
-import {
-  isLikelyChallengePage,
-  isWaitableChallenge,
-} from "../utils/metadataResolver";
+import { isLikelyChallengePage, isWaitableChallenge } from "./metadataResolver";
 
 // Statuses bot-protection vendors serve their interstitials with.
 const CHALLENGE_STATUS_CODES = new Set([401, 403, 429, 503]);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeBrowserUserAgent } from "./utils";
+import { normalizeBrowserUserAgent } from "./crawlerUtils";
 
 describe("normalizeBrowserUserAgent", () => {
   it("drops the headless marker and reduces the version", () => {

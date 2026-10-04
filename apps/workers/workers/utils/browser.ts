@@ -29,7 +29,10 @@ import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import { loadAutoconsent } from "./autoconsent";
-import { normalizeBrowserUserAgent, redactUrlCredentials } from "./utils";
+import {
+  normalizeBrowserUserAgent,
+  redactUrlCredentials,
+} from "./crawlerUtils";
 
 interface Cookie {
   name: string;
