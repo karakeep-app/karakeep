@@ -90,7 +90,8 @@ async function main() {
   // Dynamic imports so the DATA_DIR override above takes effect first.
   const { default: serverConfig } = await import("@karakeep/shared/config");
   const { selectRunProxies } = await import("network");
-  const { crawlPage, CrawlerWorker } = await import("workers/crawlerWorker");
+  const { crawlPage, crawlLogger, CrawlerWorker } =
+    await import("workers/crawlerWorker");
 
   const { values } = parseArgs({
     options: {
@@ -141,12 +142,16 @@ async function main() {
       let record: Record<string, unknown>;
       try {
         const res = await crawlPage(
-          jobId,
-          url,
-          "adhoc",
+          {
+            jobId,
+            bookmarkId: "adhoc",
+            userId: "adhoc",
+            url,
+            abortSignal: abort.signal,
+            runProxy,
+            log: crawlLogger(jobId),
+          },
           values.pdf,
-          abort.signal,
-          runProxy,
           // Force the full browser path and skip the per-user DB lookup.
           true,
         );
