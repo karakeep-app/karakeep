@@ -1,7 +1,7 @@
 import type { IncomingHttpHeaders } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createServer } from "node:http";
-import { writeFile } from "node:fs/promises";
+import { rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -74,12 +74,16 @@ describe("S3AssetStoreProvider", () => {
         } else {
           const assetPath = join(tmpdir(), `s3-provider-test-${Date.now()}`);
           await writeFile(assetPath, "hello");
-          await store.saveAssetFromFile({
-            userId: "user",
-            assetId: "asset",
-            assetPath,
-            metadata,
-          });
+          try {
+            await store.saveAssetFromFile({
+              userId: "user",
+              assetId: "asset",
+              assetPath,
+              metadata,
+            });
+          } finally {
+            await rm(assetPath, { force: true });
+          }
         }
 
         const put = requests.pop();
