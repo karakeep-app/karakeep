@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  decodeResidualMetadataEntities,
   isLikelyChallengePage,
   isWaitableChallenge,
   resolveMetadata,
@@ -21,7 +22,7 @@ function meta(fields: Record<string, string | null | undefined>) {
 }
 
 describe("resolveMetadata", () => {
-  it("returns render metadata untouched when there is no probe metadata", () => {
+  it("returns render metadata when there is no probe metadata", () => {
     const render = meta({ title: "Render Title" });
     expect(resolveMetadata(render, null, false)).toBe(render);
     expect(resolveMetadata(render, null, true)).toBe(render);
@@ -57,6 +58,22 @@ describe("resolveMetadata", () => {
     expect(resolved.description).toBeNull();
   });
 
+  it("does not decode saved metadata while merging crawl retries", () => {
+    const resolved = resolveMetadata(
+      meta({
+        title: "How to use &amp; in HTML",
+        description: "Preserve &lt;code&gt; in titles",
+        image: "https://example.com/image?a=1&amp;b=2",
+      }),
+      meta({ title: "Probe &uuml; Title" }),
+      false,
+    );
+
+    expect(resolved.title).toBe("How to use &amp; in HTML");
+    expect(resolved.description).toBe("Preserve &lt;code&gt; in titles");
+    expect(resolved.image).toBe("https://example.com/image?a=1&amp;b=2");
+  });
+
   it("preserves extra fields from the render metadata", () => {
     const resolved = resolveMetadata(
       meta({ title: "Render Title", lang: "en" }),
@@ -72,6 +89,58 @@ describe("resolveMetadata", () => {
     resolveMetadata(render, probe, false);
     expect(render.title).toBeNull();
     expect(probe.title).toBe("Probe Title");
+  });
+});
+
+describe("decodeResidualMetadataEntities", () => {
+  it("decodes residual human-readable entities from extracted metadata", () => {
+    const decoded = decodeResidualMetadataEntities(
+      meta({
+        title: "Inspector Barnaby: Neue Folgen im ZDF angek&uuml;ndigt",
+        description: "Mystery f&uuml;r den Sonntagabend",
+        author: "M&uuml;ller",
+        publisher: "ZDF &copy;",
+        image: "https://example.com/image?a=1&amp;b=2",
+      }),
+    );
+
+    expect(decoded.title).toBe(
+      "Inspector Barnaby: Neue Folgen im ZDF angekündigt",
+    );
+    expect(decoded.description).toBe("Mystery für den Sonntagabend");
+    expect(decoded.author).toBe("Müller");
+    expect(decoded.publisher).toBe("ZDF ©");
+    expect(decoded.image).toBe("https://example.com/image?a=1&amp;b=2");
+  });
+
+  it("keeps structural entities so already decoded text is not corrupted", () => {
+    const decoded = decodeResidualMetadataEntities(
+      meta({
+        title: "How to use &amp; in HTML",
+        description: "Render &lt;code&gt; safely",
+        author: "Jane &quot;JJ&quot; Doe",
+        publisher: "Docs &#38; Examples",
+      }),
+    );
+
+    expect(decoded.title).toBe("How to use &amp; in HTML");
+    expect(decoded.description).toBe("Render &lt;code&gt; safely");
+    expect(decoded.author).toBe("Jane &quot;JJ&quot; Doe");
+    expect(decoded.publisher).toBe("Docs &#38; Examples");
+  });
+
+  it("does not mutate its input metadata", () => {
+    const metadata = meta({
+      title: "Inspector Barnaby: Neue Folgen im ZDF angek&uuml;ndigt",
+    });
+    const decoded = decodeResidualMetadataEntities(metadata);
+
+    expect(decoded.title).toBe(
+      "Inspector Barnaby: Neue Folgen im ZDF angekündigt",
+    );
+    expect(metadata.title).toBe(
+      "Inspector Barnaby: Neue Folgen im ZDF angek&uuml;ndigt",
+    );
   });
 });
 
