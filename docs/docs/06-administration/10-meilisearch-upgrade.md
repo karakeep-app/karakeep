@@ -28,4 +28,4 @@ then running `docker compose up -d meilisearch`, waiting for the migration to fi
 
 This is one-way: once upgraded, the old version can't open the data anymore. If you want a safety net, back up the meilisearch volume first.
 
-If you'd rather not migrate, you can also wipe the meilisearch volume and trigger a re-index from the admin panel (`Admin Settings > Background Jobs > Reindex All Bookmarks`) — the search index is fully rebuildable from the main database. If you're storing embeddings in Meilisearch, they live in the same volume: after wiping it, also run `Regenerate All Bookmark Embeddings` from the same screen to rebuild them.
+If you'd rather not migrate, you can also wipe the meilisearch volume and trigger a re-index from the admin panel (`Admin Settings > Background Jobs > Reindex All Bookmarks`) — the search index is fully rebuildable from the main database. If you're storing embeddings in Meilisearch, they live in the same volume: after wiping it, also run `Regenerate Embeddings for All Bookmarks` from the same screen to rebuild them.
