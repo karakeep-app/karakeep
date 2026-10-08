@@ -12,6 +12,7 @@ import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 import { runMigrateLargeLinkHtmlTask } from "./adminMaintenance/tasks/migrateLinkHtmlContent";
+import { runPurgeBookmarksOverQuotaTask } from "./adminMaintenance/tasks/purgeBookmarksOverQuota";
 import { runTidyAssetsTask } from "./adminMaintenance/tasks/tidyAssets";
 
 export class AdminMaintenanceWorker {
@@ -84,6 +85,8 @@ async function runAdminMaintenance(job: DequeuedJob<ZAdminMaintenanceTask>) {
       return runMigrateLargeLinkHtmlTask(
         job as DequeuedJob<ZAdminMaintenanceMigrateLargeLinkHtmlTask>,
       );
+    case "purge_bookmarks_over_quota":
+      return runPurgeBookmarksOverQuotaTask(job, task);
     default: {
       const exhaustiveCheck: never = task;
       throw new Error(

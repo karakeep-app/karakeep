@@ -1,9 +1,13 @@
 import { useEffect } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
-import { useHeaderHeight } from "expo-router/react-navigation";
+import {
+  SettingsActionRow,
+  SettingsGroup,
+  SettingsScreen,
+  SettingsSeparator,
+} from "@/components/settings/settings-list";
 import EmptyState from "@/components/ui/EmptyState";
-import { Divider } from "@/components/ui/Divider";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { clearPersistedCache, usePersistedCacheSize } from "@/lib/offlineCache";
@@ -56,7 +60,6 @@ function CacheSectionHeader({ title, size }: { title: string; size: number }) {
 
 export default function OfflineContent() {
   const router = useRouter();
-  const headerHeight = useHeaderHeight();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { settings } = useAppSettings();
@@ -120,99 +123,90 @@ export default function OfflineContent() {
   };
 
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{
-        paddingHorizontal: 16,
-        paddingBottom: 40 + headerHeight,
-      }}
-    >
-      <Text className="px-1 pb-3 text-sm text-muted-foreground">
+    <SettingsScreen>
+      <Text className="px-1 text-sm text-muted-foreground">
         Saved offline articles stay on this device. Everything else is cached
         only as you browse and can be cleared at any time.
       </Text>
 
-      <CacheSectionHeader
-        title="Saved offline content"
-        size={offlineLibrarySize}
-      />
+      <View className="gap-4">
+        <View className="gap-2">
+          <CacheSectionHeader
+            title="Saved offline content"
+            size={offlineLibrarySize}
+          />
 
-      {offlineLibrary.length === 0 ? (
-        <EmptyState
-          icon={BookOpen}
-          title="No saved offline articles"
-          subtitle="Open an article and choose Make available offline."
-        />
-      ) : (
-        <View
-          className="w-full rounded-xl bg-card py-1"
-          style={{ borderCurve: "continuous" }}
-        >
-          {offlineLibrary.map((item, index) => (
-            <View key={item.bookmarkId}>
-              <View className="flex-row items-center px-4 py-3">
-                <Pressable
-                  className="min-w-0 flex-1"
-                  onPress={() =>
-                    router.push(`/dashboard/bookmarks/${item.bookmarkId}`)
-                  }
-                >
-                  <Text className="font-medium" numberOfLines={2}>
-                    {item.displayTitle}
-                  </Text>
-                  {item.url && (
-                    <Text
-                      className="mt-0.5 text-xs text-muted-foreground"
-                      numberOfLines={1}
+          {offlineLibrary.length === 0 ? (
+            <EmptyState
+              icon={BookOpen}
+              title="No saved offline articles"
+              subtitle="Open an article and choose Make available offline."
+            />
+          ) : (
+            <SettingsGroup>
+              {offlineLibrary.map((item, index) => (
+                <View key={item.bookmarkId}>
+                  {index > 0 ? <SettingsSeparator /> : null}
+                  <View className="flex-row items-center px-4 py-3">
+                    <Pressable
+                      className="min-w-0 flex-1"
+                      onPress={() =>
+                        router.push(`/dashboard/bookmarks/${item.bookmarkId}`)
+                      }
                     >
-                      {item.url}
-                    </Text>
-                  )}
-                  <Text className="mt-1 text-xs text-muted-foreground">
-                    Saved{" "}
-                    {formatDistanceToNow(item.savedAt, { addSuffix: true })}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  accessibilityLabel={`Remove ${item.displayTitle} offline copy`}
-                  className="ml-3 p-2"
-                  onPress={() =>
-                    confirmRemove(item.bookmarkId, item.displayTitle)
-                  }
-                >
-                  <Trash2 size={18} color={colors.destructive} />
-                </Pressable>
-              </View>
-              {index < offlineLibrary.length - 1 && (
-                <Divider orientation="horizontal" className="mx-6" />
-              )}
-            </View>
-          ))}
+                      <Text className="font-medium" numberOfLines={2}>
+                        {item.displayTitle}
+                      </Text>
+                      {item.url ? (
+                        <Text
+                          className="mt-0.5 text-xs text-muted-foreground"
+                          numberOfLines={1}
+                        >
+                          {item.url}
+                        </Text>
+                      ) : null}
+                      <Text className="mt-1 text-xs text-muted-foreground">
+                        Saved{" "}
+                        {formatDistanceToNow(item.savedAt, { addSuffix: true })}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      accessibilityLabel={`Remove ${item.displayTitle} offline copy`}
+                      className="ml-3 p-2"
+                      onPress={() =>
+                        confirmRemove(item.bookmarkId, item.displayTitle)
+                      }
+                    >
+                      <Trash2 size={18} color={colors.destructive} />
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </SettingsGroup>
+          )}
         </View>
-      )}
 
-      {offlineLibrary.length > 0 && (
-        <Pressable
-          className="mt-4 rounded-xl bg-card px-4 py-3"
-          onPress={confirmRemoveAll}
-        >
-          <Text className="text-center text-destructive">
-            Remove all offline content
-          </Text>
-        </Pressable>
-      )}
-
-      <View className="mt-8">
-        <CacheSectionHeader title="Recent cache" size={recentCacheSize} />
-        <Pressable
-          className="rounded-xl bg-card px-4 py-3"
-          onPress={confirmClearRecentCache}
-        >
-          <Text className="text-center text-destructive">
-            Clear recent cache
-          </Text>
-        </Pressable>
+        {offlineLibrary.length > 0 ? (
+          <SettingsGroup>
+            <SettingsActionRow
+              centered
+              label="Remove all offline content"
+              onPress={confirmRemoveAll}
+            />
+          </SettingsGroup>
+        ) : null}
       </View>
-    </ScrollView>
+
+      <View className="gap-2">
+        <CacheSectionHeader title="Recent cache" size={recentCacheSize} />
+        <SettingsGroup>
+          <SettingsActionRow
+            centered
+            label="Clear recent cache"
+            onPress={confirmClearRecentCache}
+          />
+        </SettingsGroup>
+      </View>
+    </SettingsScreen>
   );
 }

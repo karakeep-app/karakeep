@@ -395,7 +395,7 @@
     },
     {
       "match": {
-        "model": "gpt-5.6-luna",
+        "model": "gpt-6-luna",
         "responseFormat": "json_schema",
         "userMessage": "automatic tagging for a read-it-later/bookmarking app"
       },
@@ -405,7 +405,7 @@
     },
     {
       "match": {
-        "model": "gpt-5.6-luna",
+        "model": "gpt-6-luna",
         "userMessage": "Summarize the following content responding ONLY with the summary."
       },
       "response": {

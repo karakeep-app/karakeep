@@ -1,24 +1,35 @@
-import serverConfig from "./config";
+import { Agent, Dispatcher, ProxyAgent, fetch as undiciFetch } from "undici";
 
-// Generic fetch function type that works across environments
-type FetchFunction = (
-  input: RequestInfo | URL | string,
-  init?: RequestInit,
-) => Promise<Response>;
+// Dispatchers are reused across calls so that clients built per job (e.g. the
+// inference, embeddings and asset-preprocessing workers) share a connection
+// pool instead of opening fresh sockets each time.
+const dispatchers = new Map<string, Dispatcher>();
 
-// Factory function to create a custom fetch with timeout for any fetch implementation
-export function createCustomFetch(fetchImpl: FetchFunction = globalThis.fetch) {
-  return function customFetch(
-    input: Parameters<typeof fetchImpl>[0],
-    init?: Parameters<typeof fetchImpl>[1],
-  ): ReturnType<typeof fetchImpl> {
-    const timeout = serverConfig.inference.fetchTimeoutSec * 1000; // Convert to milliseconds
-    return fetchImpl(input, {
-      signal: AbortSignal.timeout(timeout),
-      ...init,
-    });
-  };
+function getDispatcher(timeoutMs: number, proxyUrl?: string): Dispatcher {
+  const key = `${proxyUrl ?? ""}:${timeoutMs}`;
+  let dispatcher = dispatchers.get(key);
+  if (!dispatcher) {
+    const opts = { headersTimeout: timeoutMs, bodyTimeout: timeoutMs };
+    dispatcher = proxyUrl
+      ? new ProxyAgent({ uri: proxyUrl, ...opts })
+      : new Agent(opts);
+    dispatchers.set(key, dispatcher);
+  }
+  return dispatcher;
 }
 
-// Default export for backward compatibility - uses global fetch
-export const customFetch = createCustomFetch();
+// Creates a fetch whose undici headers/body timeouts match the given timeout.
+// Without this, undici's defaults (5 mins) cut off slow inference requests
+// regardless of the configured timeout. We use undici's own fetch alongside
+// its Agent so that the fetch and the dispatcher come from the same undici copy.
+export function createCustomFetch(
+  timeoutMs: number,
+  proxyUrl?: string,
+): typeof fetch {
+  const dispatcher = getDispatcher(timeoutMs, proxyUrl);
+  return ((input: RequestInfo | URL, init?: RequestInit) =>
+    undiciFetch(
+      input as Parameters<typeof undiciFetch>[0],
+      { ...init, dispatcher } as Parameters<typeof undiciFetch>[1],
+    )) as unknown as typeof fetch;
+}

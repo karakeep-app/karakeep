@@ -3,7 +3,6 @@ import { format } from "node:util";
 import * as restate from "@restatedev/restate-sdk";
 import * as restateClient from "@restatedev/restate-sdk-clients";
 
-import type { PluginProvider } from "@karakeep/shared/plugins";
 import type {
   EnqueueOptions,
   Queue,
@@ -127,7 +126,7 @@ class RestateRunnerWrapper<T> implements Runner<T> {
   }
 }
 
-class RestateQueueClient implements QueueClient {
+export class RestateQueueClient implements QueueClient {
   private client: restateClient.Ingress;
   private queues = new Map<string, RestateQueueWrapper<unknown>>();
   private services = new Map<string, RestateRunnerWrapper<unknown>>();
@@ -216,21 +215,5 @@ class RestateQueueClient implements QueueClient {
 
   async shutdown(): Promise<void> {
     // No-op for sqlite
-  }
-}
-
-export class RestateQueueProvider implements PluginProvider<QueueClient> {
-  private client: QueueClient | null = null;
-
-  static isConfigured(): boolean {
-    return envConfig.RESTATE_LISTEN_PORT !== undefined;
-  }
-
-  async getClient(): Promise<QueueClient | null> {
-    if (!this.client) {
-      const client = new RestateQueueClient();
-      this.client = client;
-    }
-    return this.client;
   }
 }

@@ -143,6 +143,21 @@ const TagPickerPage = () => {
         setOptimisticTags((prev) => prev.filter((p) => p.id != t.tagId!)),
       );
     },
+    onSuccess: (_data, req) => {
+      const isAttaching = req.attach.length > 0;
+      const isBulkUpdate = req.attach.length + req.detach.length > 1;
+
+      toast({
+        message: isAttaching
+          ? isBulkUpdate
+            ? "Tags added!"
+            : "Tag added!"
+          : isBulkUpdate
+            ? "Tags removed!"
+            : "Tag removed!",
+        showProgress: false,
+      });
+    },
     onError,
   });
 

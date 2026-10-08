@@ -35,17 +35,40 @@ export async function uploadTestAsset(
   }>;
 }
 
+// Signs up through better-auth's endpoint, the same way the web app does.
+export async function signUpUser(input: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  const baseUrl = `http://localhost:${process.env.KARAKEEP_PORT}`;
+  const response = await fetch(`${baseUrl}/api/auth/sign-up/email`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // Node's fetch sends Sec-Fetch-* headers but no Origin, which
+      // better-auth's CSRF protection rejects. Browsers always send it.
+      Origin: baseUrl,
+    },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to sign up ${input.email}: ${response.status} ${await response.text()}`,
+    );
+  }
+}
+
 export async function createTestUser(scopes?: ZApiKeyScope[]) {
   const trpc = getTrpcClient();
 
   const random = Math.random().toString(36).substring(7);
   const email = `testuser+${random}@example.com`;
 
-  await trpc.users.create.mutate({
+  await signUpUser({
     name: "Test User",
     email,
     password: "test1234",
-    confirmPassword: "test1234",
   });
 
   const { key } = await trpc.apiKeys.exchange.mutate({

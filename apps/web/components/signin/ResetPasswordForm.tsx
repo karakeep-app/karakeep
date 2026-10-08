@@ -20,14 +20,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { resetPassword } from "@/lib/auth/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
-import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zResetPasswordSchema } from "@karakeep/shared/types/users";
 
 const resetPasswordSchema = z
@@ -45,7 +43,6 @@ interface ResetPasswordFormProps {
 }
 
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
-  const api = useTRPC();
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
@@ -54,25 +51,21 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  const resetPasswordMutation = useMutation(
-    api.users.resetPassword.mutationOptions(),
-  );
-
   const onSubmit = async (values: z.infer<typeof resetPasswordSchema>) => {
-    try {
-      setErrorMessage("");
-      await resetPasswordMutation.mutateAsync({
-        token,
-        newPassword: values.newPassword,
-      });
-      setIsSuccess(true);
-    } catch (error) {
-      if (error instanceof TRPCClientError) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage("An unexpected error occurred. Please try again.");
-      }
+    setErrorMessage("");
+    const result = await resetPassword({
+      token,
+      newPassword: values.newPassword,
+    });
+    if (!result.ok) {
+      setErrorMessage(
+        result.code === "INVALID_TOKEN"
+          ? "Invalid or expired reset token"
+          : (result.error ?? "An unexpected error occurred. Please try again."),
+      );
+      return;
     }
+    setIsSuccess(true);
   };
 
   return (
@@ -111,6 +104,8 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           <>
             <Form {...form}>
               <form
+                // POST so a submit before hydration doesn't put the password in the URL.
+                method="post"
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >

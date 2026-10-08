@@ -13,29 +13,39 @@ function useBookmarkListLayoutMenu(): {
   const { settings, setSettings } = useAppSettings();
   const { menuIconColor } = useMenuIconColors();
 
+  const layoutModeActions: MenuAction[] = [
+    {
+      id: "card",
+      title: "Card",
+      state: settings.bookmarkLayout === "card" ? "on" : "off",
+      image: Platform.select({ ios: "rectangle.grid.1x2" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
+    {
+      id: "list",
+      title: "List",
+      state: settings.bookmarkLayout === "list" ? "on" : "off",
+      image: Platform.select({ ios: "list.bullet" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
+  ];
+  const showNotesAction: MenuAction = {
+    id: "show_notes",
+    title: "Show Notes",
+    state: settings.showNotes ? "on" : "off",
+    image: Platform.select({ ios: "note.text" }),
+    imageColor: Platform.select({ ios: menuIconColor }),
+  };
+
   const layoutActions: MenuAction[] = [
     {
       id: "layout",
       title: "Layout",
       image: Platform.select({ ios: "rectangle.grid.1x2" }),
       imageColor: Platform.select({ ios: menuIconColor }),
-      subactions: [
-        {
-          id: "card",
-          title: "Card",
-          state: settings.bookmarkLayout === "card" ? "on" : "off",
-          image: Platform.select({ ios: "rectangle.grid.1x2" }),
-          imageColor: Platform.select({ ios: menuIconColor }),
-        },
-        {
-          id: "list",
-          title: "List",
-          state: settings.bookmarkLayout === "list" ? "on" : "off",
-          image: Platform.select({ ios: "list.bullet" }),
-          imageColor: Platform.select({ ios: menuIconColor }),
-        },
-      ],
+      subactions: layoutModeActions,
     },
+    showNotesAction,
     {
       id: "sort",
       title: "Sort",
@@ -65,6 +75,14 @@ function useBookmarkListLayoutMenu(): {
       setSettings({
         ...settings,
         bookmarkLayout: event,
+      });
+      return true;
+    }
+
+    if (event === "show_notes") {
+      setSettings({
+        ...settings,
+        showNotes: !settings.showNotes,
       });
       return true;
     }

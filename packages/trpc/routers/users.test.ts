@@ -2,18 +2,22 @@ import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
+  accounts,
   assets,
   AssetTypes,
   bookmarks,
-  passwordResetTokens,
   subscriptions,
   users,
 } from "@karakeep/db/schema";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
-import * as emailModule from "../email";
-import { defaultBeforeEach, getApiCaller } from "../testUtils";
+import {
+  CREDENTIAL_PROVIDER_ID,
+  setUserPassword,
+  verifyPasswordHash,
+} from "../auth";
+import { createTestUser, defaultBeforeEach, getApiCaller } from "../testUtils";
 
 // Mock server config with email settings
 vi.mock("@karakeep/shared/config", async (original) => {
@@ -40,109 +44,121 @@ vi.mock("@karakeep/shared/config", async (original) => {
   };
 });
 
-// Mock email functions
-vi.mock("../email", () => ({
-  sendPasswordResetEmail: vi.fn().mockResolvedValue(undefined),
-  sendVerificationEmail: vi.fn().mockResolvedValue(undefined),
-}));
-
 beforeEach<CustomTestContext>(defaultBeforeEach(false));
 
 describe("User Routes", () => {
-  test<CustomTestContext>("create user", async ({ unauthedAPICaller }) => {
-    const user = await unauthedAPICaller.users.create({
+  test<CustomTestContext>("create user", async ({ db }) => {
+    const user = await createTestUser(db, {
       name: "Test User",
-      email: "test123@test.com",
+      email: "Test123@Test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
 
     expect(user.name).toEqual("Test User");
+    // Emails are stored lowercased
     expect(user.email).toEqual("test123@test.com");
+
+    const dbUser = await db.query.users.findFirst({
+      where: eq(users.id, user.id),
+    });
+    expect(dbUser?.emailVerified).toBe(false);
+
+    // The password lives in a credential account, hashed
+    const userAccounts = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, user.id));
+    expect(userAccounts).toHaveLength(1);
+    expect(userAccounts[0].providerId).toBe(CREDENTIAL_PROVIDER_ID);
+    expect(userAccounts[0].accountId).toBe(user.id);
+    expect(userAccounts[0].password).not.toBe("pass1234");
+    assert(userAccounts[0].password);
+    expect(await verifyPasswordHash(userAccounts[0].password, "pass1234")).toBe(
+      true,
+    );
   });
 
-  test<CustomTestContext>("create user trims surrounding whitespace in name", async ({
-    unauthedAPICaller,
+  test<CustomTestContext>("create user without password has no credential account", async ({
+    db,
   }) => {
-    const user = await unauthedAPICaller.users.create({
-      name: "  Test \n User  ",
-      email: "sanitized@test.com",
-      password: "pass1234",
-      confirmPassword: "pass1234",
+    const user = await createTestUser(db, {
+      name: "No Password User",
+      email: "nopass@test.com",
     });
 
-    expect(user.name).toEqual("Test \n User");
+    const userAccounts = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, user.id));
+    expect(userAccounts).toHaveLength(0);
   });
 
-  test<CustomTestContext>("create user rejects raw html in name", async ({
-    unauthedAPICaller,
-  }) => {
-    await expect(() =>
-      unauthedAPICaller.users.create({
-        name: "<script>alert('xss')</script>",
-        email: "html-only@test.com",
-        password: "pass1234",
-        confirmPassword: "pass1234",
-      }),
-    ).rejects.toThrow(/Name contains invalid characters/);
-  });
-
-  test<CustomTestContext>("first user is admin", async ({
-    unauthedAPICaller,
-  }) => {
-    const user1 = await unauthedAPICaller.users.create({
+  test<CustomTestContext>("first user is admin", async ({ db }) => {
+    const user1 = await createTestUser(db, {
       name: "Test User",
       email: "test123@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
 
-    const user2 = await unauthedAPICaller.users.create({
+    const user2 = await createTestUser(db, {
       name: "Test User",
       email: "test124@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
+    });
+
+    // An explicit role wins over the first-user rule
+    const user3 = await createTestUser(db, {
+      name: "Test User",
+      email: "test125@test.com",
+      role: "admin",
     });
 
     expect(user1.role).toEqual("admin");
     expect(user2.role).toEqual("user");
+    expect(user3.role).toEqual("admin");
   });
 
-  test<CustomTestContext>("unique emails", async ({ unauthedAPICaller }) => {
-    await unauthedAPICaller.users.create({
+  test<CustomTestContext>("unique emails", async ({ db }) => {
+    await createTestUser(db, {
       name: "Test User",
       email: "test123@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
 
     await expect(() =>
-      unauthedAPICaller.users.create({
+      createTestUser(db, {
         name: "Test User",
         email: "test123@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       }),
     ).rejects.toThrow(/Email is already taken/);
+
+    // Uniqueness is case-insensitive since emails are stored lowercased
+    await expect(() =>
+      createTestUser(db, {
+        name: "Test User",
+        email: "TEST123@test.com",
+        password: "pass1234",
+      }),
+    ).rejects.toThrow(/Email is already taken/);
+
+    // The failed attempts must not leave credential accounts behind
+    const allAccounts = await db.select().from(accounts);
+    expect(allAccounts).toHaveLength(1);
   });
 
-  test<CustomTestContext>("privacy checks", async ({
-    db,
-    unauthedAPICaller,
-  }) => {
-    const adminUser = await unauthedAPICaller.users.create({
+  test<CustomTestContext>("privacy checks", async ({ db }) => {
+    const adminUser = await createTestUser(db, {
       name: "Test User",
       email: "test123@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
     const [user1, user2] = await Promise.all(
       ["test1234@test.com", "test12345@test.com"].map((e) =>
-        unauthedAPICaller.users.create({
+        createTestUser(db, {
           name: "Test User",
           email: e,
           password: "pass1234",
-          confirmPassword: "pass1234",
         }),
       ),
     );
@@ -164,15 +180,11 @@ describe("User Routes", () => {
     await expect(() => user2Caller.users.list()).rejects.toThrow(/FORBIDDEN/);
   });
 
-  test<CustomTestContext>("get/update user settings", async ({
-    db,
-    unauthedAPICaller,
-  }) => {
-    const user = await unauthedAPICaller.users.create({
+  test<CustomTestContext>("get/update user settings", async ({ db }) => {
+    const user = await createTestUser(db, {
       name: "Test User",
       email: "testupdate@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
     const caller = getApiCaller(db, user.id);
 
@@ -247,15 +259,11 @@ describe("User Routes", () => {
     );
   });
 
-  test<CustomTestContext>("user stats - empty user", async ({
-    db,
-    unauthedAPICaller,
-  }) => {
-    const user = await unauthedAPICaller.users.create({
+  test<CustomTestContext>("user stats - empty user", async ({ db }) => {
+    const user = await createTestUser(db, {
       name: "Test User",
       email: "stats@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
     const caller = getApiCaller(db, user.id);
 
@@ -290,15 +298,11 @@ describe("User Routes", () => {
     });
   });
 
-  test<CustomTestContext>("user stats - with data", async ({
-    db,
-    unauthedAPICaller,
-  }) => {
-    const user = await unauthedAPICaller.users.create({
+  test<CustomTestContext>("user stats - with data", async ({ db }) => {
+    const user = await createTestUser(db, {
       name: "Test User",
       email: "statsdata@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
     const caller = getApiCaller(db, user.id);
 
@@ -440,23 +444,18 @@ describe("User Routes", () => {
     expect(stats.bookmarkingActivity.byDayOfWeek).toHaveLength(7);
   });
 
-  test<CustomTestContext>("user stats - privacy isolation", async ({
-    db,
-    unauthedAPICaller,
-  }) => {
+  test<CustomTestContext>("user stats - privacy isolation", async ({ db }) => {
     // Create two users
-    const user1 = await unauthedAPICaller.users.create({
+    const user1 = await createTestUser(db, {
       name: "User 1",
       email: "user1@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
 
-    const user2 = await unauthedAPICaller.users.create({
+    const user2 = await createTestUser(db, {
       name: "User 2",
       email: "user2@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
 
     const caller1 = getApiCaller(db, user1.id);
@@ -514,13 +513,11 @@ describe("User Routes", () => {
 
   test<CustomTestContext>("user stats - activity time patterns", async ({
     db,
-    unauthedAPICaller,
   }) => {
-    const user = await unauthedAPICaller.users.create({
+    const user = await createTestUser(db, {
       name: "Test User",
       email: "timepatterns@test.com",
       password: "pass1234",
-      confirmPassword: "pass1234",
     });
     const caller = getApiCaller(db, user.id);
 
@@ -586,334 +583,12 @@ describe("User Routes", () => {
     ).toBe(true);
   });
 
-  describe("Password Reset", () => {
-    test<CustomTestContext>("forgotPassword - successful email sending", async ({
-      unauthedAPICaller,
-    }) => {
-      // Create a user first
-      await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "reset@test.com",
-        password: "pass1234",
-        confirmPassword: "pass1234",
-      });
-
-      // With mocked email service, this should succeed
-      const result = await unauthedAPICaller.users.forgotPassword({
-        email: "reset@test.com",
-      });
-
-      expect(result.success).toBe(true);
-
-      // Verify that the email function was called with correct parameters
-      expect(emailModule.sendPasswordResetEmail).toHaveBeenCalledWith(
-        "reset@test.com",
-        "Test User",
-        expect.any(String), // token
-      );
-    });
-
-    test<CustomTestContext>("forgotPassword - non-existing user", async ({
-      unauthedAPICaller,
-    }) => {
-      // Should not reveal if user exists or not
-      const result = await unauthedAPICaller.users.forgotPassword({
-        email: "nonexistent@test.com",
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    test<CustomTestContext>("forgotPassword - OAuth user (no password)", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user without password (OAuth user)
-      await db.insert(users).values({
-        name: "OAuth User",
-        email: "oauth@test.com",
-        password: null,
-      });
-
-      // Should not send reset email for OAuth users
-      const result = await unauthedAPICaller.users.forgotPassword({
-        email: "oauth@test.com",
-      });
-
-      expect(result.success).toBe(true);
-    });
-
-    test<CustomTestContext>("resetPassword - valid token", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "validreset@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token directly in the database
-      const token = "valid-reset-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Reset the password
-      const result = await unauthedAPICaller.users.resetPassword({
-        token,
-        newPassword: "newpass123",
-      });
-
-      expect(result.success).toBe(true);
-
-      // Verify the token was consumed (deleted)
-      const remainingTokens = await db
-        .select()
-        .from(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, token));
-
-      expect(remainingTokens).toHaveLength(0);
-
-      // The password reset was successful if we got here without errors
-    });
-
-    test<CustomTestContext>("resetPassword - invalid token", async ({
-      unauthedAPICaller,
-    }) => {
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token: "invalid-token",
-          newPassword: "newpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-    });
-
-    test<CustomTestContext>("resetPassword - expired token", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "expiredtoken@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create an expired password reset token
-      const token = "expired-reset-token";
-      const expires = new Date(Date.now() - 60 * 60 * 1000); // 1 hour ago (expired)
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "newpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-
-      // Verify the expired token was cleaned up
-      const remainingTokens = await db
-        .select()
-        .from(passwordResetTokens)
-        .where(eq(passwordResetTokens.token, token));
-
-      expect(remainingTokens).toHaveLength(0);
-    });
-
-    test<CustomTestContext>("resetPassword - user not found", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user first, then delete them to create an orphaned token
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "orphaned@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token
-      const token = "orphaned-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000);
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Delete the user to make the token orphaned
-      // Due to foreign key cascade, this will also delete the token
-      // So we expect "Invalid or expired reset token" instead of "User not found"
-      await db.delete(users).where(eq(users.id, user.id));
-
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "newpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-    });
-    test<CustomTestContext>("resetPassword - password validation", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "validation@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token
-      const token = "validation-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000);
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Try to reset with a password that's too short
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "123", // Too short
-        }),
-      ).rejects.toThrow();
-    });
-
-    test<CustomTestContext>("resetPassword - token reuse prevention", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      // Create a user
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "reuse@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-
-      // Create a password reset token
-      const token = "reuse-token";
-      const expires = new Date(Date.now() + 60 * 60 * 1000);
-
-      await db.insert(passwordResetTokens).values({
-        userId: user.id,
-        token,
-        expires,
-      });
-
-      // Use the token once
-      await unauthedAPICaller.users.resetPassword({
-        token,
-        newPassword: "newpass123",
-      });
-
-      // Try to use the same token again
-      await expect(
-        unauthedAPICaller.users.resetPassword({
-          token,
-          newPassword: "anotherpass123",
-        }),
-      ).rejects.toThrow(/Invalid or expired reset token/);
-    });
-  });
-
-  describe("Change Password", () => {
-    test<CustomTestContext>("changePassword - successful change", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "changepass@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
-
-      await caller.users.changePassword({
-        currentPassword: "oldpass123",
-        newPassword: "newpass456",
-      });
-
-      // Password change should succeed without throwing
-    });
-
-    test<CustomTestContext>("changePassword - wrong current password", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      const user = await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "wrongpass@test.com",
-        password: "oldpass123",
-        confirmPassword: "oldpass123",
-      });
-      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
-
-      await expect(() =>
-        caller.users.changePassword({
-          currentPassword: "wrongpassword",
-          newPassword: "newpass456",
-        }),
-      ).rejects.toThrow();
-    });
-
-    test<CustomTestContext>("changePassword - OAuth user (no password)", async ({
-      db,
-    }) => {
-      // Create OAuth user without password
-      await db.insert(users).values({
-        name: "OAuth User",
-        email: "oauth@test.com",
-        password: null,
-      });
-
-      const oauthUser = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, "oauth@test.com"))
-        .then((rows) => rows[0]);
-
-      const caller = getApiCaller(db, oauthUser.id, oauthUser.email, "user");
-
-      await expect(() =>
-        caller.users.changePassword({
-          currentPassword: "anypassword",
-          newPassword: "newpass456",
-        }),
-      ).rejects.toThrow();
-    });
-  });
-
   describe("Delete Account", () => {
-    test<CustomTestContext>("deleteAccount - with password", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      const user = await unauthedAPICaller.users.create({
+    test<CustomTestContext>("deleteAccount - with password", async ({ db }) => {
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "deleteaccount@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
@@ -931,13 +606,11 @@ describe("User Routes", () => {
 
     test<CustomTestContext>("deleteAccount refuses active Stripe subscription", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "deletepaidaccount@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
@@ -966,13 +639,11 @@ describe("User Routes", () => {
 
     test<CustomTestContext>("deleteAccount - wrong password", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "wrongdeletepass@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
@@ -986,11 +657,10 @@ describe("User Routes", () => {
     test<CustomTestContext>("deleteAccount - OAuth user (no password)", async ({
       db,
     }) => {
-      // Create OAuth user without password
+      // OAuth users have no credential account
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauthdelete@test.com",
-        password: null,
       });
 
       const oauthUser = await db
@@ -1015,13 +685,11 @@ describe("User Routes", () => {
   describe("Update Avatar", () => {
     test<CustomTestContext>("updateAvatar - promotes unknown asset", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Avatar Reject",
         email: "avatar-reject@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
@@ -1048,13 +716,11 @@ describe("User Routes", () => {
 
     test<CustomTestContext>("updateAvatar - deletes avatar asset", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Avatar Delete",
         email: "avatar-delete@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
@@ -1088,15 +754,11 @@ describe("User Routes", () => {
   });
 
   describe("Who Am I", () => {
-    test<CustomTestContext>("whoami - returns user info", async ({
-      db,
-      unauthedAPICaller,
-    }) => {
-      const user = await unauthedAPICaller.users.create({
+    test<CustomTestContext>("whoami - returns user info", async ({ db }) => {
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "whoami@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
@@ -1109,11 +771,10 @@ describe("User Routes", () => {
     });
 
     test<CustomTestContext>("whoami - OAuth user", async ({ db }) => {
-      // Create OAuth user
+      // OAuth users only have a non-credential account
       await db.insert(users).values({
         name: "OAuth User",
         email: "oauthwhoami@test.com",
-        password: null,
       });
 
       const oauthUser = await db
@@ -1121,6 +782,12 @@ describe("User Routes", () => {
         .from(users)
         .where(eq(users.email, "oauthwhoami@test.com"))
         .then((rows) => rows[0]);
+
+      await db.insert(accounts).values({
+        userId: oauthUser.id,
+        providerId: "custom",
+        accountId: "oauth-account-id",
+      });
 
       const caller = getApiCaller(db, oauthUser.id, oauthUser.email, "user");
 
@@ -1131,77 +798,39 @@ describe("User Routes", () => {
       expect(whoami.email).toBe("oauthwhoami@test.com");
       expect(whoami.localUser).toBe(false);
     });
-  });
 
-  describe("Email Verification", () => {
-    test<CustomTestContext>("verifyEmail - invalid token", async ({
-      unauthedAPICaller,
+    test<CustomTestContext>("whoami - becomes local once a password is set", async ({
+      db,
     }) => {
-      await expect(() =>
-        unauthedAPICaller.users.verifyEmail({
-          email: "nonexistent@test.com",
-          token: "invalid-token",
-        }),
-      ).rejects.toThrow();
-    });
-
-    test<CustomTestContext>("verifyEmail - invalid email format", async ({
-      unauthedAPICaller,
-    }) => {
-      await expect(() =>
-        unauthedAPICaller.users.verifyEmail({
-          email: "invalid-email",
-          token: "some-token",
-        }),
-      ).rejects.toThrow();
-    });
-  });
-
-  describe("Resend Verification Email", () => {
-    test<CustomTestContext>("resendVerificationEmail - existing user", async ({
-      unauthedAPICaller,
-    }) => {
-      // Create user first
-      await unauthedAPICaller.users.create({
-        name: "Test User",
-        email: "resend@test.com",
-        password: "pass1234",
-        confirmPassword: "pass1234",
+      const user = await createTestUser(db, {
+        name: "Late Password",
+        email: "latepassword@test.com",
       });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
-      const result = await unauthedAPICaller.users.resendVerificationEmail({
-        email: "resend@test.com",
-      });
+      expect((await caller.users.whoami()).localUser).toBe(false);
 
-      expect(result.success).toBe(true);
+      await setUserPassword(db, user.id, "pass1234");
 
-      // Verify that the email function was called
-      expect(emailModule.sendVerificationEmail).toHaveBeenCalledWith(
-        "resend@test.com",
-        "Test User",
-        expect.any(String), // token
-        undefined, // redirectUrl
-      );
+      expect((await caller.users.whoami()).localUser).toBe(true);
     });
 
-    test<CustomTestContext>("resendVerificationEmail - non-existing user", async ({
-      unauthedAPICaller,
+    test<CustomTestContext>("whoami - credential account without password is not local", async ({
+      db,
     }) => {
-      // Should not reveal if user exists or not
-      const result = await unauthedAPICaller.users.resendVerificationEmail({
-        email: "nonexistent@test.com",
+      const user = await createTestUser(db, {
+        name: "Empty Credential",
+        email: "emptycredential@test.com",
       });
-      expect(result.success).toBe(true);
-    });
+      await db.insert(accounts).values({
+        userId: user.id,
+        providerId: CREDENTIAL_PROVIDER_ID,
+        accountId: user.id,
+        password: null,
+      });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
 
-    test<CustomTestContext>("resendVerificationEmail - invalid email format", async ({
-      unauthedAPICaller,
-    }) => {
-      await expect(() =>
-        unauthedAPICaller.users.resendVerificationEmail({
-          email: "invalid-email",
-        }),
-      ).rejects.toThrow();
+      expect((await caller.users.whoami()).localUser).toBe(false);
     });
   });
 });

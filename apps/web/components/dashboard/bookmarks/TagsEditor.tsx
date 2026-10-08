@@ -15,7 +15,7 @@ import {
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { isServer, keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
 import { Check, Loader2, Plus, Sparkles, X } from "lucide-react";
 
@@ -114,7 +114,13 @@ export function TagsEditor({
                 : ("ai" as const),
           })),
         placeholderData: keepPreviousData,
-        gcTime: inputValue.length > 0 ? 60_000 : 3_600_000,
+        // A finite gcTime on the server schedules a timer that pins the
+        // request's query cache in memory; keep the default (Infinity) there.
+        gcTime: isServer
+          ? Infinity
+          : inputValue.length > 0
+            ? 60_000
+            : 3_600_000,
       },
     ),
   );
@@ -307,7 +313,7 @@ export function TagsEditor({
           <PopoverTrigger asChild>
             <div
               className={cn(
-                "relative flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+                "relative flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
                 isDisabled && "cursor-not-allowed opacity-50",
               )}
             >
@@ -331,7 +337,7 @@ export function TagsEditor({
                         {!isDisabled && (
                           <button
                             type="button"
-                            className="rounded-full outline-none ring-offset-background focus:ring-1 focus:ring-ring focus:ring-offset-2"
+                            className="rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                             onClick={(e) => {
                               e.stopPropagation();
                               onChange({

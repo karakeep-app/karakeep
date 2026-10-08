@@ -23,28 +23,22 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signIn } from "@/lib/auth/client";
+import { signUp } from "@/lib/auth/client";
 import { useClientConfig } from "@/lib/clientConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Turnstile } from "@marsidev/react-turnstile";
-import { useMutation } from "@tanstack/react-query";
-import { TRPCClientError } from "@trpc/client";
 import { AlertCircle, UserX } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zSignUpSchema } from "@karakeep/shared/types/users";
 import { isMobileAppRedirect } from "@karakeep/shared/utils/redirectUrl";
-
-const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
 
 interface SignUpFormProps {
   redirectUrl: string;
 }
 
 export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
-  const api = useTRPC();
   const form = useForm<z.infer<typeof zSignUpSchema>>({
     resolver: zodResolver(zSignUpSchema),
     defaultValues: {
@@ -60,8 +54,6 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
   const clientConfig = useClientConfig();
   const turnstileSiteKey = clientConfig.turnstile?.siteKey;
   const turnstileRef = useRef<TurnstileInstance>(null);
-
-  const createUserMutation = useMutation(api.users.create.mutationOptions());
 
   if (
     clientConfig.auth.disableSignups ||
@@ -108,6 +100,8 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
       <CardContent className="space-y-6">
         <Form {...form}>
           <form
+            // POST so a submit before hydration doesn't put the password in the URL.
+            method="post"
             onSubmit={form.handleSubmit(async (value) => {
               if (turnstileSiteKey && !value.turnstileToken) {
                 form.setError("turnstileToken", {
@@ -117,15 +111,18 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
                 return;
               }
               form.clearErrors("turnstileToken");
-              try {
-                await createUserMutation.mutateAsync({
-                  ...value,
-                  redirectUrl,
-                });
-              } catch (e) {
-                if (e instanceof TRPCClientError) {
-                  setErrorMessage(e.message);
-                }
+              const email = value.email.trim();
+              const resp = await signUp({
+                name: value.name,
+                email,
+                password: value.password,
+                callbackUrl: redirectUrl,
+                turnstileToken: value.turnstileToken,
+              });
+              if (!resp.ok) {
+                setErrorMessage(
+                  resp.error ?? "Hit an unexpected error while signing up",
+                );
                 // Reset turnstile widget on error to get a new token
                 if (turnstileSiteKey) {
                   turnstileRef.current?.reset();
@@ -133,26 +130,11 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
                 }
                 return;
               }
-              const resp = await signIn("credentials", {
-                redirect: false,
-                email: value.email.trim(),
-                password: value.password,
-              });
-              if (!resp || !resp.ok || resp.error) {
-                if (resp?.error === VERIFY_EMAIL_ERROR) {
-                  router.replace(
-                    `/check-email?email=${encodeURIComponent(value.email.trim())}&redirectUrl=${encodeURIComponent(redirectUrl)}`,
-                  );
-                } else {
-                  setErrorMessage(
-                    resp?.error ?? "Hit an unexpected error while signing in",
-                  );
-                }
-                // Reset turnstile widget on error to get a new token
-                if (turnstileSiteKey) {
-                  turnstileRef.current?.reset();
-                  form.setValue("turnstileToken", "");
-                }
+              if (!resp.signedIn) {
+                // The email address has to be verified before signing in.
+                router.replace(
+                  `/check-email?email=${encodeURIComponent(email)}&redirectUrl=${encodeURIComponent(redirectUrl)}`,
+                );
                 return;
               }
               if (isMobileAppRedirect(redirectUrl)) {
@@ -276,9 +258,7 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
 
             <ActionButton
               type="submit"
-              loading={
-                form.formState.isSubmitting || createUserMutation.isPending
-              }
+              loading={form.formState.isSubmitting}
               className="w-full"
             >
               Sign up

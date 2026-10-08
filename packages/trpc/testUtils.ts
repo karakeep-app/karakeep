@@ -5,9 +5,11 @@ import { users } from "@karakeep/db/schema";
 
 import type { Context } from "./index";
 import { createCallerFactory } from "./index";
+import { User } from "./models/users";
 import { appRouter } from "./routers/_app";
 
 const testQueueMocks = vi.hoisted(() => ({
+  adminMaintenanceEnqueue: vi.fn(),
   assetPreprocessingEnqueue: vi.fn(),
   embeddingsEnqueue: vi.fn(),
   linkCrawlerEnqueue: vi.fn(),
@@ -46,6 +48,29 @@ export async function seedUsers(db: TestDB) {
       },
     ])
     .returning();
+}
+
+/**
+ * Creates a user (and, when a password is given, its credential account) the
+ * same way the app does, returning the shape the old `users.create` procedure
+ * returned.
+ */
+export async function createTestUser(
+  db: TestDB,
+  input: {
+    name: string;
+    email: string;
+    password?: string;
+    role?: "user" | "admin";
+  },
+) {
+  const user = await User.createRaw(db, input);
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 }
 
 export function getApiCaller(
@@ -120,6 +145,9 @@ export function defaultBeforeEach(seedDB = true) {
         (await original()) as typeof import("@karakeep/shared-server");
       return {
         ...mod,
+        AdminMaintenanceQueue: {
+          enqueue: testQueueMocks.adminMaintenanceEnqueue,
+        },
         AssetPreprocessingQueue: {
           enqueue: testQueueMocks.assetPreprocessingEnqueue,
         },

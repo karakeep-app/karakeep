@@ -1,4 +1,3 @@
-import type { AdapterAccount } from "@auth/core/adapters";
 import { createId } from "@paralleldrive/cuid2";
 import { relations, sql, SQL } from "drizzle-orm";
 import {
@@ -49,11 +48,19 @@ export const users = sqliteTable("user", {
     .$defaultFn(() => createId()),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
+  // Nullable and without a SQL default because SQLite can't add those
+  // constraints to an existing column without rebuilding the user table.
+  emailVerified: integer("emailVerified", { mode: "boolean" }).$defaultFn(
+    () => false,
+  ),
   image: text("image"),
-  password: text("password"),
-  salt: text("salt").notNull().default(""),
   role: text("role", { enum: ["admin", "user"] }).default("user"),
+  createdAt: integer("createdAt", { mode: "timestamp_ms" }).$defaultFn(
+    () => new Date(),
+  ),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+    .$defaultFn(() => new Date())
+    .$onUpdate(() => new Date()),
 
   // Admin Only Settings
   bookmarkQuota: integer("bookmarkQuota"),
@@ -120,63 +127,87 @@ export const users = sqliteTable("user", {
 export const accounts = sqliteTable(
   "account",
   {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    accountId: text("accountId").notNull(),
+    providerId: text("providerId").notNull(),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccount["type"]>().notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
+    accessToken: text("accessToken"),
+    refreshToken: text("refreshToken"),
+    idToken: text("idToken"),
+    accessTokenExpiresAt: integer("accessTokenExpiresAt", {
+      mode: "timestamp_ms",
+    }),
+    refreshTokenExpiresAt: integer("refreshTokenExpiresAt", {
+      mode: "timestamp_ms",
+    }),
     scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
+    password: text("password"),
+    createdAt: createdAtMsField(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
   },
   (account) => [
-    primaryKey({
-      columns: [account.provider, account.providerAccountId],
-    }),
+    unique("accounts_providerId_accountId_unique").on(
+      account.providerId,
+      account.accountId,
+    ),
+    index("accounts_userId_idx").on(account.userId),
   ],
 );
 
-export const sessions = sqliteTable("session", {
-  sessionToken: text("sessionToken")
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => createId()),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-});
-
-export const verificationTokens = sqliteTable(
-  "verificationToken",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-  },
-  (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
-);
-
-export const passwordResetTokens = sqliteTable(
-  "passwordResetToken",
+export const sessions = sqliteTable(
+  "session",
   {
     id: text("id")
       .notNull()
       .primaryKey()
       .$defaultFn(() => createId()),
+    token: text("token").notNull().unique(),
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    token: text("token").notNull().unique(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-    createdAt: createdAtField(),
+    expiresAt: integer("expiresAt", { mode: "timestamp_ms" }).notNull(),
+    ipAddress: text("ipAddress"),
+    userAgent: text("userAgent"),
+    createdAt: createdAtMsField(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
   },
-  (prt) => [index("passwordResetTokens_userId_idx").on(prt.userId)],
+  (session) => [index("sessions_userId_idx").on(session.userId)],
+);
+
+export const verificationTokens = sqliteTable(
+  "verificationToken",
+  {
+    id: text("id")
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    identifier: text("identifier").notNull(),
+    value: text("value").notNull(),
+    expiresAt: integer("expiresAt", { mode: "timestamp_ms" }).notNull(),
+    createdAt: createdAtMsField(),
+    updatedAt: integer("updatedAt", { mode: "timestamp_ms" })
+      .notNull()
+      .$defaultFn(() => new Date())
+      .$onUpdate(() => new Date()),
+  },
+  (verification) => [
+    unique("verificationTokens_identifier_value_unique").on(
+      verification.identifier,
+      verification.value,
+    ),
+    index("verificationTokens_identifier_idx").on(verification.identifier),
+  ],
 );
 
 export const apiKeys = sqliteTable(
@@ -1257,16 +1288,6 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     references: [users.id],
   }),
 }));
-
-export const passwordResetTokensRelations = relations(
-  passwordResetTokens,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [passwordResetTokens.userId],
-      references: [users.id],
-    }),
-  }),
-);
 
 export const chatSessionsRelations = relations(
   chatSessions,

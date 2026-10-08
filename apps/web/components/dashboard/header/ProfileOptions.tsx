@@ -42,14 +42,14 @@ function DarkModeToggle() {
   if (theme == "dark") {
     return (
       <>
-        <Sun className="mr-2 size-4" />
+        <Sun className="size-4" />
         <span>{t("options.light_mode")}</span>
       </>
     );
   } else {
     return (
       <>
-        <Moon className="mr-2 size-4" />
+        <Moon className="size-4" />
         <span>{t("options.dark_mode")}</span>
       </>
     );
@@ -78,8 +78,9 @@ export default function SidebarProfileOptions() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          className="border-new-gray-200 aspect-square rounded-full border-4 bg-black p-0 text-white"
+          className="border-new-gray-200 shrink-0 rounded-full border-4 bg-black p-0 text-white"
           variant="ghost"
+          size="icon"
         >
           <UserAvatar
             image={avatarUrl}
@@ -105,7 +106,7 @@ export default function SidebarProfileOptions() {
         <Separator className="my-2" />
         <DropdownMenuItem asChild>
           <Link href="/settings">
-            <Settings className="mr-2 size-4" />
+            <Settings className="size-4" />
             {t("settings.user_settings")}
           </Link>
         </DropdownMenuItem>
@@ -123,7 +124,7 @@ export default function SidebarProfileOptions() {
         <Separator className="my-2" />
         <DropdownMenuItem asChild>
           <Link href="/dashboard/cleanups">
-            <Paintbrush className="mr-2 size-4" />
+            <Paintbrush className="size-4" />
             {t("cleanups.cleanups")}
           </Link>
         </DropdownMenuItem>
@@ -132,32 +133,32 @@ export default function SidebarProfileOptions() {
         </DropdownMenuItem>
         {inBookmarkGrid && (
           <DropdownMenuItem onClick={() => setShortcutsDialogOpen(true)}>
-            <Keyboard className="mr-2 size-4" />
+            <Keyboard className="size-4" />
             {t("keyboard_shortcuts.title")}
           </DropdownMenuItem>
         )}
         <Separator className="my-2" />
         <DropdownMenuItem asChild>
           <a href="https://karakeep.app/apps" target="_blank" rel="noreferrer">
-            <Puzzle className="mr-2 size-4" />
+            <Puzzle className="size-4" />
             {t("options.apps_extensions")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="https://docs.karakeep.app" target="_blank" rel="noreferrer">
-            <BookOpen className="mr-2 size-4" />
+            <BookOpen className="size-4" />
             {t("options.documentation")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <a href="https://x.com/karakeep_app" target="_blank" rel="noreferrer">
-            <Twitter className="mr-2 size-4" />
+            <Twitter className="size-4" />
             {t("options.follow_us_on_x")}
           </a>
         </DropdownMenuItem>
         <Separator className="my-2" />
         <DropdownMenuItem onClick={() => router.push("/logout")}>
-          <LogOut className="mr-2 size-4" />
+          <LogOut className="size-4" />
           <span>{t("actions.sign_out")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

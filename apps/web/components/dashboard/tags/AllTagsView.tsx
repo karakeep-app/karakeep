@@ -68,7 +68,7 @@ function DeleteAllUnusedTags({ numUnusedTags }: { numUnusedTags: number }) {
           loading={isPending}
           onClick={() => mutate()}
         >
-          DELETE THEM ALL
+          {t("actions.delete")}
         </ActionButton>
       )}
     >
@@ -299,9 +299,6 @@ export default function AllTagsView() {
                   className="flex-shrink-0 bg-background"
                 >
                   <ArrowDownAZ className="mr-2 size-4" />
-                  <span className="mr-1 text-sm">
-                    {t("actions.sort.title")}
-                  </span>
                   <span className="hidden text-sm font-medium sm:inline">
                     {sortLabels[sortBy]}
                   </span>

@@ -13,20 +13,19 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
+import { changePassword } from "@/lib/auth/client";
 import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import { useForm } from "react-hook-form";
 
-import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zChangePasswordSchema } from "@karakeep/shared/types/users";
 
 import { Button } from "../ui/button";
 import { SettingsSection } from "./SettingsPage";
 
 export function ChangePassword() {
-  const api = useTRPC();
   const { t } = useTranslation();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -40,27 +39,31 @@ export function ChangePassword() {
     },
   });
 
-  const mutator = useMutation(
-    api.users.changePassword.mutationOptions({
-      onSuccess: () => {
-        toast({ description: "Password changed successfully" });
-        form.reset();
-      },
-      onError: (e) => {
-        if (e.data?.code == "UNAUTHORIZED") {
-          toast({
-            description: "Your current password is incorrect",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            description: "Something went wrong",
-            variant: "destructive",
-          });
-        }
-      },
-    }),
-  );
+  const mutator = useMutation({
+    mutationFn: async (input: {
+      currentPassword: string;
+      newPassword: string;
+    }) => {
+      const result = await changePassword(input);
+      if (!result.ok) {
+        throw new Error(
+          result.code === "INVALID_PASSWORD"
+            ? "Your current password is incorrect"
+            : "Something went wrong",
+        );
+      }
+    },
+    onSuccess: () => {
+      toast({ description: "Password changed successfully" });
+      form.reset();
+    },
+    onError: (e) => {
+      toast({
+        description: e.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   async function onSubmit(value: z.infer<typeof zChangePasswordSchema>) {
     mutator.mutate({
@@ -70,9 +73,14 @@ export function ChangePassword() {
   }
 
   return (
-    <SettingsSection title="Security">
+    <SettingsSection id="security" title="Security">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          // POST so a submit before hydration doesn't put the password in the URL.
+          method="post"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
           <FormField
             control={form.control}
             name="currentPassword"

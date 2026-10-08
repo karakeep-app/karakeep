@@ -8,6 +8,7 @@ import serverConfig from "@karakeep/shared/config";
 
 import type { CustomTestContext } from "../testUtils";
 import {
+  createTestUser,
   defaultBeforeEach,
   getApiCaller,
   getApiKeyCallerForPlainKey,
@@ -43,7 +44,9 @@ const mockStripeInstance = vi.hoisted(() => ({
 
 vi.mock("stripe", () => {
   return {
-    default: vi.fn(() => mockStripeInstance),
+    default: vi.fn(function () {
+      return mockStripeInstance;
+    }),
   };
 });
 
@@ -104,13 +107,11 @@ describe("Subscription Routes", () => {
   describe("getSubscriptionStatus", () => {
     test<CustomTestContext>("returns free tier when no subscription exists", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -129,13 +130,11 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("returns subscription data when subscription exists", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -171,13 +170,11 @@ describe("Subscription Routes", () => {
   describe("manual tier", () => {
     test<CustomTestContext>("getSubscriptionStatus returns custom tier when manualTierName is set", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -201,13 +198,11 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("getSubscriptionStatus returns custom tier over an inactive subscription", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -235,11 +230,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // Manually granted tier with custom quotas
@@ -303,11 +297,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       await db
@@ -385,11 +378,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       await db
@@ -480,14 +472,12 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("admin can grant and revoke a manual tier by email", async ({
       db,
-      unauthedAPICaller,
     }) => {
       const adminApi = await createAdminCaller(db);
-      const targetUser = await unauthedAPICaller.users.create({
+      const targetUser = await createTestUser(db, {
         name: "Target User",
         email: "target-tier@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       await adminApi.subscriptions.updateSubscriptionTier({
@@ -542,7 +532,6 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("fails for unknown emails and actively subscribed users", async ({
       db,
-      unauthedAPICaller,
     }) => {
       const adminApi = await createAdminCaller(db);
 
@@ -553,11 +542,10 @@ describe("Subscription Routes", () => {
         }),
       ).rejects.toThrow(/User not found/);
 
-      const subscribedUser = await unauthedAPICaller.users.create({
+      const subscribedUser = await createTestUser(db, {
         name: "Subscribed User",
         email: "subscribed@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       await db.insert(subscriptions).values({
         userId: subscribedUser.id,
@@ -583,14 +571,12 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("requires a verified email when verification is enabled", async ({
       db,
-      unauthedAPICaller,
     }) => {
       const adminApi = await createAdminCaller(db);
-      const targetUser = await unauthedAPICaller.users.create({
+      const targetUser = await createTestUser(db, {
         name: "Target User",
         email: "target-tier@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       const originalValue = serverConfig.auth.emailVerificationRequired;
@@ -611,7 +597,7 @@ describe("Subscription Routes", () => {
 
         await db
           .update(users)
-          .set({ emailVerified: new Date() })
+          .set({ emailVerified: true })
           .where(eq(users.id, targetUser.id));
 
         await adminApi.subscriptions.updateSubscriptionTier({
@@ -633,14 +619,12 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("requires the admin:subscriptions scope for API keys", async ({
       db,
-      unauthedAPICaller,
     }) => {
       const adminApi = await createAdminCaller(db);
-      await unauthedAPICaller.users.create({
+      await createTestUser(db, {
         name: "Target User",
         email: "target-tier@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       const usersScopedKey = await adminApi.apiKeys.create({
@@ -676,13 +660,11 @@ describe("Subscription Routes", () => {
   describe("getSubscriptionPrice", () => {
     test<CustomTestContext>("returns monthly and yearly prices", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -718,13 +700,11 @@ describe("Subscription Routes", () => {
   describe("createCheckoutSession", () => {
     test<CustomTestContext>("creates checkout session for new customer", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -779,13 +759,11 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("creates checkout session with yearly price when billingPeriod is yearly", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -821,13 +799,11 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("throws error if user already has active subscription", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -848,13 +824,11 @@ describe("Subscription Routes", () => {
   describe("createPortalSession", () => {
     test<CustomTestContext>("creates portal session for user with subscription", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -884,13 +858,11 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("throws error if user has no subscription", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -903,13 +875,11 @@ describe("Subscription Routes", () => {
   describe("getQuotaUsage", () => {
     test<CustomTestContext>("returns quota usage for user with no data", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -931,13 +901,11 @@ describe("Subscription Routes", () => {
 
     test<CustomTestContext>("returns quota usage with bookmarks and assets", async ({
       db,
-      unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
       const caller = getApiCaller(db, user.id);
 
@@ -1003,11 +971,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // Create existing subscription record
@@ -1079,11 +1046,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // Create existing subscription
@@ -1153,11 +1119,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // Create existing subscription
@@ -1215,11 +1180,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // User has already upgraded to yearly; the active yearly subscription is
@@ -1308,11 +1272,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       await db.insert(subscriptions).values({
@@ -1454,11 +1417,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // Set initial free tier quotas
@@ -1538,11 +1500,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // Set initial paid tier quotas (unlimited)
@@ -1623,11 +1584,10 @@ describe("Subscription Routes", () => {
       db,
       unauthedAPICaller,
     }) => {
-      const user = await unauthedAPICaller.users.create({
+      const user = await createTestUser(db, {
         name: "Test User",
         email: "test@test.com",
         password: "pass1234",
-        confirmPassword: "pass1234",
       });
 
       // Set initial paid tier quotas (unlimited)

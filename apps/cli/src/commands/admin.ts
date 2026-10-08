@@ -1,3 +1,5 @@
+import { stdin as input, stdout as output } from "node:process";
+import readline from "node:readline/promises";
 import { getGlobalOptions } from "@/lib/globals";
 import {
   printErrorMessageWithReason,
@@ -84,15 +86,7 @@ usersCmd
         });
       } else {
         const data: string[][] = [
-          [
-            "id",
-            "Name",
-            "Email",
-            "Num Bookmarks",
-            "Asset Sizes",
-            "Role",
-            "Local User",
-          ],
+          ["id", "Name", "Email", "Num Bookmarks", "Asset Sizes", "Role"],
         ];
 
         usersResp.users.forEach((user) => {
@@ -111,7 +105,6 @@ usersCmd
             numBookmarksDisplay,
             assetSizesDisplay,
             user.role ?? "",
-            user.localUser ? "✓" : "✗",
           ]);
         });
 
@@ -128,6 +121,72 @@ usersCmd
       }
     } catch (error) {
       printErrorMessageWithReason("Failed to list all users", error as object);
+    }
+  });
+
+usersCmd
+  .command("purge-over-quota")
+  .description(
+    "delete a user's oldest bookmarks until they are within their bookmark quota",
+  )
+  .argument("<userId>", "the id of the user to purge bookmarks for")
+  .option("--dry-run", "only show how many bookmarks would be deleted")
+  .option("-y, --yes", "skip confirmation prompt")
+  .action(async (userId, opts) => {
+    const api = getAPIClient();
+
+    try {
+      const plan = await api.admin.purgeBookmarksOverQuota.mutate({
+        userId,
+        dryRun: true,
+      });
+
+      if (plan.numBookmarksToDelete === 0 || opts.dryRun) {
+        if (getGlobalOptions().json) {
+          printObject(plan);
+        } else {
+          printStatusMessage(
+            true,
+            `User has ${plan.numBookmarks} bookmarks with a quota of ${plan.bookmarkQuota}. ${plan.numBookmarksToDelete} bookmarks would be deleted.`,
+          );
+        }
+        return;
+      }
+
+      if (!opts.yes) {
+        const rl = readline.createInterface({ input, output });
+        const answer = (
+          await rl.question(
+            `User has ${plan.numBookmarks} bookmarks with a quota of ${plan.bookmarkQuota}. This will permanently delete their ${plan.numBookmarksToDelete} oldest bookmarks. Proceed? (yes/no): `,
+          )
+        )
+          .trim()
+          .toLowerCase();
+        rl.close();
+        if (answer !== "y" && answer !== "yes") {
+          printStatusMessage(false, "Purge aborted by user");
+          return;
+        }
+      }
+
+      const result = await api.admin.purgeBookmarksOverQuota.mutate({
+        userId,
+      });
+      if (getGlobalOptions().json) {
+        printObject(result);
+      } else {
+        printStatusMessage(
+          true,
+          result.enqueued
+            ? `Purge of ${result.numBookmarksToDelete} bookmarks queued`
+            : "User is already within their bookmark quota",
+        );
+      }
+    } catch (error) {
+      printErrorMessageWithReason(
+        "Failed to purge bookmarks over quota",
+        error as object,
+      );
     }
   });
 

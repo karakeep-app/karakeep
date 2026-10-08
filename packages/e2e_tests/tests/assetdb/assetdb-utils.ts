@@ -9,13 +9,10 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 
-import {
-  ASSET_TYPES,
-  AssetMetadata,
-  AssetStore,
-  LocalFileSystemAssetStore,
-  S3AssetStore,
-} from "@karakeep/shared/assetdb";
+import type { AssetMetadata, AssetStore } from "@karakeep/shared/assetdb";
+import { ASSET_TYPES } from "@karakeep/shared/assetdb";
+import { LocalFileSystemAssetStore } from "@karakeep/plugins/assetstore-filesystem/implementation";
+import { S3AssetStore } from "@karakeep/plugins/assetstore-s3/implementation";
 
 export interface TestAssetData {
   userId: string;
@@ -134,10 +131,11 @@ export function createLocalFileSystemStore(
 export function createS3Store(bucketName: string): S3AssetStore {
   const s3Client = new S3Client({
     region: "us-east-1",
-    endpoint: "http://localhost:9000", // MinIO endpoint for testing
+    endpoint: "http://localhost:9000", // Garage endpoint for testing
     credentials: {
-      accessKeyId: "minioadmin",
-      secretAccessKey: "minioadmin",
+      accessKeyId: "GK0123456789abcdef0123456789abcdef",
+      secretAccessKey:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     },
     forcePathStyle: true,
   });
@@ -150,8 +148,9 @@ export async function createTestBucket(bucketName: string): Promise<S3Client> {
     region: "us-east-1",
     endpoint: "http://localhost:9000",
     credentials: {
-      accessKeyId: "minioadmin",
-      secretAccessKey: "minioadmin",
+      accessKeyId: "GK0123456789abcdef0123456789abcdef",
+      secretAccessKey:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     },
     forcePathStyle: true,
   });

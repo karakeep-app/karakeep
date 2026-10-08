@@ -95,6 +95,29 @@ describe("Shared Lists", () => {
       ).rejects.toThrow("Cannot add the list owner as a collaborator");
     });
 
+    test<CustomTestContext>("should match collaborator email case-insensitively", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorUser = await collaboratorApi.users.whoami();
+
+      const { invitationId } = await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: `  ${collaboratorUser.email!.toUpperCase()} `,
+        role: "viewer",
+      });
+
+      await collaboratorApi.lists.acceptInvitation({ invitationId });
+    });
+
     test<CustomTestContext>("should not allow adding duplicate collaborator", async ({
       apiCallers,
     }) => {
@@ -865,6 +888,66 @@ describe("Shared Lists", () => {
 
       expect(ownerView.bookmarks).toHaveLength(2);
       expect(collabView.bookmarks).toHaveLength(2);
+    });
+  });
+
+  describe("Public Shared Lists", () => {
+    test<CustomTestContext>("should show collaborator bookmarks in a public list", async ({
+      apiCallers,
+      unauthedAPICaller,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Public Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      // Owner adds a bookmark
+      const ownerBookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's bookmark",
+      });
+
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: ownerBookmark.id,
+      });
+
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "editor",
+      );
+
+      // Collaborator adds their own bookmark
+      const collabBookmark = await collaboratorApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Collaborator's bookmark",
+      });
+
+      await collaboratorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: collabBookmark.id,
+      });
+
+      await ownerApi.lists.edit({
+        listId: list.id,
+        public: true,
+      });
+
+      const publicView =
+        await unauthedAPICaller.publicBookmarks.getPublicBookmarksInList({
+          listId: list.id,
+        });
+
+      expect(publicView.list.numItems).toBe(2);
+      expect(publicView.bookmarks.map((b) => b.id).sort()).toEqual(
+        [ownerBookmark.id, collabBookmark.id].sort(),
+      );
     });
   });
 

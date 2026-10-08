@@ -10,9 +10,11 @@ import {
 } from "vitest";
 
 import {
+  accounts,
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  sessions,
   users,
 } from "@karakeep/db/schema";
 import { QueuePriority } from "@karakeep/shared-server";
@@ -20,7 +22,13 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
 import {
+  CREDENTIAL_PROVIDER_ID,
+  hasPassword,
+  verifyUserPassword,
+} from "../auth";
+import {
   buildTestContext,
+  createTestUser,
   getApiCaller,
   getApiKeyCallerForPlainKey,
   getTestQueueMocks,
@@ -408,6 +416,188 @@ describe("Admin Routes", () => {
     ).rejects.toThrow(/FORBIDDEN|admin:bookmarks:readwrite/i);
   });
 
+  describe("user management", () => {
+    async function createAdmin(db: CustomTestContext["db"]) {
+      const admin = await createTestUser(db, {
+        name: "Admin User",
+        email: "admin-users@test.com",
+        password: "adminpass123",
+        role: "admin",
+      });
+      return {
+        admin,
+        adminApi: getApiCaller(db, admin.id, admin.email, "admin"),
+      };
+    }
+
+    async function createSession(
+      db: CustomTestContext["db"],
+      userId: string,
+      token: string,
+    ) {
+      await db.insert(sessions).values({
+        userId,
+        token,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      });
+    }
+
+    test<CustomTestContext>("createUser creates a verified user with a password", async ({
+      db,
+    }) => {
+      const { adminApi } = await createAdmin(db);
+
+      const created = await adminApi.admin.createUser({
+        name: "Created User",
+        email: "Created@Test.com",
+        password: "createdpass123",
+        confirmPassword: "createdpass123",
+        role: "user",
+      });
+
+      expect(created.email).toBe("created@test.com");
+      expect(created.role).toBe("user");
+
+      const dbUser = await db.query.users.findFirst({
+        where: eq(users.id, created.id),
+      });
+      expect(dbUser?.emailVerified).toBe(true);
+      expect(await verifyUserPassword(db, created.id, "createdpass123")).toBe(
+        true,
+      );
+    });
+
+    test<CustomTestContext>("resetPassword changes the password and signs the user out", async ({
+      db,
+    }) => {
+      const { admin, adminApi } = await createAdmin(db);
+      const target = await createTestUser(db, {
+        name: "Target User",
+        email: "reset-target@test.com",
+        password: "oldpass123",
+      });
+      await createSession(db, target.id, "target-session-1");
+      await createSession(db, target.id, "target-session-2");
+      await createSession(db, admin.id, "admin-session");
+
+      await adminApi.admin.resetPassword({
+        userId: target.id,
+        newPassword: "newpass123",
+        newPasswordConfirm: "newpass123",
+      });
+
+      expect(await verifyUserPassword(db, target.id, "newpass123")).toBe(true);
+      expect(await verifyUserPassword(db, target.id, "oldpass123")).toBe(false);
+
+      // Still a single credential account, updated in place
+      const targetAccounts = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.userId, target.id));
+      expect(targetAccounts).toHaveLength(1);
+
+      const targetSessions = await db
+        .select()
+        .from(sessions)
+        .where(eq(sessions.userId, target.id));
+      expect(targetSessions).toHaveLength(0);
+
+      // Other users' sessions are untouched
+      const adminSessions = await db
+        .select()
+        .from(sessions)
+        .where(eq(sessions.userId, admin.id));
+      expect(adminSessions.map((s) => s.token)).toEqual(["admin-session"]);
+    });
+
+    test<CustomTestContext>("resetPassword gives a password to a user without one", async ({
+      db,
+      apiCallers,
+    }) => {
+      const { adminApi } = await createAdmin(db);
+      const { id: oauthUserId } = await apiCallers[0].users.whoami();
+      expect(await hasPassword(db, oauthUserId)).toBe(false);
+
+      await adminApi.admin.resetPassword({
+        userId: oauthUserId,
+        newPassword: "newpass123",
+        newPasswordConfirm: "newpass123",
+      });
+
+      const credentialAccount = await db.query.accounts.findFirst({
+        where: eq(accounts.userId, oauthUserId),
+      });
+      expect(credentialAccount?.providerId).toBe(CREDENTIAL_PROVIDER_ID);
+      expect(credentialAccount?.accountId).toBe(oauthUserId);
+      expect(await verifyUserPassword(db, oauthUserId, "newpass123")).toBe(
+        true,
+      );
+    });
+
+    test<CustomTestContext>("resetPassword refuses to reset own password", async ({
+      db,
+    }) => {
+      const { admin, adminApi } = await createAdmin(db);
+      await createSession(db, admin.id, "admin-session");
+
+      await expect(() =>
+        adminApi.admin.resetPassword({
+          userId: admin.id,
+          newPassword: "newpass123",
+          newPasswordConfirm: "newpass123",
+        }),
+      ).rejects.toThrow(/Cannot reset own password/);
+
+      expect(await verifyUserPassword(db, admin.id, "adminpass123")).toBe(true);
+      const adminSessions = await db
+        .select()
+        .from(sessions)
+        .where(eq(sessions.userId, admin.id));
+      expect(adminSessions).toHaveLength(1);
+    });
+
+    test<CustomTestContext>("resetPassword fails for unknown users", async ({
+      db,
+    }) => {
+      const { adminApi } = await createAdmin(db);
+
+      await expect(() =>
+        adminApi.admin.resetPassword({
+          userId: "does-not-exist",
+          newPassword: "newpass123",
+          newPasswordConfirm: "newpass123",
+        }),
+      ).rejects.toThrow(/User not found/);
+
+      const orphanAccounts = await db
+        .select()
+        .from(accounts)
+        .where(eq(accounts.userId, "does-not-exist"));
+      expect(orphanAccounts).toHaveLength(0);
+    });
+
+    test<CustomTestContext>("non-admins cannot reset passwords", async ({
+      db,
+      apiCallers,
+    }) => {
+      const target = await createTestUser(db, {
+        name: "Target User",
+        email: "reset-target@test.com",
+        password: "oldpass123",
+      });
+
+      await expect(() =>
+        apiCallers[0].admin.resetPassword({
+          userId: target.id,
+          newPassword: "newpass123",
+          newPasswordConfirm: "newpass123",
+        }),
+      ).rejects.toThrow(/FORBIDDEN/);
+
+      expect(await verifyUserPassword(db, target.id, "oldpass123")).toBe(true);
+    });
+  });
+
   describe("getBookmarkDebugInfo", () => {
     test<CustomTestContext>("admin can access bookmark debug info for link bookmark", async ({
       apiCallers,
@@ -655,6 +845,135 @@ describe("Admin Routes", () => {
       expect(debugInfo.linkInfo.htmlContentPreview!.length).toBeLessThanOrEqual(
         1000,
       );
+    });
+  });
+
+  describe("purgeBookmarksOverQuota", () => {
+    async function setup(
+      db: CustomTestContext["db"],
+      bookmarkQuota: number | null,
+      numBookmarks: number,
+    ) {
+      const [adminUser] = await db
+        .insert(users)
+        .values({
+          name: "Admin User",
+          email: "purge-admin@test.com",
+          role: "admin",
+        })
+        .returning();
+      const [user] = await db
+        .insert(users)
+        .values({
+          name: "Over Quota User",
+          email: "over-quota@test.com",
+          bookmarkQuota,
+        })
+        .returning();
+      if (numBookmarks > 0) {
+        await db.insert(bookmarks).values(
+          Array.from(
+            { length: numBookmarks },
+            (): typeof bookmarks.$inferInsert => ({
+              userId: user.id,
+              type: BookmarkTypes.TEXT,
+            }),
+          ),
+        );
+      }
+      return {
+        adminApi: getApiCaller(db, adminUser.id, adminUser.email, "admin")
+          .admin,
+        user,
+      };
+    }
+
+    test<CustomTestContext>("enqueues a purge for users over quota", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 2, 5);
+
+      const res = await adminApi.purgeBookmarksOverQuota({ userId: user.id });
+
+      expect(res).toEqual({
+        numBookmarks: 5,
+        bookmarkQuota: 2,
+        numBookmarksToDelete: 3,
+        enqueued: true,
+      });
+      expect(testQueueMocks.adminMaintenanceEnqueue).toHaveBeenCalledTimes(1);
+      expect(testQueueMocks.adminMaintenanceEnqueue).toHaveBeenCalledWith({
+        type: "purge_bookmarks_over_quota",
+        args: { userId: user.id },
+      });
+    });
+
+    test<CustomTestContext>("dry run doesn't enqueue anything", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 2, 5);
+
+      const res = await adminApi.purgeBookmarksOverQuota({
+        userId: user.id,
+        dryRun: true,
+      });
+
+      expect(res.numBookmarksToDelete).toEqual(3);
+      expect(res.enqueued).toEqual(false);
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
+    });
+
+    test<CustomTestContext>("doesn't enqueue for users within quota", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 5, 5);
+
+      const res = await adminApi.purgeBookmarksOverQuota({ userId: user.id });
+
+      expect(res.numBookmarksToDelete).toEqual(0);
+      expect(res.enqueued).toEqual(false);
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
+    });
+
+    test<CustomTestContext>("rejects users without a quota and unknown users", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, null, 5);
+
+      await expect(() =>
+        adminApi.purgeBookmarksOverQuota({ userId: user.id }),
+      ).rejects.toThrow(/bookmark quota/);
+      await expect(() =>
+        adminApi.purgeBookmarksOverQuota({ userId: "does-not-exist" }),
+      ).rejects.toThrow(/User not found/);
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
+    });
+
+    test<CustomTestContext>("non-admins can't purge", async ({
+      apiCallers,
+      db,
+    }) => {
+      const { user } = await setup(db, 2, 5);
+
+      await expect(() =>
+        apiCallers[0].admin.purgeBookmarksOverQuota({ userId: user.id }),
+      ).rejects.toThrow(/FORBIDDEN/);
+    });
+
+    test<CustomTestContext>("can't be triggered through the generic maintenance endpoint", async ({
+      db,
+    }) => {
+      const { adminApi, user } = await setup(db, 2, 5);
+
+      const input: unknown = {
+        type: "purge_bookmarks_over_quota",
+        args: { userId: user.id },
+      };
+      await expect(() =>
+        // @ts-expect-error purge isn't a system maintenance task
+        adminApi.runAdminMaintenanceTask(input),
+      ).rejects.toThrow();
+      expect(testQueueMocks.adminMaintenanceEnqueue).not.toHaveBeenCalled();
     });
   });
 });

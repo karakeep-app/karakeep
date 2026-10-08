@@ -4,83 +4,58 @@
 // own), so it improves screenshots, PDFs, monolith archives AND the captured
 // HTML that feeds extraction. Gated by CRAWLER_ENABLE_AUTOCONSENT.
 //
-// Integration follows autoconsent's headless guide (docs/puppeteer.md): the
-// bundled content script is injected via addInitScript and talks to Node over
-// an exposed binding; Node replies with the config + rule bundle.
+// We inject the package's self-contained standalone bundle: it embeds the
+// compact rule set, runs in the page's main world and opts out automatically,
+// so no Node <-> page messaging is needed. Each frame runs its own instance;
+// we only track the main frame's progress to decide when to capture.
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
-import type { Frame, Page } from "playwright";
-import { abortRaceResolve, raceWith, timeoutRace } from "utils";
-import { z } from "zod";
+import { setTimeout as sleep } from "node:timers/promises";
+import type { Page } from "patchright";
+import { abortRaceResolve, raceWith } from "utils";
 
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
-// The content script exposes/consumes these on the page's global object. In a
-// browser `globalThis === window`; declaring them here keeps the injected
-// callbacks typed without pulling the DOM lib into the workers tsconfig.
+// Set by the standalone bundle on the page's global object. In a browser
+// `globalThis === window`; declaring it here keeps the waitForFunction callback
+// typed without pulling the DOM lib into the workers tsconfig.
 declare global {
   // eslint-disable-next-line no-var
-  var autoconsentReceiveMessage: ((message: unknown) => unknown) | undefined;
+  var autoconsentStandalone:
+    | { instance: { state: { lifecycle: string } } }
+    | undefined;
 }
 
-// Cap on how long we wait for autoconsent to finish detection and, when a CMP
-// is found, finish opting out.
+// Cap on how long each wait for autoconsent lasts.
 const AUTOCONSENT_WAIT_MS = 3000;
 
-// Mirrors autoconsent's documented headless config with automatic opt-out.
-const autoconsentConfig = {
-  enabled: true,
-  autoAction: "optOut",
-  disabledCmps: [],
-  enablePrehide: true,
-  enableCosmeticRules: true,
-  enableGeneratedRules: true,
-  detectRetries: 20,
-  isMainWorld: false,
-  prehideTimeout: 2000,
-  enableHeuristicDetection: true,
-  heuristicMode: "tier2",
-  logs: {
-    lifecycle: false,
-    rulesteps: false,
-    detectionsteps: false,
-    evals: false,
-    errors: true,
-    messages: false,
-    waits: false,
-  },
-};
+// Pause after a successful opt-out so dialogs that animate out after the click
+// don't end up half-faded in the screenshot.
+const DISMISS_SETTLE_MS = 500;
 
-const autoconsentMessageSchema = z
-  .object({
-    type: z.string(),
-    code: z.string().optional(),
-    id: z.union([z.string(), z.number()]).optional(),
-    cmp: z.string().optional(),
-    details: z.unknown().optional(),
-    mainFrame: z.boolean().optional(),
-    state: z
-      .object({
-        lifecycle: z.string(),
-      })
-      .optional(),
-  })
-  .passthrough();
+// Lifecycle states in which autoconsent has found a CMP and is still opting out.
+const OPTING_OUT_STATES = ["cmpDetected", "openPopupDetected", "runningOptOut"];
+// Lifecycle states in which autoconsent has successfully opted out.
+const OPTED_OUT_STATES = ["done", "optOutSucceeded"];
+// Lifecycle states in which autoconsent is still working (detecting or opting
+// out). Missing state (script not running yet) counts as "loading".
+const PENDING_STATES = [
+  "loading",
+  "initialized",
+  "waitingForInitResponse",
+  "started",
+  ...OPTING_OUT_STATES,
+];
 
-interface AutoconsentBundle {
-  script: string;
-  rules: unknown;
-}
-
-let bundle: AutoconsentBundle | undefined;
+let script: string | undefined;
 let loadAttempted = false;
 
 /**
- * Loads the autoconsent content-script bundle and rule set once (module-level,
- * like the adblocker). No-op when CRAWLER_ENABLE_AUTOCONSENT is false or on any
- * load error (autoconsent is then simply disabled — never fatal).
+ * Loads the autoconsent standalone bundle once (module-level, like the
+ * adblocker). No-op when CRAWLER_ENABLE_AUTOCONSENT is false or on any load
+ * error (autoconsent is then simply disabled — never fatal).
  */
 export function loadAutoconsent(): void {
   if (loadAttempted) {
@@ -92,18 +67,13 @@ export function loadAutoconsent(): void {
   }
   try {
     const require = createRequire(import.meta.url);
-    // The playwright bundle is a sibling of the package's main entry; it is not
+    // The standalone bundle is a sibling of the package's main entry; it is not
     // a declared export, so resolve the package then walk to the sibling file.
     const pkgMain = require.resolve("@duckduckgo/autoconsent");
-    const scriptPath = path.join(
-      path.dirname(pkgMain),
-      "autoconsent.playwright.js",
+    script = readFileSync(
+      path.join(path.dirname(pkgMain), "autoconsent.standalone.js"),
+      "utf8",
     );
-    const rulesPath =
-      require.resolve("@duckduckgo/autoconsent/rules/rules.json");
-    const script = readFileSync(scriptPath, "utf8");
-    const rules: unknown = JSON.parse(readFileSync(rulesPath, "utf8"));
-    bundle = { script, rules };
     logger.info("[crawler] Loaded autoconsent CMP opt-out rules.");
   } catch (e) {
     logger.error(
@@ -112,159 +82,85 @@ export function loadAutoconsent(): void {
   }
 }
 
-export interface AutoconsentHandle {
-  cmpDetected: () => boolean;
-  detectionComplete: Promise<boolean>;
-  done: Promise<void>;
-}
-
 /**
  * Installs autoconsent on a freshly-created page. Must be called AFTER the SSRF
- * request router and redirect guard are in place (autoconsent injects scripts;
- * conservative ordering). Returns a handle whose `done` promise resolves when
- * autoconsent finishes (or errors), or undefined when autoconsent is
- * unavailable/disabled or installation fails (never fatal to a crawl).
+ * request router and redirect guard are in place (it injects scripts;
+ * conservative ordering). Returns whether autoconsent is active on the page
+ * (never fatal to a crawl).
  */
 export async function installAutoconsent(
   page: Page,
   jobId: string,
-): Promise<AutoconsentHandle | undefined> {
-  if (!bundle) {
-    return undefined;
+): Promise<boolean> {
+  if (!script) {
+    return false;
   }
-  const { script, rules } = bundle;
-
-  let cmpDetected = false;
-  let resolveDetectionComplete: (detected: boolean) => void = () => undefined;
-  const detectionComplete = new Promise<boolean>((resolve) => {
-    resolveDetectionComplete = resolve;
-  });
-  let resolveDone: () => void = () => undefined;
-  const done = new Promise<void>((resolve) => {
-    resolveDone = resolve;
-  });
-
-  const sendToFrame = (frame: Frame, message: unknown) =>
-    frame
-      .evaluate((msg) => {
-        const receive = globalThis.autoconsentReceiveMessage;
-        return receive ? receive(msg) : undefined;
-      }, message)
-      .catch(() => {
-        // Page may have navigated/closed; nothing actionable.
-      });
-
   try {
-    await page.exposeBinding(
-      "autoconsentSendMessage",
-      async ({ frame }, raw: unknown): Promise<unknown> => {
-        const parsed = autoconsentMessageSchema.safeParse(raw);
-        if (!parsed.success) {
-          return undefined;
-        }
-        const message = parsed.data;
-        switch (message.type) {
-          case "init":
-            return sendToFrame(frame, {
-              type: "initResp",
-              config: autoconsentConfig,
-              rules, // must include rules or no CMPs will be detected
-            });
-          case "eval": {
-            if (typeof message.code !== "string") {
-              return undefined;
-            }
-            const result = await frame.evaluate(message.code).catch(() => null);
-            return sendToFrame(frame, {
-              type: "evalResp",
-              id: message.id,
-              result,
-            });
-          }
-          case "cmpDetected":
-          case "popupFound":
-            cmpDetected = true;
-            resolveDetectionComplete(true);
-            return undefined;
-          case "autoconsentDone":
-            resolveDetectionComplete(true);
-            resolveDone();
-            return undefined;
-          case "autoconsentError":
-            logger.warn(
-              `[Crawler][${jobId}] autoconsent error: ${JSON.stringify(
-                message.details,
-              )}`,
-            );
-            resolveDetectionComplete(cmpDetected);
-            resolveDone();
-            return undefined;
-          case "report":
-            // A report from the main frame is authoritative for the page-level
-            // "no CMP" result. Child frames can finish detection earlier while
-            // the main frame is still looking for a delayed dialog.
-            if (
-              message.mainFrame === true &&
-              message.state?.lifecycle === "nothingDetected"
-            ) {
-              resolveDetectionComplete(false);
-            }
-            return undefined;
-          default:
-            return undefined;
-        }
-      },
-    );
     await page.addInitScript(script);
+    return true;
   } catch (e) {
     logger.warn(
       `[Crawler][${jobId}] Failed to install autoconsent on the page: ${e}`,
     );
-    return undefined;
+    return false;
   }
-
-  return { cmpDetected: () => cmpDetected, detectionComplete, done };
 }
 
 /**
- * Waits (capped at AUTOCONSENT_WAIT_MS, abort-aware) for detection to finish.
- * If a CMP is detected, also waits for autoconsent to finish opting out.
+ * Waits (capped at AUTOCONSENT_WAIT_MS, abort-aware) until the main frame's
+ * autoconsent lifecycle leaves `pendingStates`, and returns that lifecycle
+ * (undefined on timeout/abort). Reads it through waitForFunction, which runs in
+ * the page's main world (where the bundle lives) in both Playwright and
+ * patchright; patchright's page.evaluate defaults to an isolated world.
  */
-export async function waitForAutoconsent(
-  handle: AutoconsentHandle | undefined,
+async function waitWhileIn(
+  page: Page,
+  pendingStates: string[],
   abortSignal: AbortSignal,
-): Promise<void> {
-  if (!handle) {
-    return;
-  }
-
-  const completion = handle.detectionComplete.then((detected) =>
-    detected ? handle.done : undefined,
-  );
-  await raceWith<void>(
-    completion,
-    timeoutRace<void>(AUTOCONSENT_WAIT_MS, () => undefined),
+): Promise<string | undefined> {
+  return await raceWith<string | undefined>(
+    page
+      .waitForFunction(
+        (pending) => {
+          const lifecycle =
+            globalThis.autoconsentStandalone?.instance.state.lifecycle ??
+            "loading";
+          return pending.includes(lifecycle) ? false : lifecycle;
+        },
+        pendingStates,
+        { timeout: AUTOCONSENT_WAIT_MS, polling: 100 },
+      )
+      .then(async (handle) => (await handle.jsonValue()) || undefined)
+      .catch(() => undefined),
     abortRaceResolve(abortSignal, undefined),
   );
 }
 
 /**
- * Lets autoconsent use the time already spent waiting for the page to settle.
+ * Waits for the page to settle and for autoconsent to finish, in parallel.
  *
  * No-CMP detection can take longer than our autoconsent budget because the
- * library retries detection several times. Waiting for it only after the page
- * load wait therefore adds the full timeout to ordinary pages. Start both
- * waits together instead. If a CMP appears after the initial autoconsent wait
- * timed out, wait once more for the actual opt-out action before capture.
+ * library retries detection several times, so waiting for it after the page
+ * load wait would add the full timeout to ordinary pages. If a CMP appears
+ * after the initial autoconsent wait timed out, wait once more for the actual
+ * opt-out before capture. After a successful opt-out, give the dialog a moment
+ * to animate out.
  */
 export async function waitForPageLoadAndAutoconsent(
+  page: Page,
   pageLoad: Promise<unknown>,
-  handle: AutoconsentHandle | undefined,
+  autoconsentEnabled: boolean,
   abortSignal: AbortSignal,
 ): Promise<void> {
-  await Promise.all([pageLoad, waitForAutoconsent(handle, abortSignal)]);
-
-  if (handle?.cmpDetected()) {
-    await waitForAutoconsent(handle, abortSignal);
+  if (!autoconsentEnabled) {
+    await pageLoad;
+    return;
+  }
+  await Promise.all([pageLoad, waitWhileIn(page, PENDING_STATES, abortSignal)]);
+  const lifecycle = await waitWhileIn(page, OPTING_OUT_STATES, abortSignal);
+  if (lifecycle && OPTED_OUT_STATES.includes(lifecycle)) {
+    await sleep(DISMISS_SETTLE_MS, undefined, { signal: abortSignal }).catch(
+      () => undefined,
+    );
   }
 }

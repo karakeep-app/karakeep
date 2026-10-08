@@ -188,6 +188,8 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
 
         <Form {...form}>
           <form
+            // POST so a submit before hydration doesn't put the password in the URL.
+            method="post"
             onSubmit={form.handleSubmit(async (value) => {
               try {
                 await acceptInviteMutation.mutateAsync({
@@ -198,7 +200,6 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
 
                 // Sign in the user after successful account creation
                 const resp = await signIn("credentials", {
-                  redirect: false,
                   email: inviteData.email,
                   password: value.password,
                 });

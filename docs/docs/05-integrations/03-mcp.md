@@ -1,6 +1,6 @@
 # Model Context Protocol Server (MCP)
 
-Karakeep comes with a Model Context Protocol server that can be used to interact with it through LLMs.
+Karakeep comes with a Model Context Protocol server that can allow LLMs (like claude and codex) to interact with your karakeep data.
 
 ## Supported Tools
 
@@ -41,7 +41,7 @@ From NPM:
         "@karakeep/mcp"
       ],
       "env": {
-        "KARAKEEP_API_ADDR": "https://<YOUR_SERVER_ADDR>",
+        "KARAKEEP_API_ADDR": "https://cloud.karakeep.app",
         "KARAKEEP_API_KEY": "<YOUR_TOKEN>"
       }
     }
@@ -59,7 +59,7 @@ From Docker:
       "args": [
         "run",
         "-e",
-        "KARAKEEP_API_ADDR=https://<YOUR_SERVER_ADDR>",
+        "KARAKEEP_API_ADDR=https://cloud.karakeep.app",
         "-e",
         "KARAKEEP_API_KEY=<YOUR_TOKEN>",
         "ghcr.io/karakeep-app/karakeep-mcp:latest"
@@ -69,6 +69,13 @@ From Docker:
 }
 ```
 
+# Usage with Codex Desktop
+
+1. Get an API Key from your Karakeep settings page.
+2. Go to Codex Settings > Integrations > Plugins > Add > Add MCP Server.
+3. Use the following configuration, replacing the placeholder with your API key.
+
+![codex](/img/mcp/codex.png)
 
 ### Demo
 

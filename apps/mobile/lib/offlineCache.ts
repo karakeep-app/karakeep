@@ -320,7 +320,13 @@ export function setupOnlineManager() {
   onlineManager.setEventListener((setOnline) => {
     let active = true;
     const updateOnlineState = (state: Network.NetworkState) => {
-      setOnline(state.isInternetReachable ?? state.isConnected ?? true);
+      // Deliberately ignore isInternetReachable. On Android it requires the
+      // network to pass the OS's own connectivity validation, which VPNs
+      // (e.g. Cloudflare WARP) and LAN-only setups can fail even though the
+      // self-hosted server is reachable. Treating that as offline pauses all
+      // queries and skips the server health check, so the app never recovers.
+      // Whether the server itself is reachable is left to useConnectionStatus.
+      setOnline(state.isConnected ?? true);
     };
 
     void Network.getNetworkStateAsync()

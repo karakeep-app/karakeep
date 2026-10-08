@@ -55,14 +55,8 @@ export const sendVerificationEmail = withTracing(
     transporter: Transporter,
     email: string,
     name: string,
-    token: string,
-    redirectUrl?: string,
+    verificationUrl: string,
   ) => {
-    let verificationUrl = `${serverConfig.publicUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
-    if (redirectUrl) {
-      verificationUrl += `&redirectUrl=${encodeURIComponent(redirectUrl)}`;
-    }
-
     const mailOptions = {
       from: serverConfig.email.smtp!.from,
       to: email,
@@ -152,10 +146,8 @@ export const sendPasswordResetEmail = withTracing(
     transporter: Transporter,
     email: string,
     name: string,
-    token: string,
+    resetUrl: string,
   ) => {
-    const resetUrl = `${serverConfig.publicUrl}/reset-password?token=${encodeURIComponent(token)}`;
-
     const mailOptions = {
       from: serverConfig.email.smtp!.from,
       to: email,

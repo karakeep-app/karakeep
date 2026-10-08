@@ -1,0 +1,192 @@
+diff --git a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt
+index ff5b1001e7bb3443482727cec48c22579465c73b..ea6c49ae22e8cc9126e45ffe163b3cc492413a7a 100644
+--- a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt
++++ b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt
+@@ -41,6 +41,9 @@ class ExpoShareIntentModule : Module() {
+     private val currentActivity: Activity?
+         get() = appContext.currentActivity
+ 
++    @Volatile
++    private var hasJsListeners = false
++
+     companion object {
+         private var instance: ExpoShareIntentModule? = null
+ 
+@@ -180,24 +183,40 @@ class ExpoShareIntentModule : Module() {
+         Events("onChange", "onStateChange", "onError")
+ 
+         AsyncFunction("getShareIntent") { _: String ->
+-            // get the Intent from onCreate activity (app not running in background)
++            // get the Intent stored by the activity lifecycle listener (onCreate / onNewIntent)
+             ExpoShareIntentSingleton.isPending = false
+-            if (ExpoShareIntentSingleton.intent?.type != null) {
+-                handleShareIntent(ExpoShareIntentSingleton.intent!!);
+-                ExpoShareIntentSingleton.intent = null
++            ExpoShareIntentSingleton.takePendingIntent(appContext.reactContext)?.let {
++                handleShareIntent(it)
+             }
+         }
+ 
+         Function("clearShareIntent") { _: String ->
+-            ExpoShareIntentSingleton.intent = null
++            ExpoShareIntentSingleton.clearPendingIntent()
+         }
+ 
+         Function("hasShareIntent") { _: String ->
+             ExpoShareIntentSingleton.isPending
+         }
+ 
++        OnStartObserving("onChange") {
++            hasJsListeners = true
++        }
++
++        OnStopObserving("onChange") {
++            hasJsListeners = false
++        }
++
+         OnNewIntent {
+-            handleShareIntent(it)
++            if (it.type != null) {
++                ExpoShareIntentSingleton.setPendingIntent(it, null)
++            }
++            // Events sent before JS subscribes are dropped. In that case leave the intent pending,
++            // JS fetches it with getShareIntent once it's mounted.
++            if (hasJsListeners) {
++                ExpoShareIntentSingleton.takePendingIntent(appContext.reactContext)?.let {
++                    handleShareIntent(it)
++                }
++            }
+         }
+ 
+         OnCreate {
+@@ -223,15 +242,9 @@ class ExpoShareIntentModule : Module() {
+             if (DocumentsContract.isDocumentUri(context, uri)) {
+                 // ExternalStorageProvider
+                 if (isExternalStorageDocument(uri)) {
+-                    val docId = DocumentsContract.getDocumentId(uri)
+-                    val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+-                    val type = split[0]
+-
+-                    return if ("primary".equals(type, ignoreCase = true)) {
+-                        Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+-                    } else {
+-                        getDataColumn(uri, null, null)
+-                    }
++                    // Copy it like any other content uri: with scoped storage the app can't read
++                    // the file path of a document in shared storage, even on the primary volume.
++                    return getDataColumn(uri, null, null)
+                 } else if (isDownloadsDocument(uri)) {
+                     return try {
+                         val id = DocumentsContract.getDocumentId(uri)
+diff --git a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt
+index db573ecbd560de3c71aa443b7ad88d1b5e1c8dc7..17a0efcb3839b883814c35697fde8b2759bfea19 100644
+--- a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt
++++ b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt
+@@ -13,10 +13,20 @@ import expo.modules.core.interfaces.ReactActivityLifecycleListener
+ class ExpoShareIntentReactActivityLifecycleListener(activityContext: Context) : ReactActivityLifecycleListener {
+ 
+     override fun onCreate(activity: Activity?, savedInstanceState: Bundle?) {
++        val intent = activity?.intent ?: return
+         // only store when the new intent is not empty
+-        if (activity?.intent?.type != null) {
+-            ExpoShareIntentSingleton.intent = activity?.intent
+-            ExpoShareIntentSingleton.isPending = true
++        if (intent.type == null) return
++        if (ExpoShareIntentSingleton.isReplayedLaunchIntent(activity, activity.taskId, intent)) return
++        ExpoShareIntentSingleton.setPendingIntent(intent, activity.taskId)
++    }
++
++    // When the process was killed in the background, sharing recreates the activity with the task's
++    // original intent and delivers the share through onNewIntent right away, before the native
++    // module exists. Store it here so JS can still pick it up with getShareIntent.
++    override fun onNewIntent(intent: Intent?): Boolean {
++        if (intent?.type != null) {
++            ExpoShareIntentSingleton.setPendingIntent(intent, null)
+         }
++        return false
+     }
+ }
+diff --git a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt
+index 7f93abe410557d8f909148e57d7311cabbe75b36..538c6be0274b9d8cc022e00c11e0efb1d5c5b2c4 100644
+--- a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt
++++ b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt
+@@ -1,5 +1,6 @@
+ package expo.modules.shareintent
+ 
++import android.content.Context
+ import android.content.Intent
+ import expo.modules.core.interfaces.SingletonModule
+ 
+@@ -9,7 +10,70 @@ object ExpoShareIntentSingleton : SingletonModule {
+     return "ExpoShareIntent"
+   }
+ 
+-  // members to store the initial launch intent
+-  var intent: Intent? = null
++  private const val PREFS_NAME = "expo-share-intent"
++  private const val PREFS_CONSUMED_LAUNCH_INTENT = "consumedLaunchIntent"
++
++  // share intent waiting for JS to ask for it (getShareIntent)
++  private var intent: Intent? = null
++  // id of the task this intent launched, null when it came through onNewIntent
++  private var launchTaskId: Int? = null
+   var isPending: Boolean = false
++
++  @Synchronized
++  fun setPendingIntent(intent: Intent, launchTaskId: Int?) {
++    this.intent = intent
++    this.launchTaskId = launchTaskId
++    isPending = true
++  }
++
++  @Synchronized
++  fun clearPendingIntent() {
++    intent = null
++    launchTaskId = null
++  }
++
++  /**
++   * Returns the pending intent (if any) and clears it. If the intent is the one that launched the
++   * task, remember it so that Android re-delivering it later is not treated as a new share.
++   */
++  @Synchronized
++  fun takePendingIntent(context: Context?): Intent? {
++    val pending = intent ?: return null
++    val taskId = launchTaskId
++    clearPendingIntent()
++    if (taskId != null && context != null) {
++      context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
++        .edit()
++        .putString(PREFS_CONSUMED_LAUNCH_INTENT, consumedKey(taskId, pending))
++        .apply()
++    }
++    return pending
++  }
++
++  /**
++   * Android keeps the intent that started a task and hands it to the activity again whenever the
++   * activity is recreated in that task (e.g. after the process was killed in the background and the
++   * user comes back from the launcher or recents). Such a share was already handled.
++   */
++  fun isReplayedLaunchIntent(context: Context, taskId: Int, intent: Intent): Boolean {
++    if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) {
++      return true
++    }
++    val consumed = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
++      .getString(PREFS_CONSUMED_LAUNCH_INTENT, null)
++    return consumed == consumedKey(taskId, intent)
++  }
++
++  private fun consumedKey(taskId: Int, intent: Intent): String {
++    @Suppress("DEPRECATION")
++    val stream = intent.extras?.get(Intent.EXTRA_STREAM)
++    val fingerprint = listOf(
++      intent.action,
++      intent.type,
++      intent.dataString,
++      intent.getStringExtra(Intent.EXTRA_TEXT),
++      stream?.toString(),
++    ).joinToString("\u0000")
++    return "$taskId:${fingerprint.hashCode()}"
++  }
+ }

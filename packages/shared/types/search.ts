@@ -88,6 +88,16 @@ const zBrokenLinksMatcher = z.object({
   brokenLinks: z.boolean(),
 });
 
+const zHasNotesMatcher = z.object({
+  type: z.literal("hasNotes"),
+  hasNotes: z.boolean(),
+});
+
+const zHasHighlightsMatcher = z.object({
+  type: z.literal("hasHighlights"),
+  hasHighlights: z.boolean(),
+});
+
 const zSourceMatcher = z.object({
   type: z.literal("source"),
   source: zBookmarkSourceSchema,
@@ -109,6 +119,8 @@ const zNonRecursiveMatcher = z.union([
   zTypeMatcher,
   zRssFeedNameMatcher,
   zBrokenLinksMatcher,
+  zHasNotesMatcher,
+  zHasHighlightsMatcher,
   zSourceMatcher,
 ]);
 
@@ -134,6 +146,8 @@ export const zMatcherSchema: z.ZodType<Matcher> = z.lazy(() => {
     zTypeMatcher,
     zRssFeedNameMatcher,
     zBrokenLinksMatcher,
+    zHasNotesMatcher,
+    zHasHighlightsMatcher,
     zSourceMatcher,
     z.object({
       type: z.literal("and"),

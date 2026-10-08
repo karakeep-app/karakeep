@@ -9,7 +9,7 @@ export default function Banner() {
         <div className="flex flex-wrap items-center justify-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1">
           <Rocket className="size-4 text-amber-600 sm:size-5" />
           <span className="font-semibold text-slate-800">
-            Karakeep Cloud Public Beta is Now Live
+            Karakeep Cloud is Now Live
           </span>
         </div>
         <a

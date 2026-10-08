@@ -22,10 +22,7 @@ export class StorageQuotaError extends Error {
 export class QuotaService {
   // TODO: Use quota approval tokens for bookmark creation when
   // bookmark creation logic is in the model.
-  static async canCreateBookmark(
-    db: DB | KarakeepDBTransaction,
-    userId: string,
-  ) {
+  static async canCreateBookmark(db: DB, userId: string) {
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
       columns: {
@@ -39,12 +36,55 @@ export class QuotaService {
         .from(bookmarks)
         .where(eq(bookmarks.userId, userId));
 
-      if (currentBookmarkCount[0].count >= user.bookmarkQuota) {
-        return {
-          result: false,
-          error: `Bookmark quota exceeded. You can only have ${user.bookmarkQuota} bookmarks.`,
-        } as const;
-      }
+      return this.bookmarkQuotaResult(
+        user.bookmarkQuota,
+        currentBookmarkCount[0].count,
+      );
+    }
+    return {
+      result: true,
+    } as const;
+  }
+
+  static canCreateBookmarkInTransaction(
+    tx: KarakeepDBTransaction,
+    userId: string,
+  ) {
+    const user = tx.query.users
+      .findFirst({
+        where: eq(users.id, userId),
+        columns: {
+          bookmarkQuota: true,
+        },
+      })
+      .sync();
+
+    if (user?.bookmarkQuota !== null && user?.bookmarkQuota !== undefined) {
+      const currentBookmarkCount = tx
+        .select({ count: count() })
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, userId))
+        .all();
+
+      return this.bookmarkQuotaResult(
+        user.bookmarkQuota,
+        currentBookmarkCount[0].count,
+      );
+    }
+    return {
+      result: true,
+    } as const;
+  }
+
+  private static bookmarkQuotaResult(
+    bookmarkQuota: number,
+    currentBookmarkCount: number,
+  ) {
+    if (currentBookmarkCount >= bookmarkQuota) {
+      return {
+        result: false,
+        error: `Bookmark quota exceeded. You can only have ${bookmarkQuota} bookmarks.`,
+      } as const;
     }
     return {
       result: true,
@@ -52,7 +92,7 @@ export class QuotaService {
   }
 
   static async checkStorageQuota(
-    db: DB | KarakeepDBTransaction,
+    db: DB,
     userId: string,
     requestedSize: number,
   ): Promise<QuotaApproved> {
@@ -82,10 +122,7 @@ export class QuotaService {
     return QuotaApproved._create(userId, requestedSize);
   }
 
-  static async getCurrentStorageUsage(
-    db: DB | KarakeepDBTransaction,
-    userId: string,
-  ): Promise<number> {
+  static async getCurrentStorageUsage(db: DB, userId: string): Promise<number> {
     const currentUsageResult = await db
       .select({ totalSize: sum(assets.size) })
       .from(assets)

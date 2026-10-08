@@ -1,13 +1,14 @@
-import React from "react";
-import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Pressable, ScrollView } from "react-native";
+import { Link, Stack, useLocalSearchParams } from "expo-router";
+import {
+  ListPicker,
+  listPathToPickerOption,
+} from "@/components/lists/list-picker";
 import QueryPageState from "@/components/QueryPageState";
-import { RowSeparator } from "@/components/ui/GroupedList";
-import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
-import { Check } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 import { useHeaderHeight } from "expo-router/react-navigation";
 
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
@@ -17,6 +18,17 @@ import {
   useRemoveBookmarkFromList,
 } from "@karakeep/shared-react/hooks/lists";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+
+function byListPathName(a: ZBookmarkList[], b: ZBookmarkList[]) {
+  const commonPathLength = Math.min(a.length, b.length);
+
+  for (let index = 0; index < commonPathLength; index++) {
+    const comparison = a[index].name.localeCompare(b[index].name);
+    if (comparison !== 0) return comparison;
+  }
+
+  return a.length - b.length;
+}
 
 const ListPickerPage = () => {
   const headerHeight = useHeaderHeight();
@@ -58,6 +70,12 @@ const ListPickerPage = () => {
     isPending: isAddingToList,
     variables: addVariables,
   } = useAddBookmarkToList({
+    onSuccess: () => {
+      toast({
+        message: "Added to list!",
+        showProgress: false,
+      });
+    },
     onError,
   });
 
@@ -66,6 +84,12 @@ const ListPickerPage = () => {
     isPending: isRemovingFromList,
     variables: removeVariables,
   } = useRemoveBookmarkFromList({
+    onSuccess: () => {
+      toast({
+        message: "Removed from list!",
+        showProgress: false,
+      });
+    },
     onError,
   });
 
@@ -88,7 +112,21 @@ const ListPickerPage = () => {
   const { allPaths } = data ?? {};
   const filteredPaths = allPaths
     ?.filter((path) => path[path.length - 1].userRole !== "viewer")
-    .filter((path) => path[path.length - 1].type !== "smart");
+    .filter((path) => path[path.length - 1].type !== "smart")
+    .sort(byListPathName);
+  const options =
+    filteredPaths?.map((path) => {
+      const option = listPathToPickerOption(path);
+
+      return {
+        ...option,
+        state: isListLoading(option.id)
+          ? ("loading" as const)
+          : existingLists?.has(option.id)
+            ? ("selected" as const)
+            : undefined,
+      };
+    }) ?? [];
 
   if (!existingLists || !data) {
     return (
@@ -109,6 +147,18 @@ const ListPickerPage = () => {
           headerShown: true,
           headerTransparent: false,
           headerTitle: "Manage Lists",
+          headerRight: () => (
+            <Link href="/dashboard/lists/new" asChild>
+              <Pressable
+                accessibilityLabel="Create list"
+                accessibilityRole="button"
+                hitSlop={8}
+                className="px-2"
+              >
+                <Plus size={22} color={colors.primary} strokeWidth={2.5} />
+              </Pressable>
+            </Link>
+          ),
         }}
       />
       <ScrollView
@@ -119,48 +169,11 @@ const ListPickerPage = () => {
         }}
         className="flex-1 bg-background"
       >
-        {filteredPaths && filteredPaths.length > 0 ? (
-          <View
-            className="overflow-hidden rounded-xl bg-card"
-            style={{ borderCurve: "continuous" }}
-          >
-            {filteredPaths.map((path, index) => {
-              const listId = path[path.length - 1].id;
-              const isLoading = isListLoading(listId);
-              const isChecked = existingLists?.has(listId);
-
-              return (
-                <React.Fragment key={listId}>
-                  {index > 0 && <RowSeparator />}
-                  <Pressable
-                    onPress={() => !isLoading && toggleList(listId)}
-                    disabled={isLoading}
-                    className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
-                  >
-                    <Text className="flex-1 pr-3" numberOfLines={1}>
-                      {path
-                        .map((item) => `${item.icon} ${item.name}`)
-                        .join(" / ")}
-                    </Text>
-                    {isLoading ? (
-                      <ActivityIndicator size="small" />
-                    ) : isChecked ? (
-                      <Check
-                        size={20}
-                        color={colors.primary}
-                        strokeWidth={2.5}
-                      />
-                    ) : null}
-                  </Pressable>
-                </React.Fragment>
-              );
-            })}
-          </View>
-        ) : (
-          <View className="items-center py-12">
-            <Text color="tertiary">No lists available</Text>
-          </View>
-        )}
+        <ListPicker
+          options={options}
+          onSelect={toggleList}
+          emptyMessage="No lists available"
+        />
       </ScrollView>
     </>
   );

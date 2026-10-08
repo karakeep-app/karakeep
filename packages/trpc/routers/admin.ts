@@ -8,6 +8,7 @@ import {
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  sessions,
   subscriptions,
   users,
 } from "@karakeep/db/schema";
@@ -25,7 +26,7 @@ import {
   triggerSearchReindex,
   VideoWorkerQueue,
   WebhookQueue,
-  zAdminMaintenanceTaskSchema,
+  zSystemAdminMaintenanceTaskSchema,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
@@ -41,7 +42,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
-import { generatePasswordSalt, hashPassword } from "../auth";
+import { setUserPassword } from "../auth";
 import { createAdminScopedProcedure, router } from "../index";
 import { Bookmark } from "../models/bookmarks";
 import { User } from "../models/users";
@@ -464,7 +465,7 @@ export const adminAppRouter = router({
       );
     }),
   runAdminMaintenanceTask: adminJobsProcedure
-    .input(zAdminMaintenanceTaskSchema)
+    .input(zSystemAdminMaintenanceTaskSchema)
     .mutation(async ({ input }) => {
       await AdminMaintenanceQueue.enqueue(input);
     }),
@@ -521,7 +522,14 @@ export const adminAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      return await User.create(ctx, input, input.role);
+      // Users created by an admin don't need to verify their email.
+      return await User.createRaw(ctx.db, {
+        name: input.name,
+        email: input.email,
+        password: input.password,
+        role: input.role,
+        emailVerified: true,
+      });
     }),
   updateUser: adminUsersProcedure
     .input(updateUserSchema)
@@ -579,19 +587,75 @@ export const adminAppRouter = router({
           message: "Cannot reset own password",
         });
       }
-      const newSalt = generatePasswordSalt();
-      const hashedPassword = await hashPassword(input.newPassword, newSalt);
-      const result = await ctx.db
-        .update(users)
-        .set({ password: hashedPassword, salt: newSalt })
-        .where(eq(users.id, input.userId));
-
-      if (result.changes == 0) {
+      const user = await ctx.db.query.users.findFirst({
+        columns: { id: true },
+        where: eq(users.id, input.userId),
+      });
+      if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "User not found",
         });
       }
+      await setUserPassword(ctx.db, user.id, input.newPassword);
+      // Someone else might know the old password, so sign the user out
+      // everywhere.
+      await ctx.db.delete(sessions).where(eq(sessions.userId, user.id));
+    }),
+  purgeBookmarksOverQuota: adminUsersProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        dryRun: z.boolean().optional().default(false),
+      }),
+    )
+    .output(
+      z.object({
+        numBookmarks: z.number(),
+        bookmarkQuota: z.number(),
+        numBookmarksToDelete: z.number(),
+        enqueued: z.boolean(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+        columns: { bookmarkQuota: true },
+      });
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+      if (user.bookmarkQuota === null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User doesn't have a bookmark quota",
+        });
+      }
+      const [{ numBookmarks }] = await ctx.db
+        .select({ numBookmarks: count() })
+        .from(bookmarks)
+        .where(eq(bookmarks.userId, input.userId));
+      const numBookmarksToDelete = Math.max(
+        0,
+        numBookmarks - user.bookmarkQuota,
+      );
+
+      const enqueued = !input.dryRun && numBookmarksToDelete > 0;
+      if (enqueued) {
+        await AdminMaintenanceQueue.enqueue({
+          type: "purge_bookmarks_over_quota",
+          args: { userId: input.userId },
+        });
+      }
+      return {
+        numBookmarks,
+        bookmarkQuota: user.bookmarkQuota,
+        numBookmarksToDelete,
+        enqueued,
+      };
     }),
   getAdminNoticies: adminSystemProcedure
     .output(

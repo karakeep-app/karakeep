@@ -59,6 +59,8 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: true },
 
   allowedDevOrigins: process.env.ALLOWED_DEV_ORIGINS?.split(","),
+
+  agentRules: false,
 };
 
 export default withBundleAnalyzer(nextConfig);

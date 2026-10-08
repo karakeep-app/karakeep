@@ -1,4 +1,4 @@
-import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import type { CallToolResult } from "@modelcontextprotocol/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { mockClient, mockTool } = vi.hoisted(() => ({
@@ -13,7 +13,7 @@ const { mockClient, mockTool } = vi.hoisted(() => ({
 
 vi.mock("./shared", () => ({
   karakeepClient: mockClient,
-  mcpServer: { tool: mockTool },
+  registerTool: mockTool,
 }));
 
 import {

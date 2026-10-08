@@ -200,7 +200,7 @@ export default function SidebarVersion({
           aria-label={
             shouldNotify ? t("version.new_release_available") : undefined
           }
-          className="flex w-full items-center justify-between text-left text-sm text-gray-400 transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex w-full items-center justify-between rounded-sm text-left text-sm text-gray-400 transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
           <span aria-hidden={shouldNotify}>{versionLabel}</span>
           {shouldNotify && (

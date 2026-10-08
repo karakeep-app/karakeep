@@ -36,12 +36,14 @@ export function SettingsPage({
 }
 
 export function SettingsSection({
+  id,
   title,
   description,
   action,
   children,
   variant = "default",
 }: {
+  id?: string;
   title?: string;
   description?: string;
   action?: React.ReactNode;
@@ -50,6 +52,7 @@ export function SettingsSection({
 }) {
   return (
     <Card
+      id={id}
       className={variant === "danger" ? "border-destructive/20" : undefined}
     >
       {(title || description || action) && (

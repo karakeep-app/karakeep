@@ -23,6 +23,9 @@ export async function loadAllPlugins() {
   }
   pluginLoaderState.loading = (async () => {
     // Load plugins here. Order of plugin loading matter.
+    // Asset store providers (order matters - last one wins)
+    await import("@karakeep/plugins/assetstore-filesystem");
+    await import("@karakeep/plugins/assetstore-s3");
     // Queue provider(s)
     await import("@karakeep/plugins/queue-liteque");
     await import("@karakeep/plugins/queue-restate");

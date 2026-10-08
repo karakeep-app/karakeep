@@ -1,4 +1,5 @@
 import {
+  isServer,
   keepPreviousData,
   useInfiniteQuery,
   useMutation,
@@ -21,7 +22,9 @@ export function usePaginatedSearchTags(
     ...api.tags.list.infiniteQueryOptions(input, {
       placeholderData: keepPreviousData,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      gcTime: 60_000,
+      // On the server, a finite gcTime schedules a timer that pins the
+      // request's query cache in memory; leave it at the default (Infinity).
+      gcTime: isServer ? Infinity : 60_000,
     }),
     select: (data) => ({
       tags: data.pages.flatMap((page) => page.tags),
@@ -44,7 +47,11 @@ export function useTagAutocomplete<T = ZTagListResponse>(opts: {
       },
       {
         placeholderData: keepPreviousData,
-        gcTime: opts.nameContains?.length > 0 ? 60_000 : 3_600_000,
+        gcTime: isServer
+          ? Infinity
+          : opts.nameContains?.length > 0
+            ? 60_000
+            : 3_600_000,
         enabled: opts.enabled,
       },
     ),

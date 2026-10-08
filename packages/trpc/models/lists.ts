@@ -218,7 +218,10 @@ export abstract class List {
     // The token here acts as an authed context, so we can create
     // an impersonating context for the list owner as long as
     // we don't leak the context.
-    const authedCtx = await buildImpersonatingAuthedContext(listdb.userId);
+    const authedCtx = await buildImpersonatingAuthedContext(
+      listdb.userId,
+      ctx.db,
+    );
     const listObj = List.fromData(
       authedCtx,
       {
@@ -228,11 +231,13 @@ export abstract class List {
       },
       null,
     );
-    const bookmarkIds = await listObj.getBookmarkIds();
+    const numItems = await listObj.getSize();
     const list = listObj.asZBookmarkList();
 
+    // Filtering by listId instead of by ids, because the ids path is scoped to
+    // the list owner and would hide the bookmarks added by collaborators.
     const bookmarks = await Bookmark.loadMulti(authedCtx, {
-      ids: bookmarkIds,
+      listId: listObj.id,
       includeContent: false,
       limit: pagination.limit,
       sortOrder: pagination.order,
@@ -245,7 +250,7 @@ export abstract class List {
         name: list.name,
         description: list.description,
         ownerName: listdb.user.name,
-        numItems: bookmarkIds.length,
+        numItems,
       },
       bookmarks: bookmarks.bookmarks.map((b) => b.asPublicBookmark()),
       nextCursor: bookmarks.nextCursor,
@@ -497,8 +502,8 @@ export abstract class List {
     }
   }
 
-  protected async cleanupRulesAfterListDeletion(tx: KarakeepDBTransaction) {
-    const rules = await tx
+  protected cleanupRulesAfterListDeletion(tx: KarakeepDBTransaction) {
+    const rules = tx
       .select({
         id: ruleEngineRulesTable.id,
         event: ruleEngineRulesTable.event,
@@ -515,7 +520,8 @@ export abstract class List {
             WHERE value = ${this.list.id}
           )`,
         ),
-      );
+      )
+      .all();
     const rulesToDelete: string[] = [];
     const rulesToUpdate: { id: string; event: string }[] = [];
 
@@ -560,38 +566,37 @@ export abstract class List {
     }
 
     if (rulesToDelete.length > 0) {
-      await tx
-        .delete(ruleEngineRulesTable)
-        .where(inArray(ruleEngineRulesTable.id, rulesToDelete));
+      tx.delete(ruleEngineRulesTable)
+        .where(inArray(ruleEngineRulesTable.id, rulesToDelete))
+        .run();
     }
 
     if (rulesToUpdate.length > 0) {
-      await Promise.all(
-        rulesToUpdate.map(({ id, event }) =>
-          tx
-            .update(ruleEngineRulesTable)
-            .set({ event })
-            .where(eq(ruleEngineRulesTable.id, id)),
-        ),
-      );
+      for (const { id, event } of rulesToUpdate) {
+        tx.update(ruleEngineRulesTable)
+          .set({ event })
+          .where(eq(ruleEngineRulesTable.id, id))
+          .run();
+      }
     }
   }
 
   async delete() {
     this.ensureCanManage();
-    await this.ctx.db.transaction(async (tx) => {
-      const res = await tx
+    await this.ctx.db.transaction((tx) => {
+      const res = tx
         .delete(bookmarkLists)
         .where(
           and(
             eq(bookmarkLists.id, this.list.id),
             eq(bookmarkLists.userId, this.ctx.user.id),
           ),
-        );
+        )
+        .run();
       if (res.changes == 0) {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
-      await this.cleanupRulesAfterListDeletion(tx);
+      this.cleanupRulesAfterListDeletion(tx);
     });
   }
 
@@ -1154,22 +1159,22 @@ export class ManualList extends List {
 
     const bookmarkIds = await this.getBookmarkIds();
 
-    await this.ctx.db.transaction(async (tx) => {
-      await tx
-        .insert(bookmarksInLists)
+    await this.ctx.db.transaction((tx) => {
+      tx.insert(bookmarksInLists)
         .values(
           bookmarkIds.map((id) => ({
             bookmarkId: id,
             listId: targetList.id,
           })),
         )
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .run();
 
       if (deleteSourceAfterMerge) {
-        await tx
-          .delete(bookmarkLists)
-          .where(eq(bookmarkLists.id, this.list.id));
-        await this.cleanupRulesAfterListDeletion(tx);
+        tx.delete(bookmarkLists)
+          .where(eq(bookmarkLists.id, this.list.id))
+          .run();
+        this.cleanupRulesAfterListDeletion(tx);
       }
     });
   }

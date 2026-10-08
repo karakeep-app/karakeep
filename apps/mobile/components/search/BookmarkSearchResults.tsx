@@ -27,7 +27,7 @@ export default function BookmarkSearchResults({
     error,
     refetch,
     isPending,
-    fetchNextPage,
+    onEndReached,
     isFetchingNextPage,
     onRefresh,
   } = state;
@@ -80,7 +80,7 @@ export default function BookmarkSearchResults({
   return (
     <BookmarkList
       bookmarks={data.pages.flatMap((p) => p.bookmarks)}
-      fetchNextPage={fetchNextPage}
+      fetchNextPage={onEndReached}
       isFetchingNextPage={isFetchingNextPage}
       onRefresh={onRefresh}
       isRefreshing={isPending}

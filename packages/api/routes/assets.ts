@@ -8,6 +8,7 @@ import { Asset } from "@karakeep/trpc/models/assets";
 import { apiKeyScopeMiddleware } from "../middlewares/apiKeyScopes";
 import { authMiddleware } from "../middlewares/auth";
 import { createRateLimitMiddleware } from "../middlewares/rateLimit";
+import { rejectMutationInReadOnlyMode } from "../middlewares/readOnlyMode";
 import { serveAsset } from "../utils/assets";
 import { uploadAsset } from "../utils/upload";
 
@@ -15,6 +16,7 @@ const app = new Hono()
   .use(authMiddleware)
   .post(
     "/",
+    rejectMutationInReadOnlyMode,
     apiKeyScopeMiddleware("assets", "readwrite"),
     createRateLimitMiddleware({
       name: "assets.upload",

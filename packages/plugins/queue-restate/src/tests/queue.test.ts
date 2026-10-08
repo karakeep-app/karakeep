@@ -12,8 +12,8 @@ import {
 import type { Queue, QueueClient } from "@karakeep/shared/queueing";
 import { QueueRetryAfterError } from "@karakeep/shared/queueing";
 
+import { RestateQueueProvider } from "../../index";
 import { AdminClient } from "../admin";
-import { RestateQueueProvider } from "../index";
 import { waitUntil } from "./utils";
 
 class Baton {
