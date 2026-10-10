@@ -467,6 +467,56 @@ describe("Admin Routes", () => {
       );
     });
 
+    test<CustomTestContext>("getUser looks up a user by id or email", async ({
+      db,
+    }) => {
+      const { adminApi } = await createAdmin(db);
+      const target = await createTestUser(db, {
+        name: "Lookup User",
+        email: "lookup@test.com",
+        password: "lookuppass123",
+      });
+
+      const byId = await adminApi.admin.getUser({ id: target.id });
+      expect(byId).toEqual({
+        id: target.id,
+        name: "Lookup User",
+        email: "lookup@test.com",
+        role: "user",
+        bookmarkQuota: null,
+        storageQuota: null,
+      });
+
+      const byEmail = await adminApi.admin.getUser({
+        email: "  Lookup@Test.com ",
+      });
+      expect(byEmail.id).toBe(target.id);
+    });
+
+    test<CustomTestContext>("getUser fails for unknown users", async ({
+      db,
+    }) => {
+      const { adminApi } = await createAdmin(db);
+
+      await expect(() =>
+        adminApi.admin.getUser({ id: "does-not-exist" }),
+      ).rejects.toThrow(/User not found/);
+      await expect(() =>
+        adminApi.admin.getUser({ email: "nobody@test.com" }),
+      ).rejects.toThrow(/User not found/);
+    });
+
+    test<CustomTestContext>("non-admins cannot look up users", async ({
+      db,
+      apiCallers,
+    }) => {
+      const { admin } = await createAdmin(db);
+
+      await expect(() =>
+        apiCallers[0].admin.getUser({ id: admin.id }),
+      ).rejects.toThrow(/FORBIDDEN/);
+    });
+
     test<CustomTestContext>("resetPassword changes the password and signs the user out", async ({
       db,
     }) => {

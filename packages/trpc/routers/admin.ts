@@ -36,6 +36,8 @@ import {
   resetPasswordSchema,
   updateUserSchema,
   zAdminCreateUserSchema,
+  zAdminGetUserSchema,
+  zAdminUserSchema,
   zAdminJobModifiedWithinSecondsSchema,
 } from "@karakeep/shared/types/admin";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -510,6 +512,30 @@ export const adminAppRouter = router({
       }
 
       return results;
+    }),
+  getUser: adminUsersProcedure
+    .input(zAdminGetUserSchema)
+    .output(zAdminUserSchema)
+    .query(async ({ input, ctx }) => {
+      const user = await ctx.db.query.users.findFirst({
+        columns: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          bookmarkQuota: true,
+          storageQuota: true,
+        },
+        where:
+          "id" in input ? eq(users.id, input.id) : eq(users.email, input.email),
+      });
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+      return user;
     }),
   createUser: adminUsersProcedure
     .input(zAdminCreateUserSchema)
