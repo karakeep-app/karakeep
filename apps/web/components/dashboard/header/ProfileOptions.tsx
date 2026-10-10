@@ -20,6 +20,7 @@ import { useKeyboardNavigationStore } from "@/lib/store/useKeyboardNavigationSto
 import {
   BookOpen,
   Keyboard,
+  Laptop,
   LogOut,
   Moon,
   Paintbrush,
@@ -39,18 +40,25 @@ function DarkModeToggle() {
   const { t } = useTranslation();
   const { theme } = useTheme();
 
-  if (theme == "dark") {
+  if (theme == "system") {
     return (
       <>
         <Sun className="size-4" />
         <span>{t("options.light_mode")}</span>
       </>
     );
-  } else {
+  } else if (theme == "light") {
     return (
       <>
         <Moon className="size-4" />
         <span>{t("options.dark_mode")}</span>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <Laptop className="size-4" />
+        <span>{t("options.system_mode")}</span>
       </>
     );
   }
