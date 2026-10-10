@@ -1024,11 +1024,8 @@ const crawlAndParseUrl = traced(
       if (!date) {
         return null;
       }
-      try {
-        return new Date(date);
-      } catch {
-        return null;
-      }
+      const parsed = new Date(date);
+      return isNaN(parsed.getTime()) ? null : parsed;
     };
 
     // Phase 1: Write metadata immediately for fast user feedback.
@@ -2108,9 +2105,12 @@ const archiveWebpage = traced(
     const assetId = newAssetId();
     const assetPath = path.join(os.tmpdir(), assetId);
 
-    let res = await execa({
+    const res = await execa({
       input: html,
       cancelSignal: abortSignal,
+      // Report failures through the result instead of throwing, so that they
+      // are handled below and the temp file is cleaned up.
+      reject: false,
       env: {
         https_proxy: runProxy.httpsProxy,
         http_proxy: runProxy.httpProxy,
@@ -2128,17 +2128,12 @@ const archiveWebpage = traced(
       assetPath,
     ]);
 
-    if (res.isCanceled) {
-      log.error(`Canceled archiving the page as we hit global timeout.`);
+    if (res.failed) {
       await tryCatch(fs.unlink(assetPath));
-      return null;
-    }
-
-    if (res.exitCode !== 0) {
-      log.error(
-        `Failed to archive the page as the command exited with code ${res.exitCode}`,
-      );
-      await tryCatch(fs.unlink(assetPath));
+      // A job timeout must still fail the job so the crawl is retried rather
+      // than reported as completed (see downloadAndStoreFile).
+      abortSignal.throwIfAborted();
+      log.error(`Failed to archive the page: ${res.shortMessage}`);
       return null;
     }
 
