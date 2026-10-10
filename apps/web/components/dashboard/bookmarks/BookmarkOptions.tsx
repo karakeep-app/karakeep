@@ -397,7 +397,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             onClick: () => {
               const link = bookmark.content as ZBookmarkedLink;
               const archiveAssetId =
-                link.fullPageArchiveAssetId ?? link.precrawledArchiveAssetId;
+                link.precrawledArchiveAssetId ?? link.fullPageArchiveAssetId;
               if (archiveAssetId) {
                 window.open(getAssetUrl(archiveAssetId), "_blank");
               }

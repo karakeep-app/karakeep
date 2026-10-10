@@ -2,6 +2,8 @@ import { eq } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
+  assets,
+  AssetTypes,
   bookmarkLinks,
   bookmarks,
   rssFeedImportsTable,
@@ -45,6 +47,34 @@ vi.mock("@karakeep/shared-server", async (original) => {
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("Bookmark Routes", () => {
+  test<CustomTestContext>("bookmark details and list select the latest browser archive", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const userId = (await api.users.whoami()).id;
+    const bookmark = await api.bookmarks.createBookmark({
+      type: BookmarkTypes.LINK,
+      url: "https://example.com/signed-in",
+    });
+    for (const id of ["older-browser-archive", "latest-browser-archive"]) {
+      await db.insert(assets).values({
+        id,
+        userId,
+        bookmarkId: bookmark.id,
+        assetType: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+      });
+    }
+    const detail = await api.bookmarks.getBookmark({ bookmarkId: bookmark.id });
+    const list = await api.bookmarks.getBookmarks({});
+    expect(detail.content).toMatchObject({
+      precrawledArchiveAssetId: "latest-browser-archive",
+    });
+    expect(
+      list.bookmarks.find((b) => b.id === bookmark.id)?.content,
+    ).toMatchObject({ precrawledArchiveAssetId: "latest-browser-archive" });
+  });
+
   async function createTestTag(api: APICallerType, tagName: string) {
     const result = await api.tags.create({ name: tagName });
     return result.id;

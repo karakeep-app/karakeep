@@ -183,9 +183,9 @@ export class Bookmark extends BareBookmark {
         fullPageArchiveAssetId: assets.find(
           (a) => a.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         )?.id,
-        precrawledArchiveAssetId: assets.find(
-          (a) => a.assetType == AssetTypes.LINK_PRECRAWLED_ARCHIVE,
-        )?.id,
+        precrawledArchiveAssetId: assets
+          .filter((a) => a.assetType == AssetTypes.LINK_PRECRAWLED_ARCHIVE)
+          .pop()?.id,
         imageAssetId: assets.find(
           (a) => a.assetType == AssetTypes.LINK_BANNER_IMAGE,
         )?.id,

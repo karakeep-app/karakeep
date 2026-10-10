@@ -10,29 +10,46 @@ declare global {
   }
 }
 
-if (window.__karakeepSingleFileLoaded__) {
-  // Already registered in this page context — don't re-register listeners.
-  // Using `throw` short-circuits re-injection cleanly.
-  throw new Error("karakeep singlefile content script already loaded");
-}
-window.__karakeepSingleFileLoaded__ = true;
-
-init({});
-
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === "CAPTURE_PAGE") {
+if (!window.__karakeepSingleFileLoaded__) {
+  init({});
+  let capturing = false;
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message?.type === "CAPTURE_READY") {
+      sendResponse({ ready: true });
+      return;
+    }
+    if (message?.type !== "CAPTURE_PAGE") return;
+    const url = location.href;
+    if (message.expectedUrl !== url || capturing) {
+      sendResponse({
+        success: false,
+        error: capturing
+          ? "A page capture is still running. Wait before retrying, or reload the page."
+          : "The page changed before capture. Reopen the extension.",
+      });
+      return;
+    }
+    capturing = true;
     captureCurrentPage({ blockImages: message.blockImages === true })
-      .then((html) => sendResponse({ success: true, html }))
+      .then((html) => {
+        if (location.href !== url)
+          throw new Error("The page changed during capture.");
+        sendResponse({ success: true, html, url });
+      })
       .catch((error) =>
         sendResponse({
           success: false,
           error: error instanceof Error ? error.message : String(error),
         }),
-      );
+      )
+      .finally(() => {
+        capturing = false;
+      });
     // Return true to indicate we'll send a response asynchronously
     return true;
-  }
-});
+  });
+  window.__karakeepSingleFileLoaded__ = true;
+}
 
 async function captureCurrentPage(opts: {
   blockImages: boolean;
@@ -56,6 +73,7 @@ async function captureCurrentPage(opts: {
       groupDuplicateImages: true,
       maxResourceSizeEnabled: true,
       maxResourceSize: 10,
+      networkTimeout: 10_000,
     },
     {},
     document,

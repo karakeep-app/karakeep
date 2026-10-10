@@ -2,7 +2,7 @@
  * Utilities for SingleFile integration
  */
 
-import { getPluginSettings } from "./settings";
+import type { Settings } from "./settings";
 
 const CAPTURE_TIMEOUT_MS = 60_000;
 
@@ -11,49 +11,75 @@ const CAPTURE_TIMEOUT_MS = 60_000;
  */
 export async function capturePageWithSingleFile(
   tabId: number,
-  opts: { includeImages: boolean },
+  opts: { includeImages: boolean; expectedUrl: string },
 ): Promise<string> {
-  const blockImages = !opts.includeImages;
-  let response;
-  try {
-    response = await sendCaptureMessage(tabId, blockImages);
-  } catch (e) {
-    // Content script not yet present in the tab (e.g. page loaded before the
-    // extension was installed or the browser was restarted). Inject on demand
-    // and retry.
-    const msg = e instanceof Error ? e.message : String(e);
-    if (
-      !/Could not establish connection|Receiving end does not exist/i.test(msg)
-    ) {
-      throw e;
-    }
-    await injectSingleFileContentScript(tabId);
-    response = await sendCaptureMessage(tabId, blockImages);
+  const tab = await chrome.tabs.get(tabId);
+  if (tab.url !== opts.expectedUrl) {
+    throw new Error(
+      "The page changed. Reopen the extension on the page you want to save.",
+    );
   }
-
-  if (!response.success) {
-    throw new Error(response.error || "Failed to capture page");
+  if (!(await isCaptureReady(tabId))) {
+    await injectSingleFileContentScript(tabId);
+  }
+  const response = await withTimeout(
+    chrome.tabs.sendMessage(
+      tabId,
+      {
+        type: "CAPTURE_PAGE",
+        blockImages: !opts.includeImages,
+        expectedUrl: opts.expectedUrl,
+      },
+      { frameId: 0 },
+    ),
+    CAPTURE_TIMEOUT_MS,
+    "Page capture timed out. Try again with images disabled.",
+  );
+  if (!response?.success) {
+    throw new Error(response?.error || "Failed to capture page");
+  }
+  if (
+    response.url !== opts.expectedUrl ||
+    (await chrome.tabs.get(tabId)).url !== opts.expectedUrl
+  ) {
+    throw new Error("The page changed during capture. Please try again.");
+  }
+  if (typeof response.html !== "string" || !response.html.trim()) {
+    throw new Error("The page returned an empty capture.");
   }
 
   return response.html;
 }
 
-async function sendCaptureMessage(
-  tabId: number,
-  blockImages: boolean,
-): Promise<{ success: boolean; html: string; error?: string }> {
-  return await Promise.race([
-    chrome.tabs.sendMessage(tabId, { type: "CAPTURE_PAGE", blockImages }),
-    new Promise<never>((_, reject) =>
-      setTimeout(
-        () =>
-          reject(
-            new Error(`Capture timed out after ${CAPTURE_TIMEOUT_MS / 1000}s`),
-          ),
-        CAPTURE_TIMEOUT_MS,
-      ),
-    ),
-  ]);
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(message)), ms);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function isCaptureReady(tabId: number): Promise<boolean> {
+  try {
+    const response = await withTimeout(
+      chrome.tabs.sendMessage(tabId, { type: "CAPTURE_READY" }, { frameId: 0 }),
+      500,
+      "Capture script did not respond",
+    );
+    return response?.ready === true;
+  } catch {
+    return false;
+  }
 }
 
 async function injectSingleFileContentScript(tabId: number): Promise<void> {
@@ -64,35 +90,23 @@ async function injectSingleFileContentScript(tabId: number): Promise<void> {
   if (!files || files.length === 0) {
     throw new Error("SingleFile content script not declared in manifest");
   }
-  // The bundle is an ES module (crxjs emits chunks with `import.meta`), so
-  // `executeScript({ files })` — which loads as a classic script — fails.
-  // Use a dynamic import in the isolated world instead.
-  const urls = files.map((f) => chrome.runtime.getURL(f));
-  const [result] = await chrome.scripting.executeScript({
-    target: { tabId },
-    func: async (moduleUrls: string[]) => {
-      try {
-        for (const url of moduleUrls) {
-          await import(/* @vite-ignore */ url);
-        }
-        return { ok: true as const };
-      } catch (e) {
-        return {
-          ok: false as const,
-          error: e instanceof Error ? e.message : String(e),
-        };
-      }
-    },
-    args: [urls],
-  });
-  const res = result?.result;
-  // Treat the re-entry guard as success — the listener is already registered
-  // from a concurrent injection, so the retried sendMessage will succeed.
-  if (!res || (!res.ok && !res.error?.includes("already loaded"))) {
-    throw new Error(
-      `Failed to inject SingleFile content script: ${res?.error ?? "unknown error"}`,
-    );
-  }
+  // The manifest points to CRXJS's classic loader, which imports the module
+  // bundle itself. Execute the loader and wait for the listener below.
+  await withTimeout(
+    chrome.scripting.executeScript({ target: { tabId }, files }),
+    10_000,
+    "Could not inject the capture script. Check this site's extension permission.",
+  );
+  // CRXJS's manifest entry can be a loader that starts an asynchronous import.
+  // Importing that loader is not proof that the message listener is ready.
+  const deadline = Date.now() + 5_000;
+  do {
+    if (await isCaptureReady(tabId)) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  } while (Date.now() < deadline);
+  throw new Error(
+    "The capture script could not start. Check this site's extension permission.",
+  );
 }
 
 /**
@@ -100,10 +114,9 @@ async function injectSingleFileContentScript(tabId: number): Promise<void> {
  */
 export async function uploadSingleFileAsset(
   html: string,
+  settings: Pick<Settings, "address" | "apiKey" | "customHeaders">,
   title?: string,
 ): Promise<string> {
-  const settings = await getPluginSettings();
-
   const blob = new Blob([html], { type: "text/html" });
   const filename = sanitizeFilename(title || "page") + ".html";
   const file = new File([blob], filename, { type: "text/html" });
@@ -123,19 +136,32 @@ export async function uploadSingleFileAsset(
     });
   }
 
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers,
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to upload asset: ${response.status} ${errorText}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60_000);
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers,
+      body: formData,
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to upload page (HTTP ${response.status}).`);
+    }
+    const data: unknown = await response.json();
+    if (
+      !data ||
+      typeof data !== "object" ||
+      !("assetId" in data) ||
+      typeof data.assetId !== "string" ||
+      !data.assetId
+    ) {
+      throw new Error("The server did not return an archive ID.");
+    }
+    return data.assetId;
+  } finally {
+    clearTimeout(timer);
   }
-
-  const { assetId } = (await response.json()) as { assetId: string };
-  return assetId;
 }
 
 function sanitizeFilename(filename: string): string {
