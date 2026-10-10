@@ -88,24 +88,25 @@ export async function runParseSubprocess(
         path.join(os.tmpdir(), "karakeep-parse-"),
       );
       const htmlPath = path.join(tmpDir, "page.html");
-      let result;
-      try {
-        await fs.writeFile(htmlPath, htmlContent, "utf8");
-        result = await execa({
-          input: JSON.stringify({
-            htmlPath,
-            url,
-            jobId,
-            metadataOnly: opts?.metadataOnly,
-          }),
-          cancelSignal: abortSignal,
-          timeout: timeoutMs,
-          reject: false,
-          stderr: "inherit",
-        })(cmd, args);
-      } finally {
-        await tryCatch(fs.rm(tmpDir, { recursive: true, force: true }));
-      }
+      const result = await (async () => {
+        try {
+          await fs.writeFile(htmlPath, htmlContent, "utf8");
+          return await execa({
+            input: JSON.stringify({
+              htmlPath,
+              url,
+              jobId,
+              metadataOnly: opts?.metadataOnly,
+            }),
+            cancelSignal: abortSignal,
+            timeout: timeoutMs,
+            reject: false,
+            stderr: "inherit",
+          })(cmd, args);
+        } finally {
+          await tryCatch(fs.rm(tmpDir, { recursive: true, force: true }));
+        }
+      })();
 
       if (result.isCanceled) {
         throw new Error(
