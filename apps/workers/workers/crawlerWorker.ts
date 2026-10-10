@@ -1567,21 +1567,20 @@ async function setupPage(
 }
 
 /**
- * Captures a JPEG screenshot of the page. Failures and timeouts are logged and
- * reported as `undefined` since the screenshot is best-effort.
+ * Captures a screenshot or PDF of the page. Failures and timeouts are logged
+ * and reported as `undefined` since both are best-effort.
  */
-const captureScreenshot = traced(
-  "crawlPage.captureScreenshot",
-  async (ctx: CrawlContext, activePage: Page): Promise<Buffer | undefined> => {
-    const { abortSignal, log } = ctx;
-    const { data: screenshotData, error: screenshotError } = await tryCatch(
+function captureAsset(
+  ctx: CrawlContext,
+  kind: keyof typeof CAPTURED_ASSETS,
+  capture: () => Promise<Buffer>,
+): Promise<Buffer | undefined> {
+  const { abortSignal, log } = ctx;
+  const { captureSpanName, label } = CAPTURED_ASSETS[kind];
+  return span(captureSpanName, async () => {
+    const { data, error } = await tryCatch(
       raceWith<Buffer>(
-        activePage.screenshot({
-          // If you change this, change the content type in CAPTURED_ASSETS too.
-          type: "jpeg",
-          fullPage: serverConfig.crawler.fullPageScreenshot,
-          quality: 80,
-        }),
+        capture(),
         timeoutRace<Buffer>(
           serverConfig.crawler.screenshotTimeoutSec * 1000,
           () => {
@@ -1594,17 +1593,26 @@ const captureScreenshot = traced(
       ),
     );
     abortSignal.throwIfAborted();
-    if (screenshotError) {
-      log.warn(`Failed to capture the screenshot. Reason: ${screenshotError}`);
+    if (error) {
+      log.warn(`Failed to capture the ${label}. Reason: ${error}`);
       return undefined;
     }
-    setSpanAttributes({ "asset.size": screenshotData.byteLength });
-    log.info(
-      `Finished capturing page content and a screenshot. FullPageScreenshot: ${serverConfig.crawler.fullPageScreenshot}`,
-    );
-    return screenshotData;
-  },
-);
+    setSpanAttributes({ "asset.size": data.byteLength });
+    log.info(`Captured the ${label} (${data.byteLength} bytes)`);
+    return data;
+  });
+}
+
+function captureScreenshot(ctx: CrawlContext, page: Page) {
+  return captureAsset(ctx, "screenshot", () =>
+    page.screenshot({
+      // If you change this, change the content type in CAPTURED_ASSETS too.
+      type: "jpeg",
+      fullPage: serverConfig.crawler.fullPageScreenshot,
+      quality: 80,
+    }),
+  );
+}
 
 /**
  * Extracts the page HTML and (depending on config) captures a screenshot and
@@ -1628,35 +1636,11 @@ const capturePageAssets = traced(
       ? captureScreenshot(ctx, activePage)
       : Promise.resolve(undefined);
 
-    const pdfPromise: Promise<Buffer | undefined> =
+    const pdfPromise =
       serverConfig.crawler.storePdf || forceStorePdf
-        ? span("crawlPage.capturePdf", async () => {
-            const { data: pdfData, error: pdfError } = await tryCatch(
-              raceWith<Buffer>(
-                activePage.pdf({
-                  format: "A4",
-                  printBackground: true,
-                }),
-                timeoutRace<Buffer>(
-                  serverConfig.crawler.screenshotTimeoutSec * 1000,
-                  () => {
-                    throw new Error(
-                      "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                    );
-                  },
-                ),
-                abortRaceResolve(abortSignal, Buffer.from("")),
-              ),
-            );
-            abortSignal.throwIfAborted();
-            if (pdfError) {
-              log.warn(`Failed to capture the PDF. Reason: ${pdfError}`);
-              return undefined;
-            }
-            setSpanAttributes({ "asset.size": pdfData.byteLength });
-            log.info(`Finished capturing page content as PDF`);
-            return pdfData;
-          })
+        ? captureAsset(ctx, "pdf", () =>
+            activePage.pdf({ format: "A4", printBackground: true }),
+          )
         : Promise.resolve(undefined);
 
     const captureResults = await Promise.all([
@@ -1881,14 +1865,16 @@ async function saveBufferAsset(
 
 const CAPTURED_ASSETS = {
   screenshot: {
-    spanName: "storeScreenshot",
+    captureSpanName: "crawlPage.captureScreenshot",
+    storeSpanName: "storeScreenshot",
     label: "screenshot",
     // Must match the format capturePageAssets takes the screenshot in.
     contentType: "image/jpeg",
     fileName: "screenshot.jpeg",
   },
   pdf: {
-    spanName: "storePdf",
+    captureSpanName: "crawlPage.capturePdf",
+    storeSpanName: "storePdf",
     label: "PDF",
     contentType: "application/pdf",
     fileName: "page.pdf",
@@ -1901,8 +1887,8 @@ function storeCapturedAsset(
   kind: keyof typeof CAPTURED_ASSETS,
   data: Buffer | undefined,
 ) {
-  const { spanName, label, contentType, fileName } = CAPTURED_ASSETS[kind];
-  return span(spanName, async () => {
+  const { storeSpanName, label, contentType, fileName } = CAPTURED_ASSETS[kind];
+  return span(storeSpanName, async () => {
     setSpanAttributes({ "asset.size": data?.byteLength ?? 0 });
     if (!data) {
       ctx.log.info(`Skipping storing the ${label} as it's empty.`);
