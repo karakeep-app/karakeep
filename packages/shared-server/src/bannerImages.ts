@@ -5,6 +5,10 @@ import logger from "@karakeep/shared/logger";
 // leaves enough room for high density screens.
 const BANNER_MAX_WIDTH = 1200;
 
+// Banners come from untrusted pages, and a small compressed image can decode
+// into a huge number of pixels. Larger images are stored as is instead.
+const BANNER_MAX_INPUT_PIXELS = 50_000_000;
+
 /**
  * Banners are only ever displayed, so we store a downscaled webp version of
  * them instead of the original. Returns null if the banner should be stored
@@ -24,7 +28,9 @@ export async function optimizeBannerImage(
   try {
     // Lazily loaded as it's a native module that most users of this package don't need.
     const { default: sharp } = await import("sharp");
-    const pipeline = sharp(image);
+    const pipeline = sharp(image, {
+      limitInputPixels: BANNER_MAX_INPUT_PIXELS,
+    });
     const metadata = await pipeline.metadata();
     if ((metadata.pages ?? 1) > 1) {
       return null;

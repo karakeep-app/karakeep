@@ -1994,7 +1994,8 @@ async function fetchImage(ctx: CrawlContext, url: string) {
         `Content length exceeds maximum allowed size: ${serverConfig.maxAssetSizeMb}MB`,
       );
     }
-    chunks.push(Buffer.from(chunk));
+    // Binary responses only yield buffers, the string case is just for the types.
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
   }
   return { image: Buffer.concat(chunks), contentType };
 }
