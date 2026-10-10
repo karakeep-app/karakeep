@@ -22,7 +22,7 @@
     "better-sqlite3": "^13.0.3",
     "dotenv": "^16.4.1",
     "drizzle-kit": "^0.31.10",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "^0.45.4",
     "tsx": "^4.23.13"
   },
   "devDependencies": {

@@ -22,7 +22,7 @@
     "@karakeep/shared-server": "workspace:*",
     "@karakeep/trpc": "workspace:*",
     "@trpc/server": "^11.9.0",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "^0.45.4",
     "file-type": "^21.3.4",
     "hono": "^4.13.8",
     "prom-client": "^15.1.3",
