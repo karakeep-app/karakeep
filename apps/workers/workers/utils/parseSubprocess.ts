@@ -1,12 +1,16 @@
 // Runs the HTML parsing (metadata extraction + readability) in a separate
 // node process with a bounded heap, so a pathological page can't OOM the
 // worker itself.
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
 import { execa } from "execa";
 
 import { getTracer, withSpan } from "@karakeep/shared-server";
 import { getBookmarkDomain } from "network";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
+import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import type {
   ParseSubprocessError,
@@ -19,40 +23,6 @@ import {
 import { truncateUrl } from "./crawlerUtils";
 
 const tracer = getTracer("@karakeep/workers");
-
-const EMBEDDED_MEDIA_DATA_URI_PATTERN = /data:(?:audio|video)\/[^"'\s<>)]*/gi;
-
-/**
- * Full-page archives can contain large audio and video files embedded directly
- * in src attributes. Those payloads are useful in the stored archive, but they
- * are irrelevant to metadata and readable-content extraction and cause large
- * memory amplification when parsed into a DOM.
- *
- * Replace them only in the copy sent to the parser subprocess. The original
- * HTML remains untouched for full-page archival.
- */
-export function replaceEmbeddedMediaDataUris(htmlContent: string): {
-  htmlContent: string;
-  replacedBytes: number;
-  replacementCount: number;
-} {
-  let replacedBytes = 0;
-  let replacementCount = 0;
-  const parserHtmlContent = htmlContent.replace(
-    EMBEDDED_MEDIA_DATA_URI_PATTERN,
-    (dataUri) => {
-      replacedBytes += dataUri.length;
-      replacementCount += 1;
-      return "about:blank";
-    },
-  );
-
-  return {
-    htmlContent: parserHtmlContent,
-    replacedBytes,
-    replacementCount,
-  };
-}
 
 function getSubprocessScriptPath(): string {
   const currentUrl = import.meta.url;
@@ -110,25 +80,32 @@ export async function runParseSubprocess(
 
       const { cmd, args } = getSubprocessCommand();
       const timeoutMs = serverConfig.crawler.parseTimeoutSec * 1000;
-      const parserInput = replaceEmbeddedMediaDataUris(htmlContent);
-      if (parserInput.replacementCount > 0) {
-        logger.info(
-          `[Crawler][${jobId}] Replaced ${parserInput.replacementCount} embedded audio/video data URIs (${parserInput.replacedBytes} bytes) before parsing.`,
-        );
-      }
 
-      const result = await execa({
-        input: JSON.stringify({
-          htmlContent: parserInput.htmlContent,
-          url,
-          jobId,
-          metadataOnly: opts?.metadataOnly,
-        }),
-        cancelSignal: abortSignal,
-        timeout: timeoutMs,
-        reject: false,
-        stderr: "inherit",
-      })(cmd, args);
+      // Hand the HTML to the subprocess via a temp file instead of stdin. The
+      // file is only needed while the subprocess runs, so it's removed as soon
+      // as it exits (including on abort/timeout).
+      const tmpDir = await fs.mkdtemp(
+        path.join(os.tmpdir(), "karakeep-parse-"),
+      );
+      const htmlPath = path.join(tmpDir, "page.html");
+      let result;
+      try {
+        await fs.writeFile(htmlPath, htmlContent, "utf8");
+        result = await execa({
+          input: JSON.stringify({
+            htmlPath,
+            url,
+            jobId,
+            metadataOnly: opts?.metadataOnly,
+          }),
+          cancelSignal: abortSignal,
+          timeout: timeoutMs,
+          reject: false,
+          stderr: "inherit",
+        })(cmd, args);
+      } finally {
+        await tryCatch(fs.rm(tmpDir, { recursive: true, force: true }));
+      }
 
       if (result.isCanceled) {
         throw new Error(

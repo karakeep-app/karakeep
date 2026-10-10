@@ -6,7 +6,9 @@ import {
 } from "@karakeep/shared/types/bookmarks";
 
 export const parseSubprocessInputSchema = z.object({
-  htmlContent: z.string(),
+  // Path to a temp file containing the HTML to parse. The parent process
+  // owns this file and deletes it once the subprocess exits.
+  htmlPath: z.string(),
   url: z.string(),
   jobId: z.string(),
   // When true, only run metadata extraction and skip the (expensive)
