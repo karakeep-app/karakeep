@@ -56,6 +56,7 @@ import {
 } from "@karakeep/shared/types/lists";
 
 import QueryExplainerTooltip from "../search/QueryExplainerTooltip";
+import { SearchQueryInput } from "../search/SearchQueryInput";
 import { BookmarkListSelector } from "./BookmarkListSelector";
 
 export function EditListModal({
@@ -358,24 +359,23 @@ export function EditListModal({
                 render={({ field }) => {
                   return (
                     <FormItem className="grow pb-4">
-                      <FormLabel>{t("lists.search_query")}</FormLabel>
-                      <div className="relative">
-                        <FormControl>
-                          <Input
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder={t("lists.search_query")}
-                            endIcon={
-                              parsedSearchQuery ? (
-                                <QueryExplainerTooltip
-                                  className="stroke-foreground p-1"
-                                  parsedSearchQuery={parsedSearchQuery}
-                                />
-                              ) : undefined
-                            }
+                      <div className="flex items-center gap-2">
+                        <FormLabel>{t("lists.search_query")}</FormLabel>
+                        {parsedSearchQuery && (
+                          <QueryExplainerTooltip
+                            className="stroke-foreground p-1"
+                            parsedSearchQuery={parsedSearchQuery}
                           />
-                        </FormControl>
+                        )}
                       </div>
+                      <FormControl>
+                        <SearchQueryInput
+                          value={field.value ?? ""}
+                          onValueChange={field.onChange}
+                          placeholder={t("lists.search_query")}
+                          submitOnEnter
+                        />
+                      </FormControl>
                       <FormDescription>
                         <Link
                           href="https://docs.karakeep.app/Guides/search-query-language"
