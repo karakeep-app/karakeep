@@ -830,7 +830,9 @@
     "public_list": {
       "title": "Public List",
       "description": "Allow others to view this list",
-      "share_link": "Share Link"
+      "share_link": "Share Link",
+      "apply_to_children": "Also apply to sub-lists ({{count}})",
+      "apply_to_children_description": "Changing the visibility also updates all sub-lists (recursively)"
     },
     "collaborators": {
       "manage": "Manage Collaborators",

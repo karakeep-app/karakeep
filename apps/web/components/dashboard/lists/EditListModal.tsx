@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
+import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "@/lib/i18n/client";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -46,6 +47,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import {
+  useBookmarkLists,
   useCreateBookmarkList,
   useEditBookmarkList,
 } from "@karakeep/shared-react/hooks/lists";
@@ -80,6 +82,9 @@ export function EditListModal({
     throw new Error("You must provide both open and setOpen or neither");
   }
   const [customOpen, customSetOpen] = useState(false);
+  const { data: allLists } = useBookmarkLists();
+  const isParentPublic = (parentId: string | null | undefined) =>
+    !!parentId && !!allLists?.data.find((l) => l.id === parentId)?.public;
 
   const form = useForm({
     resolver: zodResolver(zNewBookmarkListSchema),
@@ -90,6 +95,7 @@ export function EditListModal({
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,
+      public: list?.public ?? isParentPublic(prefill?.parentId),
     },
   });
   const [open, setOpen] = [
@@ -105,6 +111,7 @@ export function EditListModal({
       parentId: list?.parentId ?? prefill?.parentId,
       type: list?.type ?? prefill?.type ?? "manual",
       query: list?.query ?? prefill?.query ?? undefined,
+      public: list?.public ?? isParentPublic(prefill?.parentId),
     });
   }, [open]);
 
@@ -191,12 +198,22 @@ export function EditListModal({
   const isEdit = !!list;
   const isPending = isCreating || isEditing;
 
+  // New lists default to the privacy of their parent.
+  const parentId = form.watch("parentId");
+  const parentPublic = isParentPublic(parentId);
+  useEffect(() => {
+    if (!isEdit) {
+      form.setValue("public", parentPublic);
+    }
+  }, [parentId, parentPublic]);
+
   const onSubmit = form.handleSubmit(
     (value: z.infer<typeof zNewBookmarkListSchema>) => {
       value.parentId = value.parentId === "" ? null : value.parentId;
       value.query = value.type === "smart" ? value.query : undefined;
       if (isEdit) {
-        editList({ ...value, listId: list.id });
+        // Privacy is managed from the share dialog.
+        editList({ ...value, public: undefined, listId: list.id });
       } else {
         createList(value);
       }
@@ -320,6 +337,30 @@ export function EditListModal({
                 );
               }}
             />
+            {!isEdit && (
+              <FormField
+                control={form.control}
+                name="public"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex items-center justify-between pb-4">
+                      <div className="space-y-1">
+                        <FormLabel>{t("lists.public_list.title")}</FormLabel>
+                        <p className="text-xs text-muted-foreground">
+                          {t("lists.public_list.description")}
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+            )}
             <FormField
               control={form.control}
               name="type"
