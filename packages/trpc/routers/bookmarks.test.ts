@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { assert, beforeEach, describe, expect, test, vi } from "vitest";
 
 import {
@@ -57,14 +57,21 @@ describe("Bookmark Routes", () => {
       type: BookmarkTypes.LINK,
       url: "https://example.com/signed-in",
     });
-    for (const id of ["older-browser-archive", "latest-browser-archive"]) {
+    // Insert newest first so neither insertion order nor ID order is enough.
+    for (const [id, createdAt] of [
+      ["latest-browser-archive", new Date(2000)],
+      ["older-browser-archive", new Date(1000)],
+      ["legacy-browser-archive", null],
+    ] as const) {
       await db.insert(assets).values({
         id,
+        createdAt,
         userId,
         bookmarkId: bookmark.id,
         assetType: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
       });
     }
+    db.run(sql`PRAGMA reverse_unordered_selects = ON`);
     const detail = await api.bookmarks.getBookmark({ bookmarkId: bookmark.id });
     const list = await api.bookmarks.getBookmarks({});
     expect(detail.content).toMatchObject({
@@ -73,6 +80,127 @@ describe("Bookmark Routes", () => {
     expect(
       list.bookmarks.find((b) => b.id === bookmark.id)?.content,
     ).toMatchObject({ precrawledArchiveAssetId: "latest-browser-archive" });
+  });
+
+  test<CustomTestContext>("archive timestamp ties and legacy rows have deterministic ordering", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const userId = (await api.users.whoami()).id;
+    for (const timestamp of [null, new Date(1234)]) {
+      const bookmark = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: `https://example.com/order/${timestamp?.getTime() ?? "legacy"}`,
+      });
+      const prefix = bookmark.id;
+      for (const suffix of ["z", "a"])
+        await db.insert(assets).values({
+          id: `${prefix}-${suffix}`,
+          userId,
+          bookmarkId: bookmark.id,
+          assetType: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
+          createdAt: timestamp,
+        });
+      for (const reversed of [false, true]) {
+        db.run(
+          reversed
+            ? sql`PRAGMA reverse_unordered_selects = ON`
+            : sql`PRAGMA reverse_unordered_selects = OFF`,
+        );
+        const detail = await api.bookmarks.getBookmark({
+          bookmarkId: bookmark.id,
+        });
+        const list = await api.bookmarks.getBookmarks({});
+        expect(detail.content).toMatchObject({
+          precrawledArchiveAssetId: `${prefix}-z`,
+        });
+        expect(
+          list.bookmarks.find((b) => b.id === bookmark.id)?.content,
+        ).toMatchObject({ precrawledArchiveAssetId: `${prefix}-z` });
+      }
+    }
+  });
+
+  test<CustomTestContext>("retries of a text create return the original bookmark", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const request = {
+      type: BookmarkTypes.TEXT,
+      text: "Selected text",
+      clientRequestId: "lost-response",
+    } as const;
+    const created = await api.bookmarks.createBookmark(request);
+    const retried = await api.bookmarks.createBookmark(request);
+    expect(retried.id).toBe(created.id);
+    expect(retried.alreadyExists).toBe(true);
+    expect(retried.content).toMatchObject({ text: "Selected text" });
+    expect(
+      await db
+        .select()
+        .from(bookmarks)
+        .where(eq(bookmarks.clientRequestId, request.clientRequestId)),
+    ).toHaveLength(1);
+  });
+
+  test<CustomTestContext>("concurrent creates sharing a request key insert once", async ({
+    apiCallers,
+    db,
+  }) => {
+    const request = {
+      type: BookmarkTypes.TEXT,
+      text: "Concurrent text",
+      clientRequestId: "concurrent-request",
+    } as const;
+    const results = await Promise.all([
+      apiCallers[0].bookmarks.createBookmark(request),
+      apiCallers[0].bookmarks.createBookmark(request),
+    ]);
+    expect(results[0].id).toBe(results[1].id);
+    expect(
+      await db
+        .select()
+        .from(bookmarks)
+        .where(eq(bookmarks.clientRequestId, request.clientRequestId)),
+    ).toHaveLength(1);
+  });
+
+  test<CustomTestContext>("request keys are user scoped and reject changed payloads", async ({
+    apiCallers,
+  }) => {
+    const request = {
+      type: BookmarkTypes.TEXT,
+      text: "First text",
+      clientRequestId: "shared-key",
+    } as const;
+    const first = await apiCallers[0].bookmarks.createBookmark(request);
+    const other = await apiCallers[1].bookmarks.createBookmark(request);
+    expect(other.id).not.toBe(first.id);
+    await expect(
+      apiCallers[0].bookmarks.createBookmark({
+        ...request,
+        text: "Changed text",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    expect(
+      (await apiCallers[0].bookmarks.getBookmark({ bookmarkId: first.id }))
+        .content,
+    ).toMatchObject({ text: request.text });
+  });
+
+  test<CustomTestContext>("independent text saves remain independent", async ({
+    apiCallers,
+  }) => {
+    const request = { type: BookmarkTypes.TEXT, text: "Same text" } as const;
+    const a = await apiCallers[0].bookmarks.createBookmark(request);
+    const b = await apiCallers[0].bookmarks.createBookmark(request);
+    const c = await apiCallers[0].bookmarks.createBookmark({
+      ...request,
+      clientRequestId: "another-operation",
+    });
+    expect(new Set([a.id, b.id, c.id]).size).toBe(3);
   });
 
   async function createTestTag(api: APICallerType, tagName: string) {

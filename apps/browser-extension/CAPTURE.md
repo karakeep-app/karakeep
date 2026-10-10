@@ -119,3 +119,24 @@ that same archive locally with `CRAWLER_PARSER_MEM_LIMIT_MB=1024`. This raises t
 limit to 1 GB per parsing subprocess and requires sufficient host/container
 memory. Apply it to the worker environment, restart the worker, and request a
 re-crawl. The compaction fix succeeds at the existing 512 MB default instead.
+
+## Save recovery and archive ordering
+
+Reopening the popup subscribes to updates and reads the latest save again after
+reconnect initialization, so an older reply cannot hide completion. A failed
+save can be discarded locally before saving with the current connection; this
+does not delete content from the previous server or account.
+
+Every save job sends its stable `clientRequestId` on create retries. The updated
+backend stores the key per user with a payload hash and a unique constraint, so
+retrying a text save after losing the response returns the existing bookmark.
+These guarantees require the updated backend; older servers ignore the key.
+
+Migration `0095_save_retry_and_archive_order` adds the create-request fields and
+asset upload timestamps. Detail, list, and crawler queries order archives by
+upload time, then asset ID. Legacy assets retain a null timestamp because their
+capture time is unknown; they sort before timestamped assets, with IDs providing
+a stable fallback order. Deploy the migration with the backend changes.
+
+CI runs the extension unit tests, builds the production extension, installs
+Chromium, and runs the packaged capture regression.

@@ -76,6 +76,21 @@ jobs:
         working-directory: apps/workers
         run: pnpm test
 
+      - name: Extension Unit Tests
+        working-directory: apps/browser-extension
+        run: pnpm test
+
+      - name: Build Extension
+        run: pnpm build --filter=@karakeep/browser-extension
+
+      - name: Install Extension Test Browser
+        working-directory: apps/browser-extension
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Packaged Extension Capture Tests
+        working-directory: apps/browser-extension
+        run: pnpm test:browser
+
       # - name: Plugins Tests
       #   working-directory: packages/plugins
       #   run: pnpm test

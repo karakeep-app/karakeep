@@ -98,6 +98,15 @@ async function handle(message: SaveMessage): Promise<SaveReply> {
     }
     return {};
   }
+  if (message.type === "DISCARD_SAVE") {
+    if (job?.id !== message.jobId || job.stage !== "failed") {
+      throw new Error("Only the current failed save can be discarded.");
+    }
+    // Drop only the local checkpoint. Assets/bookmarks on the old connection
+    // remain untouched, and a new save gets a new identity and request key.
+    await chrome.storage.session.remove(saveJobKey(job.tabId));
+    return {};
+  }
   if (job && running.get(job.tabId) === job.id) {
     if (
       message.type === "START_SAVE" &&
@@ -213,6 +222,7 @@ export async function runSaveJob(
       const bookmark = await request(
         api.bookmarks.createBookmark.mutate({
           ...job.bookmark,
+          clientRequestId: job.id,
           source: job.bookmark.source || "extension",
           ...(job.assetId ? { precrawledArchiveId: job.assetId } : {}),
         }),
@@ -285,9 +295,13 @@ export function registerSaveHandler(onSaved: (tabId: number) => Promise<void>) {
   refreshBadge = onSaved;
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (
-      !["START_SAVE", "GET_SAVE", "RETRY_SAVE", "ACK_SAVE"].includes(
-        message?.type,
-      )
+      ![
+        "START_SAVE",
+        "GET_SAVE",
+        "RETRY_SAVE",
+        "ACK_SAVE",
+        "DISCARD_SAVE",
+      ].includes(message?.type)
     )
       return;
     // Only extension pages can start a save, never a website/content script.

@@ -77,7 +77,7 @@ async function dummyDrizzleReturnType() {
       link: true,
       text: true,
       asset: true,
-      assets: true,
+      assets: { orderBy: [asc(assets.createdAt), asc(assets.id)] },
     },
   });
   if (!x) {
@@ -273,7 +273,7 @@ export class Bookmark extends BareBookmark {
         link: true,
         text: true,
         asset: true,
-        assets: true,
+        assets: { orderBy: [asc(assets.createdAt), asc(assets.id)] },
       },
     });
 
@@ -325,7 +325,7 @@ export class Bookmark extends BareBookmark {
             tag: true,
           },
         },
-        assets: true,
+        assets: { orderBy: [asc(assets.createdAt), asc(assets.id)] },
       },
     });
 
@@ -605,7 +605,12 @@ export class Bookmark extends BareBookmark {
       .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, sq.id))
       .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, sq.id))
       .leftJoin(assets, eq(assets.bookmarkId, sq.id))
-      .orderBy(desc(sq.createdAt), desc(sq.id));
+      .orderBy(
+        desc(sq.createdAt),
+        desc(sq.id),
+        asc(assets.createdAt),
+        asc(assets.id),
+      );
 
     const bookmarksRes = results.reduce<Record<string, ZBookmark>>(
       (acc, row) => {

@@ -116,6 +116,7 @@ describe("saving the open page", () => {
     );
     expect(mocks.create).toHaveBeenCalledWith({
       ...job.bookmark,
+      clientRequestId: job.id,
       precrawledArchiveId: "snapshot",
     });
     expect(mocks.attach).not.toHaveBeenCalled();
@@ -272,7 +273,10 @@ describe("saving the open page", () => {
       linkOnly: true,
     });
     await vi.waitFor(() => expect(storage[saveJobKey(5)]?.stage).toBe("saved"));
-    expect(mocks.create).toHaveBeenCalledWith(makeJob().bookmark);
+    expect(mocks.create).toHaveBeenCalledWith({
+      ...makeJob().bookmark,
+      clientRequestId: expect.any(String),
+    });
     expect(mocks.capture).toHaveBeenCalledTimes(1);
   });
 
@@ -296,5 +300,96 @@ describe("saving the open page", () => {
     });
     expect(reply.error).toContain("connection changed");
     expect(mocks.create).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("failed save recovery", () => {
+  it("discards an old-connection checkpoint and starts with the current connection", async () => {
+    const old = {
+      ...makeJob(),
+      stage: "failed" as const,
+      assetId: "old-upload",
+      bookmarkId: "old-bookmark",
+    };
+    storage[saveJobKey(1)] = old;
+    expect(
+      (await handleSaveMessage({ type: "RETRY_SAVE", tabId: 1, jobId: old.id }))
+        .error,
+    ).toContain("connection changed");
+    expect(
+      await handleSaveMessage({
+        type: "DISCARD_SAVE",
+        tabId: 1,
+        jobId: old.id,
+      }),
+    ).toEqual({});
+    expect(storage[saveJobKey(1)]).toBeUndefined();
+    const next = await handleSaveMessage({
+      type: "START_SAVE",
+      tabId: 1,
+      tabUrl: old.tabUrl,
+      bookmark: old.bookmark,
+    });
+    expect(next.job?.id).not.toBe(old.id);
+    await vi.waitFor(() => expect(storage[saveJobKey(1)]?.stage).toBe("saved"));
+    expect(mocks.upload).toHaveBeenCalledTimes(1);
+    expect(mocks.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientRequestId: next.job?.id,
+        precrawledArchiveId: "snapshot",
+      }),
+    );
+  });
+
+  it("does not discard a different or running job", async () => {
+    let finish!: (html: string) => void;
+    mocks.capture.mockImplementation(
+      () =>
+        new Promise<string>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const start = await handleSaveMessage({
+      type: "START_SAVE",
+      tabId: 1,
+      tabUrl: makeJob().tabUrl,
+      bookmark: makeJob().bookmark,
+    });
+    expect(
+      (
+        await handleSaveMessage({
+          type: "DISCARD_SAVE",
+          tabId: 1,
+          jobId: start.job!.id,
+        })
+      ).error,
+    ).toContain("failed save");
+    expect(
+      (
+        await handleSaveMessage({
+          type: "DISCARD_SAVE",
+          tabId: 1,
+          jobId: "different",
+        })
+      ).error,
+    ).toContain("failed save");
+    finish("<html>Saved</html>");
+    await vi.waitFor(() => expect(storage[saveJobKey(1)]?.stage).toBe("saved"));
+  });
+
+  it("reuses the job request key after losing a text-create response", async () => {
+    const textJob: SaveJob = {
+      ...makeJob(),
+      capture: false,
+      bookmark: { type: BookmarkTypes.TEXT, text: "Selected text" },
+    };
+    mocks.create.mockRejectedValueOnce(new Error("Response lost"));
+    await runSaveJob(textJob, settings);
+    expect(textJob.stage).toBe("failed");
+    await runSaveJob(textJob, settings);
+    expect(mocks.create).toHaveBeenCalledTimes(2);
+    for (const [request] of mocks.create.mock.calls)
+      expect(request.clientRequestId).toBe(textJob.id);
+    expect(textJob.stage).toBe("saved");
   });
 });

@@ -241,6 +241,8 @@ export type ZBookmarkTypeAsset = z.infer<typeof zBookmarkTypeAssetSchema>;
 // POST /v1/bookmarks
 export const zNewBookmarkRequestSchema = z.intersection(
   z.object({
+    // Reuse for retries of one create operation; scoped to the authenticated user.
+    clientRequestId: z.string().min(1).max(128).optional(),
     title: z.string().max(MAX_BOOKMARK_TITLE_LENGTH).nullish(),
     archived: z.boolean().optional(),
     favourited: z.boolean().optional(),

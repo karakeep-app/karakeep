@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 
 import { db, KarakeepDBTransaction } from "@karakeep/db";
 import { assets, AssetTypes, bookmarks } from "@karakeep/db/schema";
@@ -21,7 +21,7 @@ export async function getBookmarkDetails(bookmarkId: string) {
     where: eq(bookmarks.id, bookmarkId),
     with: {
       link: true,
-      assets: true,
+      assets: { orderBy: [asc(assets.createdAt), asc(assets.id)] },
     },
   });
 

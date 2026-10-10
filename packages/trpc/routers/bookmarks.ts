@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { and, eq, gt, inArray, like, lt, or } from "drizzle-orm";
 import { z } from "zod";
@@ -256,6 +258,30 @@ export const bookmarksAppRouter = router({
       ),
     )
     .mutation(async ({ input, ctx }) => {
+      const requestHash = input.clientRequestId
+        ? createHash("sha256").update(JSON.stringify(input)).digest("hex")
+        : undefined;
+      if (input.clientRequestId) {
+        const existing = await ctx.db.query.bookmarks.findFirst({
+          where: and(
+            eq(bookmarks.userId, ctx.user.id),
+            eq(bookmarks.clientRequestId, input.clientRequestId),
+          ),
+        });
+        if (existing) {
+          if (existing.clientRequestHash !== requestHash) {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "This create request key was already used with different content.",
+            });
+          }
+          return {
+            ...(await Bookmark.fromId(ctx, existing.id, false)).asZBookmark(),
+            alreadyExists: true,
+          };
+        }
+      }
       addLogFields<"bookmark.create">({
         "bookmark.type": input.type,
         "bookmark.source": input.source ?? undefined,
@@ -346,8 +372,30 @@ export const bookmarksAppRouter = router({
         }
       }
 
-      const bookmark = await ctx.db.transaction(
+      const result = await ctx.db.transaction(
         (tx) => {
+          if (input.clientRequestId) {
+            const existing = tx
+              .select()
+              .from(bookmarks)
+              .where(
+                and(
+                  eq(bookmarks.userId, ctx.user.id),
+                  eq(bookmarks.clientRequestId, input.clientRequestId),
+                ),
+              )
+              .get();
+            if (existing) {
+              if (existing.clientRequestHash !== requestHash) {
+                throw new TRPCError({
+                  code: "CONFLICT",
+                  message:
+                    "This create request key was already used with different content.",
+                });
+              }
+              return { replayId: existing.id };
+            }
+          }
           // Check user quota
           const quotaResult = QuotaService.canCreateBookmarkInTransaction(
             tx,
@@ -363,6 +411,8 @@ export const bookmarksAppRouter = router({
             .insert(bookmarks)
             .values({
               userId: ctx.user.id,
+              clientRequestId: input.clientRequestId,
+              clientRequestHash: requestHash,
               title: input.title,
               type: input.type,
               archived: input.archived,
@@ -477,6 +527,11 @@ export const bookmarksAppRouter = router({
         },
       );
 
+      if (result.replayId !== undefined) {
+        const existing = await Bookmark.fromId(ctx, result.replayId, false);
+        return { ...existing.asZBookmark(), alreadyExists: true };
+      }
+      const bookmark = result;
       bookmarkCreationCounter.labels(input.source ?? "unknown").inc();
       addLogFields<"bookmark.create">({
         "bookmark.id": bookmark.id,

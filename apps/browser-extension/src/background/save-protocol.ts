@@ -31,7 +31,8 @@ export type SaveMessage =
     }
   | { type: "GET_SAVE"; tabId: number; tabUrl: string }
   | { type: "RETRY_SAVE"; tabId: number; jobId: string; linkOnly?: boolean }
-  | { type: "ACK_SAVE"; tabId: number; jobId: string };
+  | { type: "ACK_SAVE"; tabId: number; jobId: string }
+  | { type: "DISCARD_SAVE"; tabId: number; jobId: string };
 
 export interface SaveReply {
   job?: SaveJob;

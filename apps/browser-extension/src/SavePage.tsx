@@ -38,7 +38,9 @@ export default function SavePage() {
   const [submitting, setSubmitting] = useState(false);
   const started = useRef(false);
   const busy = useRef(false);
+  const dismissedJobId = useRef<string | undefined>(undefined);
   const receiveJob = useCallback((next: SaveJob) => {
+    if (next.id === dismissedJobId.current) return;
     setJob((current) =>
       current?.id === next.id && (current.revision ?? 0) > (next.revision ?? 0)
         ? current
@@ -102,7 +104,9 @@ export default function SavePage() {
   }, [isSettingsLoaded, receiveJob]);
 
   useEffect(() => {
-    if (!currentTab) return;
+    // Reconnect only after load has enabled updates. Subscribe before reading
+    // again so completion between the initial read and this effect is observed.
+    if (!currentTab || !ready) return;
     const onChange = (
       changes: Record<string, chrome.storage.StorageChange>,
       area: string,
@@ -130,7 +134,7 @@ export default function SavePage() {
         })
         .catch(() => undefined);
     return () => chrome.storage.onChanged.removeListener(onChange);
-  }, [currentTab, receiveJob]);
+  }, [currentTab, ready, receiveJob]);
 
   useEffect(() => {
     if (job?.stage !== "saved" || !job.bookmarkId) return;
@@ -150,6 +154,11 @@ export default function SavePage() {
     try {
       const reply = await sendSaveMessage(message);
       if (reply.error) throw new Error(reply.error);
+      if (message.type === "DISCARD_SAVE") {
+        dismissedJobId.current = message.jobId;
+        started.current = false;
+        setJob(undefined);
+      }
       if (reply.job) receiveJob(reply.job);
     } catch (e) {
       setError(
@@ -200,6 +209,19 @@ export default function SavePage() {
         <p className="text-sm text-red-500">{error ?? job.error}</p>
         <Button disabled={submitting} onClick={() => retry()}>
           Retry
+        </Button>
+        <Button
+          variant="outline"
+          disabled={submitting}
+          onClick={() =>
+            void submit({
+              type: "DISCARD_SAVE",
+              tabId: job.tabId,
+              jobId: job.id,
+            })
+          }
+        >
+          Discard failed save
         </Button>
         {job.failedStage === "capturing" && (
           <Button
