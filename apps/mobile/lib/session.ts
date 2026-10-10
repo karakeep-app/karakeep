@@ -6,8 +6,10 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import { clearPersistedCache } from "./offlineCache";
 import { clearOfflineLibrary } from "./offlineLibrary";
 import useAppSettings from "./settings";
+import { useAutomaticOffline } from "./automaticOffline";
 
 export function useSession() {
+  const { cancel } = useAutomaticOffline();
   const { settings, setSettings } = useAppSettings();
   const api = useTRPC();
   const queryClient = useQueryClient();
@@ -17,6 +19,7 @@ export function useSession() {
   );
 
   const logout = useCallback(() => {
+    cancel();
     if (settings.apiKeyId) {
       deleteKey({ id: settings.apiKeyId });
     }
@@ -24,7 +27,7 @@ export function useSession() {
     queryClient.clear();
     clearPersistedCache();
     clearOfflineLibrary();
-  }, [deleteKey, queryClient, settings, setSettings]);
+  }, [cancel, deleteKey, queryClient, settings, setSettings]);
 
   return {
     logout,
