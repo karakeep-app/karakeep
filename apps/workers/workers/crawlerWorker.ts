@@ -391,6 +391,7 @@ async function runCrawler(
     ),
   });
   setSpanAttributes({
+    "crawler.archiveFullPage": archiveFullPage,
     "bookmark.id": bookmarkId,
     "bookmark.url": url,
     "bookmark.domain": getBookmarkDomain(url),
@@ -454,16 +455,14 @@ async function runCrawler(
           }
           return metadata;
         });
-    const archivalLogic = await crawlAndParseUrl(ctx, {
+    const page = await crawlAndParseUrl(ctx, {
       oldAssets: {
         screenshotAssetId: oldScreenshotAssetId,
         pdfAssetId: oldPdfAssetId,
         imageAssetId: oldImageAssetId,
-        fullPageArchiveAssetId: oldFullPageArchiveAssetId,
         contentAssetId: oldContentAssetId,
       },
       precrawledArchiveAssetId,
-      archiveFullPage,
       forceStorePdf: storePdf ?? false,
       numRetriesLeft,
       probeMetadataPromise,
@@ -472,7 +471,17 @@ async function runCrawler(
     await enqueuePostCrawlJobs(ctx, job);
 
     // Do the archival as a separate last step as it has the potential for failure
-    await archivalLogic();
+    if (
+      !precrawledArchiveAssetId &&
+      (serverConfig.crawler.fullPageArchive || archiveFullPage)
+    ) {
+      await storeFullPageArchive(
+        ctx,
+        page.htmlContent,
+        page.url,
+        oldFullPageArchiveAssetId,
+      );
+    }
   }
 
   // Record the latency from bookmark creation to crawl completion.
@@ -881,11 +890,9 @@ interface CrawlAndParseUrlArgs {
     screenshotAssetId: string | undefined;
     pdfAssetId: string | undefined;
     imageAssetId: string | undefined;
-    fullPageArchiveAssetId: string | undefined;
     contentAssetId: string | undefined;
   };
   precrawledArchiveAssetId: string | undefined;
-  archiveFullPage: boolean;
   forceStorePdf: boolean;
   numRetriesLeft: number;
   probeMetadataPromise: Promise<ParseSubprocessOutput["metadata"] | null>;
@@ -893,20 +900,19 @@ interface CrawlAndParseUrlArgs {
 
 /**
  * Crawls the url, parses it, and persists the bookmark's metadata, content,
- * and assets. Returns a closure that runs the (failure-prone) full-page
- * archival, so the caller can defer it to the very end of the job.
+ * and assets. Returns the rendered page's html and final url, which the
+ * full-page archival (run later by the caller) works from.
  */
 const crawlAndParseUrl = traced(
   "crawlAndParseUrl",
   async (
     ctx: CrawlContext,
     args: CrawlAndParseUrlArgs,
-  ): Promise<() => Promise<void>> => {
+  ): Promise<{ htmlContent: string; url: string }> => {
     const { url, userId, jobId, bookmarkId, abortSignal, runProxy, log } = ctx;
     const {
       oldAssets,
       precrawledArchiveAssetId,
-      archiveFullPage,
       forceStorePdf,
       numRetriesLeft,
       probeMetadataPromise,
@@ -916,7 +922,6 @@ const crawlAndParseUrl = traced(
     );
 
     setSpanAttributes({
-      "crawler.archiveFullPage": archiveFullPage,
       "crawler.forceStorePdf": forceStorePdf,
       "crawler.hasPrecrawledArchive": !!precrawledArchiveAssetId,
     });
@@ -1172,47 +1177,45 @@ const crawlAndParseUrl = traced(
       assetIdsToDelete.map((assetId) => silentDeleteAsset(userId, assetId)),
     );
 
-    return async () => {
-      if (
-        !precrawledArchiveAssetId &&
-        (serverConfig.crawler.fullPageArchive || archiveFullPage)
-      ) {
-        const archiveResult = await archiveWebpage(
-          ctx,
-          htmlContent,
-          browserUrl,
-        );
-
-        if (archiveResult) {
-          const {
-            assetId: fullPageArchiveAssetId,
-            size,
-            contentType,
-          } = archiveResult;
-
-          await db.transaction((txn) => {
-            updateAsset(
-              oldAssets.fullPageArchiveAssetId,
-              {
-                id: fullPageArchiveAssetId,
-                bookmarkId,
-                userId,
-                assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-                contentType,
-                size,
-                fileName: null,
-              },
-              txn,
-            );
-          });
-          if (oldAssets.fullPageArchiveAssetId) {
-            await silentDeleteAsset(userId, oldAssets.fullPageArchiveAssetId);
-          }
-        }
-      }
-    };
+    return { htmlContent, url: browserUrl };
   },
 );
+
+/**
+ * Archives the full page with monolith and stores it as the bookmark's
+ * full-page archive, replacing (and deleting) the previous one.
+ */
+async function storeFullPageArchive(
+  ctx: CrawlContext,
+  htmlContent: string,
+  url: string,
+  oldAssetId: string | undefined,
+): Promise<void> {
+  const { bookmarkId, userId } = ctx;
+  const archiveResult = await archiveWebpage(ctx, htmlContent, url);
+  if (!archiveResult) {
+    return;
+  }
+  const { assetId, size, contentType } = archiveResult;
+  await db.transaction((txn) => {
+    updateAsset(
+      oldAssetId,
+      {
+        id: assetId,
+        bookmarkId,
+        userId,
+        assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+        contentType,
+        size,
+        fileName: null,
+      },
+      txn,
+    );
+  });
+  if (oldAssetId) {
+    await silentDeleteAsset(userId, oldAssetId);
+  }
+}
 
 interface CrawlPageResult {
   htmlContent: string;
