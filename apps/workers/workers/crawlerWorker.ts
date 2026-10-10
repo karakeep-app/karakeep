@@ -1984,20 +1984,21 @@ async function fetchAsset(ctx: CrawlContext, url: string, fileType: string) {
 async function fetchImage(ctx: CrawlContext, url: string) {
   const { contentType, body } = await fetchAsset(ctx, url, "banner image");
   const maxBytes = serverConfig.maxAssetSizeMb * 1024 * 1024;
-  const chunks: Buffer[] = [];
-  let size = 0;
+  // Grows in place as chunks arrive, so the banner is never held twice in memory.
+  const buffer = new ArrayBuffer(0, { maxByteLength: maxBytes });
+  const bytes = new Uint8Array(buffer);
   for await (const chunk of body) {
     ctx.abortSignal.throwIfAborted();
-    size += chunk.length;
-    if (size > maxBytes) {
+    const offset = buffer.byteLength;
+    if (offset + chunk.length > maxBytes) {
       throw new Error(
         `Content length exceeds maximum allowed size: ${serverConfig.maxAssetSizeMb}MB`,
       );
     }
-    // Binary responses only yield buffers, the string case is just for the types.
-    chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+    buffer.resize(offset + chunk.length);
+    bytes.set(Buffer.from(chunk), offset);
   }
-  return { image: Buffer.concat(chunks), contentType };
+  return { image: Buffer.from(buffer, 0, buffer.byteLength), contentType };
 }
 
 /**
