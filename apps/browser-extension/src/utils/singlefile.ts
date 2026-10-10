@@ -2,7 +2,7 @@
  * Utilities for SingleFile integration
  */
 
-import { getPluginSettings } from "./settings";
+import { sanitizeFilename, uploadAssetFile } from "./assetUpload";
 
 const CAPTURE_TIMEOUT_MS = 60_000;
 
@@ -102,45 +102,8 @@ export async function uploadSingleFileAsset(
   html: string,
   title?: string,
 ): Promise<string> {
-  const settings = await getPluginSettings();
-
   const blob = new Blob([html], { type: "text/html" });
   const filename = sanitizeFilename(title || "page") + ".html";
   const file = new File([blob], filename, { type: "text/html" });
-
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const apiUrl = `${settings.address}/api/assets`;
-
-  const headers: HeadersInit = {
-    Authorization: `Bearer ${settings.apiKey}`,
-  };
-
-  if (settings.customHeaders) {
-    Object.entries(settings.customHeaders).forEach(([key, value]) => {
-      headers[key] = value;
-    });
-  }
-
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers,
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to upload asset: ${response.status} ${errorText}`);
-  }
-
-  const { assetId } = (await response.json()) as { assetId: string };
-  return assetId;
-}
-
-function sanitizeFilename(filename: string): string {
-  return filename
-    .replace(/[^a-zA-Z0-9-_\s]/g, "_")
-    .replace(/\s+/g, "_")
-    .substring(0, 100);
+  return uploadAssetFile(file);
 }
