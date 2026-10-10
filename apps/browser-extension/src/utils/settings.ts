@@ -1,13 +1,29 @@
 import React from "react";
 import { z } from "zod";
 
+import { isHttpUrl } from "./url";
+
 export const DEFAULT_BADGE_CACHE_EXPIRE_MS = 60 * 60 * 1000; // 1 hour
 export const DEFAULT_SHOW_COUNT_BADGE = false;
 
 const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
-  address: z.string().optional().default("https://cloud.karakeep.app"),
+  address: z
+    .string()
+    .transform((val) => {
+      // Validate and normalize the address to just the origin (protocol + host + port)
+      if (!val || !isHttpUrl(val)) {
+        return "https://cloud.karakeep.app";
+      }
+      try {
+        const url = new URL(val);
+        return url.origin;
+      } catch {
+        return "https://cloud.karakeep.app";
+      }
+    })
+    .default("https://cloud.karakeep.app"),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   showCountBadge: z.boolean().default(DEFAULT_SHOW_COUNT_BADGE),
   useBadgeCache: z.boolean().default(true),

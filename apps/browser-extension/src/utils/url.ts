@@ -9,6 +9,51 @@ export function isHttpUrl(url: string) {
 }
 
 /**
+ * Normalize the server address by stripping common API path suffixes.
+ * Users often mistakenly include /api/v1 or /api in their server address,
+ * but the tRPC client already appends /api/trpc to the base address.
+ * Also validates that the address is a valid HTTP or HTTPS URL.
+ * @param address The server address to normalize.
+ * @returns Normalized server address without API path suffixes.
+ * @throws Error if the address is not a valid HTTP or HTTPS URL.
+ */
+export function normalizeServerAddress(address: string): string {
+  let normalized = address.trim();
+
+  // Remove trailing slash
+  normalized = normalized.replace(/\/+$/, "");
+
+  // Strip common API path suffixes that users might mistakenly include
+  // The tRPC client appends /api/trpc, so we need the base URL
+  const apiSuffixPatterns = [
+    /\/api\/v\d+$/i, // /api/v1, /api/v2, etc.
+    /\/api$/i, // /api
+  ];
+
+  for (const pattern of apiSuffixPatterns) {
+    normalized = normalized.replace(pattern, "");
+  }
+
+  // Validate URL scheme (case-insensitive, consistent with isHttpUrl)
+  const lowerNormalized = normalized.toLowerCase();
+  if (
+    !lowerNormalized.startsWith("http://") &&
+    !lowerNormalized.startsWith("https://")
+  ) {
+    throw new Error("Server address must be a valid HTTP or HTTPS URL");
+  }
+
+  // Validate URL format
+  try {
+    new URL(normalized);
+  } catch {
+    throw new Error("Invalid URL format");
+  }
+
+  return normalized;
+}
+
+/**
  * Normalize a URL by removing the hash and trailing slash.
  * @param url The URL to process.
  * @param base Optional base URL for relative URLs.
