@@ -40,10 +40,7 @@ export class LocalFileSystemAssetStore implements AssetStore {
     await fs.promises.mkdir(assetDir, { recursive: true });
 
     await Promise.all([
-      fs.promises.writeFile(
-        path.join(assetDir, "asset.bin"),
-        Uint8Array.from(asset),
-      ),
+      fs.promises.writeFile(path.join(assetDir, "asset.bin"), asset),
       fs.promises.writeFile(
         path.join(assetDir, "metadata.json"),
         JSON.stringify(metadata),

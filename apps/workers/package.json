@@ -54,6 +54,7 @@
     "pdfjs-dist": "^4.2.67",
     "prom-client": "^15.1.3",
     "rss-parser": "^3.13.0",
+    "sharp": "^0.35.5",
     "tesseract.js": "^7.0.0",
     "tsx": "^4.23.13",
     "typescript": "^5.9",
