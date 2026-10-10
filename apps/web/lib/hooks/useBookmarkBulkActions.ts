@@ -13,7 +13,7 @@ import {
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useRemoveBookmarkFromList } from "@karakeep/shared-react/hooks/lists";
 
-const MAX_CONCURRENT_BULK_ACTIONS = 50;
+export const MAX_CONCURRENT_BULK_ACTIONS = 50;
 
 export interface UpdateBookmarkProps {
   favourited?: boolean;
