@@ -35,8 +35,8 @@
   },
   "devDependencies": {
     "@types/node": "^24",
-    "oxfmt": "^0.45.0",
-    "oxlint": "^1.60.0",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0",
     "sherif": "^1.6.1",
     "turbo": "^2.10.13"
   },

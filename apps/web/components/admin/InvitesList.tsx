@@ -66,13 +66,10 @@ export default function InvitesList() {
 
   const activeInvites = invites?.invites || [];
 
-  const InviteTable = ({
-    invites: inviteList,
-    title,
-  }: {
-    invites: NonNullable<typeof invites>["invites"];
-    title: string;
-  }) => (
+  const renderInviteTable = (
+    inviteList: NonNullable<typeof invites>["invites"],
+    title: string,
+  ) => (
     <div className="mb-6">
       {inviteList.length === 0 ? (
         <p className="text-sm text-gray-500">
@@ -155,7 +152,7 @@ export default function InvitesList() {
           </CreateInviteDialog>
         </div>
 
-        <InviteTable invites={activeInvites} title="Invites" />
+        {renderInviteTable(activeInvites, "Invites")}
       </div>
     </AdminCard>
   );

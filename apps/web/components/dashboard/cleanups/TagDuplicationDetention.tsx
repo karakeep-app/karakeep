@@ -202,7 +202,7 @@ function SuggestionRow({
 export function TagDuplicationDetection() {
   const api = useTRPC();
   const [expanded, setExpanded] = useState(false);
-  let { data: allTags } = useQuery(
+  const { data: allTags } = useQuery(
     api.tags.list.queryOptions(
       {},
       {
@@ -215,8 +215,7 @@ export function TagDuplicationDetection() {
     useSuggestions();
 
   useEffect(() => {
-    allTags = allTags ?? { tags: [], nextCursor: null };
-    const sortedTags = allTags.tags.sort((a, b) =>
+    const sortedTags = [...(allTags?.tags ?? [])].sort((a, b) =>
       normalizeTag(a.name).localeCompare(normalizeTag(b.name)),
     );
 

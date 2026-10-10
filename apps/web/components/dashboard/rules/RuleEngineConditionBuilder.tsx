@@ -310,7 +310,7 @@ export function ConditionBuilder({
   // titles are not available at bookmark creation time (they're fetched during crawling)
   const showTitleConditions = eventType !== "bookmarkAdded";
 
-  const ConditionSelector = () => (
+  const conditionSelector = (
     <Select value={value.type} onValueChange={handleTypeChange}>
       <SelectTrigger className="ml-2 h-8 border-none bg-transparent px-2">
         <SelectValue />
@@ -381,7 +381,7 @@ export function ConditionBuilder({
                     )}
                   </Button>
                 </CollapsibleTrigger>
-                <ConditionSelector />
+                {conditionSelector}
                 <span className="ml-1 text-sm text-muted-foreground">
                   {value.conditions.length} condition
                   {value.conditions.length !== 1 ? "s" : ""}
@@ -407,7 +407,7 @@ export function ConditionBuilder({
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 {renderConditionIcon(value.type)}
-                <ConditionSelector />
+                {conditionSelector}
               </div>
 
               {onRemove && (

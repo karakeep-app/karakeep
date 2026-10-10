@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
-    "oxlint": "^1.60.0",
+    "oxlint": "^1.87.0",
     "tsx": "^4.23.13"
   }
 }

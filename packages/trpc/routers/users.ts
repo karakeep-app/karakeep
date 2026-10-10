@@ -82,23 +82,17 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       return await user.getStats();
     }),
-  wrapped: usersProcedure
-    .output(zWrappedStatsResponseSchema)
-    .query(async ({ ctx }) => {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This endpoint is currently disabled",
-      });
-      const user = await User.fromCtx(ctx);
-      return await user.getWrappedStats(2025);
-    }),
-  hasWrapped: usersProcedure.output(z.boolean()).query(async ({ ctx }) => {
+  wrapped: usersProcedure.output(zWrappedStatsResponseSchema).query(() => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "This endpoint is currently disabled",
     });
-    const user = await User.fromCtx(ctx);
-    return await user.hasWrapped();
+  }),
+  hasWrapped: usersProcedure.output(z.boolean()).query(() => {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "This endpoint is currently disabled",
+    });
   }),
   settings: usersProcedure
     .output(zUserSettingsSchema)
