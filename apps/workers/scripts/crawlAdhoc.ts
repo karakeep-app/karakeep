@@ -16,9 +16,10 @@ import { parseArgs } from "node:util";
  * queue, DB job, or downstream (inference/search/archival) machinery. Meant for
  * manual debugging and for the crawler A/B test (021-crawler-stealth-ab-test).
  *
- * DB safety: crawlPage() with the override does NOT read or write any app data
- * (the per-user lookup is skipped; asset/bookmark/search/webhook writes live in
- * downstream functions this CLI never calls). BUT importing the crawler module
+ * DB safety: crawlPage() does NOT read or write any app data (the per-user
+ * browserCrawlingEnabled lookup happens in runCrawler and the
+ * asset/bookmark/search/webhook writes live in downstream functions, none of
+ * which this CLI calls). BUT importing the crawler module
  * transitively opens a SQLite connection (packages/db/drizzle.ts) against
  * DATA_DIR. To guarantee we never touch the real DB, this bootstrap repoints
  * DATA_DIR at a throwaway temp dir BEFORE any app module is imported. Set
@@ -149,11 +150,11 @@ async function main() {
             url,
             abortSignal: abort.signal,
             runProxy,
+            // Force the full browser path.
+            browserCrawlingEnabled: true,
             log: crawlLogger(jobId),
           },
           values.pdf,
-          // Force the full browser path and skip the per-user DB lookup.
-          true,
         );
         const { blocked, marker } = scoreHtml(res.statusCode, res.htmlContent);
         if (screenshotDir && res.screenshot) {

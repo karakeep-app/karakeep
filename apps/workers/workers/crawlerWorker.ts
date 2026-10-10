@@ -160,6 +160,11 @@ export interface CrawlContext {
   abortSignal: AbortSignal;
   /** Picked once per run so that every request in the run uses the same proxy. */
   runProxy: RunProxyConfig;
+  /**
+   * False when the user has browser crawling disabled, in which case pages
+   * are fetched over plain HTTP instead of with the browser.
+   */
+  browserCrawlingEnabled: boolean;
   log: CrawlLogger;
 }
 
@@ -355,6 +360,15 @@ async function runCrawler(
     probeMetadataAt,
   } = await getBookmarkDetails(bookmarkId);
 
+  const userData = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { browserCrawlingEnabled: true },
+  });
+  if (!userData) {
+    log.error(`User ${userId} not found`);
+    throw new Error(`User ${userId} not found`);
+  }
+
   const runProxy = selectRunProxies();
   const ctx: CrawlContext = {
     jobId,
@@ -363,6 +377,8 @@ async function runCrawler(
     url,
     abortSignal: job.abortSignal,
     runProxy,
+    // null means the user has no explicit setting, which defaults to enabled.
+    browserCrawlingEnabled: userData.browserCrawlingEnabled !== false,
     log,
   };
 
@@ -1217,29 +1233,12 @@ export const crawlPage = traced(
   "crawlPage",
   async (
     ctx: CrawlContext,
-    forceStorePdf: boolean, // When set, skips the per-user browserCrawlingEnabled DB lookup and uses
-    // this value instead. Used by the adhoc crawl CLI, which has no user row.
-    browserCrawlingEnabledOverride?: boolean,
+    forceStorePdf: boolean,
   ): Promise<CrawlPageResult> => {
-    const { url, userId, jobId, abortSignal, runProxy, log } = ctx;
+    const { url, jobId, abortSignal, runProxy, log } = ctx;
     setSpanAttributes({ "crawler.forceStorePdf": forceStorePdf });
 
-    let browserCrawlingEnabled: boolean | null;
-    if (browserCrawlingEnabledOverride !== undefined) {
-      browserCrawlingEnabled = browserCrawlingEnabledOverride;
-    } else {
-      const userData = await db.query.users.findFirst({
-        where: eq(users.id, userId),
-        columns: { browserCrawlingEnabled: true },
-      });
-      if (!userData) {
-        log.error(`User ${userId} not found`);
-        throw new Error(`User ${userId} not found`);
-      }
-      browserCrawlingEnabled = userData.browserCrawlingEnabled;
-    }
-
-    if (browserCrawlingEnabled !== null && !browserCrawlingEnabled) {
+    if (!ctx.browserCrawlingEnabled) {
       return browserlessCrawlPage(ctx);
     }
 
