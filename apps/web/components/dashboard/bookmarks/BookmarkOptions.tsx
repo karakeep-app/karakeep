@@ -122,13 +122,21 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     };
   }, []);
 
-  const { setOpen: setManageListsModalOpen, content: manageListsModal } =
-    useManageListsModal(bookmark.id);
+  const {
+    open: isManageListsModalOpen,
+    setOpen: setManageListsModalOpen,
+    content: manageListsModal,
+  } = useManageListsModal(bookmark.id);
 
   const [deleteBookmarkDialogOpen, setDeleteBookmarkDialogOpen] =
     useState(false);
   const [isTextEditorOpen, setTextEditorOpen] = useState(false);
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
+  const isAnyDialogOpen =
+    isManageListsModalOpen ||
+    deleteBookmarkDialogOpen ||
+    isTextEditorOpen ||
+    isEditBookmarkDialogOpen;
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -510,7 +518,17 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="min-w-44">
+        <DropdownMenuContent
+          className="min-w-44"
+          onCloseAutoFocus={(e) => {
+            // The menu restores focus to its trigger once its close animation
+            // ends. If an item opened a dialog, that steals focus from the
+            // dialog and dismisses any popover opened inside it in the meantime.
+            if (isAnyDialogOpen) {
+              e.preventDefault();
+            }
+          }}
+        >
           {visibleGroups.map((group, i) => (
             <Fragment key={i}>
               {i > 0 && <DropdownMenuSeparator />}
