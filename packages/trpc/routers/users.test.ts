@@ -180,6 +180,32 @@ describe("User Routes", () => {
     await expect(() => user2Caller.users.list()).rejects.toThrow(/FORBIDDEN/);
   });
 
+  test<CustomTestContext>("admins can't delete their own account", async ({
+    db,
+  }) => {
+    const adminUser = await createTestUser(db, {
+      name: "Test User",
+      email: "test123@test.com",
+      password: "pass1234",
+    });
+    assert(adminUser.role == "admin");
+
+    const adminCaller = getApiCaller(
+      db,
+      adminUser.id,
+      adminUser.email,
+      "admin",
+    );
+    await expect(() =>
+      adminCaller.users.delete({ userId: adminUser.id }),
+    ).rejects.toThrow(/Cannot delete own account/);
+
+    const remaining = await db.query.users.findFirst({
+      where: eq(users.id, adminUser.id),
+    });
+    expect(remaining).toBeDefined();
+  });
+
   test<CustomTestContext>("get/update user settings", async ({ db }) => {
     const user = await createTestUser(db, {
       name: "Test User",

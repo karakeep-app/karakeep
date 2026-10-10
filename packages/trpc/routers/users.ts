@@ -43,6 +43,12 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (ctx.user.id == input.userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot delete own account as an admin",
+        });
+      }
       addLogFields<"user.delete">({
         "user.deleted_id": input.userId,
         "user.deleted_by": "admin",

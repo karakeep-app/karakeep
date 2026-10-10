@@ -204,7 +204,8 @@ usersCmd
       );
 
       if (!opts.yes) {
-        const rl = readline.createInterface({ input, output });
+        // Prompt on stderr to keep stdout clean for --json output.
+        const rl = readline.createInterface({ input, output: process.stderr });
         const answer = (
           await rl.question(
             `This will permanently delete user "${user.name}" (${user.email}) and all of their data. Proceed? (yes/no): `,
@@ -227,6 +228,7 @@ usersCmd
       }
     } catch (error) {
       printErrorMessageWithReason("Failed to delete user", error as object);
+      process.exitCode = 1;
     }
   });
 
