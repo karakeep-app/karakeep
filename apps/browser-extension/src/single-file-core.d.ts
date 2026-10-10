@@ -18,6 +18,7 @@ declare module "single-file-core/single-file.js" {
     groupDuplicateImages?: boolean;
     maxResourceSizeEnabled?: boolean;
     maxResourceSize?: number;
+    networkTimeout?: number;
   }
 
   export interface PageData {

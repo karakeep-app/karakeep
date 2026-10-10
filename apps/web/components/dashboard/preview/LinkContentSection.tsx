@@ -66,7 +66,7 @@ function CustomRendererErrorFallback({ error }: { error: Error }) {
 
 function FullPageArchiveSection({ link }: { link: ZBookmarkedLink }) {
   const archiveAssetId =
-    link.fullPageArchiveAssetId ?? link.precrawledArchiveAssetId;
+    link.precrawledArchiveAssetId ?? link.fullPageArchiveAssetId;
   return (
     <iframe
       sandbox=""
@@ -296,7 +296,7 @@ export default function LinkContentSection({
                     1: (
                       <Link
                         prefetch={false}
-                        href={`/api/assets/${bookmark.content.fullPageArchiveAssetId ?? bookmark.content.precrawledArchiveAssetId}`}
+                        href={`/api/assets/${bookmark.content.precrawledArchiveAssetId ?? bookmark.content.fullPageArchiveAssetId}`}
                         download
                         className="font-medium underline"
                       >

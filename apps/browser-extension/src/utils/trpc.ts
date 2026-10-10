@@ -6,9 +6,27 @@ import superjson from "superjson";
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
 import { getPluginSettings } from "./settings";
+import type { Settings } from "./settings";
 import { createChromeStorage } from "./storagePersister";
 
 export { useTRPC } from "@karakeep/shared-react/trpc";
+
+// A save keeps the connection it started with, even if settings change while
+// the browser is capturing or uploading the page.
+export function createApiClient(settings: Settings) {
+  return createTRPCClient<AppRouter>({
+    links: [
+      httpBatchLink({
+        url: `${settings.address}/api/trpc`,
+        headers: {
+          Authorization: `Bearer ${settings.apiKey}`,
+          ...settings.customHeaders,
+        },
+        transformer: superjson,
+      }),
+    ],
+  });
+}
 
 let apiClient: ReturnType<typeof createTRPCClient<AppRouter>> | null = null;
 let queryClient: QueryClient | null = null;

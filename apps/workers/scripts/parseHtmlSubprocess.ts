@@ -28,6 +28,7 @@ import {
   parseSubprocessInputSchema,
   parseSubprocessOutputSchema,
 } from "../workers/utils/parseHtmlSubprocessIpc";
+import { compactEmbeddedDataUris } from "../workers/utils/embeddedDataUris";
 import {
   assessReaderView,
   ReaderViewAssessment,
@@ -184,7 +185,11 @@ async function main() {
   const input = parseSubprocessInputSchema.parse(
     JSON.parse(Buffer.concat(chunks).toString()),
   );
-  const { htmlContent, url, jobId, metadataOnly } = input;
+  const { url, jobId, metadataOnly } = input;
+  // Parse short stand-ins for large embedded resources, then restore the exact
+  // data URIs in metadata and Reader HTML before returning them to the worker.
+  const embeddedData = compactEmbeddedDataUris(input.htmlContent);
+  const htmlContent = embeddedData.htmlContent;
 
   logger.info(
     `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
@@ -247,7 +252,11 @@ async function main() {
   });
 
   // Write the result as JSON to stdout
-  process.stdout.write(JSON.stringify(output));
+  process.stdout.write(
+    JSON.stringify(output, (_key, value: unknown) =>
+      typeof value === "string" ? embeddedData.restore(value) : value,
+    ),
+  );
 }
 
 main().catch(async (err: unknown) => {

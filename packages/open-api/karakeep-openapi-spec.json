@@ -1041,6 +1041,11 @@
                   {
                     "type": "object",
                     "properties": {
+                      "clientRequestId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
                       "title": {
                         "type": "string",
                         "nullable": true,

@@ -13,6 +13,9 @@ import { getApiClient, initializeClients } from "../utils/trpc";
 import { MessageType } from "../utils/type";
 import { isHttpUrl } from "../utils/url";
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol";
+import { registerSaveHandler } from "./save-job";
+
+registerSaveHandler(checkAndUpdateIcon);
 
 const OPEN_KARAKEEP_ID = "open-karakeep";
 const ADD_LINK_TO_KARAKEEP_ID = "add-link";
@@ -343,19 +346,18 @@ chrome.tabs.onUpdated.addListener(async (tabId) => {
 });
 
 // Listen for REFRESH_BADGE messages from popup and update badge accordingly
-chrome.runtime.onMessage.addListener(async (msg) => {
+chrome.runtime.onMessage.addListener((msg) => {
   if (msg && msg.type) {
     if (msg.currentTab && msg.type === MessageType.BOOKMARK_REFRESH_BADGE) {
       console.log(
         "Received REFRESH_BADGE message for tab:",
         msg.currentTab.url,
       );
-      if (msg.currentTab.url) {
-        await clearBadgeStatus(msg.currentTab.url);
-      }
-      if (typeof msg.currentTab.id === "number") {
-        await checkAndUpdateIcon(msg.currentTab.id);
-      }
+      void (async () => {
+        if (msg.currentTab.url) await clearBadgeStatus(msg.currentTab.url);
+        if (typeof msg.currentTab.id === "number")
+          await checkAndUpdateIcon(msg.currentTab.id);
+      })().catch(console.warn);
     }
   }
 });
