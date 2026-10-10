@@ -493,46 +493,42 @@ async function runCrawler(
  * Checks if the domain should be rate limited and throws QueueRetryAfterError if needed.
  * @throws {QueueRetryAfterError} if the domain is rate limited
  */
-const checkDomainRateLimit = traced(
-  "checkDomainRateLimit",
-  async (ctx: CrawlContext): Promise<void> => {
-    const { url, log } = ctx;
-    const crawlerDomainRateLimitConfig =
-      serverConfig.crawler.domainRatelimiting;
-    if (!crawlerDomainRateLimitConfig) {
-      return;
-    }
+async function checkDomainRateLimit(ctx: CrawlContext): Promise<void> {
+  const { url, log } = ctx;
+  const crawlerDomainRateLimitConfig = serverConfig.crawler.domainRatelimiting;
+  if (!crawlerDomainRateLimitConfig) {
+    return;
+  }
 
-    const rateLimitClient = await getRateLimitClient();
-    if (!rateLimitClient) {
-      return;
-    }
+  const rateLimitClient = await getRateLimitClient();
+  if (!rateLimitClient) {
+    return;
+  }
 
-    const hostname = new URL(url).hostname;
-    const rateLimitResult = await rateLimitClient.checkRateLimit(
-      {
-        name: "domain-ratelimit",
-        maxRequests: crawlerDomainRateLimitConfig.maxRequests,
-        windowMs: crawlerDomainRateLimitConfig.windowMs,
-      },
-      hostname,
+  const hostname = new URL(url).hostname;
+  const rateLimitResult = await rateLimitClient.checkRateLimit(
+    {
+      name: "domain-ratelimit",
+      maxRequests: crawlerDomainRateLimitConfig.maxRequests,
+      windowMs: crawlerDomainRateLimitConfig.windowMs,
+    },
+    hostname,
+  );
+
+  if (!rateLimitResult.allowed) {
+    const resetInSeconds = rateLimitResult.resetInSeconds;
+    // Add jitter to prevent thundering herd: +40% random variation
+    const jitterFactor = 1.0 + Math.random() * 0.4; // Random value between 1.0 and 1.4
+    const delayMs = Math.floor(resetInSeconds * 1000 * jitterFactor);
+    log.info(
+      `Domain "${hostname}" is rate limited. Will retry in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
     );
-
-    if (!rateLimitResult.allowed) {
-      const resetInSeconds = rateLimitResult.resetInSeconds;
-      // Add jitter to prevent thundering herd: +40% random variation
-      const jitterFactor = 1.0 + Math.random() * 0.4; // Random value between 1.0 and 1.4
-      const delayMs = Math.floor(resetInSeconds * 1000 * jitterFactor);
-      log.info(
-        `Domain "${hostname}" is rate limited. Will retry in ${(delayMs / 1000).toFixed(2)} seconds (with jitter).`,
-      );
-      throw new QueueRetryAfterError(
-        `Domain "${hostname}" is rate limited`,
-        delayMs,
-      );
-    }
-  },
-);
+    throw new QueueRetryAfterError(
+      `Domain "${hostname}" is rate limited`,
+      delayMs,
+    );
+  }
+}
 
 // Cap how much of the probed page we buffer for metadata extraction.
 // Preview metadata lives in <head>, so a couple of MB is plenty.
@@ -1253,17 +1249,15 @@ export const crawlPage = traced(
     const isRunningInProxyContext =
       proxyConfig !== undefined &&
       !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
-    const context = await span("crawlPage.createContext", () =>
-      browser.newContext({
-        viewport: { width: 1440, height: 900 },
-        userAgent,
-        // A UTC browser behind a proxy that geolocates elsewhere is a
-        // strong bot signal; this should match the proxy's location.
-        timezoneId: serverConfig.crawler.browserTimezone,
-        proxy: proxyConfig,
-        serviceWorkers: "block",
-      }),
-    );
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      userAgent,
+      // A UTC browser behind a proxy that geolocates elsewhere is a
+      // strong bot signal; this should match the proxy's location.
+      timezoneId: serverConfig.crawler.browserTimezone,
+      proxy: proxyConfig,
+      serviceWorkers: "block",
+    });
 
     trackContext(jobId, context);
     let page: Page | undefined;
@@ -1282,9 +1276,9 @@ export const crawlPage = traced(
       const activePage = page;
 
       // Navigate to the target URL
-      const navigationValidation = await span(
-        "crawlPage.validateNavigationTarget",
-        () => validateUrl(url, isRunningInProxyContext),
+      const navigationValidation = await validateUrl(
+        url,
+        isRunningInProxyContext,
       );
       if (!navigationValidation.ok) {
         throw new Error(
@@ -1369,13 +1363,11 @@ export const crawlPage = traced(
   },
 );
 
-const getBrowserInstance = traced(
-  "crawlPage.getBrowserInstance",
-  async (): Promise<Browser | undefined> =>
-    serverConfig.crawler.browserConnectOnDemand
-      ? startBrowserInstance()
-      : getGlobalBrowser(),
-);
+async function getBrowserInstance(): Promise<Browser | undefined> {
+  return serverConfig.crawler.browserConnectOnDemand
+    ? startBrowserInstance()
+    : getGlobalBrowser();
+}
 
 /**
  * Renders a precrawled archive (e.g. a SingleFile capture uploaded by the
@@ -1484,104 +1476,98 @@ async function renderPrecrawledArchiveScreenshot(
  * Creates and configures the page: redirect guard, adblocking, dialog
  * auto-dismissal, media/SSRF request blocking, and abort wiring.
  */
-const setupPage = traced(
-  "crawlPage.setupPage",
-  async (
-    ctx: CrawlContext,
-    context: BrowserContext,
-    proxyConfig: BrowserContextOptions["proxy"],
-  ): Promise<{ page: Page; autoconsentEnabled: boolean }> => {
-    const { jobId, abortSignal, log } = ctx;
-    // Create a new page in the context
-    const nextPage = await context.newPage();
-    const cdpSession = await installRedirectGuard(
-      context,
-      nextPage,
-      jobId,
-      proxyConfig,
-    );
+async function setupPage(
+  ctx: CrawlContext,
+  context: BrowserContext,
+  proxyConfig: BrowserContextOptions["proxy"],
+): Promise<{ page: Page; autoconsentEnabled: boolean }> {
+  const { jobId, abortSignal, log } = ctx;
+  // Create a new page in the context
+  const nextPage = await context.newPage();
+  const cdpSession = await installRedirectGuard(
+    context,
+    nextPage,
+    jobId,
+    proxyConfig,
+  );
 
-    // Apply ad blocking
-    const globalBlocker = getGlobalBlocker();
-    if (globalBlocker) {
-      await globalBlocker.enableBlockingInPage(nextPage);
+  // Apply ad blocking
+  const globalBlocker = getGlobalBlocker();
+  if (globalBlocker) {
+    await globalBlocker.enableBlockingInPage(nextPage);
+  }
+
+  // Auto-dismiss JavaScript dialogs (alert, confirm, prompt)
+  // to prevent pages from hanging during crawl.
+  nextPage.on("dialog", (dialog) => {
+    dialog.dismiss().catch(() => {
+      // Ignore errors — the dialog may have already been closed.
+    });
+  });
+
+  // Block audio/video resources and disallowed sub-requests
+  await nextPage.route("**/*", async (route) => {
+    if (abortSignal.aborted) {
+      await route.abort("aborted");
+      return;
+    }
+    const request = route.request();
+    const resourceType = request.resourceType();
+
+    // Block audio/video resources
+    if (
+      resourceType === "media" ||
+      request.headers()["content-type"]?.includes("video/") ||
+      request.headers()["content-type"]?.includes("audio/")
+    ) {
+      await route.abort("aborted");
+      return;
     }
 
-    // Auto-dismiss JavaScript dialogs (alert, confirm, prompt)
-    // to prevent pages from hanging during crawl.
-    nextPage.on("dialog", (dialog) => {
-      dialog.dismiss().catch(() => {
-        // Ignore errors — the dialog may have already been closed.
-      });
-    });
-
-    // Block audio/video resources and disallowed sub-requests
-    await nextPage.route("**/*", async (route) => {
-      if (abortSignal.aborted) {
-        await route.abort("aborted");
-        return;
-      }
-      const request = route.request();
-      const resourceType = request.resourceType();
-
-      // Block audio/video resources
-      if (
-        resourceType === "media" ||
-        request.headers()["content-type"]?.includes("video/") ||
-        request.headers()["content-type"]?.includes("audio/")
-      ) {
-        await route.abort("aborted");
-        return;
-      }
-
-      const requestUrl = request.url();
-      const requestIsRunningInProxyContext =
-        proxyConfig !== undefined &&
-        !matchesNoProxy(requestUrl, proxyConfig.bypass?.split(",") ?? []);
-      if (
-        requestUrl.startsWith("http://") ||
-        requestUrl.startsWith("https://")
-      ) {
-        const validation = await validateUrl(
-          requestUrl,
-          requestIsRunningInProxyContext,
+    const requestUrl = request.url();
+    const requestIsRunningInProxyContext =
+      proxyConfig !== undefined &&
+      !matchesNoProxy(requestUrl, proxyConfig.bypass?.split(",") ?? []);
+    if (requestUrl.startsWith("http://") || requestUrl.startsWith("https://")) {
+      const validation = await validateUrl(
+        requestUrl,
+        requestIsRunningInProxyContext,
+      );
+      if (!validation.ok) {
+        log.warn(
+          `Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
         );
-        if (!validation.ok) {
-          log.warn(
-            `Blocking sub-request to disallowed URL "${requestUrl}": ${validation.reason}`,
-          );
-          await route.abort("blockedbyclient");
-          return;
-        }
+        await route.abort("blockedbyclient");
+        return;
       }
+    }
 
-      // Continue with other requests
-      await route.fallback();
-    });
+    // Continue with other requests
+    await route.fallback();
+  });
 
-    // Install autoconsent AFTER the redirect guard and SSRF request router
-    // are in place (conservative ordering; it injects scripts). No-op unless
-    // enabled and the bundle loaded.
-    const autoconsentEnabled = await installAutoconsent(nextPage, jobId);
+  // Install autoconsent AFTER the redirect guard and SSRF request router
+  // are in place (conservative ordering; it injects scripts). No-op unless
+  // enabled and the bundle loaded.
+  const autoconsentEnabled = await installAutoconsent(nextPage, jobId);
 
-    // On abort, immediately stop intercepting requests so that
-    // in-flight route handlers don't block page/context closure.
-    abortSignal.addEventListener(
-      "abort",
-      () => {
-        cdpSession?.detach().catch(() => {
-          // Ignore errors — the session may already be detached.
-        });
-        nextPage.unrouteAll({ behavior: "ignoreErrors" }).catch(() => {
-          // Ignore errors — the page may already be closed.
-        });
-      },
-      { once: true },
-    );
+  // On abort, immediately stop intercepting requests so that
+  // in-flight route handlers don't block page/context closure.
+  abortSignal.addEventListener(
+    "abort",
+    () => {
+      cdpSession?.detach().catch(() => {
+        // Ignore errors — the session may already be detached.
+      });
+      nextPage.unrouteAll({ behavior: "ignoreErrors" }).catch(() => {
+        // Ignore errors — the page may already be closed.
+      });
+    },
+    { once: true },
+  );
 
-    return { page: nextPage, autoconsentEnabled };
-  },
-);
+  return { page: nextPage, autoconsentEnabled };
+}
 
 /**
  * Captures a JPEG screenshot of the page. Failures and timeouts are logged and
@@ -1635,8 +1621,7 @@ const capturePageAssets = traced(
     forceStorePdf: boolean,
   ): Promise<[string, Buffer | undefined, Buffer | undefined]> => {
     const { abortSignal, log } = ctx;
-    const htmlPromise = span("crawlPage.extractHtml", async () => {
-      const content = await activePage.content();
+    const htmlPromise = activePage.content().then((content) => {
       abortSignal.throwIfAborted();
       log.info(`Successfully fetched the page content.`);
       return content;
@@ -1707,17 +1692,15 @@ const closePageAndContext = traced(
     // even if context.close() later hangs.
     if (page) {
       const pageToClose = page;
-      const pageClosed = await span("crawlPage.cleanup.closePage", () =>
-        raceWith<boolean>(
-          pageToClose
-            .close()
-            .then(() => true)
-            .catch((e: unknown) => {
-              log.warn(`page.close() failed: ${e}`);
-              return true;
-            }),
-          timeoutRace<boolean>(PAGE_CLOSE_TIMEOUT_MS, () => false),
-        ),
+      const pageClosed = await raceWith<boolean>(
+        pageToClose
+          .close()
+          .then(() => true)
+          .catch((e: unknown) => {
+            log.warn(`page.close() failed: ${e}`);
+            return true;
+          }),
+        timeoutRace<boolean>(PAGE_CLOSE_TIMEOUT_MS, () => false),
       );
       setSpanAttributes({ "crawler.cleanup.pageClosed": pageClosed });
       if (!pageClosed) {
@@ -1728,17 +1711,15 @@ const closePageAndContext = traced(
     // Close the context (with timeout) to avoid hanging on in-flight ops.
     // Only remove from tracking if close actually succeeded; otherwise
     // the reaper will retry the close later.
-    const contextClosed = await span("crawlPage.cleanup.closeContext", () =>
-      raceWith<boolean>(
-        context
-          .close()
-          .then(() => true)
-          .catch((e: unknown) => {
-            log.warn(`context.close() failed: ${e}`);
-            return true; // Error means it's likely already closed
-          }),
-        timeoutRace<boolean>(CONTEXT_CLOSE_TIMEOUT_MS, () => false),
-      ),
+    const contextClosed = await raceWith<boolean>(
+      context
+        .close()
+        .then(() => true)
+        .catch((e: unknown) => {
+          log.warn(`context.close() failed: ${e}`);
+          return true; // Error means it's likely already closed
+        }),
+      timeoutRace<boolean>(CONTEXT_CLOSE_TIMEOUT_MS, () => false),
     );
     setSpanAttributes({ "crawler.cleanup.contextClosed": contextClosed });
 
@@ -1750,16 +1731,14 @@ const closePageAndContext = traced(
 
     // Only close the browser if it was created on demand
     if (serverConfig.crawler.browserConnectOnDemand) {
-      await span("crawlPage.cleanup.closeBrowser", () =>
-        browser
-          .close()
-          .then(() => {
-            untrackContext(jobId);
-          })
-          .catch((e: unknown) => {
-            log.warn(`browser.close() failed: ${e}`);
-          }),
-      );
+      await browser
+        .close()
+        .then(() => {
+          untrackContext(jobId);
+        })
+        .catch((e: unknown) => {
+          log.warn(`browser.close() failed: ${e}`);
+        });
     }
   },
 );
