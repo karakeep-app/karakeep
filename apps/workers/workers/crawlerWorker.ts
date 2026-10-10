@@ -71,6 +71,7 @@ import {
   IMAGE_ASSET_TYPES,
   newAssetId,
   OpenAIQueue,
+  optimizeBannerImage,
   QuotaService,
   readAsset,
   saveAsset,
@@ -1073,15 +1074,15 @@ const crawlAndParseUrl = traced(
     abortSignal.throwIfAborted();
     let imageAssetInfo: DBAssetType | null = null;
     if (meta.image && serverConfig.crawler.downloadBannerImage) {
-      const downloaded = await downloadAndStoreFile(ctx, meta.image, "image");
-      if (downloaded) {
+      const banner = await downloadAndStoreBanner(ctx, meta.image);
+      if (banner) {
         imageAssetInfo = {
-          id: downloaded.assetId,
+          id: banner.assetId,
           bookmarkId,
           userId,
           assetType: AssetTypes.LINK_BANNER_IMAGE,
-          contentType: downloaded.contentType,
-          size: downloaded.size,
+          contentType: banner.contentType,
+          size: banner.size,
         };
       }
     }
@@ -1912,15 +1913,11 @@ function storeCapturedAsset(
 /**
  * SingleFile / precrawled archives inline images as `data:` URIs, so the image
  * URL metascraper extracts can be a base64 blob rather than something fetchable
- * over the network. Decode it locally and store it as an asset instead of
- * failing on the unsupported protocol.
+ * over the network. Decode it locally instead of failing on the unsupported
+ * protocol.
  */
-async function storeDataUriAsset(
-  ctx: CrawlContext,
-  url: string,
-  fileType: string,
-) {
-  const { userId, log } = ctx;
+function decodeDataUriImage(ctx: CrawlContext, url: string) {
+  const { log } = ctx;
   const maxBytes = serverConfig.maxAssetSizeMb * 1024 * 1024;
 
   // Guardrail 1: cap the size *before* decoding into memory. base64 encodes 3
@@ -1928,7 +1925,7 @@ async function storeDataUriAsset(
   // must decode past it; the exact check below handles the rest.
   if (url.length > Math.ceil((maxBytes * 4) / 3) + 1024) {
     log.warn(
-      `Skipping data URI ${fileType}: encoded size (${url.length} chars) exceeds maximum allowed size of ${serverConfig.maxAssetSizeMb}MB`,
+      `Skipping data URI image: encoded size (${url.length} chars) exceeds maximum allowed size of ${serverConfig.maxAssetSizeMb}MB`,
     );
     return null;
   }
@@ -1937,7 +1934,7 @@ async function storeDataUriAsset(
   try {
     asset = dataUriToBuffer(url);
   } catch (e) {
-    log.error(`Failed to decode data URI ${fileType}: ${e}`);
+    log.error(`Failed to decode data URI image: ${e}`);
     return null;
   }
 
@@ -1947,31 +1944,111 @@ async function storeDataUriAsset(
   const contentType = normalizeContentType(asset.type);
   if (!contentType || !IMAGE_ASSET_TYPES.has(contentType)) {
     log.warn(
-      `Skipping data URI ${fileType} with unsupported content type: ${contentType}`,
+      `Skipping data URI image with unsupported content type: ${contentType}`,
     );
     return null;
   }
 
   if (asset.byteLength > maxBytes) {
     log.warn(
-      `Skipping data URI ${fileType}: decoded size (${asset.byteLength} bytes) exceeds maximum allowed size of ${serverConfig.maxAssetSizeMb}MB`,
+      `Skipping data URI image: decoded size (${asset.byteLength} bytes) exceeds maximum allowed size of ${serverConfig.maxAssetSizeMb}MB`,
     );
     return null;
   }
 
-  const assetId = await saveBufferAsset(ctx, `data URI ${fileType}`, asset, {
-    contentType,
-  });
-  if (!assetId) {
-    return null;
-  }
-  return { assetId, userId, contentType, size: asset.byteLength };
+  return { image: asset, contentType };
 }
+
+async function fetchAsset(ctx: CrawlContext, url: string, fileType: string) {
+  ctx.log.info(`Downloading ${fileType} from "${truncateUrl(url)}"`);
+  const response = await fetchWithProxy(
+    url,
+    {
+      signal: ctx.abortSignal,
+    },
+    ctx.runProxy,
+  );
+  if (!response.ok || response.body == null) {
+    throw new Error(`Failed to download ${fileType}: ${response.status}`);
+  }
+
+  const contentType = normalizeContentType(
+    response.headers.get("content-type"),
+  );
+  if (!contentType) {
+    throw new Error("No content type in the response");
+  }
+  return { contentType, body: response.body };
+}
+
+async function fetchImage(ctx: CrawlContext, url: string) {
+  const { contentType, body } = await fetchAsset(ctx, url, "banner image");
+  const maxBytes = serverConfig.maxAssetSizeMb * 1024 * 1024;
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of body) {
+    ctx.abortSignal.throwIfAborted();
+    size += chunk.length;
+    if (size > maxBytes) {
+      throw new Error(
+        `Content length exceeds maximum allowed size: ${serverConfig.maxAssetSizeMb}MB`,
+      );
+    }
+    chunks.push(Buffer.from(chunk));
+  }
+  return { image: Buffer.concat(chunks), contentType };
+}
+
+/**
+ * Downloads the page's banner image and stores a downscaled webp version of it.
+ * Banners are small, so unlike other downloads they're kept in memory instead
+ * of going through a temp file.
+ */
+const downloadAndStoreBanner = traced(
+  "downloadAndStoreBanner",
+  async (ctx: CrawlContext, url: string) => {
+    setSpanAttributes({
+      "bookmark.url": url,
+      "bookmark.domain": getBookmarkDomain(url),
+    });
+    try {
+      const banner = url.startsWith("data:")
+        ? decodeDataUriImage(ctx, url)
+        : await fetchImage(ctx, url);
+      if (!banner) {
+        return null;
+      }
+      const toStore =
+        (await optimizeBannerImage(banner.image, banner.contentType)) ?? banner;
+      const assetId = await saveBufferAsset(
+        ctx,
+        "banner image",
+        toStore.image,
+        { contentType: toStore.contentType },
+      );
+      if (!assetId) {
+        return null;
+      }
+      return {
+        assetId,
+        contentType: toStore.contentType,
+        size: toStore.image.byteLength,
+      };
+    } catch (e) {
+      ctx.log.error(`Failed to download and store the banner image: ${e}`);
+      // A crawler timeout aborts the job-wide signal. Do not turn that abort
+      // into a best-effort download miss: the queue runner must observe it so
+      // the crawl is retried and is not reported as successfully completed.
+      ctx.abortSignal.throwIfAborted();
+      return null;
+    }
+  },
+);
 
 const downloadAndStoreFile = traced(
   "downloadAndStoreFile",
   async (ctx: CrawlContext, url: string, fileType: string) => {
-    const { userId, abortSignal, runProxy, log } = ctx;
+    const { userId, abortSignal, log } = ctx;
     setSpanAttributes({
       "bookmark.url": url,
       "bookmark.domain": getBookmarkDomain(url),
@@ -1979,27 +2056,7 @@ const downloadAndStoreFile = traced(
     });
     let assetPath: string | undefined;
     try {
-      if (url.startsWith("data:")) {
-        return await storeDataUriAsset(ctx, url, fileType);
-      }
-      log.info(`Downloading ${fileType} from "${truncateUrl(url)}"`);
-      const response = await fetchWithProxy(
-        url,
-        {
-          signal: abortSignal,
-        },
-        runProxy,
-      );
-      if (!response.ok || response.body == null) {
-        throw new Error(`Failed to download ${fileType}: ${response.status}`);
-      }
-
-      const contentType = normalizeContentType(
-        response.headers.get("content-type"),
-      );
-      if (!contentType) {
-        throw new Error("No content type in the response");
-      }
+      const { contentType, body } = await fetchAsset(ctx, url, fileType);
 
       const assetId = newAssetId();
       assetPath = path.join(os.tmpdir(), assetId);
@@ -2027,7 +2084,7 @@ const downloadAndStoreFile = traced(
       });
 
       await pipeline(
-        response.body,
+        body,
         contentLengthEnforcer,
         fsSync.createWriteStream(assetPath),
       );
