@@ -786,6 +786,7 @@
   "options": {
     "dark_mode": "Dark Mode",
     "light_mode": "Light Mode",
+    "system_mode": "System Mode",
     "apps_extensions": "Apps & Extensions",
     "documentation": "Documentation",
     "follow_us_on_x": "Follow us on X"

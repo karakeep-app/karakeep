@@ -14,9 +14,13 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
 
 export function useToggleTheme() {
   const { theme, setTheme } = useTheme();
-  if (theme == "dark") {
+  // cycle
+  // system -> light, light -> dark, dark -> system again
+  if (theme == "system") {
     return () => setTheme("light");
-  } else {
+  } else if (theme == "light") {
     return () => setTheme("dark");
+  } else {
+    return () => setTheme("system");
   }
 }

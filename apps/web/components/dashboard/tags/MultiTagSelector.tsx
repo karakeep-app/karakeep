@@ -15,18 +15,18 @@ export const MultiTagSelector = React.memo(function MultiTagSelector({
   count: number;
 }) {
   const toggleTag = useBulkTagActionsStore((state) => state.toggleTag);
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const isSelected = useBulkTagActionsStore((state) => state.isTagSelected(id));
 
   const getIconColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return isSelected ? "black" : "white";
     }
     return isSelected ? "white" : "black";
   };
 
   const getIconBackgroundColor = () => {
-    if (theme === "dark") {
+    if (resolvedTheme === "dark") {
       return isSelected ? "bg-white" : "bg-white bg-opacity-10";
     }
     return isSelected ? "bg-black" : "bg-white";
