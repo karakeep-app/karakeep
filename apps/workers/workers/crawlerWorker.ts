@@ -940,9 +940,10 @@ const crawlAndParseUrl = traced(
         userId,
         assetId: precrawledArchiveAssetId,
       });
+      const htmlContent = asset.asset.toString();
       result = {
-        htmlContent: asset.asset.toString(),
-        screenshot: undefined,
+        htmlContent,
+        screenshot: await screenshotPrecrawledArchive(ctx, htmlContent),
         pdf: undefined,
         statusCode: 200,
         url,
@@ -1242,11 +1243,7 @@ export const crawlPage = traced(
       return browserlessCrawlPage(ctx);
     }
 
-    const browser = await span("crawlPage.getBrowserInstance", async () =>
-      serverConfig.crawler.browserConnectOnDemand
-        ? startBrowserInstance()
-        : getGlobalBrowser(),
-    );
+    const browser = await getBrowserInstance();
     if (!browser) {
       return browserlessCrawlPage(ctx);
     }
@@ -1372,6 +1369,83 @@ export const crawlPage = traced(
   },
 );
 
+const getBrowserInstance = traced(
+  "crawlPage.getBrowserInstance",
+  async (): Promise<Browser | undefined> =>
+    serverConfig.crawler.browserConnectOnDemand
+      ? startBrowserInstance()
+      : getGlobalBrowser(),
+);
+
+/**
+ * Renders a precrawled archive (e.g. a SingleFile capture uploaded by the
+ * browser extension) offline and screenshots it. The archive is untrusted
+ * user-provided HTML, so JavaScript is disabled and every network request is
+ * blocked; SingleFile archives inline their resources so they render fine
+ * without the network. Returns undefined when screenshots are disabled, the
+ * user can't use the browser, or no browser is available.
+ */
+const screenshotPrecrawledArchive = traced(
+  "screenshotPrecrawledArchive",
+  async (
+    ctx: CrawlContext,
+    htmlContent: string,
+  ): Promise<Buffer | undefined> => {
+    const { jobId, abortSignal, log } = ctx;
+    if (!serverConfig.crawler.storeScreenshot || !ctx.browserCrawlingEnabled) {
+      return undefined;
+    }
+    const browser = await getBrowserInstance();
+    if (!browser) {
+      log.info(
+        `No browser available. Skipping the screenshot of the precrawled archive.`,
+      );
+      return undefined;
+    }
+
+    const context = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+      javaScriptEnabled: false,
+      serviceWorkers: "block",
+      offline: true,
+    });
+    trackContext(jobId, context);
+    let page: Page | undefined;
+    try {
+      page = await context.newPage();
+      await page.route("**/*", async (route) => {
+        const requestUrl = route.request().url();
+        if (requestUrl.startsWith("data:") || requestUrl === "about:blank") {
+          await route.fallback();
+          return;
+        }
+        await route.abort("blockedbyclient");
+      });
+
+      const { error: loadError } = await tryCatch(
+        raceWith(
+          page.setContent(htmlContent, {
+            timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
+            waitUntil: "load",
+          }),
+          abortRace(abortSignal),
+        ),
+      );
+      abortSignal.throwIfAborted();
+      if (loadError) {
+        // A partially rendered page still makes a useful screenshot.
+        log.warn(
+          `Precrawled archive didn't fully load before screenshotting: ${loadError}`,
+        );
+      }
+
+      return await captureScreenshot(ctx, page);
+    } finally {
+      await closePageAndContext(ctx, page, context, browser);
+    }
+  },
+);
+
 /**
  * Creates and configures the page: redirect guard, adblocking, dialog
  * auto-dismissal, media/SSRF request blocking, and abort wiring.
@@ -1476,6 +1550,46 @@ const setupPage = traced(
 );
 
 /**
+ * Captures a JPEG screenshot of the page. Failures and timeouts are logged and
+ * reported as `undefined` since the screenshot is best-effort.
+ */
+const captureScreenshot = traced(
+  "crawlPage.captureScreenshot",
+  async (ctx: CrawlContext, activePage: Page): Promise<Buffer | undefined> => {
+    const { abortSignal, log } = ctx;
+    const { data: screenshotData, error: screenshotError } = await tryCatch(
+      raceWith<Buffer>(
+        activePage.screenshot({
+          // If you change this, change the content type in CAPTURED_ASSETS too.
+          type: "jpeg",
+          fullPage: serverConfig.crawler.fullPageScreenshot,
+          quality: 80,
+        }),
+        timeoutRace<Buffer>(
+          serverConfig.crawler.screenshotTimeoutSec * 1000,
+          () => {
+            throw new Error(
+              "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+            );
+          },
+        ),
+        abortRaceResolve(abortSignal, Buffer.from("")),
+      ),
+    );
+    abortSignal.throwIfAborted();
+    if (screenshotError) {
+      log.warn(`Failed to capture the screenshot. Reason: ${screenshotError}`);
+      return undefined;
+    }
+    setSpanAttributes({ "asset.size": screenshotData.byteLength });
+    log.info(
+      `Finished capturing page content and a screenshot. FullPageScreenshot: ${serverConfig.crawler.fullPageScreenshot}`,
+    );
+    return screenshotData;
+  },
+);
+
+/**
  * Extracts the page HTML and (depending on config) captures a screenshot and
  * a PDF, all in parallel.
  */
@@ -1494,42 +1608,8 @@ const capturePageAssets = traced(
       return content;
     });
 
-    const screenshotPromise: Promise<Buffer | undefined> = serverConfig.crawler
-      .storeScreenshot
-      ? span("crawlPage.captureScreenshot", async () => {
-          const { data: screenshotData, error: screenshotError } =
-            await tryCatch(
-              raceWith<Buffer>(
-                activePage.screenshot({
-                  // If you change this, change the content type in CAPTURED_ASSETS too.
-                  type: "jpeg",
-                  fullPage: serverConfig.crawler.fullPageScreenshot,
-                  quality: 80,
-                }),
-                timeoutRace<Buffer>(
-                  serverConfig.crawler.screenshotTimeoutSec * 1000,
-                  () => {
-                    throw new Error(
-                      "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-                    );
-                  },
-                ),
-                abortRaceResolve(abortSignal, Buffer.from("")),
-              ),
-            );
-          abortSignal.throwIfAborted();
-          if (screenshotError) {
-            log.warn(
-              `Failed to capture the screenshot. Reason: ${screenshotError}`,
-            );
-            return undefined;
-          }
-          setSpanAttributes({ "asset.size": screenshotData.byteLength });
-          log.info(
-            `Finished capturing page content and a screenshot. FullPageScreenshot: ${serverConfig.crawler.fullPageScreenshot}`,
-          );
-          return screenshotData;
-        })
+    const screenshotPromise = serverConfig.crawler.storeScreenshot
+      ? captureScreenshot(ctx, activePage)
       : Promise.resolve(undefined);
 
     const pdfPromise: Promise<Buffer | undefined> =
