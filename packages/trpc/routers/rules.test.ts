@@ -6,6 +6,32 @@ import type { CustomTestContext } from "../testUtils";
 import { defaultBeforeEach } from "../testUtils";
 
 describe("Rules Routes", () => {
+  test<CustomTestContext>("creates and updates a pre-tagging rule and rejects a skip action on an asynchronous event", async ({
+    apiCallers,
+  }) => {
+    const input = {
+      name: "Skip RSS tagging",
+      description: null,
+      enabled: true,
+      event: { type: "beforeAiTagging" as const },
+      condition: { type: "bookmarkSourceIs" as const, source: "rss" as const },
+      actions: [{ type: "skipAiTagging" as const }],
+    };
+    const rule = await apiCallers[0].rules.create(input);
+    expect(rule.event).toEqual(input.event);
+    expect(rule.actions).toEqual(input.actions);
+    await expect(
+      apiCallers[0].rules.create({
+        ...input,
+        event: { type: "bookmarkAdded" },
+      }),
+    ).rejects.toThrow("Before AI tagging");
+    await expect(
+      apiCallers[0].rules.update({ ...rule, event: { type: "favourited" } }),
+    ).rejects.toThrow("Before AI tagging");
+    await apiCallers[0].rules.update({ ...rule, enabled: false });
+  });
+
   let tagId1: string;
   let tagId2: string;
   let otherUserTagId: string;

@@ -178,6 +178,70 @@ describe("RuleEngine", () => {
     vi.restoreAllMocks();
   });
 
+  describe("before AI tagging", () => {
+    const skipRule = {
+      name: "Skip RSS tagging",
+      description: null,
+      enabled: true,
+      event: { type: "beforeAiTagging" as const },
+      condition: { type: "bookmarkSourceIs" as const, source: "rss" as const },
+      actions: [{ type: "skipAiTagging" as const }],
+    };
+
+    it("skips matching RSS bookmarks without removing existing tags", async () => {
+      await seedRule({ ...skipRule, userId });
+      const engine = await RuleEngine.forBookmark(ctx, linkBookmarkId);
+      expect(engine!.shouldSkipAiTagging).toBe(false);
+      const results = await engine!.onEvent({ type: "beforeAiTagging" });
+      expect(engine!.shouldSkipAiTagging).toBe(true);
+      expect(results).toEqual([
+        expect.objectContaining({
+          type: "success",
+          message: "Skipped AI tagging",
+        }),
+      ]);
+      expect(
+        await db
+          .select()
+          .from(tagsOnBookmarks)
+          .where(eq(tagsOnBookmarks.bookmarkId, linkBookmarkId)),
+      ).toHaveLength(1);
+    });
+
+    it("does not skip manually saved bookmarks", async () => {
+      await seedRule({ ...skipRule, userId });
+      await db
+        .update(bookmarks)
+        .set({ source: "web" })
+        .where(eq(bookmarks.id, linkBookmarkId));
+      const engine = await RuleEngine.forBookmark(ctx, linkBookmarkId);
+      await engine!.onEvent({ type: "beforeAiTagging" });
+      expect(engine!.shouldSkipAiTagging).toBe(false);
+    });
+
+    it("does not skip when the rule is disabled or a different event fires", async () => {
+      await seedRule({ ...skipRule, userId, enabled: false });
+      let engine = await RuleEngine.forBookmark(ctx, linkBookmarkId);
+      await engine!.onEvent({ type: "beforeAiTagging" });
+      expect(engine!.shouldSkipAiTagging).toBe(false);
+      await db.update(rules).set({ enabled: true });
+      engine = await RuleEngine.forBookmark(ctx, linkBookmarkId);
+      await engine!.onEvent({ type: "bookmarkAdded" });
+      expect(engine!.shouldSkipAiTagging).toBe(false);
+    });
+
+    it("does not use another user's rule", async () => {
+      const [otherUser] = await db
+        .insert(users)
+        .values({ name: "Other user", email: "other@example.com" })
+        .returning();
+      await seedRule({ ...skipRule, userId: otherUser.id });
+      const engine = await RuleEngine.forBookmark(ctx, linkBookmarkId);
+      await engine!.onEvent({ type: "beforeAiTagging" });
+      expect(engine!.shouldSkipAiTagging).toBe(false);
+    });
+  });
+
   describe("RuleEngine.forBookmark static method", () => {
     it("should initialize RuleEngine successfully for an existing bookmark", async () => {
       const engine = await RuleEngine.forBookmark(ctx, bookmarkId);
