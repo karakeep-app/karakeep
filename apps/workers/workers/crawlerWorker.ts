@@ -50,7 +50,7 @@ import {
 import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 import { getBookmarkDetails, updateAsset } from "workerUtils";
 
-import type { ZCrawlLinkRequest } from "@karakeep/shared-server";
+import type { AssetMetadata, ZCrawlLinkRequest } from "@karakeep/shared-server";
 import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
 import { db } from "@karakeep/db";
 import {
@@ -1849,6 +1849,39 @@ async function enqueuePostCrawlJobs(
 // Asset storage: screenshots, PDFs, images, HTML content, archives
 // ---------------------------------------------------------------------------
 
+/**
+ * Saves the buffer as a new asset if it fits in the user's storage quota.
+ * Returns the new asset's id, or null (logged) when over quota.
+ */
+async function saveBufferAsset(
+  ctx: CrawlContext,
+  label: string,
+  asset: Buffer,
+  metadata: AssetMetadata,
+): Promise<string | null> {
+  const { data: quotaApproved, error: quotaError } = await tryCatch(
+    QuotaService.checkStorageQuota(db, ctx.userId, asset.byteLength),
+  );
+  if (quotaError) {
+    ctx.log.warn(
+      `Skipping ${label} storage due to quota exceeded: ${quotaError.message}`,
+    );
+    return null;
+  }
+  const assetId = newAssetId();
+  await saveAsset({
+    userId: ctx.userId,
+    assetId,
+    metadata,
+    asset,
+    quotaApproved,
+  });
+  ctx.log.info(
+    `Stored the ${label} as assetId: ${assetId} (${asset.byteLength} bytes)`,
+  );
+  return assetId;
+}
+
 const CAPTURED_ASSETS = {
   screenshot: {
     spanName: "storeScreenshot",
@@ -1871,36 +1904,21 @@ function storeCapturedAsset(
   kind: keyof typeof CAPTURED_ASSETS,
   data: Buffer | undefined,
 ) {
-  const { userId, log } = ctx;
   const { spanName, label, contentType, fileName } = CAPTURED_ASSETS[kind];
   return span(spanName, async () => {
     setSpanAttributes({ "asset.size": data?.byteLength ?? 0 });
     if (!data) {
-      log.info(`Skipping storing the ${label} as it's empty.`);
+      ctx.log.info(`Skipping storing the ${label} as it's empty.`);
       return null;
     }
 
-    const { data: quotaApproved, error: quotaError } = await tryCatch(
-      QuotaService.checkStorageQuota(db, userId, data.byteLength),
-    );
-    if (quotaError) {
-      log.warn(
-        `Skipping ${label} storage due to quota exceeded: ${quotaError.message}`,
-      );
-      return null;
-    }
-
-    const assetId = newAssetId();
-    await saveAsset({
-      userId,
-      assetId,
-      metadata: { contentType, fileName },
-      asset: data,
-      quotaApproved,
+    const assetId = await saveBufferAsset(ctx, label, data, {
+      contentType,
+      fileName,
     });
-    log.info(
-      `Stored the ${label} as assetId: ${assetId} (${data.byteLength} bytes)`,
-    );
+    if (!assetId) {
+      return null;
+    }
     return { assetId, contentType, fileName, size: data.byteLength };
   });
 }
@@ -1955,27 +1973,12 @@ async function storeDataUriAsset(
     return null;
   }
 
-  const { data: quotaApproved, error: quotaError } = await tryCatch(
-    QuotaService.checkStorageQuota(db, userId, asset.byteLength),
-  );
-  if (quotaError) {
-    log.warn(
-      `Skipping data URI ${fileType} storage due to quota exceeded: ${quotaError.message}`,
-    );
+  const assetId = await saveBufferAsset(ctx, `data URI ${fileType}`, asset, {
+    contentType,
+  });
+  if (!assetId) {
     return null;
   }
-
-  const assetId = newAssetId();
-  await saveAsset({
-    userId,
-    assetId,
-    metadata: { contentType },
-    asset,
-    quotaApproved,
-  });
-  log.info(
-    `Stored data URI ${fileType} as assetId: ${assetId} (${asset.byteLength} bytes)`,
-  );
   return { assetId, userId, contentType, size: asset.byteLength };
 }
 
@@ -2200,7 +2203,7 @@ const storeHtmlContent = traced(
     ctx: CrawlContext,
     htmlContent: string | undefined,
   ): Promise<StoreHtmlResult> => {
-    const { userId, log } = ctx;
+    const { log } = ctx;
     setSpanAttributes({
       "bookmark.content.size": htmlContent
         ? Buffer.byteLength(htmlContent, "utf8")
@@ -2220,43 +2223,15 @@ const storeHtmlContent = traced(
       return { result: "store_inline" };
     }
 
-    const { data: quotaApproved, error: quotaError } = await tryCatch(
-      QuotaService.checkStorageQuota(db, userId, contentSize),
+    const assetId = await saveBufferAsset(
+      ctx,
+      "HTML content",
+      Buffer.from(htmlContent, "utf8"),
+      { contentType: ASSET_TYPES.TEXT_HTML, fileName: null },
     );
-    if (quotaError) {
-      log.warn(
-        `Skipping HTML content storage due to quota exceeded: ${quotaError.message}`,
-      );
+    if (!assetId) {
       return { result: "not_stored" };
     }
-
-    const assetId = newAssetId();
-
-    const { error: saveError } = await tryCatch(
-      saveAsset({
-        userId,
-        assetId,
-        asset: Buffer.from(htmlContent, "utf8"),
-        metadata: {
-          contentType: ASSET_TYPES.TEXT_HTML,
-          fileName: null,
-        },
-        quotaApproved,
-      }),
-    );
-    if (saveError) {
-      log.error(`Failed to store HTML content as asset: ${saveError}`);
-      throw saveError;
-    }
-
-    log.info(
-      `Stored large HTML content (${contentSize} bytes) as asset: ${assetId}`,
-    );
-
-    return {
-      result: "stored",
-      assetId,
-      size: contentSize,
-    };
+    return { result: "stored", assetId, size: contentSize };
   },
 );
