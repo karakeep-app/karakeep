@@ -2020,6 +2020,8 @@ const downloadAndStoreBanner = traced(
       }
       const toStore =
         (await optimizeBannerImage(banner.image, banner.contentType)) ?? banner;
+      // The crawl might have timed out while converting the banner.
+      ctx.abortSignal.throwIfAborted();
       const assetId = await saveBufferAsset(
         ctx,
         "banner image",
