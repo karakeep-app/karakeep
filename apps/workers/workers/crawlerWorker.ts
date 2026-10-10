@@ -1384,6 +1384,10 @@ const getBrowserInstance = traced(
  * blocked; SingleFile archives inline their resources so they render fine
  * without the network. Returns undefined when screenshots are disabled, the
  * user can't use the browser, or no browser is available.
+ *
+ * The screenshot is best-effort: processing the archive itself doesn't need a
+ * browser, so browser failures are logged and skipped rather than failing the
+ * crawl. Aborts still propagate.
  */
 const screenshotPrecrawledArchive = traced(
   "screenshotPrecrawledArchive",
@@ -1391,60 +1395,90 @@ const screenshotPrecrawledArchive = traced(
     ctx: CrawlContext,
     htmlContent: string,
   ): Promise<Buffer | undefined> => {
-    const { jobId, abortSignal, log } = ctx;
+    const { abortSignal, log } = ctx;
     if (!serverConfig.crawler.storeScreenshot || !ctx.browserCrawlingEnabled) {
       return undefined;
     }
-    const browser = await getBrowserInstance();
-    if (!browser) {
-      log.info(
-        `No browser available. Skipping the screenshot of the precrawled archive.`,
+    const { data: screenshot, error } = await tryCatch(
+      renderPrecrawledArchiveScreenshot(ctx, htmlContent),
+    );
+    abortSignal.throwIfAborted();
+    if (error) {
+      log.warn(
+        `Failed to screenshot the precrawled archive. Skipping the screenshot: ${error}`,
       );
       return undefined;
     }
+    return screenshot;
+  },
+);
 
-    const context = await browser.newContext({
+async function renderPrecrawledArchiveScreenshot(
+  ctx: CrawlContext,
+  htmlContent: string,
+): Promise<Buffer | undefined> {
+  const { jobId, abortSignal, log } = ctx;
+  const browser = await getBrowserInstance();
+  if (!browser) {
+    log.info(
+      `No browser available. Skipping the screenshot of the precrawled archive.`,
+    );
+    return undefined;
+  }
+
+  let context: BrowserContext;
+  try {
+    context = await browser.newContext({
       viewport: { width: 1440, height: 900 },
       javaScriptEnabled: false,
       serviceWorkers: "block",
       offline: true,
     });
-    trackContext(jobId, context);
-    let page: Page | undefined;
-    try {
-      page = await context.newPage();
-      await page.route("**/*", async (route) => {
-        const requestUrl = route.request().url();
-        if (requestUrl.startsWith("data:") || requestUrl === "about:blank") {
-          await route.fallback();
-          return;
-        }
-        await route.abort("blockedbyclient");
+  } catch (e) {
+    // closePageAndContext would close an on-demand browser, but it's never
+    // reached without a context.
+    if (serverConfig.crawler.browserConnectOnDemand) {
+      await browser.close().catch((closeError: unknown) => {
+        log.warn(`browser.close() failed: ${closeError}`);
       });
-
-      const { error: loadError } = await tryCatch(
-        raceWith(
-          page.setContent(htmlContent, {
-            timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
-            waitUntil: "load",
-          }),
-          abortRace(abortSignal),
-        ),
-      );
-      abortSignal.throwIfAborted();
-      if (loadError) {
-        // A partially rendered page still makes a useful screenshot.
-        log.warn(
-          `Precrawled archive didn't fully load before screenshotting: ${loadError}`,
-        );
-      }
-
-      return await captureScreenshot(ctx, page);
-    } finally {
-      await closePageAndContext(ctx, page, context, browser);
     }
-  },
-);
+    throw e;
+  }
+  trackContext(jobId, context);
+  let page: Page | undefined;
+  try {
+    page = await context.newPage();
+    await page.route("**/*", async (route) => {
+      const requestUrl = route.request().url();
+      if (requestUrl.startsWith("data:") || requestUrl === "about:blank") {
+        await route.fallback();
+        return;
+      }
+      await route.abort("blockedbyclient");
+    });
+
+    const { error: loadError } = await tryCatch(
+      raceWith(
+        page.setContent(htmlContent, {
+          timeout: serverConfig.crawler.navigateTimeoutSec * 1000,
+          waitUntil: "load",
+        }),
+        abortRace(abortSignal),
+      ),
+    );
+    abortSignal.throwIfAborted();
+    if (loadError) {
+      // A partially rendered page still makes a useful screenshot.
+      log.warn(
+        `Precrawled archive didn't fully load before screenshotting: ${loadError}`,
+      );
+    }
+
+    return await captureScreenshot(ctx, page);
+  } finally {
+    await closePageAndContext(ctx, page, context, browser);
+  }
+}
 
 /**
  * Creates and configures the page: redirect guard, adblocking, dialog
