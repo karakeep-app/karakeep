@@ -11,12 +11,12 @@ import logger from "@karakeep/shared/logger";
 import type {
   ParseSubprocessError,
   ParseSubprocessOutput,
-} from "../utils/parseHtmlSubprocessIpc";
+} from "./parseHtmlSubprocessIpc";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessOutputSchema,
-} from "../utils/parseHtmlSubprocessIpc";
-import { truncateUrl } from "./utils";
+} from "./parseHtmlSubprocessIpc";
+import { truncateUrl } from "./crawlerUtils";
 
 const tracer = getTracer("@karakeep/workers");
 
