@@ -345,7 +345,7 @@ async function buildEmbeddingText(
 
 type EmbedRequest = Extract<ZEmbeddingsRequest, { type: "embed" }>;
 
-async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
+export async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
   const jobId = job.id;
   const data = job.data;
   const bookmarkId = data.bookmarkId;
@@ -427,7 +427,11 @@ async function runEmbed(
 
   const embeddingClient = EmbeddingClientFactory.build();
   if (!embeddingClient) {
-    logger.debug(
+    // This describes a misconfiguration (no embedding model set up), not a routine
+    // no-op, so it's logged at warn level: unlike the other early returns in this
+    // function, embedding generation for this bookmark can never succeed until the
+    // instance is (re)configured with an embedding client.
+    logger.warn(
       `[embeddings][${jobId}] No embedding client configured, skipping embedding generation`,
     );
     if (shouldTag) {

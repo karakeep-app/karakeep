@@ -104,6 +104,11 @@ export const adminAppRouter = router({
           queued: z.number(),
           pending: z.number(),
           failed: z.number(),
+          // Whether an embedding client is actually configured. Jobs are enqueued
+          // and bookmarks are marked "pending" unconditionally, so without this the
+          // UI can't tell "actively processing" apart from "nothing can ever
+          // process these" (see https://github.com/karakeep-app/karakeep/issues/3146).
+          configured: z.boolean(),
         }),
         adminMaintenanceStats: z.object({
           queued: z.number(),
@@ -243,6 +248,7 @@ export const adminAppRouter = router({
           queued: queuedEmbeddings.pending + queuedEmbeddings.pending_retry,
           pending: pendingEmbeddings,
           failed: failedEmbeddings,
+          configured: serverConfig.embedding.isConfigured,
         },
         adminMaintenanceStats: {
           queued:
