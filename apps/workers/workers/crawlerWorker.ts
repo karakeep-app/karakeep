@@ -366,8 +366,6 @@ async function runCrawler(
     log,
   };
 
-  await checkDomainRateLimit(ctx);
-
   addLogFields<"crawlerWorker.run">({
     "user.id": userId,
     "crawler.url": url,
@@ -387,6 +385,7 @@ async function runCrawler(
   });
 
   log.info(`Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`);
+  await checkDomainRateLimit(ctx);
 
   if (precrawledArchiveAssetId) {
     log.info(
