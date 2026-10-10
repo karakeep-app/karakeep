@@ -190,6 +190,48 @@ usersCmd
     }
   });
 
+usersCmd
+  .command("delete")
+  .description("permanently delete a user and all of their data")
+  .argument("<user>", "the id or email of the user to delete")
+  .option("-y, --yes", "skip confirmation prompt")
+  .action(async (idOrEmail, opts) => {
+    const api = getAPIClient();
+
+    try {
+      const user = await api.admin.getUser.query(
+        idOrEmail.includes("@") ? { email: idOrEmail } : { id: idOrEmail },
+      );
+
+      if (!opts.yes) {
+        // Prompt on stderr to keep stdout clean for --json output.
+        const rl = readline.createInterface({ input, output: process.stderr });
+        const answer = (
+          await rl.question(
+            `This will permanently delete user "${user.name}" (${user.email}) and all of their data. Proceed? (yes/no): `,
+          )
+        )
+          .trim()
+          .toLowerCase();
+        rl.close();
+        if (answer !== "y" && answer !== "yes") {
+          printStatusMessage(false, "Deletion aborted by user");
+          return;
+        }
+      }
+
+      await api.users.delete.mutate({ userId: user.id });
+      if (getGlobalOptions().json) {
+        printObject({ id: user.id, deleted: true });
+      } else {
+        printStatusMessage(true, `User ${user.email} deleted`);
+      }
+    } catch (error) {
+      printErrorMessageWithReason("Failed to delete user", error as object);
+      process.exitCode = 1;
+    }
+  });
+
 adminCmd.addCommand(usersCmd);
 
 // --- Bookmarks subcommand ---

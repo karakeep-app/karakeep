@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { addLogFields } from "@karakeep/shared-server";
+import { zAdminUserSchema } from "@karakeep/shared/types/admin";
 import {
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
@@ -25,16 +26,7 @@ export const usersAppRouter = router({
   list: adminUsersProcedure
     .output(
       z.object({
-        users: z.array(
-          z.object({
-            id: z.string(),
-            name: z.string(),
-            email: z.string(),
-            role: z.enum(["user", "admin"]).nullable(),
-            bookmarkQuota: z.number().nullable(),
-            storageQuota: z.number().nullable(),
-          }),
-        ),
+        users: z.array(zAdminUserSchema),
       }),
     )
     .query(async ({ ctx }) => {
@@ -51,6 +43,12 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (ctx.user.id == input.userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot delete own account as an admin",
+        });
+      }
       addLogFields<"user.delete">({
         "user.deleted_id": input.userId,
         "user.deleted_by": "admin",
