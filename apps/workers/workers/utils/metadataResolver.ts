@@ -1,3 +1,5 @@
+import { decodeEntity as decodeHtmlEntity } from "html-entities";
+
 import type { ParseSubprocessOutput } from "./parseHtmlSubprocessIpc";
 
 /**
@@ -85,6 +87,36 @@ export function isLikelyChallengePage({
 // DataDome's captcha page (as opposed to its self-clearing device check) needs
 // a human to solve it, so there's no point waiting for it to clear.
 const DATADOME_HARD_CAPTCHA = /['"]rt['"]\s*:\s*['"]c['"]/;
+
+const HUMAN_READABLE_METADATA_FIELDS = [
+  "title",
+  "description",
+  "author",
+  "publisher",
+] as const;
+
+const HTML_ENTITY = /&(?:[a-zA-Z][a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+);/g;
+const STRUCTURAL_HTML_CHARACTERS = new Set(["&", "<", ">", '"', "'"]);
+
+function decodeResidualMetadataText(value: string | null | undefined) {
+  if (typeof value !== "string") {
+    return value;
+  }
+  return value.replace(HTML_ENTITY, (entity) => {
+    const decoded = decodeHtmlEntity(entity);
+    return STRUCTURAL_HTML_CHARACTERS.has(decoded) ? entity : decoded;
+  });
+}
+
+export function decodeResidualMetadataEntities<
+  T extends ParseSubprocessOutput["metadata"],
+>(metadata: T): T {
+  const decoded = { ...metadata };
+  for (const field of HUMAN_READABLE_METADATA_FIELDS) {
+    decoded[field] = decodeResidualMetadataText(decoded[field]);
+  }
+  return decoded;
+}
 
 /**
  * Whether the page is a bot challenge that may clear by itself (and reload
