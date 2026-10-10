@@ -4,6 +4,7 @@
 // contexts so leaked ones eventually get closed.
 import * as dns from "dns";
 import { promises as fs } from "fs";
+import { createRequire } from "node:module";
 import * as path from "node:path";
 import * as os from "os";
 import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
@@ -195,6 +196,21 @@ function startContextReaper() {
   );
 }
 
+/**
+ * The user agent to send when connecting to a remote Playwright server.
+ * Playwright servers (and browserless, which picks the server version to run
+ * from it) read the client's version from a `Playwright/<x.y.z>` user agent,
+ * but patchright's version carries a "v" prefix ("v1.59.4") that defeats both:
+ * browserless falls back to its newest, protocol-incompatible Playwright and
+ * every crawl hangs. Advertise the bare Playwright version patchright tracks.
+ */
+function getPlaywrightClientUserAgent(): string {
+  const { version } = createRequire(import.meta.url)(
+    "patchright/package.json",
+  ) as { version: string };
+  return `Playwright/${version.replace(/^v/, "")}`;
+}
+
 export async function startBrowserInstance() {
   if (serverConfig.crawler.browserWebSocketUrl) {
     logger.info(
@@ -202,6 +218,7 @@ export async function startBrowserInstance() {
     );
     return await chromium.connect(serverConfig.crawler.browserWebSocketUrl, {
       timeout: 5000,
+      headers: { "User-Agent": getPlaywrightClientUserAgent() },
     });
   } else if (serverConfig.crawler.browserWebUrl) {
     logger.info(
