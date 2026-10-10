@@ -12,6 +12,7 @@ import {
   LowPriorityCrawlerQueue,
   QueuePriority,
   RuleEngineQueue,
+  WebhookQueue,
 } from "@karakeep/shared-server";
 import { EnqueueOptions } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -331,6 +332,20 @@ export class RuleEngine {
           })
           .where(eq(bookmarks.id, this.bookmark.id));
         return `Marked as archived`;
+      }
+      case "triggerWebhook": {
+        await WebhookQueue.enqueue(
+          {
+            bookmarkId: this.bookmark.id,
+            userId: this.bookmark.userId,
+            operation: "rule triggered",
+            webhookId: action.webhookId,
+          },
+          {
+            groupId: this.bookmark.userId,
+          },
+        );
+        return `Triggered webhook ${action.webhookId}`;
       }
       default: {
         const _exhaustiveCheck: never = action;

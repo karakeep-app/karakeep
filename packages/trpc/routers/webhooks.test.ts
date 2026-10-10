@@ -20,6 +20,25 @@ describe("Webhook Routes", () => {
     expect(newWebhook.hasToken).toBe(false); // Assuming token is not set by default
   });
 
+  test<CustomTestContext>("create webhook with no events", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].webhooks;
+    const newWebhook = await api.create({
+      url: "https://example.com/webhook",
+      events: [],
+    });
+
+    // Such a webhook is only ever delivered to by a rule engine action.
+    expect(newWebhook.events).toEqual([]);
+
+    const cleared = await api.update({
+      webhookId: newWebhook.id,
+      events: [],
+    });
+    expect(cleared.events).toEqual([]);
+  });
+
   test<CustomTestContext>("update webhook", async ({ apiCallers }) => {
     const api = apiCallers[0].webhooks;
 

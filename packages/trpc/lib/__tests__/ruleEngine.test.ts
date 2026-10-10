@@ -14,11 +14,13 @@ import {
   ruleEngineRulesTable as rules,
   tagsOnBookmarks,
   users,
+  webhooksTable,
 } from "@karakeep/db/schema";
 import {
   buildCrawlIdempotencyKey,
   LowPriorityCrawlerQueue,
   QueuePriority,
+  WebhookQueue,
 } from "@karakeep/shared-server";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
@@ -44,6 +46,9 @@ vi.mock("@karakeep/shared-server", async (importOriginal) => {
     RuleEngineQueue: {
       enqueue: vi.fn(),
     },
+    WebhookQueue: {
+      enqueue: vi.fn(),
+    },
   };
 });
 
@@ -58,6 +63,7 @@ describe("RuleEngine", () => {
   let tagId2: string;
   let feedId1: string;
   let listId1: string;
+  let webhookId1: string;
 
   // Helper to seed a rule
   const seedRule = async (
@@ -129,6 +135,18 @@ describe("RuleEngine", () => {
         .values({ name: "List1", userId, type: "manual", icon: "📚" })
         .returning({ id: bookmarkLists.id })
     ).map((l) => l.id);
+
+    // Seed Webhook
+    [webhookId1] = (
+      await db
+        .insert(webhooksTable)
+        .values({
+          userId,
+          url: "https://example.com/webhook",
+          events: ["created"],
+        })
+        .returning({ id: webhooksTable.id })
+    ).map((w) => w.id);
 
     // Seed Bookmarks
     [linkBookmarkId] = (
@@ -615,6 +633,26 @@ describe("RuleEngine", () => {
           groupId: userId,
           priority: QueuePriority.Low,
           idempotencyKey: buildCrawlIdempotencyKey(expectedPayload),
+        },
+      );
+    });
+
+    it("should execute triggerWebhook action", async () => {
+      const action: RuleEngineAction = {
+        type: "triggerWebhook",
+        webhookId: webhookId1,
+      };
+      const result = await engine.executeAction(action);
+      expect(result).toBe(`Triggered webhook ${webhookId1}`);
+      expect(WebhookQueue.enqueue).toHaveBeenCalledWith(
+        {
+          bookmarkId: bookmarkId,
+          userId: userId,
+          operation: "rule triggered",
+          webhookId: webhookId1,
+        },
+        {
+          groupId: userId,
         },
       );
     });

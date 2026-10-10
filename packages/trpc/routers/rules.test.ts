@@ -13,6 +13,9 @@ describe("Rules Routes", () => {
   let listId: string;
   let otherUserListId: string;
 
+  let webhookId: string;
+  let otherUserWebhookId: string;
+
   beforeEach<CustomTestContext>(async (ctx) => {
     await defaultBeforeEach(true)(ctx);
 
@@ -45,6 +48,20 @@ describe("Rules Routes", () => {
       await ctx.apiCallers[1].lists.create({
         name: "List 1",
         icon: "😘",
+      })
+    ).id;
+
+    webhookId = (
+      await ctx.apiCallers[0].webhooks.create({
+        url: "https://example.com/webhook",
+        events: ["created"],
+      })
+    ).id;
+
+    otherUserWebhookId = (
+      await ctx.apiCallers[1].webhooks.create({
+        url: "https://example.com/webhook",
+        events: ["created"],
       })
     ).id;
   });
@@ -248,6 +265,23 @@ describe("Rules Routes", () => {
     expect(rulesList.rules.some((rule) => rule.name === "Rule 2")).toBeTruthy();
   });
 
+  test<CustomTestContext>("create rule with a triggerWebhook action", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].rules;
+
+    const rule = await api.create({
+      name: "Webhook Rule",
+      description: "Trigger a webhook when a bookmark lands in a list",
+      enabled: true,
+      event: { type: "addedToList", listIds: [listId] },
+      condition: { type: "alwaysTrue" },
+      actions: [{ type: "triggerWebhook", webhookId }],
+    });
+
+    expect(rule.actions).toEqual([{ type: "triggerWebhook", webhookId }]);
+  });
+
   describe("privacy checks", () => {
     test<CustomTestContext>("cannot access or manipulate another user's rule", async ({
       apiCallers,
@@ -380,6 +414,27 @@ describe("Rules Routes", () => {
 
       await expect(() => api.create(invalidRuleInput)).rejects.toThrow(
         /List not found/,
+      );
+    });
+
+    test<CustomTestContext>("cannot create rule with action on another user's webhook", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].rules; // First user trying to use second user's webhook
+
+      const invalidRuleInput: Omit<RuleEngineRule, "id"> = {
+        name: "Invalid Rule",
+        description: "Action with other user's webhook",
+        enabled: true,
+        event: { type: "bookmarkAdded" },
+        condition: { type: "alwaysTrue" },
+        actions: [
+          { type: "triggerWebhook", webhookId: otherUserWebhookId }, // Other user's webhook
+        ],
+      };
+
+      await expect(() => api.create(invalidRuleInput)).rejects.toThrow(
+        /not allowed to access resource/,
       );
     });
   });
