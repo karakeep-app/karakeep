@@ -22,6 +22,7 @@ import serverConfig from "@karakeep/shared/config";
 import {
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
+  zUserBookmarkCountsResponseSchema,
   zUserStatsResponseSchema,
   zWhoAmIResponseSchema,
   zWrappedStatsResponseSchema,
@@ -379,6 +380,20 @@ export class User {
       userId: this.user.id,
       assetId: previousImage,
     }).catch(() => ({}));
+  }
+
+  async getBookmarkCounts(): Promise<
+    z.infer<typeof zUserBookmarkCountsResponseSchema>
+  > {
+    const [res] = await this.ctx.db
+      .select({
+        numBookmarks: count(),
+        numFavorites: sql<number>`COALESCE(SUM(CASE WHEN ${bookmarks.favourited} THEN 1 ELSE 0 END), 0)`,
+        numArchived: sql<number>`COALESCE(SUM(CASE WHEN ${bookmarks.archived} THEN 1 ELSE 0 END), 0)`,
+      })
+      .from(bookmarks)
+      .where(eq(bookmarks.userId, this.user.id));
+    return res;
   }
 
   async getStats(): Promise<z.infer<typeof zUserStatsResponseSchema>> {

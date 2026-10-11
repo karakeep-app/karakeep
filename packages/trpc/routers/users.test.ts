@@ -609,6 +609,59 @@ describe("User Routes", () => {
     ).toBe(true);
   });
 
+  test<CustomTestContext>("bookmark counts", async ({ db }) => {
+    const user1 = await createTestUser(db, {
+      name: "User 1",
+      email: "counts1@test.com",
+      password: "pass1234",
+    });
+    const user2 = await createTestUser(db, {
+      name: "User 2",
+      email: "counts2@test.com",
+      password: "pass1234",
+    });
+    const caller = getApiCaller(db, user1.id);
+
+    expect(await caller.users.bookmarkCounts()).toEqual({
+      numBookmarks: 0,
+      numFavorites: 0,
+      numArchived: 0,
+    });
+
+    await db.insert(bookmarks).values([
+      {
+        userId: user1.id,
+        type: BookmarkTypes.LINK,
+        archived: false,
+        favourited: true,
+      },
+      {
+        userId: user1.id,
+        type: BookmarkTypes.LINK,
+        archived: true,
+        favourited: true,
+      },
+      {
+        userId: user1.id,
+        type: BookmarkTypes.LINK,
+        archived: false,
+        favourited: false,
+      },
+      {
+        userId: user2.id,
+        type: BookmarkTypes.LINK,
+        archived: true,
+        favourited: true,
+      },
+    ]);
+
+    expect(await caller.users.bookmarkCounts()).toEqual({
+      numBookmarks: 3,
+      numFavorites: 2,
+      numArchived: 1,
+    });
+  });
+
   describe("Delete Account", () => {
     test<CustomTestContext>("deleteAccount - with password", async ({ db }) => {
       const user = await createTestUser(db, {
