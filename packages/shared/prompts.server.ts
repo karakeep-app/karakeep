@@ -28,6 +28,9 @@ async function truncateContent(
   length: number,
 ): Promise<string> {
   const enc = await getEncodingInstance();
+  // Tokenizing is slow and blocks the event loop, so cut the content to a
+  // generous upper bound of characters before encoding it.
+  content = content.slice(0, length * 8);
   const tokens = enc.encode(content);
   if (tokens.length <= length) {
     return content;
