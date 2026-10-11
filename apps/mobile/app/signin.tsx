@@ -155,6 +155,10 @@ export default function Signin() {
           justifyContent: "center",
           gap: 24,
           paddingHorizontal: 20,
+          // Keep the form phone-sized on tablets.
+          width: "100%",
+          maxWidth: 480,
+          alignSelf: "center",
           // Slight upward bias so the block doesn't sit dead centre.
           paddingTop: 24,
           paddingBottom: 88,
