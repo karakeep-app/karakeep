@@ -13,6 +13,7 @@ import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { FAB } from "@/components/ui/FAB";
 import { Text } from "@/components/ui/Text";
+import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -192,7 +193,10 @@ export default function Lists() {
         contentContainerStyle={{
           gap: 6,
           paddingBottom: 20,
-          marginHorizontal: 15,
+          paddingHorizontal: 15,
+          width: "100%",
+          maxWidth: READABLE_CONTENT_MAX_WIDTH,
+          alignSelf: "center",
           marginBottom: 15,
         }}
         renderItem={(l) => (

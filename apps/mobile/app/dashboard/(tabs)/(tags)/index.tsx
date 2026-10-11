@@ -14,6 +14,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { FAB } from "@/components/ui/FAB";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { Text } from "@/components/ui/Text";
+import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, Tag } from "lucide-react-native";
 
@@ -94,6 +95,9 @@ export default function Tags() {
         contentContainerStyle={{
           gap: 6,
           paddingBottom: 20,
+          width: "100%",
+          maxWidth: READABLE_CONTENT_MAX_WIDTH,
+          alignSelf: "center",
         }}
         renderItem={(item) => (
           <View
