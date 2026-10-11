@@ -38,15 +38,11 @@ export function webStreamToNode(
 export function toWebReadableStream(
   nodeStream: NodeJS.ReadableStream,
 ): ReadableStream<Uint8Array> {
-  const reader = nodeStream as unknown as Readable;
-
-  return new ReadableStream({
-    start(controller) {
-      reader.on("data", (chunk) => controller.enqueue(new Uint8Array(chunk)));
-      reader.on("end", () => controller.close());
-      reader.on("error", (err) => controller.error(err));
-    },
-  });
+  // Readable.toWeb propagates backpressure and destroys the source on cancel,
+  // so slow or disconnected clients don't cause the whole asset to be read.
+  return Readable.toWeb(
+    nodeStream as Readable,
+  ) as unknown as ReadableStream<Uint8Array>;
 }
 
 export async function uploadAsset(
