@@ -6,6 +6,7 @@ import { zAdminUserSchema } from "@karakeep/shared/types/admin";
 import {
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
+  zUserBookmarkCountsResponseSchema,
   zUserStatsResponseSchema,
   zWhoAmIResponseSchema,
   zWrappedStatsResponseSchema,
@@ -75,6 +76,12 @@ export const usersAppRouter = router({
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
       return await user.asWhoAmI();
+    }),
+  bookmarkCounts: usersProcedure
+    .output(zUserBookmarkCountsResponseSchema)
+    .query(async ({ ctx }) => {
+      const user = await User.fromCtx(ctx);
+      return await user.getBookmarkCounts();
     }),
   stats: usersProcedure
     .output(zUserStatsResponseSchema)

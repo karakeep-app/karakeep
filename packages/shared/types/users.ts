@@ -65,6 +65,12 @@ export const zWhoAmIResponseSchema = z.object({
   localUser: z.boolean(),
 });
 
+export const zUserBookmarkCountsResponseSchema = z.object({
+  numBookmarks: z.number(),
+  numFavorites: z.number(),
+  numArchived: z.number(),
+});
+
 export const zUserStatsResponseSchema = z.object({
   numBookmarks: z.number(),
   numFavorites: z.number(),
