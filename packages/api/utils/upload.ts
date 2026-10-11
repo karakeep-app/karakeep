@@ -4,6 +4,7 @@ import * as path from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import { fileTypeFromBlob, supportedMimeTypes } from "file-type";
+import { bodyLimit } from "hono/body-limit";
 
 import { assets, AssetTypes } from "@karakeep/db/schema";
 import {
@@ -17,6 +18,14 @@ import serverConfig from "@karakeep/shared/config";
 import { AuthedContext } from "@karakeep/trpc";
 
 const MAX_UPLOAD_SIZE_BYTES = serverConfig.maxAssetSizeMb * 1024 * 1024;
+
+// Rejects oversized uploads before the multipart body gets buffered in memory.
+// The extra 1MiB leaves room for the multipart framing and other form fields,
+// the exact file size is still enforced in uploadAsset.
+export const uploadBodyLimit = bodyLimit({
+  maxSize: MAX_UPLOAD_SIZE_BYTES + 1024 * 1024,
+  onError: (c) => c.json({ error: "Asset is too big" }, 413),
+});
 
 // Helper to convert Web Stream to Node Stream (requires Node >= 16.5 / 14.18)
 export function webStreamToNode(
