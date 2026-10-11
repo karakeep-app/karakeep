@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,12 +11,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { MarkdownReadonly } from "@/components/ui/markdown/markdown-readonly";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { z } from "zod";
+
+// Only needed when the release notes dialog is opened.
+const MarkdownReadonly = dynamic(() =>
+  import("@/components/ui/markdown/markdown-readonly").then(
+    (m) => m.MarkdownReadonly,
+  ),
+);
 
 const GITHUB_OWNER_REPO = "karakeep-app/karakeep";
 const GITHUB_REPO_URL = `https://github.com/${GITHUB_OWNER_REPO}`;

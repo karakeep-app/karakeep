@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
@@ -38,8 +39,6 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -57,6 +56,22 @@ import {
 
 import QueryExplainerTooltip from "../search/QueryExplainerTooltip";
 import { BookmarkListSelector } from "./BookmarkListSelector";
+
+// The emoji dataset is large, only load it when the picker is opened.
+const EmojiPicker = dynamic(
+  async () => {
+    const [{ default: data }, { default: Picker }] = await Promise.all([
+      import("@emoji-mart/data"),
+      import("@emoji-mart/react"),
+    ]);
+    return function EmojiPicker(props: {
+      onEmojiSelect: (e: { native: string }) => void;
+    }) {
+      return <Picker data={data} {...props} />;
+    };
+  },
+  { ssr: false },
+);
 
 export function EditListModal({
   open: userOpen,
@@ -233,8 +248,7 @@ export function EditListModal({
                             {field.value}
                           </PopoverTrigger>
                           <PopoverContent className="w-auto">
-                            <Picker
-                              data={data}
+                            <EmojiPicker
                               onEmojiSelect={(e: { native: string }) =>
                                 field.onChange(e.native)
                               }
