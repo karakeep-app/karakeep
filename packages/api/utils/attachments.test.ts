@@ -383,6 +383,48 @@ describe("generic bookmark attachments", () => {
     }
   });
 
+  it<CustomTestContext>("downloads legacy HTML user attachments without changing page archive delivery", async (ctx) => {
+    const { app } = await harness(ctx);
+    const bytes = "<html><script>alert(1)</script></html>";
+    const result = await (
+      await upload(app, new File([bytes], "legacy.html", { type: "text/html" }))
+    ).json();
+    const url = `http://localhost/v1/assets/${result.assetId}`;
+    expect(
+      (await app.request(url)).headers.get("content-disposition"),
+    ).toBeNull();
+    const bookmark = await ctx.apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.LINK,
+      url: "https://example.com/legacy",
+      precrawledArchiveId: result.assetId,
+    });
+    expect(
+      (await app.request(url)).headers.get("content-disposition"),
+    ).toBeNull();
+    await ctx.apiCallers[0].assets.attachAsset({
+      bookmarkId: bookmark.id,
+      asset: { id: result.assetId, assetType: "userUploaded" },
+    });
+    const signed = await (await app.request(`${url}/signed-url`)).json();
+    const signedUrl = new URL(signed.signedUrl);
+    for (const path of [
+      url,
+      `http://localhost${signedUrl.pathname.replace(/^\/api/, "")}${signedUrl.search}`,
+    ]) {
+      for (const partial of [false, true]) {
+        const headers = new Headers();
+        if (partial) headers.set("Range", "bytes=0-3");
+        const response = await app.request(path, { headers });
+        expect(response.status).toBe(partial ? 206 : 200);
+        expect(response.headers.get("content-disposition")).toMatch(
+          /^attachment;/,
+        );
+        expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+        expect(await response.text()).toBe(partial ? bytes.slice(0, 4) : bytes);
+      }
+    }
+  });
+
   it<CustomTestContext>("keeps legacy uploads and detected PDF/image previews", async (ctx) => {
     const { app } = await harness(ctx);
     expect((await upload(app, new File([asciiStl], "part.stl"))).status).toBe(
@@ -411,6 +453,14 @@ describe("generic bookmark attachments", () => {
       expect(response.status).toBe(200);
       const result = await response.json();
       expect(result.contentType).toBe(type);
+      const bookmark = await ctx.apiCallers[0].bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com/preview",
+      });
+      await ctx.apiCallers[0].assets.attachAsset({
+        bookmarkId: bookmark.id,
+        asset: { id: result.assetId, assetType: "userUploaded" },
+      });
       const download = await app.request(
         `http://localhost/v1/assets/${result.assetId}`,
       );

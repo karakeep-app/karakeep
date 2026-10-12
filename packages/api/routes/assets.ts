@@ -70,7 +70,12 @@ const app = new Hono()
     const asset = await Asset.fromId(c.var.ctx, assetId);
     await asset.ensureCanView();
 
-    return await serveAsset(c, assetId, asset.asset.userId);
+    return await serveAsset(
+      c,
+      assetId,
+      asset.asset.userId,
+      asset.asset.assetType,
+    );
   });
 
 export default app;

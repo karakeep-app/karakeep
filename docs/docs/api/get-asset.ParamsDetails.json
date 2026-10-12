@@ -1,1 +1,0 @@
-{"parameters":[{"schema":{"type":"string","description":"The unique identifier of the asset.","example":"ieidlxygmwj87oxz5hxttoc8","title":"AssetId"},"required":true,"description":"The unique identifier of the asset.","name":"assetId","in":"path"}]}
