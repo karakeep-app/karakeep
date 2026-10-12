@@ -236,6 +236,16 @@ export class Asset {
     ]);
     asset.ensureOwnership();
 
+    if (
+      asset.asset.assetType === "userUploaded" &&
+      input.asset.assetType !== "userUploaded"
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User attachments cannot be used as preview assets",
+      });
+    }
+
     if (!isAllowedToAttachAsset(input.asset.assetType)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -274,6 +284,15 @@ export class Asset {
     ]);
     oldAsset.ensureOwnership();
     newAsset.ensureOwnership();
+    if (
+      newAsset.asset.assetType === "userUploaded" &&
+      oldAsset.asset.assetType !== "userUploaded"
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User attachments cannot be used as preview assets",
+      });
+    }
 
     if (
       !isAllowedToAttachAsset(

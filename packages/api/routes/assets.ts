@@ -28,7 +28,8 @@ const app = new Hono()
       "form",
       z
         .object({ file: z.instanceof(File) })
-        .or(z.object({ image: z.instanceof(File) })),
+        .or(z.object({ image: z.instanceof(File) }))
+        .and(z.object({ purpose: z.literal("attachment").optional() })),
     ),
     async (c) => {
       const body = c.req.valid("form");

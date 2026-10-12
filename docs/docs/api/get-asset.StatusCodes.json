@@ -1,0 +1,1 @@
+{"responses":{"200":{"description":"The asset's binary content. The Content-Type header reflects the asset's MIME type (e.g., image/png, application/pdf)."},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}

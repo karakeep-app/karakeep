@@ -25,6 +25,17 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
   // Default Headers
   c.header("Content-type", metadata.contentType);
   c.header("X-Content-Type-Options", "nosniff");
+  if (metadata.downloadOnly) {
+    // RFC 5987 encoding keeps names out of HTTP syntax, including CR/LF.
+    const name = encodeURIComponent(metadata.fileName ?? "attachment").replace(
+      /['()*]/g,
+      (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+    );
+    c.header(
+      "Content-Disposition",
+      `attachment; filename="attachment"; filename*=UTF-8''${name}`,
+    );
+  }
   c.header("Cache-Control", "private, max-age=31536000, immutable");
   c.header(
     "Content-Security-Policy",

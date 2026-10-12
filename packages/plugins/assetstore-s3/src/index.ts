@@ -29,8 +29,10 @@ export class S3AssetStore implements AssetStore {
   ): Record<string, string> {
     return {
       ...(metadata.fileName
-        ? { "x-amz-meta-file-name": metadata.fileName }
+        ? { "x-amz-meta-file-name": encodeURIComponent(metadata.fileName) }
         : {}),
+      ...(metadata.fileName ? { "x-amz-meta-file-name-encoding": "uri" } : {}),
+      ...(metadata.downloadOnly ? { "x-amz-meta-download-only": "true" } : {}),
       "x-amz-meta-content-type": metadata.contentType,
     };
   }
@@ -44,7 +46,13 @@ export class S3AssetStore implements AssetStore {
 
     return {
       contentType: s3Metadata["x-amz-meta-content-type"] || "",
-      fileName: s3Metadata["x-amz-meta-file-name"] ?? null,
+      fileName:
+        s3Metadata["x-amz-meta-file-name-encoding"] === "uri"
+          ? decodeURIComponent(s3Metadata["x-amz-meta-file-name"] ?? "")
+          : (s3Metadata["x-amz-meta-file-name"] ?? null),
+      ...(s3Metadata["x-amz-meta-download-only"] === "true"
+        ? { downloadOnly: true }
+        : {}),
     };
   }
 
@@ -59,7 +67,10 @@ export class S3AssetStore implements AssetStore {
     asset: Buffer;
     metadata: AssetMetadata;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (
+      !metadata.downloadOnly &&
+      !SUPPORTED_ASSET_TYPES.has(metadata.contentType)
+    ) {
       throw new Error("Unsupported asset type");
     }
 
@@ -85,7 +96,10 @@ export class S3AssetStore implements AssetStore {
     assetPath: string;
     metadata: AssetMetadata;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (
+      !metadata.downloadOnly &&
+      !SUPPORTED_ASSET_TYPES.has(metadata.contentType)
+    ) {
       throw new Error("Unsupported asset type");
     }
 
