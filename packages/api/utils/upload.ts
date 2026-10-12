@@ -3,6 +3,7 @@ import * as os from "os";
 import * as path from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
+import { eq } from "drizzle-orm";
 import { fileTypeFromBlob, supportedMimeTypes } from "file-type";
 import { bodyLimit } from "hono/body-limit";
 
@@ -138,17 +139,22 @@ export async function uploadAsset(
       })
       .returning();
 
-    await saveAssetFromFile({
-      userId: user.id,
-      assetId: assetDb.id,
-      assetPath: tempFilePath,
-      metadata: {
-        contentType,
-        fileName,
-        ...(downloadOnly ? { downloadOnly: true } : {}),
-      },
-      quotaApproved,
-    });
+    try {
+      await saveAssetFromFile({
+        userId: user.id,
+        assetId: assetDb.id,
+        assetPath: tempFilePath,
+        metadata: {
+          contentType,
+          fileName,
+          ...(downloadOnly ? { downloadOnly: true } : {}),
+        },
+        quotaApproved,
+      });
+    } catch (error) {
+      await db.delete(assets).where(eq(assets.id, assetDb.id));
+      throw error;
+    }
 
     return {
       assetId: assetDb.id,

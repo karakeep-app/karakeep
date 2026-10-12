@@ -14,7 +14,9 @@ const dataDir = await vi.hoisted(async () => {
 });
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
-import { users } from "@karakeep/db/schema";
+import { loadAllPlugins } from "@karakeep/shared-server";
+import { PluginManager, PluginType } from "@karakeep/shared/plugins";
+import { assets, users } from "@karakeep/db/schema";
 import type { Context } from "@karakeep/trpc";
 import { defaultBeforeEach, getTestQueueMocks } from "@karakeep/trpc/testUtils";
 import type { CustomTestContext } from "@karakeep/trpc/testUtils";
@@ -91,6 +93,25 @@ const fixtures: [string, Uint8Array, string, string][] = [
 ];
 
 describe("generic bookmark attachments", () => {
+  it<CustomTestContext>("removes the database row when storage fails", async (ctx) => {
+    const { authCtx } = await harness(ctx);
+    await loadAllPlugins();
+    const store = await PluginManager.getClient(PluginType.AssetStore);
+    const save = vi
+      .spyOn(store!, "saveAssetFromFile")
+      .mockRejectedValueOnce(new Error("Storage write failed"));
+    try {
+      await expect(
+        uploadAsset(authCtx.user, ctx.db, {
+          file: new File(["solid model"], "model.stl", { type: "model/stl" }),
+          purpose: "attachment",
+        }),
+      ).rejects.toThrow("Storage write failed");
+      expect(await ctx.db.select().from(assets)).toEqual([]);
+    } finally {
+      save.mockRestore();
+    }
+  });
   it<CustomTestContext>("round-trips multiple files without changing bookmark content or processing attachments", async (ctx) => {
     const { app } = await harness(ctx);
     const bookmark = await ctx.apiCallers[0].bookmarks.createBookmark({

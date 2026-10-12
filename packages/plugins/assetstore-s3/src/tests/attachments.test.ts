@@ -47,6 +47,54 @@ describe("S3 generic attachments", () => {
     );
   });
 
+  it("keeps long Unicode filenames within the S3 metadata budget", async () => {
+    const client = new S3Client({ region: "us-east-1" });
+    const store = new S3AssetStore(client, "test");
+    const fileName = "模".repeat(230) + ".stl";
+    const send = vi.spyOn(client, "send").mockImplementation(async () => ({}));
+    await store.saveAsset({
+      userId: "owner",
+      assetId: "uuid",
+      asset: Buffer.from("mesh"),
+      metadata: { contentType: "model/stl", fileName, downloadOnly: true },
+    });
+    const command = send.mock.calls[0][0] as PutObjectCommand;
+    const metadata = command.input.Metadata!;
+    expect(
+      Object.entries(metadata).reduce(
+        (size, [key, value]) =>
+          size + Buffer.byteLength(key) + Buffer.byteLength(value),
+        0,
+      ),
+    ).toBeLessThan(2048);
+    send.mockImplementation(async () => ({ Metadata: metadata }));
+    expect(
+      await store.readAssetMetadata({ userId: "owner", assetId: "uuid" }),
+    ).toEqual({
+      contentType: "model/stl",
+      fileName,
+      downloadOnly: true,
+    });
+  });
+
+  it("reads URI-encoded metadata from earlier versions", async () => {
+    const client = new S3Client({ region: "us-east-1" });
+    const store = new S3AssetStore(client, "test");
+    vi.spyOn(client, "send").mockImplementation(async () => ({
+      Metadata: {
+        "x-amz-meta-content-type": "model/stl",
+        "x-amz-meta-file-name": encodeURIComponent("模型.stl"),
+        "x-amz-meta-file-name-encoding": "uri",
+      },
+    }));
+    expect(
+      await store.readAssetMetadata({ userId: "owner", assetId: "uuid" }),
+    ).toEqual({
+      contentType: "model/stl",
+      fileName: "模型.stl",
+    });
+  });
+
   it("reads old metadata unchanged, including literal percent escapes and null names", async () => {
     const client = new S3Client({ region: "us-east-1" });
     const store = new S3AssetStore(client, "test");
