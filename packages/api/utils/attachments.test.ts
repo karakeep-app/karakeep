@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import { readFile, rm } from "node:fs/promises";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
@@ -93,13 +94,17 @@ const fixtures: [string, Uint8Array, string, string][] = [
 ];
 
 describe("generic bookmark attachments", () => {
-  it<CustomTestContext>("removes the database row when storage fails", async (ctx) => {
+  it<CustomTestContext>("removes persisted bytes and the database row when storage reports a late failure", async (ctx) => {
     const { authCtx } = await harness(ctx);
     await loadAllPlugins();
     const store = await PluginManager.getClient(PluginType.AssetStore);
+    const originalSave = store!.saveAssetFromFile.bind(store);
     const save = vi
       .spyOn(store!, "saveAssetFromFile")
-      .mockRejectedValueOnce(new Error("Storage write failed"));
+      .mockImplementationOnce(async (input) => {
+        await originalSave(input);
+        throw new Error("Storage write failed");
+      });
     try {
       await expect(
         uploadAsset(authCtx.user, ctx.db, {
@@ -108,10 +113,69 @@ describe("generic bookmark attachments", () => {
         }),
       ).rejects.toThrow("Storage write failed");
       expect(await ctx.db.select().from(assets)).toEqual([]);
+      const { userId, assetId } = save.mock.calls[0][0];
+      await expect(store!.getAssetSize({ userId, assetId })).rejects.toThrow();
+      await expect(
+        store!.readAssetMetadata({ userId, assetId }),
+      ).rejects.toThrow();
     } finally {
       save.mockRestore();
     }
   });
+  it<CustomTestContext>("removes partial filesystem writes when metadata persistence fails", async (ctx) => {
+    const { authCtx } = await harness(ctx);
+    await loadAllPlugins();
+    const store = (await PluginManager.getClient(PluginType.AssetStore))!;
+    const remove = vi.spyOn(store, "deleteAsset");
+    const write = vi
+      .spyOn(fs.promises, "writeFile")
+      .mockRejectedValueOnce(new Error("Disk full"));
+    try {
+      await expect(
+        uploadAsset(authCtx.user, ctx.db, {
+          file: new File(["solid model"], "partial.stl", { type: "model/stl" }),
+          purpose: "attachment",
+        }),
+      ).rejects.toThrow("Disk full");
+      expect(await ctx.db.select().from(assets)).toEqual([]);
+      expect(remove).toHaveBeenCalledOnce();
+      await expect(
+        store.getAssetSize(remove.mock.calls[0][0]),
+      ).rejects.toThrow();
+      await expect(
+        store.readAssetMetadata(remove.mock.calls[0][0]),
+      ).rejects.toThrow();
+    } finally {
+      write.mockRestore();
+      remove.mockRestore();
+    }
+  });
+
+  it<CustomTestContext>("preserves the original storage error if cleanup also fails", async (ctx) => {
+    const { authCtx } = await harness(ctx);
+    await loadAllPlugins();
+    const store = (await PluginManager.getClient(PluginType.AssetStore))!;
+    const save = vi
+      .spyOn(store, "saveAssetFromFile")
+      .mockRejectedValueOnce(new Error("Original write error"));
+    const remove = vi
+      .spyOn(store, "deleteAsset")
+      .mockRejectedValueOnce(new Error("Cleanup error"));
+    try {
+      await expect(
+        uploadAsset(authCtx.user, ctx.db, {
+          file: new File(["solid model"], "failed.stl", { type: "model/stl" }),
+          purpose: "attachment",
+        }),
+      ).rejects.toThrow("Original write error");
+      expect(await ctx.db.select().from(assets)).toEqual([]);
+      expect(remove).toHaveBeenCalledOnce();
+    } finally {
+      save.mockRestore();
+      remove.mockRestore();
+    }
+  });
+
   it<CustomTestContext>("round-trips multiple files without changing bookmark content or processing attachments", async (ctx) => {
     const { app } = await harness(ctx);
     const bookmark = await ctx.apiCallers[0].bookmarks.createBookmark({

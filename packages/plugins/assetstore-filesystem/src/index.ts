@@ -78,13 +78,12 @@ export class LocalFileSystemAssetStore implements AssetStore {
     const assetDir = this.getAssetDir(userId, assetId);
     await fs.promises.mkdir(assetDir, { recursive: true });
 
-    await Promise.all([
-      fs.promises.copyFile(assetPath, path.join(assetDir, "asset.bin")),
-      fs.promises.writeFile(
-        path.join(assetDir, "metadata.json"),
-        JSON.stringify(metadata),
-      ),
-    ]);
+    // Finish each write before cleanup can run after a failure.
+    await fs.promises.copyFile(assetPath, path.join(assetDir, "asset.bin"));
+    await fs.promises.writeFile(
+      path.join(assetDir, "metadata.json"),
+      JSON.stringify(metadata),
+    );
     await fs.promises.rm(assetPath);
   }
 

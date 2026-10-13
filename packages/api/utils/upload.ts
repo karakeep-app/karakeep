@@ -9,6 +9,7 @@ import { bodyLimit } from "hono/body-limit";
 
 import { assets, AssetTypes } from "@karakeep/db/schema";
 import {
+  deleteAsset,
   newAssetId,
   QuotaService,
   saveAssetFromFile,
@@ -153,6 +154,9 @@ export async function uploadAsset(
       });
     } catch (error) {
       await db.delete(assets).where(eq(assets.id, assetDb.id));
+      await deleteAsset({ userId: user.id, assetId: assetDb.id }).catch(
+        () => ({}),
+      );
       throw error;
     }
 
