@@ -161,9 +161,9 @@ function useTextCardContext({
       </View>
     ),
     compactBody: (
-      <Text className="text-sm leading-5 text-foreground" numberOfLines={3}>
-        {content}
-      </Text>
+      <View className="max-h-16 overflow-hidden text-foreground">
+        <BookmarkTextMarkdown text={content} />
+      </View>
     ),
     title: getDisplayTitle(bookmark),
   };

@@ -34,6 +34,7 @@ const ASSET_ICONS: Record<ZAssetType, typeof Paperclip> = {
   bookmarkAsset: Paperclip,
   linkHtmlContent: FileCode,
   userUploaded: Upload,
+  noteImage: Image,
   avatar: SquareUser,
   unknown: Paperclip,
 };
