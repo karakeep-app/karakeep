@@ -7,6 +7,7 @@ import "@karakeep/tailwind-config/globals.css";
 import type { Viewport } from "next";
 import React from "react";
 import Providers from "@/lib/providers";
+import { THEME_COLORS } from "@/lib/themeColors";
 import { getUserLocalSettings } from "@/lib/userLocalSettings/userLocalSettings";
 import { getServerAuthSession } from "@/server/auth";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -56,12 +57,11 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   // Values match the `--background` token in tooling/tailwind/globals.css.
-  // These follow the OS color scheme only. An in-app theme override via
-  // next-themes is not reflected here, so chrome can differ from the page
-  // when a user picks a theme opposite to their system preference.
+  // These cover the pre-hydration and no-JavaScript cases; once mounted,
+  // <ThemeColorSync /> updates them to follow an in-app theme override.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#020817" },
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
   ],
 };
 
