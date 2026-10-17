@@ -140,3 +140,11 @@ This is a server-side implementation that targets the internal tRPC API used by 
 :::
 
 Get it [here](https://github.com/gowinder/karaclone) (AGPL-3.0).
+
+### KaraKeep Dashboard
+
+_By [@bartlomiejborzucki](https://github.com/bartlomiejborzucki)._
+
+A fast, self-hosted start page for your bookmarks: every list on one page in a masonry grid, instant offline search, drag & drop between lists, and an installable PWA. It is a static Docker image that talks to the public REST API from the browser with an API key — no backend and no database to mount.
+
+Get it [here](https://github.com/bartlomiejborzucki/karakeep-dashboard), or try the [live demo](https://bartlomiejborzucki.github.io/karakeep-dashboard/) with sample data.
