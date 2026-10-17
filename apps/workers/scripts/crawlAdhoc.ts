@@ -27,7 +27,8 @@ import { parseArgs } from "node:util";
  *
  * The two anti-detection levers are controlled purely by env, so the test
  * driver can flip them per attempt:
- *   BROWSER_WEB_URL                      -> which Chrome container (flags arm)
+ *   BROWSER_CDP_URL / BROWSER_WEBSOCKET_URL / BROWSER_WEB_URL
+ *                                        -> browser backend (flags arm)
  *   REBROWSER_PATCHES_RUNTIME_FIX_MODE   -> "0" disables the rebrowser patch
  *
  * Usage:
@@ -91,6 +92,7 @@ async function main() {
   // Dynamic imports so the DATA_DIR override above takes effect first.
   const { default: serverConfig } = await import("@karakeep/shared/config");
   const { selectRunProxies } = await import("network");
+  const { redactUrlCredentials } = await import("workers/utils/crawlerUtils");
   const { crawlPage, crawlLogger, CrawlerWorker } =
     await import("workers/crawlerWorker");
 
@@ -120,8 +122,13 @@ async function main() {
     mkdirSync(screenshotDir, { recursive: true });
   }
 
+  // Match connection precedence and keep endpoint credentials out of logs.
+  const browserEndpoint =
+    serverConfig.crawler.browserCdpUrl ??
+    serverConfig.crawler.browserWebSocketUrl ??
+    serverConfig.crawler.browserWebUrl;
   console.error(
-    `[adhoc] arm=${values.arm} browser=${serverConfig.crawler.browserWebUrl ?? "(browserless)"} ` +
+    `[adhoc] arm=${values.arm} browser=${browserEndpoint ? redactUrlCredentials(browserEndpoint) : "(browserless)"} ` +
       `rebrowserFix=${process.env.REBROWSER_PATCHES_RUNTIME_FIX_MODE === "0" ? "off" : "on"} ` +
       `db=${process.env.KARAKEEP_ADHOC_USE_REAL_DB === "1" ? "REAL" : "scratch"}`,
   );
