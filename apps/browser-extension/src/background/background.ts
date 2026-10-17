@@ -12,10 +12,14 @@ import {
 import { getApiClient, initializeClients } from "../utils/trpc";
 import { MessageType } from "../utils/type";
 import { isHttpUrl } from "../utils/url";
-import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./protocol";
+import {
+  NEW_BOOKMARK_REQUEST_KEY_NAME,
+  SCREENSHOT_PENDING_KEY_NAME,
+} from "./protocol";
 
 const OPEN_KARAKEEP_ID = "open-karakeep";
 const ADD_LINK_TO_KARAKEEP_ID = "add-link";
+const SCREENSHOT_TO_KARAKEEP_ID = "screenshot-page";
 const CLEAR_CURRENT_CACHE_ID = "clear-current-cache";
 const CLEAR_ALL_CACHE_ID = "clear-all-cache";
 const SEPARATOR_ID = "separator-1";
@@ -65,6 +69,12 @@ function registerContextMenus(settings: Settings) {
     id: ADD_LINK_TO_KARAKEEP_ID,
     title: "Add to Karakeep",
     contexts: ["link", "page", "selection", "image"],
+  });
+
+  chrome.contextMenus.create({
+    id: SCREENSHOT_TO_KARAKEEP_ID,
+    title: "Screenshot and send to Karakeep",
+    contexts: ["page"],
   });
 
   if (settings?.showCountBadge) {
@@ -126,6 +136,17 @@ async function handleContextMenuClick(
       pageUrl,
       title: isCurrentPage ? tab?.title : undefined,
     });
+
+    // NOTE: Firefox only allows opening context menus if it's triggered by a user action.
+    // awaiting on any promise before calling this function will lose the "user action" context.
+    await chrome.action.openPopup();
+  } else if (menuItemId === SCREENSHOT_TO_KARAKEEP_ID) {
+    // The actual capture + upload happens in the popup (SavePage), not here:
+    // both are async network/browser calls, and awaiting them here before
+    // calling chrome.action.openPopup() would lose the user-gesture context
+    // needed to open the popup on Firefox. We just flag the intent and let
+    // the popup do the work once it's open.
+    chrome.storage.session.set({ [SCREENSHOT_PENDING_KEY_NAME]: true });
 
     // NOTE: Firefox only allows opening context menus if it's triggered by a user action.
     // awaiting on any promise before calling this function will lose the "user action" context.
