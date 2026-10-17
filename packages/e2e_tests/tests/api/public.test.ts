@@ -148,6 +148,55 @@ describe("Public API", () => {
     ).rejects.toThrow(/List not found/);
   });
 
+  it("should share a single bookmark publicly and revoke it", async () => {
+    const trpcClient = getTrpcClient(apiKey);
+    const unauthedClient = getTrpcClient();
+
+    const uploadResponse = await uploadTestAsset(
+      apiKey,
+      port,
+      createTestPdfFile("shared.pdf"),
+    );
+    const bookmark = await trpcClient.bookmarks.createBookmark.mutate({
+      title: "Shared Bookmark",
+      type: BookmarkTypes.ASSET,
+      assetType: "pdf",
+      assetId: uploadResponse.assetId,
+    });
+
+    const { token } = await trpcClient.bookmarks.setPublicShare.mutate({
+      bookmarkId: bookmark.id,
+      enabled: true,
+    });
+    assert(token, "Sharing should return a token");
+
+    const res = await unauthedClient.publicBookmarks.getPublicBookmark.query({
+      token,
+    });
+    expect(res.bookmark.id).toBe(bookmark.id);
+    expect(res.bookmark.title).toBe("Shared Bookmark");
+    assert(res.bookmark.content.type === BookmarkTypes.ASSET);
+    const assetFetch = await fetch(res.bookmark.content.assetUrl);
+    expect(assetFetch.status).toBe(200);
+
+    const pageFetch = await fetch(
+      `http://localhost:${port}/public/bookmarks/${token}`,
+    );
+    expect(pageFetch.status).toBe(200);
+
+    await trpcClient.bookmarks.setPublicShare.mutate({
+      bookmarkId: bookmark.id,
+      enabled: false,
+    });
+    await expect(
+      unauthedClient.publicBookmarks.getPublicBookmark.query({ token }),
+    ).rejects.toThrow(/Bookmark not found/);
+    const revokedPageFetch = await fetch(
+      `http://localhost:${port}/public/bookmarks/${token}`,
+    );
+    expect(revokedPageFetch.status).toBe(404);
+  });
+
   describe("Public asset token validation", () => {
     let userId: string;
     let assetId: string; // Asset belonging to the primary user (userId)

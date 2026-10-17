@@ -397,3 +397,10 @@ export const zPublicBookmarkSchema = z.object({
 });
 
 export type ZPublicBookmark = z.infer<typeof zPublicBookmarkSchema>;
+
+// The public share link of a single bookmark. A null token means that the
+// bookmark is not publicly shared.
+export const zBookmarkPublicShareSchema = z.object({
+  token: z.string().nullable(),
+});
+export type ZBookmarkPublicShare = z.infer<typeof zBookmarkPublicShareSchema>;
