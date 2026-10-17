@@ -90,10 +90,63 @@ export function useDeleteBookmark(
           queryClient,
           api.bookmarks.searchBookmarks.pathFilter(),
         );
-        queryClient.removeQueries(
+        queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
         scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
+}
+
+export function useRestoreBookmark(
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["restoreBookmark"]["mutationOptions"]
+  >[0],
+) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.restoreBookmark.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmarks.pathFilter(),
+        );
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.searchBookmarks.pathFilter(),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
+}
+
+export function usePermanentlyDeleteBookmark(
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["permanentlyDeleteBookmark"]["mutationOptions"]
+  >[0],
+) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.permanentlyDeleteBookmark.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmarks.pathFilter(),
+        );
+        queryClient.removeQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),

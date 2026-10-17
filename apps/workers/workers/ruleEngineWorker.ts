@@ -61,6 +61,7 @@ async function getBookmarkUserId(bookmarkId: string) {
     where: eq(bookmarks.id, bookmarkId),
     columns: {
       userId: true,
+      deleteAt: true,
     },
   });
 }
@@ -77,6 +78,12 @@ async function runRuleEngine(job: DequeuedJob<ZRuleEngineRequest>) {
   if (!bookmark) {
     logger.info(
       `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} was not found, skipping`,
+    );
+    return;
+  }
+  if (bookmark.deleteAt) {
+    logger.info(
+      `[ruleEngine][${jobId}] bookmark with id ${bookmarkId} is in the trash, skipping`,
     );
     return;
   }

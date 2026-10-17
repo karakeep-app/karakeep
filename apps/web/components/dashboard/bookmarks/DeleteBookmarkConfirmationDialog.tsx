@@ -4,7 +4,7 @@ import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 
-import { useDeleteBookmark } from "@karakeep/shared-react/hooks//bookmarks";
+import { usePermanentlyDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
 export default function DeleteBookmarkConfirmationDialog({
@@ -22,7 +22,7 @@ export default function DeleteBookmarkConfirmationDialog({
   const currentPath = usePathname();
   const router = useRouter();
 
-  const { mutate: deleteBoomark, isPending } = useDeleteBookmark({
+  const { mutate: deleteBoomark, isPending } = usePermanentlyDeleteBookmark({
     onSuccess: () => {
       toast({
         description: t("toasts.bookmarks.deleted"),
@@ -45,7 +45,9 @@ export default function DeleteBookmarkConfirmationDialog({
       open={open}
       setOpen={setOpen}
       title={t("dialogs.bookmarks.delete_confirmation_title")}
-      description={t("dialogs.bookmarks.delete_confirmation_description")}
+      description={t(
+        "dialogs.bookmarks.permanent_delete_confirmation_description",
+      )}
       actionButton={() => (
         <ActionButton
           type="button"
@@ -53,7 +55,7 @@ export default function DeleteBookmarkConfirmationDialog({
           loading={isPending}
           onClick={() => deleteBoomark({ bookmarkId: bookmark.id })}
         >
-          Delete
+          {t("actions.delete_permanently")}
         </ActionButton>
       )}
     >

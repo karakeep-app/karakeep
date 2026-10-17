@@ -496,6 +496,15 @@ export async function getBookmarkIdsFromMatcher(
   matcher: Matcher,
   visitedListIds = new Set<string>(),
 ): Promise<string[]> {
-  const results = await getIds(ctx, matcher, visitedListIds);
-  return results.map((r) => r.id);
+  const [results, trashed] = await Promise.all([
+    getIds(ctx, matcher, visitedListIds),
+    ctx.db
+      .select({ id: bookmarks.id })
+      .from(bookmarks)
+      .where(
+        and(eq(bookmarks.userId, ctx.user.id), isNotNull(bookmarks.deleteAt)),
+      ),
+  ]);
+  const trashedIds = new Set(trashed.map((r) => r.id));
+  return results.map((r) => r.id).filter((id) => !trashedIds.has(id));
 }
