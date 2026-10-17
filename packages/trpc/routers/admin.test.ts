@@ -1,3 +1,4 @@
+import * as dns from "dns";
 import { eq } from "drizzle-orm";
 import {
   afterEach,
@@ -18,6 +19,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import { QueuePriority } from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
@@ -58,6 +60,91 @@ beforeEach<CustomTestContext>(async (context) => {
 });
 
 describe("Admin Routes", () => {
+  describe("browser connection checks", () => {
+    const originalBrowserWebUrl = serverConfig.crawler.browserWebUrl;
+    const originalBrowserWebSocketUrl =
+      serverConfig.crawler.browserWebSocketUrl;
+
+    beforeEach(() => {
+      serverConfig.crawler.browserWebUrl =
+        "ws://browserless:3000?token=test-token";
+      serverConfig.crawler.browserWebSocketUrl = undefined;
+      adminJobMocks.getSearchClient.mockResolvedValue(null);
+      adminJobMocks.getVectorStoreClient.mockResolvedValue(null);
+      vi.spyOn(dns.promises, "lookup").mockResolvedValue({
+        address: "127.0.0.1",
+        family: 4,
+      });
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null));
+    });
+
+    afterEach(() => {
+      serverConfig.crawler.browserWebUrl = originalBrowserWebUrl;
+      serverConfig.crawler.browserWebSocketUrl = originalBrowserWebSocketUrl;
+      vi.restoreAllMocks();
+    });
+
+    for (const [protocol, expectedProtocol] of [
+      ["http", "http"],
+      ["https", "https"],
+      ["ws", "http"],
+      ["wss", "https"],
+    ]) {
+      test<CustomTestContext>(`checks ${protocol} browser URLs over ${expectedProtocol}`, async ({
+        db,
+      }) => {
+        const browserUrl = `${protocol}://browserless:3000?token=test%2Btoken&other=value`;
+        serverConfig.crawler.browserWebUrl = browserUrl;
+        const api = getApiCaller(db, "admin", "admin@test.com", "admin");
+
+        const result = await api.admin.checkConnections();
+
+        expect(fetch).toHaveBeenCalledExactlyOnceWith(
+          `${expectedProtocol}://127.0.0.1:3000/json/version?token=test%2Btoken&other=value`,
+          { signal: expect.any(AbortSignal) },
+        );
+        expect(result.browser).toMatchObject({
+          configured: true,
+          connected: true,
+        });
+        expect(result.browser.error).toBeUndefined();
+        expect(serverConfig.crawler.browserWebUrl).toBe(browserUrl);
+      });
+    }
+
+    test<CustomTestContext>("reports HTTP failures for WebSocket browser URLs", async ({
+      db,
+    }) => {
+      vi.mocked(fetch).mockResolvedValue(
+        new Response(null, { status: 401, statusText: "Unauthorized" }),
+      );
+      const api = getApiCaller(db, "admin", "admin@test.com", "admin");
+
+      const result = await api.admin.checkConnections();
+
+      expect(result.browser).toMatchObject({
+        configured: true,
+        connected: false,
+        error: "HTTP 401: Unauthorized",
+      });
+    });
+
+    test<CustomTestContext>("reports network failures for WebSocket browser URLs", async ({
+      db,
+    }) => {
+      vi.mocked(fetch).mockRejectedValue(new TypeError("fetch failed"));
+      const api = getApiCaller(db, "admin", "admin@test.com", "admin");
+
+      const result = await api.admin.checkConnections();
+
+      expect(result.browser).toMatchObject({
+        configured: true,
+        connected: false,
+        error: "fetch failed",
+      });
+    });
+  });
+
   describe("bulk bookmark jobs", () => {
     const now = new Date("2026-07-26T12:00:00.000Z");
 
