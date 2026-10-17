@@ -89,4 +89,6 @@ Updating Karakeep will depend on what you used for the `KARAKEEP_VERSION` env va
 If your custom Compose file still uses the old Alpine Chrome image, follow the
 [Chrome image migration guide](../06-administration/09-chrome-image-migration.md).
 
-Note that if you want to upgrade/migrate `Meilisearch` versions, refer to the [troubleshooting](../06-administration/05-troubleshooting.md) page.
+:::warning
+Existing installs only: this upgrade bumps the bundled Meilisearch from `v1.41.0` to `v1.53.2`, and the new version will refuse to open the old database until a one-time migration is run. Before restarting the stack, follow the [Upgrading Meilisearch](../06-administration/10-meilisearch-upgrade.md) guide — otherwise the meilisearch container will crash-loop and search will be unavailable.
+:::
