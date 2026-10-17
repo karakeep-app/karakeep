@@ -51,6 +51,11 @@
     "list": "List",
     "compact": "Compact"
   },
+  "sidebar": {
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "resize": "Resize sidebar"
+  },
   "view_options": {
     "title": "View Options",
     "layout": "Layout",

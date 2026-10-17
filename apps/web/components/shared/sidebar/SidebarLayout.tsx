@@ -9,6 +9,8 @@ import { ErrorBoundary } from "react-error-boundary";
 
 import serverConfig from "@karakeep/shared/config";
 
+import DesktopSidebar from "./DesktopSidebar";
+
 export default function SidebarLayout({
   children,
   mobileSidebar,
@@ -25,7 +27,7 @@ export default function SidebarLayout({
       <Header />
       <div className="flex min-h-[calc(100vh-64px)] w-full flex-col sm:h-[calc(100dvh-64px)] sm:flex-row sm:overflow-hidden">
         <ValidAccountCheck />
-        <div className="hidden flex-none sm:flex">{sidebar}</div>
+        <DesktopSidebar>{sidebar}</DesktopSidebar>
         <main className="flex-1 bg-muted sm:min-h-0 sm:overflow-y-auto">
           {serverConfig.demoMode && <DemoModeBanner />}
           <div className="block w-full sm:hidden">
