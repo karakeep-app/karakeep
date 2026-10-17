@@ -2133,7 +2133,7 @@ const downloadAndStoreFile = traced(
   },
 );
 
-const archiveWebpage = traced(
+export const archiveWebpage = traced(
   "archiveWebpage",
   async (ctx: CrawlContext, html: string, url: string) => {
     const { userId, abortSignal, runProxy, log } = ctx;
@@ -2153,87 +2153,99 @@ const archiveWebpage = traced(
     }
 
     const assetId = newAssetId();
-    const assetPath = path.join(os.tmpdir(), assetId);
-
-    const res = await execa({
-      input: html,
-      cancelSignal: abortSignal,
-      // Report failures through the result instead of throwing, so that they
-      // are handled below and the temp file is cleaned up.
-      reject: false,
-      env: {
-        https_proxy: runProxy.httpsProxy,
-        http_proxy: runProxy.httpProxy,
-        no_proxy: runProxy.noProxy?.join(","),
-      },
-    })("monolith", [
-      "-",
-      "-Ije",
-      "-t",
-      String(serverConfig.crawler.monolithTimeoutSec),
-      ...serverConfig.crawler.monolithArguments,
-      "-b",
-      url,
-      "-o",
-      assetPath,
-    ]);
-
-    if (res.failed) {
-      await tryCatch(fs.unlink(assetPath));
-      // A job timeout must still fail the job so the crawl is retried rather
-      // than reported as completed (see downloadAndStoreFile).
-      abortSignal.throwIfAborted();
-      log.error(`Failed to archive the page: ${res.shortMessage}`);
-      return null;
-    }
-
-    const contentType = "text/html";
-
-    // Get file size and check quota before saving
-    const stats = await fs.stat(assetPath);
-    const fileSize = stats.size;
-
-    // Discard oversized archives: media-rich pages can produce 1GB+
-    // monolith files that never render and only hang/crash browsers.
-    // 0 (default) disables the limit.
-    const maxArchiveSizeMb = serverConfig.crawler.fullPageArchiveMaxSizeMb;
-    if (maxArchiveSizeMb > 0 && fileSize > maxArchiveSizeMb * 1024 * 1024) {
-      log.warn(
-        `Discarding page archive of ${fileSize} bytes as it exceeds CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB=${maxArchiveSizeMb}.`,
-      );
-      await tryCatch(fs.unlink(assetPath));
-      return null;
-    }
-
-    const { data: quotaApproved, error: quotaError } = await tryCatch(
-      QuotaService.checkStorageQuota(db, userId, fileSize),
+    // Monolith can leave its media cache behind when interrupted.
+    const tempDir = await fs.mkdtemp(
+      path.join(os.tmpdir(), "karakeep-monolith-"),
     );
+    const assetPath = path.join(tempDir, assetId);
 
-    if (quotaError) {
-      log.warn(
-        `Skipping page archive storage due to quota exceeded: ${quotaError.message}`,
+    try {
+      const res = await execa({
+        input: html,
+        cancelSignal: abortSignal,
+        // Handle ordinary failures here while allowing job aborts to trigger retries.
+        reject: false,
+        env: {
+          TMPDIR: tempDir,
+          https_proxy: runProxy.httpsProxy,
+          http_proxy: runProxy.httpProxy,
+          no_proxy: runProxy.noProxy?.join(","),
+        },
+      })("monolith", [
+        "-",
+        "-Ije",
+        "-t",
+        String(serverConfig.crawler.monolithTimeoutSec),
+        ...serverConfig.crawler.monolithArguments,
+        "-b",
+        url,
+        "-o",
+        assetPath,
+      ]);
+
+      if (res.failed) {
+        // A job timeout must still fail the job so the crawl is retried rather
+        // than reported as completed (see downloadAndStoreFile).
+        abortSignal.throwIfAborted();
+        log.error(`Failed to archive the page: ${res.shortMessage}`);
+        return null;
+      }
+
+      const contentType = "text/html";
+
+      // Get file size and check quota before saving
+      const stats = await fs.stat(assetPath);
+      const fileSize = stats.size;
+
+      // Discard oversized archives: media-rich pages can produce 1GB+
+      // monolith files that never render and only hang/crash browsers.
+      // 0 (default) disables the limit.
+      const maxArchiveSizeMb = serverConfig.crawler.fullPageArchiveMaxSizeMb;
+      if (maxArchiveSizeMb > 0 && fileSize > maxArchiveSizeMb * 1024 * 1024) {
+        log.warn(
+          `Discarding page archive of ${fileSize} bytes as it exceeds CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB=${maxArchiveSizeMb}.`,
+        );
+        return null;
+      }
+
+      const { data: quotaApproved, error: quotaError } = await tryCatch(
+        QuotaService.checkStorageQuota(db, userId, fileSize),
       );
-      await tryCatch(fs.unlink(assetPath));
-      return null;
-    }
 
-    await saveAssetFromFile({
-      userId,
-      assetId,
-      assetPath,
-      metadata: {
+      if (quotaError) {
+        log.warn(
+          `Skipping page archive storage due to quota exceeded: ${quotaError.message}`,
+        );
+        return null;
+      }
+
+      await saveAssetFromFile({
+        userId,
+        assetId,
+        assetPath,
+        metadata: {
+          contentType,
+        },
+        quotaApproved,
+      });
+
+      log.info(`Done archiving the page as assetId: ${assetId}`);
+
+      return {
+        assetId,
         contentType,
-      },
-      quotaApproved,
-    });
-
-    log.info(`Done archiving the page as assetId: ${assetId}`);
-
-    return {
-      assetId,
-      contentType,
-      size: await getAssetSize({ userId, assetId }),
-    };
+        size: await getAssetSize({ userId, assetId }),
+      };
+    } finally {
+      const { error: cleanupError } = await tryCatch(
+        fs.rm(tempDir, { recursive: true, force: true }),
+      );
+      if (cleanupError) {
+        log.warn(
+          `Failed to clean up archive temporary directory: ${cleanupError.message}`,
+        );
+      }
+    }
   },
 );
 
