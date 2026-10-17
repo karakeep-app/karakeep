@@ -1,15 +1,23 @@
 import { Context } from "hono";
 import { stream } from "hono/streaming";
 
+import { AssetTypes } from "@karakeep/db/schema";
+import { ASSET_TYPES } from "@karakeep/shared/assetdb";
 import {
   createAssetReadStream,
   getAssetSize,
   readAssetMetadata,
+  SUPPORTED_UPLOAD_ASSET_TYPES,
 } from "@karakeep/shared-server";
 
 import { toWebReadableStream } from "./upload";
 
-export async function serveAsset(c: Context, assetId: string, userId: string) {
+export async function serveAsset(
+  c: Context,
+  assetId: string,
+  userId: string,
+  assetType: string,
+) {
   const [metadata, size] = await Promise.all([
     readAssetMetadata({
       userId,
@@ -25,6 +33,24 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
   // Default Headers
   c.header("Content-type", metadata.contentType);
   c.header("X-Content-Type-Options", "nosniff");
+  if (
+    metadata.downloadOnly ||
+    // Legacy uploads allow HTML page archives without purpose=attachment.
+    // If attached as a user file, they must download rather than render inline.
+    (assetType === AssetTypes.USER_UPLOADED &&
+      (!SUPPORTED_UPLOAD_ASSET_TYPES.has(metadata.contentType) ||
+        metadata.contentType === ASSET_TYPES.TEXT_HTML))
+  ) {
+    // RFC 5987 encoding keeps names out of HTTP syntax, including CR/LF.
+    const name = encodeURIComponent(metadata.fileName ?? "attachment").replace(
+      /['()*]/g,
+      (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
+    );
+    c.header(
+      "Content-Disposition",
+      `attachment; filename="attachment"; filename*=UTF-8''${name}`,
+    );
+  }
   c.header("Cache-Control", "private, max-age=31536000, immutable");
   c.header(
     "Content-Security-Policy",

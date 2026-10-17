@@ -33,7 +33,10 @@ export class LocalFileSystemAssetStore implements AssetStore {
     asset: Buffer;
     metadata: AssetMetadata;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (
+      !metadata.downloadOnly &&
+      !SUPPORTED_ASSET_TYPES.has(metadata.contentType)
+    ) {
       throw new Error("Unsupported asset type");
     }
     const assetDir = this.getAssetDir(userId, assetId);
@@ -59,19 +62,21 @@ export class LocalFileSystemAssetStore implements AssetStore {
     assetPath: string;
     metadata: AssetMetadata;
   }) {
-    if (!SUPPORTED_ASSET_TYPES.has(metadata.contentType)) {
+    if (
+      !metadata.downloadOnly &&
+      !SUPPORTED_ASSET_TYPES.has(metadata.contentType)
+    ) {
       throw new Error("Unsupported asset type");
     }
     const assetDir = this.getAssetDir(userId, assetId);
     await fs.promises.mkdir(assetDir, { recursive: true });
 
-    await Promise.all([
-      fs.promises.copyFile(assetPath, path.join(assetDir, "asset.bin")),
-      fs.promises.writeFile(
-        path.join(assetDir, "metadata.json"),
-        JSON.stringify(metadata),
-      ),
-    ]);
+    // Finish each write before cleanup can run after a failure.
+    await fs.promises.copyFile(assetPath, path.join(assetDir, "asset.bin"));
+    await fs.promises.writeFile(
+      path.join(assetDir, "metadata.json"),
+      JSON.stringify(metadata),
+    );
     await fs.promises.rm(assetPath);
   }
 

@@ -52,6 +52,8 @@ export const SUPPORTED_ASSET_TYPES: Set<string> = new Set<string>([
 export const zAssetMetadataSchema = z.object({
   contentType: z.string(),
   fileName: z.string().nullish(),
+  // Opaque user attachments must never be rendered inline.
+  downloadOnly: z.boolean().optional(),
 });
 
 export type AssetMetadata = z.infer<typeof zAssetMetadataSchema>;

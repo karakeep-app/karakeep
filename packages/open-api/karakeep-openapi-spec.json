@@ -4174,6 +4174,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "purpose": {
+                    "type": "string",
+                    "enum": [
+                      "attachment"
+                    ],
+                    "description": "Allow arbitrary files as userUploaded attachments. Omit for existing preview/asset bookmark uploads."
+                  },
                   "file": {
                     "type": "string",
                     "description": "File to be uploaded",
@@ -4215,7 +4222,7 @@
     "/assets/{assetId}": {
       "get": {
         "operationId": "getAsset",
-        "description": "Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type.",
+        "description": "Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type. Generic attachments use Content-Disposition: attachment and X-Content-Type-Options: nosniff, including via signed URLs.",
         "summary": "Get a single asset",
         "tags": [
           "Assets"
