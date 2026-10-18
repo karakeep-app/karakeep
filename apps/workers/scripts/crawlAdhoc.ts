@@ -91,8 +91,9 @@ async function main() {
   // Dynamic imports so the DATA_DIR override above takes effect first.
   const { default: serverConfig } = await import("@karakeep/shared/config");
   const { selectRunProxies } = await import("../network");
-  const { crawlPage, crawlLogger, CrawlerWorker } =
-    await import("../workers/crawlerWorker");
+  const { CrawlerWorker } = await import("../workers/crawlerWorker");
+  const { crawlLogger } = await import("../workers/crawler/common");
+  const { crawlPage } = await import("../workers/crawler/localCrawler");
 
   const { values } = parseArgs({
     options: {
