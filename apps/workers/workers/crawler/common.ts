@@ -1,7 +1,8 @@
-// What the crawler worker shares with the Crawler (localCrawler.ts). A
-// Crawler does everything that talks to the crawled website (probing,
-// fetching the page, parsing it, downloading assets and archiving), and
-// nothing that touches the database or the asset store.
+// What the crawler worker shares with the two Crawler implementations: the
+// local one (localCrawler.ts) and the client of a remote crawler
+// (remoteCrawler.ts). A Crawler does everything that talks to the crawled
+// website (probing, fetching the page, parsing it, downloading assets and
+// archiving), and nothing that touches the database or the asset store.
 
 import type { RunProxyConfig } from "../../network";
 

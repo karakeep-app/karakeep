@@ -172,6 +172,16 @@ const allEnv = z.object({
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   CRAWLER_PREFLIGHT_USER_AGENT: z.string().optional(),
+  CRAWLER_REMOTE_SERVER_ENABLED: stringBool("false"),
+  CRAWLER_REMOTE_URL: z.string().url().optional(),
+  CRAWLER_REMOTE_TOKEN: z
+    .string()
+    // It's sent as a bearer token, so it must use the bearer token alphabet.
+    .regex(
+      /^[A-Za-z0-9._~+/-]+=*$/,
+      "CRAWLER_REMOTE_TOKEN can only contain letters, digits and . _ ~ + / - (optionally followed by =)",
+    )
+    .optional(),
   LOG_LEVEL: z.string().default("debug"),
   // https://no-color.org/: any nonempty value disables colors.
   NO_COLOR: z.string().optional().transform(Boolean),
@@ -481,6 +491,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
             }
           : null,
       preflightUserAgent: val.CRAWLER_PREFLIGHT_USER_AGENT,
+      remote: {
+        serverEnabled: val.CRAWLER_REMOTE_SERVER_ENABLED,
+        url: val.CRAWLER_REMOTE_URL,
+        token: val.CRAWLER_REMOTE_TOKEN,
+      },
     },
     ocr: {
       langs: val.OCR_LANGS,
@@ -638,6 +653,18 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       code: z.ZodIssueCode.custom,
       message:
         "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is required when OTEL_EVENT_LOGS_EXPORT_ENABLED is true",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
+  if (
+    (obj.crawler.remote.serverEnabled || obj.crawler.remote.url) &&
+    !obj.crawler.remote.token
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "CRAWLER_REMOTE_TOKEN is required when CRAWLER_REMOTE_SERVER_ENABLED or CRAWLER_REMOTE_URL is set",
       fatal: true,
     });
     return z.NEVER;

@@ -914,6 +914,9 @@ importers:
       '@paralleldrive/cuid2':
         specifier: ^2.2.2
         version: 2.2.2
+      '@remix-run/multipart-parser':
+        specifier: ^1.0.0
+        version: 1.1.1
       '@trpc/server':
         specifier: ^11.9.0
         version: 11.9.0(typescript@7.0.2)
@@ -6385,6 +6388,12 @@ packages:
         optional: true
       react-redux:
         optional: true
+
+  '@remix-run/headers@1.1.0':
+    resolution: {integrity: sha512-Rmzn+WesET0EfVukEHYYKT6RV9HYQb9WGdda3oWedQJXCoHnrXgaQc39DdwZ2rztI05izBAOF1HEHmEpGtjKHQ==}
+
+  '@remix-run/multipart-parser@1.1.1':
+    resolution: {integrity: sha512-ofIL0mdDH73NtiiowYf7yMlI9vv60Xe1jEzuJl2gGLnwScT7ai2wB0osvMmXJmumzxZ237YaMo2drM5hb7ULxg==}
 
   '@remix-run/router@1.23.4':
     resolution: {integrity: sha512-q7j5geK7xs3UJSdm9/iytUNclBnLmYx1EnSeCFXHPeutdqgIMeFeHtUZgS3EhlKxdBEAu8OwtJCwmLrEzpSs7Q==}
@@ -21529,6 +21538,12 @@ snapshots:
     optionalDependencies:
       react: 19.2.3
       react-redux: 9.3.0(@types/react@19.2.15)(react@19.2.3)(redux@5.0.1)
+
+  '@remix-run/headers@1.1.0': {}
+
+  '@remix-run/multipart-parser@1.1.1':
+    dependencies:
+      '@remix-run/headers': 1.1.0
 
   '@remix-run/router@1.23.4': {}
 

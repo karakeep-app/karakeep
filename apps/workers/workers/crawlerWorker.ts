@@ -11,8 +11,9 @@
 //
 // Everything that talks to the crawled website (probing, fetching the page,
 // parsing it, downloading assets and archiving) goes through a Crawler (see
-// crawler/common.ts). What's left here reads and writes the database and the
-// asset store.
+// crawler/common.ts): the local one, or a remote crawler when
+// CRAWLER_REMOTE_URL is set. What's left here reads and writes the database
+// and the asset store.
 
 import { promises as fs } from "fs";
 import * as fsSync from "fs";
@@ -75,6 +76,7 @@ import type { CrawlContext, Crawler, UrlProbeResult } from "./crawler/common";
 import type { ParseSubprocessOutput } from "./utils/parseHtmlSubprocessIpc";
 import { CAPTURED_ASSETS, crawlLogger, span, traced } from "./crawler/common";
 import { localCrawler } from "./crawler/localCrawler";
+import { remoteCrawler } from "./crawler/remoteCrawler";
 import {
   bookmarkCrawlLatencyHistogram,
   crawlerStatusCodeCounter,
@@ -96,7 +98,9 @@ import {
   resolveMetadata,
 } from "./utils/metadataResolver";
 
-const crawler: Crawler = localCrawler;
+const crawler: Crawler = serverConfig.crawler.remote.url
+  ? remoteCrawler
+  : localCrawler;
 
 // ---------------------------------------------------------------------------
 // Worker

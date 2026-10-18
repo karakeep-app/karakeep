@@ -1,6 +1,8 @@
 // The local crawler: fetches pages with the browser (or over plain HTTP when
 // there's no browser or the user has browser crawling disabled), parses them
-// in a subprocess, downloads assets and archives pages with monolith.
+// in a subprocess, downloads assets and archives pages with monolith. The
+// crawler worker uses it directly unless CRAWLER_REMOTE_URL is set, and a
+// remote crawler (remoteCrawlerServer.ts) uses it to serve other workers.
 
 import { execa } from "execa";
 import { fetchWithProxy, matchesNoProxy, validateUrl } from "../../network";
@@ -91,9 +93,10 @@ async function fetchPage(
 
 /**
  * The first half of fetchPage: crawls the page, or screenshots the
- * precrawled archive.
+ * precrawled archive. Exported for the remote crawler, which streams the page
+ * back while it's being parsed.
  */
-async function loadPage(
+export async function loadPage(
   ctx: CrawlContext,
   opts: FetchPageOptions,
 ): Promise<CrawlPageResult> {
@@ -115,12 +118,12 @@ async function loadPage(
 }
 
 /** The second half of fetchPage. */
-async function parsePage(
+export async function parsePage(
   ctx: CrawlContext,
   page: CrawlPageResult,
   opts: FetchPageOptions,
 ): Promise<FetchedPage["parsed"]> {
-  const { jobId, abortSignal } = ctx;
+  const { jobId, abortSignal, runProxy } = ctx;
   if (
     opts.skipParseOnRetryableStatus &&
     shouldRetryCrawlStatusCode(page.statusCode)
@@ -132,6 +135,7 @@ async function parsePage(
     page.url,
     jobId,
     abortSignal,
+    runProxy,
   );
   abortSignal.throwIfAborted();
   return parsed;
@@ -291,6 +295,7 @@ const getContentTypeAndMetadata = traced(
           response.url,
           jobId,
           abortSignal,
+          runProxy,
           { metadataOnly: true },
         );
         if (

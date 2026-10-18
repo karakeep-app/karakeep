@@ -15,6 +15,7 @@ import type {
   ParseSubprocessError,
   ParseSubprocessOutput,
 } from "./parseHtmlSubprocessIpc";
+import type { RunProxyConfig } from "../../network";
 import { getBookmarkDomain } from "../../network";
 import { truncateUrl } from "./crawlerUtils";
 import {
@@ -57,6 +58,7 @@ export async function runParseSubprocess(
   url: string,
   jobId: string,
   abortSignal: AbortSignal,
+  runProxy: RunProxyConfig,
   opts?: { metadataOnly?: boolean },
 ): Promise<{
   metadata: ParseSubprocessOutput["metadata"];
@@ -102,6 +104,13 @@ export async function runParseSubprocess(
             timeout: timeoutMs,
             reject: false,
             stderr: "inherit",
+            // The metadata extraction fetches some URLs itself (e.g. Reddit's
+            // JSON API): send those through the crawl's proxy too.
+            env: {
+              CRAWLER_HTTP_PROXY: runProxy.httpProxy,
+              CRAWLER_HTTPS_PROXY: runProxy.httpsProxy,
+              CRAWLER_NO_PROXY: runProxy.noProxy?.join(","),
+            },
           })(cmd, args);
         } finally {
           await tryCatch(fs.rm(tmpDir, { recursive: true, force: true }));
