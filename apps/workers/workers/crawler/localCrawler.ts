@@ -1,7 +1,8 @@
-// The local crawler: everything that talks to the crawled website. It probes
-// URLs, fetches pages with the browser (or over plain HTTP when there's no
-// browser or the user has browser crawling disabled) and downloads assets.
+// The local crawler: fetches pages with the browser (or over plain HTTP when
+// there's no browser or the user has browser crawling disabled), parses them
+// in a subprocess, downloads assets and archives pages with monolith.
 
+import { execa } from "execa";
 import { fetchWithProxy, matchesNoProxy, validateUrl } from "../../network";
 // patchright is a drop-in Playwright fork that drives Chrome without enabling
 // the CDP Runtime domain, the most widely checked automation signal.
@@ -27,7 +28,14 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
-import type { CrawlContext, CrawlPageResult, UrlProbeResult } from "./common";
+import type {
+  CrawlContext,
+  CrawlPageResult,
+  Crawler,
+  FetchedPage,
+  FetchPageOptions,
+  UrlProbeResult,
+} from "./common";
 import {
   installAutoconsent,
   waitForPageLoadAndAutoconsent,
@@ -40,6 +48,7 @@ import {
   getGlobalBrowser,
   getGlobalCookies,
   getPlaywrightProxyConfig,
+  initializeBrowserEnvironment,
   PAGE_CLOSE_TIMEOUT_MS,
   startBrowserInstance,
   trackContext,
@@ -55,7 +64,109 @@ import { runParseSubprocess } from "../utils/parseSubprocess";
 import { installRedirectGuard } from "../utils/redirectGuard";
 import { CAPTURED_ASSETS, span, traced } from "./common";
 
-export { fetchAsset, getContentTypeAndMetadata, screenshotPrecrawledArchive };
+let initPromise: Promise<void> | null = null;
+
+export const localCrawler: Crawler = {
+  init: () => {
+    if (!initPromise) {
+      initPromise = initializeBrowserEnvironment();
+    }
+    return initPromise;
+  },
+  getContentTypeAndMetadata: (ctx, opts) =>
+    getContentTypeAndMetadata(ctx, opts),
+  fetchPage: (ctx, opts) => fetchPage(ctx, opts),
+  fetchAsset: (ctx, url, fileType) => fetchAsset(ctx, url, fileType),
+  archivePage: (ctx, html, url, assetPath) =>
+    archivePage(ctx, html, url, assetPath),
+};
+
+async function fetchPage(
+  ctx: CrawlContext,
+  opts: FetchPageOptions,
+): Promise<FetchedPage> {
+  const page = await loadPage(ctx, opts);
+  return { ...page, parsed: await parsePage(ctx, page, opts) };
+}
+
+/**
+ * The first half of fetchPage: crawls the page, or screenshots the
+ * precrawled archive.
+ */
+async function loadPage(
+  ctx: CrawlContext,
+  opts: FetchPageOptions,
+): Promise<CrawlPageResult> {
+  const { url, abortSignal } = ctx;
+  let page: CrawlPageResult;
+  if (opts.precrawledHtml !== undefined) {
+    page = {
+      htmlContent: opts.precrawledHtml,
+      screenshot: await screenshotPrecrawledArchive(ctx, opts.precrawledHtml),
+      pdf: undefined,
+      statusCode: 200,
+      url,
+    };
+  } else {
+    page = await crawlPage(ctx, opts.forceStorePdf);
+  }
+  abortSignal.throwIfAborted();
+  return page;
+}
+
+/** The second half of fetchPage. */
+async function parsePage(
+  ctx: CrawlContext,
+  page: CrawlPageResult,
+  opts: FetchPageOptions,
+): Promise<FetchedPage["parsed"]> {
+  const { jobId, abortSignal } = ctx;
+  if (
+    opts.skipParseOnRetryableStatus &&
+    shouldRetryCrawlStatusCode(page.statusCode)
+  ) {
+    return null;
+  }
+  const parsed = await runParseSubprocess(
+    page.htmlContent,
+    page.url,
+    jobId,
+    abortSignal,
+  );
+  abortSignal.throwIfAborted();
+  return parsed;
+}
+
+async function archivePage(
+  ctx: CrawlContext,
+  html: string,
+  url: string,
+  assetPath: string,
+) {
+  const { abortSignal, runProxy } = ctx;
+  return await execa({
+    input: html,
+    cancelSignal: abortSignal,
+    // Report failures through the result instead of throwing, so that the
+    // caller can handle them and clean up the temp file.
+    reject: false,
+    env: {
+      https_proxy: runProxy.httpsProxy,
+      http_proxy: runProxy.httpProxy,
+      no_proxy: runProxy.noProxy?.join(","),
+    },
+  })("monolith", [
+    "-",
+    "-Ije",
+    "-t",
+    String(serverConfig.crawler.monolithTimeoutSec),
+    ...serverConfig.crawler.monolithArguments,
+    "-b",
+    url,
+    "-o",
+    assetPath,
+  ]);
+}
 
 // Cap how much of the probed page we buffer for metadata extraction.
 // Preview metadata lives in <head>, so a couple of MB is plenty.

@@ -1,5 +1,7 @@
-// What the crawler worker shares with the local crawler (localCrawler.ts):
-// the tracing helpers, the crawl context and the types they exchange.
+// What the crawler worker shares with the Crawler (localCrawler.ts). A
+// Crawler does everything that talks to the crawled website (probing,
+// fetching the page, parsing it, downloading assets and archiving), and
+// nothing that touches the database or the asset store.
 
 import type { RunProxyConfig } from "../../network";
 
@@ -93,3 +95,50 @@ export const CAPTURED_ASSETS = {
     fileName: "page.pdf",
   },
 } as const;
+
+export interface FetchPageOptions {
+  forceStorePdf: boolean;
+  /**
+   * Use this precrawled archive instead of fetching the URL. It's only
+   * screenshotted (offline) and parsed.
+   */
+  precrawledHtml?: string;
+  /**
+   * Skip parsing when the page comes back with a retryable status code, as
+   * the caller is going to retry the crawl anyway.
+   */
+  skipParseOnRetryableStatus: boolean;
+}
+
+export interface FetchedPage extends CrawlPageResult {
+  /** Null when the parse was skipped (see skipParseOnRetryableStatus). */
+  parsed: ParseSubprocessOutput | null;
+}
+
+export interface Crawler {
+  /** Prepares the crawler (e.g. connects to the browser). */
+  init(): Promise<void>;
+  getContentTypeAndMetadata(
+    ctx: CrawlContext,
+    opts?: { skipMetadataExtraction?: boolean },
+  ): Promise<UrlProbeResult>;
+  /** Fetches the page (or loads the precrawled archive) and parses it. */
+  fetchPage(ctx: CrawlContext, opts: FetchPageOptions): Promise<FetchedPage>;
+  /** Starts downloading a file. Throws on a non-2xx response. */
+  fetchAsset(
+    ctx: CrawlContext,
+    url: string,
+    fileType: string,
+  ): Promise<{ contentType: string; body: NodeJS.ReadableStream }>;
+  /**
+   * Archives the page with monolith into assetPath. Like execa with
+   * `reject: false`, failures are reported through the result rather than
+   * thrown, so the caller can clean up assetPath.
+   */
+  archivePage(
+    ctx: CrawlContext,
+    html: string,
+    url: string,
+    assetPath: string,
+  ): Promise<{ failed: boolean; shortMessage?: string }>;
+}

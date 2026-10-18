@@ -8,6 +8,11 @@
 //      assets. The full-page archive runs last as it's the most failure-prone.
 //  3. After crawling: enqueue inference, search, video and webhook jobs.
 // The asset storage helpers are at the bottom.
+//
+// Everything that talks to the crawled website (probing, fetching the page,
+// parsing it, downloading assets and archiving) goes through a Crawler (see
+// crawler/common.ts). What's left here reads and writes the database and the
+// asset store.
 
 import { promises as fs } from "fs";
 import * as fsSync from "fs";
@@ -18,7 +23,6 @@ import { pipeline } from "stream/promises";
 import { dataUriToBuffer } from "data-uri-to-buffer";
 import type { MimeBuffer } from "data-uri-to-buffer";
 import { and, eq, sql } from "drizzle-orm";
-import { execa } from "execa";
 
 import type { AssetMetadata, ZCrawlLinkRequest } from "@karakeep/shared-server";
 import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
@@ -67,15 +71,10 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
-import type { CrawlContext, UrlProbeResult } from "./crawler/common";
+import type { CrawlContext, Crawler, UrlProbeResult } from "./crawler/common";
 import type { ParseSubprocessOutput } from "./utils/parseHtmlSubprocessIpc";
 import { CAPTURED_ASSETS, crawlLogger, span, traced } from "./crawler/common";
-import {
-  crawlPage,
-  fetchAsset,
-  getContentTypeAndMetadata,
-  screenshotPrecrawledArchive,
-} from "./crawler/localCrawler";
+import { localCrawler } from "./crawler/localCrawler";
 import {
   bookmarkCrawlLatencyHistogram,
   crawlerStatusCodeCounter,
@@ -85,10 +84,7 @@ import { getBookmarkDomain, selectRunProxies } from "../network";
 import { abortRace, raceWith } from "../utils";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
-import {
-  getGlobalBrowser,
-  initializeBrowserEnvironment,
-} from "./utils/browser";
+import { getGlobalBrowser } from "./utils/browser";
 import {
   normalizeContentType,
   redactUrlCredentials,
@@ -99,7 +95,8 @@ import {
   isLikelyChallengePage,
   resolveMetadata,
 } from "./utils/metadataResolver";
-import { runParseSubprocess } from "./utils/parseSubprocess";
+
+const crawler: Crawler = localCrawler;
 
 // ---------------------------------------------------------------------------
 // Worker
@@ -110,19 +107,10 @@ interface CrawlerRunResult {
 }
 
 export class CrawlerWorker {
-  private static initPromise: Promise<void> | null = null;
-
-  private static ensureInitialized() {
-    if (!CrawlerWorker.initPromise) {
-      CrawlerWorker.initPromise = initializeBrowserEnvironment();
-    }
-    return CrawlerWorker.initPromise;
-  }
-
   // Boots the browser/adblocker/cookies without the queue runner. Used by the
   // adhoc crawl CLI (scripts/crawlAdhoc.ts).
   static async prepareForAdhoc(): Promise<void> {
-    await CrawlerWorker.ensureInitialized();
+    await localCrawler.init();
 
     // The adhoc CLI exists to exercise the REAL browser path. When no browser is
     // reachable, crawlPage() silently falls back to a plain HTTP fetch
@@ -152,7 +140,7 @@ export class CrawlerWorker {
   }
 
   static async build(queue: Queue<ZCrawlLinkRequest>) {
-    await CrawlerWorker.ensureInitialized();
+    await crawler.init();
 
     logger.info("Starting crawler worker ...");
     const worker = (await getQueueClient()).createRunner<
@@ -338,7 +326,7 @@ async function runCrawler(
   const { contentType, metadata: probeMetadata }: UrlProbeResult =
     precrawledArchiveAssetId
       ? { contentType: ASSET_TYPES.TEXT_HTML, metadata: Promise.resolve(null) }
-      : await getContentTypeAndMetadata(ctx, {
+      : await crawler.getContentTypeAndMetadata(ctx, {
           skipMetadataExtraction: reuseStoredProbeMetadata,
         });
   job.abortSignal.throwIfAborted();
@@ -663,7 +651,7 @@ const crawlAndParseUrl = traced(
     ctx: CrawlContext,
     args: CrawlAndParseUrlArgs,
   ): Promise<{ htmlContent: string; url: string }> => {
-    const { url, userId, jobId, bookmarkId, abortSignal, runProxy, log } = ctx;
+    const { userId, jobId, bookmarkId, abortSignal, runProxy, log } = ctx;
     const {
       oldAssets,
       precrawledArchiveAssetId,
@@ -679,14 +667,7 @@ const crawlAndParseUrl = traced(
       "crawler.forceStorePdf": forceStorePdf,
       "crawler.hasPrecrawledArchive": !!precrawledArchiveAssetId,
     });
-    let result: {
-      htmlContent: string;
-      screenshot: Buffer | undefined;
-      pdf: Buffer | undefined;
-      statusCode: number | null;
-      url: string;
-    };
-
+    let precrawledHtml: string | undefined;
     if (precrawledArchiveAssetId) {
       log.info(
         `The page has been precrawled. Will use the precrawled archive instead.`,
@@ -695,17 +676,13 @@ const crawlAndParseUrl = traced(
         userId,
         assetId: precrawledArchiveAssetId,
       });
-      const htmlContent = asset.asset.toString();
-      result = {
-        htmlContent,
-        screenshot: await screenshotPrecrawledArchive(ctx, htmlContent),
-        pdf: undefined,
-        statusCode: 200,
-        url,
-      };
-    } else {
-      result = await crawlPage(ctx, forceStorePdf);
+      precrawledHtml = asset.asset.toString();
     }
+    const result = await crawler.fetchPage(ctx, {
+      forceStorePdf,
+      precrawledHtml,
+      skipParseOnRetryableStatus: numRetriesLeft > 0,
+    });
     abortSignal.throwIfAborted();
 
     const {
@@ -714,6 +691,7 @@ const crawlAndParseUrl = traced(
       pdf,
       statusCode,
       url: browserUrl,
+      parsed,
     } = result;
 
     // Track status code in Prometheus
@@ -740,12 +718,15 @@ const crawlAndParseUrl = traced(
       );
     }
 
+    // fetchPage only skips the parse for the retryable status codes above.
+    if (!parsed) {
+      throw new Error(`[Crawler][${jobId}] The page wasn't parsed`);
+    }
     const {
       metadata: renderMeta,
       readableContent: parsedReadableContent,
       readerViewAssessment,
-    } = await runParseSubprocess(htmlContent, browserUrl, jobId, abortSignal);
-    abortSignal.throwIfAborted();
+    } = parsed;
 
     // The probe metadata extraction has been running alongside the crawl;
     // this is the point where it's needed. The promise never rejects and
@@ -1158,7 +1139,11 @@ function decodeDataUriImage(ctx: CrawlContext, url: string) {
 }
 
 async function fetchImage(ctx: CrawlContext, url: string) {
-  const { contentType, body } = await fetchAsset(ctx, url, "banner image");
+  const { contentType, body } = await crawler.fetchAsset(
+    ctx,
+    url,
+    "banner image",
+  );
   const maxBytes = serverConfig.maxAssetSizeMb * 1024 * 1024;
   // Grows in place as chunks arrive, so the banner is never held twice in memory.
   const buffer = new ArrayBuffer(0, { maxByteLength: maxBytes });
@@ -1236,7 +1221,11 @@ const downloadAndStoreFile = traced(
     });
     let assetPath: string | undefined;
     try {
-      const { contentType, body } = await fetchAsset(ctx, url, fileType);
+      const { contentType, body } = await crawler.fetchAsset(
+        ctx,
+        url,
+        fileType,
+      );
 
       const assetId = newAssetId();
       assetPath = path.join(os.tmpdir(), assetId);
@@ -1312,7 +1301,7 @@ const downloadAndStoreFile = traced(
 const archiveWebpage = traced(
   "archiveWebpage",
   async (ctx: CrawlContext, html: string, url: string) => {
-    const { userId, abortSignal, runProxy, log } = ctx;
+    const { userId, abortSignal, log } = ctx;
     log.info(`Will attempt to archive page ...`);
 
     {
@@ -1331,28 +1320,7 @@ const archiveWebpage = traced(
     const assetId = newAssetId();
     const assetPath = path.join(os.tmpdir(), assetId);
 
-    const res = await execa({
-      input: html,
-      cancelSignal: abortSignal,
-      // Report failures through the result instead of throwing, so that they
-      // are handled below and the temp file is cleaned up.
-      reject: false,
-      env: {
-        https_proxy: runProxy.httpsProxy,
-        http_proxy: runProxy.httpProxy,
-        no_proxy: runProxy.noProxy?.join(","),
-      },
-    })("monolith", [
-      "-",
-      "-Ije",
-      "-t",
-      String(serverConfig.crawler.monolithTimeoutSec),
-      ...serverConfig.crawler.monolithArguments,
-      "-b",
-      url,
-      "-o",
-      assetPath,
-    ]);
+    const res = await crawler.archivePage(ctx, html, url, assetPath);
 
     if (res.failed) {
       await tryCatch(fs.unlink(assetPath));
