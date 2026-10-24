@@ -2,6 +2,7 @@
  * Utilities for SingleFile integration
  */
 
+import { getBrowserSessionCredentials } from "./browserSession";
 import { getPluginSettings } from "./settings";
 
 const CAPTURE_TIMEOUT_MS = 60_000;
@@ -123,7 +124,9 @@ export async function uploadSingleFileAsset(
     });
   }
 
+  const credentials = getBrowserSessionCredentials(settings);
   const response = await fetch(apiUrl, {
+    ...(credentials ? { credentials } : {}),
     method: "POST",
     headers,
     body: formData,

@@ -11,6 +11,7 @@ interface Settings {
   apiKey?: string;
   address: string;
   customHeaders?: Record<string, string>;
+  credentials?: RequestCredentials;
 }
 
 let browserQueryClient: QueryClient | undefined = undefined;
@@ -63,6 +64,9 @@ export function getTRPCClient(settings: Settings) {
 
           return fetch(url, {
             ...options,
+            ...(settings.credentials
+              ? { credentials: settings.credentials }
+              : {}),
             signal: controller.signal,
           }).then(
             (response) => {

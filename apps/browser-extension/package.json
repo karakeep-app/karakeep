@@ -11,7 +11,8 @@
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@karakeep/shared": "workspace:^0.1.0",
@@ -50,9 +51,11 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react-swc": "^4.3.3",
     "autoprefixer": "^10.4.17",
+    "jsdom": "^24.0.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.9",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "^4.1.11"
   }
 }
