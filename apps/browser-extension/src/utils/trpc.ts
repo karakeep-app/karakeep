@@ -5,6 +5,7 @@ import superjson from "superjson";
 
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
+import { getBrowserSessionCredentials } from "./browserSession";
 import { getPluginSettings } from "./settings";
 import { createChromeStorage } from "./storagePersister";
 
@@ -18,14 +19,18 @@ let currentSettings: {
   badgeCacheExpireMs: number;
   useBadgeCache: boolean;
   customHeaders: Record<string, string>;
+  credentials?: RequestCredentials;
 } | null = null;
 
 export async function initializeClients() {
+  const settings = await getPluginSettings();
   const { address, apiKey, badgeCacheExpireMs, useBadgeCache, customHeaders } =
-    await getPluginSettings();
+    settings;
+  const credentials = getBrowserSessionCredentials(settings);
 
   if (currentSettings) {
     const addressChanged = currentSettings.address !== address;
+    const credentialsChanged = currentSettings.credentials !== credentials;
     const apiKeyChanged = currentSettings.apiKey !== apiKey;
     const cacheTimeChanged =
       currentSettings.badgeCacheExpireMs !== badgeCacheExpireMs;
@@ -43,7 +48,12 @@ export async function initializeClients() {
       return;
     }
 
-    if (addressChanged || apiKeyChanged || customHeadersChanged) {
+    if (
+      addressChanged ||
+      apiKeyChanged ||
+      customHeadersChanged ||
+      credentialsChanged
+    ) {
       // Switch context completely → discard the old instance and wipe persisted cache
       const persisterForCleanup = createChromeStorage();
       await persisterForCleanup.removeClient();
@@ -62,7 +72,8 @@ export async function initializeClients() {
       !apiKeyChanged &&
       !cacheTimeChanged &&
       !useBadgeCacheChanged &&
-      !customHeadersChanged
+      !customHeadersChanged &&
+      !credentialsChanged
     ) {
       return;
     }
@@ -76,6 +87,7 @@ export async function initializeClients() {
       badgeCacheExpireMs,
       useBadgeCache,
       customHeaders,
+      credentials,
     };
 
     // Create new QueryClient with updated settings
@@ -99,6 +111,12 @@ export async function initializeClients() {
       links: [
         httpBatchLink({
           url: `${address}/api/trpc`,
+          fetch(input, init) {
+            return fetch(input, {
+              ...init,
+              ...(credentials ? { credentials } : {}),
+            });
+          },
           headers() {
             return {
               Authorization: `Bearer ${apiKey}`,

@@ -12,6 +12,7 @@ const zSettingsSchema = z.object({
   showCountBadge: z.boolean().default(DEFAULT_SHOW_COUNT_BADGE),
   useBadgeCache: z.boolean().default(true),
   badgeCacheExpireMs: z.number().min(0).default(DEFAULT_BADGE_CACHE_EXPIRE_MS),
+  browserSessionOrigin: z.string().optional(),
   customHeaders: z.record(z.string(), z.string()).optional().default({}),
   useSingleFile: z.boolean().default(false),
   singleFileIncludeImages: z.boolean().default(true),

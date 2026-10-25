@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
+import BrowserSessionSettings from "./BrowserSessionSettings";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import {
@@ -230,6 +231,7 @@ export default function OptionsPage() {
           </SelectContent>
         </Select>
       </div>
+      <BrowserSessionSettings />
       <Button onClick={onLogout}>Logout</Button>
     </div>
   );

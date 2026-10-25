@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 
+import BrowserSessionSettings from "./BrowserSessionSettings";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import Logo from "./Logo";
@@ -94,6 +95,7 @@ export default function SignInPage() {
       <Logo />
       <p className="text-lg">Login</p>
       <p className="text-red-500">{errorMessage}</p>
+      <BrowserSessionSettings />
       <form
         className="flex flex-col gap-y-2"
         onSubmit={onUserNamePasswordSubmit}
