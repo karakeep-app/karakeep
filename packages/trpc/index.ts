@@ -2,7 +2,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError, z } from "zod";
 
-import type { db } from "@karakeep/db";
+import type { KarakeepDBTransaction, db } from "@karakeep/db";
 import type {
   ZApiKeyAdminScopeResource,
   ZApiKeyScope,
@@ -46,6 +46,8 @@ export interface Context {
   user: User | null;
   auth?: RequestAuth;
   db: typeof db;
+  /** Internal worker fence, checked inside bookmark write transactions. */
+  beforeBookmarkWrite?: (tx: KarakeepDBTransaction) => void;
   req: {
     ip: string | null;
   };
@@ -55,6 +57,8 @@ export interface AuthedContext {
   user: User;
   auth?: RequestAuth;
   db: typeof db;
+  /** Internal worker fence, checked inside bookmark write transactions. */
+  beforeBookmarkWrite?: (tx: KarakeepDBTransaction) => void;
   req: {
     ip: string | null;
   };
