@@ -223,7 +223,7 @@ function BookmarkListMultiSelector({
         aria-disabled={disabled}
         aria-expanded={disabled ? false : open}
         className={cn(
-          "relative flex min-h-10 w-full cursor-pointer flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-1 text-sm transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
+          "relative flex min-h-10 w-full cursor-pointer flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-1 text-sm transition-[color,box-shadow] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 dark:bg-input/30",
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}
@@ -245,7 +245,7 @@ function BookmarkListMultiSelector({
               return (
                 <div
                   key={listId}
-                  className="flex min-h-7 space-x-1 rounded bg-accent px-2"
+                  className="flex min-h-7 space-x-1 rounded bg-accent px-2 dark:bg-input"
                 >
                   <div className="m-auto flex gap-2">
                     {listName}
