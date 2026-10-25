@@ -181,6 +181,12 @@
             "type": "string",
             "nullable": true
           },
+          "customMetadata": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key.",
+            "nullable": true
+          },
           "summary": {
             "type": "string",
             "nullable": true
@@ -1055,6 +1061,11 @@
                       "note": {
                         "type": "string"
                       },
+                      "customMetadata": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "description": "Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key."
+                      },
                       "summary": {
                         "type": "string"
                       },
@@ -1532,6 +1543,11 @@
                   "note": {
                     "type": "string"
                   },
+                  "customMetadata": {
+                    "type": "object",
+                    "additionalProperties": {},
+                    "description": "Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key."
+                  },
                   "title": {
                     "type": "string",
                     "nullable": true,
@@ -1646,6 +1662,12 @@
                     },
                     "note": {
                       "type": "string",
+                      "nullable": true
+                    },
+                    "customMetadata": {
+                      "type": "object",
+                      "additionalProperties": {},
+                      "description": "Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key.",
                       "nullable": true
                     },
                     "summary": {
@@ -1904,6 +1926,12 @@
                     },
                     "note": {
                       "type": "string",
+                      "nullable": true
+                    },
+                    "customMetadata": {
+                      "type": "object",
+                      "additionalProperties": {},
+                      "description": "Owner-only JSON metadata. Updates merge top-level keys; null removes a key. Nested values are replaced. Maximum 16384 UTF-8 bytes and 128 characters per key.",
                       "nullable": true
                     },
                     "summary": {

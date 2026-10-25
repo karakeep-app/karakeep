@@ -409,6 +409,7 @@ export class ImportWorker {
       const baseRequest: Partial<CreateBookmarkInput> = {
         title: normalizedTitle || undefined,
         note: staged.note ?? undefined,
+        customMetadata: staged.customMetadata ?? undefined,
         createdAt: staged.sourceAddedAt ?? undefined,
         crawlPriority: "low" as const,
         archived: staged.archived ?? false,

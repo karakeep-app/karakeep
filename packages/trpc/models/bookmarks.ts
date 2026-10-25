@@ -819,6 +819,7 @@ export class Bookmark extends BareBookmark {
       archived: false,
       favourited: false,
       note: null,
+      customMetadata: null,
     };
   }
 

@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { BookmarkTypes, ZBookmark } from "../types/bookmarks";
+import {
+  BookmarkTypes,
+  ZBookmark,
+  zBookmarkCustomMetadataSchema,
+} from "../types/bookmarks";
 import { ZBookmarkList } from "../types/lists";
 import { escapeHtml } from "../utils/htmlUtils";
 import { isAllowedBookmarkUrl } from "../utils/url";
@@ -33,6 +37,7 @@ export const zExportBookmarkSchema = z.object({
     ])
     .nullable(),
   note: z.string().nullable(),
+  customMetadata: zBookmarkCustomMetadataSchema.nullish(),
   archived: z.boolean().optional().default(false),
 });
 
@@ -76,6 +81,7 @@ export function toExportFormat(
     lists: listIds ?? [],
     content,
     note: bookmark.note ?? null,
+    customMetadata: bookmark.customMetadata ?? null,
     archived: bookmark.archived,
   };
 }

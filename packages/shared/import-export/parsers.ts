@@ -5,7 +5,7 @@ import * as cheerio from "cheerio";
 import { parse } from "csv-parse/sync";
 import { z } from "zod";
 
-import { BookmarkTypes } from "../types/bookmarks";
+import { BookmarkTypes, ZBookmarkCustomMetadata } from "../types/bookmarks";
 import { zExportSchema } from "./exporters";
 
 export type ImportSource =
@@ -29,6 +29,7 @@ export interface ParsedBookmark {
   tags: string[];
   addDate?: number;
   notes?: string;
+  customMetadata?: ZBookmarkCustomMetadata;
   archived?: boolean;
   paths: string[][];
   // Optional list IDs from the source file (used with top-level `lists`).
@@ -223,6 +224,7 @@ function parseKarakeepBookmarkFile(textContent: string): ParsedImportFile {
       tags: bookmark.tags,
       addDate: bookmark.createdAt,
       notes: bookmark.note ?? undefined,
+      customMetadata: bookmark.customMetadata ?? undefined,
       archived: bookmark.archived,
       paths: [],
       listExternalIds: (bookmark.lists ?? []).filter((listId) =>

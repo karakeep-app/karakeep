@@ -12,6 +12,7 @@ import {
   zListImportSessionsResponseSchema,
 } from "@karakeep/shared/types/importSessions";
 
+import { zBookmarkCustomMetadataSchema } from "@karakeep/shared/types/bookmarks";
 import type { AuthedContext } from "../index";
 import { createScopedAuthedProcedure, router } from "../index";
 import { actorFromContext } from "../lib/actor";
@@ -97,6 +98,7 @@ export const importSessionsRouter = router({
               title: z.string().optional(),
               content: z.string().optional(),
               note: z.string().optional(),
+              customMetadata: zBookmarkCustomMetadataSchema.optional(),
               tags: z.array(z.string()).default([]),
               listIds: z.array(z.string()).default([]),
               sourceAddedAt: z.date().optional(),

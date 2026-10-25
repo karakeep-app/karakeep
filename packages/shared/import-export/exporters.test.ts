@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { BookmarkTypes, ZBookmark } from "../types/bookmarks";
-import { toNetscapeFormat } from "./exporters";
+import { toExportFormat, toNetscapeFormat } from "./exporters";
+import { parseImportFile } from "./parsers";
 
 function linkBookmark(
   url: string,
@@ -75,4 +76,15 @@ describe("toNetscapeFormat", () => {
     expect(out).toContain("&lt;script&gt;");
     expect(out).toContain('TAGS="pwn&quot;&gt;&lt;script&gt;');
   });
+});
+
+it("preserves custom metadata in a Karakeep JSON export/import", () => {
+  const bookmark = linkBookmark("https://example.com");
+  bookmark.customMetadata = {
+    "github.id": 123,
+    nested: { values: [true, null, "x"] },
+  };
+  const exported = JSON.stringify({ bookmarks: [toExportFormat(bookmark)] });
+  const imported = parseImportFile("karakeep", exported);
+  expect(imported.bookmarks[0].customMetadata).toEqual(bookmark.customMetadata);
 });
