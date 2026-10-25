@@ -2,7 +2,7 @@
  * Utilities for SingleFile integration
  */
 
-import { getPluginSettings } from "./settings";
+import { getPluginSettings, Settings } from "./settings";
 
 const CAPTURE_TIMEOUT_MS = 60_000;
 
@@ -101,8 +101,10 @@ async function injectSingleFileContentScript(tabId: number): Promise<void> {
 export async function uploadSingleFileAsset(
   html: string,
   title?: string,
+  configuredSettings?: Settings,
 ): Promise<string> {
-  const settings = await getPluginSettings();
+  // Keep an in-flight save bound to the account that initiated it.
+  const settings = configuredSettings ?? (await getPluginSettings());
 
   const blob = new Blob([html], { type: "text/html" });
   const filename = sanitizeFilename(title || "page") + ".html";
