@@ -45,7 +45,7 @@ function ConnectionStatus({
 
   return (
     <div
-      className={`rounded-lg border ${borderColor} bg-background p-5 shadow-sm transition-all`}
+      className={`rounded-lg border ${borderColor} bg-card p-5 shadow-sm transition-all`}
     >
       <div className="mb-3 flex items-center justify-between">
         <div>
@@ -90,7 +90,7 @@ function ConnectionsSkeleton() {
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="rounded-lg border border-gray-200 bg-background p-5 shadow-sm dark:border-gray-700"
+            className="rounded-lg border border-gray-200 bg-card p-5 shadow-sm dark:border-gray-700"
           >
             <div className="mb-3 flex items-center justify-between">
               <div className="h-5 w-28 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>

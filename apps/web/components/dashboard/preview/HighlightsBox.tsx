@@ -45,7 +45,7 @@ export default function HighlightsBox({
               clickable
               readOnly={readOnly}
             />
-            <Separator className="m-2 h-0.5 bg-gray-200 last:hidden" />
+            <Separator className="m-2 h-0.5 bg-gray-200 last:hidden dark:bg-border" />
           </Fragment>
         ))}
       </CollapsibleContent>

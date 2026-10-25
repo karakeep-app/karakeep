@@ -6,7 +6,7 @@ import { ArrowLeft, FileQuestion, Home } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:bg-slate-700/50 dark:shadow-md">
+    <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:border dark:bg-card dark:shadow-none">
       <div className="w-full max-w-md space-y-8 text-center">
         {/* Not Found Icon */}
         <div className="flex justify-center">

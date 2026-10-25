@@ -45,7 +45,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
         return (
           <div className="space-y-2">
             {bookmark.bannerImageUrl && (
-              <div className="aspect-video w-full overflow-hidden rounded bg-gray-100">
+              <div className="aspect-video w-full overflow-hidden rounded bg-gray-100 dark:bg-muted">
                 <Link href={bookmark.content.url} target="_blank">
                   {/* oxlint-disable-next-line no-img-element */}
                   <img
@@ -108,7 +108,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
         return (
           <div className="space-y-2">
             {bookmark.bannerImageUrl ? (
-              <div className="aspect-video w-full overflow-hidden rounded bg-gray-100">
+              <div className="aspect-video w-full overflow-hidden rounded bg-gray-100 dark:bg-muted">
                 <Link href={bookmark.content.assetUrl} target="_blank">
                   {/* oxlint-disable-next-line no-img-element */}
                   <img
@@ -119,7 +119,7 @@ function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
                 </Link>
               </div>
             ) : (
-              <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded bg-gray-100">
+              <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded bg-gray-100 dark:bg-muted">
                 {bookmark.content.assetType === "image" ? (
                   <ImageIcon className="h-8 w-8 text-gray-400" />
                 ) : (
