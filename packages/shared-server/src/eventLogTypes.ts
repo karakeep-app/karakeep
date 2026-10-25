@@ -204,6 +204,22 @@ type EventLogInternal =
       ["event.name"]: "subscription.webhook_received";
       "stripe.event_type": string;
       "stripe.customer_id"?: string;
+    }
+  | {
+      ["event.name"]: "subscription.in_app_synced";
+      "revenuecat.store"?: string;
+      "revenuecat.product_id"?: string;
+      "subscription.status"?: string;
+      "subscription.prev_status"?: string;
+      "subscription.tier"?: "paid" | "free" | "manual";
+      "subscription.cancel_at_period_end"?: boolean;
+      "subscription.is_sandbox"?: boolean;
+      "subscription.sync_skipped_reason"?: "no_entitlement";
+    }
+  | {
+      ["event.name"]: "subscription.in_app_webhook_received";
+      "revenuecat.event_type"?: string;
+      "revenuecat.synced_users_count"?: number;
     };
 
 interface CommonEventLogFields {

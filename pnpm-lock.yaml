@@ -508,6 +508,12 @@ importers:
       react-native-pdf:
         specifier: 7.0.3
         version: 7.0.3(react-native-blob-util@0.21.2(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+      react-native-purchases:
+        specifier: ^10.12.2
+        version: 10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+      react-native-purchases-ui:
+        specifier: ^10.12.2
+        version: 10.12.2(react-native-purchases@10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       react-native-reanimated:
         specifier: 4.5.1
         version: 4.5.1(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
@@ -6691,6 +6697,15 @@ packages:
 
   '@restatedev/restate-sdk@1.16.2':
     resolution: {integrity: sha512-L2XqUukvdGYmqCqsFvJzTsaU3JiuFzsYSh6nK19Q1yKNOr/bBBZKdic0o0hza5P5QdiiFC5jLHJ5wCWt77IO0Q==}
+
+  '@revenuecat/purchases-js-hybrid-mappings@19.10.0':
+    resolution: {integrity: sha512-oHS+x18B2Q6dtaZJPuicJorhR+xUaAdt/tpLE1wQQHngkHksKN6AwbZDdt3x3rHHmEDjqgircORCbe5EwLF4hA==}
+
+  '@revenuecat/purchases-js@1.70.0':
+    resolution: {integrity: sha512-07e1rzlk9bMbMTthJduhcOwbQQhvFZJiFKskmoqOVnEYmQaRq/PayxtYgHhpK5UnmqOhzqRUzXfNqpvUggEP4w==}
+
+  '@revenuecat/purchases-typescript-internal@19.10.0':
+    resolution: {integrity: sha512-uf/I9z+d2eU2bfEXe/pODyd2EUP137PqqtcC1YyU9Mr0KBptMDqbGKdfiZeRDShbUcX7d6D3lEhQA32hQQNX0w==}
 
   '@rn-primitives/hooks@1.3.0':
     resolution: {integrity: sha512-BR97reSu7uVDpyMeQdRJHT0w8KdS6jdYnOL6xQtqS2q3H6N7vXBlX4LFERqJZphD+aziJFIAJ3HJF1vtt6XlpQ==}
@@ -14450,6 +14465,27 @@ packages:
       react: 19.2.3
       react-native: '*'
       react-native-blob-util: '>=0.13.7'
+
+  react-native-purchases-ui@10.12.2:
+    resolution: {integrity: sha512-8fPyN1JzRVrjjTAMGKsek1NCeUhr02DDHSNwDryumXw5wEkzx2u/c+cJgz0ksRNw5dC2382P0b+zVi6zB6qgRA==}
+    peerDependencies:
+      react: 19.2.3
+      react-native: '>= 0.73.0'
+      react-native-purchases: 10.12.2
+      react-native-web: '*'
+    peerDependenciesMeta:
+      react-native-web:
+        optional: true
+
+  react-native-purchases@10.12.2:
+    resolution: {integrity: sha512-gM6gp3N8zBDyDuTa0YRErsX+Xr2dfM93brkfDYfGuTec8gqzdU1KjgGvA//kk9h52d7E89rD93lIgqdsGxLfpA==}
+    peerDependencies:
+      react: 19.2.3
+      react-native: '>= 0.73.0'
+      react-native-web: '*'
+    peerDependenciesMeta:
+      react-native-web:
+        optional: true
 
   react-native-reanimated@4.5.1:
     resolution: {integrity: sha512-RnMvtDuR+68ig864gAvZCOdZehqhC5rFmMo0kn+ARfgVSTvFeF6IFLBVgMPUu0KwihaapEyW24WRi6nEyy1kSA==}
@@ -23217,9 +23253,7 @@ snapshots:
       metro-runtime: 0.84.6
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-color@2.1.0': {}
 
@@ -23351,6 +23385,14 @@ snapshots:
   '@restatedev/restate-sdk@1.16.2':
     dependencies:
       '@restatedev/restate-sdk-core': 1.16.2
+
+  '@revenuecat/purchases-js-hybrid-mappings@19.10.0':
+    dependencies:
+      '@revenuecat/purchases-js': 1.70.0
+
+  '@revenuecat/purchases-js@1.70.0': {}
+
+  '@revenuecat/purchases-typescript-internal@19.10.0': {}
 
   '@rn-primitives/hooks@1.3.0(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)':
     dependencies:
@@ -32188,6 +32230,24 @@ snapshots:
       react: 19.2.3
       react-native: 0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3)
       react-native-blob-util: 0.21.2(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+
+  react-native-purchases-ui@10.12.2(react-native-purchases@10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      '@revenuecat/purchases-typescript-internal': 19.10.0
+      react: 19.2.3
+      react-native: 0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3)
+      react-native-purchases: 10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+    optionalDependencies:
+      react-native-web: 0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+
+  react-native-purchases@10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      '@revenuecat/purchases-js-hybrid-mappings': 19.10.0
+      '@revenuecat/purchases-typescript-internal': 19.10.0
+      react: 19.2.3
+      react-native: 0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3)
+    optionalDependencies:
+      react-native-web: 0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
 
   react-native-reanimated@4.5.1(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3):
     dependencies:

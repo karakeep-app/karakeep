@@ -7,6 +7,7 @@ import { clearPersistedCache } from "./offlineCache";
 import { clearOfflineDownloadStorage } from "./offlineDownloadPrefs";
 import { clearOfflineLibrary } from "./offlineLibrary";
 import { resetOfflineDownloads } from "./offlineSync";
+import { resetPurchasesUser } from "./purchases";
 import useAppSettings from "./settings";
 
 export function useSession() {
@@ -30,6 +31,7 @@ export function useSession() {
     // After clearing: it notifies the download status screen, which reloads
     // from storage.
     resetOfflineDownloads();
+    void resetPurchasesUser();
   }, [deleteKey, queryClient, settings, setSettings]);
 
   return {

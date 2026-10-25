@@ -233,6 +233,13 @@ const allEnv = z.object({
   STRIPE_PRICE_ID: z.string().optional(),
   STRIPE_YEARLY_PRICE_ID: z.string().optional(),
 
+  // RevenueCat (mobile in-app purchases) configuration
+  REVENUECAT_PROJECT_ID: z.string().optional(),
+  REVENUECAT_SECRET_API_KEY: z.string().optional(),
+  REVENUECAT_WEBHOOK_AUTH_TOKEN: z.string().optional(),
+  REVENUECAT_ENTITLEMENT_ID: z.string().default("pro"),
+  REVENUECAT_ALLOW_SANDBOX_PURCHASES: stringBool("true"),
+
   FREE_QUOTA_BOOKMARK_LIMIT: z.coerce.number().optional(),
   FREE_QUOTA_ASSET_SIZE_BYTES: z.coerce.number().optional(),
   FREE_BROWSER_CRAWLING_ENABLED: optionalStringBool(),
@@ -537,6 +544,17 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       yearlyPriceId: val.STRIPE_YEARLY_PRICE_ID,
       isConfigured: !!val.STRIPE_SECRET_KEY && !!val.STRIPE_PUBLISHABLE_KEY,
     },
+    revenueCat: {
+      projectId: val.REVENUECAT_PROJECT_ID,
+      secretApiKey: val.REVENUECAT_SECRET_API_KEY,
+      webhookAuthToken: val.REVENUECAT_WEBHOOK_AUTH_TOKEN,
+      entitlementId: val.REVENUECAT_ENTITLEMENT_ID,
+      allowSandboxPurchases: val.REVENUECAT_ALLOW_SANDBOX_PURCHASES,
+      isConfigured:
+        !!val.REVENUECAT_PROJECT_ID &&
+        !!val.REVENUECAT_SECRET_API_KEY &&
+        !!val.REVENUECAT_WEBHOOK_AUTH_TOKEN,
+    },
     quotas: {
       free: {
         bookmarkLimit: val.FREE_QUOTA_BOOKMARK_LIMIT ?? null,
@@ -647,6 +665,9 @@ export const clientConfig = {
   },
   crawler: {
     videoDownloadOnDemand: serverConfig.crawler.downloadVideoOnDemand,
+  },
+  revenueCat: {
+    isConfigured: serverConfig.revenueCat.isConfigured,
   },
   legal: {
     termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,

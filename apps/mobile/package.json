@@ -78,6 +78,8 @@
     "react-native-mmkv": "^4.3.2",
     "react-native-nitro-modules": "^0.36.1",
     "react-native-pdf": "7.0.3",
+    "react-native-purchases": "^10.12.2",
+    "react-native-purchases-ui": "^10.12.2",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",

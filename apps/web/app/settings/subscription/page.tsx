@@ -16,7 +16,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SubscriptionPage() {
-  if (!serverConfig.stripe.isConfigured) {
+  if (
+    !serverConfig.stripe.isConfigured &&
+    !serverConfig.revenueCat.isConfigured
+  ) {
     redirect("/settings");
   }
 

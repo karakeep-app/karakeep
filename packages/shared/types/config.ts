@@ -37,6 +37,9 @@ export const zClientConfigSchema = z.object({
   crawler: z.object({
     videoDownloadOnDemand: z.boolean(),
   }),
+  revenueCat: z.object({
+    isConfigured: z.boolean(),
+  }),
   legal: z.object({
     termsOfServiceUrl: z.string().optional(),
     privacyPolicyUrl: z.string().optional(),
