@@ -62,8 +62,9 @@ export default function SignInPage() {
   const { mutate: validateApiKey, isPending: apiKeyValueRequestIsPending } =
     useMutation(
       api.apiKeys.validate.mutationOptions({
-        onSuccess: () => {
-          setSettings((s) => ({ ...s, apiKey }));
+        onSuccess: (_resp, req) => {
+          // Store exactly the key that was validated, not the live input.
+          setSettings((s) => ({ ...s, apiKey: req.apiKey }));
           navigate("/options");
         },
         onError: (e) => {

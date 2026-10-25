@@ -104,6 +104,17 @@ export default function OptionsPage() {
     accountLabel = <Spinner className="size-4 text-muted-foreground" />;
   }
 
+  // Opened from the popup's header: return to that screen. Going to "/" would
+  // re-run the save flow for the active tab. Otherwise (e.g. right after
+  // sign-in) "/" is where the user wants to go next.
+  const onBack = () => {
+    if ((location.state as { canGoBack?: boolean } | null)?.canGoBack) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   const onLogout = () => {
     if (settings.apiKeyId) {
       deleteKey({ id: settings.apiKeyId });
@@ -117,7 +128,7 @@ export default function OptionsPage() {
     <div className="flex flex-col gap-5">
       <PopupHeader
         title="Settings"
-        onBack={location.key !== "default" ? () => navigate("/") : undefined}
+        onBack={location.key !== "default" ? onBack : undefined}
       />
 
       <SettingsSection title="Account">

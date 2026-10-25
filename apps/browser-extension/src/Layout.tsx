@@ -43,7 +43,10 @@ export default function Layout() {
             <RefreshCw className="size-4" />
           </HeaderIconButton>
         )}
-        <HeaderIconButton label="Settings" onClick={() => navigate("/options")}>
+        <HeaderIconButton
+          label="Settings"
+          onClick={() => navigate("/options", { state: { canGoBack: true } })}
+        >
           <Settings className="size-4" />
         </HeaderIconButton>
         <HeaderIconButton label="Close" onClick={() => window.close()}>

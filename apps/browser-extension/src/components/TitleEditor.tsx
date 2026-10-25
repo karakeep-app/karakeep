@@ -54,11 +54,20 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookmark?.title]);
 
+  // Saves are serialised: at most one request in flight, with the latest edit
+  // queued behind it, so a quick A -> B -> A can't end on B. `undefined` means
+  // "nothing" (null is a valid title: it clears the user's title).
+  const inFlightTitle = useRef<string | null | undefined>(undefined);
+  const queuedTitle = useRef<string | null | undefined>(undefined);
+
   const { mutate: updateBookmark, isPending } = useUpdateBookmark({
     onSuccess: (_res, req) => {
       setError(null);
       // Don't drop edits the user made while the request was in flight.
-      if ((req.title ?? "") === valueRef.current.trim()) {
+      if (
+        queuedTitle.current === undefined &&
+        (req.title ?? "") === valueRef.current.trim()
+      ) {
         setIsDirty(false);
         setJustSaved(true);
       }
@@ -66,7 +75,24 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
     onError: (e) => {
       setError(e.message || "Failed to save title");
     },
+    onSettled: () => {
+      inFlightTitle.current = undefined;
+      const next = queuedTitle.current;
+      if (next !== undefined) {
+        queuedTitle.current = undefined;
+        sendTitle(next);
+      }
+    },
   });
+
+  const sendTitle = (title: string | null) => {
+    if (inFlightTitle.current !== undefined) {
+      queuedTitle.current = title;
+      return;
+    }
+    inFlightTitle.current = title;
+    updateBookmark({ bookmarkId, title });
+  };
 
   if (!bookmark) {
     return null;
@@ -83,15 +109,27 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
       setValue(bookmark.title ?? "");
       return;
     }
-    const newTitle = value.trim();
-    if (newTitle === (bookmark.title ?? "")) {
-      setIsDirty(false);
-      setValue(bookmark.title ?? "");
+    // An empty title clears the user's title so the crawled one shows again.
+    const newTitle = value.trim() === "" ? null : value.trim();
+    // What the server will hold once the saves already sent have landed. The
+    // cached bookmark lags behind those, so it can't be used on its own.
+    const expectedTitle =
+      queuedTitle.current !== undefined
+        ? queuedTitle.current
+        : inFlightTitle.current !== undefined
+          ? inFlightTitle.current
+          : (bookmark.title ?? null);
+    if (newTitle === expectedTitle) {
+      // Nothing new to send. If a save is still pending, its success clears
+      // the dirty state once the value matches.
+      if (inFlightTitle.current === undefined) {
+        setIsDirty(false);
+        setValue(bookmark.title ?? "");
+      }
       return;
     }
     setJustSaved(false);
-    // An empty title clears the user's title so the crawled one shows again.
-    updateBookmark({ bookmarkId, title: newTitle === "" ? null : newTitle });
+    sendTitle(newTitle);
   };
 
   return (
