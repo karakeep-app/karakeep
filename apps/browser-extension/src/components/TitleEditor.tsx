@@ -40,6 +40,19 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
   const valueRef = useRef(value);
   valueRef.current = value;
 
+  // Saves are serialised: at most one request in flight, with the latest edit
+  // queued behind it, so a quick A -> B -> A can't end on B. `undefined` means
+  // "nothing" (null is a valid title: it clears the user's title).
+  const inFlightTitle = useRef<string | null | undefined>(undefined);
+  const queuedTitle = useRef<string | null | undefined>(undefined);
+  // The title the last successful save wrote. The cached bookmark only learns
+  // about it once the post-save refetch lands, so until then this is the
+  // source of truth for what the server holds.
+  const savedTitle = useRef<string | null | undefined>(undefined);
+  // What focusing pre-filled the field with (the crawled title), so getting
+  // back to exactly that text doesn't count as an edit.
+  const prefilledTitle = useRef<string | null>(null);
+
   // Pick up title changes from the server (e.g. edited elsewhere), but only
   // when they actually change and the user isn't in the middle of editing.
   const lastServerTitle = useRef<string | null | undefined>(undefined);
@@ -48,21 +61,23 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
       return;
     }
     lastServerTitle.current = bookmark.title;
+    if (savedTitle.current !== undefined) {
+      if ((bookmark.title ?? null) !== savedTitle.current) {
+        // A refetch from before our latest save; wait for the one after it.
+        return;
+      }
+      savedTitle.current = undefined;
+    }
     if (!isDirty && !isFocused) {
       setValue(bookmark.title ?? "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookmark?.title]);
 
-  // Saves are serialised: at most one request in flight, with the latest edit
-  // queued behind it, so a quick A -> B -> A can't end on B. `undefined` means
-  // "nothing" (null is a valid title: it clears the user's title).
-  const inFlightTitle = useRef<string | null | undefined>(undefined);
-  const queuedTitle = useRef<string | null | undefined>(undefined);
-
   const { mutate: updateBookmark, isPending } = useUpdateBookmark({
     onSuccess: (_res, req) => {
       setError(null);
+      savedTitle.current = req.title ?? null;
       // Don't drop edits the user made while the request was in flight.
       if (
         queuedTitle.current === undefined &&
@@ -103,28 +118,41 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
     fallbackTitle ??
     (isBookmarkStillCrawling(bookmark) ? "Fetching title…" : "Untitled");
 
+  // The user's title as far as we know, including saves the cache hasn't
+  // caught up with yet.
+  const currentTitle =
+    savedTitle.current !== undefined
+      ? savedTitle.current
+      : (bookmark.title ?? null);
+
   const commit = () => {
+    const prefilled = prefilledTitle.current;
+    prefilledTitle.current = null;
     if (!isDirty) {
       // Nothing typed: undo any prefill from focusing.
-      setValue(bookmark.title ?? "");
+      setValue(currentTitle ?? "");
       return;
     }
     // An empty title clears the user's title so the crawled one shows again.
     const newTitle = value.trim() === "" ? null : value.trim();
-    // What the server will hold once the saves already sent have landed. The
-    // cached bookmark lags behind those, so it can't be used on its own.
+    // What the server will hold once the saves already sent have landed.
     const expectedTitle =
       queuedTitle.current !== undefined
         ? queuedTitle.current
         : inFlightTitle.current !== undefined
           ? inFlightTitle.current
-          : (bookmark.title ?? null);
-    if (newTitle === expectedTitle) {
+          : currentTitle;
+    const isUnchanged =
+      newTitle === expectedTitle ||
+      // Back to the untouched pre-filled crawled title: still no title of
+      // the user's own, so the crawler can keep updating it.
+      (expectedTitle === null && newTitle === prefilled?.trim());
+    if (isUnchanged) {
       // Nothing new to send. If a save is still pending, its success clears
       // the dirty state once the value matches.
       if (inFlightTitle.current === undefined) {
         setIsDirty(false);
-        setValue(bookmark.title ?? "");
+        setValue(expectedTitle ?? "");
       }
       return;
     }
@@ -145,7 +173,8 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
             setIsFocused(true);
             // Start from the crawled title so it can be tweaked rather than
             // retyped. This isn't saved unless the user actually edits it.
-            if (!isDirty && !bookmark.title && fallbackTitle) {
+            if (!isDirty && currentTitle === null && fallbackTitle) {
+              prefilledTitle.current = fallbackTitle;
               setValue(fallbackTitle);
             }
           }}
@@ -165,7 +194,7 @@ export function TitleEditor({ bookmarkId }: { bookmarkId: string }) {
             } else if (e.key === "Escape") {
               e.preventDefault();
               setIsDirty(false);
-              setValue(bookmark.title ?? "");
+              setValue(currentTitle ?? "");
               // Blurring would commit; skip it by resetting first.
               setTimeout(() => inputRef.current?.blur());
             }
