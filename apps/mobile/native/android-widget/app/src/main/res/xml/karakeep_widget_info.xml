@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/widget_karakeep" android:minWidth="250dp" android:minHeight="180dp"
+    android:minResizeWidth="180dp" android:minResizeHeight="120dp" android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" android:updatePeriodMillis="1800000"
+    android:previewLayout="@layout/widget_karakeep" android:description="@string/widget_description"
+    android:configure="app.karakeep.widget.KarakeepWidgetConfigActivity" />
