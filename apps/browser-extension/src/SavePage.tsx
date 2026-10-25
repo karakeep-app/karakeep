@@ -8,12 +8,19 @@ import {
   zNewBookmarkRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 
-import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
+import {
+  NEW_BOOKMARK_REQUEST_KEY_NAME,
+  SCREENSHOT_PENDING_KEY_NAME,
+} from "./background/protocol";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Textarea } from "./components/ui/textarea";
 import Spinner from "./Spinner";
 import { hasHostPermission } from "./utils/permissions";
+import {
+  captureVisibleTabScreenshot,
+  uploadScreenshotAsset,
+} from "./utils/screenshot";
 import usePluginSettings from "./utils/settings";
 import {
   capturePageWithSingleFile,
@@ -78,6 +85,47 @@ export default function SavePage() {
       return zNewBookmarkRequestSchema.parse(req);
     }
 
+    // Handles the "Screenshot and send to Karakeep" context menu item. The
+    // background script only flags the intent (see SCREENSHOT_PENDING_KEY_NAME);
+    // the actual capture + upload happens here, now that the popup is open and
+    // there's no user-gesture window to preserve.
+    async function getScreenshotBookmarkRequestIfAny(
+      currentTab: chrome.tabs.Tab | undefined,
+    ): Promise<ZNewBookmarkRequest | null> {
+      const { [SCREENSHOT_PENDING_KEY_NAME]: pending } =
+        await chrome.storage.session.get(SCREENSHOT_PENDING_KEY_NAME);
+      if (!pending) {
+        return null;
+      }
+      await chrome.storage.session.remove(SCREENSHOT_PENDING_KEY_NAME);
+
+      if (currentTab?.id === undefined || currentTab?.windowId === undefined) {
+        throw new Error("No active tab to screenshot.");
+      }
+      if (!currentTab.url || !isHttpUrl(currentTab.url)) {
+        throw new Error(
+          "Cannot screenshot this type of page. Only HTTP/HTTPS pages are supported.",
+        );
+      }
+
+      setIsCapturing(true);
+      try {
+        const dataUrl = await captureVisibleTabScreenshot(currentTab.windowId);
+        const assetId = await uploadScreenshotAsset(dataUrl, currentTab.title);
+        return {
+          type: BookmarkTypes.ASSET,
+          assetType: "image",
+          assetId,
+          fileName: "screenshot.png",
+          sourceUrl: currentTab.url,
+          title: currentTab.title,
+          source: "extension",
+        };
+      } finally {
+        setIsCapturing(false);
+      }
+    }
+
     async function loadBookmarkRequest() {
       const [currentTab] = await chrome.tabs.query({
         active: true,
@@ -88,6 +136,18 @@ export default function SavePage() {
 
       let newBookmarkRequest =
         await getNewBookmarkRequestFromBackgroundScriptIfAny();
+      if (!newBookmarkRequest) {
+        try {
+          newBookmarkRequest =
+            await getScreenshotBookmarkRequestIfAny(currentTab);
+        } catch (e) {
+          setError(
+            e instanceof Error ? e.message : "Failed to capture screenshot.",
+          );
+          setHasCheckedRequest(true);
+          return;
+        }
+      }
       if (!newBookmarkRequest) {
         if (!currentTab?.url) {
           setError("Current tab has no URL to bookmark.");
