@@ -42,7 +42,7 @@
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "2.7.1",
+    "@crxjs/vite-plugin": "3.0.0",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/chrome": "^0.0.260",
