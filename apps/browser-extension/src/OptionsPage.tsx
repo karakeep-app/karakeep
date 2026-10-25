@@ -1,18 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { Laptop, LogOut, Moon, Sun, SunMoon } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { PopupHeader } from "./components/PopupHeader";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./components/ui/select";
 import { Switch } from "./components/ui/switch";
 import Spinner from "./Spinner";
 import {
@@ -26,6 +19,12 @@ import usePluginSettings, {
 import { cn } from "./utils/css";
 import { useTheme } from "./utils/ThemeProvider";
 import { useTRPC } from "./utils/trpc";
+
+const THEME_OPTIONS = [
+  { value: "light", icon: Sun, label: "Light mode" },
+  { value: "dark", icon: Moon, label: "Dark mode" },
+  { value: "system", icon: Laptop, label: "System mode" },
+] as const;
 
 export default function OptionsPage() {
   const api = useTRPC();
@@ -248,17 +247,37 @@ export default function OptionsPage() {
       </SettingsSection>
 
       <SettingsSection title="Appearance">
-        <SettingsRow label="Theme">
-          <Select value={theme} onValueChange={setTheme}>
-            <SelectTrigger className="w-28">
-              <SelectValue placeholder="Theme" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="system">System</SelectItem>
-            </SelectContent>
-          </Select>
+        <SettingsRow
+          label={
+            <span className="flex items-center gap-2">
+              <SunMoon className="size-4 text-muted-foreground" />
+              Theme
+            </span>
+          }
+        >
+          <div
+            role="group"
+            aria-label="Theme"
+            className="flex items-center gap-0.5 rounded-md bg-muted p-0.5"
+          >
+            {THEME_OPTIONS.map(({ value, icon: Icon, label }) => (
+              <Button
+                key={value}
+                variant="ghost"
+                className={cn(
+                  "h-auto rounded px-2 py-1 text-muted-foreground focus:bg-background/60",
+                  theme === value &&
+                    "bg-background text-foreground shadow-sm hover:bg-background focus:bg-background",
+                )}
+                aria-pressed={theme === value}
+                aria-label={label}
+                title={label}
+                onClick={() => setTheme(value)}
+              >
+                <Icon className="size-3.5" />
+              </Button>
+            ))}
+          </div>
         </SettingsRow>
       </SettingsSection>
     </div>
