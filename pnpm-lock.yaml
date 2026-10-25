@@ -21,7 +21,7 @@ overrides:
 patchedDependencies:
   expo-modules-jsi@57.1.1: 0de91114675edaf8158061b65f08995617cd872a813892f81e28394ded741a77
   expo-share-intent@8.0.1: 0d82bc4e13dd196d0d74ab0507c5d042d1ca0df6403534afd76a8e18410436c6
-  patchright-core@1.59.4: bad8f4246d462dedf01a4188e8d958032e1d8f1fcf243b33b1ecafe7ca41a1bd
+  patchright-core@1.59.4: e9c5d33d907bd9189082dcc2d58060bbcbd1ec3d633715b0762970b0d8898f3a
   react-native@0.86.3: 7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1
   react-tweet@3.2.2: d7b79c3ae412d8e700a8c176df42ee89112c9bdc91d2aad0ebb7d5b011b49993
   xcode@3.0.1: 725863c0591d89ca053226c49fe7bc321f320391ec5f78b6c2e8e41ab1868805
@@ -31080,11 +31080,11 @@ snapshots:
       no-case: 3.0.4
       tslib: 2.8.1
 
-  patchright-core@1.59.4(patch_hash=bad8f4246d462dedf01a4188e8d958032e1d8f1fcf243b33b1ecafe7ca41a1bd): {}
+  patchright-core@1.59.4(patch_hash=e9c5d33d907bd9189082dcc2d58060bbcbd1ec3d633715b0762970b0d8898f3a): {}
 
   patchright@1.59.4:
     dependencies:
-      patchright-core: 1.59.4(patch_hash=bad8f4246d462dedf01a4188e8d958032e1d8f1fcf243b33b1ecafe7ca41a1bd)
+      patchright-core: 1.59.4(patch_hash=e9c5d33d907bd9189082dcc2d58060bbcbd1ec3d633715b0762970b0d8898f3a)
     optionalDependencies:
       fsevents: 2.3.2
 
