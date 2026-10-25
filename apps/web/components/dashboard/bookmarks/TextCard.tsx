@@ -26,6 +26,7 @@ export default function TextCard({
   return (
     <>
       <BookmarkLayoutAdaptingCard
+        href={`/dashboard/preview/${bookmark.id}`}
         title={bookmark.title}
         content={
           <BookmarkMarkdownComponent readOnly={true}>
