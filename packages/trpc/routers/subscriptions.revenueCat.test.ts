@@ -356,6 +356,52 @@ describe("RevenueCat subscriptions", () => {
         bookmarkQuota: null,
       });
     });
+
+    test<CustomTestContext>("overlapping syncs apply the newest state and share a fetch", async ({
+      db,
+    }) => {
+      const user = await createFreeUser(db);
+      const caller = getApiCaller(db, user.id);
+
+      // Hold the first sync's (stale) RevenueCat responses until the user's
+      // state changes and more syncs come in.
+      let releaseFirstSync!: () => void;
+      const firstSyncGate = new Promise<void>((resolve) => {
+        releaseFirstSync = resolve;
+      });
+      const defaultFetch = mockFetch.getMockImplementation()!;
+      const delayedFetch = async (url: string | URL) => {
+        const response = await defaultFetch(url);
+        await firstSyncGate;
+        return response;
+      };
+      mockFetch
+        .mockImplementationOnce(delayedFetch)
+        .mockImplementationOnce(delayedFetch);
+
+      rcCustomers[user.id] = rcCustomer(PAST);
+      const first = caller.subscriptions.syncWithRevenueCat();
+      await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+
+      rcCustomers[user.id] = rcCustomer(FUTURE);
+      const later = [
+        caller.subscriptions.syncWithRevenueCat(),
+        caller.subscriptions.syncWithRevenueCat(),
+      ];
+      releaseFirstSync();
+      await Promise.all([first, ...later]);
+
+      expect(
+        await db.query.inAppSubscriptions.findFirst({
+          where: eq(inAppSubscriptions.userId, user.id),
+        }),
+      ).toMatchObject({ status: "active" });
+      expect(await getQuotas(db, user.id)).toMatchObject({
+        bookmarkQuota: null,
+      });
+      // The first sync, then a single sync shared by the two later calls.
+      expect(mockFetch).toHaveBeenCalledTimes(4);
+    });
   });
 
   describe("interaction with other tiers", () => {
@@ -487,6 +533,37 @@ describe("RevenueCat subscriptions", () => {
           manualTierName: "Acme",
         }),
       ).rejects.toThrow(/active in-app subscription/);
+    });
+
+    test<CustomTestContext>("removing a manual tier keeps an active in-app subscriber paid", async ({
+      db,
+    }) => {
+      const user = await createFreeUser(db);
+      const admin = await createTestUser(db, {
+        name: "Admin",
+        email: "admin@test.com",
+        password: "pass1234",
+        role: "admin",
+      });
+      rcCustomers[user.id] = rcCustomer(FUTURE);
+      await getApiCaller(db, user.id).subscriptions.syncWithRevenueCat();
+
+      await getApiCaller(
+        db,
+        admin.id,
+        admin.email,
+        "admin",
+      ).subscriptions.updateSubscriptionTier({
+        email: user.email,
+        manualTierName: null,
+      });
+
+      expect(await getQuotas(db, user.id)).toEqual({
+        bookmarkQuota: null,
+        storageQuota: null,
+        browserCrawlingEnabled: true,
+        manualTierName: null,
+      });
     });
   });
 });

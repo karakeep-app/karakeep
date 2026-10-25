@@ -15,6 +15,8 @@ const REVENUECAT_ANONYMOUS_ID_PREFIX = "$RCAnonymousID:";
 // Only the fields we care about from
 // https://www.revenuecat.com/docs/api-v2#tag/Customer-Information. All the
 // timestamps are in ms since epoch.
+// This list is paginated too, but only its first page (20 items) is read: a
+// product grants far fewer entitlements than that.
 const zEntitlementList = z.object({
   items: z.array(z.object({ lookup_key: z.string() })),
 });
@@ -217,12 +219,57 @@ export async function fetchRevenueCatCustomer(
   return { subscriptions, purchases };
 }
 
+interface UserSyncQueue {
+  // Settles once every sync queued for the user so far has finished.
+  tail: Promise<void>;
+  // A queued sync that hasn't fetched from RevenueCat yet.
+  pending: Promise<InAppSubscriptionState | null> | null;
+}
+
+const userSyncQueues = new Map<string, UserSyncQueue>();
+
 /**
  * Fetches the user's entitlement from RevenueCat (the source of truth) and
  * mirrors it into the database, updating the user's quotas accordingly. The
  * Karakeep user ID is used as the RevenueCat app user ID.
+ *
+ * Syncs of the same user run one at a time, so a slow RevenueCat response
+ * can't overwrite the state written by a newer one. Callers that arrive while
+ * a sync is waiting to start share it, as it will fetch fresh data anyway.
+ * This only serializes syncs within this process.
  */
-export async function syncRevenueCatDataToDatabase(
+export function syncRevenueCatDataToDatabase(
+  userId: string,
+  db: Context["db"],
+): Promise<InAppSubscriptionState | null> {
+  let queue = userSyncQueues.get(userId);
+  if (!queue) {
+    queue = { tail: Promise.resolve(), pending: null };
+    userSyncQueues.set(userId, queue);
+  }
+  if (queue.pending) {
+    return queue.pending;
+  }
+  const q = queue;
+  const sync = q.tail.then(() => {
+    // From here on, the fetch might miss newer changes, so later callers
+    // need a sync of their own.
+    q.pending = null;
+    return fetchAndStoreRevenueCatState(userId, db);
+  });
+  q.pending = sync;
+  // Drop the queue once nothing else got queued behind this sync.
+  const cleanUp = () => {
+    if (q.tail === tail) {
+      userSyncQueues.delete(userId);
+    }
+  };
+  const tail = sync.then(cleanUp, cleanUp);
+  q.tail = tail;
+  return sync;
+}
+
+async function fetchAndStoreRevenueCatState(
   userId: string,
   db: Context["db"],
 ): Promise<InAppSubscriptionState | null> {

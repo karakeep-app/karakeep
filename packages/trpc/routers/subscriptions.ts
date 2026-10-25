@@ -21,6 +21,7 @@ import {
   createEventLogMiddleware,
   publicProcedure,
   router,
+  createRateLimitMiddleware,
   createScopedAuthedProcedure,
 } from "../index";
 import {
@@ -689,29 +690,32 @@ export const subscriptionsRouter = router({
         });
       }
 
-      const updateData: Partial<typeof users.$inferInsert> =
-        input.manualTierName === null
-          ? {
-              manualTierName: null,
-              bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
-              storageQuota: serverConfig.quotas.free.assetSizeBytes,
-              browserCrawlingEnabled:
-                serverConfig.quotas.free.browserCrawlingEnabled,
-            }
-          : { manualTierName: input.manualTierName };
+      if (input.manualTierName === null) {
+        // Fall back to the quotas of the user's subscriptions, if any.
+        await ctx.db.transaction((trx) => {
+          trx
+            .update(users)
+            .set({ manualTierName: null })
+            .where(eq(users.id, user.id))
+            .run();
+          applyUserTierQuotas(trx, user.id);
+        });
+        return;
+      }
 
-      if (input.manualTierName !== null) {
-        if (input.bookmarkQuota !== undefined) {
-          updateData.bookmarkQuota = input.bookmarkQuota;
-        }
+      const updateData: Partial<typeof users.$inferInsert> = {
+        manualTierName: input.manualTierName,
+      };
+      if (input.bookmarkQuota !== undefined) {
+        updateData.bookmarkQuota = input.bookmarkQuota;
+      }
 
-        if (input.storageQuota !== undefined) {
-          updateData.storageQuota = input.storageQuota;
-        }
+      if (input.storageQuota !== undefined) {
+        updateData.storageQuota = input.storageQuota;
+      }
 
-        if (input.browserCrawlingEnabled !== undefined) {
-          updateData.browserCrawlingEnabled = input.browserCrawlingEnabled;
-        }
+      if (input.browserCrawlingEnabled !== undefined) {
+        updateData.browserCrawlingEnabled = input.browserCrawlingEnabled;
       }
 
       await ctx.db.update(users).set(updateData).where(eq(users.id, user.id));
@@ -719,17 +723,27 @@ export const subscriptionsRouter = router({
 
   // Called by the mobile app right after a purchase/restore so that the
   // entitlement is reflected without waiting for the RevenueCat webhook.
-  syncWithRevenueCat: subscriptionsProcedure.mutation(async ({ ctx }) => {
-    if (!serverConfig.revenueCat.isConfigured) {
-      throw new TRPCError({
-        code: "PRECONDITION_FAILED",
-        message: "In-app purchases are not configured",
-      });
-    }
+  syncWithRevenueCat: subscriptionsProcedure
+    // Each sync makes two requests against RevenueCat's API, whose rate
+    // limit is shared by all users and the webhook.
+    .use(
+      createRateLimitMiddleware({
+        name: "subscriptions.syncWithRevenueCat",
+        windowMs: 60 * 1000,
+        maxRequests: 10,
+      }),
+    )
+    .mutation(async ({ ctx }) => {
+      if (!serverConfig.revenueCat.isConfigured) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "In-app purchases are not configured",
+        });
+      }
 
-    await syncRevenueCatDataToDatabase(ctx.user.id, ctx.db);
-    return { success: true };
-  }),
+      await syncRevenueCatDataToDatabase(ctx.user.id, ctx.db);
+      return { success: true };
+    }),
 
   handleRevenueCatWebhook: publicProcedure
     .use(createEventLogMiddleware("subscription.in_app_webhook_received"))

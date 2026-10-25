@@ -77,7 +77,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (error?.data?.code === "UNAUTHORIZED") {
-      logout();
+      void logout();
     }
   }, [error?.data?.code, logout]);
 

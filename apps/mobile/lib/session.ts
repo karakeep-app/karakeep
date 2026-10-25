@@ -19,7 +19,10 @@ export function useSession() {
     api.apiKeys.revoke.mutationOptions(),
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Finish signing out of RevenueCat before the next user can sign in, so
+    // a late reset can't log out the next user's purchases identity.
+    await resetPurchasesUser();
     if (settings.apiKeyId) {
       deleteKey({ id: settings.apiKeyId });
     }
@@ -31,7 +34,6 @@ export function useSession() {
     // After clearing: it notifies the download status screen, which reloads
     // from storage.
     resetOfflineDownloads();
-    void resetPurchasesUser();
   }, [deleteKey, queryClient, settings, setSettings]);
 
   return {
