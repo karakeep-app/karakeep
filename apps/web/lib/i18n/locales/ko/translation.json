@@ -59,6 +59,7 @@
     "delete": "삭제",
     "refresh": "새로 고침",
     "add_to_list": "목록에 추가",
+    "select": "선택",
     "unarchive": "보관해제",
     "recrawl": "다시 가져오기",
     "edit_tags": "태그 수정",
@@ -95,6 +96,7 @@
     "load_more": "더 불러오기",
     "edit_notes": "노트 편집",
     "preserve_as_pdf": "PDF로 보존",
+    "preserve_video": "동영상 보존",
     "offline_copies": "오프라인 사본",
     "preserve_offline_archive": "오프라인 아카이브 보존",
     "download_full_page_archive_file": "아카이브 파일 다운로드",
@@ -143,6 +145,10 @@
     "is_not_archived": "보관되지 않음",
     "has_any_tag": "태그를 가짐",
     "has_no_tags": "태그를 가지지 않음",
+    "has_notes": "노트 있음",
+    "has_no_notes": "노트 없음",
+    "has_highlights": "하이라이트 있음",
+    "has_no_highlights": "하이라이트 없음",
     "is_in_any_list": "목록에 포함됨",
     "is_not_in_any_list": "목록에 포함되지 않음",
     "created_on_or_after": "이후 생성됨",
@@ -200,6 +206,9 @@
     "view_original": "원본 보기",
     "cached_content": "캐싱된 컨텐츠",
     "reader_view": "리더 보기",
+    "page_overview": "페이지 개요",
+    "try_reader_view": "리더 보기 사용해 보기",
+    "archived_page": "보관된 페이지",
     "tabs": {
       "content": "콘텐츠",
       "details": "세부 정보"
@@ -286,6 +295,7 @@
       "delete_from_list": "북마크를 목록에서 삭제했습니다",
       "clipboard_copied": "링크를 클립보드에 복사했습니다!",
       "preserve_pdf": "PDF 보존이 시작되었습니다",
+      "preserve_video": "동영상 다운로드가 요청되었습니다",
       "update_banner": "배너가 업데이트되었습니다!",
       "uploading_banner": "배너 업로드 중..."
     },
@@ -561,7 +571,45 @@
       "broken_links": "손상된 링크",
       "last_crawled_at": "마지막 가져온 시간",
       "crawling_status": "가져오기 상태",
-      "crawling_failed": "가져오기 실패함"
+      "crawling_failed": "가져오기 실패함",
+      "description": "가져올 수 없었던 링크를 검토하고, 다시 시도하거나 오래된 북마크를 삭제하세요.",
+      "category_all": "확인 필요",
+      "category_blocked": "접근 차단됨",
+      "category_missing": "찾을 수 없음",
+      "category_errors": "기타 오류",
+      "category_all_hint": "검토할 링크",
+      "category_blocked_hint": "제한되었거나 요청 한도 초과",
+      "category_missing_hint": "페이지가 없거나 삭제됨",
+      "category_errors_hint": "서버 오류 또는 가져오기 실패",
+      "blocked_hint": "요청이 차단되었다고 해서 항상 링크가 손상된 것은 아닙니다. 일부 사이트는 자동화된 접근을 제한합니다. 삭제하기 전에 원본 페이지를 열어 확인하세요.",
+      "search": "제목 또는 URL로 검색…",
+      "sort_recent": "최근 확인 순",
+      "sort_oldest": "오래된 확인 순",
+      "sort_domain": "웹사이트 A–Z",
+      "result_count_other": "검토할 링크 {{count}}개",
+      "retry_selected": "선택 항목 다시 시도",
+      "empty": "손상된 링크가 없습니다",
+      "empty_description": "현재 가져오기 오류가 보고된 저장된 링크가 없습니다.",
+      "select_visible": "표시된 링크 모두 선택",
+      "bookmark": "북마크",
+      "issue": "문제",
+      "never_crawled": "가져온 날짜 없음",
+      "issue_blocked": "접근 차단됨",
+      "issue_missing": "찾을 수 없음",
+      "issue_server": "서버 오류",
+      "issue_http": "HTTP 오류",
+      "issue_failed": "가져오기 실패",
+      "issue_blocked_hint": "사이트에서 이 요청을 제한했습니다",
+      "issue_missing_hint": "페이지가 삭제되었을 수 있습니다",
+      "issue_server_hint": "사이트에서 요청을 완료할 수 없었습니다",
+      "issue_http_hint": "사이트에서 예상치 못한 응답을 반환했습니다",
+      "issue_failed_hint": "성공한 응답이 기록되지 않았습니다",
+      "queued": "대기열에 추가됨",
+      "queued_count_other": "링크 {{count}}개가 다시 가져오기 대기열에 추가되었습니다.",
+      "deleted_count_other": "북마크 {{count}}개가 삭제되었습니다.",
+      "action_failed": "{{total}}개 중 {{count}}개가 실패했습니다.",
+      "delete_title_other": "북마크 {{count}}개를 삭제하시겠습니까?",
+      "delete_description": "선택한 북마크와 저장된 파일, 하이라이트, 노트가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
     },
     "manage_assets": {
       "no_assets": "아직 자산이 없습니다.",
@@ -668,7 +716,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "시간별 활동",
-        "activity_by_day": "일별 활동"
+        "activity_by_day": "일별 활동",
+        "busiest_around": "가장 활발한 시간: {{hour}}"
       },
       "storage_breakdown": {
         "title": "저장 공간 분석"
@@ -816,6 +865,19 @@
         "backup_queued": "백업 작업이 대기열에 추가되었습니다! 곧 처리될 겁니다.",
         "backup_deleted": "백업이 삭제되었습니다!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "필터 지우기",
+      "clear_selection": "선택 해제",
+      "delete_selected": "선택 항목 삭제",
+      "try_again": "다시 시도",
+      "sort": "정렬 순서",
+      "no_matches": "일치하는 항목이 없습니다",
+      "adjust_filters": "다른 검색어를 사용하거나 필터를 지워 보세요.",
+      "select_item": "{{name}} 선택",
+      "selected": "{{count}}개 선택됨",
+      "showing": "{{total}}개 중 {{shown}}개 표시",
+      "load_more": "더 불러오기"
     }
   },
   "admin": {
@@ -1068,7 +1130,9 @@
     "items_count_other": "{{count}}개의 항목"
   },
   "options": {
+    "theme": "테마",
     "light_mode": "라이트 모드",
+    "system_mode": "시스템 모드",
     "dark_mode": "다크 모드",
     "apps_extensions": "앱 & 확장 기능",
     "documentation": "문서",

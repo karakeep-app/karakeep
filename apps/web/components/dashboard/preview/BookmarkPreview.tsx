@@ -234,7 +234,7 @@ export default function BookmarkPreview({
   return (
     <>
       {/* Render original layout for wide screens */}
-      <div className="hidden h-full flex-col overflow-hidden bg-background lg:flex">
+      <div className="hidden h-full flex-col overflow-hidden bg-card lg:flex">
         <div className="flex min-h-0 flex-1">
           <div className="relative h-full flex-1 overflow-auto px-4 py-4">
             <button
@@ -273,13 +273,13 @@ export default function BookmarkPreview({
           </TabsList>
           <TabsContent
             value="content"
-            className="h-full flex-1 overflow-hidden overflow-y-auto bg-background px-4 py-3 data-[state=inactive]:hidden"
+            className="h-full flex-1 overflow-hidden overflow-y-auto bg-card px-4 py-3 data-[state=inactive]:hidden"
           >
             {contentSection}
           </TabsContent>
           <TabsContent
             value="details"
-            className="h-full overflow-y-auto bg-background px-4 py-3 data-[state=inactive]:hidden"
+            className="h-full overflow-y-auto bg-card px-4 py-3 data-[state=inactive]:hidden"
           >
             {detailsSection}
           </TabsContent>

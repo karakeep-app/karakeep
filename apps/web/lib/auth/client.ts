@@ -5,10 +5,7 @@ import type { auth } from "@/server/auth";
 import { createContext, createElement, useContext } from "react";
 import { TURNSTILE_TOKEN_HEADER } from "@/lib/auth/constants";
 import { createAuthClient } from "better-auth/react";
-import {
-  genericOAuthClient,
-  inferAdditionalFields,
-} from "better-auth/client/plugins";
+import { inferAdditionalFields } from "better-auth/client/plugins";
 
 export interface Session {
   user: {
@@ -22,7 +19,7 @@ export interface Session {
 }
 
 const authClient = createAuthClient({
-  plugins: [genericOAuthClient(), inferAdditionalFields<typeof auth>()],
+  plugins: [inferAdditionalFields<typeof auth>()],
 });
 
 type ClientSessionData = NonNullable<
@@ -106,8 +103,8 @@ export async function signIn(
   }
 
   return toAuthResult(
-    await authClient.signIn.oauth2({
-      providerId: provider,
+    await authClient.signIn.social({
+      provider,
       callbackURL: options.callbackUrl ?? "/",
       errorCallbackURL: "/signin",
     }),

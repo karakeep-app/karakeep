@@ -197,6 +197,7 @@ type EventLogInternal =
         | "renewed"
         | "scheduled_cancellation"
         | "resubscribe"
+        | "payment_failed"
         | "no_change";
     }
   | {

@@ -203,7 +203,7 @@ async function run(
     response = await fetchWithProxy(feed.url, {
       signal: AbortSignal.timeout(5000),
       headers: {
-        "User-Agent": "Karakeep-RSS/1.0 (+https://karakeep.app)",
+        "User-Agent": "Karakeep-RSS/1.0 (+https://karakeep.com)",
         Accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
       },
     });

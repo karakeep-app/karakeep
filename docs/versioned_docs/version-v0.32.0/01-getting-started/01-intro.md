@@ -17,7 +17,7 @@ Karakeep (previously Hoarder) is an open source "Bookmark Everything" app that u
 - 👥 Collaborate with others on the same list.
 - 🔎 Full text search of all the content stored.
 - ✨ LLM-based automatic tagging and summarization. With supports for local models using ollama!
-- 🤖 LLM Agents (e.g. OpenClaw, Hermes) friendly with powerful [CLI](https://docs.karakeep.app/integrations/command-line), and [official skills](https://docs.karakeep.app/integrations/agentic-skills).
+- 🤖 LLM Agents (e.g. OpenClaw, Hermes) friendly with powerful [CLI](https://docs.karakeep.com/integrations/command-line), and [official skills](https://docs.karakeep.com/integrations/agentic-skills).
 - ⚙️ Rule-based engine for customized management.
 - 🎆 OCR for extracting text from images.
 - 🔖 [Chrome plugin](https://chromewebstore.google.com/detail/karakeep/kgcjekpmcjjogibpjebkhaanilehneje), [Firefox addon](https://addons.mozilla.org/en-US/firefox/addon/karakeep/), and [Safari extension](https://apps.apple.com/gb/app/karakeep-app/id6479258022?platform=mac) for quick bookmarking.

@@ -12,7 +12,7 @@ export default {
           scheme: "karakeep",
         }),
     slug: "hoarder",
-    version: "1.12.0",
+    version: "1.13.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "automatic",
@@ -47,7 +47,7 @@ export default {
           NSAllowsArbitraryLoads: true,
         },
       },
-      buildNumber: "49",
+      buildNumber: "51",
     },
     android: {
       adaptiveIcon: {
@@ -68,7 +68,7 @@ export default {
       package: IS_DEV
         ? "app.hoarder.hoardermobile.dev"
         : "app.hoarder.hoardermobile",
-      versionCode: 49,
+      versionCode: 51,
     },
     plugins: [
       "./plugins/trust-local-certs.js",

@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Loader2 } from "lucide-react";
+import { Check, Loader2, TriangleAlert } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
-import { Alert, AlertDescription } from "../ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
@@ -160,6 +160,11 @@ export default function SubscriptionSettings() {
               <div className="flex items-center gap-2">
                 {subscriptionStatus?.tier &&
                   getStatusBadge(subscriptionStatus.tier)}
+                {subscriptionStatus?.paymentFailed && (
+                  <Badge variant="destructive">
+                    {t("settings.subscription.payment_failed")}
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -282,14 +287,30 @@ export default function SubscriptionSettings() {
               </div>
             ) : (
               <div className="space-y-4">
+                {subscriptionStatus.paymentFailed && (
+                  <Alert variant="destructive">
+                    <TriangleAlert className="h-4 w-4" />
+                    <AlertTitle>
+                      {t("settings.subscription.payment_failed_title")}
+                    </AlertTitle>
+                    <AlertDescription>
+                      {t("settings.subscription.payment_failed_description")}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <div className="flex gap-2">
                   <Button
                     onClick={() => createPortalSession.mutate()}
                     disabled={isLoading}
-                    variant="outline"
+                    variant={
+                      subscriptionStatus.paymentFailed ? "default" : "outline"
+                    }
                   >
                     {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {t("settings.subscription.manage_billing")}
+                    {subscriptionStatus.paymentFailed
+                      ? t("settings.subscription.update_payment_method")
+                      : t("settings.subscription.manage_billing")}
                   </Button>
                 </div>
 

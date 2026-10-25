@@ -1,0 +1,71 @@
+---
+id: remove-bookmark-from-list
+title: "Remove a bookmark from a list"
+description: "Remove a bookmark from a manual list."
+sidebar_label: "Remove a bookmark from a list"
+hide_title: true
+hide_table_of_contents: true
+api: eJzlVtuKG0cQ/ZWi/WKLWWkdHGLmISDHa9jYBGPvEsJaoNJMSdNWT3e7L1rJYiAfkS/Ml4TquUjaXTsOhLzkabU9dTl1O1V7YSw5DNLoy1LkwlFtNvTCmHWNbv3KmfqN9EFkoiRfOGlZUOTiXRIDhEUnCUtnakCoUUdUoKQPY5GJgCsv8hvBRryYZcJTEZ0MO5Hf7MWC0JGbxlCJ/GbWzDJh0WFNgZxPAr6oqEaR70XYWRK58MFJvboH56oiiFp+igSyJB3kUpIDs4RQ0YCFtlhbxVYkyVJtd6v69uPzH8z28/fVNgRTPGfAMiQRBnxZiiYTjj5F6agUeXCRMqGxZgHVCmRCMgCLoRJN9i8h7pP6j1H3dfsq8sVB6AT9jDW8NdqT5wC+O3/Gf05x/2KgMDqQDvDn73+coIVb9ND2T9m2Q5998LEoyPtlVGo3ZmjPzs/v2+7Rg/SgTQCpT+rX+WU9tFbJInXt5KNn5QcybxYfqeDWtY57PMg2rMKU9Pf1mUKNRSU1nTnCEheKgJwzDlg9hVCT97j6JlNVrFHfNdTpj0VzUqqbFuDB/uxQ3gtWFE3TpAw+vZ/Ba40xVMbJz1QO9XmRpgyCWZPm1NbSe6lXGUi9QSXLDIwD2lr2fyfPgbZhYhXKhzM8BHxo0mMEA9IH+ojni/0OzcMFX5qo70L435c6+Q+VYXYuSVFgjTSxuZjwbPjJviWjZtJn00/2hylvBNOu2/SkGp0SudhjWTryvpmglZPNU5GJDTrJqFPuus9t5ZYYVRC5qEKwPp9MgtuN1+hwTWTHaO2D9NZZ6EntdScPLRaO7WgfvOeStp6Pt8KQcPbMcSQxJrEkJLLuxyvjamSEP/96lbIs9dKwOkfdQno6Ph+fH3HlgGf69vIe/uGj9IDgSS3PKuNDqmmfWalXgLoELvaZDGcKA7kUnSxoDFeV9GwbUClz62FnIgTDCxJXByM+S/zmM+BVmUElV5WSq4pf0HtKf3UJCyzW0Xqwzqwc1jUGWSCz6Qf9QT96BJwuXiPtpPDjVCkgXVojdWBeTl0HeEoHln2UPdPOp93sJiNzqAhLcmP4zUQoUMOKNN8KBKhTZGvaHYh+SNktLeD6EqIuycFo9J5CkHrl4cek85p2fjTqYb/FldQD5EQKB8w+WmtcgCI6b9zZAhmqHTRgIxHm7cd5StJcyVqGOXyK5HZwuCW4GAT9cgOpCxVL4srONW3DT52JpSTV0ianBWQA9G1eeieDSa7kkkJRpe9shIHRGKYw11GpOWxQRYKlcac+pC65RpQMcz0cgTZQG5cARhV8n5thHV7tLHl+7F98qsaCwGhqx8sRAU+Kzz/oMxiNlNTr0SjFMoXrd2+OlrQMFZjU56igcHirqISaApYYcNyqM+8P6on/gZ+YpKkTSc3Zy2iIVhksefFLRfBY1tzkxsHbl6+eJA61xocaE313d8gXb0j1wMW5P+yEbz8+W+o4WmJN1rLfviPQm3TGeZGJfLjnhsnk16NbaZYJpgBW2u+5F6+dahp+Tu3GF+yBQhPRltLz71LkS1SevhLR43fdUngCX8LdPaLeJaZWkf8TmVjT7nCN8gX6H3o9yk4zazLR8kWKvRWYFgXZcKR6b5vzDhjW28uLNxdXFyITeEr+d8g+OXgQ2X7fSlwxuTXNADSRHWNsmr8ApAaEbg==
+sidebar_class_name: "delete api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Remove a bookmark from a list"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/lists/{listId}/bookmarks/{bookmarkId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Remove a bookmark from a manual list.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the list.","example":"ieidlxygmwj87oxz5hxttoc8","title":"ListId"},"required":true,"name":"listId","in":"path"},{"schema":{"type":"string","description":"The unique identifier of the bookmark.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No content — the bookmark was removed from the list successfully."},"400":{"description":"Bookmark is not in the list.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"List or bookmark not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -716,6 +716,39 @@ describe("User Routes", () => {
       expect(deletedUser).toHaveLength(1);
     });
 
+    test<CustomTestContext>("deleteAccount refuses past_due Stripe subscription", async ({
+      db,
+    }) => {
+      const user = await createTestUser(db, {
+        name: "Test User",
+        email: "deletepastdueaccount@test.com",
+        password: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+
+      await db.insert(subscriptions).values({
+        userId: user.id,
+        stripeCustomerId: "cus_123",
+        stripeSubscriptionId: "sub_123",
+        status: "past_due",
+        tier: "paid",
+      });
+
+      await expect(() =>
+        caller.users.deleteAccount({
+          password: "pass1234",
+        }),
+      ).rejects.toThrow(
+        /Can't delete user while subscription is active. Please cancel your subscription first and try again./,
+      );
+
+      const deletedUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id));
+      expect(deletedUser).toHaveLength(1);
+    });
+
     test<CustomTestContext>("deleteAccount - wrong password", async ({
       db,
     }) => {

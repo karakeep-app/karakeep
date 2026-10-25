@@ -1,4 +1,8 @@
-# Kubernetes
+---
+sidebar_label: "Kubernetes"
+---
+
+# Deploy Karakeep on Kubernetes
 
 ### Requirements
 
@@ -98,3 +102,5 @@ Go to the [quick sharing page](../04-using-karakeep/quick-sharing.md) to install
 Edit the `KARAKEEP_VERSION` variable in the `kustomization.yaml` file and run `make clean deploy`.
 
 If you have chosen `release` as the image tag you can also destroy the web pod, since the deployment has an ImagePullPolicy set to always the pod always pulls the image from the registry, this way we can ensure that the newest release image is pulled.
+
+If an update changes the Meilisearch image in `meilisearch-deployment.yaml`, Meilisearch needs a one-time database upgrade before it starts again. Follow the [Meilisearch upgrade guide](../06-administration/10-meilisearch-upgrade.md).

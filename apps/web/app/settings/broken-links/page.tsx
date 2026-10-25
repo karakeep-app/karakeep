@@ -53,12 +53,12 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import { limitConcurrency } from "@karakeep/shared/concurrency";
 import { MAX_CONCURRENT_BULK_ACTIONS } from "@/lib/hooks/useBookmarkBulkActions";
 
-const categories = ["all", "blocked", "missing", "other"] as const;
+const categories = ["all", "blocked", "missing", "errors"] as const;
 const categoryIcons = {
   all: Link2Off,
   blocked: ShieldAlert,
   missing: Link2Off,
-  other: CircleHelp,
+  errors: CircleHelp,
 };
 type Category = (typeof categories)[number];
 const issueClass = {
@@ -114,10 +114,10 @@ export default function BrokenLinksPage() {
   );
   const bookmarks = data?.bookmarks ?? [];
   const counts = useMemo(() => {
-    const result = { all: bookmarks.length, blocked: 0, missing: 0, other: 0 };
+    const result = { all: bookmarks.length, blocked: 0, missing: 0, errors: 0 };
     for (const bookmark of bookmarks) {
       const issue = getBrokenLinkIssue(bookmark.statusCode);
-      result[issue === "blocked" || issue === "missing" ? issue : "other"]++;
+      result[issue === "blocked" || issue === "missing" ? issue : "errors"]++;
     }
     return result;
   }, [bookmarks]);
@@ -129,7 +129,7 @@ export default function BrokenLinksPage() {
           const issue = getBrokenLinkIssue(bookmark.statusCode);
           return (
             (category === "all" ||
-              (category === "other"
+              (category === "errors"
                 ? issue !== "blocked" && issue !== "missing"
                 : issue === category)) &&
             (!searchQuery ||

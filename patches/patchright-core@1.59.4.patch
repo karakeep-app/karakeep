@@ -1,8 +1,18 @@
 diff --git a/lib/server/chromium/crBrowser.js b/lib/server/chromium/crBrowser.js
-index 104789ba12c6d547e056dfe468fa9f04bbcc638c..f56187925d980af6bacaf59a019d44a1cb498c80 100644
+index 104789ba12c6d547e056dfe468fa9f04bbcc638c..5f348b33ca323e3f44da8b3bf3e4db2357e47e00 100644
 --- a/lib/server/chromium/crBrowser.js
 +++ b/lib/server/chromium/crBrowser.js
-@@ -147,6 +147,15 @@ class CRBrowser extends import_browser.Browser {
+@@ -90,6 +90,9 @@ class CRBrowser extends import_browser.Browser {
+       return browser;
+     }
+     browser._defaultContext = new CRBrowserContext(browser, void 0, options.persistent);
++    // Karakeep patch: remember Chrome's real default browser context so that
++    // targets in contexts created by other CDP clients aren't adopted below.
++    browser._defaultBrowserContextId = (await session.send("Target.getBrowserContexts").catch(() => ({}))).defaultBrowserContextId;
+     await Promise.all([
+       session.send("Target.setAutoAttach", { autoAttach: true, waitForDebuggerOnStart: true, flatten: true }).then(async () => {
+         await session.send("Target.getTargetInfo");
+@@ -147,9 +150,29 @@ class CRBrowser extends import_browser.Browser {
      if (targetInfo.type === "browser")
        return;
      const session = this._session.createChildSession(sessionId);
@@ -18,3 +28,17 @@ index 104789ba12c6d547e056dfe468fa9f04bbcc638c..f56187925d980af6bacaf59a019d44a1
      (0, import_assert.assert)(targetInfo.browserContextId, "targetInfo: " + JSON.stringify(targetInfo, null, 2));
      let context = this._contexts.get(targetInfo.browserContextId) || null;
      if (!context) {
++      if (this._defaultBrowserContextId && targetInfo.browserContextId !== this._defaultBrowserContextId) {
++        // Karakeep patch: the target belongs to a browser context another CDP
++        // client created. Adopting it as a default-context page would enable
++        // Fetch with handleAuthRequests on it (patchright always intercepts),
++        // and Chrome hands the target's proxy auth challenges to the first
++        // client that did so: we'd answer them without credentials and break
++        // the owner's proxy authentication. Detaching resumes the target.
++        session.detach().catch(() => {
++        });
++        return;
++      }
+       context = this._defaultContext;
+     }
+     if (targetInfo.type === "other" && targetInfo.url.startsWith("devtools://devtools") && this._devtools) {

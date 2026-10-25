@@ -313,7 +313,7 @@ export function TagsEditor({
           <PopoverTrigger asChild>
             <div
               className={cn(
-                "relative flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
+                "relative flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 dark:bg-input/30",
                 isDisabled && "cursor-not-allowed opacity-50",
               )}
             >
@@ -326,7 +326,7 @@ export function TagsEditor({
                         "flex min-h-8 space-x-1 rounded px-2",
                         tag.attachedBy == "ai"
                           ? "bg-purple-500 text-white"
-                          : "bg-accent",
+                          : "bg-accent dark:bg-input",
                       )}
                     >
                       <div className="m-auto flex gap-2">

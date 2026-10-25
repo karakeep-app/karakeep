@@ -22,18 +22,6 @@
     },
     "background_jobs": {
       "background_jobs": "Pozadinski zadaci",
-      "crawler_jobs": "Zadaci pregledavanja",
-      "indexing_jobs": "Zadaci indeksiranja",
-      "job": "Zadatak",
-      "pending": "Na čekanju",
-      "queued": "U čekanju",
-      "failed": "Neuspješno",
-      "inference_jobs": "Zadaci zaključivanja",
-      "tidy_assets_jobs": "Zadaci čišćenja resursa",
-      "video_jobs": "Poslovi preuzimanja videozapisa",
-      "asset_preprocessing_jobs": "Poslovi preprocesiranja resursa",
-      "feed_jobs": "RSS Feed poslovi",
-      "webhook_jobs": "Webhook poslovi",
       "jobs": {
         "feed": {
           "title": "Poslovi RSS feeda",
@@ -54,10 +42,6 @@
         "asset_preprocessing": {
           "title": "Poslovi preprocesiranja sredstava",
           "description": "Pretprocesiranje slika i dokumenata (snimke zaslona, izdvajanje teksta, itd.)"
-        },
-        "tidy_assets": {
-          "title": "Poslovi za sređivanje sredstava",
-          "description": "Čišćenje sredstava i optimizacija pohrane"
         },
         "video": {
           "title": "Poslovi preuzimanja videozapisa",
@@ -113,18 +97,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Ponovno generiraj ugradnje samo za neuspjele oznake",
         "regenerate_embeddings_for_all_bookmarks": "Ponovno generiraj ugradnje za sve oznake"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Ponovno pregledavanje samo neuspjelih veza",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Ponovno generiranje AI oznaka samo za neuspjele oznake",
-      "reindex_all_bookmarks": "Ponovno indeksiranje svih oznaka",
-      "recrawl_all_links": "Ponovno pregledavanje svih veza",
-      "regenerate_ai_tags_for_all_bookmarks": "Ponovno generiranje AI oznaka za sve oznake",
-      "without_inference": "Bez zaključivanja",
-      "compact_assets": "Kompaktiranje resursa",
-      "reprocess_assets_fix_mode": "Ponovno postupanje s resursima (fiksni mod)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Ponovno generiraj AI sažetke samo za neuspjele oznake",
-      "regenerate_ai_summaries_for_all_bookmarks": "Ponovno generiraj AI sažetke za sve oznake"
     },
     "service_connections": {
       "title": "Servisne veze",
@@ -459,7 +431,53 @@
       "broken_links": "Pokidane veze",
       "last_crawled_at": "Posljednjo pregledano u",
       "crawling_status": "Status pregledavanja",
-      "crawling_failed": "Pregledavanje nije uspjelo"
+      "crawling_failed": "Pregledavanje nije uspjelo",
+      "description": "Pregledaj veze koje nije bilo moguće dohvatiti, pokušaj ponovno ili ukloni stare oznake.",
+      "category_all": "Zahtijeva pažnju",
+      "category_blocked": "Pristup blokiran",
+      "category_missing": "Nije pronađeno",
+      "category_errors": "Ostale greške",
+      "category_all_hint": "Veze za pregled",
+      "category_blocked_hint": "Ograničeno ili previše zahtjeva",
+      "category_missing_hint": "Stranica nedostaje ili je uklonjena",
+      "category_errors_hint": "Greške poslužitelja ili pregledavanja",
+      "blocked_hint": "Blokirani zahtjev ne znači uvijek da je veza pokvarena. Neke stranice ograničavaju automatizirani pristup. Prije brisanja otvori izvornu stranicu i provjeri.",
+      "search": "Pretraži po naslovu ili URL-u…",
+      "sort_recent": "Nedavno provjereno",
+      "sort_oldest": "Najstarija provjera prvo",
+      "sort_domain": "Web-stranica A–Z",
+      "result_count_one": "{{count}} veza za pregled",
+      "result_count_other": "{{count}} veza za pregled",
+      "result_count_few": "{{count}} veze za pregled",
+      "retry_selected": "Ponovno pokušaj odabrane",
+      "empty": "Nema pokvarenih veza",
+      "empty_description": "Nijedna od tvojih spremljenih veza trenutačno nema prijavljenu grešku pregledavanja.",
+      "select_visible": "Odaberi sve vidljive veze",
+      "bookmark": "Oznaka",
+      "issue": "Problem",
+      "never_crawled": "Nema datuma pregledavanja",
+      "issue_blocked": "Pristup blokiran",
+      "issue_missing": "Nije pronađeno",
+      "issue_server": "Greška poslužitelja",
+      "issue_http": "HTTP greška",
+      "issue_failed": "Pregledavanje nije uspjelo",
+      "issue_blocked_hint": "Stranica je ograničila ovaj zahtjev",
+      "issue_missing_hint": "Stranica je možda uklonjena",
+      "issue_server_hint": "Stranica nije mogla dovršiti zahtjev",
+      "issue_http_hint": "Stranica je vratila neočekivani odgovor",
+      "issue_failed_hint": "Nije zabilježen nijedan uspješan odgovor",
+      "queued": "U redu čekanja",
+      "queued_count_one": "{{count}} veza stavljena je u red za ponovno pregledavanje.",
+      "queued_count_other": "{{count}} veza stavljeno je u red za ponovno pregledavanje.",
+      "deleted_count_one": "{{count}} oznaka je izbrisana.",
+      "deleted_count_other": "{{count}} oznaka je izbrisano.",
+      "deleted_count_few": "{{count}} oznake su izbrisane.",
+      "queued_count_few": "{{count}} veze stavljene su u red za ponovno pregledavanje.",
+      "action_failed": "Neuspješno: {{count}} od {{total}}.",
+      "delete_title_one": "Izbrisati {{count}} oznaku?",
+      "delete_title_other": "Izbrisati {{count}} oznaka?",
+      "delete_title_few": "Izbrisati {{count}} oznake?",
+      "delete_description": "Ovo trajno briše odabrane oznake i njihove spremljene datoteke, istaknute dijelove i bilješke. Ovo se ne može poništiti."
     },
     "feeds": {
       "rss_subscriptions": "RSS pretplate",
@@ -590,7 +608,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Aktivnost po satu",
-        "activity_by_day": "Aktivnost po danu"
+        "activity_by_day": "Aktivnost po danu",
+        "busiest_around": "Najveća aktivnost oko {{hour}}"
       },
       "storage_breakdown": {
         "title": "Raščlamba pohrane"
@@ -641,10 +660,8 @@
       "progress": "Napredak",
       "status": {
         "pending": "U tijeku",
-        "in_progress": "U tijeku",
         "completed": "Završeno",
         "failed": "Neuspjelo",
-        "processing": "Obrada",
         "staging": "Priprema",
         "running": "U tijeku",
         "paused": "Pauzirano",
@@ -740,6 +757,19 @@
         "backup_queued": "Posao sigurnosne kopije je u redu čekanja! Bit će obrađen uskoro.",
         "backup_deleted": "Sigurnosna kopija je izbrisana!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Očisti filtre",
+      "clear_selection": "Poništi odabir",
+      "delete_selected": "Izbriši odabrano",
+      "try_again": "Pokušaj ponovno",
+      "sort": "Redoslijed sortiranja",
+      "no_matches": "Nema rezultata",
+      "adjust_filters": "Pokušaj s drugom pretragom ili očisti filtre.",
+      "select_item": "Odaberi {{name}}",
+      "selected": "Odabrano: {{count}}",
+      "showing": "Prikazano {{shown}} od {{total}}",
+      "load_more": "Učitaj više"
     }
   },
   "actions": {
@@ -754,9 +784,9 @@
     "delete": "Izbriši",
     "refresh": "Osvježi",
     "recrawl": "Ponovno indeksiraj",
-    "download_full_page_archive": "Preuzmi cijeli arhivirani sadržaj stranice",
     "edit_tags": "Uredi oznake",
     "add_to_list": "Dodaj na popis",
+    "select": "Odaberi",
     "select_all": "Odaberi sve",
     "unselect_all": "Oduzmi sve oznake",
     "copy_link": "Kopiraj link",
@@ -787,6 +817,7 @@
     "load_more": "Učitaj više",
     "edit_notes": "Uredi bilješke",
     "preserve_as_pdf": "Spremi kao PDF",
+    "preserve_video": "Spremi video",
     "offline_copies": "Izvanmrežne kopije",
     "preserve_offline_archive": "Spremi izvanmrežnu arhivu",
     "download_full_page_archive_file": "Preuzmi arhivsku datoteku",
@@ -802,8 +833,10 @@
     "no_highlights": "Još nemaš nijednu istaknutu stavku."
   },
   "options": {
+    "theme": "Tema",
     "dark_mode": "Dark Mode",
     "light_mode": "Light Mode",
+    "system_mode": "Sistemski način",
     "apps_extensions": "Aplikacije i proširenja",
     "documentation": "Dokumentacija",
     "follow_us_on_x": "Prati nas na X-u"
@@ -898,11 +931,14 @@
       "shared": "Podijeljeno",
       "private": "Privatno"
     },
-    "summary_list_one": "{{count}} Popisi",
-    "summary_list_other": "{{count}} Popisi",
-    "summary_bookmark_one": "{{count}} Oznake",
-    "summary_bookmark_other": "{{count}} Oznake",
-    "items_count_one": "{{count}} stavki",
+    "summary_list_one": "{{count}} popis",
+    "summary_list_few": "{{count}} popisa",
+    "summary_list_other": "{{count}} popisa",
+    "summary_bookmark_one": "{{count}} oznaka",
+    "summary_bookmark_few": "{{count}} oznake",
+    "summary_bookmark_other": "{{count}} oznaka",
+    "items_count_one": "{{count}} stavka",
+    "items_count_few": "{{count}} stavke",
     "items_count_other": "{{count}} stavki"
   },
   "tags": {
@@ -939,6 +975,9 @@
     "view_original": "Pogledaj orginal",
     "cached_content": "Keširani sadržaj",
     "reader_view": "Prikaz čitača",
+    "page_overview": "Pregled stranice",
+    "try_reader_view": "Isprobaj prikaz čitača",
+    "archived_page": "Arhivirana stranica",
     "tabs": {
       "content": "Sadržaj",
       "details": "Detalji"
@@ -952,7 +991,6 @@
     "continue_button": "Nastavi"
   },
   "editor": {
-    "quickly_focus": "Možeš brzo fokusirati ovo polje pritiskanjem ⌘ + E",
     "import_as_text": "Uvoz kao tekstualnu oznaku",
     "import_as_separate_bookmarks": "Uvoz kao odvojene oznake",
     "multiple_urls_dialog_title": "Uvoz URL-ova kao odvojene oznake?",
@@ -1019,6 +1057,7 @@
       "delete_from_list": "Oznaka je izbrisana s popisa",
       "clipboard_copied": "Veza je dodana u tvoj međuspremnik!",
       "preserve_pdf": "Spremanje u PDF formatu je pokrenuto",
+      "preserve_video": "Pokrenuto je preuzimanje videa",
       "update_banner": "Banner je ažuriran!",
       "uploading_banner": "Učitavanje bannera..."
     },
@@ -1056,6 +1095,10 @@
     "is_not_favorited": "Nije označen kao favorit",
     "is_archived": "Je arhivirano",
     "has_no_tags": "Nema oznaku",
+    "has_notes": "Ima bilješke",
+    "has_no_notes": "Nema bilješki",
+    "has_highlights": "Ima istaknuto",
+    "has_no_highlights": "Nema istaknutog",
     "is_in_any_list": "Je li na bilo kojem popisu",
     "is_not_in_list": "Nije na popisu",
     "or": "Ili",

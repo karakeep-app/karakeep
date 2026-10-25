@@ -67,18 +67,6 @@
     },
     "background_jobs": {
       "background_jobs": "Bakgrunnsjobber",
-      "asset_preprocessing_jobs": "Jobber for forbehandling av aktiva",
-      "video_jobs": "Nedlastingsjobber for video",
-      "webhook_jobs": "Webhook-jobber",
-      "feed_jobs": "RSS-feed-jobber",
-      "pending": "Venter",
-      "failed": "Mislyktes",
-      "crawler_jobs": "Crawler-jobber",
-      "indexing_jobs": "Indekseringsjobber",
-      "inference_jobs": "Inferensjobber",
-      "tidy_assets_jobs": "Rydd opp i ressursjobber",
-      "job": "Jobb",
-      "queued": "I kø",
       "jobs": {
         "crawler": {
           "title": "Crawler-jobber",
@@ -95,10 +83,6 @@
         "asset_preprocessing": {
           "title": "Jobber for forhåndsbehandling av ressurser",
           "description": "Forhåndsbehandling av bilder og dokumenter (skjermbilder, tekstuttrekk osv.)"
-        },
-        "tidy_assets": {
-          "title": "Ryddige ressursjobber",
-          "description": "Opprydding av ressurser og lagringsoptimalisering"
         },
         "video": {
           "title": "Nedlastingsjobber for video",
@@ -158,18 +142,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Regenerer innbeddinger kun for feilede bokmerker",
         "regenerate_embeddings_for_all_bookmarks": "Regenerer innbeddinger for alle bokmerker"
       }
-    },
-    "actions": {
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerer AI-tagger bare for mislykkede bokmerker",
-      "recrawl_failed_links_only": "Bare recrawl mislykkede lenker",
-      "recrawl_all_links": "Gjennomsøk alle lenker på nytt",
-      "without_inference": "Uten inferens",
-      "regenerate_ai_tags_for_all_bookmarks": "Gjenskap AI-tagger for alle bokmerker",
-      "reindex_all_bookmarks": "Reindekser alle bokmerker",
-      "compact_assets": "Komprimer ressurser",
-      "reprocess_assets_fix_mode": "Behandle aktiva på nytt (Fiks-modus)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Gjenopprett AI-sammendrag kun for mislykkede bokmerker",
-      "regenerate_ai_summaries_for_all_bookmarks": "Gjenopprett AI-sammendrag for alle bokmerker"
     },
     "admin_settings": "Admin-innstillinger",
     "service_connections": {
@@ -242,9 +214,9 @@
     "delete": "Slett",
     "refresh": "Oppdater",
     "recrawl": "Gjennomsøk på nytt",
-    "download_full_page_archive": "Last ned fullsidearkiv",
     "edit_tags": "Rediger tagger",
     "add_to_list": "Legg til i liste",
+    "select": "Velg",
     "select_all": "Velg alle",
     "copy_link": "Kopier lenke",
     "close_bulk_edit": "Lukk masseendring",
@@ -270,6 +242,7 @@
     "load_more": "Last inn mer",
     "edit_notes": "Rediger notater",
     "preserve_as_pdf": "Bevar som PDF",
+    "preserve_video": "Bevar video",
     "offline_copies": "Offline kopier",
     "preserve_offline_archive": "Bevar offline-arkiv",
     "download_full_page_archive_file": "Last ned arkivfil",
@@ -533,7 +506,49 @@
       "broken_links": "Ødelagte lenker",
       "last_crawled_at": "Sist crawlet på",
       "crawling_status": "Gjennomsøkingsstatus",
-      "crawling_failed": "Gjennomsøking feilet"
+      "crawling_failed": "Gjennomsøking feilet",
+      "description": "Gå gjennom lenker som ikke kunne hentes, prøv dem på nytt eller fjern gamle bokmerker.",
+      "category_all": "Trenger oppmerksomhet",
+      "category_blocked": "Tilgang blokkert",
+      "category_missing": "Ikke funnet",
+      "category_errors": "Andre feil",
+      "category_all_hint": "Lenker som bør gjennomgås",
+      "category_blocked_hint": "Begrenset eller rate-begrenset",
+      "category_missing_hint": "Siden mangler eller er fjernet",
+      "category_errors_hint": "Server- eller crawlefeil",
+      "blocked_hint": "En blokkert forespørsel betyr ikke alltid at lenken er ødelagt. Noen nettsteder begrenser automatisert tilgang. Åpne den opprinnelige siden for å sjekke før du sletter.",
+      "search": "Søk etter tittel eller URL…",
+      "sort_recent": "Nylig sjekket",
+      "sort_oldest": "Eldste sjekk først",
+      "sort_domain": "Nettsted A–Å",
+      "result_count_one": "{{count}} lenke å gå gjennom",
+      "result_count_other": "{{count}} lenker å gå gjennom",
+      "retry_selected": "Prøv valgte på nytt",
+      "empty": "Ingen ødelagte lenker funnet",
+      "empty_description": "Ingen av de lagrede lenkene dine har for øyeblikket en rapportert crawlefeil.",
+      "select_visible": "Velg alle synlige lenker",
+      "bookmark": "Bokmerke",
+      "issue": "Problem",
+      "never_crawled": "Ingen crawledato",
+      "issue_blocked": "Tilgang blokkert",
+      "issue_missing": "Ikke funnet",
+      "issue_server": "Serverfeil",
+      "issue_http": "HTTP-feil",
+      "issue_failed": "Crawling feilet",
+      "issue_blocked_hint": "Nettstedet begrenset denne forespørselen",
+      "issue_missing_hint": "Siden kan ha blitt fjernet",
+      "issue_server_hint": "Nettstedet kunne ikke fullføre forespørselen",
+      "issue_http_hint": "Nettstedet returnerte et uventet svar",
+      "issue_failed_hint": "Ingen vellykket respons ble registrert",
+      "queued": "I kø",
+      "queued_count_one": "{{count}} lenke satt i kø for ny crawling.",
+      "queued_count_other": "{{count}} lenker satt i kø for ny crawling.",
+      "deleted_count_one": "{{count}} bokmerke slettet.",
+      "deleted_count_other": "{{count}} bokmerker slettet.",
+      "action_failed": "{{count}} av {{total}} feilet.",
+      "delete_title_one": "Slette {{count}} bokmerke?",
+      "delete_title_other": "Slette {{count}} bokmerker?",
+      "delete_description": "Dette sletter de valgte bokmerkene og tilhørende lagrede filer, høydepunkter og notater permanent. Dette kan ikke angres."
     },
     "manage_assets": {
       "bookmark_link": "Bokmerke-lenke",
@@ -640,7 +655,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Aktivitet per time",
-        "activity_by_day": "Aktivitet per dag"
+        "activity_by_day": "Aktivitet per dag",
+        "busiest_around": "Mest aktivitet rundt {{hour}}"
       },
       "storage_breakdown": {
         "title": "Lagringsoversikt"
@@ -691,10 +707,8 @@
       "progress": "Fremdrift",
       "status": {
         "pending": "Venter",
-        "in_progress": "Pågår",
         "completed": "Fullført",
         "failed": "Mislyktes",
-        "processing": "Behandler",
         "staging": "Staging",
         "running": "Kjører",
         "paused": "Pause",
@@ -790,11 +804,26 @@
         "backup_queued": "Sikkerhetskopieringsjobben er satt i kø! Den behandles snart.",
         "backup_deleted": "Sikkerhetskopien er slettet!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Fjern filtre",
+      "clear_selection": "Fjern utvalg",
+      "delete_selected": "Slett valgte",
+      "try_again": "Prøv igjen",
+      "sort": "Sorteringsrekkefølge",
+      "no_matches": "Ingen treff",
+      "adjust_filters": "Prøv et annet søk eller fjern filtrene.",
+      "select_item": "Velg {{name}}",
+      "selected": "{{count}} valgt",
+      "showing": "Viser {{shown}} av {{total}}",
+      "load_more": "Last inn mer"
     }
   },
   "options": {
+    "theme": "Tema",
     "dark_mode": "Mørk modus",
     "light_mode": "Lys modus",
+    "system_mode": "Systemmodus",
     "apps_extensions": "Apper og utvidelser",
     "documentation": "Dokumentasjon",
     "follow_us_on_x": "Følg oss på X"
@@ -889,11 +918,11 @@
       "shared": "Delt",
       "private": "Privat"
     },
-    "summary_list_one": "{{count}} Lister",
-    "summary_list_other": "{{count}} Lister",
-    "summary_bookmark_one": "{{count}} Bokmerker",
-    "summary_bookmark_other": "{{count}} Bokmerker",
-    "items_count_one": "{{count}} elementer",
+    "summary_list_one": "{{count}} liste",
+    "summary_list_other": "{{count}} lister",
+    "summary_bookmark_one": "{{count}} bokmerke",
+    "summary_bookmark_other": "{{count}} bokmerker",
+    "items_count_one": "{{count}} element",
     "items_count_other": "{{count}} elementer"
   },
   "tags": {
@@ -944,6 +973,10 @@
     "is_not_archived": "Er ikke arkivert",
     "has_any_tag": "Har en tagg",
     "has_no_tags": "Har ingen tag",
+    "has_notes": "Har notater",
+    "has_no_notes": "Har ingen notater",
+    "has_highlights": "Har høydepunkter",
+    "has_no_highlights": "Har ingen høydepunkter",
     "created_on_or_before": "Opprettet på eller før",
     "not_created_on_or_before": "Ikke opprettet på eller før",
     "url_contains": "URL inneholder",
@@ -1036,7 +1069,6 @@
       "align_right": "Juster til høyre"
     },
     "import_as_text": "Importer som tekstbokmerke",
-    "quickly_focus": "Du kan raskt fokusere på dette feltet ved å trykke ⌘ + E",
     "multiple_urls_dialog_title": "Vil du importere URL-er som separate bokmerker?",
     "multiple_urls_dialog_desc": "Inputen inneholder flere URL-er på separate linjer. Vil du importere dem som separate bokmerker?",
     "import_as_separate_bookmarks": "Importer som separate bokmerker",
@@ -1054,6 +1086,7 @@
       "updated": "Bokmerket er oppdatert!",
       "deleted": "Bokmerket er slettet!",
       "preserve_pdf": "PDF-bevaring er utløst",
+      "preserve_video": "Videonedlasting er utløst",
       "update_banner": "Banneret er oppdatert!",
       "uploading_banner": "Laster opp banner..."
     },
@@ -1090,6 +1123,9 @@
     "cached_content": "Cachet innhold",
     "view_original": "Vis original",
     "reader_view": "Lesevisning",
+    "page_overview": "Sideoversikt",
+    "try_reader_view": "Prøv lesevisning",
+    "archived_page": "Arkivert side",
     "tabs": {
       "content": "Innhold",
       "details": "Detaljer"

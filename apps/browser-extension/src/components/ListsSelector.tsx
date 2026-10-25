@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSet } from "@uidotdev/usehooks";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 
 import {
   useAddBookmarkToList,
@@ -11,6 +11,7 @@ import {
 
 import { cn } from "../utils/css";
 import { useTRPC } from "../utils/trpc";
+import { byListPathName, ListPathLabel } from "./BookmarkLists";
 import { Button } from "./ui/button";
 import {
   Command,
@@ -63,23 +64,30 @@ export function ListsSelector({ bookmarkId }: { bookmarkId: string }) {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="h-11 w-full justify-start gap-2 rounded-none px-3 font-normal text-muted-foreground hover:text-foreground"
         >
-          Add to List...
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <Plus className="size-4" />
+          Add to list
         </Button>
       </PopoverTrigger>
-      <DynamicPopoverContent className="w-[320px] p-0">
+      <DynamicPopoverContent
+        align="start"
+        collisionPadding={16}
+        className="w-[--radix-popover-trigger-width] p-0"
+      >
         <Command>
-          <CommandInput placeholder="Search Lists ..." />
+          <CommandInput placeholder="Search lists…" />
           <CommandList>
-            <CommandEmpty>You don&apos;t have any lists.</CommandEmpty>
+            <CommandEmpty>No lists found.</CommandEmpty>
             <CommandGroup>
               {allLists?.allPaths
                 .filter((path) => path[path.length - 1].userRole !== "viewer")
+                // Smart lists are query-based; bookmarks can't be added by hand.
+                .filter((path) => path[path.length - 1].type !== "smart")
+                .sort(byListPathName)
                 .map((path) => {
                   const lastItem = path[path.length - 1];
 
@@ -93,15 +101,13 @@ export function ListsSelector({ bookmarkId }: { bookmarkId: string }) {
                     >
                       <Check
                         className={cn(
-                          "mr-2 size-4",
+                          "mr-2 size-4 shrink-0",
                           existingListIds.has(lastItem.id)
                             ? "opacity-100"
                             : "opacity-0",
                         )}
                       />
-                      {path
-                        .map((item) => `${item.icon} ${item.name}`)
-                        .join(" / ")}
+                      <ListPathLabel path={path} />
                     </CommandItem>
                   );
                 })}

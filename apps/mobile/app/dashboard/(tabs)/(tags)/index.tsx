@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   FlatList,
   Platform,
@@ -54,16 +54,17 @@ export default function Tags() {
     nameContains: debouncedSearch,
   });
 
-  useEffect(() => {
-    setRefreshing(isPending);
-  }, [isPending]);
-
   if (!data) {
     return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
-  const onRefresh = () => {
-    queryClient.invalidateQueries(api.tags.list.pathFilter());
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await queryClient.invalidateQueries(api.tags.list.pathFilter());
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const tags: TagItem[] = data.tags.map((tag) => ({

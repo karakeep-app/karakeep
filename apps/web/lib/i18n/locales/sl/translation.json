@@ -251,7 +251,57 @@
       "broken_links": "Pokvarjene povezave",
       "last_crawled_at": "Zadnjič preverjeno ob",
       "crawling_status": "Stanje indeksiranja",
-      "crawling_failed": "Iskanje ni uspelo"
+      "crawling_failed": "Iskanje ni uspelo",
+      "description": "Preglej povezave, ki jih ni bilo mogoče pridobiti, poskusi znova ali odstrani stare zaznamke.",
+      "category_all": "Zahteva pozornost",
+      "category_blocked": "Dostop blokiran",
+      "category_missing": "Ni najdeno",
+      "category_errors": "Druge napake",
+      "category_all_hint": "Povezave za pregled",
+      "category_blocked_hint": "Omejen dostop ali preseženo število zahtev",
+      "category_missing_hint": "Stran manjka ali je bila odstranjena",
+      "category_errors_hint": "Napake strežnika ali pridobivanja",
+      "blocked_hint": "Blokirana zahteva ne pomeni vedno pokvarjene povezave. Nekatera spletna mesta omejujejo samodejni dostop. Pred brisanjem odpri izvirno stran in preveri.",
+      "search": "Išči po naslovu ali URL-ju…",
+      "sort_recent": "Nazadnje preverjene",
+      "sort_oldest": "Najstarejše preverjanje najprej",
+      "sort_domain": "Spletno mesto A–Z",
+      "result_count_one": "{{count}} povezava za pregled",
+      "result_count_other": "{{count}} povezav za pregled",
+      "result_count_two": "{{count}} povezavi za pregled",
+      "result_count_few": "{{count}} povezave za pregled",
+      "retry_selected": "Poskusi znova za izbrane",
+      "empty": "Ni pokvarjenih povezav",
+      "empty_description": "Nobena od tvojih shranjenih povezav trenutno nima prijavljene napake pri pridobivanju.",
+      "select_visible": "Izberi vse prikazane povezave",
+      "bookmark": "Zaznamek",
+      "issue": "Težava",
+      "never_crawled": "Brez datuma pridobivanja",
+      "issue_blocked": "Dostop blokiran",
+      "issue_missing": "Ni najdeno",
+      "issue_server": "Napaka strežnika",
+      "issue_http": "Napaka HTTP",
+      "issue_failed": "Pridobivanje ni uspelo",
+      "issue_blocked_hint": "Spletno mesto je omejilo to zahtevo",
+      "issue_missing_hint": "Stran je bila morda odstranjena",
+      "issue_server_hint": "Spletno mesto ni moglo dokončati zahteve",
+      "issue_http_hint": "Spletno mesto je vrnilo nepričakovan odgovor",
+      "issue_failed_hint": "Zabeležen ni bil noben uspešen odgovor",
+      "queued": "V vrsti",
+      "queued_count_one": "{{count}} povezava je bila dodana v čakalno vrsto za ponovno pridobivanje.",
+      "queued_count_other": "{{count}} povezav je bilo dodanih v čakalno vrsto za ponovno pridobivanje.",
+      "deleted_count_one": "{{count}} zaznamek je bil izbrisan.",
+      "deleted_count_other": "{{count}} zaznamkov je bilo izbrisanih.",
+      "deleted_count_two": "{{count}} zaznamka sta bila izbrisana.",
+      "deleted_count_few": "{{count}} zaznamki so bili izbrisani.",
+      "queued_count_two": "{{count}} povezavi sta bili dodani v čakalno vrsto za ponovno pridobivanje.",
+      "queued_count_few": "{{count}} povezave so bile dodane v čakalno vrsto za ponovno pridobivanje.",
+      "action_failed": "{{count}} od {{total}} ni uspelo.",
+      "delete_title_one": "Želiš izbrisati {{count}} zaznamek?",
+      "delete_title_other": "Želiš izbrisati {{count}} zaznamkov?",
+      "delete_title_two": "Želiš izbrisati {{count}} zaznamka?",
+      "delete_title_few": "Želiš izbrisati {{count}} zaznamke?",
+      "delete_description": "S tem trajno izbrišeš izbrane zaznamke in njihove shranjene datoteke, poudarke in opombe. Tega ni mogoče razveljaviti."
     },
     "manage_assets": {
       "asset_type": "Vrsta sredstva",
@@ -358,7 +408,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Dejavnost po urah",
-        "activity_by_day": "Dejavnost po dnevih"
+        "activity_by_day": "Dejavnost po dnevih",
+        "busiest_around": "Največ dejavnosti okoli {{hour}}"
       },
       "storage_breakdown": {
         "title": "Razčlenitev shrambe"
@@ -409,10 +460,8 @@
       "progress": "Napredek",
       "status": {
         "pending": "Čakam",
-        "in_progress": "V teku",
         "completed": "Končano",
         "failed": "Neuspešno",
-        "processing": "Obdelava",
         "staging": "Priprava",
         "running": "Izvajanje",
         "paused": "Začasno ustavljeno",
@@ -508,6 +557,19 @@
         "backup_queued": "Opravilo varnostne kopije je bilo dodano v čakalno vrsto! Kmalu bo obdelano.",
         "backup_deleted": "Varnostna kopija je bila izbrisana!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Počisti filtre",
+      "clear_selection": "Počisti izbor",
+      "delete_selected": "Izbriši izbrane",
+      "try_again": "Poskusi znova",
+      "sort": "Vrstni red",
+      "no_matches": "Ni zadetkov",
+      "adjust_filters": "Poskusi z drugim iskanjem ali počisti filtre.",
+      "select_item": "Izberi {{name}}",
+      "selected": "Izbrano: {{count}}",
+      "showing": "Prikazano {{shown}} od {{total}}",
+      "load_more": "Naloži več"
     }
   },
   "admin": {
@@ -531,19 +593,7 @@
       "unlimited": "Neomejeno"
     },
     "background_jobs": {
-      "failed": "Neuspešno",
       "background_jobs": "Oprabila v ozadju",
-      "queued": "V vrsti",
-      "pending": "Čakajoče",
-      "job": "Opravilo",
-      "crawler_jobs": "Iskalna opravila",
-      "webhook_jobs": "Opravila spletne kljuke",
-      "indexing_jobs": "Opravila indeksiranja",
-      "tidy_assets_jobs": "Opravila za urejanje sredstev",
-      "video_jobs": "Opravila za prenos videoposnetkov",
-      "asset_preprocessing_jobs": "Opravila za predobdelavo sredstev",
-      "feed_jobs": "Opravila za vire RSS",
-      "inference_jobs": "Opravila za sklepanje",
       "jobs": {
         "crawler": {
           "title": "Posli za pajkanje",
@@ -560,10 +610,6 @@
         "asset_preprocessing": {
           "title": "Posli predobdelave sredstev",
           "description": "Predobdelava slik in dokumentov (posnetki zaslona, izvleček besedila itd.)"
-        },
-        "tidy_assets": {
-          "title": "Posli urejanja sredstev",
-          "description": "Čiščenje sredstev in optimizacija shranjevanja"
         },
         "video": {
           "title": "Posli prenosa videoposnetkov",
@@ -625,18 +671,6 @@
       }
     },
     "admin_settings": "Administratorske nastavitve",
-    "actions": {
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Regeneriraj AI oznake samo za neuspešne zaznamke",
-      "regenerate_ai_tags_for_all_bookmarks": "Regeneriraj AI oznake za vse zaznamke",
-      "recrawl_failed_links_only": "Ponovno preveri samo povezave, ki niso uspele",
-      "recrawl_all_links": "Ponovno poišči vse povezave",
-      "without_inference": "Brez sklepanja",
-      "reindex_all_bookmarks": "Ponovno indeksiraj vse zaznamke",
-      "compact_assets": "Kompaktna sredstva",
-      "reprocess_assets_fix_mode": "Ponovno obdelaj sredstva (način popravljanja)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Ponovno ustvari povzetke umetne inteligence samo za neuspele zaznamke",
-      "regenerate_ai_summaries_for_all_bookmarks": "Ponovno ustvari povzetke umetne inteligence za vse zaznamke"
-    },
     "service_connections": {
       "title": "Povezave storitev",
       "description": "Spremljaj stanje in povezljivost zunanjih sistemskih odvisnosti",
@@ -713,6 +747,10 @@
     "is_not_favorited": "Ni med priljubljenimi",
     "has_any_tag": "Ima katero koli oznako",
     "has_no_tags": "Nima oznake",
+    "has_notes": "Ima opombe",
+    "has_no_notes": "Nima opomb",
+    "has_highlights": "Ima poudarke",
+    "has_no_highlights": "Nima poudarkov",
     "full_text_search": "Iskanje po celotnem besedilu",
     "is_from_feed": "Je iz vira RSS",
     "is_not_from_feed": "Ni iz vira RSS",
@@ -852,8 +890,8 @@
     "delete": "Izbriši",
     "manage_lists": "Uredi sezname",
     "add_to_list": "Dodaj na seznam",
+    "select": "Izberi",
     "archive": "Arhiviraj",
-    "download_full_page_archive": "Prenesi arhiv",
     "refresh": "Osveži",
     "save": "Shrani",
     "ignore": "Ignoriraj",
@@ -871,6 +909,7 @@
     "load_more": "Naloži več",
     "edit_notes": "Uredi opombe",
     "preserve_as_pdf": "Shrani kot PDF",
+    "preserve_video": "Ohrani video",
     "offline_copies": "Kopije brez povezave",
     "preserve_offline_archive": "Ohrani brezžično arhiviranje",
     "download_full_page_archive_file": "Prenesi datoteko arhiva",
@@ -978,16 +1017,24 @@
       "shared": "V skupni rabi",
       "private": "Zasebno"
     },
-    "summary_list_one": "{{count}} Seznami",
-    "summary_list_other": "{{count}} Seznami",
-    "summary_bookmark_one": "{{count}} Zaznamki",
-    "summary_bookmark_other": "{{count}} Zaznamki",
-    "items_count_one": "{{count}} elementov",
+    "summary_list_one": "{{count}} seznam",
+    "summary_list_two": "{{count}} seznama",
+    "summary_list_few": "{{count}} seznami",
+    "summary_list_other": "{{count}} seznamov",
+    "summary_bookmark_one": "{{count}} zaznamek",
+    "summary_bookmark_two": "{{count}} zaznamka",
+    "summary_bookmark_few": "{{count}} zaznamki",
+    "summary_bookmark_other": "{{count}} zaznamkov",
+    "items_count_one": "{{count}} element",
+    "items_count_two": "{{count}} elementa",
+    "items_count_few": "{{count}} elementi",
     "items_count_other": "{{count}} elementov"
   },
   "options": {
+    "theme": "Tema",
     "dark_mode": "Temni način",
     "light_mode": "Svetli način",
+    "system_mode": "Sistemski način",
     "apps_extensions": "Aplikacije in razširitve",
     "documentation": "Dokumentacija",
     "follow_us_on_x": "Sledi nam na X"
@@ -1047,7 +1094,6 @@
     "multiple_urls_dialog_title": "Uvoz URL-jev, kot ločene zaznamke?",
     "import_as_text": "Uvozi kot besedilni zaznamek",
     "disabled_submissions": "Oddaje so onemogočene",
-    "quickly_focus": "Na to polje se lahko hitro osredotočiš s pritiskom na ⌘ + E",
     "multiple_urls_dialog_desc": "Vnos vsebuje več URL-jev v ločenih vrsticah. Ali jih želiš uvoziti kot ločene zaznamke?",
     "placeholder_v2": "Prilepi povezavo, napiši opombo ali spusti sliko …"
   },
@@ -1060,6 +1106,7 @@
       "refetch": "Ponovno pridobivanje je bilo dodano v čakalno vrsto!",
       "full_page_archive": "Ustvarjanje arhiva celotne strani je bilo sproženo",
       "preserve_pdf": "Ohranjanje PDF je bilo sproženo",
+      "preserve_video": "Prenos videa je bil sprožen",
       "update_banner": "Pasica je bila posodobljena!",
       "uploading_banner": "Nalaganje pasice ..."
     },
@@ -1094,6 +1141,9 @@
     "view_original": "Ogled izvirnika",
     "cached_content": "Predpomnjena vsebina",
     "reader_view": "Pogled bralnika",
+    "page_overview": "Pregled strani",
+    "try_reader_view": "Poskusi pogled bralnika",
+    "archived_page": "Arhivirana stran",
     "tabs": {
       "content": "Vsebina",
       "details": "Podrobnosti"

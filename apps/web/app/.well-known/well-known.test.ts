@@ -16,7 +16,7 @@ describe("well-known routes", () => {
     expect(response.headers.get("Content-Type")).toBe(
       "text/plain; charset=utf-8",
     );
-    expect(body).toContain("Contact: mailto:security@karakeep.app\n");
+    expect(body).toContain("Contact: mailto:security@karakeep.com\n");
     expect(body).toContain("Expires: 2027-08-01T00:00:00Z\n");
     expect(body).toContain("Preferred-Languages: en\n");
   });

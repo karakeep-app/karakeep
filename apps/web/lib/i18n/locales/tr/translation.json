@@ -60,7 +60,6 @@
     "delete": "Sil",
     "refresh": "Yenile",
     "recrawl": "Tekrar Tara",
-    "download_full_page_archive": "Tüm Sayfa Arşivini İndir",
     "edit_tags": "Etiketleri Düzenle",
     "add_to_list": "Listeye Ekle",
     "select": "Seç",
@@ -97,6 +96,7 @@
     "load_more": "Daha Fazla Yükle",
     "edit_notes": "Notları Düzenle",
     "preserve_as_pdf": "PDF olarak sakla",
+    "preserve_video": "Videoyu Koru",
     "offline_copies": "Çevrimdışı Kopyalar",
     "preserve_offline_archive": "Çevrimdışı Arşivi Koru",
     "download_full_page_archive_file": "Arşiv Dosyasını İndir",
@@ -345,7 +345,49 @@
       "broken_links": "Bozuk Bağlantılar",
       "last_crawled_at": "Son Tarama Tarihi",
       "crawling_status": "Tarama Durumu",
-      "crawling_failed": "Tarama Başarısız Oldu"
+      "crawling_failed": "Tarama Başarısız Oldu",
+      "description": "Getirilemeyen bağlantıları inceleyin, yeniden deneyin veya eski yer imlerini kaldırın.",
+      "category_all": "İlgi gerekiyor",
+      "category_blocked": "Erişim engellendi",
+      "category_missing": "Bulunamadı",
+      "category_errors": "Diğer hatalar",
+      "category_all_hint": "İncelenecek bağlantılar",
+      "category_blocked_hint": "Kısıtlanmış veya istek sınırına takılmış",
+      "category_missing_hint": "Sayfa eksik veya kaldırılmış",
+      "category_errors_hint": "Sunucu veya tarama hataları",
+      "blocked_hint": "Engellenen bir istek her zaman bozuk bir bağlantı anlamına gelmez. Bazı siteler otomatik erişimi kısıtlar. Silmeden önce kontrol etmek için orijinal sayfayı açın.",
+      "search": "Başlık veya URL ile ara…",
+      "sort_recent": "En son kontrol edilen",
+      "sort_oldest": "En eski kontrol önce",
+      "sort_domain": "Web sitesi A–Z",
+      "result_count_one": "İncelenecek {{count}} bağlantı",
+      "result_count_other": "İncelenecek {{count}} bağlantı",
+      "retry_selected": "Seçilenleri yeniden dene",
+      "empty": "Bozuk bağlantı bulunamadı",
+      "empty_description": "Kayıtlı bağlantılarınızın hiçbirinde şu anda bildirilmiş bir tarama hatası yok.",
+      "select_visible": "Görünen tüm bağlantıları seç",
+      "bookmark": "Yer İmi",
+      "issue": "Sorun",
+      "never_crawled": "Tarama tarihi yok",
+      "issue_blocked": "Erişim engellendi",
+      "issue_missing": "Bulunamadı",
+      "issue_server": "Sunucu hatası",
+      "issue_http": "HTTP hatası",
+      "issue_failed": "Tarama başarısız",
+      "issue_blocked_hint": "Site bu isteği kısıtladı",
+      "issue_missing_hint": "Sayfa kaldırılmış olabilir",
+      "issue_server_hint": "Site isteği tamamlayamadı",
+      "issue_http_hint": "Site beklenmeyen bir yanıt döndürdü",
+      "issue_failed_hint": "Başarılı bir yanıt kaydedilmedi",
+      "queued": "Sıraya alındı",
+      "queued_count_one": "{{count}} bağlantı yeniden tarama için sıraya alındı.",
+      "queued_count_other": "{{count}} bağlantı yeniden tarama için sıraya alındı.",
+      "deleted_count_one": "{{count}} yer imi silindi.",
+      "deleted_count_other": "{{count}} yer imi silindi.",
+      "action_failed": "{{total}} işlemden {{count}} tanesi başarısız oldu.",
+      "delete_title_one": "{{count}} yer imi silinsin mi?",
+      "delete_title_other": "{{count}} yer imi silinsin mi?",
+      "delete_description": "Bu işlem, seçilen yer imlerini ve bunlara ait kayıtlı dosyaları, öne çıkanları ve notları kalıcı olarak siler. Bu işlem geri alınamaz."
     },
     "webhooks": {
       "edit_auth_token": "Kimlik Doğrulama Jetonunu Düzenle",
@@ -470,7 +512,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Saate Göre Etkinlik",
-        "activity_by_day": "Güne Göre Etkinlik"
+        "activity_by_day": "Güne Göre Etkinlik",
+        "busiest_around": "En yoğun saat: {{hour}} civarı"
       },
       "storage_breakdown": {
         "title": "Depolama Dökümü"
@@ -521,10 +564,8 @@
       "progress": "İlerleme durumu",
       "status": {
         "pending": "Bekliyor",
-        "in_progress": "Devam ediyor",
         "completed": "Tamamlandı",
         "failed": "Başarısız",
-        "processing": "İşleniyor",
         "staging": "Hazırlanıyor",
         "running": "Çalışıyor",
         "paused": "Durduruldu",
@@ -620,6 +661,19 @@
         "backup_queued": "Yedekleme işi sıraya alındı! Kısa süre içinde işlenecek.",
         "backup_deleted": "Yedekleme silindi!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Filtreleri temizle",
+      "clear_selection": "Seçimi temizle",
+      "delete_selected": "Seçilenleri sil",
+      "try_again": "Tekrar dene",
+      "sort": "Sıralama düzeni",
+      "no_matches": "Eşleşme bulunamadı",
+      "adjust_filters": "Farklı bir arama deneyin veya filtrelerinizi temizleyin.",
+      "select_item": "{{name}} öğesini seç",
+      "selected": "{{count}} seçildi",
+      "showing": "{{total}} öğeden {{shown}} tanesi gösteriliyor",
+      "load_more": "Daha Fazla Yükle"
     }
   },
   "admin": {
@@ -632,18 +686,6 @@
     },
     "background_jobs": {
       "background_jobs": "Arka Plan Görevleri",
-      "crawler_jobs": "Tarayıcı Görevleri",
-      "indexing_jobs": "Dizine Alma Görevleri",
-      "inference_jobs": "Çıkarım Görevleri",
-      "tidy_assets_jobs": "Varlıkları Düzenleme Görevleri",
-      "job": "Görev",
-      "queued": "Sıraya Alındı",
-      "pending": "Beklemede",
-      "failed": "Başarısız",
-      "video_jobs": "Video İndirme İşleri",
-      "feed_jobs": "RSS Besleme İşleri",
-      "webhook_jobs": "Webhook İşleri",
-      "asset_preprocessing_jobs": "Varlık Ön İşleme İşleri",
       "jobs": {
         "crawler": {
           "title": "Crawler İşleri",
@@ -660,10 +702,6 @@
         "asset_preprocessing": {
           "title": "Varlık Ön İşleme İşleri",
           "description": "Resim ve belge ön işleme (ekran görüntüleri, metin çıkarma vb.)"
-        },
-        "tidy_assets": {
-          "title": "Varlıkları Düzenleme İşleri",
-          "description": "Varlık temizleme ve depolama optimizasyonu"
         },
         "video": {
           "title": "Video İndirme İşleri",
@@ -723,18 +761,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Yalnızca Başarısız Yer İmleri İçin Yerleştirmeleri Yeniden Oluştur",
         "regenerate_embeddings_for_all_bookmarks": "Tüm Yer İmleri İçin Yerleştirmeleri Yeniden Oluştur"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Sadece Başarısız Bağlantıları Tekrar Tara",
-      "recrawl_all_links": "Tüm Bağlantıları Tekrar Tara",
-      "without_inference": "Çıkarım Olmadan",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Yalnızca Başarısız Yer İşaretleri için Yapay Zeka Etiketlerini Yeniden Oluştur",
-      "regenerate_ai_tags_for_all_bookmarks": "Tüm Yer İşaretleri için Yapay Zeka Etiketlerini Yeniden Oluştur",
-      "reindex_all_bookmarks": "Tüm Yer İşaretlerini Yeniden Dizine Al",
-      "compact_assets": "Varlıkları Sıkıştır",
-      "reprocess_assets_fix_mode": "Varlıkları Yeniden İşle (Fix Mod)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Yalnızca Başarısız Yer İmleri için Yapay Zeka Özetlerini Yeniden Oluştur",
-      "regenerate_ai_summaries_for_all_bookmarks": "Tüm Yer İmleri için Yapay Zeka Özetlerini Yeniden Oluştur"
     },
     "users_list": {
       "users_list": "Kullanıcı Listesi",
@@ -803,8 +829,10 @@
     }
   },
   "options": {
+    "theme": "Tema",
     "dark_mode": "Koyu Mod",
     "light_mode": "Açık Mod",
+    "system_mode": "Sistem Modu",
     "apps_extensions": "Uygulamalar & Uzantılar",
     "documentation": "Belgeleme",
     "follow_us_on_x": "Bizi X'te takip edin"
@@ -899,10 +927,10 @@
       "shared": "Paylaşılan",
       "private": "Özel"
     },
-    "summary_list_one": "{{count}} Listeler",
-    "summary_list_other": "{{count}} Listeler",
-    "summary_bookmark_one": "{{count}} Yer İmleri",
-    "summary_bookmark_other": "{{count}} Yer İmleri",
+    "summary_list_one": "{{count}} liste",
+    "summary_list_other": "{{count}} liste",
+    "summary_bookmark_one": "{{count}} yer imi",
+    "summary_bookmark_other": "{{count}} yer imi",
     "items_count_one": "{{count}} öge",
     "items_count_other": "{{count}} öge"
   },
@@ -956,12 +984,11 @@
     "continue_button": "Devam et"
   },
   "editor": {
-    "quickly_focus": "Bu alana hızlıca odaklanmak için ⌘ + E tuşlarına basabilirsiniz",
     "multiple_urls_dialog_title": "URL'leri ayrı Yer İşaretleri olarak mı içe aktarılıyor?",
     "multiple_urls_dialog_desc": "Girdi, ayrı satırlarda birden fazla URL içeriyor. Bunları ayrı yer işaretleri olarak içe aktarmak ister misiniz?",
     "import_as_text": "Metin Yer İşareti Olarak İçe Aktar",
     "import_as_separate_bookmarks": "Ayrı Yer İşaretleri Olarak İçe Aktar",
-    "placeholder": "Bir bağlantı veya görsel yapıştırın, not yazın ya da buraya bir görsel sürükleyip bırakın ...",
+    "placeholder": "Bir bağlantı veya görsel yapıştırın, not yazın ya da buraya bir görsel sürükleyip bırakın…",
     "new_item": "YENİ ÖGE",
     "disabled_submissions": "Gönderimler Devre Dışı",
     "text_toolbar": {
@@ -1023,6 +1050,7 @@
       "delete_from_list": "Yer işareti listeden silindi",
       "clipboard_copied": "Bağlantı panonuza eklendi!",
       "preserve_pdf": "PDF olarak saklama tetiklendi",
+      "preserve_video": "Video indirme başlatıldı",
       "update_banner": "Başlık güncellendi!",
       "uploading_banner": "Başlık yükleniyor..."
     },
@@ -1058,6 +1086,10 @@
     "is_not_in_list": "Listede Değil",
     "not_created_on_or_after": "Şu Tarihte veya Sonrasında Oluşturulmadı",
     "has_no_tags": "Etiketi Yok",
+    "has_notes": "Notu Var",
+    "has_no_notes": "Notu Yok",
+    "has_highlights": "Öne Çıkanı Var",
+    "has_no_highlights": "Öne Çıkanı Yok",
     "is_in_any_list": "Herhangi Bir Listede mi",
     "is_in_list": "Listede mi",
     "or": "Veya",

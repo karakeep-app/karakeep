@@ -18,7 +18,7 @@ You should also change the `NEXTAUTH_URL` variable to point to your server addre
 
 Using `KARAKEEP_VERSION=release` will pull the latest stable version. You might want to pin the version instead to control the upgrades (e.g. `KARAKEEP_VERSION=0.10.0`). Check the latest versions [here](https://github.com/karakeep-app/karakeep/pkgs/container/karakeep).
 
-To see all available configuration options check the [documentation](https://docs.karakeep.app/configuration).
+To see all available configuration options check the [documentation](https://docs.karakeep.com/configuration).
 
 To configure the neccessary secrets for the application copy the `.secrets_sample` file to `.secrets` and change the sample secrets to your generated secrets.
 

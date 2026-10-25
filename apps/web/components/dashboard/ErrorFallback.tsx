@@ -6,7 +6,7 @@ import { AlertTriangle, Home, RefreshCw } from "lucide-react";
 
 export default function ErrorFallback() {
   return (
-    <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:bg-slate-700/50 dark:shadow-md">
+    <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:border dark:bg-card dark:shadow-none">
       <div className="w-full max-w-md space-y-8 text-center">
         <div className="flex justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">

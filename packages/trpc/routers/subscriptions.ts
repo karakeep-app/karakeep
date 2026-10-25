@@ -62,12 +62,21 @@ const allowedEvents: Stripe.Event.Type[] = [
   "payment_intent.canceled",
 ];
 
+// Statuses that keep the paid entitlements. `past_due` means a renewal charge
+// failed and Stripe is still retrying it; the user keeps the paid tier during
+// that window and gets downgraded once Stripe gives up and moves the
+// subscription to `canceled` or `unpaid`.
+function isPaidStatus(status: string | null | undefined) {
+  return status === "active" || status === "trialing" || status === "past_due";
+}
+
 type SubscriptionTransition =
   | "upgrade"
   | "downgrade"
   | "renewed"
   | "scheduled_cancellation"
   | "resubscribe"
+  | "payment_failed"
   | "no_change";
 
 function computeSubscriptionTransition(
@@ -81,6 +90,9 @@ function computeSubscriptionTransition(
   }
   if (wasPaid && !isPaid) {
     return "downgrade";
+  }
+  if (prev.status !== "past_due" && next.status === "past_due") {
+    return "payment_failed";
   }
   if (!prev.cancelAtPeriodEnd && next.cancelAtPeriodEnd) {
     return "scheduled_cancellation";
@@ -201,17 +213,17 @@ export async function syncStripeDataToDatabase(
       // A customer can have more than one subscription. For example, while
       // upgrading from a monthly to a yearly plan the old monthly subscription
       // lingers until its period ends. The subscription that reflects the
-      // user's entitlement is the active/trialing one whose period extends
+      // user's entitlement is the paid one whose period extends
       // furthest into the future: when the old monthly plan is finally
       // canceled it fires `customer.subscription.deleted`, and a naive
       // `data[0]` (or `limit: 1`) can pick up that canceled subscription and
       // wrongly downgrade a user who still has an active yearly plan. Prefer
-      // the active/trialing subscription with the latest end date, and only
-      // fall back to the newest one when none are active.
+      // the paid subscription with the latest end date, and only fall back to
+      // the newest one when none are paid.
       const periodEnd = (sub: Stripe.Subscription) =>
         sub.items.data[0]?.current_period_end ?? 0;
-      const activeSubscriptions = subscriptionsList.data.filter(
-        (sub) => sub.status === "active" || sub.status === "trialing",
+      const activeSubscriptions = subscriptionsList.data.filter((sub) =>
+        isPaidStatus(sub.status),
       );
       const subscription =
         activeSubscriptions.length > 0
@@ -224,10 +236,9 @@ export async function syncStripeDataToDatabase(
       const subData = {
         stripeSubscriptionId: subscription.id,
         status: subscription.status,
-        tier:
-          subscription.status === "active" || subscription.status === "trialing"
-            ? ("paid" as const)
-            : ("free" as const),
+        tier: isPaidStatus(subscription.status)
+          ? ("paid" as const)
+          : ("free" as const),
         priceId: subscription.items.data[0]?.price.id || null,
         cancelAtPeriodEnd: subscription.cancel_at_period_end,
         startDate: subscriptionItem.current_period_start
@@ -254,7 +265,7 @@ export async function syncStripeDataToDatabase(
           .where(eq(subscriptions.stripeCustomerId, customerId))
           .run();
 
-        if (subData.status === "active" || subData.status === "trialing") {
+        if (subData.tier === "paid") {
           // Enable paid tier quotas and browser crawling. A real subscription
           // supersedes a manually granted tier, so clear it.
           trx
@@ -357,6 +368,7 @@ export const subscriptionsRouter = router({
         startDate: null,
         endDate: null,
         hasActiveSubscription: false,
+        paymentFailed: false,
         cancelAtPeriodEnd: false,
       };
     }
@@ -367,8 +379,8 @@ export const subscriptionsRouter = router({
       status: subscription.status,
       startDate: subscription.startDate,
       endDate: subscription.endDate,
-      hasActiveSubscription:
-        subscription.status === "active" || subscription.status === "trialing",
+      hasActiveSubscription: isPaidStatus(subscription.status),
+      paymentFailed: subscription.status === "past_due",
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd || false,
     };
   }),
@@ -452,7 +464,7 @@ export const subscriptionsRouter = router({
 
       const existingSubscription = user.subscription;
 
-      if (existingSubscription?.status === "active") {
+      if (isPaidStatus(existingSubscription?.status)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "User already has an active subscription",
@@ -641,11 +653,7 @@ export const subscriptionsRouter = router({
         });
       }
 
-      if (
-        input.manualTierName &&
-        (user.subscription?.status === "active" ||
-          user.subscription?.status === "trialing")
-      ) {
+      if (input.manualTierName && isPaidStatus(user.subscription?.status)) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "User already has an active Stripe subscription",

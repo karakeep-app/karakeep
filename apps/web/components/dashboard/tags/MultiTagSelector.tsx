@@ -1,9 +1,7 @@
 import React from "react";
-import { Separator } from "@/components/ui/separator";
 import useBulkTagActionsStore from "@/lib/bulkTagActions";
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
-import { useTheme } from "next-themes";
 
 export const MultiTagSelector = React.memo(function MultiTagSelector({
   id,
@@ -15,43 +13,40 @@ export const MultiTagSelector = React.memo(function MultiTagSelector({
   count: number;
 }) {
   const toggleTag = useBulkTagActionsStore((state) => state.toggleTag);
-  const { resolvedTheme } = useTheme();
   const isSelected = useBulkTagActionsStore((state) => state.isTagSelected(id));
-
-  const getIconColor = () => {
-    if (resolvedTheme === "dark") {
-      return isSelected ? "black" : "white";
-    }
-    return isSelected ? "white" : "black";
-  };
-
-  const getIconBackgroundColor = () => {
-    if (resolvedTheme === "dark") {
-      return isSelected ? "bg-white" : "bg-white bg-opacity-10";
-    }
-    return isSelected ? "bg-black" : "bg-white";
-  };
 
   const pill = (
     <div className="group relative flex">
       <button
         className={cn(
-          "flex gap-2 rounded-md border border-border px-2 py-1",
+          "inline-flex items-center gap-2 rounded-full border py-1 pl-3 pr-1 text-sm font-medium transition-colors",
           isSelected
-            ? "bg-black bg-opacity-10"
-            : "bg-background text-foreground hover:bg-foreground hover:text-background",
+            ? "border-primary/40 bg-primary/10 text-foreground dark:border-primary/50 dark:bg-primary/15"
+            : "border-border bg-secondary/60 text-foreground hover:border-foreground/15 hover:bg-secondary dark:border-white/[0.06] dark:bg-white/[0.04] dark:hover:border-white/[0.12] dark:hover:bg-white/[0.08]",
         )}
         data-id={id}
         onClick={() => toggleTag(id)}
       >
-        {name} <Separator orientation="vertical" /> {count}
-        <div
+        {name}
+        <span
           className={cn(
-            "absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full border border-gray-600",
-            getIconBackgroundColor(),
+            "min-w-6 rounded-full px-1.5 py-0.5 text-center text-xs tabular-nums transition-colors",
+            isSelected
+              ? "bg-primary/15 text-foreground dark:bg-primary/25"
+              : "bg-background text-muted-foreground group-hover:text-foreground dark:bg-white/[0.06]",
           )}
         >
-          <Check size={12} color={getIconColor()} />
+          {count}
+        </span>
+        <div
+          className={cn(
+            "absolute -right-1.5 -top-1.5 flex size-4 items-center justify-center rounded-full border shadow-sm transition-colors",
+            isSelected
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-background text-transparent group-hover:text-muted-foreground dark:border-white/20 dark:bg-card",
+          )}
+        >
+          <Check className="size-3" strokeWidth={3} />
         </div>
       </button>
     </div>

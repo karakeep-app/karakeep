@@ -1,5 +1,4 @@
 ---
-import Banner from "../components/Banner";
 import Footer from "../components/Footer";
 import NavBar from "../Navbar";
 import BaseLayout from "./BaseLayout.astro";
@@ -15,7 +14,6 @@ const { title, description } = Astro.props;
 <BaseLayout title={title} description={description}>
   <slot name="head" slot="head" />
   <div class="flex min-h-screen flex-col bg-gray-50">
-    <Banner />
     <NavBar client:load />
     <div class="flex-1">
       <slot />

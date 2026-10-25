@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSet } from "@uidotdev/usehooks";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 
 import {
   useAutoRefreshingBookmarkQuery,
@@ -13,6 +13,7 @@ import { useTRPC } from "../utils/trpc";
 import { Button } from "./ui/button";
 import {
   Command,
+  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -60,37 +61,47 @@ export function TagsSelector({ bookmarkId }: { bookmarkId: string }) {
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          size="sm"
           role="combobox"
           aria-expanded={open}
-          className="justify-between"
+          className="h-7 gap-1 rounded-full border-dashed px-2.5 text-xs font-medium text-muted-foreground hover:text-foreground"
         >
-          Add Tags...
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <Plus className="size-3.5" />
+          Add tag
         </Button>
       </PopoverTrigger>
-      <DynamicPopoverContent className="w-[320px] p-0">
+      <DynamicPopoverContent
+        align="start"
+        collisionPadding={16}
+        className="w-[320px] p-0"
+      >
         <Command>
           <CommandInput
             value={input}
             onValueChange={setInput}
-            placeholder="Search Tags ..."
+            placeholder="Search or create a tag…"
           />
           <CommandList>
-            <CommandGroup>
-              <CommandItem
-                onSelect={() =>
-                  mutate({
-                    bookmarkId,
-                    attach: [{ tagName: input }],
-                    detach: [],
-                  })
-                }
-              >
-                <Plus className="mr-2 size-4" />
-                Create &quot;{input}&quot; ...
-              </CommandItem>
-            </CommandGroup>
-            <CommandSeparator />
+            <CommandEmpty>Type a name to create a tag.</CommandEmpty>
+            {input.trim() && (
+              <>
+                <CommandGroup>
+                  <CommandItem
+                    onSelect={() =>
+                      mutate({
+                        bookmarkId,
+                        attach: [{ tagName: input.trim() }],
+                        detach: [],
+                      })
+                    }
+                  >
+                    <Plus className="mr-2 size-4" />
+                    Create &quot;{input.trim()}&quot;
+                  </CommandItem>
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
             <CommandGroup>
               {allTags?.tags
                 .sort((a, b) => a.name.localeCompare(b.name))

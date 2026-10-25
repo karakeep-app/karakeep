@@ -20,8 +20,16 @@ export default function Dashboard() {
   const router = useRouter();
   const { colors } = useColorScheme();
   const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
+  // Settings sub-pages need an explicit formSheet presentation. Otherwise they
+  // default to "modal" (they follow a sheet), which ignores sheetGrabberVisible.
   const settingsScreenOptions = {
+    ...formSheetSurfaceOptions,
     headerLargeTitle: false,
+    headerTransparent: false,
+    presentation: Platform.select({
+      ios: "formSheet" as const,
+      default: "modal" as const,
+    }),
     sheetGrabberVisible: true,
   };
 
@@ -248,14 +256,8 @@ export default function Dashboard() {
       <Stack.Screen
         name="settings/index"
         options={{
-          ...formSheetSurfaceOptions,
           ...settingsScreenOptions,
           headerTitle: "Settings",
-          headerTransparent: false,
-          presentation: Platform.select({
-            ios: "formSheet" as const,
-            default: "modal" as const,
-          }),
           title: "Settings",
         }}
       />

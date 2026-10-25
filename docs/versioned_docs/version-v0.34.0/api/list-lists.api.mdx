@@ -1,0 +1,63 @@
+---
+id: list-lists
+title: "Get all lists"
+description: "Retrieve all bookmark lists for the authenticated user, including both manual and smart lists."
+sidebar_label: "Get all lists"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vs1uGzcQfpUBc2mFtWQXPelQQEmbwE0OQWKjKGwBGi1HWkZckiFnZW+FBfoQfcI+STvc1Y9toe2pJ63I4cw3f9/MTvlAEdl4d63VVFmT+INJnFShNKUymiB3aqo+EUdDWwK0Fpbeb2qMGxD5BCsfgSsCbLgix6ZEJg1NoliAcaVttHFrWHquoEbXoAV0GlKNkXsNY1UoxnVS0zvVm58XKlHZRMOtmt7t1JIwUpw1XKnp3bybFypSCt4lSmq6U99dXsrPU8gzaweA/sGRhmULPkKqMJKGB8NVBl02MZLjDFdwlN4xORZ1GIIVZ4x3ky9JdO5UKiuqUb64DaSmyi+/UMmqUCFKLNn0iLLhEzGMEVtVKMNUp39/bvSJTOJo3Fp1hXJY09mLJ54/vy+Ua6zFpSU15dhQVyhTnhPsChVQonF9xvwZLb3AS0FyTS257LOtCpVzLUnVtMLGspru77pCfW0otv/JXmiW1pQnokvvLaETLRWmN17kfUT2MZ2Xkix/8vYfUUu1RPmvDXv52Bp6yCeD/XnXSf19bUwkLS+MVkNuhsiexPHw6gzEEzzzQrFhAZY7QHXPbfQFNe/yxfeXVy/r/dZJA/pofvu72P/8/Y9c3q9z4wD7DTkwCWqTknFracwtWqML6Ql6DGLmWfkzPfIkWDTnC/8Yt0esQ0Z+ikA8EKg1ceWFW9aUyxylhdXEDiyTKG5JsnW3U020aqp2qHWklLoJBjPZXkkCMBophJzU4br3f19NFXNI08mEYzveYMQNURhjCC947EZ4qtcAfpVD9H6Qhx6LAD+hn8/id2/5lIQOYRDL4kcWk2LLQqoYPt76WKMg/PmXGyXxMG7l5bl43UO6Gl+OL9Ux/wc8s4/XL/AfLk0ChER2dVH5xBKdAy0L2wrDRkJ9YfjCIlPM3pmSxnBTmSS6hcr9Q4LWN8BeqBnXRyWp6MmzAGHmAiqzrqxZV3KCKVH+dRqWWG6akCBEv45Y1yj8b207vnf37tUrmB2HgvFODoWXyengjeMEQ40DPi3VIDY0GJdTtJgNdZWVLKAi1BTH8KtvoEQHa3IyxgjQZc821MIq+vppfh9oCbfX0DhNEUajz8Rs3DrBD/nNe2rTaLSH/RHXxh0gS0ueYE5NCD6yzI7k48USBWo4vICtQVj0l4scpIU1teEFZKqDgBFrYopJkkGwH2XDsCTJ7MLRI78ZVKwM2b6lJSxgGDD1cdkbOaiUTK6Iy364iRIBRmOYwUL4dAFbtA3lmf3EhnE6D+6sWPIRCZyH2scMsLGc9rF5vR//N22gJIf7k5SzsSTwjvr2ikQgnZKm9+4CRiNr3GY0yr7M4PbTh+MukSeyz3WOFsqID5Y01MSokXHcPxdOOjzP3ARyBM4zDSK5OPcyDppgPWrSsDKW4BtTS5H7CB9/fPvtOE88n7jGzHH9eFXviPOaY89tQrsjRf4PS1HPMSdMLDNMaHI3MOlhMBRKeEAOdjspyNtou06Oh/F6Nz/yaN6hCtV3UabeDbWyMZUlBc6Ea5u8tTzfgIQZD4z+7qcbVSh8yofP+C9r3+9Arj3Rvdv1EjfS712nigFE7n/VyaT7C6UyuQc=
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get all lists"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/lists"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve all bookmark lists for the authenticated user, including both manual and smart lists.
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"All lists owned by or shared with the current user.","content":{"application/json":{"schema":{"type":"object","properties":{"lists":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}},"required":["lists"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

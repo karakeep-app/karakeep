@@ -135,12 +135,18 @@
       "shared": "Общий доступ",
       "private": "Личный"
     },
-    "summary_list_one": "{{count}} Списки",
-    "summary_list_other": "{{count}} Списки",
-    "summary_bookmark_one": "{{count}} Закладки",
-    "summary_bookmark_other": "{{count}} Закладки",
-    "items_count_one": "{{count}} элементов",
-    "items_count_other": "{{count}} элементов"
+    "summary_list_one": "{{count}} список",
+    "summary_list_few": "{{count}} списка",
+    "summary_list_many": "{{count}} списков",
+    "summary_list_other": "{{count}} списка",
+    "summary_bookmark_one": "{{count}} закладка",
+    "summary_bookmark_few": "{{count}} закладки",
+    "summary_bookmark_many": "{{count}} закладок",
+    "summary_bookmark_other": "{{count}} закладки",
+    "items_count_one": "{{count}} элемент",
+    "items_count_few": "{{count}} элемента",
+    "items_count_many": "{{count}} элементов",
+    "items_count_other": "{{count}} элемента"
   },
   "settings": {
     "user_settings": "Настройки пользователя",
@@ -374,6 +380,56 @@
     "broken_links": {
       "last_crawled_at": "Последний раз сканирован",
       "crawling_failed": "Сканирование не удалось",
+      "description": "Просмотрите ссылки, которые не удалось загрузить, повторите попытку или удалите старые закладки.",
+      "category_all": "Требуют внимания",
+      "category_blocked": "Доступ заблокирован",
+      "category_missing": "Не найдено",
+      "category_errors": "Другие ошибки",
+      "category_all_hint": "Ссылки для проверки",
+      "category_blocked_hint": "Ограничено или превышен лимит запросов",
+      "category_missing_hint": "Страница отсутствует или удалена",
+      "category_errors_hint": "Ошибки сервера или сканирования",
+      "blocked_hint": "Заблокированный запрос не всегда означает сломанную ссылку. Некоторые сайты ограничивают автоматический доступ. Перед удалением откройте исходную страницу, чтобы проверить.",
+      "search": "Поиск по заголовку или URL…",
+      "sort_recent": "Недавно проверенные",
+      "sort_oldest": "Сначала давно проверенные",
+      "sort_domain": "Сайт А–Я",
+      "result_count_one": "{{count}} ссылка для проверки",
+      "result_count_other": "{{count}} ссылки для проверки",
+      "result_count_few": "{{count}} ссылки для проверки",
+      "result_count_many": "{{count}} ссылок для проверки",
+      "retry_selected": "Повторить для выбранных",
+      "empty": "Сломанные ссылки не найдены",
+      "empty_description": "Ни для одной из сохранённых ссылок сейчас нет ошибок сканирования.",
+      "select_visible": "Выбрать все видимые ссылки",
+      "bookmark": "Закладка",
+      "issue": "Проблема",
+      "never_crawled": "Нет даты сканирования",
+      "issue_blocked": "Доступ заблокирован",
+      "issue_missing": "Не найдено",
+      "issue_server": "Ошибка сервера",
+      "issue_http": "Ошибка HTTP",
+      "issue_failed": "Сканирование не удалось",
+      "issue_blocked_hint": "Сайт ограничил этот запрос",
+      "issue_missing_hint": "Возможно, страница была удалена",
+      "issue_server_hint": "Сайт не смог выполнить запрос",
+      "issue_http_hint": "Сайт вернул неожиданный ответ",
+      "issue_failed_hint": "Успешный ответ не был получен",
+      "queued": "В очереди",
+      "queued_count_one": "{{count}} ссылка поставлена в очередь на повторное сканирование.",
+      "queued_count_other": "{{count}} ссылки поставлены в очередь на повторное сканирование.",
+      "deleted_count_one": "{{count}} закладка удалена.",
+      "deleted_count_other": "{{count}} закладки удалены.",
+      "deleted_count_few": "{{count}} закладки удалены.",
+      "deleted_count_many": "{{count}} закладок удалено.",
+      "queued_count_few": "{{count}} ссылки поставлены в очередь на повторное сканирование.",
+      "queued_count_many": "{{count}} ссылок поставлено в очередь на повторное сканирование.",
+      "action_failed": "Не удалось: {{count}} из {{total}}.",
+      "delete_title_one": "Удалить {{count}} закладку?",
+      "delete_title_other": "Удалить {{count}} закладки?",
+      "delete_title_few": "Удалить {{count}} закладки?",
+      "delete_title_many": "Удалить {{count}} закладок?",
+      "delete_description": "Выбранные закладки и их сохранённые файлы, выделения и заметки будут удалены навсегда. Это действие нельзя отменить.",
       "crawling_status": "Статус сканирования",
       "broken_links": "Сломанные ссылки"
     },
@@ -501,7 +557,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Активность по часам",
-        "activity_by_day": "Активность по дням"
+        "activity_by_day": "Активность по дням",
+        "busiest_around": "Пик активности около {{hour}}"
       },
       "storage_breakdown": {
         "title": "Разбивка хранилища"
@@ -552,10 +609,8 @@
       "progress": "Выполнение",
       "status": {
         "pending": "В ожидании",
-        "in_progress": "В процессе",
         "completed": "Завершено",
         "failed": "Ошибка",
-        "processing": "Обработка",
         "staging": "Подготовка",
         "running": "Запущено",
         "paused": "Приостановлено",
@@ -651,6 +706,19 @@
         "backup_queued": "Задание на резервное копирование поставлено в очередь! Оно будет обработано в ближайшее время.",
         "backup_deleted": "Резервная копия удалена!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Сбросить фильтры",
+      "clear_selection": "Снять выделение",
+      "delete_selected": "Удалить выбранные",
+      "try_again": "Попробовать снова",
+      "sort": "Порядок сортировки",
+      "no_matches": "Совпадений не найдено",
+      "adjust_filters": "Попробуйте другой запрос или сбросьте фильтры.",
+      "select_item": "Выбрать {{name}}",
+      "selected": "Выбрано: {{count}}",
+      "showing": "Показано {{shown}} из {{total}}",
+      "load_more": "Загрузить ещё"
     }
   },
   "actions": {
@@ -666,8 +734,8 @@
     "summarize_with_ai": "Суммировать с ИИ",
     "sign_out": "Выйти",
     "close": "Закрыть",
-    "download_full_page_archive": "Скачать полный архив страницы",
     "add_to_list": "Добавить в список",
+    "select": "Выбрать",
     "close_bulk_edit": "Закрыть массовое редактирование",
     "bulk_edit": "Массовое редактирование",
     "manage_lists": "Управление списками",
@@ -698,6 +766,7 @@
     "load_more": "Загрузить еще",
     "edit_notes": "Редактировать заметки",
     "preserve_as_pdf": "Сохранить как PDF",
+    "preserve_video": "Сохранить видео",
     "offline_copies": "Автономные копии",
     "preserve_offline_archive": "Сохранить оффлайн архив",
     "download_full_page_archive_file": "Скачать файл архива",
@@ -758,8 +827,7 @@
       "align_center": "Выровнить по центру",
       "align_right": "Выровнить справа"
     },
-    "quickly_focus": "Для быстрого перехода к полю нажмите ⌘ + E",
-    "placeholder": "Вставьте ссылку или изображение, напишите заметку или перетащите изображение сюда ...",
+    "placeholder": "Вставьте ссылку или изображение, напишите заметку или перетащите изображение сюда…",
     "new_item": "НОВЫЙ ЭЛЕМЕНТ",
     "import_as_text": "Импортировать как текстовую закладку",
     "disabled_submissions": "Редактирование отключено",
@@ -789,19 +857,7 @@
       "unlimited": "Неограниченный"
     },
     "background_jobs": {
-      "queued": "В очереди",
-      "tidy_assets_jobs": "Задачи очистки ресурсов",
       "background_jobs": "Фоновые задачи",
-      "inference_jobs": "Задачи обработки",
-      "pending": "В ожидании",
-      "failed": "Неудачно",
-      "job": "Задача",
-      "indexing_jobs": "Задачи индексирования",
-      "crawler_jobs": "Задачи сканирования",
-      "video_jobs": "Задания на скачивание видео",
-      "webhook_jobs": "Задачи веб-хука",
-      "asset_preprocessing_jobs": "Задачи предварительной обработки ресурсов",
-      "feed_jobs": "Задания RSS-ленты",
       "actions": {
         "reindex_all_bookmarks": "Переиндексировать все закладки",
         "clean_assets": "Очистить оборванные ресурсы и повторно синхронизировать метаданные",
@@ -837,10 +893,6 @@
         "asset_preprocessing": {
           "title": "Задачи предварительной обработки ресурсов",
           "description": "Предварительная обработка изображений и документов (скриншоты, извлечение текста и т. д.)"
-        },
-        "tidy_assets": {
-          "title": "Упорядочение задач для ресурсов",
-          "description": "Очистка ресурсов и оптимизация хранилища"
         },
         "video": {
           "title": "Задачи скачивания видео",
@@ -881,18 +933,6 @@
           "description": "Закладки, при обработке которых произошли ошибки. Им может потребоваться ручная обработка."
         }
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Пересканировать только неудачные ссылки",
-      "without_inference": "Без обработки",
-      "regenerate_ai_tags_for_all_bookmarks": "Перегенерировать ИИ метки всем закладкам",
-      "compact_assets": "Сжать ресурсы",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Перегенерировать ИИ метки только для неудачных закладок",
-      "reindex_all_bookmarks": "Переиндексировать все закладки",
-      "recrawl_all_links": "Пересканировать все ссылки",
-      "reprocess_assets_fix_mode": "Повторно обработать ресурсы (режим исправления)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Перегенерировать AI-резюме только для неудачных закладок",
-      "regenerate_ai_summaries_for_all_bookmarks": "Перегенерировать AI-резюме для всех закладок"
     },
     "admin_settings": "Настройки администратора",
     "service_connections": {
@@ -955,8 +995,10 @@
     "masonry": "Плитка"
   },
   "options": {
+    "theme": "Тема",
     "dark_mode": "Тёмный режим",
     "light_mode": "Светлый режим",
+    "system_mode": "Системный режим",
     "apps_extensions": "Приложения и расширения",
     "documentation": "Документация",
     "follow_us_on_x": "Подписывайтесь на нас в X"
@@ -995,6 +1037,9 @@
     "view_original": "Посмотреть оригинал",
     "cached_content": "Содержимое кеша",
     "reader_view": "Режим чтения",
+    "page_overview": "Обзор страницы",
+    "try_reader_view": "Попробовать режим чтения",
+    "archived_page": "Архивная страница",
     "tabs": {
       "content": "Содержание",
       "details": "Подробности"
@@ -1016,6 +1061,7 @@
       "deleted": "Закладка была удалена!",
       "updated": "Закладка была обновлена!",
       "preserve_pdf": "Сохранение в формате PDF было запущено",
+      "preserve_video": "Загрузка видео запущена",
       "update_banner": "Баннер обновлён!",
       "uploading_banner": "Загрузка баннера..."
     },
@@ -1050,6 +1096,10 @@
     "is_not_archived": "Не в архиве",
     "has_any_tag": "Имеет любой тег",
     "has_no_tags": "Нет тега",
+    "has_notes": "Есть заметки",
+    "has_no_notes": "Нет заметок",
+    "has_highlights": "Есть выделения",
+    "has_no_highlights": "Нет выделений",
     "is_in_any_list": "Находится в любом списке",
     "is_not_in_any_list": "Не состоит ни в одном списке",
     "created_on_or_after": "Создано после",

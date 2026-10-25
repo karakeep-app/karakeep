@@ -60,9 +60,9 @@
     "delete": "Poista",
     "refresh": "Päivitä",
     "recrawl": "Uudelleenindeksoi",
-    "download_full_page_archive": "Lataa koko sivun arkisto",
     "edit_tags": "Muokkaa tunnisteita",
     "add_to_list": "Lisää listaan",
+    "select": "Valitse",
     "select_all": "Valitse kaikki",
     "unselect_all": "Poista valinnat",
     "copy_link": "Kopioi linkki",
@@ -96,6 +96,7 @@
     "load_more": "Lataa lisää",
     "edit_notes": "Muokkaa muistiinpanoja",
     "preserve_as_pdf": "Säilytä PDF-muodossa",
+    "preserve_video": "Säilytä video",
     "offline_copies": "Offline-kopiot",
     "preserve_offline_archive": "Säilytä offline-arkisto",
     "download_full_page_archive_file": "Lataa arkistotiedosto",
@@ -243,7 +244,6 @@
       "import_bookmarks_from_matter_export": "Tuo kirjanmerkit Matter-viennistä",
       "import_bookmarks_from_omnivore_export": "Tuo kirjanmerkit Omnivore-viennistä",
       "import_bookmarks_from_linkwarden_export": "Tuo kirjanmerkit Linkwarden-viennistä",
-      "import_bookmarks_from_hoarder_export": "Tuo kirjanmerkit Hoarder-viennistä",
       "export_links_and_notes": "Vie linkit ja muistiinpanot",
       "imported_bookmarks": "Tuodut kirjanmerkit",
       "import_bookmarks_from_karakeep_export": "Tuo kirjanmerkit Karakeep-viennistä",
@@ -363,7 +363,49 @@
       "broken_links": "Rikkinäiset linkit",
       "last_crawled_at": "Viimeksi indeksoitu",
       "crawling_status": "Indeksointitila",
-      "crawling_failed": "Ryömintä epäonnistui"
+      "crawling_failed": "Ryömintä epäonnistui",
+      "description": "Tarkista linkit, joita ei voitu noutaa, yritä niitä uudelleen tai poista vanhoja kirjanmerkkejä.",
+      "category_all": "Vaatii huomiota",
+      "category_blocked": "Pääsy estetty",
+      "category_missing": "Ei löytynyt",
+      "category_errors": "Muut virheet",
+      "category_all_hint": "Tarkistettavat linkit",
+      "category_blocked_hint": "Rajoitettu tai pyyntömäärä ylitetty",
+      "category_missing_hint": "Sivu puuttuu tai on poistettu",
+      "category_errors_hint": "Palvelin- tai indeksointivirheet",
+      "blocked_hint": "Estetty pyyntö ei aina tarkoita rikkinäistä linkkiä. Jotkin sivustot rajoittavat automaattista käyttöä. Avaa alkuperäinen sivu ja tarkista ennen poistamista.",
+      "search": "Hae otsikolla tai URL-osoitteella…",
+      "sort_recent": "Viimeksi tarkistetut",
+      "sort_oldest": "Vanhin tarkistus ensin",
+      "sort_domain": "Sivusto A–Ö",
+      "result_count_one": "{{count}} tarkistettava linkki",
+      "result_count_other": "{{count}} tarkistettavaa linkkiä",
+      "retry_selected": "Yritä valittuja uudelleen",
+      "empty": "Rikkinäisiä linkkejä ei löytynyt",
+      "empty_description": "Yhdelläkään tallennetuista linkeistäsi ei ole tällä hetkellä raportoitua indeksointivirhettä.",
+      "select_visible": "Valitse kaikki näkyvät linkit",
+      "bookmark": "Kirjanmerkki",
+      "issue": "Ongelma",
+      "never_crawled": "Ei indeksointipäivää",
+      "issue_blocked": "Pääsy estetty",
+      "issue_missing": "Ei löytynyt",
+      "issue_server": "Palvelinvirhe",
+      "issue_http": "HTTP-virhe",
+      "issue_failed": "Indeksointi epäonnistui",
+      "issue_blocked_hint": "Sivusto rajoitti tätä pyyntöä",
+      "issue_missing_hint": "Sivu on ehkä poistettu",
+      "issue_server_hint": "Sivusto ei pystynyt suorittamaan pyyntöä",
+      "issue_http_hint": "Sivusto palautti odottamattoman vastauksen",
+      "issue_failed_hint": "Onnistunutta vastausta ei tallennettu",
+      "queued": "Jonossa",
+      "queued_count_one": "{{count}} linkki asetettu jonoon uudelleenindeksointia varten.",
+      "queued_count_other": "{{count}} linkkiä asetettu jonoon uudelleenindeksointia varten.",
+      "deleted_count_one": "{{count}} kirjanmerkki poistettu.",
+      "deleted_count_other": "{{count}} kirjanmerkkiä poistettu.",
+      "action_failed": "{{count}}/{{total}} epäonnistui.",
+      "delete_title_one": "Poistetaanko {{count}} kirjanmerkki?",
+      "delete_title_other": "Poistetaanko {{count}} kirjanmerkkiä?",
+      "delete_description": "Tämä poistaa valitut kirjanmerkit sekä niiden tallennetut tiedostot, kohokohdat ja muistiinpanot pysyvästi. Toimintoa ei voi kumota."
     },
     "manage_assets": {
       "manage_assets": "Hallitse resursseja",
@@ -470,7 +512,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Aktiivisuus tunneittain",
-        "activity_by_day": "Aktiivisuus päivittäin"
+        "activity_by_day": "Aktiivisuus päivittäin",
+        "busiest_around": "Vilkkainta noin klo {{hour}}"
       },
       "storage_breakdown": {
         "title": "Tallennustilan erittely"
@@ -521,10 +564,8 @@
       "progress": "Edistyminen",
       "status": {
         "pending": "Odottaa",
-        "in_progress": "Käynnissä",
         "completed": "Valmis",
         "failed": "Epäonnistui",
-        "processing": "Käsitellään",
         "staging": "Valmistellaan",
         "running": "Käynnissä",
         "paused": "Pysäytetty",
@@ -620,6 +661,19 @@
         "backup_queued": "Varmuuskopiointityö on asetettu jonoon! Se käsitellään pian.",
         "backup_deleted": "Varmuuskopio on poistettu!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Tyhjennä suodattimet",
+      "clear_selection": "Tyhjennä valinta",
+      "delete_selected": "Poista valitut",
+      "try_again": "Yritä uudelleen",
+      "sort": "Lajittelujärjestys",
+      "no_matches": "Osumia ei löytynyt",
+      "adjust_filters": "Kokeile toista hakua tai tyhjennä suodattimet.",
+      "select_item": "Valitse {{name}}",
+      "selected": "{{count}} valittu",
+      "showing": "Näytetään {{shown}}/{{total}}",
+      "load_more": "Lataa lisää"
     }
   },
   "admin": {
@@ -632,18 +686,6 @@
     },
     "background_jobs": {
       "background_jobs": "Taustatyöt",
-      "crawler_jobs": "Indeksointityöt",
-      "indexing_jobs": "Töiden indeksointi",
-      "inference_jobs": "Päättelytyöt",
-      "tidy_assets_jobs": "Siisti resurssityöt",
-      "video_jobs": "Videon lataustyöt",
-      "webhook_jobs": "Webhook-työt",
-      "asset_preprocessing_jobs": "Resurssien esikäsittelytyöt",
-      "feed_jobs": "RSS-syötetyöt",
-      "job": "Työ",
-      "queued": "Jonossa",
-      "pending": "Odottaa",
-      "failed": "Epäonnistui",
       "jobs": {
         "crawler": {
           "title": "Indeksointityöt",
@@ -660,10 +702,6 @@
         "asset_preprocessing": {
           "title": "Resurssien esikäsittelytyöt",
           "description": "Kuvien ja asiakirjojen esikäsittely (kuvakaappaukset, tekstin poisto jne.)"
-        },
-        "tidy_assets": {
-          "title": "Siisti resurssi -työt",
-          "description": "Resurssien puhdistus ja tallennustilan optimointi"
         },
         "video": {
           "title": "Videoiden lataustyöt",
@@ -723,18 +761,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Luo upotukset uudelleen vain epäonnistuneille kirjanmerkeille",
         "regenerate_embeddings_for_all_bookmarks": "Luo upotukset uudelleen kaikille kirjanmerkeille"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Indeksoi uudelleen vain epäonnistuneet linkit",
-      "recrawl_all_links": "Indeksoi kaikki linkit uudelleen",
-      "without_inference": "Ilman päättelyä",
-      "regenerate_ai_tags_for_all_bookmarks": "Luo uudelleen kaikki tekoälytunnisteet kirjanmerkeille",
-      "reindex_all_bookmarks": "Uudelleenindeksoi kaikki kirjanmerkit",
-      "compact_assets": "Tiivistetyt resurssit",
-      "reprocess_assets_fix_mode": "Käsittele resurssit uudelleen (korjaustila)",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Luo AI-tageja uudelleen vain epäonnistuneille kirjanmerkeille",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Luo uudelleen tekoälyn yhteenvedot vain epäonnistuneille kirjanmerkeille",
-      "regenerate_ai_summaries_for_all_bookmarks": "Luo uudelleen tekoälyn yhteenvedot kaikille kirjanmerkeille"
     },
     "users_list": {
       "users_list": "Käyttäjäluettelo",
@@ -803,8 +829,10 @@
     }
   },
   "options": {
+    "theme": "Teema",
     "dark_mode": "Tumma tila",
     "light_mode": "Vaalea tila",
+    "system_mode": "Järjestelmän tila",
     "apps_extensions": "Sovellukset ja laajennukset",
     "documentation": "Dokumentaatio",
     "follow_us_on_x": "Seuraa meitä X:ssä"
@@ -899,11 +927,11 @@
       "shared": "Jaettu",
       "private": "Yksityinen"
     },
-    "summary_list_one": "{{count}} Listat",
-    "summary_list_other": "{{count}} Listat",
-    "summary_bookmark_one": "{{count}} Kirjanmerkit",
-    "summary_bookmark_other": "{{count}} Kirjanmerkit",
-    "items_count_one": "{{count}} kohdetta",
+    "summary_list_one": "{{count}} lista",
+    "summary_list_other": "{{count}} listaa",
+    "summary_bookmark_one": "{{count}} kirjanmerkki",
+    "summary_bookmark_other": "{{count}} kirjanmerkkiä",
+    "items_count_one": "{{count}} kohde",
     "items_count_other": "{{count}} kohdetta"
   },
   "tags": {
@@ -943,6 +971,10 @@
     "is_not_archived": "Ei ole arkistoitu",
     "has_any_tag": "On jokin tagi",
     "has_no_tags": "Ei tunnistetta",
+    "has_notes": "On muistiinpanoja",
+    "has_no_notes": "Ei muistiinpanoja",
+    "has_highlights": "On kohokohtia",
+    "has_no_highlights": "Ei kohokohtia",
     "is_in_any_list": "On jossain luettelossa",
     "is_not_in_any_list": "Ei ole missään listassa",
     "created_on_or_after": "Luotu aikaisintaan",
@@ -1000,6 +1032,9 @@
     "view_original": "Näytä alkuperäinen",
     "cached_content": "Välimuistissa oleva sisältö",
     "reader_view": "Lukijanäkymä",
+    "page_overview": "Sivun yleiskatsaus",
+    "try_reader_view": "Kokeile lukijanäkymää",
+    "archived_page": "Arkistoitu sivu",
     "tabs": {
       "content": "Sisältö",
       "details": "Tiedot"
@@ -1013,7 +1048,6 @@
     "continue_button": "Jatka"
   },
   "editor": {
-    "quickly_focus": "Voit nopeasti kohdistaa tähän kenttään painamalla ⌘ + E",
     "multiple_urls_dialog_title": "Tuodaanko URL-osoitteet erillisinä kirjanmerkkeinä?",
     "multiple_urls_dialog_desc": "Syöte sisältää useita URL-osoitteita erillisillä riveillä. Haluatko tuoda ne erillisinä kirjanmerkkeinä?",
     "import_as_text": "Tuo tekstikirjanmerkkinä",
@@ -1087,6 +1121,7 @@
       "delete_from_list": "Kirjanmerkki on poistettu luettelosta",
       "clipboard_copied": "Linkki on lisätty leikepöydälle!",
       "preserve_pdf": "PDF:nä säilytys on käynnistetty",
+      "preserve_video": "Videon lataus on käynnistetty",
       "update_banner": "Banneri on päivitetty!",
       "uploading_banner": "Ladataan banneria..."
     },

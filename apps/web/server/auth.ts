@@ -63,8 +63,8 @@ const ALLOWED_PATHS = new Set([
   "/request-password-reset",
   "/reset-password",
   "/change-password",
-  "/sign-in/oauth2",
-  "/oauth2/callback/:providerId",
+  "/sign-in/social",
+  "/callback/:id",
 ]);
 
 const PASSWORD_PATHS = new Set([
@@ -84,8 +84,8 @@ const READ_ONLY_PATHS = new Set(["/ok", "/error", "/get-session"]);
 const SESSION_PATHS = new Set([
   "/sign-in/email",
   "/sign-out",
-  "/sign-in/oauth2",
-  "/oauth2/callback/:providerId",
+  "/sign-in/social",
+  "/callback/:id",
 ]);
 
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
@@ -342,44 +342,32 @@ function buildVerificationUrl(email: string, token: string, url: string) {
   return verificationUrl.toString();
 }
 
-// RFC 6749 section 2.3.1 requires the client credentials to be form-urlencoded
-// before they're put in the Basic authorization header, as next-auth did.
-// better-auth puts them there as is, which breaks secrets containing characters
-// like "+" or "%" on providers that decode them (e.g. Keycloak and Dex). With
-// client_secret_post, the secret is sent in the (already encoded) form body.
-function encodeClientSecret(
-  secret: string | undefined,
-  authentication: "basic" | "post",
-) {
-  if (secret === undefined || authentication === "post") {
-    return secret;
-  }
-  return encodeURIComponent(secret).replace(/%20/g, "+");
-}
-
 function createOAuthConfig(): GenericOAuthConfig | null {
   const oauth = serverConfig.auth.oauth;
   if (!oauth.wellKnownUrl || !oauth.clientId) {
     return null;
   }
-  const authentication =
-    oauth.tokenEndpointAuthMethod === "client_secret_post" ? "post" : "basic";
 
   return {
     providerId: CUSTOM_OAUTH_PROVIDER_ID,
     discoveryUrl: oauth.wellKnownUrl,
     clientId: oauth.clientId,
-    clientSecret: encodeClientSecret(oauth.clientSecret, authentication),
+    clientSecret: oauth.clientSecret,
     scopes: oauth.scope.split(/\s+/).filter(Boolean),
-    // Keep the callback url of the next-auth days so that existing OAuth
-    // client configurations keep working. See the auth route handler.
+    // The callback url of the next-auth days, so that existing OAuth client
+    // configurations keep working.
     redirectURI: `${serverConfig.publicUrl}/api/auth/callback/${CUSTOM_OAUTH_PROVIDER_ID}`,
     pkce: true,
-    authentication,
+    // Without a secret, it's a public client that relies on PKCE alone.
+    tokenEndpointAuth: oauth.clientSecret
+      ? { method: oauth.tokenEndpointAuthMethod }
+      : { method: "none" },
     disableSignUp: serverConfig.auth.disableSignups,
-    mapProfileToUser(profile: Record<string, unknown>) {
+    // Existing accounts were linked by this id, so keep deriving it the same
+    // way rather than relying on better-auth's default (`sub` only).
+    accountSubject: ({ profile }) => String(profile.sub ?? profile.id ?? ""),
+    mapProfileToUser(profile) {
       return {
-        id: String(profile.sub ?? profile.id ?? ""),
         name: normalizeSafeDisplayName(
           typeof profile.name === "string" ? profile.name : null,
         ),
@@ -555,7 +543,7 @@ export const auth = betterAuth({
           logEvent({
             "event.name": "user.login",
             "user.id": session.userId,
-            "auth.provider": context?.path.startsWith("/oauth2/")
+            "auth.provider": context?.path.startsWith("/callback/")
               ? "oauth"
               : "credentials",
           });

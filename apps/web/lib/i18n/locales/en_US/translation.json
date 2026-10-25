@@ -67,8 +67,8 @@
     "refresh": "Refresh",
     "recrawl": "Recrawl",
     "offline_copies": "Offline Copies",
-    "download_full_page_archive": "Download Full Page Archive",
     "preserve_as_pdf": "Preserve as PDF",
+    "preserve_video": "Preserve Video",
     "edit_tags": "Edit Tags",
     "add_to_list": "Add to List",
     "select": "Select",
@@ -190,7 +190,6 @@
       "align_center": "Center Align",
       "align_right": "Right Align"
     },
-    "quickly_focus": "You can quickly focus on this field by pressing ⌘ + E",
     "multiple_urls_dialog_title": "Importing URLs as separate Bookmarks?",
     "multiple_urls_dialog_desc": "The input contains multiple URLs on separate lines. Do you want to import them as separate bookmarks?",
     "import_as_text": "Import as Text Bookmark",
@@ -324,8 +323,7 @@
         "title": "Events",
         "crawled": "Crawled",
         "created": "Created",
-        "edited": "Edited",
-        "deleted": "Deleted"
+        "edited": "Edited"
       },
       "auth_token": "Auth Token",
       "delete_webhook": "Delete Webhook",
@@ -468,11 +466,11 @@
       "category_all": "Needs attention",
       "category_blocked": "Access blocked",
       "category_missing": "Not found",
-      "category_other": "Other errors",
+      "category_errors": "Other errors",
       "category_all_hint": "Links to review",
       "category_blocked_hint": "Restricted or rate limited",
       "category_missing_hint": "Page missing or removed",
-      "category_other_hint": "Server or crawl failures",
+      "category_errors_hint": "Server or crawl failures",
       "blocked_hint": "A blocked request doesn't always mean a broken link. Some sites restrict automated access. Open the original page to check before deleting.",
       "search": "Search by title or URL…",
       "sort_recent": "Recently checked",
@@ -612,7 +610,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Activity by Hour",
-        "activity_by_day": "Activity by Day"
+        "activity_by_day": "Activity by Day",
+        "busiest_around": "Busiest around {{hour}}"
       },
       "storage_breakdown": {
         "title": "Storage Breakdown"
@@ -663,10 +662,8 @@
       "progress": "Progress",
       "status": {
         "pending": "Pending",
-        "in_progress": "In progress",
         "completed": "Completed",
         "failed": "Failed",
-        "processing": "Processing",
         "staging": "Staging",
         "running": "Running",
         "paused": "Paused",
@@ -787,18 +784,6 @@
     },
     "background_jobs": {
       "background_jobs": "Background Jobs",
-      "crawler_jobs": "Crawler Jobs",
-      "indexing_jobs": "Indexing Jobs",
-      "inference_jobs": "Inference Jobs",
-      "tidy_assets_jobs": "Tidy Assets Jobs",
-      "video_jobs": "Video Download Jobs",
-      "webhook_jobs": "Webhook Jobs",
-      "asset_preprocessing_jobs": "Asset Preprocessing Jobs",
-      "feed_jobs": "RSS Feed Jobs",
-      "job": "Job",
-      "queued": "Queued",
-      "pending": "Pending",
-      "failed": "Failed",
       "jobs": {
         "crawler": {
           "title": "Crawler Jobs",
@@ -819,10 +804,6 @@
         "asset_preprocessing": {
           "title": "Asset Preprocessing Jobs",
           "description": "Image and document preprocessing (screenshots, text extraction, etc.)"
-        },
-        "tidy_assets": {
-          "title": "Tidy Assets Jobs",
-          "description": "Asset cleanup and storage optimization"
         },
         "video": {
           "title": "Video Download Jobs",
@@ -878,18 +859,6 @@
         "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI Tags for Pending Bookmarks Only",
         "regenerate_ai_summaries_for_pending_bookmarks_only": "Regenerate AI Summaries for Pending Bookmarks Only"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Recrawl Failed Links Only",
-      "recrawl_all_links": "Recrawl All Links",
-      "without_inference": "Without Inference",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI Tags for Failed Bookmarks Only",
-      "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI Tags for All Bookmarks",
-      "reindex_all_bookmarks": "Reindex All Bookmarks",
-      "compact_assets": "Compact Assets",
-      "reprocess_assets_fix_mode": "Reprocess Assets (Fix Mode)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerate AI Summaries for Failed Bookmarks Only",
-      "regenerate_ai_summaries_for_all_bookmarks": "Regenerate AI Summaries for All Bookmarks"
     },
     "users_list": {
       "users_list": "Users List",
@@ -958,8 +927,10 @@
     }
   },
   "options": {
+    "theme": "Theme",
     "dark_mode": "Dark Mode",
     "light_mode": "Light Mode",
+    "system_mode": "System Mode",
     "apps_extensions": "Apps & Extensions",
     "documentation": "Documentation",
     "follow_us_on_x": "Follow us on X"
@@ -1150,6 +1121,7 @@
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
       "preserve_pdf": "PDF preservation has been triggered",
+      "preserve_video": "Video download has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!",
       "updated": "The bookmark has been updated!",

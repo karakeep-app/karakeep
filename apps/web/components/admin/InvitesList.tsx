@@ -77,7 +77,7 @@ export default function InvitesList() {
         </p>
       ) : (
         <Table>
-          <TableHeader className="bg-gray-200">
+          <TableHeader className="bg-gray-200 dark:bg-muted">
             <TableHead>Email</TableHead>
             <TableHead>Invited By</TableHead>
             <TableHead>Created</TableHead>

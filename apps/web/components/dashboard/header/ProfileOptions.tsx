@@ -160,13 +160,13 @@ export default function SidebarProfileOptions() {
         )}
         <Separator className="my-2" />
         <DropdownMenuItem asChild>
-          <a href="https://karakeep.app/apps" target="_blank" rel="noreferrer">
+          <a href="https://karakeep.com/apps" target="_blank" rel="noreferrer">
             <Puzzle className="size-4" />
             {t("options.apps_extensions")}
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <a href="https://docs.karakeep.app" target="_blank" rel="noreferrer">
+          <a href="https://docs.karakeep.com" target="_blank" rel="noreferrer">
             <BookOpen className="size-4" />
             {t("options.documentation")}
           </a>

@@ -126,6 +126,7 @@ export default Sentry.wrap(function RootLayout() {
                   ios: "formSheet" as const,
                   default: "modal" as const,
                 }),
+                sheetGrabberVisible: true,
               }}
             />
             <Stack.Screen
@@ -140,6 +141,7 @@ export default Sentry.wrap(function RootLayout() {
                   ios: "formSheet" as const,
                   default: "modal" as const,
                 }),
+                sheetGrabberVisible: true,
               }}
             />
           </StyledStack>
