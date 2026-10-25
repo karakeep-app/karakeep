@@ -38,6 +38,7 @@ const zSettingsSchema = z.object({
   apiKey: z.string().optional(),
   apiKeyId: z.string().optional(),
   address: z.string().optional().default("https://cloud.karakeep.app"),
+  language: z.string().optional().default("system"),
   imageQuality: z.number().optional().default(0.2),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   defaultBookmarkView: z
@@ -77,6 +78,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
     isLoading: true,
     settings: {
       address: "https://cloud.karakeep.app",
+      language: "system",
       imageQuality: 0.2,
       theme: "system",
       defaultBookmarkView: "reader",

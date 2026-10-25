@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 
 import { useCreateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
@@ -17,12 +22,15 @@ const NoteEditorPage = () => {
   const [text, setText] = useState("");
   const [error, setError] = useState<string | undefined>();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
 
   const { mutate: createBookmark, isPending } = useCreateBookmark({
     onSuccess: (resp) => {
       if (resp.alreadyExists) {
         toast({
-          message: "Bookmark saved again",
+          message: t("bookmarks.bookmark_saved_again"),
         });
       }
       setText("");
@@ -34,7 +42,7 @@ const NoteEditorPage = () => {
         const zodError = e.data.zodError;
         message = JSON.stringify(zodError);
       } else {
-        message = `Something went wrong: ${e.message}`;
+        message = `${strings.somethingWentWrong}: ${e.message}`;
       }
       setError(message);
     },
@@ -66,13 +74,13 @@ const NoteEditorPage = () => {
         onChangeText={setText}
         className="bg-card"
         multiline
-        placeholder="What's on your mind?"
+        placeholder={t("bookmarks.new_note_title")}
         autoFocus
         autoCapitalize={"none"}
         textAlignVertical="top"
       />
       <Button onPress={onSubmit} disabled={isPending}>
-        <Text>Save</Text>
+        <Text>{actions.save}</Text>
       </Button>
     </View>
   );

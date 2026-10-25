@@ -16,6 +16,7 @@ import {
 } from "./offlineCache";
 import { ClientConfigProvider } from "./client-config";
 import { ConnectionStatusProvider } from "./useConnectionStatus";
+import { I18nProvider } from "./i18n/provider";
 import { ReaderSettingsProvider } from "./readerSettings";
 import useAppSettings from "./settings";
 
@@ -53,13 +54,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <TRPCSettingsProvider settings={settings} queryClient={queryClient}>
         <ClientConfigProvider>
-          <OfflineDownloadSync />
-          <ConnectionStatusProvider enabled={!!settings.apiKey}>
-            <ReaderSettingsProvider>
-              {children}
-              <Toaster />
-            </ReaderSettingsProvider>
-          </ConnectionStatusProvider>
+          <I18nProvider>
+            <OfflineDownloadSync />
+            <ConnectionStatusProvider enabled={!!settings.apiKey}>
+              <ReaderSettingsProvider>
+                {children}
+                <Toaster />
+              </ReaderSettingsProvider>
+            </ConnectionStatusProvider>
+          </I18nProvider>
         </ClientConfigProvider>
       </TRPCSettingsProvider>
     </PersistQueryClientProvider>

@@ -13,6 +13,7 @@ import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { FAB } from "@/components/ui/FAB";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
@@ -78,6 +79,7 @@ function traverseTree(
 
 export default function Lists() {
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const { data: lists, isPending, error, refetch } = useBookmarkLists();
   const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
@@ -121,7 +123,7 @@ export default function Lists() {
     {
       id: "fav",
       logo: "⭐️",
-      name: "Favourites",
+      name: t("lists_tab.favourites"),
       href: "/dashboard/favourites",
       level: 0,
       numChildren: 0,
@@ -130,7 +132,7 @@ export default function Lists() {
     {
       id: "arch",
       logo: "🗄️",
-      name: "Archive",
+      name: t("lists_tab.archive"),
       href: "/dashboard/archive",
       level: 0,
       numChildren: 0,
@@ -148,7 +150,7 @@ export default function Lists() {
     links.push({
       id: "shared-section",
       logo: "👥",
-      name: "Shared Lists",
+      name: t("lists_tab.shared_lists"),
       href: "#",
       level: 0,
       numChildren: sharedListsCount,

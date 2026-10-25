@@ -46,6 +46,12 @@ vi.mock("react-native-mmkv", async () => {
   return { createMMKV: createFakeMMKV, useMMKVString: vi.fn() };
 });
 
+vi.mock("./i18n", () => ({
+  i18n: {
+    t: (key: string) => key,
+  },
+}));
+
 vi.mock("expo-network", () => ({
   getNetworkStateAsync: async () => state.network,
   NetworkStateType: {

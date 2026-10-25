@@ -3,12 +3,14 @@ import { Platform, ScrollView, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
 import { buildApiHeaders, cn } from "@/lib/utils";
 import { z } from "zod";
 
 export default function TestConnection() {
   const { settings, isLoading } = useAppSettings();
+  const { t } = useTranslation();
   const [text, setText] = React.useState("");
   const [randomId, setRandomId] = React.useState(Math.random());
   const [status, setStatus] = React.useState<"running" | "success" | "error">(
@@ -24,7 +26,7 @@ export default function TestConnection() {
       return;
     }
     setStatus("running");
-    appendText("Running connection test ...");
+    appendText(t("connection_test.running"));
     function runTest() {
       const request = new XMLHttpRequest();
       request.onreadystatechange = () => {
@@ -33,14 +35,16 @@ export default function TestConnection() {
         }
 
         if (request.status === 0) {
-          appendText("Network connection failed: " + request.responseText);
+          appendText(
+            t("connection_test.network_failed") + request.responseText,
+          );
           setStatus("error");
           return;
         }
 
         if (request.status !== 200) {
-          appendText("Recieve non success error code: " + request.status);
-          appendText("Got the following response:");
+          appendText(t("connection_test.non_success_code") + request.status);
+          appendText(t("connection_test.got_response"));
           appendText(request.responseText);
           setStatus("error");
           return;
@@ -51,22 +55,24 @@ export default function TestConnection() {
           });
           const data = schema.parse(JSON.parse(request.responseText));
           if (data.status !== "ok") {
-            appendText(`Server is not healthy: ${data.status}`);
+            appendText(
+              `${t("connection_test.server_unhealthy")}${data.status}`,
+            );
             setStatus("error");
             return;
           }
-          appendText("ALL GOOD");
+          appendText(t("connection_test.all_good"));
           setStatus("success");
         } catch (e) {
-          appendText(`Failed to parse response as JSON: ${e}`);
-          appendText("Got the following response:");
+          appendText(`${t("connection_test.parse_failed")}${e}`);
+          appendText(t("connection_test.got_response"));
           appendText(request.responseText);
           setStatus("error");
           return;
         }
       };
 
-      appendText("Using address: " + settings.address);
+      appendText(t("connection_test.using_address") + settings.address);
       request.open("GET", `${settings.address}/api/health`);
       const headers = buildApiHeaders(settings.apiKey, settings.customHeaders);
       Object.entries(headers).forEach(([key, value]) => {
@@ -75,6 +81,7 @@ export default function TestConnection() {
       request.send();
     }
     runTest();
+    // oxlint-disable-next-line exhaustive-deps
   }, [settings.address, randomId]);
 
   return (
@@ -88,7 +95,7 @@ export default function TestConnection() {
           await Clipboard.setStringAsync(text);
         }}
       >
-        <Text>Copy Diagnostics Result</Text>
+        <Text>{t("connection_test.copy_diagnostics")}</Text>
       </Button>
       <Button
         className="w-full"
@@ -98,7 +105,7 @@ export default function TestConnection() {
           setRandomId(Math.random());
         }}
       >
-        <Text>Retry</Text>
+        <Text>{t("connection_test.retry")}</Text>
       </Button>
       <View
         className={cn(
@@ -116,9 +123,9 @@ export default function TestConnection() {
             status === "error" && "text-white",
           )}
         >
-          {status === "running" && "Running connection test ..."}
-          {status === "success" && "Connection test successful"}
-          {status === "error" && "Connection test failed"}
+          {status === "running" && t("connection_test.running")}
+          {status === "success" && t("connection_test.success")}
+          {status === "error" && t("connection_test.failed")}
         </Text>
       </View>
       <ScrollView className="border-1 border-md h-64 flex-1 border-border bg-input p-2 leading-6">

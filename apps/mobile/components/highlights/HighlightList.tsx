@@ -4,6 +4,7 @@ import Animated, { LinearTransition } from "react-native-reanimated";
 import EmptyState from "@/components/ui/EmptyState";
 import { getGridColumns, useContainerWidth } from "@/lib/responsive";
 import { useScrollToTop } from "expo-router";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { Highlighter } from "lucide-react-native";
 
 import type { ZHighlight } from "@karakeep/shared/types/highlights";
@@ -29,6 +30,7 @@ export default function HighlightList({
   isFetchingNextPage?: boolean;
 }) {
   const flatListRef = useRef(null);
+  const { t } = useTranslation();
   useScrollToTop(flatListRef);
   const { width: containerWidth, onLayout } = useContainerWidth();
   const { numColumns, columnWidth } = getGridColumns({
@@ -67,8 +69,8 @@ export default function HighlightList({
         ListEmptyComponent={
           <EmptyState
             icon={Highlighter}
-            title="No Highlights"
-            subtitle="Highlights you create will appear here"
+            title={t("highlights.empty_title")}
+            subtitle={t("highlights.empty_subtitle")}
           />
         }
         data={highlights}

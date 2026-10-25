@@ -4,6 +4,7 @@ import { onlineManager, useQueryClient } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { useToast } from "../ui/Toast";
 import {
   excludeFromOfflineDownloads,
@@ -22,6 +23,8 @@ export function useOfflineAvailability(bookmarkId: string) {
   const api = useTRPC();
   const queryClient = useQueryClient();
   const { settings } = useAppSettings();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { toast } = useToast();
   const scope = getOfflineLibraryScope(settings);
   const isAvailableOffline = useIsAvailableOffline(scope, bookmarkId);
@@ -50,7 +53,7 @@ export function useOfflineAvailability(bookmarkId: string) {
         : queryClient.getQueryData(contentOptions.queryKey);
 
       if (!bookmark) {
-        throw new Error("Connect to the internet to save this article.");
+        throw new Error(t("bookmark_actions.offline_requires_connection"));
       }
 
       saveOfflineArticle(scope, {
@@ -62,8 +65,8 @@ export function useOfflineAvailability(bookmarkId: string) {
       includeInOfflineDownloads(scope, bookmarkId);
       toast({
         message: isAvailableOffline
-          ? "Offline copy updated"
-          : "Available offline",
+          ? t("bookmark_actions.offline_saved_updated")
+          : t("bookmark_actions.offline_saved_new"),
         variant: "success",
       });
     } catch (error) {
@@ -71,7 +74,7 @@ export function useOfflineAvailability(bookmarkId: string) {
         message:
           error instanceof Error
             ? error.message
-            : "Could not save this article for offline reading.",
+            : t("bookmark_actions.offline_save_failed"),
         variant: "destructive",
       });
     } finally {
@@ -81,17 +84,17 @@ export function useOfflineAvailability(bookmarkId: string) {
 
   const confirmRemove = () => {
     Alert.alert(
-      "Remove offline copy?",
-      "It will no longer be kept for offline reading, and automatic downloads will skip it. The article may remain temporarily cached.",
+      t("bookmark_actions.offline_remove_title"),
+      t("bookmark_actions.offline_remove_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Remove",
+          text: actions.remove,
           style: "destructive",
           onPress: () => {
             excludeFromOfflineDownloads(scope, bookmarkId);
             removeOfflineArticle(scope, bookmarkId);
-            toast({ message: "Offline copy removed" });
+            toast({ message: t("bookmark_actions.offline_removed") });
           },
         },
       ],

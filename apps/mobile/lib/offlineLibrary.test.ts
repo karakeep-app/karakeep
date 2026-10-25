@@ -14,6 +14,12 @@ const { instances } = vi.hoisted(() => ({
   instances: new Map<string, ReturnType<typeof createFakeMMKV>>(),
 }));
 
+vi.mock("./i18n", () => ({
+  i18n: {
+    t: (key: string) => key,
+  },
+}));
+
 vi.mock("react-native-mmkv", async () => {
   const { createFakeMMKV } = await import("./testing/fakeMmkv");
   return {

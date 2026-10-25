@@ -4,6 +4,9 @@ import { useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import EmptyState from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
+import { getDateFnsLocale } from "@/lib/i18n";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
+import type { MobileTFunction } from "@/lib/i18n/hooks";
 import { excludeFromOfflineDownloads } from "@/lib/offlineDownloadPrefs";
 import type { OfflineLibraryItem } from "@/lib/offlineLibrary";
 import {
@@ -13,19 +16,25 @@ import {
   useOfflineLibrary,
 } from "@/lib/offlineLibrary";
 import useAppSettings from "@/lib/settings";
+import { getIntlLocale } from "@/lib/i18n";
 import { formatStorageSize } from "@/lib/storageSize";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { FlashList } from "@shopify/flash-list";
 import { formatDistanceToNow } from "date-fns";
 import { BookOpen, Trash2 } from "lucide-react-native";
 
-function describe(item: OfflineLibraryItem) {
+function describe(t: MobileTFunction, item: OfflineLibraryItem) {
   const parts = [
-    item.source === "manual" ? "Saved by you" : "Downloaded automatically",
-    formatDistanceToNow(item.savedAt, { addSuffix: true }),
+    item.source === "manual"
+      ? t("settings.offline_saved_by_you")
+      : t("settings.offline_downloaded_automatically"),
+    formatDistanceToNow(item.savedAt, {
+      addSuffix: true,
+      locale: getDateFnsLocale(),
+    }),
   ];
   if (item.byteSize !== undefined) {
-    parts.push(formatStorageSize(item.byteSize));
+    parts.push(formatStorageSize(item.byteSize, getIntlLocale()));
   }
   return parts.join(" · ");
 }
@@ -34,6 +43,8 @@ export default function OfflineArticles() {
   const router = useRouter();
   const headerHeight = useHeaderHeight();
   const { settings } = useAppSettings();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { colors } = useColorScheme();
   const scope = getOfflineLibraryScope(settings);
   const items = useOfflineLibrary(scope);
@@ -44,12 +55,12 @@ export default function OfflineArticles() {
 
   const confirmRemove = (item: OfflineLibraryItem) => {
     Alert.alert(
-      "Remove offline copy?",
-      `"${item.displayTitle}" will be removed from this device and skipped by automatic downloads.`,
+      t("settings.offline_remove_title"),
+      t("settings.offline_remove_message", { title: item.displayTitle }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Remove",
+          text: actions.remove,
           style: "destructive",
           onPress: () => {
             excludeFromOfflineDownloads(scope, item.bookmarkId);
@@ -74,8 +85,8 @@ export default function OfflineArticles() {
       ListEmptyComponent={
         <EmptyState
           icon={BookOpen}
-          title="No downloaded articles"
-          subtitle="Turn on automatic downloads, or open an article and make it available offline."
+          title={t("settings.offline_empty_title")}
+          subtitle={t("settings.offline_empty_subtitle")}
         />
       }
       renderItem={({ item }) => (
@@ -102,11 +113,13 @@ export default function OfflineArticles() {
               </Text>
             ) : null}
             <Text className="mt-1 text-xs text-muted-foreground">
-              {describe(item)}
+              {describe(t, item)}
             </Text>
           </Pressable>
           <Pressable
-            accessibilityLabel={`Remove ${item.displayTitle} offline copy`}
+            accessibilityLabel={t("settings.offline_remove_label", {
+              title: item.displayTitle,
+            })}
             accessibilityRole="button"
             className="ml-3 p-2"
             hitSlop={8}

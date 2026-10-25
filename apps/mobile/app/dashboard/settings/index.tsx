@@ -20,15 +20,18 @@ import {
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import { Text } from "@/components/ui/Text";
 import { useServerVersion } from "@/lib/hooks";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
+import { getSystemLanguage } from "@/lib/i18n";
+import { langNameMappings } from "@karakeep/shared/langs";
 import {
   getOfflineLibraryScope,
   useOfflineLibrary,
 } from "@/lib/offlineLibrary";
 import { useSession } from "@/lib/session";
 import {
-  BOOKMARK_VIEW_LABELS,
-  getUploadQualityLabel,
-  THEME_LABELS,
+  getBookmarkViewLabels,
+  getThemeLabels,
+  getTranslatedUploadQualityLabel,
 } from "@/lib/settings-display";
 import useAppSettings from "@/lib/settings";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -40,6 +43,8 @@ export default function Settings() {
   const api = useTRPC();
   const { logout } = useSession();
   const { settings, isLoading } = useAppSettings();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const offlineLibrary = useOfflineLibrary(getOfflineLibraryScope(settings));
   const { data, error } = useQuery(api.users.whoami.queryOptions());
   const {
@@ -56,16 +61,19 @@ export default function Settings() {
         setShowPasswordModal(false);
         setPassword("");
         Alert.alert(
-          "Account Deleted",
-          "Your account has been successfully deleted.",
+          t("settings.account_deleted_title"),
+          t("settings.account_deleted_message"),
           [{ text: "OK", onPress: logout }],
         );
       },
       onError: (mutationError) => {
         if (mutationError.data?.code === "UNAUTHORIZED") {
-          Alert.alert("Error", "Invalid password. Please try again.");
+          Alert.alert(
+            t("app.error_title"),
+            t("settings.delete_invalid_password"),
+          );
         } else {
-          Alert.alert("Error", "Failed to delete account. Please try again.");
+          Alert.alert(t("app.error_title"), t("settings.delete_failed"));
         }
       },
     }),
@@ -84,12 +92,12 @@ export default function Settings() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account? All your bookmarks, lists, tags, highlights, and other data will be permanently deleted. This action cannot be undone.",
+      t("settings.delete_account_title"),
+      t("settings.delete_account_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           style: "destructive",
           onPress: () => {
             if (data?.localUser ?? false) {
@@ -111,78 +119,92 @@ export default function Settings() {
         email={data?.email}
       />
 
-      <SettingsGroup header="Preferences">
+      <SettingsGroup header={t("settings.preferences")}>
         <SettingsNavigationRow
-          label="Theme"
+          label={t("settings.language")}
+          onPress={() => router.push("/dashboard/settings/language")}
+          value={
+            settings.language === "system" || !settings.language
+              ? t("settings.language_system", {
+                  language:
+                    langNameMappings[getSystemLanguage()] ??
+                    getSystemLanguage(),
+                })
+              : (langNameMappings[settings.language] ?? settings.language)
+          }
+        />
+        <SettingsSeparator />
+        <SettingsNavigationRow
+          label={t("settings.theme")}
           onPress={() => router.push("/dashboard/settings/theme")}
-          value={THEME_LABELS[settings.theme]}
+          value={getThemeLabels()[settings.theme]}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
           isLoading={isLoading}
-          label="Open bookmarks in"
+          label={t("settings.open_bookmarks_in")}
           onPress={() =>
             router.push("/dashboard/settings/bookmark-default-view")
           }
-          value={BOOKMARK_VIEW_LABELS[settings.defaultBookmarkView]}
+          value={getBookmarkViewLabels()[settings.defaultBookmarkView]}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
-          label="Reader View"
+          label={t("settings.reader_view")}
           onPress={() => router.push("/dashboard/settings/reading")}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
           isLoading={isLoading}
-          label="Uploads"
+          label={t("settings.uploads")}
           onPress={() => router.push("/dashboard/settings/uploads")}
-          value={getUploadQualityLabel(settings.imageQuality)}
+          value={getTranslatedUploadQualityLabel(settings.imageQuality)}
         />
       </SettingsGroup>
 
-      <SettingsGroup header="Data">
+      <SettingsGroup header={t("settings.data")}>
         <SettingsNavigationRow
-          label="Downloads"
+          label={t("settings.downloads")}
           onPress={() => router.push("/dashboard/settings/offline")}
           value={String(offlineLibrary.length)}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
-          label="Statistics"
+          label={t("settings.statistics")}
           onPress={() => router.push("/dashboard/settings/usage")}
         />
       </SettingsGroup>
 
-      <SettingsGroup header="Account">
-        <SettingsActionRow label="Log Out" onPress={logout} />
+      <SettingsGroup header={t("settings.account")}>
+        <SettingsActionRow label={t("auth.log_out")} onPress={logout} />
         <SettingsSeparator />
         <SettingsActionRow
           disabled={isDeleting}
           isLoading={isDeleting}
-          label="Delete Account"
+          label={t("settings.delete_account")}
           onPress={handleDeleteAccount}
         />
       </SettingsGroup>
 
-      <SettingsGroup header="About">
+      <SettingsGroup header={t("settings.about")}>
         <SettingsValueRow
-          label="Server"
-          value={isLoading ? "Loading..." : settings.address}
+          label={t("settings.server")}
+          value={isLoading ? t("settings.loading") : settings.address}
         />
         <SettingsSeparator />
         <SettingsValueRow
-          label="App Version"
-          value={Constants.expoConfig?.version ?? "Unknown"}
+          label={t("settings.app_version")}
+          value={Constants.expoConfig?.version ?? t("settings.unavailable")}
         />
         <SettingsSeparator />
         <SettingsValueRow
-          label="Server Version"
+          label={t("settings.server_version")}
           value={
             isServerVersionLoading
-              ? "Loading..."
+              ? t("settings.loading")
               : serverVersionError
-                ? "Unavailable"
-                : (serverVersion ?? "Unknown")
+                ? t("settings.unavailable")
+                : (serverVersion ?? t("settings.unavailable"))
           }
         />
       </SettingsGroup>
@@ -203,15 +225,17 @@ export default function Settings() {
             onPress={(event) => event.stopPropagation()}
             style={{ borderCurve: "continuous" }}
           >
-            <Text className="mb-2 text-lg font-bold">Enter Password</Text>
+            <Text className="mb-2 text-lg font-bold">
+              {t("settings.enter_password")}
+            </Text>
             <Text className="mb-4 text-sm text-muted-foreground">
-              Enter your password to confirm account deletion.
+              {t("settings.enter_password_hint")}
             </Text>
             <TextInput
               autoFocus
               className="mb-4 rounded-lg border border-input bg-background px-3 py-2 text-foreground"
               onChangeText={setPassword}
-              placeholder="Password"
+              placeholder={t("auth.password")}
               secureTextEntry
               value={password}
             />
@@ -220,7 +244,7 @@ export default function Settings() {
                 className="rounded-lg px-4 py-2"
                 onPress={closePasswordModal}
               >
-                <Text className="text-muted-foreground">Cancel</Text>
+                <Text className="text-muted-foreground">{actions.cancel}</Text>
               </Pressable>
               <Pressable
                 className="rounded-lg bg-destructive px-4 py-2"
@@ -231,7 +255,7 @@ export default function Settings() {
                   <ActivityIndicator color="white" size="small" />
                 ) : (
                   <Text className="font-medium text-destructive-foreground">
-                    Delete
+                    {t("bookmark_actions.delete")}
                   </Text>
                 )}
               </Pressable>

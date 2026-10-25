@@ -15,6 +15,7 @@ import type { FlashListRef } from "@shopify/flash-list";
 import { FlashList } from "@shopify/flash-list";
 import { ChevronDown, Search, X } from "lucide-react-native";
 
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { Input } from "./Input";
@@ -22,15 +23,28 @@ import { Text } from "./Text";
 
 const data = emojiData as EmojiMartData;
 
-const CATEGORY_DETAILS: Record<string, { label: string; icon: string }> = {
-  people: { label: "Smileys & people", icon: "😀" },
-  nature: { label: "Animals & nature", icon: "🐻" },
-  foods: { label: "Food & drink", icon: "🍎" },
-  activity: { label: "Activities", icon: "⚽️" },
-  places: { label: "Travel & places", icon: "🚗" },
-  objects: { label: "Objects", icon: "💡" },
-  symbols: { label: "Symbols", icon: "❤️" },
-  flags: { label: "Flags", icon: "🏳️" },
+type EmojiCategoryLabelKey =
+  | "emoji.category_people"
+  | "emoji.category_nature"
+  | "emoji.category_foods"
+  | "emoji.category_activity"
+  | "emoji.category_places"
+  | "emoji.category_objects"
+  | "emoji.category_symbols"
+  | "emoji.category_flags";
+
+const CATEGORY_DETAILS: Record<
+  string,
+  { labelKey: EmojiCategoryLabelKey; icon: string }
+> = {
+  people: { labelKey: "emoji.category_people", icon: "😀" },
+  nature: { labelKey: "emoji.category_nature", icon: "🐻" },
+  foods: { labelKey: "emoji.category_foods", icon: "🍎" },
+  activity: { labelKey: "emoji.category_activity", icon: "⚽️" },
+  places: { labelKey: "emoji.category_places", icon: "🚗" },
+  objects: { labelKey: "emoji.category_objects", icon: "💡" },
+  symbols: { labelKey: "emoji.category_symbols", icon: "❤️" },
+  flags: { labelKey: "emoji.category_flags", icon: "🏳️" },
 };
 
 const COLUMN_COUNT = 8;
@@ -72,6 +86,7 @@ interface EmojiCellProps {
   selectedEmoji: string;
   size: number;
   onSelect: (emoji: string) => void;
+  chooseLabel: (name: string) => string;
 }
 
 const EmojiCell = memo(function EmojiCell({
@@ -79,6 +94,7 @@ const EmojiCell = memo(function EmojiCell({
   selectedEmoji,
   size,
   onSelect,
+  chooseLabel,
 }: EmojiCellProps) {
   const glyph = emoji.skins[0].native;
   const selected = emoji.skins.some((skin) => skin.native === selectedEmoji);
@@ -86,7 +102,7 @@ const EmojiCell = memo(function EmojiCell({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Choose ${emoji.name}`}
+      accessibilityLabel={chooseLabel(emoji.name)}
       accessibilityState={{ selected }}
       className={
         selected
@@ -149,6 +165,11 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
     [closePicker, onChange],
   );
 
+  const { t } = useTranslation();
+  const chooseLabel = useCallback(
+    (name: string) => t("emoji.choose_emoji", { name }),
+    [t],
+  );
   const renderEmoji = useCallback(
     ({ item }: { item: EmojiChoice }) => (
       <EmojiCell
@@ -156,22 +177,23 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
         selectedEmoji={value}
         size={emojiSize}
         onSelect={selectEmoji}
+        chooseLabel={chooseLabel}
       />
     ),
-    [emojiSize, selectEmoji, value],
+    [emojiSize, selectEmoji, value, chooseLabel],
   );
 
   const categoryLabel = normalizedQuery
-    ? `${visibleEmojis.length} results`
-    : CATEGORY_DETAILS[activeCategory].label;
+    ? t("emoji.results", { count: visibleEmojis.length })
+    : t(CATEGORY_DETAILS[activeCategory].labelKey);
 
   return (
     <>
       <View className="gap-1.5">
-        <Text className="text-sm text-muted-foreground">Icon</Text>
+        <Text className="text-sm text-muted-foreground">{t("emoji.icon")}</Text>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`List icon: ${value}. Open emoji picker`}
+          accessibilityLabel={t("emoji.open_picker", { icon: value })}
           className="h-14 flex-row items-center rounded-xl border border-input bg-card px-3 active:opacity-70"
           style={{ borderCurve: "continuous" }}
           onPress={() => setVisible(true)}
@@ -180,9 +202,9 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
             <Text className="text-2xl leading-8">{value}</Text>
           </View>
           <View className="flex-1 px-3">
-            <Text className="font-medium">List icon</Text>
+            <Text className="font-medium">{t("emoji.list_icon")}</Text>
             <Text className="text-xs text-muted-foreground">
-              Search the full emoji library
+              {t("emoji.list_icon_hint")}
             </Text>
           </View>
           <ChevronDown size={18} color={colors.grey} />
@@ -200,7 +222,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
           behavior={process.env.EXPO_OS === "ios" ? "padding" : undefined}
         >
           <Pressable
-            accessibilityLabel="Close emoji picker"
+            accessibilityLabel={t("emoji.close_picker")}
             className="absolute inset-0 bg-black/40"
             onPress={closePicker}
           />
@@ -215,10 +237,12 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
           >
             <View className="h-1 w-10 self-center rounded-full bg-muted" />
             <View className="flex-row items-center justify-between px-5 py-4">
-              <Text className="text-xl font-semibold">Choose an icon</Text>
+              <Text className="text-xl font-semibold">
+                {t("emoji.choose_icon")}
+              </Text>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Close"
+                accessibilityLabel={t("search.close")}
                 className="h-9 w-9 items-center justify-center rounded-full bg-background active:opacity-70"
                 onPress={closePicker}
               >
@@ -237,7 +261,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
                 <Input
                   value={searchQuery}
                   onChangeText={setSearchQuery}
-                  placeholder="Search emoji"
+                  placeholder={t("emoji.search_emoji")}
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="done"
@@ -246,7 +270,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
                 {searchQuery.length > 0 && (
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="Clear search"
+                    accessibilityLabel={t("emoji.clear_search")}
                     className="absolute right-2 h-8 w-8 items-center justify-center rounded-full"
                     onPress={() => setSearchQuery("")}
                   >
@@ -271,7 +295,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
                   <Pressable
                     key={category.id}
                     accessibilityRole="tab"
-                    accessibilityLabel={details.label}
+                    accessibilityLabel={t(details.labelKey)}
                     accessibilityState={{ selected }}
                     className={
                       selected
@@ -308,9 +332,11 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
               contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 4 }}
               ListEmptyComponent={
                 <View className="items-center gap-1 py-16">
-                  <Text className="text-lg font-medium">No emoji found</Text>
+                  <Text className="text-lg font-medium">
+                    {t("emoji.no_emoji")}
+                  </Text>
                   <Text className="text-sm text-muted-foreground">
-                    Try a different search
+                    {t("emoji.try_different")}
                   </Text>
                 </View>
               }

@@ -29,6 +29,11 @@ import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonActions,
+  useSharedTranslation,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
 
@@ -38,7 +43,7 @@ function RolePicker({
   role,
   onChange,
   disabled,
-  label = "Permission",
+  label,
 }: {
   role: Role;
   onChange: (role: Role) => void;
@@ -46,19 +51,23 @@ function RolePicker({
   label?: string;
 }) {
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
+  const permissionLabel = label ?? t("list_sharing.permission");
+  const canView = t("list_sharing.can_view");
+  const canEdit = t("list_sharing.can_edit");
   return (
     <MenuView
-      title="Permission"
+      title={t("list_sharing.permission")}
       actions={[
         {
           id: "viewer",
-          title: "Can view",
+          title: canView,
           state: role === "viewer" ? "on" : "off",
           attributes: { disabled },
         },
         {
           id: "editor",
-          title: "Can edit",
+          title: canEdit,
           state: role === "editor" ? "on" : "off",
           attributes: { disabled },
         },
@@ -74,12 +83,12 @@ function RolePicker({
       <View
         accessible
         accessibilityRole="button"
-        accessibilityLabel={`${label}: ${role === "viewer" ? "Can view" : "Can edit"}`}
+        accessibilityLabel={`${permissionLabel}: ${role === "viewer" ? canView : canEdit}`}
         accessibilityState={{ disabled }}
         className="min-h-11 flex-row items-center gap-1.5"
       >
         <Text className="text-primary">
-          {role === "viewer" ? "Can view" : "Can edit"}
+          {role === "viewer" ? canView : canEdit}
         </Text>
         <ChevronDown size={16} color={colors.primary} />
       </View>
@@ -98,6 +107,7 @@ function Person({
   subtitle?: string;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <View className="flex-row items-center gap-3 px-4 py-3">
       <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -106,7 +116,7 @@ function Person({
         </Text>
       </View>
       <View className="flex-1 gap-0.5">
-        <Text numberOfLines={1}>{name || email || "User"}</Text>
+        <Text numberOfLines={1}>{name || email || t("list_sharing.user")}</Text>
         {email ? (
           <Text variant="footnote" color="tertiary" numberOfLines={1}>
             {email}
@@ -129,6 +139,9 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
   const { toast } = useToast();
   const { colors } = useColorScheme();
   const { settings } = useAppSettings();
+  const { t } = useTranslation();
+  const { t: tShared } = useSharedTranslation();
+  const actions = useCommonActions();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("viewer");
   const isOwner = list.userRole === "owner";
@@ -170,7 +183,10 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
       onError,
       onSuccess: async () => {
         setEmail("");
-        toast({ message: "Invitation sent", showProgress: false });
+        toast({
+          message: t("list_sharing.invitation_sent"),
+          showProgress: false,
+        });
         await invalidate();
       },
     }),
@@ -203,7 +219,7 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
     const trimmedEmail = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
       toast({
-        message: "Enter a valid email address",
+        message: t("list_sharing.invalid_email"),
         variant: "destructive",
         showProgress: false,
       });
@@ -216,7 +232,10 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
     try {
       if (copy) {
         await Clipboard.setStringAsync(publicUrl);
-        toast({ message: "Public link copied", showProgress: false });
+        toast({
+          message: t("list_sharing.public_link_copied"),
+          showProgress: false,
+        });
       } else {
         await Share.share(
           Platform.OS === "ios" ? { url: publicUrl } : { message: publicUrl },
@@ -224,7 +243,7 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
       }
     } catch {
       toast({
-        message: "Failed to share link",
+        message: t("list_sharing.share_link_failed"),
         variant: "destructive",
         showProgress: false,
       });
@@ -237,18 +256,18 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
         {list.name}
       </Text>
       {isOwner && (
-        <GroupedSection header="Public access">
+        <GroupedSection header={t("list_sharing.public_access")}>
           <View className="flex-row items-center gap-3 px-4 py-3">
             <Globe size={22} color={colors.grey} />
             <View className="flex-1 gap-1">
-              <Text>Public list</Text>
+              <Text>{t("list_sharing.public_list")}</Text>
               <Text variant="footnote" color="tertiary">
-                Anyone with the link can view the bookmarks in this list.
+                {t("list_sharing.public_list_description")}
               </Text>
             </View>
             {editList.isPending ? <ActivityIndicator size="small" /> : null}
             <Switch
-              accessibilityLabel="Public list"
+              accessibilityLabel={t("list_sharing.public_list")}
               value={list.public}
               disabled={editList.isPending || !config || !!config.demoMode}
               onValueChange={(value) =>
@@ -270,7 +289,9 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
                     className="min-h-11 flex-row items-center gap-2 pr-3 active:opacity-70"
                   >
                     <Copy size={18} color={colors.primary} />
-                    <Text className="text-primary">Copy link</Text>
+                    <Text className="text-primary">
+                      {t("list_sharing.copy_link")}
+                    </Text>
                   </Pressable>
                   <Pressable
                     accessibilityRole="button"
@@ -278,7 +299,9 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
                     className="min-h-11 flex-row items-center gap-2 px-3 active:opacity-70"
                   >
                     <Share2 size={18} color={colors.primary} />
-                    <Text className="text-primary">Share link</Text>
+                    <Text className="text-primary">
+                      {t("list_sharing.share_link")}
+                    </Text>
                   </Pressable>
                 </View>
               </View>
@@ -288,11 +311,11 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
       )}
 
       {isOwner && list.type === "manual" && (
-        <GroupedSection header="Invite a collaborator">
+        <GroupedSection header={t("list_sharing.invite_collaborator")}>
           <View className="gap-3 p-4">
             <Input
-              accessibilityLabel="Collaborator email"
-              placeholder="Email address"
+              accessibilityLabel={t("list_sharing.collaborator_email")}
+              placeholder={t("list_sharing.email_placeholder")}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -305,7 +328,7 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
               }}
             />
             <View className="flex-row items-center justify-between">
-              <Text>Permission</Text>
+              <Text>{t("list_sharing.permission")}</Text>
               <RolePicker
                 role={role}
                 onChange={setRole}
@@ -314,8 +337,8 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
             </View>
             <Text variant="footnote" color="tertiary">
               {role === "viewer"
-                ? "Can view bookmarks in this list."
-                : "Can view, add, and remove bookmarks in this list."}
+                ? t("list_sharing.viewer_description")
+                : t("list_sharing.editor_description")}
             </Text>
             <Button
               onPress={sendInvitation}
@@ -328,7 +351,9 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
                 <UserPlus size={18} color="white" />
               )}
               <Text>
-                {invite.isPending ? "Inviting..." : "Send invitation"}
+                {invite.isPending
+                  ? t("list_sharing.inviting")
+                  : t("list_sharing.send_invitation")}
               </Text>
             </Button>
           </View>
@@ -336,21 +361,23 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
       )}
       {isOwner && list.type === "smart" && (
         <Text variant="footnote" color="tertiary" className="px-4">
-          Only manual lists can have collaborators.
+          {t("list_sharing.manual_only")}
         </Text>
       )}
 
-      <GroupedSection header="People with access">
+      <GroupedSection header={t("list_sharing.people_with_access")}>
         {collaboratorsQuery.isPending ? (
           <ActivityIndicator className="p-4" />
         ) : collaboratorsQuery.error ? (
           <View className="gap-3 p-4">
-            <Text color="tertiary">Unable to load collaborators.</Text>
+            <Text color="tertiary">
+              {t("list_sharing.collaborators_load_failed")}
+            </Text>
             <Button
               variant="plain"
               onPress={() => void collaboratorsQuery.refetch()}
             >
-              <Text>Try again</Text>
+              <Text>{t("list_sharing.try_again")}</Text>
             </Button>
           </View>
         ) : collaborators ? (
@@ -361,7 +388,7 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
                 email={collaborators.owner.email}
               >
                 <Text variant="footnote" color="tertiary">
-                  Owner
+                  {tShared("lists.collaborators.owner")}
                 </Text>
               </Person>
             )}
@@ -373,9 +400,9 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
                   email={person.user.email}
                   subtitle={
                     person.status === "pending"
-                      ? "Invitation pending"
+                      ? t("list_sharing.invitation_pending")
                       : person.status === "declined"
-                        ? "Invitation declined"
+                        ? t("list_sharing.invitation_declined")
                         : undefined
                   }
                 >
@@ -383,7 +410,9 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
                     <RolePicker
                       role={person.role}
                       disabled={isUpdating}
-                      label={`Permission for ${person.user.name}`}
+                      label={t("list_sharing.permission_for", {
+                        name: person.user.name,
+                      })}
                       onChange={(role) =>
                         updateRole.mutate({
                           listId: list.id,
@@ -394,30 +423,44 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
                     />
                   ) : (
                     <Text variant="footnote" color="tertiary">
-                      {person.role === "viewer" ? "Can view" : "Can edit"}
+                      {person.role === "viewer"
+                        ? t("list_sharing.can_view")
+                        : t("list_sharing.can_edit")}
                     </Text>
                   )}
                   {isOwner && (
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel={`${person.status === "accepted" ? "Remove" : "Revoke invitation for"} ${person.user.name}`}
+                      accessibilityLabel={
+                        person.status === "accepted"
+                          ? t("list_sharing.remove_collaborator_label", {
+                              name: person.user.name,
+                            })
+                          : t("list_sharing.revoke_invitation_label", {
+                              name: person.user.name,
+                            })
+                      }
                       disabled={isUpdating}
                       className="min-h-11 min-w-11 items-center justify-center active:opacity-70"
                       onPress={() =>
                         Alert.alert(
                           person.status === "accepted"
-                            ? "Remove collaborator?"
-                            : "Revoke invitation?",
+                            ? t("list_sharing.remove_collaborator_title")
+                            : t("list_sharing.revoke_invitation_title"),
                           person.status === "accepted"
-                            ? `${person.user.name} will lose access. Bookmarks they added will be removed from this list.`
-                            : `Revoke the invitation for ${person.user.name}?`,
+                            ? t("list_sharing.remove_collaborator_message", {
+                                name: person.user.name,
+                              })
+                            : t("list_sharing.revoke_invitation_message", {
+                                name: person.user.name,
+                              }),
                           [
-                            { text: "Cancel", style: "cancel" },
+                            { text: actions.cancel, style: "cancel" },
                             {
                               text:
                                 person.status === "accepted"
-                                  ? "Remove"
-                                  : "Revoke",
+                                  ? actions.remove
+                                  : tShared("lists.collaborators.revoke"),
                               style: "destructive",
                               onPress: () =>
                                 person.status === "accepted"
@@ -441,7 +484,7 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
               <>
                 {collaborators.owner && <RowSeparator />}
                 <Text variant="footnote" color="tertiary" className="px-4 py-3">
-                  No collaborators yet.
+                  {t("list_sharing.no_collaborators")}
                 </Text>
               </>
             )}
