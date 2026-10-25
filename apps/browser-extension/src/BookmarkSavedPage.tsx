@@ -149,8 +149,10 @@ export default function BookmarkSavedPage() {
       </Section>
       <Section title="Lists">
         <div className="flex flex-col divide-y overflow-hidden rounded-lg border">
-          <BookmarkLists bookmarkId={bookmarkId} />
+          {/* The picker sits above the lists so adding one doesn't push it
+              (and its open dropdown) down. */}
           <ListsSelector bookmarkId={bookmarkId} />
+          <BookmarkLists bookmarkId={bookmarkId} />
         </div>
       </Section>
     </div>
