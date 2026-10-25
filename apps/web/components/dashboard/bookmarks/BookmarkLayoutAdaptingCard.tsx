@@ -510,7 +510,9 @@ function CompactView({
             </div>
           )}
           {footer && (
-            <p className="flex shrink-0 gap-2 text-gray-500">•{footer}</p>
+            <p className="relative z-20 flex shrink-0 gap-2 text-gray-500">
+              •{footer}
+            </p>
           )}
           <p className="text-gray-500">•</p>
           <Link

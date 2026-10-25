@@ -29,9 +29,13 @@ export default function TextCard({
         href={`/dashboard/preview/${bookmark.id}`}
         title={bookmark.title}
         content={
-          <BookmarkMarkdownComponent readOnly={true}>
-            {bookmark}
-          </BookmarkMarkdownComponent>
+          // Raise the interactive markdown elements above the card's
+          // stretched link so checkboxes, links and copy buttons keep working.
+          <div className="[&_a]:relative [&_a]:z-20 [&_button]:z-20 [&_input]:relative [&_input]:z-20">
+            <BookmarkMarkdownComponent readOnly={true}>
+              {bookmark}
+            </BookmarkMarkdownComponent>
+          </div>
         }
         footer={
           getSourceUrl(bookmark) && (
