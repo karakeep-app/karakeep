@@ -141,7 +141,7 @@ export default function ServerAddressPage() {
         </div>
 
         {headers.length > 0 && (
-          <div className="flex max-h-48 flex-col divide-y overflow-y-auto rounded-lg border">
+          <div className="flex max-h-48 flex-col divide-y overflow-y-auto rounded-lg border bg-card">
             {headers.map((header, index) => (
               <div
                 key={index}

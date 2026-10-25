@@ -296,7 +296,9 @@ function SettingsSection({
       <h2 className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {title}
       </h2>
-      <div className="flex flex-col divide-y rounded-lg border">{children}</div>
+      <div className="flex flex-col divide-y rounded-lg border bg-card">
+        {children}
+      </div>
     </section>
   );
 }

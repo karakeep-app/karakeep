@@ -26,7 +26,11 @@ export default function TagList({ bookmarkId }: { bookmarkId: string }) {
             {tag.name}
           </Badge>
         ) : (
-          <Badge key={tag.id} variant="secondary" className="h-7 font-medium">
+          <Badge
+            key={tag.id}
+            variant="secondary"
+            className="h-7 font-medium dark:bg-input"
+          >
             {tag.name}
           </Badge>
         ),
