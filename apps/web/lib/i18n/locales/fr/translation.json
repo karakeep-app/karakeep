@@ -41,6 +41,7 @@
     "bookmarks": "Marque-pages",
     "storage": "Stockage",
     "pdf": "PDF archivé",
+    "screen_pdf": "PDF d'écran",
     "default": "Par défaut",
     "id": "ID",
     "last_used": "Dernière utilisation"
@@ -89,6 +90,8 @@
       "relevant_first": "Les plus pertinents en premier"
     },
     "recrawl": "Réexplorer",
+    "recrawl_in_light_theme": "Réexplorer en thème clair",
+    "recrawl_in_dark_theme": "Réexplorer en thème sombre",
     "open_editor": "Ouvrir l'éditeur",
     "toggle_show_archived": "Afficher les éléments archivés",
     "confirm": "Confirmer",
@@ -96,11 +99,13 @@
     "load_more": "En charger plus",
     "edit_notes": "Modifier les notes",
     "preserve_as_pdf": "Conserver en PDF",
+    "preserve_as_screen_pdf": "Conserver en PDF d'écran",
     "preserve_video": "Conserver la vidéo",
     "offline_copies": "Copies hors ligne",
     "preserve_offline_archive": "Conserver l’archive hors ligne",
     "download_full_page_archive_file": "Télécharger le fichier d’archive",
     "download_pdf_file": "Télécharger le fichier PDF",
+    "download_screen_pdf_file": "Télécharger le fichier PDF d'écran",
     "remove": "Supprimer",
     "more": "Plus",
     "replace_banner": "Remplacer la bannière",
@@ -125,6 +130,13 @@
           "hide": "Masquer les marque-pages archivés dans les tags et les listes",
           "title": "Marque-pages archivés",
           "show": "Afficher les marque-pages archivés dans les tags et les listes"
+        },
+        "crawler_color_scheme": {
+          "title": "Palette de couleurs de l'exploration",
+          "server_default": "Par défaut du serveur",
+          "system": "Système",
+          "light": "Clair",
+          "dark": "Sombre"
         },
         "user_settings_updated": "Les paramètres utilisateur ont été mis à jour !",
         "bookmark_click_action": {
@@ -1054,6 +1066,7 @@
       "delete_from_list": "Le favori a été supprimé de la liste",
       "clipboard_copied": "Le lien a été ajouté à votre presse-papiers !",
       "preserve_pdf": "La conservation en PDF a été déclenchée",
+      "preserve_screen_pdf": "La conservation du PDF d'écran a été déclenchée",
       "preserve_video": "Le téléchargement de la vidéo a été déclenché",
       "update_banner": "La bannière a été mise à jour!",
       "uploading_banner": "Téléversement de la bannière…"

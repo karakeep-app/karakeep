@@ -12,6 +12,8 @@
     "favorite": "Preferito",
     "refresh": "Aggiorna",
     "recrawl": "Ricontrolla",
+    "recrawl_in_light_theme": "Ricontrolla in tema chiaro",
+    "recrawl_in_dark_theme": "Ricontrolla in tema scuro",
     "edit_tags": "Modifica tags",
     "add_to_list": "Aggiungi alla lista",
     "select": "Seleziona",
@@ -44,11 +46,13 @@
     "load_more": "Carica altro",
     "edit_notes": "Modifica note",
     "preserve_as_pdf": "Salva come PDF",
+    "preserve_as_screen_pdf": "Salva come PDF dello schermo",
     "preserve_video": "Conserva video",
     "offline_copies": "Copie offline",
     "preserve_offline_archive": "Conserva l'archivio offline",
     "download_full_page_archive_file": "Scarica il file di archivio",
     "download_pdf_file": "Scarica il file PDF",
+    "download_screen_pdf_file": "Scarica il file PDF dello schermo",
     "remove": "Rimuovi",
     "more": "Altro",
     "replace_banner": "Sostituisci il banner",
@@ -98,6 +102,7 @@
     "bookmarks": "Segnalibri",
     "storage": "Archiviazione",
     "pdf": "PDF archiviato",
+    "screen_pdf": "PDF dello schermo",
     "default": "Predefinito",
     "id": "ID",
     "last_used": "Ultimo utilizzo"
@@ -175,6 +180,13 @@
           "title": "Segnalibri archiviati",
           "show": "Mostra i segnalibri archiviati in tag e liste",
           "hide": "Nascondi i segnalibri archiviati in tag e liste"
+        },
+        "crawler_color_scheme": {
+          "title": "Schema colori del crawler",
+          "server_default": "Predefinito del server",
+          "system": "Sistema",
+          "light": "Chiaro",
+          "dark": "Scuro"
         }
       },
       "reader_settings": {
@@ -1054,6 +1066,7 @@
       "delete_from_list": "Il segnalibro è stato eliminato dalla lista",
       "clipboard_copied": "Il link è stato copiato!",
       "preserve_pdf": "È stato attivato il salvataggio in PDF",
+      "preserve_screen_pdf": "È stato attivato il salvataggio in PDF dello schermo",
       "preserve_video": "Il download del video è stato avviato",
       "update_banner": "Banner aggiornato!",
       "uploading_banner": "Caricamento del banner..."

@@ -41,6 +41,7 @@
     "bookmarks": "Закладки",
     "storage": "Хранилище",
     "pdf": "Архивированный PDF",
+    "screen_pdf": "PDF экрана",
     "default": "По умолчанию",
     "id": "ID",
     "last_used": "Последнее использование"
@@ -170,6 +171,13 @@
           "hide": "Скрыть архивированные закладки в тегах и списках",
           "title": "Архивированные закладки",
           "show": "Показывать архивированные закладки в тегах и списках"
+        },
+        "crawler_color_scheme": {
+          "title": "Цветовая схема сканирования",
+          "server_default": "По умолчанию на сервере",
+          "system": "Системный",
+          "light": "Светлый",
+          "dark": "Тёмный"
         }
       },
       "reader_settings": {
@@ -728,6 +736,8 @@
     "favorite": "В избранное",
     "unfavorite": "Удалить из избранного",
     "recrawl": "Пересканировать",
+    "recrawl_in_light_theme": "Пересканировать в светлой теме",
+    "recrawl_in_dark_theme": "Пересканировать в тёмной теме",
     "change_layout": "Изменить разметку",
     "save": "Сохранить",
     "create": "Создать",
@@ -766,11 +776,13 @@
     "load_more": "Загрузить еще",
     "edit_notes": "Редактировать заметки",
     "preserve_as_pdf": "Сохранить как PDF",
+    "preserve_as_screen_pdf": "Сохранить как PDF экрана",
     "preserve_video": "Сохранить видео",
     "offline_copies": "Автономные копии",
     "preserve_offline_archive": "Сохранить оффлайн архив",
     "download_full_page_archive_file": "Скачать файл архива",
     "download_pdf_file": "Скачать PDF-файл",
+    "download_screen_pdf_file": "Скачать PDF-файл экрана",
     "remove": "Удалить",
     "more": "Больше",
     "replace_banner": "Заменить баннер",
@@ -1061,6 +1073,7 @@
       "deleted": "Закладка была удалена!",
       "updated": "Закладка была обновлена!",
       "preserve_pdf": "Сохранение в формате PDF было запущено",
+      "preserve_screen_pdf": "Сохранение PDF экрана было запущено",
       "preserve_video": "Загрузка видео запущена",
       "update_banner": "Баннер обновлён!",
       "uploading_banner": "Загрузка баннера..."

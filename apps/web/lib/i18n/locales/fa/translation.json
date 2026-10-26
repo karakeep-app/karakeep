@@ -41,6 +41,7 @@
     },
     "quota": "سهمیه",
     "pdf": "پی‌دی‌اف بایگانی‌شده",
+    "screen_pdf": "PDF صفحه نمایش",
     "default": "پیش‌فرض",
     "id": "شناسه",
     "last_used": "آخرین استفاده"
@@ -72,6 +73,8 @@
     "refresh": "به‌روزرسانی",
     "confirm": "تأیید",
     "recrawl": "بازخزش",
+    "recrawl_in_light_theme": "بازخزش در حالت روشن",
+    "recrawl_in_dark_theme": "بازخزش در حالت تیره",
     "close_bulk_edit": "بستن ویرایش گروهی",
     "create": "ایجاد",
     "summarize_with_ai": "خلاصه‌سازی با هوش مصنوعی",
@@ -96,11 +99,13 @@
     "load_more": "بارگذاری بیشتر",
     "edit_notes": "ویرایش یادداشت‌ها",
     "preserve_as_pdf": "نگهداری به عنوان پی‌دی‌اف",
+    "preserve_as_screen_pdf": "نگهداری به عنوان PDF صفحه نمایش",
     "preserve_video": "نگهداری ویدئو",
     "offline_copies": "نسخه‌های آفلاین",
     "preserve_offline_archive": "حفظ بایگانی آفلاین",
     "download_full_page_archive_file": "دانلود فایل بایگانی",
     "download_pdf_file": "دانلود فایل PDF",
+    "download_screen_pdf_file": "دانلود فایل PDF صفحه نمایش",
     "remove": "حذف",
     "more": "بیشتر",
     "replace_banner": "جایگزینی بنر",
@@ -185,6 +190,13 @@
           "title": "نشانک‌های بایگانی‌شده",
           "show": "نمایش نشانک‌های بایگانی‌شده در برچسب‌ها و فهرست‌ها",
           "hide": "مخفی‌کردن نشانک‌های بایگانی‌شده در برچسب‌ها و فهرست‌ها"
+        },
+        "crawler_color_scheme": {
+          "title": "طرح رنگی خزنده",
+          "server_default": "پیش‌فرض سرور",
+          "system": "سیستم",
+          "light": "روشن",
+          "dark": "تیره"
         }
       },
       "reader_settings": {
@@ -1121,6 +1133,7 @@
       "delete_from_list": "نشانک از فهرست حذف شد",
       "clipboard_copied": "لینک به کلیپ‌بورد شما اضافه شد!",
       "preserve_pdf": "نگهداری پی‌دی‌اف فعال شده‌است",
+      "preserve_screen_pdf": "نگهداری PDF صفحه نمایش فعال شده‌است",
       "preserve_video": "دانلود ویدئو آغاز شد",
       "update_banner": "بنر به روز شد!",
       "uploading_banner": "بارگذاری بنر..."

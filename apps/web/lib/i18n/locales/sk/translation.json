@@ -41,6 +41,7 @@
     "bookmarks": "Záložky",
     "storage": "Úložisko",
     "pdf": "Archivované PDF",
+    "screen_pdf": "PDF obrazovky",
     "default": "Predvolené",
     "id": "ID",
     "last_used": "Posledné použitie"
@@ -81,6 +82,8 @@
     "refresh": "Obnoviť",
     "unarchive": "Obnoviť z archívu",
     "recrawl": "Znova prehľadať",
+    "recrawl_in_light_theme": "Znova prehľadať vo svetlom motíve",
+    "recrawl_in_dark_theme": "Znova prehľadať v tmavom motíve",
     "fetch_now": "Načítať teraz",
     "summarize_with_ai": "Zhrnúť pomocou AI",
     "open_editor": "Otvoriť editor",
@@ -90,11 +93,13 @@
     "load_more": "Načítať viac",
     "edit_notes": "Upraviť poznámky",
     "preserve_as_pdf": "Uložiť ako PDF",
+    "preserve_as_screen_pdf": "Uložiť ako PDF obrazovky",
     "preserve_video": "Uložiť video",
     "offline_copies": "Offline kópie",
     "preserve_offline_archive": "Uchovaj offline archív",
     "download_full_page_archive_file": "Stiahni archivačný súbor",
     "download_pdf_file": "Stiahni PDF súbor",
+    "download_screen_pdf_file": "Stiahni súbor PDF obrazovky",
     "remove": "Odstráň",
     "more": "Viac",
     "replace_banner": "Nahraď banner",
@@ -245,6 +250,13 @@
           "title": "Archivované záložky",
           "hide": "Skryť archivované záložky v tagoch a zoznamoch",
           "show": "Zobraziť archivované záložky v tagoch a zoznamoch"
+        },
+        "crawler_color_scheme": {
+          "title": "Farebná schéma prehľadávania",
+          "server_default": "Predvolená hodnota servera",
+          "system": "Systém",
+          "light": "Svetlý",
+          "dark": "Tmavý"
         }
       },
       "reader_settings": {
@@ -1125,6 +1137,7 @@
       "refetch": "Opätovné načítanie bolo zaradené do frontu!",
       "full_page_archive": "Bolo spustené vytváranie archívu celej stránky",
       "preserve_pdf": "Ukladanie do PDF bolo spustené",
+      "preserve_screen_pdf": "Ukladanie PDF obrazovky bolo spustené",
       "preserve_video": "Sťahovanie videa bolo spustené",
       "update_banner": "Banner bol aktualizovaný!",
       "uploading_banner": "Nahrávanie bannera..."

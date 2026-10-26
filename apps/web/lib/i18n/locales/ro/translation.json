@@ -29,6 +29,7 @@
     "source": "Sursă",
     "screenshot": "Captură de ecran",
     "pdf": "PDF arhivat",
+    "screen_pdf": "PDF de ecran",
     "video": "Video",
     "archive": "Arhivă",
     "home": "Acasă",
@@ -73,12 +74,16 @@
     "toggle_show_archived": "Afișează arhivate",
     "refresh": "Actualizare",
     "recrawl": "Reindexare",
+    "recrawl_in_light_theme": "Reindexare în tema luminoasă",
+    "recrawl_in_dark_theme": "Reindexare în tema întunecată",
     "offline_copies": "Copii offline",
     "preserve_offline_archive": "Păstrează arhiva offline",
     "download_full_page_archive_file": "Descarcă fișierul arhivat",
     "preserve_as_pdf": "Păstrează ca PDF",
+    "preserve_as_screen_pdf": "Păstrează ca PDF de ecran",
     "preserve_video": "Păstrează videoclipul",
     "download_pdf_file": "Descarcă fișierul PDF",
+    "download_screen_pdf_file": "Descarcă fișierul PDF de ecran",
     "edit_tags": "Editează etichetele",
     "edit_notes": "Editează notele",
     "add_to_list": "Adaugă în listă",
@@ -157,6 +162,13 @@
           "title": "Semne de carte arhivate",
           "show": "Afișează semnele de carte arhivate în etichete și liste",
           "hide": "Ascunde semnele de carte arhivate în etichete și liste"
+        },
+        "crawler_color_scheme": {
+          "title": "Schema de culori a crawlerului",
+          "server_default": "Valoare implicită a serverului",
+          "system": "Sistem",
+          "light": "Luminos",
+          "dark": "Întunecat"
         }
       },
       "reader_settings": {
@@ -1135,6 +1147,7 @@
       "refetch": "Recuperarea a fost pusă la coadă!",
       "full_page_archive": "Crearea arhivei complete a paginii a fost declanșată",
       "preserve_pdf": "Păstrarea PDF a fost declanșată",
+      "preserve_screen_pdf": "Păstrarea PDF de ecran a fost declanșată",
       "preserve_video": "Descărcarea videoclipului a fost declanșată"
     },
     "lists": {

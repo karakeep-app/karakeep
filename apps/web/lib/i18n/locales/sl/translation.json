@@ -143,6 +143,13 @@
           "title": "Arhivirani zaznamki",
           "show": "Prikaži arhivirane zaznamke v oznakah in seznamih",
           "hide": "Skrij arhivirane zaznamke v oznakah in seznamih"
+        },
+        "crawler_color_scheme": {
+          "title": "Barvna shema prebiranja",
+          "server_default": "Privzeta vrednost strežnika",
+          "system": "Sistemski",
+          "light": "Svetli",
+          "dark": "Temni"
         }
       },
       "reader_settings": {
@@ -860,6 +867,7 @@
     "bookmarks": "Zaznamki",
     "storage": "Shranjevanje",
     "pdf": "Arhiviran PDF",
+    "screen_pdf": "PDF zaslona",
     "default": "Privzeto",
     "id": "ID",
     "last_used": "Zadnja uporaba"
@@ -899,6 +907,8 @@
     "change_layout": "Spremeni postavitev",
     "unfavorite": "Odstrani iz priljubljenih",
     "recrawl": "Ponovno prebrskaj",
+    "recrawl_in_light_theme": "Ponovno prebrskaj v svetlem načinu",
+    "recrawl_in_dark_theme": "Ponovno prebrskaj v temnem načinu",
     "edit_tags": "Uredi oznake",
     "fetch_now": "Poberi zdaj",
     "apply_all": "Uporabi vse",
@@ -909,11 +919,13 @@
     "load_more": "Naloži več",
     "edit_notes": "Uredi opombe",
     "preserve_as_pdf": "Shrani kot PDF",
+    "preserve_as_screen_pdf": "Shrani kot PDF zaslona",
     "preserve_video": "Ohrani video",
     "offline_copies": "Kopije brez povezave",
     "preserve_offline_archive": "Ohrani brezžično arhiviranje",
     "download_full_page_archive_file": "Prenesi datoteko arhiva",
     "download_pdf_file": "Prenesi datoteko PDF",
+    "download_screen_pdf_file": "Prenesi datoteko PDF zaslona",
     "remove": "Odstrani",
     "more": "Več",
     "replace_banner": "Zamenjaj pasico",
@@ -1106,6 +1118,7 @@
       "refetch": "Ponovno pridobivanje je bilo dodano v čakalno vrsto!",
       "full_page_archive": "Ustvarjanje arhiva celotne strani je bilo sproženo",
       "preserve_pdf": "Ohranjanje PDF je bilo sproženo",
+      "preserve_screen_pdf": "Ohranjanje PDF zaslona je bilo sproženo",
       "preserve_video": "Prenos videa je bil sprožen",
       "update_banner": "Pasica je bila posodobljena!",
       "uploading_banner": "Nalaganje pasice ..."

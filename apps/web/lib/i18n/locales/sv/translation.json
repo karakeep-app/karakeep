@@ -41,6 +41,7 @@
     "bookmarks": "Bokmärken",
     "storage": "Lagring",
     "pdf": "Arkiverad PDF",
+    "screen_pdf": "Skärm-PDF",
     "default": "Standard",
     "id": "ID",
     "last_used": "Senast använt"
@@ -85,6 +86,8 @@
       "relevant_first": "Mest relevant först"
     },
     "recrawl": "Omindexera",
+    "recrawl_in_light_theme": "Omindexera i ljust läge",
+    "recrawl_in_dark_theme": "Omindexera i mörkt läge",
     "unfavorite": "Sluta favorisera",
     "close_bulk_edit": "Stäng massredigering",
     "bulk_edit": "Massredigera",
@@ -96,11 +99,13 @@
     "load_more": "Ladda mer",
     "edit_notes": "Redigera anteckningar",
     "preserve_as_pdf": "Spara som PDF",
+    "preserve_as_screen_pdf": "Spara som skärm-PDF",
     "preserve_video": "Spara video",
     "offline_copies": "Offlinelagrade kopior",
     "preserve_offline_archive": "Spara offline-arkiv",
     "download_full_page_archive_file": "Ladda ner arkivfil",
     "download_pdf_file": "Ladda ner PDF-fil",
+    "download_screen_pdf_file": "Ladda ner skärm-PDF-fil",
     "remove": "Ta bort",
     "more": "Mer",
     "replace_banner": "Ersätt banderoll",
@@ -130,6 +135,13 @@
           "title": "Arkiverade bokmärken",
           "show": "Visa arkiverade bokmärken i taggar och listor",
           "hide": "Dölj arkiverade bokmärken i taggar och listor"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler-färgschema",
+          "server_default": "Serverstandard",
+          "system": "System",
+          "light": "Ljust",
+          "dark": "Mörkt"
         }
       },
       "reader_settings": {
@@ -1028,6 +1040,7 @@
       "clipboard_copied": "Länken har lags till i ditt urklipp!",
       "refetch": "Hämtning har köats!",
       "preserve_pdf": "PDF-sparande har triggats",
+      "preserve_screen_pdf": "Skärm-PDF-sparande har triggats",
       "preserve_video": "Nedladdning av video har startats",
       "update_banner": "Banderollen har uppdaterats!",
       "uploading_banner": "Laddar upp banderoll..."

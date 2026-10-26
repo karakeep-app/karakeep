@@ -41,6 +41,7 @@
     "bookmarks": "Zakładki",
     "storage": "Miejsce na dane",
     "pdf": "Zarchiwizowane PDF",
+    "screen_pdf": "PDF ekranu",
     "default": "Domyślne",
     "id": "ID",
     "last_used": "Ostatnio używane"
@@ -57,6 +58,8 @@
     "delete": "Usuń",
     "refresh": "Odśwież",
     "recrawl": "Ponowne skanowanie",
+    "recrawl_in_light_theme": "Ponowne skanowanie w jasnym motywie",
+    "recrawl_in_dark_theme": "Ponowne skanowanie w ciemnym motywie",
     "unfavorite": "Usuń z ulubionych",
     "edit_tags": "Edytuj tagi",
     "add_to_list": "Dodaj do listy",
@@ -90,11 +93,13 @@
     "load_more": "Załaduj więcej",
     "edit_notes": "Edytuj notatki",
     "preserve_as_pdf": "Zachowaj jako PDF",
+    "preserve_as_screen_pdf": "Zachowaj jako PDF ekranu",
     "preserve_video": "Zachowaj wideo",
     "offline_copies": "Kopie offline",
     "preserve_offline_archive": "Zachowaj archiwum offline",
     "download_full_page_archive_file": "Pobierz plik archiwum",
     "download_pdf_file": "Pobierz plik PDF",
+    "download_screen_pdf_file": "Pobierz plik PDF ekranu",
     "remove": "Usuń",
     "more": "Więcej",
     "replace_banner": "Zastąp baner",
@@ -117,6 +122,13 @@
           "show": "Pokaż zarchiwizowane zakładki w tagach i listach",
           "hide": "Ukryj zarchiwizowane zakładki w tagach i listach",
           "title": "Zarchiwizowane zakładki"
+        },
+        "crawler_color_scheme": {
+          "title": "Schemat kolorów skanowania",
+          "server_default": "Wartość domyślna serwera",
+          "system": "Systemowy",
+          "light": "Jasny",
+          "dark": "Ciemny"
         },
         "user_settings_updated": "Ustawienia użytkownika zostały zaktualizowane!",
         "bookmark_click_action": {
@@ -937,6 +949,7 @@
       "delete_from_list": "Zakładka została usunięta z listy",
       "clipboard_copied": "Link został skopiowany do schowka!",
       "preserve_pdf": "Zapis PDF został uruchomiony",
+      "preserve_screen_pdf": "Zapis PDF ekranu został uruchomiony",
       "preserve_video": "Pobieranie wideo zostało uruchomione",
       "update_banner": "Baner został zaktualizowany!",
       "uploading_banner": "Przesyłanie banera..."

@@ -41,6 +41,7 @@
     "bookmarks": "북마크",
     "storage": "저장 공간",
     "pdf": "보관된 PDF",
+    "screen_pdf": "화면 PDF",
     "default": "기본값",
     "id": "ID",
     "last_used": "마지막으로 사용됨"
@@ -62,6 +63,8 @@
     "select": "선택",
     "unarchive": "보관해제",
     "recrawl": "다시 가져오기",
+    "recrawl_in_light_theme": "라이트 테마로 다시 가져오기",
+    "recrawl_in_dark_theme": "다크 테마로 다시 가져오기",
     "edit_tags": "태그 수정",
     "select_all": "전체 선택",
     "unselect_all": "전체 선택해제",
@@ -96,11 +99,13 @@
     "load_more": "더 불러오기",
     "edit_notes": "노트 편집",
     "preserve_as_pdf": "PDF로 보존",
+    "preserve_as_screen_pdf": "화면 PDF로 보존",
     "preserve_video": "동영상 보존",
     "offline_copies": "오프라인 사본",
     "preserve_offline_archive": "오프라인 아카이브 보존",
     "download_full_page_archive_file": "아카이브 파일 다운로드",
     "download_pdf_file": "PDF 파일 다운로드",
+    "download_screen_pdf_file": "화면 PDF 파일 다운로드",
     "remove": "제거",
     "more": "더 보기",
     "replace_banner": "배너 교체",
@@ -295,6 +300,7 @@
       "delete_from_list": "북마크를 목록에서 삭제했습니다",
       "clipboard_copied": "링크를 클립보드에 복사했습니다!",
       "preserve_pdf": "PDF 보존이 시작되었습니다",
+      "preserve_screen_pdf": "화면 PDF 보존이 시작되었습니다",
       "preserve_video": "동영상 다운로드가 요청되었습니다",
       "update_banner": "배너가 업데이트되었습니다!",
       "uploading_banner": "배너 업로드 중..."
@@ -464,6 +470,13 @@
           "title": "보관된 북마크",
           "show": "보관된 북마크를 태그 및 목록에 표시",
           "hide": "보관된 북마크를 태그 및 목록에서 숨기기"
+        },
+        "crawler_color_scheme": {
+          "title": "크롤러 색상 테마",
+          "server_default": "서버 기본값",
+          "system": "시스템",
+          "light": "라이트",
+          "dark": "다크"
         }
       },
       "reader_settings": {

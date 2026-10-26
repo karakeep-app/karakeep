@@ -41,6 +41,7 @@
     "bookmarks": "Marcadores",
     "storage": "Armazenamento",
     "pdf": "PDF arquivado",
+    "screen_pdf": "PDF de ecrã",
     "default": "Predefinição",
     "id": "ID",
     "last_used": "Última utilização"
@@ -52,6 +53,8 @@
     "create": "Criar",
     "refresh": "Atualizar",
     "recrawl": "Rastrear novamente",
+    "recrawl_in_light_theme": "Rastrear novamente no tema claro",
+    "recrawl_in_dark_theme": "Rastrear novamente no tema escuro",
     "edit_tags": "Editar etiquetas",
     "add_to_list": "Adicionar à lista",
     "select": "Selecionar",
@@ -90,11 +93,13 @@
     "load_more": "Carregar mais",
     "edit_notes": "Editar notas",
     "preserve_as_pdf": "Preservar como PDF",
+    "preserve_as_screen_pdf": "Preservar como PDF de ecrã",
     "preserve_video": "Preservar vídeo",
     "offline_copies": "Cópias offline",
     "preserve_offline_archive": "Preservar arquivo offline",
     "download_full_page_archive_file": "Transferir ficheiro de arquivo",
     "download_pdf_file": "Transferir ficheiro PDF",
+    "download_screen_pdf_file": "Transferir ficheiro PDF de ecrã",
     "remove": "Remover",
     "more": "Mais",
     "replace_banner": "Substituir banner",
@@ -158,6 +163,13 @@
           "title": "Marcadores arquivados",
           "show": "Mostrar marcadores arquivados em etiquetas e listas",
           "hide": "Ocultar marcadores arquivados em etiquetas e listas"
+        },
+        "crawler_color_scheme": {
+          "title": "Esquema de cores do rastreador",
+          "server_default": "Predefinição do servidor",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Escuro"
         }
       },
       "reader_settings": {
@@ -1112,6 +1124,7 @@
       "deleted": "O marcador foi eliminado!",
       "refetch": "A nova obtenção foi colocada na fila!",
       "preserve_pdf": "A preservação em PDF foi acionada",
+      "preserve_screen_pdf": "A preservação do PDF de ecrã foi acionada",
       "preserve_video": "A transferência do vídeo foi iniciada",
       "update_banner": "O banner foi atualizado!",
       "uploading_banner": "A carregar o banner..."

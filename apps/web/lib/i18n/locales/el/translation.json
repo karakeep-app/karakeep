@@ -41,6 +41,7 @@
     "bookmarks": "Σελιδοδείκτες",
     "storage": "Αποθήκευση",
     "pdf": "Αρχειοθετημένο PDF",
+    "screen_pdf": "PDF οθόνης",
     "default": "Προεπιλογή",
     "id": "ID",
     "last_used": "Τελευταία Χρήση"
@@ -61,6 +62,8 @@
     "toggle_show_archived": "Εμφάνιση Αρχειοθετημένων",
     "refresh": "Ανανέωση",
     "recrawl": "Επαναφόρτωση",
+    "recrawl_in_light_theme": "Επαναφόρτωση σε ανοιχτό θέμα",
+    "recrawl_in_dark_theme": "Επαναφόρτωση σε σκοτεινό θέμα",
     "edit_tags": "Επεξεργασία Ετικετών",
     "add_to_list": "Προσθήκη στη Λίστα",
     "select": "Επιλογή",
@@ -96,11 +99,13 @@
     "load_more": "Φορτώστε περισσότερα",
     "edit_notes": "Επεξεργασία σημειώσεων",
     "preserve_as_pdf": "Διατήρηση ως PDF",
+    "preserve_as_screen_pdf": "Διατήρηση ως PDF οθόνης",
     "preserve_video": "Διατήρηση Βίντεο",
     "offline_copies": "Αντίγραφα εκτός σύνδεσης",
     "preserve_offline_archive": "Διατήρηση αρχείου εκτός σύνδεσης",
     "download_full_page_archive_file": "Λήψη αρχείου",
     "download_pdf_file": "Λήψη αρχείου PDF",
+    "download_screen_pdf_file": "Λήψη αρχείου PDF οθόνης",
     "remove": "Κατάργηση",
     "more": "Περισσότερα",
     "replace_banner": "Αντικατάσταση Banner",
@@ -134,6 +139,13 @@
           "title": "Αρχειοθετημένοι Σελιδοδείκτες",
           "show": "Εμφάνιση αρχειοθετημένων σελιδοδεικτών σε ετικέτες και λίστες",
           "hide": "Απόκρυψη αρχειοθετημένων σελιδοδεικτών από ετικέτες και λίστες"
+        },
+        "crawler_color_scheme": {
+          "title": "Χρωματικό Σχήμα Ανιχνευτή",
+          "server_default": "Προεπιλογή διακομιστή",
+          "system": "Σύστημα",
+          "light": "Ανοιχτό",
+          "dark": "Σκοτεινό"
         }
       },
       "reader_settings": {
@@ -1121,6 +1133,7 @@
       "delete_from_list": "Ο σελιδοδείκτης διαγράφηκε από τη λίστα",
       "clipboard_copied": "Ο σύνδεσμος προστέθηκε στο πρόχειρό σας!",
       "preserve_pdf": "Η διατήρηση PDF έχει ενεργοποιηθεί",
+      "preserve_screen_pdf": "Η διατήρηση PDF οθόνης έχει ενεργοποιηθεί",
       "preserve_video": "Η λήψη του βίντεο ενεργοποιήθηκε",
       "update_banner": "Το banner ενημερώθηκε!",
       "uploading_banner": "Μεταφόρτωση banner..."

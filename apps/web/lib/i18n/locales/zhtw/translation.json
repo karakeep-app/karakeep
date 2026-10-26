@@ -41,6 +41,7 @@
     "bookmarks": "書籤",
     "storage": "儲存空間",
     "pdf": "已封存的 PDF",
+    "screen_pdf": "螢幕 PDF",
     "default": "預設",
     "id": "ID",
     "last_used": "上次使用"
@@ -89,6 +90,8 @@
       "relevant_first": "最相關優先"
     },
     "recrawl": "重新抓取",
+    "recrawl_in_light_theme": "以淺色主題重新抓取",
+    "recrawl_in_dark_theme": "以深色主題重新抓取",
     "open_editor": "開啟編輯器",
     "toggle_show_archived": "顯示已封存",
     "confirm": "確認",
@@ -96,11 +99,13 @@
     "load_more": "載入更多",
     "edit_notes": "編輯註解",
     "preserve_as_pdf": "儲存為 PDF",
+    "preserve_as_screen_pdf": "儲存為螢幕 PDF",
     "preserve_video": "保存影片",
     "offline_copies": "離線副本",
     "preserve_offline_archive": "保留離線封存檔",
     "download_full_page_archive_file": "下載封存檔",
     "download_pdf_file": "下載 PDF 檔案",
+    "download_screen_pdf_file": "下載螢幕 PDF 檔案",
     "remove": "移除",
     "more": "更多",
     "replace_banner": "更換橫幅",
@@ -125,6 +130,13 @@
           "hide": "在標籤和列表中隱藏已封存的書籤",
           "title": "已封存的書籤",
           "show": "在標籤和列表中顯示已封存的書籤"
+        },
+        "crawler_color_scheme": {
+          "title": "爬蟲程式配色方案",
+          "server_default": "伺服器預設值",
+          "system": "跟隨系統",
+          "light": "淺色",
+          "dark": "深色"
         },
         "user_settings_updated": "使用者設定已更新！",
         "bookmark_click_action": {
@@ -1043,6 +1055,7 @@
       "delete_from_list": "已從清單中移除書籤",
       "clipboard_copied": "連結已複製到剪貼簿！",
       "preserve_pdf": "已觸發 PDF 儲存",
+      "preserve_screen_pdf": "已觸發螢幕 PDF 儲存",
       "preserve_video": "已觸發影片下載",
       "update_banner": "橫幅已更新！",
       "uploading_banner": "正在上傳橫幅..."

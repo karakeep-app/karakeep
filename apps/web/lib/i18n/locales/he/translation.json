@@ -29,6 +29,7 @@
     "source": "מקור",
     "screenshot": "צילום מסך",
     "pdf": "PDF בארכיון",
+    "screen_pdf": "PDF של תצוגת המסך",
     "video": "וידאו",
     "archive": "ארכיון",
     "home": "בית",
@@ -73,12 +74,16 @@
     "toggle_show_archived": "הצגת פריטים שנשמרו בארכיון",
     "refresh": "רענון",
     "recrawl": "סריקה מחדש",
+    "recrawl_in_light_theme": "סריקה מחדש במצב בהיר",
+    "recrawl_in_dark_theme": "סריקה מחדש במצב כהה",
     "offline_copies": "עותקים לא מקוונים",
     "preserve_offline_archive": "שימור ארכיון לא מקוון",
     "download_full_page_archive_file": "הורדת קובץ ארכיון",
     "preserve_as_pdf": "שמירה כ-PDF",
+    "preserve_as_screen_pdf": "שמירה כ-PDF של תצוגת המסך",
     "preserve_video": "שמירת וידאו",
     "download_pdf_file": "הורדת קובץ PDF",
+    "download_screen_pdf_file": "הורדת קובץ PDF של תצוגת המסך",
     "edit_tags": "עריכת תגיות",
     "edit_notes": "עריכת הערות",
     "add_to_list": "הוספה לרשימה",
@@ -157,6 +162,13 @@
           "title": "סימניות בארכיון",
           "show": "הצגת סימניות מהארכיון בתגיות וברשימות",
           "hide": "הסתרת סימניות מהארכיון בתגיות וברשימות"
+        },
+        "crawler_color_scheme": {
+          "title": "ערכת צבעים של הסורק",
+          "server_default": "ברירת מחדל של השרת",
+          "system": "מערכת",
+          "light": "בהיר",
+          "dark": "כהה"
         }
       },
       "reader_settings": {
@@ -1138,6 +1150,7 @@
       "refetch": "בקשת רענון נוספה לתור!",
       "full_page_archive": "יצירת ארכיון עמוד מלא הופעלה",
       "preserve_pdf": "שימור כקובץ PDF הופעל",
+      "preserve_screen_pdf": "שימור כ-PDF של תצוגת המסך הופעל",
       "preserve_video": "הורדת הווידאו הופעלה",
       "delete_from_list": "הסימנייה נמחקה מהרשימה",
       "clipboard_copied": "הקישור נוסף ללוח הגזירים!",

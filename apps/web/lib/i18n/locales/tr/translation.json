@@ -41,6 +41,7 @@
     "bookmarks": "Yer İmleri",
     "storage": "Depolama",
     "pdf": "Arşivlenmiş PDF",
+    "screen_pdf": "Ekran PDF'i",
     "default": "Varsayılan",
     "id": "Kimlik",
     "last_used": "Son Kullanılan"
@@ -60,6 +61,8 @@
     "delete": "Sil",
     "refresh": "Yenile",
     "recrawl": "Tekrar Tara",
+    "recrawl_in_light_theme": "Açık Temada Tekrar Tara",
+    "recrawl_in_dark_theme": "Koyu Temada Tekrar Tara",
     "edit_tags": "Etiketleri Düzenle",
     "add_to_list": "Listeye Ekle",
     "select": "Seç",
@@ -96,11 +99,13 @@
     "load_more": "Daha Fazla Yükle",
     "edit_notes": "Notları Düzenle",
     "preserve_as_pdf": "PDF olarak sakla",
+    "preserve_as_screen_pdf": "Ekran PDF'i olarak sakla",
     "preserve_video": "Videoyu Koru",
     "offline_copies": "Çevrimdışı Kopyalar",
     "preserve_offline_archive": "Çevrimdışı Arşivi Koru",
     "download_full_page_archive_file": "Arşiv Dosyasını İndir",
     "download_pdf_file": "PDF Dosyasını İndir",
+    "download_screen_pdf_file": "Ekran PDF Dosyasını İndir",
     "remove": "Kaldır",
     "more": "Daha fazla",
     "replace_banner": "Başlığı Değiştir",
@@ -134,6 +139,13 @@
           "title": "Arşivlenmiş Yer İmleri",
           "show": "Arşivlenmiş yer imlerini etiketlerde ve listelerde göster",
           "hide": "Arşivlenmiş yer imlerini etiketlerde ve listelerde gizle"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler Renk Şeması",
+          "server_default": "Sunucu varsayılanı",
+          "system": "Sistem",
+          "light": "Açık",
+          "dark": "Koyu"
         }
       },
       "reader_settings": {
@@ -1050,6 +1062,7 @@
       "delete_from_list": "Yer işareti listeden silindi",
       "clipboard_copied": "Bağlantı panonuza eklendi!",
       "preserve_pdf": "PDF olarak saklama tetiklendi",
+      "preserve_screen_pdf": "Ekran PDF'i olarak saklama tetiklendi",
       "preserve_video": "Video indirme başlatıldı",
       "update_banner": "Başlık güncellendi!",
       "uploading_banner": "Başlık yükleniyor..."

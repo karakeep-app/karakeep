@@ -19,6 +19,8 @@
     "unarchive": "Archiváltság visszavonása",
     "delete": "Törlés",
     "recrawl": "Újratérképezés",
+    "recrawl_in_light_theme": "Újratérképezés világos témában",
+    "recrawl_in_dark_theme": "Újratérképezés sötét témában",
     "add_to_list": "Hozzáadás listához",
     "select": "Kiválasztás",
     "select_all": "Összes kiválasztása",
@@ -44,11 +46,13 @@
     "load_more": "Továbbiak betöltése",
     "edit_notes": "Jegyzetek szerkesztése",
     "preserve_as_pdf": "Mentés PDF-ként",
+    "preserve_as_screen_pdf": "Mentés képernyő-PDF-ként",
     "preserve_video": "Videó megőrzése",
     "offline_copies": "Offline példányok",
     "preserve_offline_archive": "Offline archívum megőrzése",
     "download_full_page_archive_file": "Archív fájl letöltése",
     "download_pdf_file": "PDF fájl letöltése",
+    "download_screen_pdf_file": "Képernyő-PDF fájl letöltése",
     "remove": "Eltávolítás",
     "more": "Tovább",
     "replace_banner": "Banner cseréje",
@@ -84,6 +88,13 @@
           "title": "Archivált könyvjelzők",
           "show": "Archivált könyvjelzők megjelenítése címkékben és listákban",
           "hide": "Archivált könyvjelzők elrejtése címkékben és listákban"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler színsémája",
+          "server_default": "Szerver alapértelmezett értéke",
+          "system": "Rendszer",
+          "light": "Világos",
+          "dark": "Sötét"
         }
       },
       "reader_settings": {
@@ -663,6 +674,7 @@
     "bookmarks": "Könyvjelzők",
     "storage": "Tárhely",
     "pdf": "Archivált PDF",
+    "screen_pdf": "Képernyő-PDF",
     "default": "Alapértelmezett",
     "id": "Azonosító",
     "last_used": "Utoljára használt"
@@ -1118,6 +1130,7 @@
       "delete_from_list": "A könyvjelző törlődött a listából",
       "clipboard_copied": "A hivatkozás kimásolva a memóriába!",
       "preserve_pdf": "A PDF archiválás elindult.",
+      "preserve_screen_pdf": "A képernyő-PDF mentése elindult.",
       "preserve_video": "A videó letöltése elindult",
       "update_banner": "A banner frissítve lett!",
       "uploading_banner": "Banner feltöltése..."

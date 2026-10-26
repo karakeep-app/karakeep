@@ -41,6 +41,7 @@
     "bookmarks": "Favoritos",
     "storage": "Armazenamento",
     "pdf": "PDF Arquivado",
+    "screen_pdf": "PDF de Tela",
     "default": "Padrão",
     "id": "ID",
     "last_used": "Usado recentemente"
@@ -55,6 +56,8 @@
     "delete": "Deletar",
     "refresh": "Atualizar",
     "recrawl": "Recrawl",
+    "recrawl_in_light_theme": "Recrawl no Tema Claro",
+    "recrawl_in_dark_theme": "Recrawl no Tema Escuro",
     "edit_tags": "Editar Tags",
     "add_to_list": "Adicionar à Lista",
     "select": "Selecionar",
@@ -90,11 +93,13 @@
     "load_more": "Carregar mais",
     "edit_notes": "Editar notas",
     "preserve_as_pdf": "Preservar como PDF",
+    "preserve_as_screen_pdf": "Preservar como PDF de Tela",
     "preserve_video": "Preservar Vídeo",
     "offline_copies": "Cópias Offline",
     "preserve_offline_archive": "Preservar Arquivo Offline",
     "download_full_page_archive_file": "Baixar Arquivo do Arquivo",
     "download_pdf_file": "Baixar Arquivo PDF",
+    "download_screen_pdf_file": "Baixar Arquivo PDF de Tela",
     "remove": "Remover",
     "more": "Mais",
     "replace_banner": "Substituir Banner",
@@ -117,6 +122,13 @@
           "title": "Favoritos arquivados",
           "show": "Mostrar favoritos arquivados em tags e listas",
           "hide": "Ocultar favoritos arquivados em tags e listas"
+        },
+        "crawler_color_scheme": {
+          "title": "Esquema de Cores do Rastreador",
+          "server_default": "Padrão do Servidor",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Escuro"
         },
         "user_settings_updated": "As configurações do usuário foram atualizadas!",
         "bookmark_click_action": {
@@ -1128,6 +1140,7 @@
       "delete_from_list": "O favorito foi excluído da lista",
       "clipboard_copied": "O link foi adicionado à sua área de transferência!",
       "preserve_pdf": "A preservação em PDF foi acionada",
+      "preserve_screen_pdf": "A preservação do PDF de Tela foi acionada",
       "preserve_video": "O download do vídeo foi acionado",
       "update_banner": "O banner foi atualizado!",
       "uploading_banner": "Enviando banner..."

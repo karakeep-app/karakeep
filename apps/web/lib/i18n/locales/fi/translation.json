@@ -41,6 +41,7 @@
     "bookmarks": "Kirjanmerkit",
     "storage": "Tallennustila",
     "pdf": "Arkistoitu PDF",
+    "screen_pdf": "Näyttö-PDF",
     "default": "Oletus",
     "id": "Tunnus",
     "last_used": "Viimeksi käytetty"
@@ -60,6 +61,8 @@
     "delete": "Poista",
     "refresh": "Päivitä",
     "recrawl": "Uudelleenindeksoi",
+    "recrawl_in_light_theme": "Uudelleenindeksoi vaaleassa tilassa",
+    "recrawl_in_dark_theme": "Uudelleenindeksoi tummassa tilassa",
     "edit_tags": "Muokkaa tunnisteita",
     "add_to_list": "Lisää listaan",
     "select": "Valitse",
@@ -96,11 +99,13 @@
     "load_more": "Lataa lisää",
     "edit_notes": "Muokkaa muistiinpanoja",
     "preserve_as_pdf": "Säilytä PDF-muodossa",
+    "preserve_as_screen_pdf": "Säilytä näyttö-PDF-muodossa",
     "preserve_video": "Säilytä video",
     "offline_copies": "Offline-kopiot",
     "preserve_offline_archive": "Säilytä offline-arkisto",
     "download_full_page_archive_file": "Lataa arkistotiedosto",
     "download_pdf_file": "Lataa PDF-tiedosto",
+    "download_screen_pdf_file": "Lataa näyttö-PDF-tiedosto",
     "remove": "Poista",
     "more": "Lisää",
     "replace_banner": "Korvaa banneri",
@@ -134,6 +139,13 @@
           "title": "Arkistoidut kirjanmerkit",
           "show": "Näytä arkistoidut kirjanmerkit tunnisteissa ja listoissa",
           "hide": "Piilota arkistoidut kirjanmerkit tunnisteissa ja listoissa"
+        },
+        "crawler_color_scheme": {
+          "title": "Indeksoinnin väriteema",
+          "server_default": "Palvelimen oletus",
+          "system": "Järjestelmä",
+          "light": "Vaalea",
+          "dark": "Tumma"
         }
       },
       "reader_settings": {
@@ -1121,6 +1133,7 @@
       "delete_from_list": "Kirjanmerkki on poistettu luettelosta",
       "clipboard_copied": "Linkki on lisätty leikepöydälle!",
       "preserve_pdf": "PDF:nä säilytys on käynnistetty",
+      "preserve_screen_pdf": "Näyttö-PDF:nä säilytys on käynnistetty",
       "preserve_video": "Videon lataus on käynnistetty",
       "update_banner": "Banneri on päivitetty!",
       "uploading_banner": "Ladataan banneria..."

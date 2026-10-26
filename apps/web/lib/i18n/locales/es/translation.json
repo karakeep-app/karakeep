@@ -41,6 +41,7 @@
     "bookmarks": "Marcadores",
     "storage": "Almacenamiento",
     "pdf": "PDF archivado",
+    "screen_pdf": "PDF de pantalla",
     "default": "Predeterminado",
     "id": "ID",
     "last_used": "Último usado"
@@ -66,6 +67,13 @@
           "title": "Marcadores archivados",
           "show": "Mostrar marcadores archivados en etiquetas y listas",
           "hide": "Ocultar marcadores archivados en etiquetas y listas"
+        },
+        "crawler_color_scheme": {
+          "title": "Esquema de colores del rastreador",
+          "server_default": "Predeterminado del servidor",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Oscuro"
         }
       },
       "reader_settings": {
@@ -643,6 +651,8 @@
     "cancel": "Cancelar",
     "apply_all": "Aplicar todo",
     "recrawl": "Volver a crawlear",
+    "recrawl_in_light_theme": "Volver a crawlear en tema claro",
+    "recrawl_in_dark_theme": "Volver a crawlear en tema oscuro",
     "close_bulk_edit": "Cerrar editor en masa",
     "bulk_edit": "Editar en masa",
     "manage_lists": "Administrar listas",
@@ -659,11 +669,13 @@
     "load_more": "Cargar más",
     "edit_notes": "Editar notas",
     "preserve_as_pdf": "Conservar como PDF",
+    "preserve_as_screen_pdf": "Conservar como PDF de pantalla",
     "preserve_video": "Conservar vídeo",
     "offline_copies": "Copias sin conexión",
     "preserve_offline_archive": "Preservar archivo sin conexión",
     "download_full_page_archive_file": "Descargar archivo",
     "download_pdf_file": "Descargar archivo PDF",
+    "download_screen_pdf_file": "Descargar archivo PDF de pantalla",
     "remove": "Eliminar",
     "more": "Más",
     "replace_banner": "Reemplazar el banner",
@@ -1054,6 +1066,7 @@
       "delete_from_list": "El marcador se ha borrado de la lista",
       "clipboard_copied": "¡El enlace se ha copiado en tu portapapeles!",
       "preserve_pdf": "Se ha activado la preservación en PDF",
+      "preserve_screen_pdf": "Se ha activado la preservación del PDF de pantalla",
       "preserve_video": "Se ha activado la descarga del vídeo",
       "update_banner": "¡El banner ha sido actualizado!",
       "uploading_banner": "Subiendo banner..."

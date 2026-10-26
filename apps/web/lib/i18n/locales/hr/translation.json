@@ -199,6 +199,7 @@
     "bookmarks": "Oznake",
     "storage": "Pohrana",
     "pdf": "Arhivirani PDF",
+    "screen_pdf": "PDF zaslona",
     "default": "Zadano",
     "id": "ID",
     "last_used": "Zadnje korišteno"
@@ -275,6 +276,13 @@
           "title": "Arhivirane oznake",
           "show": "Prikaži arhivirane oznake u oznakama i popisima",
           "hide": "Sakrij arhivirane oznake u oznakama i popisima"
+        },
+        "crawler_color_scheme": {
+          "title": "Shema boja crawlera",
+          "server_default": "Zadana vrijednost poslužitelja",
+          "system": "Sistemski",
+          "light": "Svijetli",
+          "dark": "Tamni"
         }
       },
       "reader_settings": {
@@ -784,6 +792,8 @@
     "delete": "Izbriši",
     "refresh": "Osvježi",
     "recrawl": "Ponovno indeksiraj",
+    "recrawl_in_light_theme": "Ponovno indeksiraj u svijetloj temi",
+    "recrawl_in_dark_theme": "Ponovno indeksiraj u tamnoj temi",
     "edit_tags": "Uredi oznake",
     "add_to_list": "Dodaj na popis",
     "select": "Odaberi",
@@ -817,11 +827,13 @@
     "load_more": "Učitaj više",
     "edit_notes": "Uredi bilješke",
     "preserve_as_pdf": "Spremi kao PDF",
+    "preserve_as_screen_pdf": "Spremi kao PDF zaslona",
     "preserve_video": "Spremi video",
     "offline_copies": "Izvanmrežne kopije",
     "preserve_offline_archive": "Spremi izvanmrežnu arhivu",
     "download_full_page_archive_file": "Preuzmi arhivsku datoteku",
     "download_pdf_file": "Preuzmi PDF datoteku",
+    "download_screen_pdf_file": "Preuzmi PDF datoteku zaslona",
     "remove": "Ukloni",
     "more": "Više",
     "replace_banner": "Zamijeni banner",
@@ -1057,6 +1069,7 @@
       "delete_from_list": "Oznaka je izbrisana s popisa",
       "clipboard_copied": "Veza je dodana u tvoj međuspremnik!",
       "preserve_pdf": "Spremanje u PDF formatu je pokrenuto",
+      "preserve_screen_pdf": "Spremanje PDF-a zaslona je pokrenuto",
       "preserve_video": "Pokrenuto je preuzimanje videa",
       "update_banner": "Banner je ažuriran!",
       "uploading_banner": "Učitavanje bannera..."

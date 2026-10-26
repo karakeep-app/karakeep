@@ -41,6 +41,7 @@
     "bookmarks": "Bladwijzers",
     "storage": "Opslag",
     "pdf": "Gearchiveerde PDF",
+    "screen_pdf": "Scherm-PDF",
     "default": "Standaard",
     "id": "ID",
     "last_used": "Laatst gebruikt"
@@ -76,6 +77,8 @@
     "copy_link": "Kopieër link",
     "save": "Bewaar",
     "recrawl": "Opnieuw doorzoeken",
+    "recrawl_in_light_theme": "Opnieuw doorzoeken in lichte modus",
+    "recrawl_in_dark_theme": "Opnieuw doorzoeken in donkere modus",
     "apply_all": "Alles Toepassen",
     "edit_title": "Wijzig Titel",
     "sign_out": "Afmelden",
@@ -96,6 +99,7 @@
     "load_more": "Laad meer",
     "edit_notes": "Notities bewerken",
     "preserve_as_pdf": "Opslaan als PDF",
+    "preserve_as_screen_pdf": "Opslaan als scherm-PDF",
     "preserve_video": "Video bewaren",
     "offline_copies": "Offline kopieën",
     "remove": "Verwijderen",
@@ -105,6 +109,7 @@
     "preserve_offline_archive": "Offline archief behouden",
     "download_full_page_archive_file": "Archiefbestand downloaden",
     "download_pdf_file": "PDF-bestand downloaden",
+    "download_screen_pdf_file": "Scherm-PDF-bestand downloaden",
     "download": "Downloaden",
     "rename": "Hernoemen"
   },
@@ -332,6 +337,13 @@
           "title": "Gearchiveerde bladwijzers",
           "show": "Gearchiveerde bladwijzers weergeven in tags en lijsten",
           "hide": "Gearchiveerde bladwijzers verbergen in tags en lijsten"
+        },
+        "crawler_color_scheme": {
+          "title": "Kleurschema van de crawler",
+          "server_default": "Serverstandaard",
+          "system": "Systeem",
+          "light": "Licht",
+          "dark": "Donker"
         }
       },
       "reader_settings": {
@@ -1118,6 +1130,7 @@
       "delete_from_list": "De bladwijzer is uit de lijst verwijderd",
       "clipboard_copied": "Link is naar je klembord gekopieerd!",
       "preserve_pdf": "PDF-opslag is geactiveerd",
+      "preserve_screen_pdf": "Scherm-PDF-opslag is geactiveerd",
       "preserve_video": "Video-download is gestart",
       "update_banner": "Banner is bijgewerkt!",
       "uploading_banner": "Banner uploaden..."

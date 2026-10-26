@@ -41,6 +41,7 @@
     "bookmarks": "书签",
     "storage": "存储",
     "pdf": "已存档的 PDF",
+    "screen_pdf": "屏幕 PDF",
     "default": "默认",
     "id": "ID",
     "last_used": "上次使用"
@@ -83,6 +84,8 @@
     "apply_all": "全部应用",
     "ignore": "忽略",
     "recrawl": "重新抓取",
+    "recrawl_in_light_theme": "以亮色主题重新抓取",
+    "recrawl_in_dark_theme": "以暗色主题重新抓取",
     "sort": {
       "title": "排序",
       "newest_first": "最新优先",
@@ -96,11 +99,13 @@
     "load_more": "加载更多",
     "edit_notes": "编辑备注",
     "preserve_as_pdf": "另存为 PDF",
+    "preserve_as_screen_pdf": "另存为屏幕 PDF",
     "preserve_video": "保存视频",
     "offline_copies": "离线副本",
     "preserve_offline_archive": "保留离线存档",
     "download_full_page_archive_file": "下载存档文件",
     "download_pdf_file": "下载 PDF 文件",
+    "download_screen_pdf_file": "下载屏幕 PDF 文件",
     "remove": "移除",
     "more": "更多",
     "replace_banner": "替换横幅",
@@ -131,6 +136,13 @@
           "title": "已存档的书签",
           "show": "在标签和列表中显示已存档的书签",
           "hide": "在标签和列表中隐藏已存档的书签"
+        },
+        "crawler_color_scheme": {
+          "title": "爬虫配色方案",
+          "server_default": "服务器默认值",
+          "system": "跟随系统",
+          "light": "亮模式",
+          "dark": "暗模式"
         }
       },
       "reader_settings": {
@@ -1043,6 +1055,7 @@
       "delete_from_list": "书签已从列表中删除",
       "clipboard_copied": "链接已添加到您的剪贴板！",
       "preserve_pdf": "已触发 PDF 保存",
+      "preserve_screen_pdf": "已触发屏幕 PDF 保存",
       "preserve_video": "已触发视频下载",
       "update_banner": "横幅已更新！",
       "uploading_banner": "正在上传横幅..."

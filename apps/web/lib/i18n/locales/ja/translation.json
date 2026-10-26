@@ -29,6 +29,8 @@
     "unfavorite": "お気に入りを解除",
     "refresh": "リフレッシュ",
     "recrawl": "再クロール",
+    "recrawl_in_light_theme": "ライトテーマで再クロール",
+    "recrawl_in_dark_theme": "ダークテーマで再クロール",
     "ignore": "無視する",
     "cancel": "キャンセル",
     "sort": {
@@ -44,11 +46,13 @@
     "load_more": "もっと読み込む",
     "edit_notes": "注釈を編集",
     "preserve_as_pdf": "PDFとして保存する",
+    "preserve_as_screen_pdf": "画面PDFとして保存する",
     "preserve_video": "動画を保存",
     "offline_copies": "オフラインコピー",
     "preserve_offline_archive": "オフラインアーカイブを保存",
     "download_full_page_archive_file": "アーカイブファイルをダウンロード",
     "download_pdf_file": "PDF ファイルをダウンロード",
+    "download_screen_pdf_file": "画面PDFファイルをダウンロード",
     "remove": "削除",
     "more": "もっと見る",
     "replace_banner": "バナーを置き換える",
@@ -229,6 +233,13 @@
           "show": "タグとリストにアーカイブされたブックマークを表示する",
           "title": "アーカイブされたブックマーク",
           "hide": "タグとリストにアーカイブされたブックマークを非表示にする"
+        },
+        "crawler_color_scheme": {
+          "title": "クローラーの配色",
+          "server_default": "サーバーの既定",
+          "system": "システム",
+          "light": "ライト",
+          "dark": "ダーク"
         }
       },
       "reader_settings": {
@@ -811,6 +822,7 @@
     "bookmarks": "ブックマーク",
     "storage": "ストレージ",
     "pdf": "アーカイブ済みPDF",
+    "screen_pdf": "画面PDF",
     "default": "既定",
     "id": "ID",
     "last_used": "最後に使用"
@@ -1114,6 +1126,7 @@
       "deleted": "ブックマークが削除されました！",
       "refetch": "再取得をキューに追加しました！",
       "preserve_pdf": "PDF保存が開始されました",
+      "preserve_screen_pdf": "画面PDFの保存が開始されました",
       "preserve_video": "動画のダウンロードが開始されました",
       "update_banner": "バナーが更新されました！",
       "uploading_banner": "バナーをアップロード中..."

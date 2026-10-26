@@ -19,6 +19,8 @@
     "add_to_list": "Thêm vào danh sách",
     "select": "Chọn",
     "recrawl": "Quét lại",
+    "recrawl_in_light_theme": "Quét lại với giao diện sáng",
+    "recrawl_in_dark_theme": "Quét lại với giao diện tối",
     "close_bulk_edit": "Đóng sửa hàng loạt",
     "remove_from_list": "Xóa khỏi danh sách",
     "cancel": "Hủy",
@@ -44,11 +46,13 @@
     "load_more": "Tải thêm",
     "edit_notes": "Sửa ghi chú",
     "preserve_as_pdf": "Lưu giữ dưới dạng PDF",
+    "preserve_as_screen_pdf": "Lưu giữ dưới dạng PDF màn hình",
     "preserve_video": "Lưu giữ video",
     "offline_copies": "Bản sao ngoại tuyến",
     "preserve_offline_archive": "Lưu Trữ Ngoại Tuyến",
     "download_full_page_archive_file": "Tải File Lưu Trữ",
     "download_pdf_file": "Tải File PDF",
+    "download_screen_pdf_file": "Tải File PDF Màn Hình",
     "remove": "Gỡ",
     "more": "Thêm",
     "replace_banner": "Thay Banner",
@@ -262,6 +266,13 @@
           "title": "Bookmark đã lưu trữ",
           "show": "Hiển thị các bookmark đã lưu trữ trong tag và danh sách",
           "hide": "Ẩn các bookmark đã lưu trữ trong tag và danh sách"
+        },
+        "crawler_color_scheme": {
+          "title": "Bảng màu trình thu thập dữ liệu",
+          "server_default": "Mặc định của máy chủ",
+          "system": "Hệ thống",
+          "light": "Sáng",
+          "dark": "Tối"
         }
       },
       "reader_settings": {
@@ -817,6 +828,7 @@
     "bookmarks": "Dấu trang",
     "storage": "Lưu trữ",
     "pdf": "PDF đã lưu trữ",
+    "screen_pdf": "PDF màn hình",
     "default": "Mặc định",
     "id": "ID",
     "last_used": "Lần cuối sử dụng"
@@ -1105,6 +1117,7 @@
       "delete_from_list": "Đã xóa dấu trang khỏi danh sách",
       "clipboard_copied": "Liên kết đã được thêm vào bảng nhớ tạm của bạn!",
       "preserve_pdf": "Đã kích hoạt lưu giữ PDF",
+      "preserve_screen_pdf": "Đã kích hoạt lưu giữ PDF màn hình",
       "preserve_video": "Đã kích hoạt tải xuống video",
       "update_banner": "Banner đã được cập nhật!",
       "uploading_banner": "Đang tải banner lên..."

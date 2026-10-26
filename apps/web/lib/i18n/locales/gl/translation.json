@@ -41,6 +41,7 @@
     "bookmarks": "Marcadores",
     "storage": "Almacenamento",
     "pdf": "PDF Arquivado",
+    "screen_pdf": "PDF de pantalla",
     "default": "Predeterminado",
     "id": "ID",
     "last_used": "Usado por última vez"
@@ -56,6 +57,8 @@
     "copy_link": "Copiar ligazón",
     "unarchive": "Desarquivar",
     "recrawl": "Volver a facer un crawl",
+    "recrawl_in_light_theme": "Volver a facer un crawl no tema claro",
+    "recrawl_in_dark_theme": "Volver a facer un crawl no tema escuro",
     "add_to_list": "Agregar á lista",
     "select": "Seleccionar",
     "save": "Gardar",
@@ -90,11 +93,13 @@
     "load_more": "Cargar máis",
     "edit_notes": "Editar notas",
     "preserve_as_pdf": "Gardar como PDF",
+    "preserve_as_screen_pdf": "Gardar como PDF de pantalla",
     "preserve_video": "Conservar vídeo",
     "offline_copies": "Copias sen conexión",
     "preserve_offline_archive": "Conservar o arquivo sen conexión",
     "download_full_page_archive_file": "Descargar o arquivo",
     "download_pdf_file": "Descargar ficheiro PDF",
+    "download_screen_pdf_file": "Descargar ficheiro PDF de pantalla",
     "remove": "Retirar",
     "more": "Máis",
     "replace_banner": "Substituír o banner",
@@ -141,6 +146,7 @@
       "delete_from_list": "O marcador borrouse da lista",
       "clipboard_copied": "A ligazón copiouse no teu portapapeis!",
       "preserve_pdf": "Activouse a preservación en PDF",
+      "preserve_screen_pdf": "Activouse a preservación do PDF de pantalla",
       "preserve_video": "Activouse a descarga do vídeo",
       "update_banner": "Banner actualizado!",
       "uploading_banner": "Cargando o banner..."
@@ -211,6 +217,13 @@
           "title": "Marcadores arquivados",
           "show": "Mostrar os marcadores arquivados en etiquetas e listas",
           "hide": "Ocultar os marcadores arquivados en etiquetas e listas"
+        },
+        "crawler_color_scheme": {
+          "title": "Esquema de cores do rastreador",
+          "server_default": "Predeterminado do servidor",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Escuro"
         }
       },
       "reader_settings": {

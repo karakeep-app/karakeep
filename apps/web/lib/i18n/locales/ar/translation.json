@@ -41,6 +41,7 @@
     "bookmarks": "الإشارات المرجعية",
     "storage": "تخزين",
     "pdf": "نسخة PDF مؤرشفة",
+    "screen_pdf": "PDF بمظهر الشاشة",
     "default": "افتراضي",
     "id": "معرف",
     "last_used": "آخر استخدام"
@@ -60,6 +61,8 @@
     "delete": "حذف",
     "refresh": "تحديث",
     "recrawl": "إعادة الاستكشاف",
+    "recrawl_in_light_theme": "إعادة الاستكشاف في الوضع الفاتح",
+    "recrawl_in_dark_theme": "إعادة الاستكشاف في الوضع الداكن",
     "edit_tags": "تحرير الوسوم",
     "add_to_list": "إضافة إلى القائمة",
     "select": "تحديد",
@@ -96,11 +99,13 @@
     "load_more": "المزيد",
     "edit_notes": "تحرير الملاحظات",
     "preserve_as_pdf": "حفظ كملف PDF",
+    "preserve_as_screen_pdf": "حفظ كملف PDF بمظهر الشاشة",
     "preserve_video": "حفظ الفيديو",
     "offline_copies": "نسخ غير متصلة بالإنترنت",
     "preserve_offline_archive": "احتفظ بالأرشيفات غير المتصلة بالإنترنت",
     "download_full_page_archive_file": "تنزيل ملف الأرشيف",
     "download_pdf_file": "تنزيل ملف PDF",
+    "download_screen_pdf_file": "تنزيل ملف PDF بمظهر الشاشة",
     "remove": "إزالة",
     "more": "المزيد",
     "replace_banner": "استبدال البانر",
@@ -134,6 +139,13 @@
           "title": "الإشارات المرجعية المؤرشفة",
           "show": "اعرض الإشارات المرجعية المؤرشفة في العلامات والقوائم",
           "hide": "إخفاء الإشارات المرجعية المؤرشفة في العلامات والقوائم"
+        },
+        "crawler_color_scheme": {
+          "title": "نظام ألوان الزاحف",
+          "server_default": "الافتراضي من الخادم",
+          "system": "النظام",
+          "light": "فاتح",
+          "dark": "داكن"
         }
       },
       "reader_settings": {
@@ -1149,6 +1161,7 @@
       "delete_from_list": "تم حذف الإشارة المرجعية من القائمة",
       "clipboard_copied": "تم نسخ الرابط إلى الحافظة!",
       "preserve_pdf": "تم تشغيل حفظ PDF",
+      "preserve_screen_pdf": "تم تشغيل حفظ PDF بمظهر الشاشة",
       "preserve_video": "تم بدء تنزيل الفيديو",
       "update_banner": "تم تحديث البانر!",
       "uploading_banner": "جاري رفع البانر..."

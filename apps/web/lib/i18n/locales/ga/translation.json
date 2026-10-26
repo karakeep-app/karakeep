@@ -41,6 +41,7 @@
     "bookmarks": "Leabharmharcanna",
     "storage": "Stóráil",
     "pdf": "PDF Cartlannaithe",
+    "screen_pdf": "PDF Scáileáin",
     "default": "Réamhshocrú",
     "id": "ID",
     "last_used": "Úsáidte go deireanach"
@@ -57,6 +58,8 @@
     "toggle_show_archived": "Taispeáin Cartlannaithe",
     "refresh": "Athnuaigh",
     "recrawl": "Athchrawláil",
+    "recrawl_in_light_theme": "Athchrawláil i Mód Solais",
+    "recrawl_in_dark_theme": "Athchrawláil i Mód Dorcha",
     "edit_tags": "Cuir Clibeanna in Eagar",
     "add_to_list": "Cuir leis an Liosta",
     "select": "Roghnaigh",
@@ -90,11 +93,13 @@
     "load_more": "Lódáil Tuilleadh",
     "edit_notes": "Cuir Nótaí in Eagar",
     "preserve_as_pdf": "Caomhnaigh mar PDF",
+    "preserve_as_screen_pdf": "Caomhnaigh mar PDF Scáileáin",
     "preserve_video": "Caomhnaigh Físeán",
     "offline_copies": "Cóipeanna As Líne",
     "preserve_offline_archive": "Caomhnaigh Cartlann As Líne",
     "download_full_page_archive_file": "Íoslódáil Comhad Cartlainne",
     "download_pdf_file": "Íoslódáil Comhad PDF",
+    "download_screen_pdf_file": "Íoslódáil Comhad PDF Scáileáin",
     "remove": "Bain",
     "more": "Tuilleadh",
     "replace_banner": "Ionadaigh an Meirge",
@@ -342,6 +347,13 @@
           "title": "Leabharmharcanna Cartlannaithe",
           "show": "Taispeáin leabharmharcanna cartlannaithe i gclibeanna agus i liostaí",
           "hide": "Folaigh leabharmharcanna cartlannaithe i gclibeanna agus i liostaí"
+        },
+        "crawler_color_scheme": {
+          "title": "Scéim Dathanna Crawlála",
+          "server_default": "Réamhshocrú an fhreastalaí",
+          "system": "Mód an Chórais",
+          "light": "Mód Solais",
+          "dark": "Mód Dorcha"
         }
       },
       "reader_settings": {
@@ -946,6 +958,7 @@
       "delete_from_list": "Scriosadh an leabharmharc ón liosta",
       "clipboard_copied": "Cuireadh an nasc le do ghearrthaisce!",
       "preserve_pdf": "Tosaíodh caomhnú PDF",
+      "preserve_screen_pdf": "Tosaíodh caomhnú PDF Scáileáin",
       "preserve_video": "Tosaíodh íoslódáil an fhíseáin",
       "update_banner": "Nuashonraíodh an meirge!",
       "uploading_banner": "Ag uaslódáil an mheirge..."

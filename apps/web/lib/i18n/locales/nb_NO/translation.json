@@ -41,6 +41,7 @@
     "bookmarks": "Bokmerker",
     "storage": "Lagring",
     "pdf": "Arkivert PDF",
+    "screen_pdf": "Skjerm-PDF",
     "default": "Standard",
     "id": "ID",
     "last_used": "Sist brukt"
@@ -214,6 +215,8 @@
     "delete": "Slett",
     "refresh": "Oppdater",
     "recrawl": "Gjennomsøk på nytt",
+    "recrawl_in_light_theme": "Gjennomsøk på nytt i lys modus",
+    "recrawl_in_dark_theme": "Gjennomsøk på nytt i mørk modus",
     "edit_tags": "Rediger tagger",
     "add_to_list": "Legg til i liste",
     "select": "Velg",
@@ -242,11 +245,13 @@
     "load_more": "Last inn mer",
     "edit_notes": "Rediger notater",
     "preserve_as_pdf": "Bevar som PDF",
+    "preserve_as_screen_pdf": "Bevar som skjerm-PDF",
     "preserve_video": "Bevar video",
     "offline_copies": "Offline kopier",
     "preserve_offline_archive": "Bevar offline-arkiv",
     "download_full_page_archive_file": "Last ned arkivfil",
     "download_pdf_file": "Last ned PDF-fil",
+    "download_screen_pdf_file": "Last ned skjerm-PDF-fil",
     "remove": "Fjern",
     "more": "Mer",
     "replace_banner": "Erstatt banner",
@@ -275,6 +280,13 @@
           "title": "Arkiverte bokmerker",
           "show": "Vis arkiverte bokmerker i tagger og lister",
           "hide": "Skjul arkiverte bokmerker i tagger og lister"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler-fargeskjema",
+          "server_default": "Serverstandard",
+          "system": "System",
+          "light": "Lys",
+          "dark": "Mørk"
         }
       },
       "reader_settings": {
@@ -1086,6 +1098,7 @@
       "updated": "Bokmerket er oppdatert!",
       "deleted": "Bokmerket er slettet!",
       "preserve_pdf": "PDF-bevaring er utløst",
+      "preserve_screen_pdf": "Skjerm-PDF-bevaring er utløst",
       "preserve_video": "Videonedlasting er utløst",
       "update_banner": "Banneret er oppdatert!",
       "uploading_banner": "Laster opp banner..."

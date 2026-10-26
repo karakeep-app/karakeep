@@ -41,6 +41,7 @@
     "bookmarks": "Záložky",
     "storage": "Úložiště",
     "pdf": "Archivovaný PDF",
+    "screen_pdf": "PDF obrazovky",
     "default": "Výchozí",
     "id": "ID",
     "last_used": "Použito naposledy"
@@ -65,6 +66,8 @@
     "toggle_show_archived": "Zobrazit archivované",
     "refresh": "Obnovit",
     "recrawl": "Znovu prolézt",
+    "recrawl_in_light_theme": "Znovu prolézt ve světlém motivu",
+    "recrawl_in_dark_theme": "Znovu prolézt v tmavém motivu",
     "edit_tags": "Upravit štítky",
     "add_to_list": "Přidat do seznamu",
     "select": "Vybrat",
@@ -90,11 +93,13 @@
     "load_more": "Načíst další",
     "edit_notes": "Upravit poznámky",
     "preserve_as_pdf": "Uložit jako PDF",
+    "preserve_as_screen_pdf": "Uložit jako PDF obrazovky",
     "preserve_video": "Uložit video",
     "offline_copies": "Offline kopie",
     "preserve_offline_archive": "Zachovat archiv offline",
     "download_full_page_archive_file": "Stáhnout archivní soubor",
     "download_pdf_file": "Stáhnout soubor PDF",
+    "download_screen_pdf_file": "Stáhnout soubor PDF obrazovky",
     "remove": "Odebrat",
     "more": "Více",
     "replace_banner": "Nahradit banner",
@@ -329,6 +334,13 @@
           "show": "Zobrazit archivované záložky ve štítcích a seznamech",
           "hide": "Skrýt archivované záložky ve štítcích a seznamech",
           "title": "Archivované záložky"
+        },
+        "crawler_color_scheme": {
+          "title": "Barevné schéma procházení",
+          "server_default": "Výchozí hodnota serveru",
+          "system": "Systém",
+          "light": "Světlý",
+          "dark": "Tmavý"
         },
         "user_settings_updated": "Nastavení uživatele byla aktualizována!",
         "bookmark_click_action": {
@@ -939,6 +951,7 @@
       "delete_from_list": "Záložka byla ze seznamu smazána",
       "clipboard_copied": "Odkaz byl přidán do schránky!",
       "preserve_pdf": "Ukládání do PDF spuštěno",
+      "preserve_screen_pdf": "Ukládání PDF obrazovky spuštěno",
       "preserve_video": "Stahování videa bylo spuštěno",
       "update_banner": "Banner byl aktualizován!",
       "uploading_banner": "Nahrávání banneru..."

@@ -7,6 +7,8 @@
     "favorite": "Stjernemarker",
     "change_layout": "Skift visning",
     "recrawl": "Gennemsøg igen",
+    "recrawl_in_light_theme": "Gennemsøg igen i lys tilstand",
+    "recrawl_in_dark_theme": "Gennemsøg igen i mørk tilstand",
     "add_to_list": "Tilføj til liste",
     "select": "Vælg",
     "copy_link": "Kopiér link",
@@ -44,11 +46,13 @@
     "load_more": "Indlæs mere",
     "edit_notes": "Rediger noter",
     "preserve_as_pdf": "Bevar som PDF",
+    "preserve_as_screen_pdf": "Bevar som skærm-PDF",
     "preserve_video": "Gem video",
     "offline_copies": "Offline kopier",
     "preserve_offline_archive": "Gem offline-arkiv",
     "download_full_page_archive_file": "Download arkivfil",
     "download_pdf_file": "Download PDF-fil",
+    "download_screen_pdf_file": "Download skærm-PDF-fil",
     "remove": "Fjern",
     "more": "Mere",
     "replace_banner": "Udskift banner",
@@ -95,6 +99,13 @@
           "title": "Arkiverede bogmærker",
           "show": "Vis arkiverede bogmærker i tags og lister",
           "hide": "Skjul arkiverede bogmærker i tags og lister"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler-farveskema",
+          "server_default": "Serverstandard",
+          "system": "System",
+          "light": "Lys",
+          "dark": "Mørk"
         }
       },
       "reader_settings": {
@@ -912,6 +923,7 @@
     "bookmarks": "Bogmærker",
     "storage": "Lagring",
     "pdf": "Arkiveret PDF",
+    "screen_pdf": "Skærm-PDF",
     "default": "Standard",
     "id": "ID",
     "last_used": "Sidst brugt"
@@ -1047,6 +1059,7 @@
       "clipboard_copied": "Linket er kopieret til din udklipsholder!",
       "updated": "Bogmærket er blevet opdateret!",
       "preserve_pdf": "PDF-bevaring er blevet udløst",
+      "preserve_screen_pdf": "Skærm-PDF-bevaring er blevet udløst",
       "preserve_video": "Videodownload er blevet igangsat",
       "update_banner": "Banneret er blevet opdateret!",
       "uploading_banner": "Uploader banner..."

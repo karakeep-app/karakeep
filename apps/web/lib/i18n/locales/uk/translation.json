@@ -41,6 +41,7 @@
     "bookmarks": "Закладки",
     "storage": "Сховище",
     "pdf": "Архівні PDF",
+    "screen_pdf": "PDF екрана",
     "default": "За замовчуванням",
     "id": "ID",
     "last_used": "Востаннє використано"
@@ -54,6 +55,8 @@
     "unfavorite": "Видалити з улюбленого",
     "refresh": "Оновити",
     "recrawl": "Повторне сканування",
+    "recrawl_in_light_theme": "Повторне сканування у світлій темі",
+    "recrawl_in_dark_theme": "Повторне сканування в темній темі",
     "edit_tags": "Редагувати теги",
     "add_to_list": "Додати до списку",
     "select": "Вибрати",
@@ -90,11 +93,13 @@
     "load_more": "Завантажити більше",
     "edit_notes": "Редагувати примітки",
     "preserve_as_pdf": "Зберегти як PDF",
+    "preserve_as_screen_pdf": "Зберегти як PDF екрана",
     "preserve_video": "Зберегти відео",
     "offline_copies": "Офлайн копії",
     "preserve_offline_archive": "Зберегти офлайн-архів",
     "download_full_page_archive_file": "Завантажити файл архіву",
     "download_pdf_file": "Завантажити PDF-файл",
+    "download_screen_pdf_file": "Завантажити PDF-файл екрана",
     "remove": "Видалити",
     "more": "Більше",
     "replace_banner": "Замінити банер",
@@ -143,6 +148,13 @@
           "title": "Заархівовані закладки",
           "show": "Показувати заархівовані закладки в тегах і списках",
           "hide": "Приховувати заархівовані закладки в тегах і списках"
+        },
+        "crawler_color_scheme": {
+          "title": "Кольорова схема сканування",
+          "server_default": "Серверне значення за замовчуванням",
+          "system": "Системний",
+          "light": "Світлий",
+          "dark": "Темний"
         }
       },
       "reader_settings": {
@@ -1135,6 +1147,7 @@
       "updated": "Закладку оновлено!",
       "deleted": "Закладку видалено!",
       "preserve_pdf": "Збереження PDF ініційовано",
+      "preserve_screen_pdf": "Збереження PDF екрана ініційовано",
       "preserve_video": "Завантаження відео запущено",
       "update_banner": "Банер оновлено!",
       "uploading_banner": "Завантаження банера..."
