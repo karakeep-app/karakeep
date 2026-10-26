@@ -14,5 +14,4 @@ CREATE TABLE `inAppSubscriptions` (
 	FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `inAppSubscriptions_userId_unique` ON `inAppSubscriptions` (`userId`);--> statement-breakpoint
-CREATE INDEX `inAppSubscriptions_userId_idx` ON `inAppSubscriptions` (`userId`);
+CREATE UNIQUE INDEX `inAppSubscriptions_userId_unique` ON `inAppSubscriptions` (`userId`);

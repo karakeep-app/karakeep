@@ -362,7 +362,7 @@ export const subscriptionsRouter = router({
         startDate: inAppSubscription.startDate,
         endDate: inAppSubscription.endDate,
         hasActiveSubscription: inAppActive,
-        paymentFailed: false,
+        paymentFailed: inAppActive && inAppSubscription.billingIssue,
         cancelAtPeriodEnd: inAppSubscription.cancelAtPeriodEnd,
         provider: "in_app" as const,
         store: inAppSubscription.store,
@@ -741,8 +741,11 @@ export const subscriptionsRouter = router({
         });
       }
 
-      await syncRevenueCatDataToDatabase(ctx.user.id, ctx.db);
-      return { success: true };
+      const state = await syncRevenueCatDataToDatabase(ctx.user.id, ctx.db);
+      return {
+        success: true,
+        hasActiveSubscription: state?.status === "active",
+      };
     }),
 
   handleRevenueCatWebhook: publicProcedure

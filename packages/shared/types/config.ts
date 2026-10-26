@@ -39,6 +39,7 @@ export const zClientConfigSchema = z.object({
   }),
   revenueCat: z.object({
     isConfigured: z.boolean(),
+    purchasePlatforms: z.array(z.enum(["ios", "android"])),
   }),
   legal: z.object({
     termsOfServiceUrl: z.string().optional(),

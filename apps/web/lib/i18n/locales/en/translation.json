@@ -548,6 +548,8 @@
       "payment_failed": "Payment failed",
       "payment_failed_title": "Your last payment failed",
       "payment_failed_description": "We couldn't charge your payment method. Update it to keep your Paid plan. We'll retry the charge in the meantime, and your plan will switch to Free if all retries fail.",
+      "payment_failed_description_in_app": "We couldn't charge your payment method. Update it in your App Store or Google Play subscription settings to keep your Paid plan.",
+      "upgrade_from_mobile_app": "To upgrade to the Paid plan, use the Karakeep mobile app.",
       "managed_by_app_store": "Your subscription was purchased through the App Store. You can manage it from your Apple account's subscription settings.",
       "managed_by_play_store": "Your subscription was purchased through Google Play. You can manage it from the Google Play Store's subscription settings.",
       "managed_by_mobile_app": "Your subscription was purchased through the mobile app. You can manage it from your device's subscription settings.",

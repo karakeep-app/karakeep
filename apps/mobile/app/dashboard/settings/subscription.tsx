@@ -97,8 +97,9 @@ export default function SubscriptionSettings() {
   // ask it to pull the latest state from RevenueCat instead of waiting for
   // the webhook.
   const refreshEntitlements = async () => {
-    await syncWithRevenueCat();
+    const { hasActiveSubscription } = await syncWithRevenueCat();
     await queryClient.invalidateQueries(api.subscriptions.pathFilter());
+    return hasActiveSubscription;
   };
 
   const runAction = async (
@@ -126,19 +127,29 @@ export default function SubscriptionSettings() {
         result === PAYWALL_RESULT.PURCHASED ||
         result === PAYWALL_RESULT.RESTORED
       ) {
-        await refreshEntitlements();
-        toast({
-          message: "You're now on the Paid plan.",
-          variant: "success",
-        });
+        if (await refreshEntitlements()) {
+          toast({
+            message: "You're now on the Paid plan.",
+            variant: "success",
+          });
+        } else {
+          toast({
+            message:
+              "We couldn't confirm your purchase yet. Try Restore Purchases in a moment.",
+            variant: "destructive",
+          });
+        }
       }
     });
 
   const restore = () =>
     runAction("restore", async () => {
       await Purchases.restorePurchases();
-      await refreshEntitlements();
-      toast({ message: "Purchases restored" });
+      toast({
+        message: (await refreshEntitlements())
+          ? "Purchases restored"
+          : "No active subscription found",
+      });
     });
 
   const manage = () =>

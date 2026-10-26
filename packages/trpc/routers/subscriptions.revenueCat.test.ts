@@ -37,6 +37,7 @@ vi.mock("@karakeep/shared/config", async (original) => {
         webhookAuthToken: "rc_webhook_token",
         entitlementId: "pro",
         allowSandboxPurchases: true,
+        purchasePlatforms: ["ios", "android"],
         isConfigured: true,
       },
       publicUrl: "https://test.karakeep.com",
@@ -345,7 +346,9 @@ describe("RevenueCat subscriptions", () => {
       const user = await createFreeUser(db);
       rcCustomers[user.id] = rcCustomer(FUTURE, "play_store");
 
-      await getApiCaller(db, user.id).subscriptions.syncWithRevenueCat();
+      expect(
+        await getApiCaller(db, user.id).subscriptions.syncWithRevenueCat(),
+      ).toEqual({ success: true, hasActiveSubscription: true });
 
       expect(
         await db.query.inAppSubscriptions.findFirst({
@@ -354,6 +357,36 @@ describe("RevenueCat subscriptions", () => {
       ).toMatchObject({ status: "active", store: "play_store" });
       expect(await getQuotas(db, user.id)).toMatchObject({
         bookmarkQuota: null,
+      });
+    });
+
+    test<CustomTestContext>("reports when the sync found no active subscription", async ({
+      db,
+    }) => {
+      const user = await createFreeUser(db);
+      rcCustomers[user.id] = rcCustomer(PAST);
+
+      expect(
+        await getApiCaller(db, user.id).subscriptions.syncWithRevenueCat(),
+      ).toEqual({ success: true, hasActiveSubscription: false });
+    });
+
+    test<CustomTestContext>("flags billing issues of active in-app subscriptions", async ({
+      db,
+    }) => {
+      const user = await createFreeUser(db);
+      const customer = rcCustomer(FUTURE);
+      customer.subscriptions[0].status = "in_grace_period";
+      rcCustomers[user.id] = customer;
+      const caller = getApiCaller(db, user.id);
+      await caller.subscriptions.syncWithRevenueCat();
+
+      expect(await caller.subscriptions.getSubscriptionStatus()).toMatchObject({
+        tier: "paid",
+        status: "past_due",
+        hasActiveSubscription: true,
+        paymentFailed: true,
+        provider: "in_app",
       });
     });
 

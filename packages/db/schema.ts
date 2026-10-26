@@ -962,39 +962,33 @@ export const subscriptions = sqliteTable(
 // Subscriptions purchased through the mobile app stores (App Store / Google
 // Play). These are managed by RevenueCat, which is the source of truth; this
 // table mirrors the state of the configured RevenueCat entitlement.
-export const inAppSubscriptions = sqliteTable(
-  "inAppSubscriptions",
-  {
-    id: text("id")
-      .notNull()
-      .primaryKey()
-      .$defaultFn(() => createId()),
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" })
-      .unique(),
-    // The RevenueCat store identifier (e.g. "app_store", "play_store").
-    store: text("store"),
-    productId: text("productId"),
-    status: text("status", {
-      enum: ["active", "expired"],
-    }).notNull(),
-    cancelAtPeriodEnd: integer("cancelAtPeriodEnd", { mode: "boolean" })
-      .notNull()
-      .default(false),
-    billingIssue: integer("billingIssue", { mode: "boolean" })
-      .notNull()
-      .default(false),
-    isSandbox: integer("isSandbox", { mode: "boolean" })
-      .notNull()
-      .default(false),
-    startDate: integer("startDate", { mode: "timestamp" }),
-    endDate: integer("endDate", { mode: "timestamp" }),
-    createdAt: createdAtField(),
-    modifiedAt: modifiedAtField(),
-  },
-  (s) => [index("inAppSubscriptions_userId_idx").on(s.userId)],
-);
+export const inAppSubscriptions = sqliteTable("inAppSubscriptions", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  // The RevenueCat store identifier (e.g. "app_store", "play_store").
+  store: text("store"),
+  productId: text("productId"),
+  status: text("status", {
+    enum: ["active", "expired"],
+  }).notNull(),
+  cancelAtPeriodEnd: integer("cancelAtPeriodEnd", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  billingIssue: integer("billingIssue", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  isSandbox: integer("isSandbox", { mode: "boolean" }).notNull().default(false),
+  startDate: integer("startDate", { mode: "timestamp" }),
+  endDate: integer("endDate", { mode: "timestamp" }),
+  createdAt: createdAtField(),
+  modifiedAt: modifiedAtField(),
+});
 
 export const importSessions = sqliteTable(
   "importSessions",

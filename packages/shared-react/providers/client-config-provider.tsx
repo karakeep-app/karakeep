@@ -31,6 +31,7 @@ export const DEFAULT_CLIENT_CONFIG: ZClientConfig = {
   },
   revenueCat: {
     isConfigured: false,
+    purchasePlatforms: [],
   },
   legal: {},
   disableNewReleaseCheck: true,

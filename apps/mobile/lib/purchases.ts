@@ -39,13 +39,17 @@ export async function resetPurchasesUser() {
 
 /**
  * In-app purchases are available when this build ships a RevenueCat key and
- * the connected server is set up to receive them (i.e. the hosted service).
- * Self-hosted servers never get purchase options.
+ * the connected server is set up to receive them (i.e. the hosted service)
+ * and has enabled purchases for this platform. Self-hosted servers never get
+ * purchase options.
  */
 export function useInAppPurchases() {
   const api = useTRPC();
   const config = useClientConfig();
-  const isSupported = !!REVENUECAT_API_KEY && config.revenueCat.isConfigured;
+  const isSupported =
+    !!REVENUECAT_API_KEY &&
+    config.revenueCat.isConfigured &&
+    config.revenueCat.purchasePlatforms.some((p) => p === Platform.OS);
   const { data: user } = useQuery({
     ...api.users.whoami.queryOptions(),
     enabled: isSupported,

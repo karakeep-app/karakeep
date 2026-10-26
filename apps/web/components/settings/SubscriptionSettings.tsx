@@ -19,7 +19,9 @@ export default function SubscriptionSettings() {
   const api = useTRPC();
   const { t } = useTranslation();
   // Servers that only sell in-app subscriptions can't check out on the web.
-  const isStripeConfigured = useClientConfig().stripe.isConfigured;
+  const clientConfig = useClientConfig();
+  const isStripeConfigured = clientConfig.stripe.isConfigured;
+  const canPurchaseInApp = clientConfig.revenueCat.purchasePlatforms.length > 0;
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">(
     "monthly",
   );
@@ -189,7 +191,13 @@ export default function SubscriptionSettings() {
 
           <div className="space-y-4">
             {!subscriptionStatus?.hasActiveSubscription ? (
-              isStripeConfigured && (
+              !isStripeConfigured ? (
+                canPurchaseInApp && (
+                  <p className="text-sm text-muted-foreground">
+                    {t("settings.subscription.upgrade_from_mobile_app")}
+                  </p>
+                )
+              ) : (
                 <div className="space-y-4">
                   <div className="rounded-lg border p-6">
                     <h3 className="font-semibold">
@@ -303,7 +311,11 @@ export default function SubscriptionSettings() {
                       {t("settings.subscription.payment_failed_title")}
                     </AlertTitle>
                     <AlertDescription>
-                      {t("settings.subscription.payment_failed_description")}
+                      {subscriptionStatus.provider === "in_app"
+                        ? t(
+                            "settings.subscription.payment_failed_description_in_app",
+                          )
+                        : t("settings.subscription.payment_failed_description")}
                     </AlertDescription>
                   </Alert>
                 )}

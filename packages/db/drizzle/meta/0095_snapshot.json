@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f3a9ddd4-b956-4c73-9dc5-8a72da868ac9",
+  "id": "8d59e336-76ef-4c54-b24d-599885947f0c",
   "prevId": "09931183-1ed7-40d8-ad30-3b30edf74266",
   "tables": {
     "account": {
@@ -2155,13 +2155,6 @@
             "userId"
           ],
           "isUnique": true
-        },
-        "inAppSubscriptions_userId_idx": {
-          "name": "inAppSubscriptions_userId_idx",
-          "columns": [
-            "userId"
-          ],
-          "isUnique": false
         }
       },
       "foreignKeys": {
