@@ -1674,11 +1674,17 @@ function captureScreenshot(ctx: CrawlContext, page: Page) {
 }
 
 function captureScreenPdfAsset(ctx: CrawlContext, page: Page) {
+  // Reserve part of the capture budget for page.pdf() itself; the scroll
+  // passes stop early when the rest is exhausted so a long capture still
+  // yields a (partially lazy-loaded) PDF instead of timing out entirely.
+  const timeoutMs = serverConfig.crawler.screenPdfTimeoutSec * 1000;
+  const pdfReserveMs = Math.min(5_000, Math.floor(timeoutMs / 2));
   return captureAsset(ctx, "screenPdf", () =>
     captureScreenPdf(page, {
       maxPageHeightPx: serverConfig.crawler.screenPdfMaxPageHeightPx,
       maxTotalHeightPx: serverConfig.crawler.screenPdfMaxTotalHeightPx,
       lazyLoadWaitMs: serverConfig.crawler.screenPdfLazyLoadWaitMs,
+      deadlineMs: Date.now() + timeoutMs - pdfReserveMs,
       onLayout: ({ rawHeight, pinnedCount, fixedCount, layout }) => {
         const { totalHeight, pageHeight, numPages } = layout;
         ctx.log.info(
@@ -1701,6 +1707,14 @@ function captureScreenPdfAsset(ctx: CrawlContext, page: Page) {
           "crawler.screenPdf.fallback": true,
           "crawler.screenPdf.requestedPageHeight": requested.pageHeight,
           "crawler.screenPdf.fallbackPageHeight": fallback.pageHeight,
+        });
+      },
+      onFallbackSkipped: (error, requested) => {
+        ctx.log.warn(
+          `Screen PDF generation failed at ${requested.pageHeight}px/page, which is already within the safe caps; not retrying with identical dimensions. Reason: ${error}`,
+        );
+        setSpanAttributes({
+          "crawler.screenPdf.fallbackSkipped": true,
         });
       },
     }),

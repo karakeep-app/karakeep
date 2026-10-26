@@ -19,8 +19,29 @@ export const SCREEN_PDF_VIEWPORT_HEIGHT = 900;
 export const SCREEN_PDF_SAFE_MAX_TOTAL_HEIGHT_PX = 60_000;
 export const SCREEN_PDF_SAFE_MAX_PAGE_HEIGHT_PX = 19_200;
 
+/**
+ * Hard ceiling on how far lazy-load scrolling will go when the total-height
+ * cap is disabled (0). Infinite feeds ("load more" article lists) can grow the
+ * document without bound while it is being scrolled, so the scroll depth - and
+ * with it the number of viewport-sized steps - must stay finite regardless of
+ * how the server is configured. Time is bounded separately by the capture
+ * deadline (`CRAWLER_SCREEN_PDF_TIMEOUT_SEC`).
+ */
+export const SCREEN_PDF_MAX_UNCAPPED_SCROLL_PX = 150_000;
+
 export const SCREEN_PDF_SCROLL_STEP_PX = 900;
 export const SCREEN_PDF_SCROLL_DELAY_MS = 80;
+
+/**
+ * How deep to scroll for lazy content: never deeper than the content that will
+ * actually be rendered, and never past the uncapped ceiling as an infinite-
+ * feed guard.
+ */
+export function screenPdfScrollCeiling(maxTotalHeightPx: number): number {
+  return maxTotalHeightPx > 0
+    ? maxTotalHeightPx
+    : SCREEN_PDF_MAX_UNCAPPED_SCROLL_PX;
+}
 
 /**
  * Extra room on each balanced page. Print layout can differ slightly from the
@@ -91,7 +112,10 @@ export function computeScreenPdfLayout({
 /**
  * How far to scroll during the lazy-loading pass. Never chase a growing
  * document (infinite-scroll feeds), and never scroll further than the content
- * that will actually be rendered.
+ * that will actually be rendered. When the total cap is disabled the document
+ * is rendered in full, but scrolling still stops at
+ * `SCREEN_PDF_MAX_UNCAPPED_SCROLL_PX` so feeds that keep loading more content
+ * cannot make the capture unbounded.
  */
 export function computeScreenPdfScrollTarget({
   initialScrollHeight,
@@ -102,11 +126,13 @@ export function computeScreenPdfScrollTarget({
   minHeight: number;
   maxTotalHeightPx: number;
 }): number {
-  const cap =
-    maxTotalHeightPx > 0
-      ? maxTotalHeightPx
-      : SCREEN_PDF_SAFE_MAX_TOTAL_HEIGHT_PX;
-  return Math.max(0, Math.min(Math.max(initialScrollHeight, minHeight), cap));
+  return Math.max(
+    0,
+    Math.min(
+      Math.max(initialScrollHeight, minHeight),
+      screenPdfScrollCeiling(maxTotalHeightPx),
+    ),
+  );
 }
 
 /** CSS injected only for the duration of the PDF render. */

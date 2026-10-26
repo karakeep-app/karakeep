@@ -28,6 +28,7 @@ export type TracingAttributeKey =
   | "crawler.archiveFullPage"
   | "crawler.hasPrecrawledArchive"
   | "crawler.screenPdf.fallback"
+  | "crawler.screenPdf.fallbackSkipped"
   | "crawler.screenPdf.requestedPageHeight"
   | "crawler.screenPdf.fallbackPageHeight"
   | "crawler.screenPdf.rawHeight"

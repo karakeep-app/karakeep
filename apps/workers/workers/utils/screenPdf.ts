@@ -10,6 +10,7 @@ import {
   SCREEN_PDF_SAFE_MAX_TOTAL_HEIGHT_PX,
   SCREEN_PDF_VIEWPORT_HEIGHT,
   SCREEN_PDF_VIEWPORT_WIDTH,
+  screenPdfScrollCeiling,
 } from "./screenPdfLayout";
 import type { ScreenPdfLayout } from "./screenPdfLayout";
 
@@ -43,6 +44,12 @@ export interface CaptureScreenPdfOptions {
   maxTotalHeightPx: number;
   /** How long to wait for lazy images/fonts after each scroll pass. */
   lazyLoadWaitMs: number;
+  /**
+   * Absolute epoch timestamp (ms) by which the scroll passes should be done,
+   * leaving the rest of the capture budget for `page.pdf()`. Without it the
+   * scroll passes assume they own the whole budget.
+   */
+  deadlineMs?: number;
   /** Called with the final layout, both on the first attempt and on fallback. */
   onLayout?: (details: ScreenPdfCaptureDetails) => void;
   onFallback?: (
@@ -50,6 +57,12 @@ export interface CaptureScreenPdfOptions {
     requested: ScreenPdfLayout,
     fallback: ScreenPdfLayout,
   ) => void;
+  /**
+   * Called when the first attempt failed, but the fallback layout is identical
+   * to the requested one (the capture is already at the safe caps), so no
+   * retry is attempted.
+   */
+  onFallbackSkipped?: (error: unknown, requested: ScreenPdfLayout) => void;
 }
 
 /**
@@ -92,13 +105,17 @@ export async function captureScreenPdf(
       minHeight: viewport.height,
       maxTotalHeightPx: options.maxTotalHeightPx,
     });
+    const scrollBudgetMs =
+      options.deadlineMs === undefined
+        ? null
+        : Math.max(0, options.deadlineMs - Date.now());
 
     const prepared = await prepareScreenPdfPage(page, {
       viewportWidth: viewport.width,
       viewportHeight: viewport.height,
       maxScrollTarget: scrollTarget,
-      maxTotalHeightPx: options.maxTotalHeightPx,
-      safeMaxTotalHeightPx: SCREEN_PDF_SAFE_MAX_TOTAL_HEIGHT_PX,
+      scrollCeilingPx: screenPdfScrollCeiling(options.maxTotalHeightPx),
+      scrollBudgetMs,
       lazyLoadWaitMs: options.lazyLoadWaitMs,
       scrollStepPx: SCREEN_PDF_SCROLL_STEP_PX,
       scrollDelayMs: SCREEN_PDF_SCROLL_DELAY_MS,
@@ -106,10 +123,17 @@ export async function captureScreenPdf(
 
     // Let any requests kicked off by the final scroll pass settle, but keep
     // this bounded so a chatty page can't consume the whole capture budget.
-    if (options.lazyLoadWaitMs > 0) {
+    const remainingMs =
+      options.deadlineMs === undefined
+        ? Infinity
+        : options.deadlineMs - Date.now();
+    if (options.lazyLoadWaitMs > 0 && remainingMs > 0) {
       await page
         .waitForLoadState("networkidle", {
-          timeout: Math.min(options.lazyLoadWaitMs, 3000),
+          timeout: Math.max(
+            1,
+            Math.min(options.lazyLoadWaitMs, 3000, remainingMs),
+          ),
         })
         .catch(() => undefined);
     }
@@ -137,6 +161,10 @@ export async function captureScreenPdf(
         maxTotalHeightPx: SCREEN_PDF_SAFE_MAX_TOTAL_HEIGHT_PX,
       });
       if (fallbackLayout.pageHeight >= layout.pageHeight) {
+        // The requested layout is already at (or below) the safe caps, so a
+        // retry with identical dimensions is very unlikely to succeed. Don't
+        // burn the remaining capture budget on it.
+        options.onFallbackSkipped?.(error, layout);
         throw error;
       }
 
@@ -166,8 +194,10 @@ async function prepareScreenPdfPage(
     viewportWidth: number;
     viewportHeight: number;
     maxScrollTarget: number;
-    maxTotalHeightPx: number;
-    safeMaxTotalHeightPx: number;
+    /** Depth guard for the one growth-chasing pass (see screenPdfScrollCeiling). */
+    scrollCeilingPx: number;
+    /** Remaining scroll budget in ms, or null when unbounded. */
+    scrollBudgetMs: number | null;
     lazyLoadWaitMs: number;
     scrollStepPx: number;
     scrollDelayMs: number;
@@ -178,8 +208,8 @@ async function prepareScreenPdfPage(
       viewportWidth,
       viewportHeight,
       maxScrollTarget,
-      maxTotalHeightPx,
-      safeMaxTotalHeightPx,
+      scrollCeilingPx,
+      scrollBudgetMs,
       lazyLoadWaitMs,
       scrollStepPx,
       scrollDelayMs,
@@ -223,13 +253,24 @@ async function prepareScreenPdfPage(
         el.setAttribute("loading", "eager");
       }
 
-      const scrollCap =
-        maxTotalHeightPx > 0 ? maxTotalHeightPx : safeMaxTotalHeightPx;
+      // Infinite feeds can grow the document while we scroll; never let the
+      // scroll pass run longer than the capture budget allows. The remaining
+      // budget (if any) is measured from the start of this evaluate call.
+      const scrollDeadline =
+        scrollBudgetMs === null ? Infinity : performance.now() + scrollBudgetMs;
+      const outOfTime = () => performance.now() > scrollDeadline;
 
       const waitForMediaAndFonts = async () => {
         const pendingImages = Array.from(document.images).filter(
           (img) => !img.complete,
         );
+        const waitBudgetMs =
+          scrollDeadline === Infinity
+            ? lazyLoadWaitMs
+            : Math.min(
+                lazyLoadWaitMs,
+                Math.max(0, scrollDeadline - performance.now()),
+              );
         await Promise.race([
           Promise.all([
             Promise.all(
@@ -251,12 +292,15 @@ async function prepareScreenPdfPage(
             ),
             document.fonts?.ready ?? Promise.resolve(),
           ]),
-          new Promise<void>((resolve) => setTimeout(resolve, lazyLoadWaitMs)),
+          new Promise<void>((resolve) => setTimeout(resolve, waitBudgetMs)),
         ]);
       };
 
       const scrollThrough = async (target: number) => {
         for (let y = 0; y <= target; y += scrollStepPx) {
+          if (outOfTime()) {
+            break;
+          }
           window.scrollTo({ top: y, left: 0, behavior: "instant" });
           await new Promise((resolve) => setTimeout(resolve, scrollDelayMs));
         }
@@ -270,9 +314,13 @@ async function prepareScreenPdfPage(
       // Scroll through the initial document height. If lazy content expands
       // the document, make one more bounded pass so elements that only appear
       // after scrolling get a chance to load. Never chase more than one
-      // expansion, and never go beyond the configured/safe height cap.
+      // expansion, and never go beyond the scroll ceiling (the render cap, or
+      // the uncapped guard for infinite feeds).
       let scrollTarget = maxScrollTarget;
       for (let pass = 0; pass < 2; pass++) {
+        if (outOfTime()) {
+          break;
+        }
         if (pass > 0) {
           const currentHeight = Math.max(
             document.body?.scrollHeight ?? 0,
@@ -281,7 +329,7 @@ async function prepareScreenPdfPage(
           if (currentHeight <= scrollTarget + 100) {
             break;
           }
-          scrollTarget = Math.min(currentHeight, scrollCap);
+          scrollTarget = Math.min(currentHeight, scrollCeilingPx);
         }
         await scrollThrough(scrollTarget);
         await waitForMediaAndFonts();
@@ -309,7 +357,10 @@ async function prepareScreenPdfPage(
         pinned.add(el);
         pinnedCount++;
         remember(el);
+        // rect.height is a border-box measurement; force border-box so the
+        // pinned height can't overshoot by the element's padding/border.
         const height = `${rect.height}px`;
+        el.style.setProperty("box-sizing", "border-box", "important");
         el.style.setProperty("height", height, "important");
         el.style.setProperty("min-height", height, "important");
         el.style.setProperty("max-height", height, "important");
@@ -402,6 +453,15 @@ async function prepareScreenPdfPage(
         );
         el.style.setProperty("right", "auto", "important");
         el.style.setProperty("bottom", "auto", "important");
+        // `right`/`bottom: auto` above removes the opposing inset that sized
+        // elements like full-width headers (`left:0; right:0`) or full-height
+        // sidebars (`top:X; bottom:0`). An absolutely-positioned box with only
+        // one anchor per axis shrinks to fit, so pin the measured box to keep
+        // the printed layout matching the screen. border-box makes the pinned
+        // size refer to the measured border box on content-box pages too.
+        el.style.setProperty("box-sizing", "border-box", "important");
+        el.style.setProperty("width", `${rect.width}px`, "important");
+        el.style.setProperty("height", `${rect.height}px`, "important");
         fixedCount++;
       }
 
