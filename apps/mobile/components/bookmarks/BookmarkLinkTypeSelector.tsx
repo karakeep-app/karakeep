@@ -68,6 +68,7 @@ export default function BookmarkLinkTypeSelector({
     screenshot: t("bookmarks.view_screenshot"),
     archive: t("bookmarks.view_archive"),
     pdf: t("bookmarks.view_pdf"),
+    screenPdf: t("bookmarks.view_screen_pdf"),
   };
 
   const viewActions = [
@@ -128,7 +129,7 @@ export default function BookmarkLinkTypeSelector({
     },
     {
       id: "screenPdf" as const,
-      title: "Screen PDF",
+      title: t("bookmarks.view_screen_pdf"),
       state: type === "screenPdf" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "doc.richtext",

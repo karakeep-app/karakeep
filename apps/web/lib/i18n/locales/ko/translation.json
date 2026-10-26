@@ -52,7 +52,8 @@
     "pdf": "저장된 PDF",
     "default": "기본값",
     "id": "ID",
-    "last_used": "마지막 사용"
+    "last_used": "마지막 사용",
+    "screen_pdf": "화면 PDF"
   },
   "form_errors": {
     "required": "필수 입력 항목입니다",
@@ -145,7 +146,11 @@
     "replace_banner": "배너 교체",
     "add_banner": "배너 추가",
     "download": "다운로드",
-    "rename": "이름 바꾸기"
+    "rename": "이름 바꾸기",
+    "recrawl_in_light_theme": "라이트 테마로 다시 가져오기",
+    "recrawl_in_dark_theme": "다크 테마로 다시 가져오기",
+    "preserve_as_screen_pdf": "화면 PDF로 보존",
+    "download_screen_pdf_file": "화면 PDF 파일 다운로드"
   },
   "tags": {
     "unused_tags": "사용되지 않은 태그",
@@ -463,7 +468,8 @@
       "preserve_pdf": "PDF를 저장하는 중",
       "preserve_video": "동영상 다운로드가 대기열에 추가되었습니다",
       "update_banner": "배너가 업데이트되었습니다",
-      "uploading_banner": "배너 업로드 중..."
+      "uploading_banner": "배너 업로드 중...",
+      "preserve_screen_pdf": "화면 PDF 보존이 시작되었습니다"
     },
     "lists": {
       "created": "목록이 생성되었습니다",
@@ -615,7 +621,8 @@
             "label": "관리자: 구독",
             "description": "사용자 구독 등급을 관리합니다."
           }
-        }
+        },
+        "scope_details": "{{scope}} 범위 상세 정보"
       },
       "no_keys": "아직 API 키가 없습니다",
       "page_description": "다른 앱과 스크립트가 내 계정을 사용할 수 있게 합니다.",
@@ -698,6 +705,13 @@
           "title": "보관된 북마크",
           "show": "태그 및 목록에 표시",
           "hide": "태그 및 목록에서 숨기기"
+        },
+        "crawler_color_scheme": {
+          "title": "크롤러 색상 테마",
+          "server_default": "서버 기본값",
+          "system": "시스템",
+          "light": "라이트",
+          "dark": "다크"
         }
       },
       "reader_settings": {
@@ -1013,7 +1027,15 @@
         "lists": "목록",
         "highlights": "하이라이트",
         "storage_used": "사용된 저장 공간",
-        "bookmarks_added": "북마크 추가됨"
+        "bookmarks_added": "북마크 추가됨",
+        "all_saved_items": "저장된 모든 항목",
+        "starred_bookmarks": "별표 표시된 북마크",
+        "archived_items": "보관된 항목",
+        "unique_tags_created": "고유 태그 생성됨",
+        "bookmark_collections": "북마크 컬렉션",
+        "text_highlights": "텍스트 하이라이트",
+        "total_asset_storage": "총 자산 저장 공간",
+        "this_month": "이번 달"
       },
       "bookmark_types": {
         "title": "북마크 유형",
@@ -1024,7 +1046,11 @@
       "recent_activity": {
         "period": "기간",
         "days": "{{count}}일",
-        "days_short": "{{count}}일"
+        "days_short": "{{count}}일",
+        "title": "최근 활동",
+        "this_week": "이번 주",
+        "this_month": "이번 달",
+        "this_year": "올해"
       },
       "top_domains": {
         "title": "인기 도메인",
@@ -1177,7 +1203,8 @@
           "weekly": "매주"
         },
         "select_frequency": "빈도 선택",
-        "save_settings": "변경 사항 저장"
+        "save_settings": "변경 사항 저장",
+        "enable_automatic_backups_description": "즐겨찾기를 자동으로 백업합니다"
       },
       "list": {
         "title": "내 백업",
@@ -1199,7 +1226,8 @@
           "download_backup": "백업 다운로드",
           "delete_backup": "백업 삭제"
         },
-        "no_backups_title": "아직 백업이 없습니다"
+        "no_backups_title": "아직 백업이 없습니다",
+        "no_backups": "아직 백업이 없습니다. 자동 백업을 활성화하거나 수동으로 만드세요."
       },
       "dialogs": {
         "delete_backup_title": "백업 삭제",

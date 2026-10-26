@@ -52,7 +52,8 @@
     "pdf": "PDF guardado",
     "default": "Predefinição",
     "id": "ID",
-    "last_used": "Última utilização"
+    "last_used": "Última utilização",
+    "screen_pdf": "PDF de ecrã"
   },
   "form_errors": {
     "required": "Este campo é obrigatório",
@@ -145,7 +146,11 @@
     "replace_banner": "Substituir banner",
     "add_banner": "Adicionar banner",
     "download": "Transferir",
-    "rename": "Renomear"
+    "rename": "Renomear",
+    "recrawl_in_light_theme": "Rastrear novamente no tema claro",
+    "recrawl_in_dark_theme": "Rastrear novamente no tema escuro",
+    "preserve_as_screen_pdf": "Preservar como PDF de ecrã",
+    "download_screen_pdf_file": "Transferir ficheiro PDF de ecrã"
   },
   "settings": {
     "webhooks": {
@@ -251,6 +256,13 @@
           "title": "Marcadores arquivados",
           "show": "Mostrar em etiquetas e listas",
           "hide": "Ocultar em etiquetas e listas"
+        },
+        "crawler_color_scheme": {
+          "title": "Esquema de cores do rastreador",
+          "server_default": "Predefinição do servidor",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Escuro"
         }
       },
       "reader_settings": {
@@ -466,7 +478,8 @@
             "label": "Admin: subscrições",
             "description": "Gerir níveis de subscrição de utilizadores."
           }
-        }
+        },
+        "scope_details": "Detalhes do âmbito {{scope}}"
       },
       "no_keys": "Ainda não há chaves da API",
       "page_description": "Permita que outras aplicações e scripts utilizem a sua conta.",
@@ -668,7 +681,15 @@
         "lists": "Listas",
         "highlights": "Destaques",
         "storage_used": "Armazenamento utilizado",
-        "bookmarks_added": "Marcadores adicionados"
+        "bookmarks_added": "Marcadores adicionados",
+        "all_saved_items": "Todos os itens guardados",
+        "starred_bookmarks": "Marcadores com estrela",
+        "archived_items": "Itens arquivados",
+        "unique_tags_created": "Etiquetas únicas criadas",
+        "bookmark_collections": "Coleções de marcadores",
+        "text_highlights": "Destaques de texto",
+        "total_asset_storage": "Armazenamento total de ativos",
+        "this_month": "Este mês"
       },
       "bookmark_types": {
         "title": "Tipos de marcadores",
@@ -679,7 +700,11 @@
       "recent_activity": {
         "period": "Período",
         "days": "{{count}} dias",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Atividade recente",
+        "this_week": "Esta semana",
+        "this_month": "Este mês",
+        "this_year": "Este ano"
       },
       "top_domains": {
         "title": "Domínios principais",
@@ -834,7 +859,8 @@
           "weekly": "Semanalmente"
         },
         "select_frequency": "Selecionar frequência",
-        "save_settings": "Guardar alterações"
+        "save_settings": "Guardar alterações",
+        "enable_automatic_backups_description": "Criar automaticamente cópias de segurança dos seus marcadores"
       },
       "list": {
         "title": "As suas cópias de segurança",
@@ -856,7 +882,8 @@
           "download_backup": "Transferir cópia de segurança",
           "delete_backup": "Eliminar cópia de segurança"
         },
-        "no_backups_title": "Ainda não há cópias de segurança"
+        "no_backups_title": "Ainda não há cópias de segurança",
+        "no_backups": "Ainda não tem nenhuma cópia de segurança. Ative as cópias de segurança automáticas ou crie uma manualmente."
       },
       "dialogs": {
         "delete_backup_title": "Eliminar cópia de segurança",
@@ -1560,7 +1587,8 @@
       "preserve_pdf": "A guardar um PDF",
       "preserve_video": "Transferência do vídeo colocada na fila",
       "update_banner": "Banner atualizado",
-      "uploading_banner": "A carregar o banner..."
+      "uploading_banner": "A carregar o banner...",
+      "preserve_screen_pdf": "A preservação do PDF de ecrã foi acionada"
     },
     "lists": {
       "updated": "Lista atualizada",

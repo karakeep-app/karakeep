@@ -52,7 +52,8 @@
     "pdf": "PDF enregistré",
     "default": "Par défaut",
     "id": "ID",
-    "last_used": "Dernière utilisation"
+    "last_used": "Dernière utilisation",
+    "screen_pdf": "PDF d'écran"
   },
   "form_errors": {
     "required": "Ce champ est obligatoire",
@@ -151,7 +152,11 @@
     "replace_banner": "Remplacer la bannière",
     "add_banner": "Ajouter une bannière",
     "download": "Télécharger",
-    "rename": "Renommer"
+    "rename": "Renommer",
+    "recrawl_in_light_theme": "Réexplorer en thème clair",
+    "recrawl_in_dark_theme": "Réexplorer en thème sombre",
+    "preserve_as_screen_pdf": "Conserver en PDF d'écran",
+    "download_screen_pdf_file": "Télécharger le fichier PDF d'écran"
   },
   "settings": {
     "back_to_app": "Retour à l'application",
@@ -190,6 +195,13 @@
           "title": "Action au clic sur un marque-page",
           "open_external_url": "Ouvrir l'URL d'origine",
           "open_bookmark_details": "Ouvrir les détails du marque-page"
+        },
+        "crawler_color_scheme": {
+          "title": "Palette de couleurs de l'exploration",
+          "server_default": "Par défaut du serveur",
+          "system": "Système",
+          "light": "Clair",
+          "dark": "Sombre"
         }
       },
       "reader_settings": {
@@ -466,7 +478,8 @@
             "label": "Admin : abonnements",
             "description": "Gérer les niveaux d'abonnement des utilisateurs."
           }
-        }
+        },
+        "scope_details": "Détails du périmètre {{scope}}"
       },
       "no_keys": "Aucune clé API pour le moment",
       "page_description": "Autorisez d'autres applications et scripts à utiliser votre compte.",
@@ -674,7 +687,15 @@
         "lists": "Listes",
         "highlights": "Surlignages",
         "storage_used": "Stockage utilisé",
-        "bookmarks_added": "Marque-pages ajoutés"
+        "bookmarks_added": "Marque-pages ajoutés",
+        "all_saved_items": "Tous les éléments enregistrés",
+        "starred_bookmarks": "Marque-pages étoilés",
+        "archived_items": "Éléments archivés",
+        "unique_tags_created": "Tags uniques créées",
+        "bookmark_collections": "Collections de marque-page",
+        "text_highlights": "Surlignages de texte",
+        "total_asset_storage": "Stockage total des actifs",
+        "this_month": "Ce mois-ci"
       },
       "bookmark_types": {
         "title": "Types de marque-page",
@@ -685,7 +706,11 @@
       "recent_activity": {
         "period": "Période",
         "days": "{{count}} jours",
-        "days_short": "{{count}} j"
+        "days_short": "{{count}} j",
+        "title": "Activité récente",
+        "this_week": "Cette semaine",
+        "this_month": "Ce mois-ci",
+        "this_year": "Cette année"
       },
       "top_domains": {
         "title": "Principaux domaines",
@@ -840,7 +865,8 @@
           "weekly": "Hebdomadaire"
         },
         "select_frequency": "Sélectionner la fréquence",
-        "save_settings": "Enregistrer les modifications"
+        "save_settings": "Enregistrer les modifications",
+        "enable_automatic_backups_description": "Créez automatiquement des sauvegardes de vos marque-pages"
       },
       "list": {
         "title": "Vos sauvegardes",
@@ -862,7 +888,8 @@
           "download_backup": "Télécharger la sauvegarde",
           "delete_backup": "Supprimer la sauvegarde"
         },
-        "no_backups_title": "Aucune sauvegarde pour le moment"
+        "no_backups_title": "Aucune sauvegarde pour le moment",
+        "no_backups": "Vous n'avez pas encore de sauvegardes. Activez les sauvegardes automatiques ou créez-en une manuellement."
       },
       "dialogs": {
         "delete_backup_title": "Supprimer la sauvegarde",
@@ -1493,7 +1520,8 @@
       "preserve_pdf": "Enregistrement du PDF en cours",
       "preserve_video": "Téléchargement de la vidéo mis en file d'attente",
       "update_banner": "Bannière mise à jour",
-      "uploading_banner": "Téléversement de la bannière…"
+      "uploading_banner": "Téléversement de la bannière…",
+      "preserve_screen_pdf": "La conservation du PDF d'écran a été déclenchée"
     },
     "lists": {
       "created": "Liste créée",

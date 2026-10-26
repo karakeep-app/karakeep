@@ -52,7 +52,8 @@
     "pdf": "پی‌دی‌اف ذخیره‌شده",
     "default": "پیش‌فرض",
     "id": "شناسه",
-    "last_used": "آخرین استفاده"
+    "last_used": "آخرین استفاده",
+    "screen_pdf": "PDF صفحه نمایش"
   },
   "form_errors": {
     "required": "این فیلد الزامی است",
@@ -148,7 +149,11 @@
     "replace_banner": "جایگزینی بنر",
     "add_banner": "اضافه کردن بنر",
     "download": "دانلود",
-    "rename": "تغییر نام"
+    "rename": "تغییر نام",
+    "recrawl_in_light_theme": "بازخزش در حالت روشن",
+    "recrawl_in_dark_theme": "بازخزش در حالت تیره",
+    "preserve_as_screen_pdf": "نگهداری به عنوان PDF صفحه نمایش",
+    "download_screen_pdf_file": "دانلود فایل PDF صفحه نمایش"
   },
   "settings": {
     "stats": {
@@ -160,7 +165,15 @@
         "bookmarks_added": "نشانک‌های افزوده‌شده",
         "total_bookmarks": "کل نشانک‌ها",
         "favorites": "علاقه‌مندی‌ها",
-        "archived": "بایگانی‌شده"
+        "archived": "بایگانی‌شده",
+        "archived_items": "آیتم‌های بایگانی‌شده",
+        "unique_tags_created": "تعداد برچسب‌های منحصربه‌فرد ایجادشده",
+        "bookmark_collections": "مجموعه‌های نشانک",
+        "text_highlights": "هایلایت‌های متنی",
+        "total_asset_storage": "کل فضای ذخیره‌سازی دارایی‌ها",
+        "this_month": "این ماه",
+        "all_saved_items": "تمام آیتم‌های ذخیره‌شده",
+        "starred_bookmarks": "نشانک‌های ستاره‌دار"
       },
       "bookmark_types": {
         "title": "انواع نشانک",
@@ -171,7 +184,11 @@
       "recent_activity": {
         "period": "بازهٔ زمانی",
         "days": "{{count}} روز",
-        "days_short": "{{count}} روز"
+        "days_short": "{{count}} روز",
+        "title": "فعالیت‌های اخیر",
+        "this_week": "این هفته",
+        "this_month": "این ماه",
+        "this_year": "امسال"
       },
       "top_domains": {
         "title": "دامنه‌های برتر",
@@ -250,6 +267,13 @@
           "title": "نشانک‌های بایگانی‌شده",
           "show": "نمایش در برچسب‌ها و فهرست‌ها",
           "hide": "پنهان در برچسب‌ها و فهرست‌ها"
+        },
+        "crawler_color_scheme": {
+          "title": "طرح رنگی خزنده",
+          "server_default": "پیش‌فرض سرور",
+          "system": "سیستم",
+          "light": "روشن",
+          "dark": "تیره"
         }
       },
       "reader_settings": {
@@ -561,7 +585,8 @@
             "label": "مدیریت: اشتراک‌ها",
             "description": "مدیریت سطوح اشتراک کاربران."
           }
-        }
+        },
+        "scope_details": "جزئیات محدوده {{scope}}"
       },
       "no_keys": "هنوز کلید API ندارید",
       "page_description": "به سایر برنامه‌ها و اسکریپت‌ها اجازه دهید از حساب شما استفاده کنند.",
@@ -830,7 +855,8 @@
           "weekly": "هفتگی"
         },
         "select_frequency": "انتخاب دورهٔ تناوب",
-        "save_settings": "ذخیرهٔ تغییرات"
+        "save_settings": "ذخیرهٔ تغییرات",
+        "enable_automatic_backups_description": "به‌صورت خودکار از نشانک‌های خود پشتیبان‌گیری ایجاد کنید"
       },
       "list": {
         "title": "نسخه‌های پشتیبان شما",
@@ -852,7 +878,8 @@
           "download_backup": "دانلود نسخهٔ پشتیبان",
           "delete_backup": "حذف نسخهٔ پشتیبان"
         },
-        "no_backups_title": "هنوز نسخهٔ پشتیبانی وجود ندارد"
+        "no_backups_title": "هنوز نسخهٔ پشتیبانی وجود ندارد",
+        "no_backups": "هنوز هیچ پشتیبان‌گیری‌ای ندارید. پشتیبان‌گیری خودکار را فعال کنید یا به‌صورت دستی یکی ایجاد کنید."
       },
       "dialogs": {
         "delete_backup_title": "حذف نسخهٔ پشتیبان",
@@ -1585,7 +1612,8 @@
       "preserve_pdf": "در حال ذخیرهٔ PDF",
       "preserve_video": "دانلود ویدئو در صف قرار گرفت",
       "update_banner": "بنر به‌روز شد",
-      "uploading_banner": "بارگذاری بنر..."
+      "uploading_banner": "بارگذاری بنر...",
+      "preserve_screen_pdf": "نگهداری PDF صفحه نمایش فعال شده‌است"
     },
     "lists": {
       "created": "فهرست ایجاد شد",

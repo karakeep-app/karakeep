@@ -52,7 +52,8 @@
     "delete_named": "למחוק את {{name}}?",
     "optional_field": "{{label}} (אופציונלי)",
     "show_password": "הצגת סיסמה",
-    "hide_password": "הסתרת סיסמה"
+    "hide_password": "הסתרת סיסמה",
+    "screen_pdf": "PDF של תצוגת המסך"
   },
   "form_errors": {
     "required": "שדה זה הוא חובה",
@@ -164,7 +165,11 @@
     "load_more": "טעינת עוד",
     "copy": "העתקה",
     "copied": "הועתק",
-    "expand": "הרחבה"
+    "expand": "הרחבה",
+    "recrawl_in_light_theme": "סריקה מחדש במצב בהיר",
+    "recrawl_in_dark_theme": "סריקה מחדש במצב כהה",
+    "preserve_as_screen_pdf": "שמירה כ-PDF של תצוגת המסך",
+    "download_screen_pdf_file": "הורדת קובץ PDF של תצוגת המסך"
   },
   "highlights": {
     "no_highlights": "עדיין אין לך הדגשות.",
@@ -232,6 +237,13 @@
           "title": "סימניות בארכיון",
           "show": "הצגה בתגיות וברשימות",
           "hide": "הסתרה בתגיות וברשימות"
+        },
+        "crawler_color_scheme": {
+          "title": "ערכת צבעים של הסורק",
+          "server_default": "ברירת מחדל של השרת",
+          "system": "מערכת",
+          "light": "בהיר",
+          "dark": "כהה"
         }
       },
       "reader_settings": {
@@ -298,7 +310,15 @@
         "lists": "רשימות",
         "highlights": "הדגשות",
         "storage_used": "שטח אחסון בשימוש",
-        "bookmarks_added": "סימניות שנוספו"
+        "bookmarks_added": "סימניות שנוספו",
+        "all_saved_items": "כל הפריטים שנשמרו",
+        "starred_bookmarks": "סימניות עם כוכב",
+        "archived_items": "פריטים שבארכיון",
+        "unique_tags_created": "תגיות ייחודיות שנוצרו",
+        "bookmark_collections": "אוספי סימניות",
+        "text_highlights": "הדגשות טקסט",
+        "total_asset_storage": "סה\"כ שטח אחסון לנכסים",
+        "this_month": "החודש"
       },
       "bookmark_types": {
         "title": "סוגי סימניות",
@@ -309,7 +329,11 @@
       "recent_activity": {
         "period": "תקופה",
         "days": "{{count}} ימים",
-        "days_short": "{{count}} י׳"
+        "days_short": "{{count}} י׳",
+        "title": "פעילות אחרונה",
+        "this_week": "השבוע",
+        "this_month": "החודש",
+        "this_year": "השנה"
       },
       "top_domains": {
         "title": "דומיינים מובילים",
@@ -597,7 +621,8 @@
             "label": "ניהול: מנויים",
             "description": "ניהול דרגות מנוי של משתמשים."
           }
-        }
+        },
+        "scope_details": "פרטי הרשאת {{scope}}"
       },
       "no_keys": "אין עדיין מפתחות API",
       "page_description": "מתן אפשרות לאפליקציות ולסקריפטים אחרים להשתמש בחשבון שלך.",
@@ -871,7 +896,8 @@
           "weekly": "שבועי"
         },
         "select_frequency": "בחר תדירות",
-        "save_settings": "שמירת שינויים"
+        "save_settings": "שמירת שינויים",
+        "enable_automatic_backups_description": "צור גיבויים של הסימניות שלך באופן אוטומטי"
       },
       "list": {
         "title": "הגיבויים שלך",
@@ -893,7 +919,8 @@
           "download_backup": "הורדת גיבוי",
           "delete_backup": "מחיקת גיבוי"
         },
-        "no_backups_title": "אין עדיין גיבויים"
+        "no_backups_title": "אין עדיין גיבויים",
+        "no_backups": "אין לך עדיין גיבויים. הפעל גיבויים אוטומטיים או צור אחד ידנית."
       },
       "dialogs": {
         "delete_backup_title": "מחיקת גיבוי",
@@ -1616,7 +1643,8 @@
       "bulk_tag_added_two": "התגית \"{{tag}}\" נוספה ל-{{count}} סימניות",
       "bulk_added_to_list_two": "{{count}} סימניות נוספו לרשימה",
       "update_banner": "הבאנר עודכן",
-      "uploading_banner": "מעלה באנר..."
+      "uploading_banner": "מעלה באנר...",
+      "preserve_screen_pdf": "שימור כ-PDF של תצוגת המסך הופעל"
     },
     "lists": {
       "created": "הרשימה נוצרה",

@@ -52,7 +52,8 @@
     "hide_password": "Hide password",
     "default": "Default",
     "id": "ID",
-    "last_used": "Last used"
+    "last_used": "Last used",
+    "screen_pdf": "Screen PDF"
   },
   "form_errors": {
     "required": "This field is required",
@@ -148,7 +149,11 @@
     "replace_banner": "Replace banner",
     "add_banner": "Add banner",
     "download": "Download",
-    "rename": "Rename"
+    "rename": "Rename",
+    "recrawl_in_light_theme": "Recrawl in Light Theme",
+    "recrawl_in_dark_theme": "Recrawl in Dark Theme",
+    "preserve_as_screen_pdf": "Preserve as Screen PDF",
+    "download_screen_pdf_file": "Download Screen PDF File"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet.",
@@ -331,6 +336,13 @@
           "title": "Archived bookmarks",
           "show": "Show in tags and lists",
           "hide": "Hide in tags and lists"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler Color Scheme",
+          "server_default": "Server default",
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
         }
       },
       "reader_settings": {
@@ -630,7 +642,8 @@
             "label": "Admin: subscriptions",
             "description": "Manage user subscription tiers."
           }
-        }
+        },
+        "scope_details": "{{scope}} scope details"
       },
       "no_keys": "No API keys yet",
       "page_description": "Let other apps and scripts use your account.",
@@ -798,7 +811,15 @@
         "lists": "Lists",
         "highlights": "Highlights",
         "storage_used": "Storage used",
-        "bookmarks_added": "Bookmarks added"
+        "bookmarks_added": "Bookmarks added",
+        "all_saved_items": "All saved items",
+        "starred_bookmarks": "Starred bookmarks",
+        "archived_items": "Archived items",
+        "unique_tags_created": "Unique tags created",
+        "bookmark_collections": "Bookmark collections",
+        "text_highlights": "Text highlights",
+        "total_asset_storage": "Total asset storage",
+        "this_month": "This Month"
       },
       "bookmark_types": {
         "title": "Bookmark types",
@@ -809,7 +830,11 @@
       "recent_activity": {
         "period": "Period",
         "days": "{{count}} days",
-        "days_short": "{{count}}d"
+        "days_short": "{{count}}d",
+        "title": "Recent Activity",
+        "this_week": "This Week",
+        "this_month": "This Month",
+        "this_year": "This Year"
       },
       "top_domains": {
         "title": "Top domains",
@@ -963,7 +988,8 @@
           "weekly": "Weekly"
         },
         "select_frequency": "Select frequency",
-        "save_settings": "Save changes"
+        "save_settings": "Save changes",
+        "enable_automatic_backups_description": "Automatically create backups of your bookmarks"
       },
       "list": {
         "title": "Your backups",
@@ -985,7 +1011,8 @@
           "download_backup": "Download backup",
           "delete_backup": "Delete backup"
         },
-        "no_backups_title": "No backups yet"
+        "no_backups_title": "No backups yet",
+        "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually."
       },
       "dialogs": {
         "delete_backup_title": "Delete backup",
@@ -1580,7 +1607,8 @@
       "bulk_tag_removed_other": "Tag \"{{tag}}\" removed from {{count}} bookmarks",
       "updated": "Bookmark updated",
       "update_banner": "Banner updated",
-      "uploading_banner": "Uploading banner..."
+      "uploading_banner": "Uploading banner...",
+      "preserve_screen_pdf": "Screen PDF preservation has been triggered"
     },
     "lists": {
       "created": "List created",

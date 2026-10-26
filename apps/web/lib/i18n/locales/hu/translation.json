@@ -73,7 +73,11 @@
     "replace_banner": "Banner cseréje",
     "add_banner": "Banner hozzáadása",
     "download": "Letöltés",
-    "rename": "Átnevezés"
+    "rename": "Átnevezés",
+    "recrawl_in_light_theme": "Újratérképezés világos témában",
+    "recrawl_in_dark_theme": "Újratérképezés sötét témában",
+    "preserve_as_screen_pdf": "Mentés képernyő-PDF-ként",
+    "download_screen_pdf_file": "Képernyő-PDF fájl letöltése"
   },
   "settings": {
     "user_settings": "Beállítások",
@@ -138,6 +142,13 @@
           "title": "Archivált könyvjelzők",
           "show": "Megjelenítés címkékben és listákban",
           "hide": "Elrejtés címkékben és listákban"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler színsémája",
+          "server_default": "Szerver alapértelmezett értéke",
+          "system": "Rendszer",
+          "light": "Világos",
+          "dark": "Sötét"
         }
       },
       "reader_settings": {
@@ -387,7 +398,8 @@
             "label": "Admin: feliratkozások",
             "description": "Felhasználói előfizetési szintek kezelése."
           }
-        }
+        },
+        "scope_details": "{{scope}} hatókör részletei"
       },
       "no_keys": "Még nincsenek API-kulcsok",
       "page_description": "Engedd, hogy más alkalmazások és szkriptek használják a fiókodat.",
@@ -590,7 +602,15 @@
         "lists": "Listák",
         "highlights": "Kiemelések",
         "storage_used": "Felhasznált tárhely",
-        "bookmarks_added": "Könyvjelzők hozzáadva"
+        "bookmarks_added": "Könyvjelzők hozzáadva",
+        "all_saved_items": "Minden mentett elem",
+        "starred_bookmarks": "Csillagozott könyvjelzők",
+        "archived_items": "Archivált elemek",
+        "unique_tags_created": "Egyedi címkék létrehozva",
+        "bookmark_collections": "Könyvjelzőgyűjtemények",
+        "text_highlights": "Szövegkiemelések",
+        "total_asset_storage": "Eszközök teljes tárolókapacitása",
+        "this_month": "Ebben a hónapban"
       },
       "bookmark_types": {
         "title": "Könyvjelzőtípusok",
@@ -601,7 +621,11 @@
       "recent_activity": {
         "period": "Időszak",
         "days": "{{count}} nap",
-        "days_short": "{{count}} n"
+        "days_short": "{{count}} n",
+        "title": "Legutóbbi tevékenység",
+        "this_week": "Ezen a héten",
+        "this_month": "Ebben a hónapban",
+        "this_year": "Ebben az évben"
       },
       "top_domains": {
         "title": "Legnépszerűbb domainek",
@@ -755,7 +779,8 @@
           "weekly": "Hetente"
         },
         "select_frequency": "Gyakoriság kiválasztása",
-        "save_settings": "Módosítások mentése"
+        "save_settings": "Módosítások mentése",
+        "enable_automatic_backups_description": "Automatikusan készíts biztonsági másolatot a könyvjelzőidről"
       },
       "list": {
         "title": "Biztonsági mentéseid",
@@ -777,7 +802,8 @@
           "download_backup": "Biztonsági mentés letöltése",
           "delete_backup": "Biztonsági mentés törlése"
         },
-        "no_backups_title": "Még nincsenek biztonsági mentések"
+        "no_backups_title": "Még nincsenek biztonsági mentések",
+        "no_backups": "Még nincsenek biztonsági másolataid. Engedélyezd az automatikus biztonsági mentéseket, vagy hozz létre egyet manuálisan."
       },
       "dialogs": {
         "delete_backup_title": "Biztonsági mentés törlése",
@@ -884,7 +910,8 @@
     "pdf": "Mentett PDF",
     "default": "Alapértelmezett",
     "id": "Azonosító",
-    "last_used": "Utoljára használt"
+    "last_used": "Utoljára használt",
+    "screen_pdf": "Képernyő-PDF"
   },
   "form_errors": {
     "required": "Ez a mező kötelező",
@@ -1567,7 +1594,8 @@
       "preserve_pdf": "PDF mentése folyamatban",
       "preserve_video": "Videóletöltés ütemezve",
       "update_banner": "Banner frissítve",
-      "uploading_banner": "Banner feltöltése..."
+      "uploading_banner": "Banner feltöltése...",
+      "preserve_screen_pdf": "A képernyő-PDF mentése elindult."
     },
     "lists": {
       "created": "Lista létrehozva",

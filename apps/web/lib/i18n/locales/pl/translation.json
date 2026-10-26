@@ -52,7 +52,8 @@
     "pdf": "Zapisany PDF",
     "default": "Domyślne",
     "id": "ID",
-    "last_used": "Ostatnio używane"
+    "last_used": "Ostatnio używane",
+    "screen_pdf": "PDF ekranu"
   },
   "form_errors": {
     "required": "To pole jest wymagane",
@@ -148,7 +149,11 @@
     "replace_banner": "Zastąp baner",
     "add_banner": "Dodaj baner",
     "download": "Pobierz",
-    "rename": "Zmień nazwę"
+    "rename": "Zmień nazwę",
+    "recrawl_in_light_theme": "Ponowne skanowanie w jasnym motywie",
+    "recrawl_in_dark_theme": "Ponowne skanowanie w ciemnym motywie",
+    "preserve_as_screen_pdf": "Zachowaj jako PDF ekranu",
+    "download_screen_pdf_file": "Pobierz plik PDF ekranu"
   },
   "settings": {
     "info": {
@@ -185,6 +190,13 @@
           "title": "Akcja po kliknięciu zakładki",
           "open_external_url": "Otwórz oryginalny URL",
           "open_bookmark_details": "Otwórz szczegóły zakładki"
+        },
+        "crawler_color_scheme": {
+          "title": "Schemat kolorów skanowania",
+          "server_default": "Wartość domyślna serwera",
+          "system": "Systemowy",
+          "light": "Jasny",
+          "dark": "Ciemny"
         }
       },
       "reader_settings": {
@@ -464,7 +476,8 @@
             "label": "Admin: subskrypcje",
             "description": "Zarządzaj poziomami subskrypcji użytkowników."
           }
-        }
+        },
+        "scope_details": "Szczegóły zakresu {{scope}}"
       },
       "no_keys": "Brak kluczy API",
       "page_description": "Pozwól innym aplikacjom i skryptom korzystać z Twojego konta.",
@@ -677,7 +690,15 @@
         "lists": "Listy",
         "highlights": "Podświetlenia",
         "storage_used": "Wykorzystane miejsce",
-        "bookmarks_added": "Dodano zakładki"
+        "bookmarks_added": "Dodano zakładki",
+        "all_saved_items": "Wszystkie zapisane elementy",
+        "starred_bookmarks": "Zakładki oznaczone gwiazdką",
+        "archived_items": "Zarchiwizowane elementy",
+        "unique_tags_created": "Utworzono unikalne tagi",
+        "bookmark_collections": "Kolekcje zakładek",
+        "text_highlights": "Podświetlenia tekstu",
+        "total_asset_storage": "Całkowita ilość miejsca na zasoby",
+        "this_month": "W tym miesiącu"
       },
       "bookmark_types": {
         "title": "Typy zakładek",
@@ -688,7 +709,11 @@
       "recent_activity": {
         "period": "Okres",
         "days": "{{count}} dni",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Ostatnia aktywność",
+        "this_week": "W tym tygodniu",
+        "this_month": "W tym miesiącu",
+        "this_year": "W tym roku"
       },
       "top_domains": {
         "title": "Najpopularniejsze domeny",
@@ -844,7 +869,8 @@
           "weekly": "Co tydzień"
         },
         "select_frequency": "Wybierz częstotliwość",
-        "save_settings": "Zapisz zmiany"
+        "save_settings": "Zapisz zmiany",
+        "enable_automatic_backups_description": "Automatyczne tworzenie kopii zapasowych zakładek"
       },
       "list": {
         "title": "Twoje kopie zapasowe",
@@ -866,7 +892,8 @@
           "download_backup": "Pobierz kopię zapasową",
           "delete_backup": "Usuń kopię zapasową"
         },
-        "no_backups_title": "Brak kopii zapasowych"
+        "no_backups_title": "Brak kopii zapasowych",
+        "no_backups": "Nie masz jeszcze żadnych kopii zapasowych. Włącz automatyczne tworzenie kopii zapasowych lub utwórz ją ręcznie."
       },
       "dialogs": {
         "delete_backup_title": "Usuń kopię zapasową",
@@ -1271,7 +1298,8 @@
       "preserve_pdf": "Zapisywanie PDF",
       "preserve_video": "Pobieranie wideo dodane do kolejki",
       "update_banner": "Zaktualizowano baner",
-      "uploading_banner": "Przesyłanie banera..."
+      "uploading_banner": "Przesyłanie banera...",
+      "preserve_screen_pdf": "Zapis PDF ekranu został uruchomiony"
     },
     "tags": {
       "created": "Utworzono tag",

@@ -52,7 +52,8 @@
     "pdf": "已儲存的 PDF",
     "default": "預設",
     "id": "ID",
-    "last_used": "上次使用"
+    "last_used": "上次使用",
+    "screen_pdf": "螢幕 PDF"
   },
   "form_errors": {
     "required": "此欄位為必填",
@@ -145,7 +146,11 @@
     "replace_banner": "更換橫幅",
     "add_banner": "新增橫幅",
     "download": "下載",
-    "rename": "重新命名"
+    "rename": "重新命名",
+    "recrawl_in_light_theme": "以淺色主題重新抓取",
+    "recrawl_in_dark_theme": "以深色主題重新抓取",
+    "preserve_as_screen_pdf": "儲存為螢幕 PDF",
+    "download_screen_pdf_file": "下載螢幕 PDF 檔案"
   },
   "settings": {
     "back_to_app": "返回應用程式",
@@ -184,6 +189,13 @@
           "title": "書籤點擊動作",
           "open_external_url": "開啟原始網址",
           "open_bookmark_details": "開啟書籤詳細資訊"
+        },
+        "crawler_color_scheme": {
+          "title": "爬蟲程式配色方案",
+          "server_default": "伺服器預設值",
+          "system": "跟隨系統",
+          "light": "淺色",
+          "dark": "深色"
         }
       },
       "reader_settings": {
@@ -458,7 +470,8 @@
             "label": "管理：訂閱",
             "description": "管理使用者訂閱方案。"
           }
-        }
+        },
+        "scope_details": "{{scope}} 權限範圍詳情"
       },
       "no_keys": "尚無 API 金鑰",
       "page_description": "讓其他應用程式和指令碼使用您的帳號。",
@@ -656,7 +669,15 @@
         "lists": "清單",
         "highlights": "醒目提示",
         "storage_used": "已使用的儲存空間",
-        "bookmarks_added": "已新增書籤"
+        "bookmarks_added": "已新增書籤",
+        "all_saved_items": "所有已儲存項目",
+        "starred_bookmarks": "已加星號的書籤",
+        "archived_items": "已封存的項目",
+        "unique_tags_created": "已建立的唯一標籤",
+        "bookmark_collections": "書籤收藏",
+        "text_highlights": "文字醒目提示",
+        "total_asset_storage": "資產儲存總量",
+        "this_month": "本月"
       },
       "bookmark_types": {
         "title": "書籤類型",
@@ -667,7 +688,11 @@
       "recent_activity": {
         "period": "期間",
         "days": "{{count}} 天",
-        "days_short": "{{count}} 天"
+        "days_short": "{{count}} 天",
+        "title": "近期活動",
+        "this_week": "本週",
+        "this_month": "本月",
+        "this_year": "今年"
       },
       "top_domains": {
         "title": "熱門網域",
@@ -820,7 +845,8 @@
           "weekly": "每週"
         },
         "select_frequency": "選取頻率",
-        "save_settings": "儲存變更"
+        "save_settings": "儲存變更",
+        "enable_automatic_backups_description": "自動建立你的書籤備份"
       },
       "list": {
         "title": "您的備份",
@@ -842,7 +868,8 @@
           "download_backup": "下載備份",
           "delete_backup": "刪除備份"
         },
-        "no_backups_title": "尚無備份"
+        "no_backups_title": "尚無備份",
+        "no_backups": "你還沒有任何備份。啟用自動備份或手動建立一個。"
       },
       "dialogs": {
         "delete_backup_title": "刪除備份",
@@ -1462,7 +1489,8 @@
       "preserve_pdf": "正在儲存 PDF",
       "preserve_video": "影片下載已排入佇列",
       "update_banner": "橫幅已更新",
-      "uploading_banner": "正在上傳橫幅..."
+      "uploading_banner": "正在上傳橫幅...",
+      "preserve_screen_pdf": "已觸發螢幕 PDF 儲存"
     },
     "lists": {
       "created": "清單已建立",

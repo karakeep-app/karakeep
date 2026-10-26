@@ -1483,6 +1483,7 @@
       "types": {
         "screenshot": "Screenshot",
         "pdf": "Saved PDF",
+        "screenPdf": "Screen PDF",
         "assetScreenshot": "Preview image",
         "fullPageArchive": "Saved page",
         "precrawledArchive": "Imported saved page",

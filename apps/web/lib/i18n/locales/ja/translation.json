@@ -73,7 +73,11 @@
     "replace_banner": "バナーを置き換える",
     "add_banner": "バナーを追加",
     "download": "ダウンロード",
-    "rename": "名前を変更"
+    "rename": "名前を変更",
+    "recrawl_in_light_theme": "ライトテーマで再クロール",
+    "recrawl_in_dark_theme": "ダークテーマで再クロール",
+    "preserve_as_screen_pdf": "画面PDFとして保存する",
+    "download_screen_pdf_file": "画面PDFファイルをダウンロード"
   },
   "admin": {
     "admins_only": {
@@ -284,6 +288,13 @@
           "show": "タグとリストに表示する",
           "title": "アーカイブされたブックマーク",
           "hide": "タグとリストで非表示にする"
+        },
+        "crawler_color_scheme": {
+          "title": "クローラーの配色",
+          "server_default": "サーバーの既定",
+          "system": "システム",
+          "light": "ライト",
+          "dark": "ダーク"
         }
       },
       "reader_settings": {
@@ -531,7 +542,8 @@
             "label": "管理: サブスクリプション",
             "description": "ユーザーのサブスクリプションティアを管理します。"
           }
-        }
+        },
+        "scope_details": "{{scope}} スコープの詳細"
       },
       "no_keys": "API キーはまだありません",
       "page_description": "他のアプリやスクリプトからアカウントを利用できるようにします。",
@@ -758,7 +770,15 @@
         "lists": "リスト",
         "highlights": "ハイライト",
         "storage_used": "使用ストレージ",
-        "bookmarks_added": "ブックマークが追加されました"
+        "bookmarks_added": "ブックマークが追加されました",
+        "all_saved_items": "保存されたすべてのアイテム",
+        "starred_bookmarks": "スター付きのブックマーク",
+        "archived_items": "アーカイブされたアイテム",
+        "unique_tags_created": "一意のタグが作成されました",
+        "bookmark_collections": "ブックマークコレクション",
+        "text_highlights": "テキストのハイライト",
+        "total_asset_storage": "アセットストレージの合計",
+        "this_month": "今月"
       },
       "bookmark_types": {
         "title": "ブックマークの種類",
@@ -769,7 +789,11 @@
       "recent_activity": {
         "period": "期間",
         "days": "{{count}} 日間",
-        "days_short": "{{count}}日"
+        "days_short": "{{count}}日",
+        "title": "最近のアクティビティ",
+        "this_week": "今週",
+        "this_month": "今月",
+        "this_year": "今年"
       },
       "top_domains": {
         "title": "トップドメイン",
@@ -922,7 +946,8 @@
           "weekly": "毎週"
         },
         "select_frequency": "頻度を選択",
-        "save_settings": "変更を保存"
+        "save_settings": "変更を保存",
+        "enable_automatic_backups_description": "ブックマークのバックアップを自動で作成します"
       },
       "list": {
         "title": "バックアップ",
@@ -944,7 +969,8 @@
           "download_backup": "バックアップをダウンロード",
           "delete_backup": "バックアップを削除"
         },
-        "no_backups_title": "バックアップはまだありません"
+        "no_backups_title": "バックアップはまだありません",
+        "no_backups": "まだバックアップがありません。自動バックアップを有効にするか、手動で作成してください。"
       },
       "dialogs": {
         "delete_backup_title": "バックアップを削除",
@@ -1051,7 +1077,8 @@
     "pdf": "保存した PDF",
     "default": "既定",
     "id": "ID",
-    "last_used": "最終使用"
+    "last_used": "最終使用",
+    "screen_pdf": "画面PDF"
   },
   "form_errors": {
     "required": "この項目は必須です",
@@ -1552,7 +1579,8 @@
       "preserve_pdf": "PDF を保存しています",
       "preserve_video": "動画のダウンロードをキューに追加しました",
       "update_banner": "バナーを更新しました",
-      "uploading_banner": "バナーをアップロード中..."
+      "uploading_banner": "バナーをアップロード中...",
+      "preserve_screen_pdf": "画面PDFの保存が開始されました"
     },
     "lists": {
       "created": "リストを作成しました",

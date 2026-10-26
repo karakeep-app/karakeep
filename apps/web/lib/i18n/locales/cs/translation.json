@@ -52,7 +52,8 @@
     "pdf": "Uložené PDF",
     "default": "Výchozí",
     "id": "ID",
-    "last_used": "Naposledy použito"
+    "last_used": "Naposledy použito",
+    "screen_pdf": "PDF obrazovky"
   },
   "form_errors": {
     "required": "Toto pole je povinné",
@@ -148,7 +149,11 @@
     "replace_banner": "Nahradit banner",
     "add_banner": "Přidat banner",
     "download": "Stáhnout",
-    "rename": "Přejmenovat"
+    "rename": "Přejmenovat",
+    "recrawl_in_light_theme": "Znovu prolézt ve světlém motivu",
+    "recrawl_in_dark_theme": "Znovu prolézt v tmavém motivu",
+    "preserve_as_screen_pdf": "Uložit jako PDF obrazovky",
+    "download_screen_pdf_file": "Stáhnout soubor PDF obrazovky"
   },
   "settings": {
     "ai": {
@@ -339,7 +344,8 @@
             "label": "Administrátor: předplatná",
             "description": "Správa úrovní předplatného uživatelů."
           }
-        }
+        },
+        "scope_details": "Podrobnosti rozsahu {{scope}}"
       },
       "no_keys": "Zatím žádné API klíče",
       "page_description": "Umožni jiným aplikacím a skriptům používat tvůj účet.",
@@ -475,6 +481,13 @@
           "title": "Akce po kliknutí na záložku",
           "open_external_url": "Otevřít původní URL",
           "open_bookmark_details": "Otevřít detaily záložky"
+        },
+        "crawler_color_scheme": {
+          "title": "Barevné schéma procházení",
+          "server_default": "Výchozí hodnota serveru",
+          "system": "Systém",
+          "light": "Světlý",
+          "dark": "Tmavý"
         }
       },
       "basic_details": "Základní podrobnosti",
@@ -677,7 +690,15 @@
         "lists": "Seznamy",
         "highlights": "Zvýraznění",
         "storage_used": "Využité úložiště",
-        "bookmarks_added": "Přidány záložky"
+        "bookmarks_added": "Přidány záložky",
+        "all_saved_items": "Všechny uložené položky",
+        "starred_bookmarks": "Označené záložky",
+        "archived_items": "Archivované položky",
+        "unique_tags_created": "Vytvořeny jedinečné štítky",
+        "bookmark_collections": "Sbírky záložek",
+        "text_highlights": "Zvýraznění textu",
+        "total_asset_storage": "Celkové úložiště aktiv",
+        "this_month": "Tento měsíc"
       },
       "bookmark_types": {
         "title": "Typy záložek",
@@ -688,7 +709,11 @@
       "recent_activity": {
         "period": "Období",
         "days": "{{count}} dní",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Nedávná aktivita",
+        "this_week": "Tento týden",
+        "this_month": "Tento měsíc",
+        "this_year": "Tento rok"
       },
       "top_domains": {
         "title": "Nejčastější domény",
@@ -844,7 +869,8 @@
           "weekly": "Týdně"
         },
         "select_frequency": "Vyber četnost",
-        "save_settings": "Uložit změny"
+        "save_settings": "Uložit změny",
+        "enable_automatic_backups_description": "Automaticky vytvářet zálohy mých záložek"
       },
       "list": {
         "title": "Tvoje zálohy",
@@ -866,7 +892,8 @@
           "download_backup": "Stáhnout zálohu",
           "delete_backup": "Smazat zálohu"
         },
-        "no_backups_title": "Zatím žádné zálohy"
+        "no_backups_title": "Zatím žádné zálohy",
+        "no_backups": "Zatím nemáš žádné zálohy. Povol automatické zálohování nebo vytvoř zálohu ručně."
       },
       "dialogs": {
         "delete_backup_title": "Smazat zálohu",
@@ -1297,7 +1324,8 @@
       "preserve_pdf": "Ukládám PDF",
       "preserve_video": "Stažení videa zařazeno do fronty",
       "update_banner": "Banner byl aktualizován",
-      "uploading_banner": "Nahrávání banneru..."
+      "uploading_banner": "Nahrávání banneru...",
+      "preserve_screen_pdf": "Ukládání PDF obrazovky spuštěno"
     },
     "lists": {
       "created": "Seznam byl vytvořen",

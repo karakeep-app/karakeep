@@ -52,7 +52,8 @@
     "pdf": "Сохранённый PDF",
     "default": "По умолчанию",
     "id": "ID",
-    "last_used": "Последнее использование"
+    "last_used": "Последнее использование",
+    "screen_pdf": "PDF экрана"
   },
   "form_errors": {
     "required": "Это поле обязательно",
@@ -275,6 +276,13 @@
           "hide": "Скрывать в тегах и списках",
           "title": "Архивированные закладки",
           "show": "Показывать в тегах и списках"
+        },
+        "crawler_color_scheme": {
+          "title": "Цветовая схема сканирования",
+          "server_default": "По умолчанию на сервере",
+          "system": "Системный",
+          "light": "Светлый",
+          "dark": "Тёмный"
         }
       },
       "reader_settings": {
@@ -482,7 +490,8 @@
             "label": "Администрирование: подписки",
             "description": "Управление уровнями подписки пользователей."
           }
-        }
+        },
+        "scope_details": "Сведения об области доступа {{scope}}"
       },
       "no_keys": "Пока нет API ключей",
       "page_description": "Разрешите другим приложениям и скриптам использовать ваш аккаунт.",
@@ -766,7 +775,15 @@
         "lists": "Списки",
         "highlights": "Выделения",
         "storage_used": "Использовано места",
-        "bookmarks_added": "Закладки добавлены"
+        "bookmarks_added": "Закладки добавлены",
+        "all_saved_items": "Все сохраненные элементы",
+        "starred_bookmarks": "Избранные закладки",
+        "archived_items": "Архивные элементы",
+        "unique_tags_created": "Уникальные теги созданы",
+        "bookmark_collections": "Коллекции закладок",
+        "text_highlights": "Текстовые выделения",
+        "total_asset_storage": "Всего места в хранилище активов",
+        "this_month": "В этом месяце"
       },
       "bookmark_types": {
         "title": "Типы закладок",
@@ -777,7 +794,11 @@
       "recent_activity": {
         "period": "Период",
         "days": "Дней: {{count}}",
-        "days_short": "{{count}} д"
+        "days_short": "{{count}} д",
+        "title": "Недавняя активность",
+        "this_week": "На этой неделе",
+        "this_month": "В этом месяце",
+        "this_year": "В этом году"
       },
       "top_domains": {
         "title": "Топ доменов",
@@ -933,7 +954,8 @@
           "weekly": "Еженедельно"
         },
         "select_frequency": "Выбрать периодичность",
-        "save_settings": "Сохранить изменения"
+        "save_settings": "Сохранить изменения",
+        "enable_automatic_backups_description": "Автоматически создавать резервные копии ваших закладок"
       },
       "list": {
         "title": "Ваши резервные копии",
@@ -955,7 +977,8 @@
           "download_backup": "Скачать резервную копию",
           "delete_backup": "Удалить резервную копию"
         },
-        "no_backups_title": "Пока нет резервных копий"
+        "no_backups_title": "Пока нет резервных копий",
+        "no_backups": "У вас ещё нет резервных копий. Включите автоматическое резервное копирование или создайте его вручную."
       },
       "dialogs": {
         "delete_backup_title": "Удалить резервную копию",
@@ -1083,7 +1106,11 @@
     "replace_banner": "Заменить баннер",
     "add_banner": "Добавить баннер",
     "download": "Скачать",
-    "rename": "Переименовать"
+    "rename": "Переименовать",
+    "recrawl_in_light_theme": "Пересканировать в светлой теме",
+    "recrawl_in_dark_theme": "Пересканировать в тёмной теме",
+    "preserve_as_screen_pdf": "Сохранить как PDF экрана",
+    "download_screen_pdf_file": "Скачать PDF-файл экрана"
   },
   "editor": {
     "text_toolbar": {
@@ -1510,7 +1537,8 @@
       "preserve_pdf": "Сохранение PDF…",
       "preserve_video": "Скачивание видео поставлено в очередь",
       "update_banner": "Баннер обновлён",
-      "uploading_banner": "Загрузка баннера..."
+      "uploading_banner": "Загрузка баннера...",
+      "preserve_screen_pdf": "Сохранение PDF экрана было запущено"
     },
     "lists": {
       "created": "Список создан",

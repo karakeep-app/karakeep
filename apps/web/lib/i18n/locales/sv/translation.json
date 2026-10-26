@@ -52,7 +52,8 @@
     "pdf": "Sparad PDF",
     "default": "Standard",
     "id": "ID",
-    "last_used": "Senast använd"
+    "last_used": "Senast använd",
+    "screen_pdf": "Skärm-PDF"
   },
   "form_errors": {
     "required": "Det här fältet är obligatoriskt",
@@ -148,7 +149,11 @@
     "replace_banner": "Ersätt banderoll",
     "add_banner": "Lägg till banderoll",
     "download": "Ladda ner",
-    "rename": "Byt namn"
+    "rename": "Byt namn",
+    "recrawl_in_light_theme": "Omindexera i ljust läge",
+    "recrawl_in_dark_theme": "Omindexera i mörkt läge",
+    "preserve_as_screen_pdf": "Spara som skärm-PDF",
+    "download_screen_pdf_file": "Ladda ner skärm-PDF-fil"
   },
   "settings": {
     "back_to_app": "Tillbaka till appen",
@@ -186,6 +191,13 @@
           "title": "Arkiverade bokmärken",
           "show": "Visa i taggar och listor",
           "hide": "Dölj i taggar och listor"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler-färgschema",
+          "server_default": "Serverstandard",
+          "system": "System",
+          "light": "Ljust",
+          "dark": "Mörkt"
         }
       },
       "reader_settings": {
@@ -461,7 +473,8 @@
             "label": "Admin: prenumerationer",
             "description": "Hantera nivåer för användarprenumerationer."
           }
-        }
+        },
+        "scope_details": "{{scope}} omfångsdetaljer"
       },
       "no_keys": "Inga API-nycklar ännu",
       "page_description": "Låt andra appar och skript använda ditt konto.",
@@ -665,7 +678,15 @@
         "lists": "Listor",
         "highlights": "Markeringar",
         "storage_used": "Använt lagringsutrymme",
-        "bookmarks_added": "Bokmärken tillagda"
+        "bookmarks_added": "Bokmärken tillagda",
+        "all_saved_items": "Alla sparade objekt",
+        "starred_bookmarks": "Stjärnmärkta bokmärken",
+        "archived_items": "Arkiverade objekt",
+        "unique_tags_created": "Unika taggar skapade",
+        "bookmark_collections": "Bokmärkessamlingar",
+        "text_highlights": "Textmarkeringar",
+        "total_asset_storage": "Total lagring av tillgångar",
+        "this_month": "Den här månaden"
       },
       "bookmark_types": {
         "title": "Bokmärkestyper",
@@ -676,7 +697,11 @@
       "recent_activity": {
         "period": "Period",
         "days": "{{count}} dagar",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Senaste aktivitet",
+        "this_week": "Den här veckan",
+        "this_month": "Den här månaden",
+        "this_year": "Det här året"
       },
       "top_domains": {
         "title": "Populäraste domäner",
@@ -830,7 +855,8 @@
           "weekly": "Varje vecka"
         },
         "select_frequency": "Välj frekvens",
-        "save_settings": "Spara ändringar"
+        "save_settings": "Spara ändringar",
+        "enable_automatic_backups_description": "Skapa säkerhetskopior av dina bokmärken automatiskt"
       },
       "list": {
         "title": "Dina säkerhetskopior",
@@ -852,7 +878,8 @@
           "download_backup": "Ladda ner säkerhetskopia",
           "delete_backup": "Radera säkerhetskopia"
         },
-        "no_backups_title": "Inga säkerhetskopior ännu"
+        "no_backups_title": "Inga säkerhetskopior ännu",
+        "no_backups": "Du har inga säkerhetskopior än. Aktivera automatiska säkerhetskopieringar eller skapa en manuellt."
       },
       "dialogs": {
         "delete_backup_title": "Radera säkerhetskopia",
@@ -1380,7 +1407,8 @@
       "preserve_pdf": "Sparar en PDF",
       "preserve_video": "Nedladdning av video har köats",
       "update_banner": "Banderollen har uppdaterats",
-      "uploading_banner": "Laddar upp banderoll..."
+      "uploading_banner": "Laddar upp banderoll...",
+      "preserve_screen_pdf": "Skärm-PDF-sparande har triggats"
     },
     "lists": {
       "created": "Listan har skapats",

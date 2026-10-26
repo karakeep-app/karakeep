@@ -232,7 +232,8 @@
     "pdf": "Spremljeni PDF",
     "default": "Zadano",
     "id": "ID",
-    "last_used": "Zadnje korišteno"
+    "last_used": "Zadnje korišteno",
+    "screen_pdf": "PDF zaslona"
   },
   "form_errors": {
     "required": "Ovo polje je obavezno",
@@ -365,6 +366,13 @@
           "title": "Arhivirane oznake",
           "show": "Prikaži u oznakama i popisima",
           "hide": "Sakrij u oznakama i popisima"
+        },
+        "crawler_color_scheme": {
+          "title": "Shema boja crawlera",
+          "server_default": "Zadana vrijednost poslužitelja",
+          "system": "Sistemski",
+          "light": "Svijetli",
+          "dark": "Tamni"
         }
       },
       "reader_settings": {
@@ -537,7 +545,8 @@
             "label": "Administrator: pretplate",
             "description": "Upravljanje razinama korisničkih pretplata."
           }
-        }
+        },
+        "scope_details": "{{scope}} detalji opsega"
       },
       "no_keys": "Još nema API ključeva",
       "page_description": "Dopusti drugim aplikacijama i skriptama da koriste tvoj račun.",
@@ -772,7 +781,15 @@
         "lists": "Popisi",
         "highlights": "Istaknuto",
         "storage_used": "Iskorištena pohrana",
-        "bookmarks_added": "Dodane oznake"
+        "bookmarks_added": "Dodane oznake",
+        "all_saved_items": "Svi spremljeni predmeti",
+        "starred_bookmarks": "Označene knjižne oznake",
+        "archived_items": "Arhivirane stavke",
+        "unique_tags_created": "Stvorene jedinstvene oznake",
+        "bookmark_collections": "Zbirke oznaka",
+        "text_highlights": "Istaknuti tekstovi",
+        "total_asset_storage": "Ukupna pohrana imovine",
+        "this_month": "Ovaj mjesec"
       },
       "bookmark_types": {
         "title": "Vrste oznaka",
@@ -783,7 +800,11 @@
       "recent_activity": {
         "period": "Razdoblje",
         "days": "{{count}} dana",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Nedavna aktivnost",
+        "this_week": "Ovaj tjedan",
+        "this_month": "Ovaj mjesec",
+        "this_year": "Ove godine"
       },
       "top_domains": {
         "title": "Najčešće domene",
@@ -938,7 +959,8 @@
           "weekly": "Tjedno"
         },
         "select_frequency": "Odaberi učestalost",
-        "save_settings": "Spremi promjene"
+        "save_settings": "Spremi promjene",
+        "enable_automatic_backups_description": "Automatski kreiraj sigurnosne kopije tvojih oznaka"
       },
       "list": {
         "title": "Tvoje sigurnosne kopije",
@@ -960,7 +982,8 @@
           "download_backup": "Preuzmi sigurnosnu kopiju",
           "delete_backup": "Izbriši sigurnosnu kopiju"
         },
-        "no_backups_title": "Još nema sigurnosnih kopija"
+        "no_backups_title": "Još nema sigurnosnih kopija",
+        "no_backups": "Još nemaš nikakvih sigurnosnih kopija. Omogući automatske sigurnosne kopije ili napravi jednu ručno."
       },
       "dialogs": {
         "delete_backup_title": "Izbriši sigurnosnu kopiju",
@@ -1088,7 +1111,11 @@
     "replace_banner": "Zamijeni banner",
     "add_banner": "Dodaj banner",
     "download": "Preuzmi",
-    "rename": "Preimenuj"
+    "rename": "Preimenuj",
+    "recrawl_in_light_theme": "Ponovno indeksiraj u svijetloj temi",
+    "recrawl_in_dark_theme": "Ponovno indeksiraj u tamnoj temi",
+    "preserve_as_screen_pdf": "Spremi kao PDF zaslona",
+    "download_screen_pdf_file": "Preuzmi PDF datoteku zaslona"
   },
   "highlights": {
     "no_highlights": "Još nemaš nijednu istaknutu stavku.",
@@ -1511,7 +1538,8 @@
       "preserve_pdf": "Spremanje PDF-a",
       "preserve_video": "Preuzimanje videa je u redu čekanja",
       "update_banner": "Banner je ažuriran",
-      "uploading_banner": "Učitavanje bannera..."
+      "uploading_banner": "Učitavanje bannera...",
+      "preserve_screen_pdf": "Spremanje PDF-a zaslona je pokrenuto"
     },
     "lists": {
       "created": "Popis je stvoren",

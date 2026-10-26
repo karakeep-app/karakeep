@@ -6,7 +6,7 @@ import { useTranslation } from "@/lib/i18n/client";
 import { useInterfaceLang } from "@/lib/userLocalSettings/bookmarksLayout";
 import { updateInterfaceLang } from "@/lib/userLocalSettings/userLocalSettings";
 import { useUserSettings } from "@/lib/userSettings";
-import { Laptop, Moon, Palette, Sun } from "lucide-react";
+import { Laptop, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { langNameMappings } from "@karakeep/shared/langs";
