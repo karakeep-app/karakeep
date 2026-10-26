@@ -10,7 +10,8 @@
 // /process-pdf and /read-image-text take. The remote sandbox responds with:
 //
 //   /probe-url:       multipart parts: contentType, metadata
-//   /fetch-page:      multipart parts: page, [html], [screenshot], [pdf], parsed
+//   /fetch-page:      multipart parts: page, [html], [screenshot], [pdf],
+//                     [screenPdf], parsed
 //   /fetch-asset:     the file
 //   /archive-page:    the archived page
 //   /download-video:  the video, or 204 No Content when there's nothing to
@@ -83,6 +84,7 @@ const zCrawlContextSchema = z.object({
   url: z.string(),
   runProxy: zRunProxySchema,
   browserCrawlingEnabled: z.boolean(),
+  colorScheme: z.enum(["system", "light", "dark"]),
 });
 export type SerializedCrawlContext = z.infer<typeof zCrawlContextSchema>;
 
@@ -95,10 +97,12 @@ export const zProbeRequestSchema = z.object({
 export const zFetchPageRequestSchema = z.object({
   ctx: zCrawlContextSchema,
   forceStorePdf: z.boolean(),
+  forceStoreScreenPdf: z.boolean(),
   html: z.string().optional(),
   skipParseOnRetryableStatus: z.boolean(),
   skipScreenshot: z.boolean().optional(),
   skipPdf: z.boolean().optional(),
+  skipScreenPdf: z.boolean().optional(),
   skipParse: z.boolean().optional(),
 });
 
@@ -156,7 +160,14 @@ type JsonParts = {
 };
 
 export interface Part {
-  name: JsonPartName | "request" | "html" | "file" | "screenshot" | "pdf";
+  name:
+    | JsonPartName
+    | "request"
+    | "html"
+    | "file"
+    | "screenshot"
+    | "pdf"
+    | "screenPdf";
   contentType: string;
   data: string | Uint8Array;
 }
@@ -301,7 +312,7 @@ export async function* readParts(
   if (!boundary || !response.body) {
     throw new Error("The remote sandbox didn't send a multipart response");
   }
-  // The remote sandbox is trusted, and the html, screenshot and PDF can be
+  // The remote sandbox is trusted, and the html, screenshot and PDFs can be
   // larger than the parser's default limits.
   for await (const part of parseMultipartStream(response.body, {
     boundary,

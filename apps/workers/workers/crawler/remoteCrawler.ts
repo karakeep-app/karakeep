@@ -29,7 +29,14 @@ async function request(
     signal = ctx.abortSignal,
   }: { html?: string; signal?: AbortSignal } = {},
 ): Promise<Response> {
-  const { jobId, bookmarkId, userId, runProxy, browserCrawlingEnabled } = ctx;
+  const {
+    jobId,
+    bookmarkId,
+    userId,
+    runProxy,
+    browserCrawlingEnabled,
+    colorScheme,
+  } = ctx;
   return postToSandbox(
     endpoint,
     {
@@ -40,6 +47,7 @@ async function request(
         url: ctx.url,
         runProxy,
         browserCrawlingEnabled,
+        colorScheme,
       },
       ...params,
     },
@@ -120,13 +128,18 @@ export const remoteCrawler: Crawler = {
           htmlContent: precrawledHtml ?? "",
           screenshot: undefined,
           pdf: undefined,
+          screenPdf: undefined,
           ...readJsonPart(part, "page"),
         };
       } else if (!page) {
         throw unexpectedPart(part);
       } else if (part.name === "html") {
         page.htmlContent = Buffer.from(part.bytes).toString("utf8");
-      } else if (part.name === "screenshot" || part.name === "pdf") {
+      } else if (
+        part.name === "screenshot" ||
+        part.name === "pdf" ||
+        part.name === "screenPdf"
+      ) {
         page[part.name] = Buffer.from(part.bytes);
       } else {
         parsed = readJsonPart(part, "parsed");

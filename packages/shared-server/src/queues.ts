@@ -83,9 +83,11 @@ export const zCrawlLinkRequestSchema = z.object({
   runInference: z.boolean().optional(),
   archiveFullPage: z.boolean().optional().default(false),
   storePdf: z.boolean().optional().default(false),
+  storeScreenPdf: z.boolean().optional().default(false),
+  colorScheme: z.enum(["system", "light", "dark"]).optional(),
   // When set, only capture the requested offline copies (archiveFullPage /
-  // storePdf) and leave the rest of the bookmark (crawl status, metadata,
-  // content, screenshot, inference) untouched.
+  // storePdf / storeScreenPdf) and leave the rest of the bookmark (crawl
+  // status, metadata, content, screenshot, inference) untouched.
   offlineCopiesOnly: z.boolean().optional().default(false),
 });
 export type ZCrawlLinkRequest = z.input<typeof zCrawlLinkRequestSchema>;
@@ -116,8 +118,9 @@ export const LowPriorityCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
 // The payload is first filled in with the schema defaults, so leaving a flag
 // out and passing its default produce the same key. Keys sort before
 // serialization so `{a, b}` and `{b, a}` produce the same key, and differing
-// flags (archiveFullPage, runInference, storePdf, offlineCopiesOnly) yield
-// distinct keys so non-equivalent crawls are not deduped together.
+// flags (archiveFullPage, runInference, storePdf, storeScreenPdf,
+// offlineCopiesOnly) or a different colorScheme yield distinct keys so
+// non-equivalent crawls are not deduped together.
 export function buildCrawlIdempotencyKey(payload: ZCrawlLinkRequest): string {
   const canonical = zCrawlLinkRequestSchema.parse(payload);
   return `crawl:${JSON.stringify(canonical, Object.keys(canonical).sort())}`;
