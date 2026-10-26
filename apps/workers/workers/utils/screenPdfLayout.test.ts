@@ -4,7 +4,8 @@ import {
   buildScreenPdfPageCss,
   computeScreenPdfLayout,
   computeScreenPdfScrollTarget,
-  SCREEN_PDF_SAFE_MAX_TOTAL_HEIGHT_PX,
+  SCREEN_PDF_MAX_UNCAPPED_SCROLL_PX,
+  screenPdfScrollCeiling,
 } from "./screenPdfLayout";
 
 const base = {
@@ -100,6 +101,17 @@ describe("computeScreenPdfLayout", () => {
   });
 });
 
+describe("screenPdfScrollCeiling", () => {
+  test("uses the configured total cap when set", () => {
+    expect(screenPdfScrollCeiling(60_000)).toBe(60_000);
+    expect(screenPdfScrollCeiling(1)).toBe(1);
+  });
+
+  test("uses the uncapped ceiling when the total cap is disabled", () => {
+    expect(screenPdfScrollCeiling(0)).toBe(SCREEN_PDF_MAX_UNCAPPED_SCROLL_PX);
+  });
+});
+
 describe("computeScreenPdfScrollTarget", () => {
   test("stops at the total height cap", () => {
     expect(
@@ -111,14 +123,31 @@ describe("computeScreenPdfScrollTarget", () => {
     ).toBe(60_000);
   });
 
-  test("uses the safety bound when the total cap is disabled", () => {
+  test("follows the measured height when it is below the uncapped ceiling", () => {
     expect(
       computeScreenPdfScrollTarget({
         initialScrollHeight: 100_000,
         minHeight: 900,
         maxTotalHeightPx: 0,
       }),
-    ).toBe(SCREEN_PDF_SAFE_MAX_TOTAL_HEIGHT_PX);
+    ).toBe(100_000);
+  });
+
+  test("bounds infinite-scroll feeds with the uncapped ceiling", () => {
+    expect(
+      computeScreenPdfScrollTarget({
+        initialScrollHeight: 1_000_000,
+        minHeight: 900,
+        maxTotalHeightPx: 0,
+      }),
+    ).toBe(SCREEN_PDF_MAX_UNCAPPED_SCROLL_PX);
+    expect(
+      computeScreenPdfScrollTarget({
+        initialScrollHeight: 180_000,
+        minHeight: 900,
+        maxTotalHeightPx: 0,
+      }),
+    ).toBe(SCREEN_PDF_MAX_UNCAPPED_SCROLL_PX);
   });
 
   test("does not scroll past a short document", () => {
