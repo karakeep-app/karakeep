@@ -876,6 +876,7 @@ export interface components {
             imageAssetId?: string | null;
             screenshotAssetId?: string | null;
             pdfAssetId?: string | null;
+            screenPdfAssetId?: string | null;
             fullPageArchiveAssetId?: string | null;
             precrawledArchiveAssetId?: string | null;
             videoAssetId?: string | null;
@@ -931,6 +932,7 @@ export interface components {
           | "linkHtmlContent"
           | "screenshot"
           | "pdf"
+          | "screenPdf"
           | "assetScreenshot"
           | "bannerImage"
           | "fullPageArchive"
@@ -1846,6 +1848,7 @@ export interface operations {
             | "linkHtmlContent"
             | "screenshot"
             | "pdf"
+            | "screenPdf"
             | "assetScreenshot"
             | "bannerImage"
             | "fullPageArchive"
@@ -1872,6 +1875,7 @@ export interface operations {
               | "linkHtmlContent"
               | "screenshot"
               | "pdf"
+              | "screenPdf"
               | "assetScreenshot"
               | "bannerImage"
               | "fullPageArchive"

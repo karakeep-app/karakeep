@@ -225,6 +225,7 @@ export class User {
         tagStyle: true,
         curatedTagIds: true,
         inferredTagLang: true,
+        crawlerColorScheme: true,
       },
     });
 
@@ -250,6 +251,7 @@ export class User {
       tagStyle: settings.tagStyle ?? "as-generated",
       curatedTagIds: settings.curatedTagIds ?? null,
       inferredTagLang: settings.inferredTagLang,
+      crawlerColorScheme: settings.crawlerColorScheme,
     };
   }
 
@@ -280,6 +282,7 @@ export class User {
         tagStyle: input.tagStyle,
         curatedTagIds: input.curatedTagIds,
         inferredTagLang: input.inferredTagLang,
+        crawlerColorScheme: input.crawlerColorScheme,
       })
       .where(eq(users.id, this.user.id));
   }

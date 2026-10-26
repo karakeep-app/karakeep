@@ -202,6 +202,9 @@ export const zWrappedStatsResponseSchema = z.object({
 export const zReaderFontFamilySchema = z.enum(["serif", "sans", "mono"]);
 export type ZReaderFontFamily = z.infer<typeof zReaderFontFamilySchema>;
 
+export const zCrawlerColorSchemeSchema = z.enum(["system", "light", "dark"]);
+export type ZCrawlerColorScheme = z.infer<typeof zCrawlerColorSchemeSchema>;
+
 export const zUserSettingsSchema = z.object({
   bookmarkClickAction: z.enum([
     "open_original_link",
@@ -222,6 +225,8 @@ export const zUserSettingsSchema = z.object({
   tagStyle: zTagStyleSchema,
   curatedTagIds: z.array(z.string()).nullable(),
   inferredTagLang: z.string().nullable(),
+  // Crawler settings (nullable = use the server default)
+  crawlerColorScheme: zCrawlerColorSchemeSchema.nullable(),
 });
 
 export type ZUserSettings = z.infer<typeof zUserSettingsSchema>;
@@ -241,6 +246,7 @@ export const zUpdateUserSettingsSchema = zUserSettingsSchema.partial().pick({
   tagStyle: true,
   curatedTagIds: true,
   inferredTagLang: true,
+  crawlerColorScheme: true,
 });
 
 export const zUpdateBackupSettingsSchema = zUpdateUserSettingsSchema.pick({

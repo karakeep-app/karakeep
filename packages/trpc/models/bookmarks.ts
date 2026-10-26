@@ -180,6 +180,9 @@ export class Bookmark extends BareBookmark {
           (a) => a.assetType == AssetTypes.LINK_SCREENSHOT,
         )?.id,
         pdfAssetId: assets.find((a) => a.assetType == AssetTypes.LINK_PDF)?.id,
+        screenPdfAssetId: assets.find(
+          (a) => a.assetType == AssetTypes.LINK_SCREEN_PDF,
+        )?.id,
         fullPageArchiveAssetId: assets.find(
           (a) => a.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         )?.id,
@@ -713,6 +716,9 @@ export class Bookmark extends BareBookmark {
             }
             if (row.assets.assetType == AssetTypes.LINK_PDF) {
               content.pdfAssetId = row.assets.id;
+            }
+            if (row.assets.assetType == AssetTypes.LINK_SCREEN_PDF) {
+              content.screenPdfAssetId = row.assets.id;
             }
             if (row.assets.assetType == AssetTypes.LINK_FULL_PAGE_ARCHIVE) {
               content.fullPageArchiveAssetId = row.assets.id;

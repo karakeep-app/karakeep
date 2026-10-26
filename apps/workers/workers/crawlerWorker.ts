@@ -130,6 +130,7 @@ import {
 } from "./utils/metadataResolver";
 import { runParseSubprocess } from "./utils/parseSubprocess";
 import { installRedirectGuard } from "./utils/redirectGuard";
+import { captureScreenPdf } from "./utils/screenPdf";
 
 const tracer = getTracer("@karakeep/workers");
 
@@ -166,6 +167,8 @@ export interface CrawlContext {
    * are fetched over plain HTTP instead of with the browser.
    */
   browserCrawlingEnabled: boolean;
+  /** Color scheme emulated in the crawler browser for this run. */
+  colorScheme: "system" | "light" | "dark";
   log: CrawlLogger;
 }
 
@@ -341,7 +344,9 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage, storePdf } = request.data;
+  const { bookmarkId, archiveFullPage, storePdf, storeScreenPdf } =
+    request.data;
+  const requestedColorScheme = request.data.colorScheme;
   // Add the bookmark id before any database or network work so failed and
   // aborted crawler events remain discoverable by bookmark id.
   addLogFields<"crawlerWorker.run">({
@@ -354,6 +359,7 @@ async function runCrawler(
     crawledAt,
     screenshotAssetId: oldScreenshotAssetId,
     pdfAssetId: oldPdfAssetId,
+    screenPdfAssetId: oldScreenPdfAssetId,
     imageAssetId: oldImageAssetId,
     fullPageArchiveAssetId: oldFullPageArchiveAssetId,
     contentAssetId: oldContentAssetId,
@@ -363,12 +369,21 @@ async function runCrawler(
 
   const userData = await db.query.users.findFirst({
     where: eq(users.id, userId),
-    columns: { browserCrawlingEnabled: true },
+    columns: {
+      browserCrawlingEnabled: true,
+      crawlerColorScheme: true,
+    },
   });
   if (!userData) {
     log.error(`User ${userId} not found`);
     throw new Error(`User ${userId} not found`);
   }
+
+  // Priority: per-crawl override > user preference > server default.
+  const colorScheme =
+    requestedColorScheme ??
+    userData.crawlerColorScheme ??
+    serverConfig.crawler.colorScheme;
 
   const runProxy = selectRunProxies();
   const ctx: CrawlContext = {
@@ -380,6 +395,7 @@ async function runCrawler(
     runProxy,
     // null means the user has no explicit setting, which defaults to enabled.
     browserCrawlingEnabled: userData.browserCrawlingEnabled !== false,
+    colorScheme,
     log,
   };
 
@@ -387,12 +403,14 @@ async function runCrawler(
     "user.id": userId,
     "crawler.url": url,
     "crawler.domain": getBookmarkDomain(url),
+    "crawler.colorScheme": colorScheme,
     "crawler.proxy": redactUrlCredentials(
       runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
     ),
   });
   setSpanAttributes({
     "crawler.archiveFullPage": archiveFullPage,
+    "crawler.colorScheme": colorScheme,
     "bookmark.id": bookmarkId,
     "bookmark.url": url,
     "bookmark.domain": getBookmarkDomain(url),
@@ -460,11 +478,13 @@ async function runCrawler(
       oldAssets: {
         screenshotAssetId: oldScreenshotAssetId,
         pdfAssetId: oldPdfAssetId,
+        screenPdfAssetId: oldScreenPdfAssetId,
         imageAssetId: oldImageAssetId,
         contentAssetId: oldContentAssetId,
       },
       precrawledArchiveAssetId,
       forceStorePdf: storePdf ?? false,
+      forceStoreScreenPdf: storeScreenPdf ?? false,
       numRetriesLeft,
       probeMetadataPromise,
     });
@@ -890,11 +910,13 @@ interface CrawlAndParseUrlArgs {
   oldAssets: {
     screenshotAssetId: string | undefined;
     pdfAssetId: string | undefined;
+    screenPdfAssetId: string | undefined;
     imageAssetId: string | undefined;
     contentAssetId: string | undefined;
   };
   precrawledArchiveAssetId: string | undefined;
   forceStorePdf: boolean;
+  forceStoreScreenPdf: boolean;
   numRetriesLeft: number;
   probeMetadataPromise: Promise<ParseSubprocessOutput["metadata"] | null>;
 }
@@ -915,6 +937,7 @@ const crawlAndParseUrl = traced(
       oldAssets,
       precrawledArchiveAssetId,
       forceStorePdf,
+      forceStoreScreenPdf,
       numRetriesLeft,
       probeMetadataPromise,
     } = args;
@@ -924,12 +947,14 @@ const crawlAndParseUrl = traced(
 
     setSpanAttributes({
       "crawler.forceStorePdf": forceStorePdf,
+      "crawler.forceStoreScreenPdf": forceStoreScreenPdf,
       "crawler.hasPrecrawledArchive": !!precrawledArchiveAssetId,
     });
     let result: {
       htmlContent: string;
       screenshot: Buffer | undefined;
       pdf: Buffer | undefined;
+      screenPdf: Buffer | undefined;
       statusCode: number | null;
       url: string;
     };
@@ -947,11 +972,12 @@ const crawlAndParseUrl = traced(
         htmlContent,
         screenshot: await screenshotPrecrawledArchive(ctx, htmlContent),
         pdf: undefined,
+        screenPdf: undefined,
         statusCode: 200,
         url,
       };
     } else {
-      result = await crawlPage(ctx, forceStorePdf);
+      result = await crawlPage(ctx, forceStorePdf, forceStoreScreenPdf);
     }
     abortSignal.throwIfAborted();
 
@@ -959,6 +985,7 @@ const crawlAndParseUrl = traced(
       htmlContent,
       screenshot,
       pdf,
+      screenPdf,
       statusCode,
       url: browserUrl,
     } = result;
@@ -1067,6 +1094,12 @@ const crawlAndParseUrl = traced(
     );
     abortSignal.throwIfAborted();
 
+    const screenPdfAssetInfo = await raceWith(
+      storeCapturedAsset(ctx, "screenPdf", screenPdf),
+      abortRace(abortSignal),
+    );
+    abortSignal.throwIfAborted();
+
     const htmlContentAssetInfo = await storeHtmlContent(
       ctx,
       readableContent?.content,
@@ -1147,6 +1180,22 @@ const crawlAndParseUrl = traced(
         );
         assetIdsToDelete.push(oldAssets.pdfAssetId);
       }
+      if (screenPdfAssetInfo) {
+        updateAsset(
+          oldAssets.screenPdfAssetId,
+          {
+            id: screenPdfAssetInfo.assetId,
+            bookmarkId,
+            userId,
+            assetType: AssetTypes.LINK_SCREEN_PDF,
+            contentType: screenPdfAssetInfo.contentType,
+            size: screenPdfAssetInfo.size,
+            fileName: screenPdfAssetInfo.fileName,
+          },
+          txn,
+        );
+        assetIdsToDelete.push(oldAssets.screenPdfAssetId);
+      }
       if (imageAssetInfo) {
         updateAsset(oldAssets.imageAssetId, imageAssetInfo, txn);
         assetIdsToDelete.push(oldAssets.imageAssetId);
@@ -1222,6 +1271,7 @@ interface CrawlPageResult {
   htmlContent: string;
   screenshot: Buffer | undefined;
   pdf: Buffer | undefined;
+  screenPdf: Buffer | undefined;
   statusCode: number;
   url: string;
 }
@@ -1232,9 +1282,13 @@ export const crawlPage = traced(
   async (
     ctx: CrawlContext,
     forceStorePdf: boolean,
+    forceStoreScreenPdf: boolean,
   ): Promise<CrawlPageResult> => {
     const { url, jobId, abortSignal, runProxy, log } = ctx;
-    setSpanAttributes({ "crawler.forceStorePdf": forceStorePdf });
+    setSpanAttributes({
+      "crawler.forceStorePdf": forceStorePdf,
+      "crawler.forceStoreScreenPdf": forceStoreScreenPdf,
+    });
 
     if (!ctx.browserCrawlingEnabled) {
       return browserlessCrawlPage(ctx);
@@ -1252,6 +1306,7 @@ export const crawlPage = traced(
       !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
     const context = await browser.newContext({
       viewport: { width: 1440, height: 900 },
+      ...(ctx.colorScheme !== "system" ? { colorScheme: ctx.colorScheme } : {}),
       userAgent,
       // A UTC browser behind a proxy that geolocates elsewhere is a
       // strong bot signal; this should match the proxy's location.
@@ -1345,17 +1400,20 @@ export const crawlPage = traced(
 
       log.info(`Finished waiting for the page to load.`);
 
-      const [htmlContent, screenshot, pdf] = await capturePageAssets(
-        ctx,
-        activePage,
-        forceStorePdf,
-      );
+      const { htmlContent, screenshot, pdf, screenPdf } =
+        await capturePageAssets(
+          ctx,
+          activePage,
+          forceStorePdf,
+          forceStoreScreenPdf,
+        );
 
       return {
         htmlContent,
         statusCode: mainDocumentStatus ?? response?.status() ?? 0,
         screenshot,
         pdf,
+        screenPdf,
         url: activePage.url(),
       };
     } finally {
@@ -1423,6 +1481,7 @@ async function renderPrecrawledArchiveScreenshot(
   try {
     context = await browser.newContext({
       viewport: { width: 1440, height: 900 },
+      ...(ctx.colorScheme !== "system" ? { colorScheme: ctx.colorScheme } : {}),
       javaScriptEnabled: false,
       serviceWorkers: "block",
       offline: true,
@@ -1580,19 +1639,15 @@ function captureAsset(
   capture: () => Promise<Buffer>,
 ): Promise<Buffer | undefined> {
   const { abortSignal, log } = ctx;
-  const { captureSpanName, label } = CAPTURED_ASSETS[kind];
+  const { captureSpanName, label, timeoutSec, timeoutEnvVar } =
+    CAPTURED_ASSETS[kind];
   return span(captureSpanName, async () => {
     const { data, error } = await tryCatch(
       raceWith<Buffer>(
         capture(),
-        timeoutRace<Buffer>(
-          serverConfig.crawler.screenshotTimeoutSec * 1000,
-          () => {
-            throw new Error(
-              "TIMED_OUT, consider increasing CRAWLER_SCREENSHOT_TIMEOUT_SEC",
-            );
-          },
-        ),
+        timeoutRace<Buffer>(timeoutSec() * 1000, () => {
+          throw new Error(`TIMED_OUT, consider increasing ${timeoutEnvVar}`);
+        }),
         abortRaceResolve(abortSignal, Buffer.from("")),
       ),
     );
@@ -1618,9 +1673,44 @@ function captureScreenshot(ctx: CrawlContext, page: Page) {
   );
 }
 
+function captureScreenPdfAsset(ctx: CrawlContext, page: Page) {
+  return captureAsset(ctx, "screenPdf", () =>
+    captureScreenPdf(page, {
+      maxPageHeightPx: serverConfig.crawler.screenPdfMaxPageHeightPx,
+      maxTotalHeightPx: serverConfig.crawler.screenPdfMaxTotalHeightPx,
+      lazyLoadWaitMs: serverConfig.crawler.screenPdfLazyLoadWaitMs,
+      onLayout: ({ rawHeight, pinnedCount, fixedCount, layout }) => {
+        const { totalHeight, pageHeight, numPages } = layout;
+        ctx.log.info(
+          `Screen PDF layout: ${rawHeight}px document -> ${totalHeight}px rendered across ${numPages} page(s) of ${pageHeight}px (${pinnedCount} viewport-sized element(s) pinned, ${fixedCount} fixed element(s) anchored)`,
+        );
+        setSpanAttributes({
+          "crawler.screenPdf.rawHeight": rawHeight,
+          "crawler.screenPdf.totalHeight": totalHeight,
+          "crawler.screenPdf.pageHeight": pageHeight,
+          "crawler.screenPdf.pages": numPages,
+          "crawler.screenPdf.pinnedElements": pinnedCount,
+          "crawler.screenPdf.fixedElements": fixedCount,
+        });
+      },
+      onFallback: (error, requested, fallback) => {
+        ctx.log.warn(
+          `Screen PDF generation failed at ${requested.pageHeight}px/page (${requested.numPages} page(s)); retrying with ${fallback.pageHeight}px/page (${fallback.numPages} page(s)). Reason: ${error}`,
+        );
+        setSpanAttributes({
+          "crawler.screenPdf.fallback": true,
+          "crawler.screenPdf.requestedPageHeight": requested.pageHeight,
+          "crawler.screenPdf.fallbackPageHeight": fallback.pageHeight,
+        });
+      },
+    }),
+  );
+}
+
 /**
- * Extracts the page HTML and (depending on config) captures a screenshot and
- * a PDF, all in parallel.
+ * Extracts the page HTML and, depending on config, captures a screenshot, an
+ * A4 PDF, and a Screen PDF. The Screen PDF runs last because it scrolls and
+ * mutates the page; the other captures must see the untouched rendered DOM.
  */
 const capturePageAssets = traced(
   "crawlPage.captureAssets",
@@ -1628,7 +1718,13 @@ const capturePageAssets = traced(
     ctx: CrawlContext,
     activePage: Page,
     forceStorePdf: boolean,
-  ): Promise<[string, Buffer | undefined, Buffer | undefined]> => {
+    forceStoreScreenPdf: boolean,
+  ): Promise<{
+    htmlContent: string;
+    screenshot: Buffer | undefined;
+    pdf: Buffer | undefined;
+    screenPdf: Buffer | undefined;
+  }> => {
     const { abortSignal, log } = ctx;
     const htmlPromise = activePage.content().then((content) => {
       abortSignal.throwIfAborted();
@@ -1640,20 +1736,41 @@ const capturePageAssets = traced(
       ? captureScreenshot(ctx, activePage)
       : Promise.resolve(undefined);
 
-    const pdfPromise =
-      serverConfig.crawler.storePdf || forceStorePdf
-        ? captureAsset(ctx, "pdf", () =>
-            activePage.pdf({ format: "A4", printBackground: true }),
-          )
-        : Promise.resolve(undefined);
-
-    const captureResults = await Promise.all([
+    const [htmlContent, screenshot] = await Promise.all([
       htmlPromise,
       screenshotPromise,
-      pdfPromise,
     ] as const);
     abortSignal.throwIfAborted();
-    return captureResults;
+
+    // The print PDF is intentionally always rendered in a light color scheme.
+    // It is the print-oriented archive, not a screen capture, so a user's dark
+    // crawler preference must not leak into it.
+    let pdf: Buffer | undefined;
+    if (serverConfig.crawler.storePdf || forceStorePdf) {
+      await activePage.emulateMedia({ colorScheme: "light" });
+      await activePage.waitForTimeout(150);
+      try {
+        pdf = await captureAsset(ctx, "pdf", () =>
+          activePage.pdf({ format: "A4", printBackground: true }),
+        );
+      } finally {
+        await activePage
+          .emulateMedia({
+            colorScheme: ctx.colorScheme === "system" ? null : ctx.colorScheme,
+          })
+          .catch(() => undefined);
+        await activePage.waitForTimeout(100).catch(() => undefined);
+      }
+    }
+    abortSignal.throwIfAborted();
+
+    const screenPdf =
+      serverConfig.crawler.storeScreenPdf || forceStoreScreenPdf
+        ? await captureScreenPdfAsset(ctx, activePage)
+        : undefined;
+    abortSignal.throwIfAborted();
+
+    return { htmlContent, screenshot, pdf, screenPdf };
   },
 );
 
@@ -1750,6 +1867,7 @@ const browserlessCrawlPage = traced(
       statusCode: response.status,
       screenshot: undefined,
       pdf: undefined,
+      screenPdf: undefined,
       url: response.url,
     };
   },
@@ -1875,6 +1993,8 @@ const CAPTURED_ASSETS = {
     // Must match the format capturePageAssets takes the screenshot in.
     contentType: "image/jpeg",
     fileName: "screenshot.jpeg",
+    timeoutSec: () => serverConfig.crawler.screenshotTimeoutSec,
+    timeoutEnvVar: "CRAWLER_SCREENSHOT_TIMEOUT_SEC",
   },
   pdf: {
     captureSpanName: "crawlPage.capturePdf",
@@ -1882,6 +2002,17 @@ const CAPTURED_ASSETS = {
     label: "PDF",
     contentType: "application/pdf",
     fileName: "page.pdf",
+    timeoutSec: () => serverConfig.crawler.screenshotTimeoutSec,
+    timeoutEnvVar: "CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+  },
+  screenPdf: {
+    captureSpanName: "crawlPage.captureScreenPdf",
+    storeSpanName: "storeScreenPdf",
+    label: "screen PDF",
+    contentType: "application/pdf",
+    fileName: "page-screen.pdf",
+    timeoutSec: () => serverConfig.crawler.screenPdfTimeoutSec,
+    timeoutEnvVar: "CRAWLER_SCREEN_PDF_TIMEOUT_SEC",
   },
 } as const;
 

@@ -122,6 +122,11 @@ export const users = sqliteTable("user", {
   }).default("titlecase-spaces"),
   curatedTagIds: text("curatedTagIds", { mode: "json" }).$type<string[]>(),
   inferredTagLang: text("inferredTagLang"),
+
+  // Crawler settings (nullable = use the server default)
+  crawlerColorScheme: text("crawlerColorScheme", {
+    enum: ["system", "light", "dark"],
+  }),
 });
 
 export const accounts = sqliteTable(
@@ -354,6 +359,7 @@ export const enum AssetTypes {
   LINK_BANNER_IMAGE = "linkBannerImage",
   LINK_SCREENSHOT = "linkScreenshot",
   LINK_PDF = "linkPdf",
+  LINK_SCREEN_PDF = "linkScreenPdf",
   ASSET_SCREENSHOT = "assetScreenshot",
   LINK_FULL_PAGE_ARCHIVE = "linkFullPageArchive",
   LINK_PRECRAWLED_ARCHIVE = "linkPrecrawledArchive",
@@ -376,6 +382,7 @@ export const assets = sqliteTable(
         AssetTypes.LINK_BANNER_IMAGE,
         AssetTypes.LINK_SCREENSHOT,
         AssetTypes.LINK_PDF,
+        AssetTypes.LINK_SCREEN_PDF,
         AssetTypes.ASSET_SCREENSHOT,
         AssetTypes.LINK_FULL_PAGE_ARCHIVE,
         AssetTypes.LINK_PRECRAWLED_ARCHIVE,

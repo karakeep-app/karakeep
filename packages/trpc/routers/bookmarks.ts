@@ -830,6 +830,8 @@ export const bookmarksAppRouter = router({
         bookmarkId: z.string(),
         archiveFullPage: z.boolean().optional().default(false),
         storePdf: z.boolean().optional().default(false),
+        storeScreenPdf: z.boolean().optional().default(false),
+        colorScheme: z.enum(["system", "light", "dark"]).optional(),
       }),
     )
     .use(ensureBookmarkOwnership)
@@ -838,6 +840,8 @@ export const bookmarksAppRouter = router({
         bookmarkId: input.bookmarkId,
         archiveFullPage: input.archiveFullPage,
         storePdf: input.storePdf,
+        storeScreenPdf: input.storeScreenPdf,
+        colorScheme: input.colorScheme,
       };
       await LowPriorityCrawlerQueue.enqueue(payload, {
         groupId: ctx.user.id,

@@ -148,6 +148,23 @@ const allEnv = z.object({
   CRAWLER_STORE_SCREENSHOT: stringBool("true"),
   CRAWLER_FULL_PAGE_SCREENSHOT: stringBool("false"),
   CRAWLER_STORE_PDF: stringBool("false"),
+  CRAWLER_STORE_SCREEN_PDF: stringBool("false"),
+  CRAWLER_SCREEN_PDF_TIMEOUT_SEC: z.coerce.number().default(30),
+  CRAWLER_SCREEN_PDF_LAZY_LOAD_WAIT_MS: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .default(5000),
+  CRAWLER_SCREEN_PDF_MAX_PAGE_HEIGHT_PX: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .default(19200),
+  CRAWLER_SCREEN_PDF_MAX_TOTAL_HEIGHT_PX: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .default(60000),
   CRAWLER_FULL_PAGE_ARCHIVE: stringBool("false"),
   CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB: z.coerce.number().default(0),
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
@@ -156,6 +173,7 @@ const allEnv = z.object({
   CRAWLER_VIDEO_DOWNLOAD_ON_DEMAND: optionalStringBool(),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_ENABLE_AUTOCONSENT: stringBool("true"),
+  CRAWLER_COLOR_SCHEME: z.enum(["system", "light", "dark"]).default("system"),
   CRAWLER_YTDLP_ARGS: z
     .string()
     .prefault("")
@@ -423,6 +441,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       storeScreenshot: val.CRAWLER_STORE_SCREENSHOT,
       fullPageScreenshot: val.CRAWLER_FULL_PAGE_SCREENSHOT,
       storePdf: val.CRAWLER_STORE_PDF,
+      storeScreenPdf: val.CRAWLER_STORE_SCREEN_PDF,
+      screenPdfTimeoutSec: val.CRAWLER_SCREEN_PDF_TIMEOUT_SEC,
+      screenPdfLazyLoadWaitMs: val.CRAWLER_SCREEN_PDF_LAZY_LOAD_WAIT_MS,
+      screenPdfMaxPageHeightPx: val.CRAWLER_SCREEN_PDF_MAX_PAGE_HEIGHT_PX,
+      screenPdfMaxTotalHeightPx: val.CRAWLER_SCREEN_PDF_MAX_TOTAL_HEIGHT_PX,
       fullPageArchive: val.CRAWLER_FULL_PAGE_ARCHIVE,
       fullPageArchiveMaxSizeMb: val.CRAWLER_FULL_PAGE_ARCHIVE_MAX_SIZE_MB,
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
@@ -432,6 +455,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         val.CRAWLER_VIDEO_DOWNLOAD_ON_DEMAND ?? val.CRAWLER_VIDEO_DOWNLOAD,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       enableAutoconsent: val.CRAWLER_ENABLE_AUTOCONSENT,
+      colorScheme: val.CRAWLER_COLOR_SCHEME,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
       monolithTimeoutSec: val.CRAWLER_MONOLITH_TIMEOUT_SEC,
       monolithArguments: val.CRAWLER_MONOLITH_ARGS,

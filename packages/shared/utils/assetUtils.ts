@@ -8,6 +8,7 @@ export function humanFriendlyNameForAssertType(type: ZAssetType) {
   const map: Record<ZAssetType, string> = {
     screenshot: "Screenshot",
     pdf: "PDF",
+    screenPdf: "Screen PDF",
     assetScreenshot: "Asset Screenshot",
     fullPageArchive: "Full Page Archive",
     precrawledArchive: "Precrawled Archive",

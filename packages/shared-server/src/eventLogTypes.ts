@@ -6,6 +6,7 @@ type EventLogInternal =
       "crawler.domain"?: string;
       "crawler.status_code"?: number | null;
       "crawler.proxy"?: string;
+      "crawler.colorScheme"?: string;
       // Outcome of the preflight probe's metadata extraction.
       "crawler.probe.metadata"?:
         | "extracted"

@@ -83,6 +83,8 @@ export const zCrawlLinkRequestSchema = z.object({
   runInference: z.boolean().optional(),
   archiveFullPage: z.boolean().optional().default(false),
   storePdf: z.boolean().optional().default(false),
+  storeScreenPdf: z.boolean().optional().default(false),
+  colorScheme: z.enum(["system", "light", "dark"]).optional(),
 });
 export type ZCrawlLinkRequest = z.input<typeof zCrawlLinkRequestSchema>;
 
@@ -110,8 +112,9 @@ export const LowPriorityCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
 
 // Builds a stable, payload-derived idempotency key for crawler queue jobs.
 // Keys sort before serialization so `{a, b}` and `{b, a}` produce the same
-// key, and differing flags (archiveFullPage, runInference, storePdf) yield
-// distinct keys so non-equivalent crawls are not deduped together.
+// key, and differing flags (archiveFullPage, runInference, storePdf,
+// storeScreenPdf) or a different colorScheme yield distinct keys so
+// non-equivalent crawls are not deduped together.
 export function buildCrawlIdempotencyKey(payload: ZCrawlLinkRequest): string {
   return `crawl:${JSON.stringify(payload, Object.keys(payload).sort())}`;
 }
