@@ -123,6 +123,13 @@ export default function SubscriptionSettings() {
   const upgrade = () =>
     runAction("upgrade", async () => {
       const result = await RevenueCatUI.presentPaywall();
+      // Failures resolve instead of rejecting, so surface them as errors.
+      if (
+        result === PAYWALL_RESULT.ERROR ||
+        result === PAYWALL_RESULT.NOT_PRESENTED
+      ) {
+        throw new Error(`Paywall failed: ${result}`);
+      }
       if (
         result === PAYWALL_RESULT.PURCHASED ||
         result === PAYWALL_RESULT.RESTORED
