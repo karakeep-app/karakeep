@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Screen PDF test page</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+        line-height: 1.5;
+      }
+
+      .fixed-header {
+        position: fixed;
+        inset: 0 0 auto 0;
+        z-index: 100;
+        padding: 12px 24px;
+        background: #1f2937;
+        color: white;
+        font-weight: 600;
+      }
+
+      .hero {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #dbeafe, #fce7f3);
+        font-size: 3rem;
+      }
+
+      .screen-only {
+        display: block;
+      }
+
+      @media print {
+        .screen-only {
+          display: none;
+        }
+      }
+
+      main {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 32px 24px 96px;
+      }
+
+      section {
+        padding: 1800px 0 100px;
+        border-bottom: 1px solid #e5e7eb;
+      }
+
+      section:first-of-type {
+        padding-top: 32px;
+      }
+
+      h2 {
+        margin-top: 0;
+      }
+
+      .lazy-image {
+        display: block;
+        width: 220px;
+        height: 140px;
+        margin: 24px 0;
+        border: 1px solid #cbd5e1;
+      }
+
+      .footer {
+        padding: 40px 24px;
+        background: #f8fafc;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="fixed-header">
+      FIXED HEADER — should appear once at the top of the PDF
+    </header>
+
+    <div class="hero">HERO — 100vh</div>
+
+    <main>
+      <p class="screen-only">
+        SCREEN ONLY CONTENT — visible only when @media screen is used.
+      </p>
+
+      <section>
+        <h2>Section 1</h2>
+        <p>
+          This is a deliberately long article used to verify the Screen PDF
+          capture pipeline.
+          <a href="https://example.com/section-1">Section 1 link</a>.
+        </p>
+        <img
+          class="lazy-image"
+          loading="lazy"
+          alt="LAZY IMAGE 1"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='140'%3E%3Crect width='220' height='140' fill='%2393c5fd'/%3E%3Ctext x='20' y='75' font-size='20'%3ELazy 1%3C/text%3E%3C/svg%3E"
+        />
+      </section>
+
+      <section>
+        <h2>Section 2</h2>
+        <p>More article content for the second section.</p>
+        <img
+          class="lazy-image"
+          loading="lazy"
+          alt="LAZY IMAGE 2"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='140'%3E%3Crect width='220' height='140' fill='%23fbcfe8'/%3E%3Ctext x='20' y='75' font-size='20'%3ELazy 2%3C/text%3E%3C/svg%3E"
+        />
+      </section>
+
+      <section>
+        <h2>Section 3</h2>
+        <p>More article content for the third section.</p>
+      </section>
+
+      <section>
+        <h2>Section 4</h2>
+        <p>More article content for the fourth section.</p>
+      </section>
+
+      <section>
+        <h2>Section 5</h2>
+        <p>More article content for the fifth section.</p>
+      </section>
+
+      <section>
+        <h2>Section 6</h2>
+        <p>More article content for the sixth section.</p>
+      </section>
+
+      <section>
+        <h2>Section 7</h2>
+        <p>More article content for the seventh section.</p>
+      </section>
+
+      <section>
+        <h2>Section 8</h2>
+        <p>More article content for the eighth section.</p>
+      </section>
+
+      <section>
+        <h2>Section 9</h2>
+        <p>More article content for the ninth section.</p>
+      </section>
+
+      <section>
+        <h2>Section 10</h2>
+        <p>More article content for the tenth section.</p>
+      </section>
+
+      <section>
+        <h2>Section 11</h2>
+        <p>More article content for the eleventh section.</p>
+      </section>
+
+      <section>
+        <h2>Section 12</h2>
+        <p>
+          Final article section.
+          <a href="https://example.com/final">Final link</a>.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer" id="screen-pdf-footer">
+      SCREEN PDF FOOTER — should be near the bottom of the capture.
+    </footer>
+  </body>
+</html>
