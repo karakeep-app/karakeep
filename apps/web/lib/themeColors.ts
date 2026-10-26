@@ -7,5 +7,5 @@
  */
 export const THEME_COLORS = {
   light: "#ffffff",
-  dark: "#020817",
+  dark: "#030303",
 } as const;

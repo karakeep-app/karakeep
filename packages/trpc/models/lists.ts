@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, or, sql } from "drizzle-orm";
+import { and, count, eq, inArray, or, SQL, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -26,7 +26,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
 import { RuleEngine } from "../lib/ruleEngine";
-import { getBookmarkIdsFromMatcher } from "../lib/search";
+import { getBookmarksConditionFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { ListInvitation } from "./listInvitations";
 import { zRuleEngineRuleEventSchema } from "@karakeep/shared/types/rules";
@@ -257,22 +257,75 @@ export abstract class List {
     };
   }
 
+  /**
+   * Ensures that the parent is a list owned by the user, and that
+   * making it the parent of `listId` doesn't introduce a cycle in the
+   * hierarchy. Must run in the same transaction as the write it guards.
+   */
+  private static ensureValidParent(
+    tx: KarakeepDBTransaction,
+    userId: string,
+    parentId: string,
+    listId?: string,
+  ) {
+    const lists = tx
+      .select({ id: bookmarkLists.id, parentId: bookmarkLists.parentId })
+      .from(bookmarkLists)
+      .where(eq(bookmarkLists.userId, userId))
+      .all();
+    const parentById = new Map(lists.map((l) => [l.id, l.parentId]));
+    // Keeping the current parent can't introduce a new cycle. Skipping the
+    // check also keeps lists with legacy parent links editable.
+    if (listId && parentById.get(listId) === parentId) {
+      return;
+    }
+    if (!parentById.has(parentId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Parent list not found",
+      });
+    }
+    // Walk up the ancestors of the new parent. The visited set guards
+    // against cycles that might already exist in the data.
+    const visited = new Set<string>();
+    let current: string | null | undefined = parentId;
+    while (current && !visited.has(current)) {
+      if (current === listId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "A list can't be nested under one of its descendants",
+        });
+      }
+      visited.add(current);
+      current = parentById.get(current);
+    }
+  }
+
   static async create(
     ctx: AuthedContext,
     input: z.infer<typeof zNewBookmarkListSchema>,
   ): Promise<ManualList | SmartList> {
-    const [result] = await ctx.db
-      .insert(bookmarkLists)
-      .values({
-        name: input.name,
-        description: input.description,
-        icon: input.icon,
-        userId: ctx.user.id,
-        parentId: input.parentId,
-        type: input.type,
-        query: input.query,
-      })
-      .returning();
+    const result = await ctx.db.transaction(
+      (tx) => {
+        if (input.parentId) {
+          this.ensureValidParent(tx, ctx.user.id, input.parentId);
+        }
+        return tx
+          .insert(bookmarkLists)
+          .values({
+            name: input.name,
+            description: input.description,
+            icon: input.icon,
+            userId: ctx.user.id,
+            parentId: input.parentId,
+            type: input.type,
+            query: input.query,
+          })
+          .returning()
+          .get();
+      },
+      { behavior: "immediate" },
+    );
     return this.fromData(
       ctx,
       {
@@ -623,11 +676,17 @@ export abstract class List {
 
     const resultIds: string[] = [];
     const queue: string[] = [this.list.id];
+    // Guard against cycles in the hierarchy
+    const visited = new Set<string>([this.list.id]);
 
     while (queue.length > 0) {
       const id = queue.pop()!;
       const children = adjecencyList.get(id) ?? [];
       children.forEach((childId) => {
+        if (visited.has(childId)) {
+          return;
+        }
+        visited.add(childId);
         queue.push(childId);
         resultIds.push(childId);
       });
@@ -640,23 +699,39 @@ export abstract class List {
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {
     this.ensureCanManage();
-    const result = await this.ctx.db
-      .update(bookmarkLists)
-      .set({
-        name: input.name,
-        description: input.description,
-        icon: input.icon,
-        parentId: input.parentId,
-        query: input.query,
-        public: input.public,
-      })
-      .where(
-        and(
-          eq(bookmarkLists.id, this.list.id),
-          eq(bookmarkLists.userId, this.ctx.user.id),
-        ),
-      )
-      .returning();
+    // The ancestry check and the write share an immediate transaction so
+    // that concurrent moves can't both pass the check and form a cycle.
+    const result = await this.ctx.db.transaction(
+      (tx) => {
+        if (input.parentId) {
+          List.ensureValidParent(
+            tx,
+            this.ctx.user.id,
+            input.parentId,
+            this.list.id,
+          );
+        }
+        return tx
+          .update(bookmarkLists)
+          .set({
+            name: input.name,
+            description: input.description,
+            icon: input.icon,
+            parentId: input.parentId,
+            query: input.query,
+            public: input.public,
+          })
+          .where(
+            and(
+              eq(bookmarkLists.id, this.list.id),
+              eq(bookmarkLists.userId, this.ctx.user.id),
+            ),
+          )
+          .returning()
+          .all();
+      },
+      { behavior: "immediate" },
+    );
     if (result.length == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
@@ -933,7 +1008,10 @@ export abstract class List {
   }
 
   abstract get type(): "manual" | "smart";
-  abstract getBookmarkIds(visitedListIds?: Set<string>): Promise<string[]>;
+  abstract getBookmarkIds(): Promise<string[]>;
+  // A condition on the `bookmarks` table matching the list's bookmarks. It
+  // doesn't scope by user, so callers must also filter on `bookmarks.userId`.
+  abstract getBookmarksCondition(visitedListIds?: Set<string>): Promise<SQL>;
   abstract getSize(): Promise<number>;
   abstract addBookmark(bookmarkId: string): Promise<void>;
   abstract removeBookmark(bookmarkId: string): Promise<void>;
@@ -973,13 +1051,15 @@ export class SmartList extends List {
     return this.parsedQuery;
   }
 
-  async getBookmarkIds(visitedListIds = new Set<string>()): Promise<string[]> {
+  async getBookmarksCondition(
+    visitedListIds = new Set<string>(),
+  ): Promise<SQL> {
     if (visitedListIds.size >= SmartList.MAX_VISITED_LISTS) {
-      return [];
+      return sql`0`;
     }
 
     if (visitedListIds.has(this.list.id)) {
-      return [];
+      return sql`0`;
     }
 
     const newVisitedListIds = new Set(visitedListIds);
@@ -987,17 +1067,39 @@ export class SmartList extends List {
 
     const parsedQuery = this.getParsedQuery();
     if (!parsedQuery.matcher) {
-      return [];
+      return sql`0`;
     }
-    return await getBookmarkIdsFromMatcher(
+    return await getBookmarksConditionFromMatcher(
       this.ctx,
       parsedQuery.matcher,
       newVisitedListIds,
     );
   }
 
+  async getBookmarkIds(): Promise<string[]> {
+    const results = await this.ctx.db
+      .select({ id: bookmarks.id })
+      .from(bookmarks)
+      .where(
+        and(
+          eq(bookmarks.userId, this.ctx.user.id),
+          await this.getBookmarksCondition(),
+        ),
+      );
+    return results.map((r) => r.id);
+  }
+
   async getSize(): Promise<number> {
-    return await this.getBookmarkIds().then((ids) => ids.length);
+    const results = await this.ctx.db
+      .select({ count: count() })
+      .from(bookmarks)
+      .where(
+        and(
+          eq(bookmarks.userId, this.ctx.user.id),
+          await this.getBookmarksCondition(),
+        ),
+      );
+    return results[0].count;
   }
 
   addBookmark(_bookmarkId: string): Promise<void> {
@@ -1039,12 +1141,22 @@ export class ManualList extends List {
     return this.list.type;
   }
 
-  async getBookmarkIds(_visitedListIds?: Set<string>): Promise<string[]> {
+  async getBookmarkIds(): Promise<string[]> {
     const results = await this.ctx.db
       .select({ id: bookmarksInLists.bookmarkId })
       .from(bookmarksInLists)
       .where(eq(bookmarksInLists.listId, this.list.id));
     return results.map((r) => r.id);
+  }
+
+  async getBookmarksCondition(_visitedListIds?: Set<string>): Promise<SQL> {
+    return inArray(
+      bookmarks.id,
+      this.ctx.db
+        .select({ id: bookmarksInLists.bookmarkId })
+        .from(bookmarksInLists)
+        .where(eq(bookmarksInLists.listId, this.list.id)),
+    );
   }
 
   async getSize(): Promise<number> {

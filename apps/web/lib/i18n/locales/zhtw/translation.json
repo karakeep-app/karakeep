@@ -59,9 +59,9 @@
     "unfavorite": "移除最愛",
     "delete": "刪除",
     "refresh": "重新整理",
-    "download_full_page_archive": "下載完整網頁封存",
     "edit_tags": "編輯標籤",
     "add_to_list": "新增至清單",
+    "select": "選取",
     "select_all": "全選",
     "unselect_all": "取消全選",
     "copy_link": "複製連結",
@@ -96,6 +96,7 @@
     "load_more": "載入更多",
     "edit_notes": "編輯註解",
     "preserve_as_pdf": "儲存為 PDF",
+    "preserve_video": "保存影片",
     "offline_copies": "離線副本",
     "preserve_offline_archive": "保留離線封存檔",
     "download_full_page_archive_file": "下載封存檔",
@@ -359,7 +360,45 @@
       "broken_links": "失效連結",
       "last_crawled_at": "最後抓取時間",
       "crawling_status": "抓取狀態",
-      "crawling_failed": "抓取失敗"
+      "crawling_failed": "抓取失敗",
+      "description": "檢視無法取得的連結，重新嘗試抓取或刪除舊書籤。",
+      "category_all": "需要處理",
+      "category_blocked": "存取遭封鎖",
+      "category_missing": "找不到",
+      "category_errors": "其他錯誤",
+      "category_all_hint": "待檢查的連結",
+      "category_blocked_hint": "受到限制或速率限制",
+      "category_missing_hint": "頁面不存在或已移除",
+      "category_errors_hint": "伺服器錯誤或抓取失敗",
+      "blocked_hint": "請求遭封鎖不一定代表連結已失效。有些網站會限制自動化存取。刪除前請先開啟原始頁面確認。",
+      "search": "依標題或網址搜尋…",
+      "sort_recent": "最近檢查",
+      "sort_oldest": "最早檢查優先",
+      "sort_domain": "網站 A–Z",
+      "result_count_other": "{{count}} 個待檢查的連結",
+      "retry_selected": "重試所選項目",
+      "empty": "未發現失效連結",
+      "empty_description": "您儲存的連結目前都沒有回報抓取錯誤。",
+      "select_visible": "選取所有顯示的連結",
+      "bookmark": "書籤",
+      "issue": "問題",
+      "never_crawled": "無抓取日期",
+      "issue_blocked": "存取遭封鎖",
+      "issue_missing": "找不到",
+      "issue_server": "伺服器錯誤",
+      "issue_http": "HTTP 錯誤",
+      "issue_failed": "抓取失敗",
+      "issue_blocked_hint": "該網站限制了此請求",
+      "issue_missing_hint": "該頁面可能已被移除",
+      "issue_server_hint": "該網站無法完成請求",
+      "issue_http_hint": "該網站傳回了非預期的回應",
+      "issue_failed_hint": "沒有記錄到成功的回應",
+      "queued": "已排入佇列",
+      "queued_count_other": "已將 {{count}} 個連結排入重新抓取佇列。",
+      "deleted_count_other": "已刪除 {{count}} 個書籤。",
+      "action_failed": "{{total}} 個中有 {{count}} 個失敗。",
+      "delete_title_other": "要刪除 {{count}} 個書籤嗎？",
+      "delete_description": "這將永久刪除所選書籤及其儲存的檔案、標記重點和筆記。此動作無法復原。"
     },
     "manage_assets": {
       "manage_assets": "管理資產",
@@ -466,7 +505,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "依小時區分的活動",
-        "activity_by_day": "每日活動"
+        "activity_by_day": "每日活動",
+        "busiest_around": "最活躍時段：{{hour}} 左右"
       },
       "storage_breakdown": {
         "title": "儲存空間明細"
@@ -517,10 +557,8 @@
       "progress": "進度",
       "status": {
         "pending": "等待中",
-        "in_progress": "進行中",
         "completed": "已完成",
         "failed": "失敗",
-        "processing": "處理中",
         "staging": "預備",
         "running": "執行中",
         "paused": "已暫停",
@@ -616,6 +654,19 @@
         "backup_queued": "備份工作已排入佇列！它會很快處理。",
         "backup_deleted": "備份已刪除！"
       }
+    },
+    "maintenance": {
+      "clear_filters": "清除篩選條件",
+      "clear_selection": "清除選取",
+      "delete_selected": "刪除所選項目",
+      "try_again": "再試一次",
+      "sort": "排序方式",
+      "no_matches": "找不到符合的項目",
+      "adjust_filters": "請嘗試其他搜尋或清除篩選條件。",
+      "select_item": "選取 {{name}}",
+      "selected": "已選取 {{count}} 個",
+      "showing": "顯示 {{shown}} / {{total}}",
+      "load_more": "載入更多"
     }
   },
   "admin": {
@@ -628,18 +679,6 @@
     },
     "background_jobs": {
       "background_jobs": "背景作業",
-      "crawler_jobs": "網頁抓取作業",
-      "indexing_jobs": "索引作業",
-      "inference_jobs": "推論作業",
-      "tidy_assets_jobs": "資源整理作業",
-      "job": "作業",
-      "queued": "已排入佇列",
-      "pending": "等待中",
-      "failed": "失敗",
-      "video_jobs": "影片下載工作",
-      "feed_jobs": "RSS 訂閱工作",
-      "webhook_jobs": "Webhook 工作",
-      "asset_preprocessing_jobs": "資產預處理工作",
       "jobs": {
         "crawler": {
           "title": "爬蟲程式任務",
@@ -656,10 +695,6 @@
         "asset_preprocessing": {
           "title": "資產預處理任務",
           "description": "圖片和文件預處理（螢幕截圖、文字提取等等）"
-        },
-        "tidy_assets": {
-          "title": "整理資產任務",
-          "description": "資產清理和儲存最佳化"
         },
         "video": {
           "title": "影片下載任務",
@@ -719,18 +754,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "僅為失敗書籤重新生成嵌入",
         "regenerate_embeddings_for_all_bookmarks": "為所有書籤重新生成嵌入"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "僅重新抓取失敗的連結",
-      "recrawl_all_links": "重新抓取所有連結",
-      "without_inference": "不進行推論",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "僅重新產生失敗書籤的 AI 標籤",
-      "regenerate_ai_tags_for_all_bookmarks": "重新產生所有書籤的 AI 標籤",
-      "reindex_all_bookmarks": "重新索引所有書籤",
-      "compact_assets": "壓縮資源",
-      "reprocess_assets_fix_mode": "重新處理資源(固定模式)",
-      "regenerate_ai_summaries_for_all_bookmarks": "為所有書籤重新產生 AI 摘要",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "僅為失敗的書籤重新產生 AI 摘要"
     },
     "users_list": {
       "users_list": "使用者清單",
@@ -799,8 +822,10 @@
     }
   },
   "options": {
+    "theme": "主題",
     "dark_mode": "深色模式",
     "light_mode": "淺色模式",
+    "system_mode": "跟隨系統",
     "apps_extensions": "應用程式和擴充功能",
     "documentation": "文件",
     "follow_us_on_x": "在 X 上追蹤我們"
@@ -936,6 +961,9 @@
     "view_original": "檢視原始內容",
     "cached_content": "快取內容",
     "reader_view": "閱讀器檢視",
+    "page_overview": "頁面概覽",
+    "try_reader_view": "試試閱讀器檢視",
+    "archived_page": "已封存的頁面",
     "tabs": {
       "content": "內容",
       "details": "詳細資訊"
@@ -949,12 +977,11 @@
     "continue_button": "繼續"
   },
   "editor": {
-    "quickly_focus": "您可以按下 ⌘ + E 快速聚焦此欄位",
     "multiple_urls_dialog_title": "要將多個網址匯入為個別的書籤嗎？",
     "multiple_urls_dialog_desc": "輸入內容包含分別位於不同行數的多個網址。您是否要將它們匯入為個別的書籤？",
     "import_as_text": "匯入為文字書籤",
     "import_as_separate_bookmarks": "匯入為個別書籤",
-    "placeholder": "貼上連結、圖片、撰寫筆記，或將圖片拖曳至此處…",
+    "placeholder": "貼上連結或圖片、撰寫筆記，或將圖片拖曳至此處…",
     "new_item": "新增項目",
     "disabled_submissions": "提交功能已停用",
     "text_toolbar": {
@@ -1016,6 +1043,7 @@
       "delete_from_list": "已從清單中移除書籤",
       "clipboard_copied": "連結已複製到剪貼簿！",
       "preserve_pdf": "已觸發 PDF 儲存",
+      "preserve_video": "已觸發影片下載",
       "update_banner": "橫幅已更新！",
       "uploading_banner": "正在上傳橫幅..."
     },
@@ -1048,6 +1076,10 @@
     "type_is_not": "類型不為",
     "is_favorited": "已加入最愛",
     "has_no_tags": "無標籤",
+    "has_notes": "有筆記",
+    "has_no_notes": "無筆記",
+    "has_highlights": "有標記重點",
+    "has_no_highlights": "無標記重點",
     "is_in_any_list": "在任何清單中",
     "is_not_in_any_list": "不在任何清單中",
     "created_on_or_after": "建立於此日期或之後",

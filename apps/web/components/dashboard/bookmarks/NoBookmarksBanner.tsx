@@ -6,8 +6,8 @@ import { Bookmark } from "lucide-react";
 export default function NoBookmarksBanner() {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 p-10 text-center shadow-sm dark:bg-slate-700/50 dark:shadow-md">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
+    <div className="flex flex-col items-center justify-center rounded-lg bg-slate-50 p-10 text-center shadow-sm dark:border dark:bg-card dark:shadow-none">
+      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-muted">
         <Bookmark className="h-8 w-8 text-slate-400 dark:text-slate-300" />
       </div>
       <h3 className="mb-2 text-xl font-medium text-slate-700 dark:text-slate-100">

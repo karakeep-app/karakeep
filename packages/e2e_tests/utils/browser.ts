@@ -29,7 +29,10 @@ export async function signIn(page: Page, email: string) {
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill("test1234");
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
-  await expect(page).toHaveURL(/\/dashboard\/bookmarks$/);
+  // Signing in verifies the password and then redirects through / to the
+  // dashboard. While other test files are hashing passwords for their users,
+  // this can take well over the default 5s expect timeout.
+  await expect(page).toHaveURL(/\/dashboard\/bookmarks$/, { timeout: 30000 });
 }
 
 export async function createWebTestUser() {

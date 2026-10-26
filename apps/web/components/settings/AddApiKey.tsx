@@ -74,7 +74,7 @@ function ScopeDescriptionPopover({
           className="h-6 w-6 text-muted-foreground hover:text-foreground"
           aria-label={ariaLabel}
         >
-          <HelpCircle className="h-3.5 w-3.5" />
+          <HelpCircle className="size-3.5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72">
@@ -394,7 +394,7 @@ export default function AddApiKey({ isAdmin }: { isAdmin: boolean }) {
     <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircle className="h-4 w-4" />
           {t("settings.api_keys.new_api_key")}
         </Button>
       </DialogTrigger>

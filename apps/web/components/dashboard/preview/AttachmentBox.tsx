@@ -240,7 +240,7 @@ export default function AttachmentBox({
                         )
                       }
                     >
-                      <Trash2 className="mr-2 size-4" />
+                      <Trash2 className="size-4" />
                       Delete
                     </ActionButton>
                   )}

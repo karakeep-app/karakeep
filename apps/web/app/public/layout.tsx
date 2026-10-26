@@ -4,7 +4,7 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen items-center justify-center overflow-y-auto bg-muted">
+    <div className="h-screen items-center justify-center overflow-y-auto bg-panel">
       <main className="container mt-3">{children}</main>
     </div>
   );

@@ -1,6 +1,7 @@
 import { Pressable, ScrollView } from "react-native";
 import { Link, Stack, useLocalSearchParams } from "expo-router";
 import {
+  byListPathName,
   ListPicker,
   listPathToPickerOption,
 } from "@/components/lists/list-picker";
@@ -18,17 +19,6 @@ import {
   useRemoveBookmarkFromList,
 } from "@karakeep/shared-react/hooks/lists";
 import { useTRPC } from "@karakeep/shared-react/trpc";
-
-function byListPathName(a: ZBookmarkList[], b: ZBookmarkList[]) {
-  const commonPathLength = Math.min(a.length, b.length);
-
-  for (let index = 0; index < commonPathLength; index++) {
-    const comparison = a[index].name.localeCompare(b[index].name);
-    if (comparison !== 0) return comparison;
-  }
-
-  return a.length - b.length;
-}
 
 const ListPickerPage = () => {
   const headerHeight = useHeaderHeight();

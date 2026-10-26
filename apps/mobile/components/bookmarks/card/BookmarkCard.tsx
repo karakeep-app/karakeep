@@ -22,11 +22,11 @@ export interface BookmarkCardContext {
   titleOnPress?: () => void;
 }
 
-const BookmarkCardContext = createContext<BookmarkCardContext | null>(null);
+const BookmarkCardCtx = createContext<BookmarkCardContext | null>(null);
 
 function NoteSection() {
   const { settings } = useAppSettings();
-  const ctx = useContext(BookmarkCardContext);
+  const ctx = useContext(BookmarkCardCtx);
   if (!ctx) {
     return null;
   }
@@ -42,7 +42,7 @@ function NoteSection() {
 }
 
 function FooterExtras() {
-  const ctx = useContext(BookmarkCardContext);
+  const ctx = useContext(BookmarkCardCtx);
   if (!ctx) {
     return null;
   }
@@ -65,7 +65,7 @@ function PressableSlot({
 }
 
 function Media() {
-  const ctx = useContext(BookmarkCardContext);
+  const ctx = useContext(BookmarkCardCtx);
   if (!ctx) {
     return null;
   }
@@ -78,7 +78,7 @@ function Media() {
 }
 
 function CompactMedia() {
-  const ctx = useContext(BookmarkCardContext);
+  const ctx = useContext(BookmarkCardCtx);
   if (!ctx) {
     return null;
   }
@@ -91,7 +91,7 @@ function CompactMedia() {
 }
 
 function Body() {
-  const ctx = useContext(BookmarkCardContext);
+  const ctx = useContext(BookmarkCardCtx);
   if (!ctx) {
     return null;
   }
@@ -104,7 +104,7 @@ function Body() {
 }
 
 function CompactBody() {
-  const ctx = useContext(BookmarkCardContext);
+  const ctx = useContext(BookmarkCardCtx);
   if (!ctx) {
     return null;
   }
@@ -117,7 +117,7 @@ function CompactBody() {
 }
 
 function Title() {
-  const ctx = useContext(BookmarkCardContext);
+  const ctx = useContext(BookmarkCardCtx);
   if (!ctx) {
     return null;
   }
@@ -150,7 +150,7 @@ function Root({ children }: { children: React.ReactNode }) {
 }
 
 const BookmarkCardContainer = {
-  Provider: BookmarkCardContext.Provider,
+  Provider: BookmarkCardCtx.Provider,
   NoteSection,
   FooterExtras,
   Media,

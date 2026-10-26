@@ -65,9 +65,9 @@
     "toggle_show_archived": "Zobrazit archivované",
     "refresh": "Obnovit",
     "recrawl": "Znovu prolézt",
-    "download_full_page_archive": "Stáhnout archiv celé stránky",
     "edit_tags": "Upravit štítky",
     "add_to_list": "Přidat do seznamu",
+    "select": "Vybrat",
     "select_all": "Vybrat vše",
     "unselect_all": "Zrušit výběr všech",
     "copy_link": "Kopírovat odkaz",
@@ -90,6 +90,7 @@
     "load_more": "Načíst další",
     "edit_notes": "Upravit poznámky",
     "preserve_as_pdf": "Uložit jako PDF",
+    "preserve_video": "Uložit video",
     "offline_copies": "Offline kopie",
     "preserve_offline_archive": "Zachovat archiv offline",
     "download_full_page_archive_file": "Stáhnout archivní soubor",
@@ -414,7 +415,57 @@
       "broken_links": "Nefunkční odkazy",
       "last_crawled_at": "Poslední procházení proběhlo",
       "crawling_status": "Stav procházení",
-      "crawling_failed": "Procházení selhalo"
+      "crawling_failed": "Procházení selhalo",
+      "description": "Zkontroluj odkazy, které se nepodařilo načíst, zkus je načíst znovu nebo odstraň staré záložky.",
+      "category_all": "Vyžaduje pozornost",
+      "category_blocked": "Přístup zablokován",
+      "category_missing": "Nenalezeno",
+      "category_errors": "Ostatní chyby",
+      "category_all_hint": "Odkazy ke kontrole",
+      "category_blocked_hint": "Omezený přístup nebo překročený limit požadavků",
+      "category_missing_hint": "Stránka chybí nebo byla odstraněna",
+      "category_errors_hint": "Chyby serveru nebo procházení",
+      "blocked_hint": "Zablokovaný požadavek nemusí vždy znamenat nefunkční odkaz. Některé weby omezují automatizovaný přístup. Před smazáním otevři původní stránku a ověř to.",
+      "search": "Hledat podle názvu nebo URL…",
+      "sort_recent": "Naposledy kontrolované",
+      "sort_oldest": "Nejstarší kontrola první",
+      "sort_domain": "Web A–Z",
+      "result_count_one": "{{count}} odkaz ke kontrole",
+      "result_count_other": "{{count}} odkazů ke kontrole",
+      "result_count_few": "{{count}} odkazy ke kontrole",
+      "result_count_many": "{{count}} odkazu ke kontrole",
+      "retry_selected": "Zkusit znovu vybrané",
+      "empty": "Nebyly nalezeny žádné nefunkční odkazy",
+      "empty_description": "U žádného z tvých uložených odkazů aktuálně není hlášena chyba procházení.",
+      "select_visible": "Vybrat všechny zobrazené odkazy",
+      "bookmark": "Záložka",
+      "issue": "Problém",
+      "never_crawled": "Bez data procházení",
+      "issue_blocked": "Přístup zablokován",
+      "issue_missing": "Nenalezeno",
+      "issue_server": "Chyba serveru",
+      "issue_http": "Chyba HTTP",
+      "issue_failed": "Procházení selhalo",
+      "issue_blocked_hint": "Web tento požadavek omezil",
+      "issue_missing_hint": "Stránka mohla být odstraněna",
+      "issue_server_hint": "Web nemohl požadavek dokončit",
+      "issue_http_hint": "Web vrátil neočekávanou odpověď",
+      "issue_failed_hint": "Nebyla zaznamenána žádná úspěšná odpověď",
+      "queued": "Ve frontě",
+      "queued_count_one": "{{count}} odkaz zařazen do fronty k novému procházení.",
+      "queued_count_other": "{{count}} odkazů zařazeno do fronty k novému procházení.",
+      "deleted_count_one": "{{count}} záložka smazána.",
+      "deleted_count_other": "{{count}} záložek smazáno.",
+      "deleted_count_few": "{{count}} záložky smazány.",
+      "deleted_count_many": "{{count}} záložky smazáno.",
+      "queued_count_few": "{{count}} odkazy zařazeny do fronty k novému procházení.",
+      "queued_count_many": "{{count}} odkazu zařazeno do fronty k novému procházení.",
+      "action_failed": "{{count}} z {{total}} selhalo.",
+      "delete_title_one": "Smazat {{count}} záložku?",
+      "delete_title_other": "Smazat {{count}} záložek?",
+      "delete_title_few": "Smazat {{count}} záložky?",
+      "delete_title_many": "Smazat {{count}} záložky?",
+      "delete_description": "Tímto trvale smažeš vybrané záložky a jejich uložené soubory, zvýraznění a poznámky. Tuto akci nelze vrátit zpět."
     },
     "stats": {
       "usage_statistics": "Statistiky využití",
@@ -460,7 +511,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Aktivita po hodinách",
-        "activity_by_day": "Aktivita podle dne"
+        "activity_by_day": "Aktivita podle dne",
+        "busiest_around": "Nejvíce aktivity kolem {{hour}}"
       },
       "storage_breakdown": {
         "title": "Rozpis úložiště"
@@ -511,10 +563,8 @@
       "progress": "Průběh",
       "status": {
         "pending": "Čeká na vyřízení",
-        "in_progress": "Probíhá",
         "completed": "Dokončeno",
         "failed": "Selhalo",
-        "processing": "Zpracovává se",
         "staging": "Příprava",
         "running": "Běží",
         "paused": "Pozastaveno",
@@ -610,6 +660,19 @@
         "backup_queued": "Úloha zálohování byla zařazena do fronty! Bude brzy zpracována.",
         "backup_deleted": "Záloha byla smazána!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Vymazat filtry",
+      "clear_selection": "Zrušit výběr",
+      "delete_selected": "Smazat vybrané",
+      "try_again": "Zkusit znovu",
+      "sort": "Řazení",
+      "no_matches": "Nebyly nalezeny žádné shody",
+      "adjust_filters": "Zkus jiné hledání nebo vymaž filtry.",
+      "select_item": "Vybrat {{name}}",
+      "selected": "Vybráno: {{count}}",
+      "showing": "Zobrazeno {{shown}} z {{total}}",
+      "load_more": "Načíst další"
     }
   },
   "lists": {
@@ -702,11 +765,17 @@
       "shared": "Sdílené",
       "private": "Soukromé"
     },
-    "summary_list_one": "{{count}} Seznamy",
-    "summary_list_other": "{{count}} Seznamy",
-    "summary_bookmark_one": "{{count}} Záložky",
-    "summary_bookmark_other": "{{count}} Záložky",
-    "items_count_one": "{{count}} položek",
+    "summary_list_one": "{{count}} seznam",
+    "summary_list_few": "{{count}} seznamy",
+    "summary_list_many": "{{count}} seznamu",
+    "summary_list_other": "{{count}} seznamů",
+    "summary_bookmark_one": "{{count}} záložka",
+    "summary_bookmark_few": "{{count}} záložky",
+    "summary_bookmark_many": "{{count}} záložky",
+    "summary_bookmark_other": "{{count}} záložek",
+    "items_count_one": "{{count}} položka",
+    "items_count_few": "{{count}} položky",
+    "items_count_many": "{{count}} položky",
     "items_count_other": "{{count}} položek"
   },
   "tags": {
@@ -758,6 +827,10 @@
     "is_not_archived": "Není archivován",
     "has_any_tag": "Má nějaký štítek",
     "has_no_tags": "Nemá štítek",
+    "has_notes": "Má poznámky",
+    "has_no_notes": "Nemá poznámky",
+    "has_highlights": "Má zvýraznění",
+    "has_no_highlights": "Nemá zvýraznění",
     "is_in_any_list": "Je v libovolném seznamu",
     "is_not_in_any_list": "Není v žádném seznamu",
     "not_created_on_or_after": "Nevytvořeno dne nebo po",
@@ -849,7 +922,6 @@
       "code": "Kód",
       "highlight": "Zvýraznit"
     },
-    "quickly_focus": "Do tohoto pole se rychle dostaneš stisknutím ⌘ + E",
     "multiple_urls_dialog_title": "Importovat URL jako samostatné záložky?",
     "multiple_urls_dialog_desc": "Vstup obsahuje více URL na samostatných řádcích. Chceš je importovat jako samostatné záložky?",
     "import_as_text": "Importovat jako textovou záložku",
@@ -867,6 +939,7 @@
       "delete_from_list": "Záložka byla ze seznamu smazána",
       "clipboard_copied": "Odkaz byl přidán do schránky!",
       "preserve_pdf": "Ukládání do PDF spuštěno",
+      "preserve_video": "Stahování videa bylo spuštěno",
       "update_banner": "Banner byl aktualizován!",
       "uploading_banner": "Nahrávání banneru..."
     },
@@ -891,19 +964,7 @@
       "server_version": "Verze serveru"
     },
     "background_jobs": {
-      "tidy_assets_jobs": "Úlohy na úklid aktiv",
-      "video_jobs": "Úlohy stahování videí",
-      "webhook_jobs": "Úlohy Webhooku",
-      "asset_preprocessing_jobs": "Úlohy předběžného zpracování aktiv",
-      "feed_jobs": "Úlohy RSS kanálu",
-      "job": "Úloha",
       "background_jobs": "Úlohy na pozadí",
-      "crawler_jobs": "Úlohy crawleru",
-      "indexing_jobs": "Úlohy indexování",
-      "inference_jobs": "Úlohy odvozování",
-      "queued": "Ve frontě",
-      "pending": "Čeká se",
-      "failed": "Neúspěšné",
       "jobs": {
         "crawler": {
           "title": "Úlohy pro crawlery",
@@ -920,10 +981,6 @@
         "asset_preprocessing": {
           "title": "Úlohy předběžného zpracování aktiv",
           "description": "Předběžné zpracování obrázků a dokumentů (snímky obrazovky, extrahování textu, atd.)"
-        },
-        "tidy_assets": {
-          "title": "Úlohy Tidy Assets",
-          "description": "Vyčištění aktiv a optimalizace úložiště"
         },
         "video": {
           "title": "Úlohy stahování videa",
@@ -985,18 +1042,6 @@
       }
     },
     "admin_settings": "Nastavení správce",
-    "actions": {
-      "recrawl_failed_links_only": "Znovu procházet pouze nefunkční odkazy",
-      "recrawl_all_links": "Znovu projít všechny odkazy",
-      "without_inference": "Bez inference",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Znovu vygenerovat štítky AI pouze pro neúspěšné záložky",
-      "regenerate_ai_tags_for_all_bookmarks": "Znovu vygenerovat AI tagy pro všechny záložky",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Znovu vygenerovat souhrny AI pouze pro neúspěšné záložky",
-      "regenerate_ai_summaries_for_all_bookmarks": "Znovu vygenerovat shrnutí AI pro všechny záložky",
-      "reindex_all_bookmarks": "Znovu indexovat všechny záložky",
-      "compact_assets": "Kompaktní aktiva",
-      "reprocess_assets_fix_mode": "Znovu zpracovat aktiva (režim opravy)"
-    },
     "users_list": {
       "users_list": "Seznam uživatelů",
       "create_user": "Vytvořit uživatele",
@@ -1083,8 +1128,10 @@
     "no_highlights": "Zatím nemáš žádné zvýraznění."
   },
   "options": {
+    "theme": "Motiv",
     "dark_mode": "Tmavý režim",
     "light_mode": "Světlý režim",
+    "system_mode": "Systémový režim",
     "apps_extensions": "Aplikace a rozšíření",
     "documentation": "Dokumentace",
     "follow_us_on_x": "Sleduj nás na X"
@@ -1093,6 +1140,9 @@
     "view_original": "Zobrazit originál",
     "cached_content": "Obsah uložený v mezipaměti",
     "reader_view": "Zobrazení čtečky",
+    "page_overview": "Přehled stránky",
+    "try_reader_view": "Zkusit zobrazení čtečky",
+    "archived_page": "Archivovaná stránka",
     "tabs": {
       "content": "Obsah",
       "details": "Podrobnosti"

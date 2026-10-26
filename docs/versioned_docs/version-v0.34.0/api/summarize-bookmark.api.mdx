@@ -1,0 +1,71 @@
+---
+id: summarize-bookmark
+title: "Summarize a bookmark"
+description: "Trigger AI summarization for a bookmark. The summary is generated asynchronously and attached to the bookmark. Returns the updated bookmark record."
+sidebar_label: "Summarize a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNV9tuGzcQ/ZUB85IIa8kpUjTQQwGlbQA3AWrENorCMaDRcrTLiEtueJGtCAv0I/qF/ZJiuBdJltIaaB/6pDU5nDlzOzPeCluTw6CsuZBiKnysKnTqC72xdlWhW4lMSPK5UzXLiKm4dqooyMHsAnrh9ByW1gHCons3huuSOokNKA8FGTZEEtBvTF46a2z0egNoJGAImJckIVgIJe1p+UAhOuPTaaxlUtDfgqPcOjkWmQhYeDG9FT1sL+4y4SmPToWNmN5uxYLQkZvFUIrp7V1zl4kaHVYUyPkk4POSKhTTrQibmjgWwSlTHAeAkRj1ORIoSSaopSIHdnkIXGSCHrCqNWtSpKR+2BTV/afX39mHL9+WDyHY/DUDVyGJ9MAvpGgy4ehzVI6kmAYXKRMGKxZa7IQyoRhMjaEU7IwjX1vjybMD35yf888x7iFy9yqUBzHtMsW4c2sCmcAasK61ylN+J588qzkRJ7v4RHkQmagdF1NQLQglj2PZZCJ3xAZn4eRtZSXH8+R1JkzUGhccLw5LM0TvCZLo8lKtaR/TwlpNaNjsEteWS+Vr9wGLQpniKmCI/p/tZYJMrLgefcxz8l6wCaWjIw4TGcmv7ppMHLTQf6/e2PC08HTpf5qsjS5/gtodTKyVyMQ9Lbi6NH9XdqE0pSYJZDxXaCa8MoWmZXvhkluqqq0LyZfoyV2cqqmDfrnlutuvsoOa2quDg6Q/zvDpxAwY7pqGrb46f3ncZjcGYygtc6iEP3//I3XZm0Q+EOyKDJNhpTw7m4Eya9RKZmAd0EPNPjxqwUAPYVJrVKebb4j9jm32EYge6atjpD3lgLEBljaax6b/TffnVp4skUMIM6gwL5WhM0couXSAnLMO+Pk4EQJ5j8WTVJWxQvNYUfd+fFQmCeBO/92Oin/ihylwyX4oLU/G2vrkJRPuVEx6JvWT7Y6Vm8kwP7mEyK374RKdFlOxRSkded9MsFaT9UuRiTU6xXBT0LrrNlVLjDqIqShDqP10MgluM16hwxVRPca6PjmYOg39OHrXyUOLhZ3am4tXnMvW8v50HCLNltmPJMaEmIRE1n28ta5CRvjzr9cpvMosLT9nr1tIL8fn4/O9KTfgmV1eHOEfLpUHBE96eVZaH1Iy+xgrU6SFgbN8psKZxkAueady4p1DedYNqLW997CxkVeKCg0WOyU+A6188Bnw2pBBqYpSq6LkE/Se0q+RsMB8FWsPtbOFw6rCoHLUejP+aD6aZ8+Aw8ULQNsifDjTGsjI2ioTPHTlBnjY/zXbkKBMStF81jVrUjKHklCSG8NvNkKOZtibAE3ybEUbWDpbHeb3nhZwcwHRSHIwGl1RCMoUHr5Pb97Rxo9GPexLLJQZIL9XPuxh9rFmxoU8Om/d2QIZaj28gLVCmLeX8xSkuVaVCnP4HMltYLdTtQtgv5aAMrmOkjizc0MP4YdOxVKRbnmSwwIqALbL3mBkUMmZXFLI28WFlTAwGsMM5jx55rBGHSktogc2lJGcI0qKOR+OwFiorEsAow6+j83AidebmjwfDhtlysaCwBpq28sRAXeKn340ZzAaaWVWo1HyZQY3H94/2rZsqnPUkDu81yShooASA47b50z0w/NE+MBHzM7UiaTi7GUMxFpblCSBRyY8VxUXuXVw+ePbF4k8mbMqTLzdbZBXPT/treqPG3G7mwH/122/5ae90cj7AVPstiPo22FX5rE9PVicdxx9lwlmGBbfbrnUb5xuGj5O1cz/KOwYOvG4VJ6/pZguUXv6m8g9/9ANmxfwNcTdIZpNGgQ68l8iEyvaHC77De8/LTEkFK3ALM+pDntPj+Y1k/0wwC5/ubrmBeiQ4x9xelJ/Etd220pcM4c1zQAzcRojbJq/ACkPBf8=
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Summarize a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/bookmarks/{bookmarkId}/summarize"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Trigger AI summarization for a bookmark. The summary is generated asynchronously and attached to the bookmark. Returns the updated bookmark record.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the bookmark.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The bookmark with the updated summary.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"createdAt":{"type":"string"},"modifiedAt":{"type":"string","nullable":true},"title":{"type":"string","nullable":true},"archived":{"type":"boolean"},"favourited":{"type":"boolean"},"taggingStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"summarizationStatus":{"type":"string","nullable":true,"enum":["success","failure","pending"]},"note":{"type":"string","nullable":true},"summary":{"type":"string","nullable":true},"source":{"type":"string","nullable":true,"enum":["api","web","cli","mobile","extension","singlefile","rss","import"]},"userId":{"type":"string"}},"required":["id","createdAt","modifiedAt","archived","favourited","taggingStatus","summarizationStatus","userId"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Bookmark not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

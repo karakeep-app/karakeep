@@ -55,7 +55,7 @@ export default function UseCases() {
   return (
     <section className="bg-white px-4 pb-24 pt-8">
       <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-        <span className="bg-gradient-to-r from-[#7c3aed] to-[#db2777] bg-clip-text text-xs font-bold tracking-[0.14em] text-transparent">
+        <span className="text-xs font-bold tracking-[0.14em] text-neutral-500">
           USE CASES
         </span>
         <h2 className="font-display mt-3.5 text-3xl font-bold tracking-tight text-neutral-900 sm:text-[44px] sm:leading-[1.15]">
@@ -70,6 +70,7 @@ export default function UseCases() {
       <div className="mx-auto mt-16 flex max-w-[1248px] flex-col gap-10">
         <FeatureShowcase
           label="BOOKMARKING"
+          tint="lavender"
           headline="One place for all your bookmarks"
           description="Save links, notes, images, and PDFs from any device. Karakeep automatically fetches titles, descriptions, and images so you never lose context."
           bullets={[
@@ -91,6 +92,7 @@ export default function UseCases() {
 
         <FeatureShowcase
           label="SEARCH"
+          tint="peach"
           headline="Find it the way you remember it"
           description="Search the full text of everything you save, or switch to semantic search and find bookmarks by what they mean, not just the words they contain."
           bullets={[
@@ -114,6 +116,7 @@ export default function UseCases() {
 
         <FeatureShowcase
           label="ORGANIZATION"
+          tint="lavender"
           headline="Let AI organize your bookmarks"
           description="Karakeep uses AI to automatically tag and categorize your bookmarks. Stop spending time filing things away. Just save and let AI do the work."
           bullets={[
@@ -127,6 +130,7 @@ export default function UseCases() {
 
         <FeatureShowcase
           label="READING"
+          tint="mint"
           headline="Read and highlight with ease"
           description="Enjoy saved articles in a clean, distraction-free reader view. Highlight important passages and keep them organized for quick reference."
           bullets={[
@@ -149,6 +153,7 @@ export default function UseCases() {
 
         <FeatureShowcase
           label="AUTOMATION"
+          tint="sky"
           headline="Automate your workflow"
           description="Create powerful automation rules to manage your bookmarks. Automatically tag, move, or organize content based on custom conditions."
           bullets={[
@@ -163,6 +168,7 @@ export default function UseCases() {
         <div className="grid gap-10 lg:grid-cols-2">
           <FeatureShowcaseHalf
             label="RSS FEEDS"
+            tint="peach"
             headline="Your feeds, on autopilot"
             description="Subscribe to blogs and news sites and Karakeep saves new posts automatically. They're tagged, indexed, and searchable like everything else. Any list can be published back out as an RSS feed, too."
           >
@@ -170,6 +176,7 @@ export default function UseCases() {
           </FeatureShowcaseHalf>
           <FeatureShowcaseHalf
             label="COLLABORATION"
+            tint="mint"
             headline="Curate lists together"
             description="Invite friends or teammates into any list as editors or viewers. Plan a trip, run a book club, or build a team reading list. Everyone sees the same collection."
           >

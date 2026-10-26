@@ -77,7 +77,7 @@ export default function SavedPageOverview({
             <div className="flex flex-nowrap items-center gap-2">
               <Button asChild size="sm">
                 <Link href={link.url} target="_blank" rel="noreferrer">
-                  <ExternalLink className="mr-2 size-4" />
+                  <ExternalLink className="size-4" />
                   {t("preview.view_original")}
                 </Link>
               </Button>
@@ -87,7 +87,7 @@ export default function SavedPageOverview({
                   size="sm"
                   onClick={() => onSelectSection("cached")}
                 >
-                  <BookOpen className="mr-2 size-4" />
+                  <BookOpen className="size-4" />
                   {t("preview.try_reader_view")}
                 </Button>
               ) : null}

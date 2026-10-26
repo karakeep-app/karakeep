@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
@@ -13,6 +13,7 @@ import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { FAB } from "@/components/ui/FAB";
 import { Text } from "@/components/ui/Text";
+import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { condProps } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -78,7 +79,7 @@ function traverseTree(
 export default function Lists() {
   const { colors } = useColorScheme();
   const [refreshing, setRefreshing] = useState(false);
-  const { data: lists, isPending, error, refetch } = useBookmarkLists();
+  const { data: lists, error, refetch } = useBookmarkLists();
   const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
     {},
   );
@@ -102,18 +103,23 @@ export default function Lists() {
     );
   }, [lists?.root, hasSharedLists]);
 
-  useEffect(() => {
-    setRefreshing(isPending);
-  }, [isPending]);
-
   if (!lists) {
     return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
-  const onRefresh = () => {
-    queryClient.invalidateQueries(api.lists.list.pathFilter());
-    queryClient.invalidateQueries(api.lists.stats.pathFilter());
-    queryClient.invalidateQueries(api.lists.getPendingInvitations.pathFilter());
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries(api.lists.list.pathFilter()),
+        queryClient.invalidateQueries(api.lists.stats.pathFilter()),
+        queryClient.invalidateQueries(
+          api.lists.getPendingInvitations.pathFilter(),
+        ),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const links: ListLink[] = [
@@ -192,7 +198,10 @@ export default function Lists() {
         contentContainerStyle={{
           gap: 6,
           paddingBottom: 20,
-          marginHorizontal: 15,
+          paddingHorizontal: 15,
+          width: "100%",
+          maxWidth: READABLE_CONTENT_MAX_WIDTH,
+          alignSelf: "center",
           marginBottom: 15,
         }}
         renderItem={(l) => (

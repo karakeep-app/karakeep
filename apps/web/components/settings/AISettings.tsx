@@ -206,7 +206,7 @@ export function AIPreferences() {
 
           <div className="flex justify-end pt-4">
             <ActionButton type="submit" loading={isPending} variant="default">
-              <Save className="mr-2 size-4" />
+              <Save className="size-4" />
               {t("actions.save")}
             </ActionButton>
           </div>
@@ -549,7 +549,7 @@ export function PromptEditor() {
           variant="default"
           className="items-center"
         >
-          <Plus className="mr-2 size-4" />
+          <Plus className="size-4" />
           {t("actions.add")}
         </ActionButton>
       </form>
@@ -675,7 +675,7 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
           type="submit"
           className="items-center"
         >
-          <Save className="mr-2 size-4" />
+          <Save className="size-4" />
           {t("actions.save")}
         </ActionButton>
         <ActionButton
@@ -685,7 +685,7 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
           className="items-center"
           type="button"
         >
-          <Trash2 className="mr-2 size-4" />
+          <Trash2 className="size-4" />
           {t("actions.delete")}
         </ActionButton>
       </form>

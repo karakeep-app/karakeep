@@ -15,6 +15,7 @@ import {
   useOfflineArticleContent,
 } from "@/lib/offlineLibrary";
 import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
+import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
 import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
@@ -195,6 +196,9 @@ export function BookmarkLinkReaderPreview({
     color: isDark ? "#e5e7eb" : "#374151",
     padding: "16px",
     background: isDark ? "#000000" : "#ffffff",
+    // Keep lines at a readable length on tablets.
+    maxWidth: `${READABLE_CONTENT_MAX_WIDTH}px`,
+    margin: "0 auto",
   };
 
   return (

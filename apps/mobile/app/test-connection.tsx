@@ -10,7 +10,7 @@ import { z } from "zod";
 export default function TestConnection() {
   const { settings, isLoading } = useAppSettings();
   const [text, setText] = React.useState("");
-  const [randomId, setRandomId] = React.useState(Math.random());
+  const [randomId, setRandomId] = React.useState(() => Math.random());
   const [status, setStatus] = React.useState<"running" | "success" | "error">(
     "running",
   );

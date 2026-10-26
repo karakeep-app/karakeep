@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://karakeep.app/sitemap-index.xml
+Sitemap: https://karakeep.com/sitemap-index.xml

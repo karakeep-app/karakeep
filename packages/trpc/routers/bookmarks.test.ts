@@ -9,6 +9,7 @@ import {
   users,
 } from "@karakeep/db/schema";
 import * as sharedServer from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { WebhooksService } from "../models/webhooks.service";
@@ -24,6 +25,9 @@ vi.mock("@karakeep/shared-server", async (original) => {
   return {
     ...mod,
     LinkCrawlerQueue: {
+      enqueue: vi.fn(),
+    },
+    LowPriorityCrawlerQueue: {
       enqueue: vi.fn(),
     },
     OpenAIQueue: {
@@ -1098,6 +1102,7 @@ describe("Bookmark Routes", () => {
     const brokenBookmark = await api.createBookmark({
       url: "https://broken-link.com",
       type: BookmarkTypes.LINK,
+      title: "Broken page",
     });
     await db
       .update(bookmarkLinks)
@@ -1111,14 +1116,96 @@ describe("Bookmark Routes", () => {
     ).toBeTruthy();
     expect(result.bookmarks[0].url).toEqual("https://broken-link.com");
     expect(result.bookmarks[0].isCrawlingFailure).toBeTruthy();
+    expect(result.bookmarks[0].title).toBe("Broken page");
+    expect(result.bookmarks[0].isCrawling).toBe(false);
+    expect((await apiCallers[1].bookmarks.getBrokenLinks()).bookmarks).toEqual(
+      [],
+    );
+    await db
+      .update(bookmarkLinks)
+      .set({ crawlStatus: "failure", crawlStatusCode: 403 })
+      .where(eq(bookmarkLinks.id, brokenBookmark.id));
+    await api.recrawlBookmark({ bookmarkId: brokenBookmark.id });
+    expect((await api.getBrokenLinks()).bookmarks[0]).toMatchObject({
+      isCrawling: true,
+      isCrawlingFailure: false,
+      statusCode: 403,
+    });
 
     // Test with no broken links
     await db
       .update(bookmarkLinks)
-      .set({ crawlStatus: "success" })
+      .set({ crawlStatus: "success", crawlStatusCode: 200 })
       .where(eq(bookmarkLinks.id, brokenBookmark.id));
     const emptyResult = await api.getBrokenLinks();
     expect(emptyResult.bookmarks.length).toEqual(0);
+  });
+
+  describe("preserveVideo", () => {
+    test<CustomTestContext>("is rejected when on-demand video downloads are disabled", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        url: "https://youtube.com/watch?v=abc",
+        type: BookmarkTypes.LINK,
+      });
+      const enqueueMock = getTestQueueMocks().videoWorkerEnqueue;
+      enqueueMock.mockClear();
+
+      const originalValue = serverConfig.crawler.downloadVideoOnDemand;
+      serverConfig.crawler.downloadVideoOnDemand = false;
+      try {
+        await expect(
+          api.preserveVideo({ bookmarkId: bookmark.id }),
+        ).rejects.toThrow(/disabled/);
+      } finally {
+        serverConfig.crawler.downloadVideoOnDemand = originalValue;
+      }
+      expect(enqueueMock).not.toHaveBeenCalled();
+    });
+
+    test<CustomTestContext>("enqueues an on-demand video download for links", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        url: "https://youtube.com/watch?v=abc",
+        type: BookmarkTypes.LINK,
+      });
+      const textBookmark = await api.createBookmark({
+        text: "hello",
+        type: BookmarkTypes.TEXT,
+      });
+      const enqueueMock = getTestQueueMocks().videoWorkerEnqueue;
+      enqueueMock.mockClear();
+
+      const originalValue = serverConfig.crawler.downloadVideoOnDemand;
+      serverConfig.crawler.downloadVideoOnDemand = true;
+      try {
+        await api.preserveVideo({ bookmarkId: bookmark.id });
+        expect(enqueueMock).toHaveBeenCalledWith(
+          {
+            bookmarkId: bookmark.id,
+            url: "https://youtube.com/watch?v=abc",
+            onDemand: true,
+          },
+          expect.objectContaining({ groupId: expect.any(String) }),
+        );
+
+        await expect(
+          api.preserveVideo({ bookmarkId: textBookmark.id }),
+        ).rejects.toThrow(/link bookmarks/);
+
+        // Users can't trigger downloads for bookmarks they don't own
+        await expect(
+          apiCallers[1].bookmarks.preserveVideo({ bookmarkId: bookmark.id }),
+        ).rejects.toThrow();
+      } finally {
+        serverConfig.crawler.downloadVideoOnDemand = originalValue;
+      }
+      expect(enqueueMock).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe("Bookmark Quotas", () => {

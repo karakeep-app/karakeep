@@ -160,7 +160,7 @@ export function DeleteAccount() {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent has-[>svg]:px-3 dark:hover:bg-transparent"
                             onClick={() => setShowPassword(!showPassword)}
                           >
                             {showPassword ? (
@@ -185,13 +185,13 @@ export function DeleteAccount() {
             loading={deleteAccountMutation.isPending}
             onClick={form.handleSubmit(onSubmit)}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <Trash2 className="h-4 w-4" />
             Delete Account
           </ActionButton>
         )}
       >
-        <Button variant="destructive" className="w-full">
-          <Trash2 className="mr-2 h-4 w-4" />
+        <Button variant="destructiveOutline">
+          <Trash2 className="h-4 w-4" />
           Delete Account
         </Button>
       </ActionConfirmingDialog>

@@ -95,6 +95,29 @@ describe("Shared Lists", () => {
       ).rejects.toThrow("Cannot add the list owner as a collaborator");
     });
 
+    test<CustomTestContext>("should match collaborator email case-insensitively", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Test List",
+        icon: "📚",
+        type: "manual",
+      });
+
+      const collaboratorUser = await collaboratorApi.users.whoami();
+
+      const { invitationId } = await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: `  ${collaboratorUser.email!.toUpperCase()} `,
+        role: "viewer",
+      });
+
+      await collaboratorApi.lists.acceptInvitation({ invitationId });
+    });
+
     test<CustomTestContext>("should not allow adding duplicate collaborator", async ({
       apiCallers,
     }) => {

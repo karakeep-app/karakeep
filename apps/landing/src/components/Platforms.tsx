@@ -1,94 +1,72 @@
-import { Code2, Globe, Terminal, Webhook } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 import { APP_STORE_LINK, PLAY_STORE_LINK } from "../constants";
 
-import appStoreBadge from "/app-store-badge.png?url";
-import chromeExtensionBadge from "/chrome-extension-badge.png?url";
-import firefoxAddonBadge from "/firefox-addon.png?url";
-import playStoreBadge from "/google-play-badge.webp?url";
-import safariIcon from "/safari-extension.png?url";
+import appleIcon from "/apple-icon.svg?url";
+import chromeIcon from "/chrome-icon.svg?url";
+import firefoxIcon from "/firefox-icon.svg?url";
+import googlePlayIcon from "/google-play-icon.svg?url";
+import safariIcon from "/safari-icon.svg?url";
 
 const platforms = [
   {
     name: "iOS",
     url: APP_STORE_LINK,
-    badge: appStoreBadge,
+    icon: appleIcon,
   },
   {
     name: "Android",
     url: PLAY_STORE_LINK,
-    badge: playStoreBadge,
+    icon: googlePlayIcon,
   },
   {
-    name: "Chrome Extension",
+    name: "Chrome",
     url: "https://chromewebstore.google.com/detail/karakeep/kgcjekpmcjjogibpjebkhaanilehneje",
-    badge: chromeExtensionBadge,
+    icon: chromeIcon,
   },
   {
-    name: "Firefox Addon",
+    name: "Firefox",
     url: "https://addons.mozilla.org/en-US/firefox/addon/karakeep/",
-    badge: firefoxAddonBadge,
+    icon: firefoxIcon,
   },
   {
-    name: "Safari Extension",
+    name: "Safari",
     url: "https://apps.apple.com/gb/app/karakeep-app/id6479258022?platform=mac",
-    badge: safariIcon,
+    icon: safariIcon,
   },
-];
-
-const extras = [
-  { icon: Terminal, label: "CLI" },
-  { icon: Code2, label: "REST API" },
-  { icon: Webhook, label: "Webhooks" },
-  { icon: Globe, label: "Web App" },
 ];
 
 export default function Platforms() {
   return (
-    <section className="bg-white px-4 py-16 sm:py-24">
-      <div className="mx-auto max-w-6xl">
-        <div className="text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight text-neutral-900 sm:text-[40px] sm:leading-[1.15]">
-            Apps & Extensions for Seamless Access
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg leading-[1.6] text-neutral-600">
-            Access your bookmarks from anywhere with native apps and browser
-            extensions.
-          </p>
-        </div>
-
-        {/* Badges */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-6">
-          {platforms.map((platform) => (
-            <a
-              key={platform.name}
-              href={platform.url}
-              target="_blank"
-              rel="noreferrer"
-              className="transition-transform hover:scale-105"
-            >
-              <img
-                src={platform.badge}
-                alt={platform.name}
-                className="h-14 w-auto rounded-lg"
-                loading="lazy"
-              />
-            </a>
-          ))}
-        </div>
-
-        {/* Extra integrations */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-          {extras.map((extra) => (
-            <div
-              key={extra.label}
-              className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-700"
-            >
-              <extra.icon className="size-4 text-neutral-500" />
-              {extra.label}
-            </div>
-          ))}
-        </div>
+    <section className="border-y border-neutral-100 bg-white px-4 py-6">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm">
+        <p className="w-full text-center text-neutral-500 sm:w-auto">
+          Save here. Read anywhere.
+        </p>
+        {platforms.map((platform) => (
+          <a
+            key={platform.name}
+            href={platform.url}
+            target="_blank"
+            rel="noreferrer"
+            className="group flex items-center gap-2 text-neutral-600 transition-colors hover:text-neutral-900"
+          >
+            <img
+              src={platform.icon}
+              alt=""
+              className="size-4 opacity-60 grayscale transition group-hover:opacity-100 group-hover:grayscale-0"
+              loading="lazy"
+            />
+            {platform.name}
+          </a>
+        ))}
+        <a
+          href="/apps/"
+          className="flex items-center gap-1 font-medium text-neutral-900 transition-colors hover:text-neutral-600"
+        >
+          All apps
+          <ArrowUpRight className="size-3.5" />
+        </a>
       </div>
     </section>
   );

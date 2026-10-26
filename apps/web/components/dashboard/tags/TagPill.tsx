@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/sonner";
 import { useDragAndDrop } from "@/lib/drag-and-drop";
 import { X } from "lucide-react";
@@ -78,22 +77,23 @@ export const TagPill = React.memo(function TagPill({
       ref={draggableRef}
     >
       <Link
-        className={
-          "flex gap-2 rounded-md border border-border bg-background px-2 py-1 text-foreground hover:bg-foreground hover:text-background"
-        }
+        className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 py-1 pl-3 pr-1 text-sm font-medium text-foreground transition-colors hover:border-foreground/15 hover:bg-secondary dark:border-white/[0.06] dark:bg-white/[0.04] dark:hover:border-white/[0.12] dark:hover:bg-white/[0.08]"
         href={`/dashboard/tags/${id}`}
         data-id={id}
         draggable={false}
         prefetch={false}
       >
-        {name} <Separator orientation="vertical" /> {count}
+        {name}
+        <span className="min-w-6 rounded-full bg-background px-1.5 py-0.5 text-center text-xs tabular-nums text-muted-foreground transition-colors group-hover:text-foreground dark:bg-white/[0.06]">
+          {count}
+        </span>
       </Link>
 
       {isHovered && !isDraggable && (
         <Button
           size="none"
           variant="secondary"
-          className="-translate-1/2 absolute -right-1 -top-1 hidden rounded-full group-hover:block"
+          className="absolute -right-1.5 -top-1.5 hidden rounded-full border border-border bg-background p-0.5 text-muted-foreground shadow-sm hover:bg-destructive hover:text-destructive-foreground group-hover:block"
           onClick={() => onOpenDialog({ id, name })}
         >
           <X className="size-3" />

@@ -23,7 +23,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, ActionButtonProps>(
     ref,
   ) => {
     const clientConfig = useClientConfig();
-    spinner ||= <LoadingSpinner />;
+    spinner ||= <LoadingSpinner className="size-6" />;
     if (!ignoreDemoMode && clientConfig.demoMode) {
       disabled = true;
     } else if (disabled !== undefined) {

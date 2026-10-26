@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -32,17 +31,20 @@ import { resetPasswordSchema } from "@karakeep/shared/types/admin";
 
 interface ResetPasswordDialogProps {
   userId: string;
-  children?: React.ReactNode;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onCloseAutoFocus?: (e: Event) => void;
 }
 
 type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPasswordDialog({
-  children,
   userId,
+  open: isOpen,
+  setOpen: onOpenChange,
+  onCloseAutoFocus,
 }: ResetPasswordDialogProps) {
   const api = useTRPC();
-  const [isOpen, onOpenChange] = useState(false);
   const form = useForm<ResetPasswordSchema>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
@@ -83,8 +85,7 @@ export default function ResetPasswordDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle>Reset Password</DialogTitle>
         </DialogHeader>

@@ -33,24 +33,27 @@ patchedDependencies:
   # Android: don't drop shares that arrive while the app is being recreated after
   # process death, and don't replay the task's launch share on reopen (#513).
   expo-share-intent@8.0.1: patches/expo-share-intent@8.0.1.patch
+  # Detach service worker targets that Chrome reports without a browserContextId
+  # instead of failing an assertion that crashes connectOverCDP().
+  patchright-core@1.59.4: patches/patchright-core@1.59.4.patch
 
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
 
 minimumReleaseAgeExclude:
   [
-    "@next/bundle-analyzer@16.3.8",
-    "@next/env@16.3.8",
-    "@next/swc-darwin-arm64@16.3.8",
-    "@next/swc-darwin-x64@16.3.8",
-    "@next/swc-linux-arm64-gnu@16.3.8",
-    "@next/swc-linux-arm64-musl@16.3.8",
-    "@next/swc-linux-x64-gnu@16.3.8",
-    "@next/swc-linux-x64-musl@16.3.8",
-    "@next/swc-win32-arm64-msvc@16.3.8",
-    "@next/swc-win32-x64-msvc@16.3.8",
-    next@16.3.8,
-    liteque@0.9.1,
+    "@next/bundle-analyzer@16.4.1",
+    "@next/env@16.4.1",
+    "@next/swc-darwin-arm64@16.4.1",
+    "@next/swc-darwin-x64@16.4.1",
+    "@next/swc-linux-arm64-gnu@16.4.1",
+    "@next/swc-linux-arm64-musl@16.4.1",
+    "@next/swc-linux-x64-gnu@16.4.1",
+    "@next/swc-linux-x64-musl@16.4.1",
+    "@next/swc-win32-arm64-msvc@16.4.1",
+    "@next/swc-win32-x64-msvc@16.4.1",
+    next@16.4.1,
+    liteque@0.10.0,
     "@astrojs/react@6.0.6",
   ]
 
@@ -67,7 +70,7 @@ overrides:
   # Docusaurus's webpack plugins require v6. v7 keeps the API and needs Node 20+.
   "serialize-javascript@>=6.0.0 <7.0.5": 7.0.5
   i18next-fs-backend: 2.6.6
-  shell-quote: 1.9.0
+  shell-quote: 1.11.0
   # React Native vendors a renderer built against one exact React version and
   # asserts on it at runtime, so the whole workspace has to agree. React's
   # experimental types also contain unique symbols, so separate @types/react

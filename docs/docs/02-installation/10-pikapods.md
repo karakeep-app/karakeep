@@ -1,4 +1,8 @@
-# PikaPods
+---
+sidebar_label: "PikaPods"
+---
+
+# Host Karakeep on PikaPods
 
 :::info
 Note: PikaPods shares some of its revenue from hosting Karakeep with the maintainer of this project.

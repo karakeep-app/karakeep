@@ -34,6 +34,13 @@ export const zClientConfigSchema = z.object({
   stripe: z.object({
     isConfigured: z.boolean(),
   }),
+  crawler: z.object({
+    videoDownloadOnDemand: z.boolean(),
+  }),
+  revenueCat: z.object({
+    isConfigured: z.boolean(),
+    purchasePlatforms: z.array(z.enum(["ios", "android"])),
+  }),
   legal: z.object({
     termsOfServiceUrl: z.string().optional(),
     privacyPolicyUrl: z.string().optional(),

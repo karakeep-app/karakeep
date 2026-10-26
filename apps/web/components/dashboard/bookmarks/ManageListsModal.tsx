@@ -164,7 +164,7 @@ export default function ManageListsModal({
             onDone={() => setOpen(false)}
             variant="secondary"
           >
-            <Archive className="mr-2 size-4" /> {t("actions.archive")}
+            <Archive className="size-4" /> {t("actions.archive")}
           </ArchiveBookmarkButton>
         </DialogFooter>
       </DialogContent>

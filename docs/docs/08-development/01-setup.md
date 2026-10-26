@@ -88,7 +88,7 @@ You can now continue with the rest of this documentation.
 - Start by copying the template by `cp .env.sample .env`.
 - The most important env variables to set are:
   - `DATA_DIR`: Where the database and assets will be stored. This is the only required env variable. You can use an absolute path so that all apps point to the same dir.
-  - `NEXTAUTH_SECRET`: Random string used to sign the JWT tokens. Generate one with `openssl rand -base64 36`. Logging in will not work if this is missing!
+  - `NEXTAUTH_SECRET`: Random string used to secure authentication cookies and tokens. Generate one with `openssl rand -base64 36`. Logging in will not work if this is missing!
   - `MEILI_ADDR`: If not set, search will be disabled. You can set it to `http://127.0.0.1:7700` if you run meilisearch using the command below.
   - `OPENAI_API_KEY`: If you want to enable auto tag inference in the dev env.
 - run `pnpm run db:migrate` in the root of the repo to set up the database.

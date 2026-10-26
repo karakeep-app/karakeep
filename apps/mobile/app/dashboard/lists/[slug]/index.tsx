@@ -6,6 +6,12 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useArchiveFilter } from "@/lib/hooks";
+import {
+  setListKeptOffline,
+  useOfflineDownloadPrefs,
+} from "@/lib/offlineDownloadPrefs";
+import { getOfflineLibraryScope } from "@/lib/offlineLibrary";
+import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
@@ -35,7 +41,11 @@ export default function ListView() {
           headerTitle: list ? `${list.icon} ${list.name}` : "",
           headerBackTitle: "Back",
           headerRight: () => (
-            <ListActionsMenu listId={slug} role={list?.userRole ?? "viewer"} />
+            <ListActionsMenu
+              listId={slug}
+              role={list?.userRole ?? "viewer"}
+              isLoaded={!!list}
+            />
           ),
         }}
       />
@@ -58,14 +68,20 @@ export default function ListView() {
 function ListActionsMenu({
   listId,
   role,
+  isLoaded,
 }: {
   listId: string;
   role: ZBookmarkList["userRole"];
+  isLoaded: boolean;
 }) {
   const api = useTRPC();
   const { colors } = useColorScheme();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const { layoutActions, handleLayoutAction } = useBookmarkListLayoutMenu();
+  const { settings } = useAppSettings();
+  const offlineScope = getOfflineLibraryScope(settings);
+  const keptOffline =
+    useOfflineDownloadPrefs(offlineScope).listIds.includes(listId);
   const { mutate: deleteList } = useMutation(
     api.lists.delete.mutationOptions({
       onSuccess: () => {
@@ -118,6 +134,23 @@ function ListActionsMenu({
   return (
     <MenuView
       actions={[
+        {
+          id: "keep_offline",
+          // Android menus don't show the checkmark, so say it in the title.
+          title:
+            Platform.OS === "ios" || !keptOffline
+              ? "Keep This List Offline"
+              : "Stop Keeping This List Offline",
+          state: keptOffline ? "on" : "off",
+          // Until the list loads, the slug may not name a list we can read.
+          attributes: { hidden: !isLoaded },
+          image: Platform.select({
+            ios: "arrow.down.circle",
+          }),
+          imageColor: Platform.select({
+            ios: menuIconColor,
+          }),
+        },
         {
           id: "edit",
           title: "Edit List",
@@ -173,7 +206,9 @@ function ListActionsMenu({
           return;
         }
 
-        if (nativeEvent.event === "delete_list") {
+        if (nativeEvent.event === "keep_offline") {
+          setListKeptOffline(offlineScope, listId, !keptOffline);
+        } else if (nativeEvent.event === "delete_list") {
           handleDelete();
         } else if (nativeEvent.event === "leave") {
           handleLeave();

@@ -19,6 +19,7 @@ import {
 } from "@/components/settings/settings-list";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import { Text } from "@/components/ui/Text";
+import { useClientConfig } from "@/lib/client-config";
 import { useServerVersion } from "@/lib/hooks";
 import {
   getOfflineLibraryScope,
@@ -47,6 +48,9 @@ export default function Settings() {
     isLoading: isServerVersionLoading,
     error: serverVersionError,
   } = useServerVersion();
+  const clientConfig = useClientConfig();
+  const showSubscription =
+    clientConfig.stripe.isConfigured || clientConfig.revenueCat.isConfigured;
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState("");
 
@@ -73,7 +77,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (error?.data?.code === "UNAUTHORIZED") {
-      logout();
+      void logout();
     }
   }, [error?.data?.code, logout]);
 
@@ -154,6 +158,15 @@ export default function Settings() {
       </SettingsGroup>
 
       <SettingsGroup header="Account">
+        {showSubscription ? (
+          <>
+            <SettingsNavigationRow
+              label="Subscription"
+              onPress={() => router.push("/dashboard/settings/subscription")}
+            />
+            <SettingsSeparator />
+          </>
+        ) : null}
         <SettingsActionRow label="Log Out" onPress={logout} />
         <SettingsSeparator />
         <SettingsActionRow

@@ -100,7 +100,7 @@ function prepareYtDlpArguments(
 
 async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const jobId = job.id;
-  const { bookmarkId } = job.data;
+  const { bookmarkId, onDemand } = job.data;
   addLogFields<"videoWorker.run">({ "bookmark.id": bookmarkId });
 
   const {
@@ -109,7 +109,10 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     videoAssetId: oldVideoAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
-  if (!serverConfig.crawler.downloadVideo) {
+  const downloadEnabled = onDemand
+    ? serverConfig.crawler.downloadVideoOnDemand
+    : serverConfig.crawler.downloadVideo;
+  if (!downloadEnabled) {
     logger.info(
       `[VideoCrawler][${jobId}] Skipping video download from "${url}", because it is disabled in the config.`,
     );

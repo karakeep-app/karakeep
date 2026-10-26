@@ -39,7 +39,7 @@ function getQueryClient() {
   }
 }
 
-function getTRPCClient(settings: Settings) {
+export function getTRPCClient(settings: Settings) {
   return createTRPCClient<AppRouter>({
     links: [
       httpBatchLink({

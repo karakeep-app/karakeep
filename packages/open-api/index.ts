@@ -108,7 +108,7 @@ function getOpenApiDocumentation() {
         url: "{address}/api/v1",
         variables: {
           address: {
-            default: "https://try.karakeep.app",
+            default: "https://try.karakeep.com",
             description: "The address of the Karakeep server",
           },
         },

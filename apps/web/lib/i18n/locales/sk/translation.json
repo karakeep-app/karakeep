@@ -76,10 +76,10 @@
     "unselect_all": "Zrušiť výber",
     "save": "Uložiť",
     "add_to_list": "Pridať do zoznamu",
+    "select": "Vybrať",
     "add": "Pridať",
     "refresh": "Obnoviť",
     "unarchive": "Obnoviť z archívu",
-    "download_full_page_archive": "Stiahnuť archív celej stránky",
     "recrawl": "Znova prehľadať",
     "fetch_now": "Načítať teraz",
     "summarize_with_ai": "Zhrnúť pomocou AI",
@@ -90,6 +90,7 @@
     "load_more": "Načítať viac",
     "edit_notes": "Upraviť poznámky",
     "preserve_as_pdf": "Uložiť ako PDF",
+    "preserve_video": "Uložiť video",
     "offline_copies": "Offline kópie",
     "preserve_offline_archive": "Uchovaj offline archív",
     "download_full_page_archive_file": "Stiahni archivačný súbor",
@@ -191,11 +192,17 @@
       "shared": "Zdieľané",
       "private": "Súkromné"
     },
-    "summary_list_one": "{{count}} Zoznamy",
-    "summary_list_other": "{{count}} Zoznamy",
-    "summary_bookmark_one": "{{count}} Záložky",
-    "summary_bookmark_other": "{{count}} Záložky",
-    "items_count_one": "{{count}} položiek",
+    "summary_list_one": "{{count}} zoznam",
+    "summary_list_few": "{{count}} zoznamy",
+    "summary_list_many": "{{count}} zoznamu",
+    "summary_list_other": "{{count}} zoznamov",
+    "summary_bookmark_one": "{{count}} záložka",
+    "summary_bookmark_few": "{{count}} záložky",
+    "summary_bookmark_many": "{{count}} záložky",
+    "summary_bookmark_other": "{{count}} záložiek",
+    "items_count_one": "{{count}} položka",
+    "items_count_few": "{{count}} položky",
+    "items_count_many": "{{count}} položky",
     "items_count_other": "{{count}} položiek"
   },
   "settings": {
@@ -459,7 +466,57 @@
       "broken_links": "Nefunkčné odkazy",
       "last_crawled_at": "Naposledy prehľadané",
       "crawling_status": "Stav prehľadávania",
-      "crawling_failed": "Prehľadávanie zlyhalo"
+      "crawling_failed": "Prehľadávanie zlyhalo",
+      "description": "Skontroluj odkazy, ktoré sa nepodarilo načítať, skús ich načítať znova alebo odstráň staré záložky.",
+      "category_all": "Vyžaduje pozornosť",
+      "category_blocked": "Prístup zablokovaný",
+      "category_missing": "Nenájdené",
+      "category_errors": "Ostatné chyby",
+      "category_all_hint": "Odkazy na kontrolu",
+      "category_blocked_hint": "Obmedzený prístup alebo prekročený limit požiadaviek",
+      "category_missing_hint": "Stránka chýba alebo bola odstránená",
+      "category_errors_hint": "Chyby servera alebo prehľadávania",
+      "blocked_hint": "Zablokovaná požiadavka nemusí vždy znamenať nefunkčný odkaz. Niektoré weby obmedzujú automatizovaný prístup. Pred odstránením otvor pôvodnú stránku a over to.",
+      "search": "Hľadať podľa názvu alebo URL…",
+      "sort_recent": "Naposledy skontrolované",
+      "sort_oldest": "Najstaršia kontrola ako prvá",
+      "sort_domain": "Web A–Z",
+      "result_count_one": "{{count}} odkaz na kontrolu",
+      "result_count_other": "{{count}} odkazov na kontrolu",
+      "result_count_few": "{{count}} odkazy na kontrolu",
+      "result_count_many": "{{count}} odkazu na kontrolu",
+      "retry_selected": "Skúsiť znova vybrané",
+      "empty": "Nenašli sa žiadne nefunkčné odkazy",
+      "empty_description": "Žiadny z tvojich uložených odkazov momentálne nemá nahlásenú chybu prehľadávania.",
+      "select_visible": "Vybrať všetky zobrazené odkazy",
+      "bookmark": "Záložka",
+      "issue": "Problém",
+      "never_crawled": "Bez dátumu prehľadania",
+      "issue_blocked": "Prístup zablokovaný",
+      "issue_missing": "Nenájdené",
+      "issue_server": "Chyba servera",
+      "issue_http": "Chyba HTTP",
+      "issue_failed": "Prehľadávanie zlyhalo",
+      "issue_blocked_hint": "Web túto požiadavku obmedzil",
+      "issue_missing_hint": "Stránka mohla byť odstránená",
+      "issue_server_hint": "Web nemohol dokončiť požiadavku",
+      "issue_http_hint": "Web vrátil neočakávanú odpoveď",
+      "issue_failed_hint": "Nebola zaznamenaná žiadna úspešná odpoveď",
+      "queued": "Zaradené do frontu",
+      "queued_count_one": "{{count}} odkaz bol zaradený do frontu na opätovné prehľadanie.",
+      "queued_count_other": "{{count}} odkazov bolo zaradených do frontu na opätovné prehľadanie.",
+      "deleted_count_one": "{{count}} záložka bola odstránená.",
+      "deleted_count_other": "{{count}} záložiek bolo odstránených.",
+      "deleted_count_few": "{{count}} záložky boli odstránené.",
+      "deleted_count_many": "{{count}} záložky bolo odstránené.",
+      "queued_count_few": "{{count}} odkazy boli zaradené do frontu na opätovné prehľadanie.",
+      "queued_count_many": "{{count}} odkazu bolo zaradené do frontu na opätovné prehľadanie.",
+      "action_failed": "{{count}} z {{total}} zlyhalo.",
+      "delete_title_one": "Odstrániť {{count}} záložku?",
+      "delete_title_other": "Odstrániť {{count}} záložiek?",
+      "delete_title_few": "Odstrániť {{count}} záložky?",
+      "delete_title_many": "Odstrániť {{count}} záložky?",
+      "delete_description": "Týmto natrvalo odstrániš vybrané záložky a ich uložené súbory, zvýraznenia a poznámky. Túto akciu nie je možné vrátiť späť."
     },
     "rules": {
       "enter_rule_name": "Zadaj názov pravidla",
@@ -557,7 +614,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Aktivita podľa hodiny",
-        "activity_by_day": "Aktivita podľa dňa"
+        "activity_by_day": "Aktivita podľa dňa",
+        "busiest_around": "Najviac aktivity okolo {{hour}}"
       },
       "storage_breakdown": {
         "title": "Rozdelenie úložiska"
@@ -608,10 +666,8 @@
       "progress": "Priebeh",
       "status": {
         "pending": "Čaká sa",
-        "in_progress": "Prebieha",
         "completed": "Dokončené",
         "failed": "Neúspešné",
-        "processing": "Spracováva sa",
         "staging": "Príprava",
         "running": "Beží",
         "paused": "Pozastavené",
@@ -707,6 +763,19 @@
         "backup_queued": "Úloha zálohovania bola zaradená do frontu! Bude čoskoro spracovaná.",
         "backup_deleted": "Záloha bola odstránená!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Vymazať filtre",
+      "clear_selection": "Zrušiť výber",
+      "delete_selected": "Odstrániť vybrané",
+      "try_again": "Skúsiť znova",
+      "sort": "Poradie zoradenia",
+      "no_matches": "Nenašli sa žiadne zhody",
+      "adjust_filters": "Skús iné vyhľadávanie alebo vymaž filtre.",
+      "select_item": "Vybrať {{name}}",
+      "selected": "Vybrané: {{count}}",
+      "showing": "Zobrazuje sa {{shown}} z {{total}}",
+      "load_more": "Načítať viac"
     }
   },
   "search": {
@@ -727,6 +796,10 @@
     "has_tag": "Má značku",
     "type_is": "Typ je",
     "has_no_tags": "Nemá žiadnu značku",
+    "has_notes": "Má poznámky",
+    "has_no_notes": "Nemá poznámky",
+    "has_highlights": "Má zvýraznenia",
+    "has_no_highlights": "Nemá zvýraznenia",
     "type_is_not": "Typ nie je",
     "and": "A",
     "is_not_favorited": "Nie je obľúbené",
@@ -776,18 +849,6 @@
     "compact": "Kompaktné"
   },
   "admin": {
-    "actions": {
-      "reindex_all_bookmarks": "Preindexovať všetky záložky",
-      "compact_assets": "Optimalizovať dáta",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Pregenerovať AI značky len pre zlyhané záložky",
-      "regenerate_ai_tags_for_all_bookmarks": "Pregenerovať AI značky pre všetky záložky",
-      "without_inference": "Bez odvodzovania",
-      "reprocess_assets_fix_mode": "Spracovať aktíva znova (režim opravy)",
-      "recrawl_all_links": "Znova prehľadať všetky odkazy",
-      "recrawl_failed_links_only": "Znova prehľadať iba nefunkčné odkazy",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Znova vygenerovať AI súhrny iba pre záložky, ktoré zlyhali",
-      "regenerate_ai_summaries_for_all_bookmarks": "Znova vygenerovať AI súhrny pre všetky záložky"
-    },
     "users_list": {
       "users_list": "Zoznam používateľov",
       "reset_password": "Resetovať heslo",
@@ -804,18 +865,6 @@
     "admin_settings": "Nastavenia správcu",
     "background_jobs": {
       "background_jobs": "Úlohy na pozadí",
-      "queued": "Zaradené do frontu",
-      "video_jobs": "Úlohy sťahovania videa",
-      "crawler_jobs": "Úlohy prehľadávača",
-      "indexing_jobs": "Úlohy indexovania",
-      "inference_jobs": "Úlohy odvodzovania",
-      "tidy_assets_jobs": "Úlohy na upratanie aktív",
-      "job": "Úloha",
-      "pending": "Čaká sa",
-      "failed": "Neúspešné",
-      "webhook_jobs": "Úlohy Webhook",
-      "asset_preprocessing_jobs": "Úlohy predbežného spracovania aktív",
-      "feed_jobs": "Úlohy RSS kanála",
       "jobs": {
         "crawler": {
           "title": "Úlohy pre prehľadávače",
@@ -832,10 +881,6 @@
         "asset_preprocessing": {
           "title": "Úlohy predbežného spracovania zdrojov",
           "description": "Predbežné spracovanie obrázkov a dokumentov (snímky obrazovky, extrakcia textu atď.)"
-        },
-        "tidy_assets": {
-          "title": "Úlohy na upratovanie zdrojov",
-          "description": "Čistenie zdrojov a optimalizácia úložiska"
         },
         "video": {
           "title": "Úlohy na sťahovanie videí",
@@ -956,8 +1001,10 @@
     }
   },
   "options": {
+    "theme": "Motív",
     "dark_mode": "Tmavý motív",
     "light_mode": "Svetlý motív",
+    "system_mode": "Systémový motív",
     "apps_extensions": "Aplikácie a rozšírenia",
     "documentation": "Dokumentácia",
     "follow_us_on_x": "Sleduj nás na X"
@@ -993,7 +1040,6 @@
     "attached_by_ai": "{{count}} od AI"
   },
   "editor": {
-    "quickly_focus": "Na rýchle presunutie na toto pole môžeš použiť skratku CTRL + E",
     "multiple_urls_dialog_title": "Importovať zadané URL ako samostatné záložky?",
     "import_as_text": "Importovať ako textovú záložku",
     "import_as_separate_bookmarks": "Importovať ako samostatné záložky",
@@ -1055,6 +1101,9 @@
     "view_original": "Zobraziť originál",
     "cached_content": "Obsah uložený vo vyrovnávacej pamäti",
     "reader_view": "Zobrazenie čítačky",
+    "page_overview": "Prehľad stránky",
+    "try_reader_view": "Skúsiť zobrazenie čítačky",
+    "archived_page": "Archivovaná stránka",
     "tabs": {
       "content": "Obsah",
       "details": "Podrobnosti"
@@ -1076,6 +1125,7 @@
       "refetch": "Opätovné načítanie bolo zaradené do frontu!",
       "full_page_archive": "Bolo spustené vytváranie archívu celej stránky",
       "preserve_pdf": "Ukladanie do PDF bolo spustené",
+      "preserve_video": "Sťahovanie videa bolo spustené",
       "update_banner": "Banner bol aktualizovaný!",
       "uploading_banner": "Nahrávanie bannera..."
     },

@@ -158,7 +158,7 @@ export default function ReaderSettings() {
                     onClick={handleClearLocalOverrides}
                     className="w-fit"
                   >
-                    <Laptop className="mr-2 h-4 w-4" />
+                    <Laptop className="h-4 w-4" />
                     {t("settings.info.reader_settings.clear_local_overrides")}
                   </Button>
                 </AlertDescription>
@@ -272,7 +272,7 @@ export default function ReaderSettings() {
                 className="w-full"
                 disabled={!!clientConfig.demoMode}
               >
-                <RotateCcw className="mr-2 h-4 w-4" />
+                <RotateCcw className="h-4 w-4" />
                 {t("settings.info.reader_settings.clear_defaults")}
               </Button>
             )}

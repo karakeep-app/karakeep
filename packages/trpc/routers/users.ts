@@ -2,137 +2,39 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { addLogFields } from "@karakeep/shared-server";
-import serverConfig from "@karakeep/shared/config";
+import { zAdminUserSchema } from "@karakeep/shared/types/admin";
 import {
-  zResetPasswordSchema,
-  zSignUpSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
+  zUserBookmarkCountsResponseSchema,
   zUserStatsResponseSchema,
   zWhoAmIResponseSchema,
   zWrappedStatsResponseSchema,
 } from "@karakeep/shared/types/users";
-import { validateRedirectUrl } from "@karakeep/shared/utils/redirectUrl";
 
 import {
   createAdminScopedProcedure,
   createEventLogMiddleware,
-  createRateLimitMiddleware,
   createScopedAuthedProcedure,
-  publicProcedure,
   router,
 } from "../index";
-import { verifyTurnstileToken } from "../lib/turnstile";
 import { User } from "../models/users";
 
 const usersProcedure = createScopedAuthedProcedure("users");
 const adminUsersProcedure = createAdminScopedProcedure("users");
 
 export const usersAppRouter = router({
-  create: publicProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.create",
-        windowMs: 60 * 1000,
-        maxRequests: 3,
-      }),
-    )
-    .use(createEventLogMiddleware("user.signup"))
-    .input(zSignUpSchema.safeExtend({ redirectUrl: z.string().optional() }))
-    .output(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        email: z.string(),
-        role: z.enum(["user", "admin"]).nullable(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      addLogFields<"user.signup">({ "auth.provider": "credentials" });
-      if (
-        serverConfig.auth.disableSignups ||
-        serverConfig.auth.disablePasswordAuth
-      ) {
-        const failureReason = serverConfig.auth.disablePasswordAuth
-          ? "password_auth_disabled"
-          : "signups_disabled";
-        const errorMessage = serverConfig.auth.disablePasswordAuth
-          ? "Local Signups are disabled in the server config. Use OAuth instead!"
-          : "Signups are disabled in server config";
-        addLogFields<"user.signup">({ "auth.failure_reason": failureReason });
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: errorMessage,
-        });
-      }
-      if (serverConfig.auth.turnstile.enabled) {
-        const result = await verifyTurnstileToken(
-          input.turnstileToken ?? "",
-          ctx.req.ip,
-        );
-        if (!result.success) {
-          addLogFields<"user.signup">({
-            "auth.failure_reason": "turnstile_failed",
-          });
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Turnstile verification failed",
-          });
-        }
-      }
-      const validatedRedirectUrl = validateRedirectUrl(input.redirectUrl);
-      const user = await User.create(ctx, {
-        ...input,
-        redirectUrl: validatedRedirectUrl,
-      });
-      addLogFields<"user.signup">({ "user.id": user.id });
-      return {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      };
-    }),
   list: adminUsersProcedure
     .output(
       z.object({
-        users: z.array(
-          z.object({
-            id: z.string(),
-            name: z.string(),
-            email: z.string(),
-            role: z.enum(["user", "admin"]).nullable(),
-            localUser: z.boolean(),
-            bookmarkQuota: z.number().nullable(),
-            storageQuota: z.number().nullable(),
-          }),
-        ),
+        users: z.array(zAdminUserSchema),
       }),
     )
     .query(async ({ ctx }) => {
       const users = await User.getAll(ctx);
       return {
-        users: users.map((u) => u.asPublicUser()),
+        users: users.map((u) => u.user),
       };
-    }),
-  changePassword: usersProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.changePassword",
-        windowMs: 15 * 60 * 1000,
-        maxRequests: 5,
-      }),
-    )
-    .use(createEventLogMiddleware("user.password_change"))
-    .input(
-      z.object({
-        currentPassword: z.string(),
-        newPassword: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const user = await User.fromCtx(ctx);
-      await user.changePassword(input.currentPassword, input.newPassword);
     }),
   delete: adminUsersProcedure
     .use(createEventLogMiddleware("user.delete"))
@@ -142,6 +44,12 @@ export const usersAppRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (ctx.user.id == input.userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot delete own account as an admin",
+        });
+      }
       addLogFields<"user.delete">({
         "user.deleted_id": input.userId,
         "user.deleted_by": "admin",
@@ -167,7 +75,13 @@ export const usersAppRouter = router({
     .output(zWhoAmIResponseSchema)
     .query(async ({ ctx }) => {
       const user = await User.fromCtx(ctx);
-      return user.asWhoAmI();
+      return await user.asWhoAmI();
+    }),
+  bookmarkCounts: usersProcedure
+    .output(zUserBookmarkCountsResponseSchema)
+    .query(async ({ ctx }) => {
+      const user = await User.fromCtx(ctx);
+      return await user.getBookmarkCounts();
     }),
   stats: usersProcedure
     .output(zUserStatsResponseSchema)
@@ -175,23 +89,17 @@ export const usersAppRouter = router({
       const user = await User.fromCtx(ctx);
       return await user.getStats();
     }),
-  wrapped: usersProcedure
-    .output(zWrappedStatsResponseSchema)
-    .query(async ({ ctx }) => {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "This endpoint is currently disabled",
-      });
-      const user = await User.fromCtx(ctx);
-      return await user.getWrappedStats(2025);
-    }),
-  hasWrapped: usersProcedure.output(z.boolean()).query(async ({ ctx }) => {
+  wrapped: usersProcedure.output(zWrappedStatsResponseSchema).query(() => {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "This endpoint is currently disabled",
     });
-    const user = await User.fromCtx(ctx);
-    return await user.hasWrapped();
+  }),
+  hasWrapped: usersProcedure.output(z.boolean()).query(() => {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "This endpoint is currently disabled",
+    });
   }),
   settings: usersProcedure
     .output(zUserSettingsSchema)
@@ -214,76 +122,5 @@ export const usersAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       const user = await User.fromCtx(ctx);
       await user.updateAvatar(input.assetId);
-    }),
-  verifyEmail: publicProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.verifyEmail",
-        windowMs: 5 * 60 * 1000,
-        maxRequests: 10,
-      }),
-    )
-    .input(
-      z.object({
-        email: z.string().email(),
-        token: z.string(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      await User.verifyEmail(ctx, input.email, input.token);
-      return { success: true };
-    }),
-  resendVerificationEmail: publicProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.resendVerificationEmail",
-        windowMs: 5 * 60 * 1000,
-        maxRequests: 3,
-      }),
-    )
-    .input(
-      z.object({
-        email: z.string().email(),
-        redirectUrl: z.string().optional(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      const validatedRedirectUrl = validateRedirectUrl(input.redirectUrl);
-      await User.resendVerificationEmail(
-        ctx,
-        input.email,
-        validatedRedirectUrl,
-      );
-      return { success: true };
-    }),
-  forgotPassword: publicProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.forgotPassword",
-        windowMs: 15 * 60 * 1000,
-        maxRequests: 3,
-      }),
-    )
-    .input(
-      z.object({
-        email: z.string().email(),
-      }),
-    )
-    .mutation(async ({ input, ctx }) => {
-      await User.forgotPassword(ctx, input.email);
-      return { success: true };
-    }),
-  resetPassword: publicProcedure
-    .use(
-      createRateLimitMiddleware({
-        name: "users.resetPassword",
-        windowMs: 5 * 60 * 1000,
-        maxRequests: 10,
-      }),
-    )
-    .input(zResetPasswordSchema)
-    .mutation(async ({ input, ctx }) => {
-      await User.resetPassword(ctx, input);
-      return { success: true };
     }),
 });

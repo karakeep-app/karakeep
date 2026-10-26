@@ -123,7 +123,7 @@ function ExportButton() {
           onClick={onExport}
           disabled={isFetching}
         >
-          {isFetching && <Loader2 className="mr-2 animate-spin" />}
+          {isFetching && <Loader2 className="size-6 animate-spin" />}
           <p>Export</p>
         </Button>
       </CardContent>

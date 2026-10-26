@@ -65,7 +65,7 @@ export default function TagHeader({
       <div className="flex shrink-0 items-center">
         <TagOptions tag={tag}>
           <Button variant="ghost">
-            <MoreHorizontal />
+            <MoreHorizontal className="size-6" />
           </Button>
         </TagOptions>
       </div>

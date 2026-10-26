@@ -10,7 +10,7 @@ import { authMiddleware } from "../middlewares/auth";
 import { createRateLimitMiddleware } from "../middlewares/rateLimit";
 import { rejectMutationInReadOnlyMode } from "../middlewares/readOnlyMode";
 import { serveAsset } from "../utils/assets";
-import { uploadAsset } from "../utils/upload";
+import { uploadAsset, uploadBodyLimit } from "../utils/upload";
 
 const app = new Hono()
   .use(authMiddleware)
@@ -23,6 +23,7 @@ const app = new Hono()
       windowMs: 60 * 1000,
       maxRequests: 30,
     }),
+    uploadBodyLimit,
     zValidator(
       "form",
       z

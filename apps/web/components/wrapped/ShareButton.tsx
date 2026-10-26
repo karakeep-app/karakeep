@@ -76,7 +76,7 @@ export function ShareButton({
       disabled={isGenerating}
       size="icon"
       variant="ghost"
-      className="h-10 w-10 rounded-full bg-white/10 text-slate-100 hover:bg-white/20"
+      className="h-10 w-10 rounded-full bg-white/10 text-slate-100 hover:bg-white/20 dark:hover:bg-white/20"
       aria-label={isNativeShareAvailable ? "Share" : "Download"}
       title={isNativeShareAvailable ? "Share" : "Download"}
     >

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@karakeep/mcp",
-  "version": "0.33.1",
+  "version": "0.34.0",
   "description": "MCP server for Karakeep",
   "license": "GNU Affero General Public License version 3",
   "type": "module",

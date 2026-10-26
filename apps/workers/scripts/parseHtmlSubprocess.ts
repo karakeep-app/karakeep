@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { Readability } from "@mozilla/readability";
 import DOMPurify from "dompurify";
 import { HttpProxyAgent } from "http-proxy-agent";
@@ -175,6 +177,40 @@ function extractReadableContent(
   }
 }
 
+const EMBEDDED_MEDIA_DATA_URI_PATTERN = /data:(?:audio|video)\/[^"'\s<>)]*/gi;
+
+/**
+ * Full-page archives can contain large audio and video files embedded directly
+ * in src attributes. Those payloads are useful in the stored archive, but they
+ * are irrelevant to metadata and readable-content extraction and cause large
+ * memory amplification when parsed into a DOM.
+ *
+ * Replace them only in the parser's in-memory copy. The original HTML file
+ * remains untouched for full-page archival.
+ */
+function replaceEmbeddedMediaDataUris(htmlContent: string): {
+  htmlContent: string;
+  replacedBytes: number;
+  replacementCount: number;
+} {
+  let replacedBytes = 0;
+  let replacementCount = 0;
+  const parserHtmlContent = htmlContent.replace(
+    EMBEDDED_MEDIA_DATA_URI_PATTERN,
+    (dataUri) => {
+      replacedBytes += dataUri.length;
+      replacementCount += 1;
+      return "about:blank";
+    },
+  );
+
+  return {
+    htmlContent: parserHtmlContent,
+    replacedBytes,
+    replacementCount,
+  };
+}
+
 async function main() {
   // Read all of stdin
   const chunks: Buffer[] = [];
@@ -184,7 +220,16 @@ async function main() {
   const input = parseSubprocessInputSchema.parse(
     JSON.parse(Buffer.concat(chunks).toString()),
   );
-  const { htmlContent, url, jobId, metadataOnly } = input;
+  const { htmlPath, url, jobId, metadataOnly } = input;
+  const parserInput = replaceEmbeddedMediaDataUris(
+    await readFile(htmlPath, "utf8"),
+  );
+  if (parserInput.replacementCount > 0) {
+    logger.info(
+      `[Crawler][${jobId}] Replaced ${parserInput.replacementCount} embedded audio/video data URIs (${parserInput.replacedBytes} bytes) before parsing.`,
+    );
+  }
+  const { htmlContent } = parserInput;
 
   logger.info(
     `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,

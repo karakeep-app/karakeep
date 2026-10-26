@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
+import { BookmarkPlus, Link2 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
 import {
@@ -9,10 +10,11 @@ import {
 } from "@karakeep/shared/types/bookmarks";
 
 import { NEW_BOOKMARK_REQUEST_KEY_NAME } from "./background/protocol";
+import { ErrorCallout } from "./components/ErrorCallout";
+import { StatusMessage } from "./components/StatusMessage";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Textarea } from "./components/ui/textarea";
-import Spinner from "./Spinner";
 import { hasHostPermission } from "./utils/permissions";
 import usePluginSettings from "./utils/settings";
 import {
@@ -45,7 +47,7 @@ export default function SavePage() {
   } = useMutation(
     api.bookmarks.createBookmark.mutationOptions({
       onError: (e) => {
-        setError("Something went wrong: " + e.message);
+        setError(e.message);
       },
       onSuccess: async () => {
         // After successful creation, update badge cache and notify background
@@ -90,15 +92,13 @@ export default function SavePage() {
         await getNewBookmarkRequestFromBackgroundScriptIfAny();
       if (!newBookmarkRequest) {
         if (!currentTab?.url) {
-          setError("Current tab has no URL to bookmark.");
+          setError("This tab doesn't have a link to save.");
           setHasCheckedRequest(true);
           return;
         }
 
         if (!isHttpUrl(currentTab.url)) {
-          setError(
-            "Cannot bookmark this type of URL. Only HTTP/HTTPS URLs are supported.",
-          );
+          setError("Only web pages (http:// and https:// links) can be saved.");
           setHasCheckedRequest(true);
           return;
         }
@@ -188,45 +188,53 @@ export default function SavePage() {
   };
 
   if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return <ErrorCallout title="Couldn't save this page">{error}</ErrorCallout>;
   }
 
+  const pendingLabel =
+    pendingBookmark?.type === BookmarkTypes.LINK
+      ? pendingBookmark.url
+      : pendingBookmark?.type === BookmarkTypes.TEXT
+        ? pendingBookmark.text
+        : pendingBookmark?.fileName;
+
   if (isCapturing) {
-    return (
-      <div className="flex justify-between text-lg">
-        <span>Capturing Page </span>
-        <Spinner />
-      </div>
-    );
+    return <StatusMessage label="Capturing page…" detail={pendingLabel} />;
   }
 
   switch (status) {
     case "error": {
-      return <div className="text-red-500">{error}</div>;
+      return (
+        <ErrorCallout title="Couldn't save this page">{error}</ErrorCallout>
+      );
     }
     case "success": {
       return <Navigate to={`/bookmark/${data.id}`} />;
     }
     case "pending": {
       return (
-        <div className="flex justify-between text-lg">
-          <span>Saving Bookmark </span>
-          <Spinner />
-        </div>
+        <StatusMessage label="Saving to Karakeep…" detail={pendingLabel} />
       );
     }
     case "idle": {
       // Show confirmation UI when autoSave is disabled
       if (!settings.autoSave && pendingBookmark && hasCheckedRequest) {
         return (
-          <div className="flex flex-col gap-3">
-            <p className="text-lg font-medium">Save Bookmark?</p>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleManualSave();
+            }}
+          >
+            <h2 className="text-base font-semibold">Save to Karakeep</h2>
             {pendingBookmark.type === BookmarkTypes.LINK && (
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-medium text-muted-foreground">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="bookmark-title" className="text-sm font-medium">
                   Title
                 </label>
                 <Input
+                  id="bookmark-title"
                   value={pendingBookmark.title ?? ""}
                   onChange={(e) =>
                     setPendingBookmark((prev) =>
@@ -235,24 +243,27 @@ export default function SavePage() {
                   }
                   placeholder="Untitled"
                 />
-                <p className="truncate text-xs text-muted-foreground">
-                  {pendingBookmark.url}
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Link2 className="size-3.5 shrink-0" />
+                  <span className="truncate">{pendingBookmark.url}</span>
                 </p>
               </div>
             )}
             {pendingBookmark.type === BookmarkTypes.TEXT && (
-              <p className="text-xs text-muted-foreground">
-                {pendingBookmark.text.length > 150
-                  ? `${pendingBookmark.text.substring(0, 150)}...`
-                  : pendingBookmark.text}
-              </p>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium">Text</span>
+                <p className="line-clamp-4 whitespace-pre-wrap rounded-md border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                  {pendingBookmark.text}
+                </p>
+              </div>
             )}
             {pendingBookmark.type === BookmarkTypes.ASSET && (
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-medium text-muted-foreground">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="bookmark-title" className="text-sm font-medium">
                   Title
                 </label>
                 <Input
+                  id="bookmark-title"
                   value={pendingBookmark.title ?? ""}
                   onChange={(e) =>
                     setPendingBookmark((prev) =>
@@ -263,32 +274,34 @@ export default function SavePage() {
                 />
               </div>
             )}
-            <div className="flex flex-col gap-2">
-              <label className="text-xs font-medium text-muted-foreground">
-                Notes
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="bookmark-note" className="text-sm font-medium">
+                Note{" "}
+                <span className="font-normal text-muted-foreground">
+                  (optional)
+                </span>
               </label>
               <Textarea
+                id="bookmark-note"
                 value={pendingBookmark.note ?? ""}
                 onChange={(e) =>
                   setPendingBookmark((prev) =>
                     prev ? { ...prev, note: e.target.value } : prev,
                   )
                 }
-                placeholder="Add notes..."
+                placeholder="Why are you saving this?"
                 className="h-20 resize-none"
               />
             </div>
-            <Button onClick={handleManualSave} className="w-full">
-              Save Bookmark
+            <Button type="submit" className="w-full gap-2">
+              <BookmarkPlus className="size-4" />
+              Save bookmark
             </Button>
-          </div>
+          </form>
         );
       }
       return (
-        <div className="flex justify-between text-lg">
-          <span>Saving Bookmark </span>
-          <Spinner />
-        </div>
+        <StatusMessage label="Saving to Karakeep…" detail={pendingLabel} />
       );
     }
   }

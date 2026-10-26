@@ -30,8 +30,8 @@ export const PRICING_TIERS: readonly PricingTier[] = [
     period: "",
     description: "Trying Karakeep out",
     features: [
-      "10 bookmarks",
-      "20MB storage",
+      "50 bookmarks",
+      "100MB storage",
       "Mobile & web apps",
       "Browser extensions",
     ],
@@ -94,7 +94,7 @@ export const PRICING_TIERS: readonly PricingTier[] = [
       "Priority support",
     ],
     buttonText: "Contact Us",
-    buttonHref: "mailto:support@karakeep.app",
+    buttonHref: "mailto:support@karakeep.com",
     popular: false,
   },
 ];
@@ -116,6 +116,6 @@ export const PRICING_FAQS = [
   },
   {
     question: "How should I contact you if I have any questions?",
-    answer: "You can reach us at support@karakeep.app.",
+    answer: "You can reach us at support@karakeep.com.",
   },
 ] as const;

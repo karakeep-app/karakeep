@@ -96,7 +96,7 @@ export default function UserAvatar() {
             loading={upload.isPending}
             disabled={isBusy}
           >
-            <Upload className="mr-2 h-4 w-4" />
+            <Upload className="h-4 w-4" />
             {image
               ? t("settings.info.avatar.change")
               : t("settings.info.avatar.upload")}
@@ -131,7 +131,7 @@ export default function UserAvatar() {
           )}
         >
           <Button type="button" variant="outline" disabled={!image || isBusy}>
-            <X className="mr-2 h-4 w-4" />
+            <X className="h-4 w-4" />
             {t("settings.info.avatar.remove")}
           </Button>
         </ActionConfirmingDialog>

@@ -111,7 +111,7 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              <X className="mr-1 h-4 w-4" />
+              <X className="h-4 w-4" />
               {t("lists.invitations.decline")}
             </>
           )}
@@ -127,7 +127,7 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <>
-              <Check className="mr-1 h-4 w-4" />
+              <Check className="h-4 w-4" />
               {t("lists.invitations.accept")}
             </>
           )}

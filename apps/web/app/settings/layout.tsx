@@ -50,7 +50,7 @@ const settingsSidebarItems = (
       icon: <BarChart3 size={18} />,
       path: "/settings/stats",
     },
-    ...(serverConfig.stripe.isConfigured
+    ...(serverConfig.stripe.isConfigured || serverConfig.revenueCat.isConfigured
       ? [
           {
             name: t("settings.subscription.subscription"),

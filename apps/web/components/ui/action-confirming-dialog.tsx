@@ -17,6 +17,7 @@ export default function ActionConfirmingDialog({
   description,
   actionButton,
   children,
+  onCloseAutoFocus,
   open: userIsOpen,
   setOpen: userSetOpen,
 }: {
@@ -26,6 +27,7 @@ export default function ActionConfirmingDialog({
   description: React.ReactNode;
   actionButton: (setDialogOpen: (open: boolean) => void) => React.ReactNode;
   children?: React.ReactNode;
+  onCloseAutoFocus?: (e: Event) => void;
 }) {
   const { t } = useTranslation();
   const [customIsOpen, setCustomIsOpen] = useState(false);
@@ -36,7 +38,7 @@ export default function ActionConfirmingDialog({
   return (
     <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent>
+      <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>

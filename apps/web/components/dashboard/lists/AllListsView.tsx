@@ -145,7 +145,7 @@ function Section({
       <h2 className="px-1 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
         {title}
       </h2>
-      <div className="overflow-hidden rounded-xl border bg-background shadow-sm">
+      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         {children}
       </div>
     </section>

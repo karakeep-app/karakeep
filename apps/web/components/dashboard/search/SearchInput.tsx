@@ -223,7 +223,7 @@ const SearchInput = React.forwardRef<
           </Button>
         ) : null}
         <Link
-          href="https://docs.karakeep.app/Guides/search-query-language"
+          href="https://docs.karakeep.com/Guides/search-query-language"
           target="_blank"
           className="flex size-7 shrink-0 items-center justify-center rounded-md stroke-foreground transition-colors hover:bg-background/80"
         >
@@ -289,7 +289,7 @@ const SearchInput = React.forwardRef<
                           }}
                           className="cursor-pointer"
                         >
-                          <item.Icon className="mr-2 h-4 w-4" />
+                          <item.Icon className="h-4 w-4" />
                           <span>{item.label}</span>
                         </CommandItem>
                       );
@@ -302,7 +302,7 @@ const SearchInput = React.forwardRef<
                         onSelect={() => handleSuggestionSelect(item)}
                         className="cursor-pointer"
                       >
-                        <item.Icon className="mr-2 h-4 w-4" />
+                        <item.Icon className="h-4 w-4" />
                         <div className="flex flex-col">
                           <span>{item.label}</span>
                           {item.description && (

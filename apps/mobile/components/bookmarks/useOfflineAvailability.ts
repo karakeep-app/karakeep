@@ -6,6 +6,10 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import { useToast } from "../ui/Toast";
 import {
+  excludeFromOfflineDownloads,
+  includeInOfflineDownloads,
+} from "../../lib/offlineDownloadPrefs";
+import {
   getOfflineLibraryScope,
   OFFLINE_LIBRARY_SCHEMA_VERSION,
   removeOfflineArticle,
@@ -55,6 +59,7 @@ export function useOfflineAvailability(bookmarkId: string) {
         savedAt: Date.now(),
         bookmark,
       });
+      includeInOfflineDownloads(scope, bookmarkId);
       toast({
         message: isAvailableOffline
           ? "Offline copy updated"
@@ -77,13 +82,14 @@ export function useOfflineAvailability(bookmarkId: string) {
   const confirmRemove = () => {
     Alert.alert(
       "Remove offline copy?",
-      "The article may remain temporarily cached, but it will no longer be kept for offline reading.",
+      "It will no longer be kept for offline reading, and automatic downloads will skip it. The article may remain temporarily cached.",
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Remove",
           style: "destructive",
           onPress: () => {
+            excludeFromOfflineDownloads(scope, bookmarkId);
             removeOfflineArticle(scope, bookmarkId);
             toast({ message: "Offline copy removed" });
           },

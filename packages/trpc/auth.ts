@@ -2,7 +2,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { and, eq } from "drizzle-orm";
 
-import { apiKeys } from "@karakeep/db/schema";
+import { accounts, apiKeys } from "@karakeep/db/schema";
 import type { ZApiKeyScope } from "@karakeep/shared/types/apiKeys";
 import { API_KEY_FULL_ACCESS_SCOPE } from "@karakeep/shared/types/apiKeys";
 import serverConfig from "@karakeep/shared/config";
@@ -33,10 +33,6 @@ function generateApiKeySecret() {
     secret,
     secretHash: createHash("sha256").update(secret).digest("base64"),
   };
-}
-
-export function generatePasswordSalt() {
-  return randomBytes(32).toString("hex");
 }
 
 export async function regenerateApiKey(
@@ -179,8 +175,81 @@ export async function authenticateApiKey(key: string, database: Context["db"]) {
   };
 }
 
-export async function hashPassword(password: string, salt: string | null) {
-  return await bcrypt.hash(password + (salt ?? ""), BCRYPT_SALT_ROUNDS);
+// better-auth's provider id for email/password accounts. Their accountId is the
+// user's id.
+export const CREDENTIAL_PROVIDER_ID = "credential";
+
+// Passwords set before the migration to better-auth were hashed as
+// bcrypt(password + salt). They're stored as `bcrypt-salted:<salt>:<hash>`.
+const SALTED_BCRYPT_PREFIX = "bcrypt-salted:";
+
+export async function hashPassword(password: string) {
+  return await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
+}
+
+export async function verifyPasswordHash(hash: string, password: string) {
+  if (!hash.startsWith(SALTED_BCRYPT_PREFIX)) {
+    return await bcrypt.compare(password, hash);
+  }
+  const saltAndHash = hash.slice(SALTED_BCRYPT_PREFIX.length);
+  const separator = saltAndHash.indexOf(":");
+  if (separator === -1) {
+    return false;
+  }
+  return await bcrypt.compare(
+    password + saltAndHash.slice(0, separator),
+    saltAndHash.slice(separator + 1),
+  );
+}
+
+async function getCredentialAccount(database: Context["db"], userId: string) {
+  return await database.query.accounts.findFirst({
+    columns: { password: true },
+    where: and(
+      eq(accounts.userId, userId),
+      eq(accounts.providerId, CREDENTIAL_PROVIDER_ID),
+    ),
+  });
+}
+
+export async function hasPassword(database: Context["db"], userId: string) {
+  const account = await getCredentialAccount(database, userId);
+  return !!account?.password;
+}
+
+export async function verifyUserPassword(
+  database: Context["db"],
+  userId: string,
+  password: string,
+) {
+  const account = await getCredentialAccount(database, userId);
+  if (!account?.password) {
+    // Returning early would make accounts without a password (OAuth-only)
+    // measurably faster to probe than password accounts.
+    await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
+    return false;
+  }
+  return await verifyPasswordHash(account.password, password);
+}
+
+export async function setUserPassword(
+  database: Context["db"],
+  userId: string,
+  password: string,
+) {
+  const hash = await hashPassword(password);
+  await database
+    .insert(accounts)
+    .values({
+      userId,
+      accountId: userId,
+      providerId: CREDENTIAL_PROVIDER_ID,
+      password: hash,
+    })
+    .onConflictDoUpdate({
+      target: [accounts.providerId, accounts.accountId],
+      set: { password: hash, updatedAt: new Date() },
+    });
 }
 
 export async function validatePassword(
@@ -192,7 +261,7 @@ export async function validatePassword(
     throw new Error("Password authentication is currently disabled");
   }
   const user = await database.query.users.findFirst({
-    where: (u, { eq }) => eq(u.email, email),
+    where: (u, { eq }) => eq(u.email, email.toLowerCase()),
   });
 
   if (!user) {
@@ -201,18 +270,7 @@ export async function validatePassword(
     throw new Error("User not found");
   }
 
-  if (!user.password) {
-    // Same reasoning: returning early here would make accounts without a
-    // password (OAuth-only) measurably faster to probe than password accounts.
-    await bcrypt.compare(password, DUMMY_PASSWORD_HASH);
-    throw new Error("This user doesn't have a password defined");
-  }
-
-  const validation = await bcrypt.compare(
-    password + (user.salt ?? ""),
-    user.password,
-  );
-  if (!validation) {
+  if (!(await verifyUserPassword(database, user.id, password))) {
     throw new Error("Wrong password");
   }
 

@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonWithTooltip } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import {
   Tooltip,
   TooltipContent,
+  TooltipPortal,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
-import { Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
+import BookmarkOptions from "../bookmarks/BookmarkOptions";
 import DeleteBookmarkConfirmationDialog from "../bookmarks/DeleteBookmarkConfirmationDialog";
 import { EditBookmarkDialog } from "../bookmarks/EditBookmarkDialog";
 import { ArchivedActionIcon, FavouritedActionIcon } from "../bookmarks/icons";
@@ -67,10 +69,12 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
               setEditBookmarkDialogOpen(true);
             }}
           >
-            <Pencil size={18} strokeWidth={1.5} />
+            <Pencil className="size-[18px]" size={18} strokeWidth={1.5} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">{t("actions.edit")}</TooltipContent>
+        <TooltipPortal>
+          <TooltipContent>{t("actions.edit")}</TooltipContent>
+        </TooltipPortal>
       </Tooltip>
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
@@ -87,17 +91,20 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             }}
           >
             <FavouritedActionIcon
+              className="size-[18px]"
               favourited={bookmark.favourited}
               size={18}
               strokeWidth={1.5}
             />
           </ActionButton>
         </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {bookmark.favourited
-            ? t("actions.unfavorite")
-            : t("actions.favorite")}
-        </TooltipContent>
+        <TooltipPortal>
+          <TooltipContent>
+            {bookmark.favourited
+              ? t("actions.unfavorite")
+              : t("actions.favorite")}
+          </TooltipContent>
+        </TooltipPortal>
       </Tooltip>
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
@@ -114,15 +121,18 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             }}
           >
             <ArchivedActionIcon
+              className="size-[18px]"
               archived={bookmark.archived}
               size={18}
               strokeWidth={1.5}
             />
           </ActionButton>
         </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {bookmark.archived ? t("actions.unarchive") : t("actions.archive")}
-        </TooltipContent>
+        <TooltipPortal>
+          <TooltipContent>
+            {bookmark.archived ? t("actions.unarchive") : t("actions.archive")}
+          </TooltipContent>
+        </TooltipPortal>
       </Tooltip>
       <Tooltip delayDuration={0}>
         <DeleteBookmarkConfirmationDialog
@@ -137,11 +147,29 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             size="none"
             onClick={() => setDeleteBookmarkDialogOpen(true)}
           >
-            <Trash2 size={18} strokeWidth={1.5} />
+            <Trash2 className="size-[18px]" size={18} strokeWidth={1.5} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">{t("actions.delete")}</TooltipContent>
+        <TooltipPortal>
+          <TooltipContent>{t("actions.delete")}</TooltipContent>
+        </TooltipPortal>
       </Tooltip>
+      <BookmarkOptions
+        bookmark={bookmark}
+        // Already available as buttons in this bar (or irrelevant outside the grid)
+        hiddenActions={["select", "edit", "favorite", "archive", "delete"]}
+        trigger={
+          <ButtonWithTooltip
+            tooltip={t("actions.more")}
+            delayDuration={0}
+            variant="ghost"
+            size="none"
+            className="size-8 rounded-md"
+          >
+            <MoreHorizontal className="size-[18px]" strokeWidth={1.5} />
+          </ButtonWithTooltip>
+        }
+      />
     </div>
   );
 }

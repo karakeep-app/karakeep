@@ -42,9 +42,15 @@ export default function SortOrderToggle() {
           delayDuration={100}
           variant="ghost"
         >
-          {currentSort === "relevance" && <ListFilter size={18} />}
-          {currentSort === "asc" && <SortAsc size={18} />}
-          {currentSort === "desc" && <SortDesc size={18} />}
+          {currentSort === "relevance" && (
+            <ListFilter className="size-[18px]" size={18} />
+          )}
+          {currentSort === "asc" && (
+            <SortAsc className="size-[18px]" size={18} />
+          )}
+          {currentSort === "desc" && (
+            <SortDesc className="size-[18px]" size={18} />
+          )}
         </ButtonWithTooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit">

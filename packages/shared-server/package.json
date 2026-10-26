@@ -19,6 +19,7 @@
     "@opentelemetry/semantic-conventions": "^1.38.0",
     "@opentelemetry/winston-transport": "^0.23.0",
     "@trpc/server": "^11.9.0",
+    "sharp": "^0.35.5",
     "winston": "^3.11.0"
   },
   "devDependencies": {

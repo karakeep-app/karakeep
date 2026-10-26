@@ -66,13 +66,10 @@ export default function InvitesList() {
 
   const activeInvites = invites?.invites || [];
 
-  const InviteTable = ({
-    invites: inviteList,
-    title,
-  }: {
-    invites: NonNullable<typeof invites>["invites"];
-    title: string;
-  }) => (
+  const renderInviteTable = (
+    inviteList: NonNullable<typeof invites>["invites"],
+    title: string,
+  ) => (
     <div className="mb-6">
       {inviteList.length === 0 ? (
         <p className="text-sm text-gray-500">
@@ -80,7 +77,7 @@ export default function InvitesList() {
         </p>
       ) : (
         <Table>
-          <TableHeader className="bg-gray-200">
+          <TableHeader className="bg-gray-200 dark:bg-muted">
             <TableHead>Email</TableHead>
             <TableHead>Invited By</TableHead>
             <TableHead>Created</TableHead>
@@ -106,7 +103,7 @@ export default function InvitesList() {
                         onClick={() => resendInvite({ inviteId: invite.id })}
                         disabled={isResendPending}
                       >
-                        <Mail size={14} />
+                        <Mail className="size-3.5" size={14} />
                       </ButtonWithTooltip>
                       <ActionConfirmingDialog
                         title="Revoke Invite"
@@ -129,7 +126,7 @@ export default function InvitesList() {
                           variant="outline"
                           size="sm"
                         >
-                          <MailX size={14} color="red" />
+                          <MailX className="size-3.5" size={14} color="red" />
                         </ButtonWithTooltip>
                       </ActionConfirmingDialog>
                     </>
@@ -155,7 +152,7 @@ export default function InvitesList() {
           </CreateInviteDialog>
         </div>
 
-        <InviteTable invites={activeInvites} title="Invites" />
+        {renderInviteTable(activeInvites, "Invites")}
       </div>
     </AdminCard>
   );

@@ -84,7 +84,7 @@ export function TagAutocomplete({
             <div className="flex w-full items-center justify-between">
               <span>{selectedTag.name}</span>
               <X
-                className="h-4 w-4 shrink-0 cursor-pointer opacity-50 hover:opacity-100"
+                className="!pointer-events-auto h-4 w-4 shrink-0 cursor-pointer opacity-50 hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
                   clearSelection();
@@ -94,7 +94,7 @@ export function TagAutocomplete({
           ) : (
             "Select a tag..."
           )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
@@ -117,7 +117,7 @@ export function TagAutocomplete({
                 >
                   <Check
                     className={cn(
-                      "mr-2 h-4 w-4",
+                      "h-4 w-4",
                       selectedTag?.id === tag.id ? "opacity-100" : "opacity-0",
                     )}
                   />

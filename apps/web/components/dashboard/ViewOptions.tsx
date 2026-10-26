@@ -135,7 +135,7 @@ export default function ViewOptions() {
           delayDuration={100}
           variant="ghost"
         >
-          <Settings size={18} />
+          <Settings className="size-[18px]" size={18} />
         </ButtonWithTooltip>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56">

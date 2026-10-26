@@ -164,14 +164,14 @@ export default function BulkBookmarksAction() {
       name: isClipboardAvailable()
         ? t("actions.copy_link")
         : "Copying is only available over https",
-      icon: <Link size={18} />,
+      icon: <Link size={18} className="size-[18px]" />,
       action: () => copyLinks(),
       isPending: false,
       hidden: !isBulkEditEnabled,
     },
     {
       name: t("actions.remove_from_list"),
-      icon: <ListMinus size={18} />,
+      icon: <ListMinus size={18} className="size-[18px]" />,
       action: () => setIsRemoveFromListDialogOpen(true),
       isPending: removeBookmarkFromListMutator.isPending,
       hidden:
@@ -183,49 +183,61 @@ export default function BulkBookmarksAction() {
     },
     {
       name: t("actions.add_to_list"),
-      icon: <List size={18} />,
+      icon: <List size={18} className="size-[18px]" />,
       action: () => setManageListsModalOpen(true),
       isPending: false,
       hidden: !isBulkEditEnabled,
     },
     {
       name: t("actions.edit_tags"),
-      icon: <Hash size={18} />,
+      icon: <Hash size={18} className="size-[18px]" />,
       action: () => setBulkTagModalOpen(true),
       isPending: false,
       hidden: !isBulkEditEnabled,
     },
     {
       name: alreadyFavourited ? t("actions.unfavorite") : t("actions.favorite"),
-      icon: <FavouritedActionIcon favourited={!!alreadyFavourited} size={18} />,
+      icon: (
+        <FavouritedActionIcon
+          favourited={!!alreadyFavourited}
+          size={18}
+          className="size-[18px]"
+        />
+      ),
       action: () => updateBookmarks({ favourited: !alreadyFavourited }),
       isPending: updateBookmarkMutator.isPending,
       hidden: !isBulkEditEnabled,
     },
     {
       name: alreadyArchived ? t("actions.unarchive") : t("actions.archive"),
-      icon: <ArchivedActionIcon size={18} archived={!!alreadyArchived} />,
+      icon: (
+        <ArchivedActionIcon
+          size={18}
+          className="size-[18px]"
+          archived={!!alreadyArchived}
+        />
+      ),
       action: () => updateBookmarks({ archived: !alreadyArchived }),
       isPending: updateBookmarkMutator.isPending,
       hidden: !isBulkEditEnabled,
     },
     {
       name: t("actions.preserve_offline_archive"),
-      icon: <FileDown size={18} />,
+      icon: <FileDown size={18} className="size-[18px]" />,
       action: () => recrawlBookmarks(true),
       isPending: recrawlBookmarkMutator.isPending,
       hidden: !isBulkEditEnabled,
     },
     {
       name: t("actions.refresh"),
-      icon: <RotateCw size={18} />,
+      icon: <RotateCw size={18} className="size-[18px]" />,
       action: () => recrawlBookmarks(false),
       isPending: recrawlBookmarkMutator.isPending,
       hidden: !isBulkEditEnabled,
     },
     {
       name: t("actions.delete"),
-      icon: <Trash2 size={18} color="red" />,
+      icon: <Trash2 size={18} className="size-[18px]" color="red" />,
       action: () => setIsDeleteDialogOpen(true),
       hidden: !isBulkEditEnabled,
     },
@@ -235,7 +247,8 @@ export default function BulkBookmarksAction() {
         : t("actions.select_all"),
       icon: (
         <p className="flex items-center gap-2">
-          ( <CheckCheck size={18} /> {selectedBookmarks.length} )
+          ( <CheckCheck size={18} className="size-[18px]" />{" "}
+          {selectedBookmarks.length} )
         </p>
       ),
       action: () =>
@@ -245,7 +258,7 @@ export default function BulkBookmarksAction() {
     },
     {
       name: t("actions.close_bulk_edit"),
-      icon: <X size={18} />,
+      icon: <X size={18} className="size-[18px]" />,
       action: () => setIsBulkEditEnabled(false),
       alwaysEnable: true,
       hidden: !isBulkEditEnabled,

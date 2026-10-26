@@ -1,4 +1,4 @@
-Contact: mailto:security@karakeep.app
+Contact: mailto:security@karakeep.com
 Expires: 2027-08-01T00:00:00Z
-Canonical: https://karakeep.app/.well-known/security.txt
+Canonical: https://karakeep.com/.well-known/security.txt
 Preferred-Languages: en

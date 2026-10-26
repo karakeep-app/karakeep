@@ -11,6 +11,20 @@ import {
 import type { Settings } from "./settings";
 import { buildApiHeaders } from "./utils";
 
+// Not every failure has an `{ error }` body: unhandled server errors are plain
+// text, and auth/validation/rate-limit failures use other shapes.
+function getUploadErrorMessage(status: number, body: string): string {
+  try {
+    const parsed = zUploadErrorSchema.safeParse(JSON.parse(body));
+    if (parsed.success) {
+      return parsed.data.error;
+    }
+  } catch {
+    // Not JSON
+  }
+  return `Upload failed (HTTP ${status})`;
+}
+
 export function useUploadAsset(
   settings: Settings,
   options: {
@@ -57,7 +71,17 @@ export function useUploadAsset(
           },
         ],
       );
-      return zUploadResponseSchema.parse(await resp.json());
+      const status = resp.info().status;
+      const body: string = await resp.text();
+      if (status < 200 || status >= 300) {
+        throw new Error(getUploadErrorMessage(status, body));
+      }
+      try {
+        return zUploadResponseSchema.parse(JSON.parse(body));
+      } catch {
+        // e.g. a proxy or captive portal answering with an HTML page
+        throw new Error(`Unexpected server response (HTTP ${status})`);
+      }
     },
     onSuccess: (resp) => {
       const assetId = resp.assetId;
@@ -71,10 +95,7 @@ export function useUploadAsset(
       });
     },
     onError: (e) => {
-      if (options.onError) {
-        const err = zUploadErrorSchema.parse(JSON.parse(e.message));
-        options.onError(err.error);
-      }
+      options.onError?.(e.message);
     },
   });
 

@@ -63,6 +63,7 @@ The project is organized into `apps` and `packages`:
 - `pnpm format`: Format the codebase.
 - `pnpm format:fix`: Fix formatting issues.
 - `pnpm test`: Run tests.
+- To scope any of the above to one package, pass a turbo filter: `pnpm typecheck --filter=@karakeep/web` (prefer this over `pnpm --filter`).
 - `pnpm db:generate --name description_of_schema_change`: db migration after making schema changes
 
 Starting services:

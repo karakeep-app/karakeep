@@ -22,6 +22,17 @@ export function listPathToPickerOption(
   };
 }
 
+export function byListPathName(a: ZBookmarkList[], b: ZBookmarkList[]) {
+  const commonPathLength = Math.min(a.length, b.length);
+
+  for (let index = 0; index < commonPathLength; index++) {
+    const comparison = a[index].name.localeCompare(b[index].name);
+    if (comparison !== 0) return comparison;
+  }
+
+  return a.length - b.length;
+}
+
 export function ListPicker({
   options,
   onSelect,

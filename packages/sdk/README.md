@@ -56,7 +56,7 @@ console.log(searchResponse.status, searchResults, searchError);
 
 ## Docs
 
-API docs can be found [here](https://docs.karakeep.app/api).
+API docs can be found [here](https://docs.karakeep.com/api/karakeep-api).
 
 ## Versioning
 

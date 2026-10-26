@@ -255,7 +255,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
               {stats.status !== "archived" && (
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/settings/import/${session.id}`}>
-                    <ExternalLink className="mr-1 h-4 w-4" />
+                    <ExternalLink className="h-4 w-4" />
                     {t("settings.import_sessions.view_details")}
                   </Link>
                 </Button>
@@ -269,7 +269,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   }
                   disabled={pauseSession.isPending}
                 >
-                  <Pause className="mr-1 h-4 w-4" />
+                  <Pause className="h-4 w-4" />
                   {t("settings.import_sessions.pause_session")}
                 </Button>
               )}
@@ -301,7 +301,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   )}
                 >
                   <Button size="sm" disabled={finalizeSession.isPending}>
-                    <Play className="mr-1 h-4 w-4" />
+                    <Play className="h-4 w-4" />
                     {t("settings.import_sessions.finalize_staging")}
                   </Button>
                 </ActionConfirmingDialog>
@@ -315,7 +315,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   }
                   disabled={resumeSession.isPending}
                 >
-                  <Play className="mr-1 h-4 w-4" />
+                  <Play className="h-4 w-4" />
                   {t("settings.import_sessions.resume_session")}
                 </Button>
               )}
@@ -349,7 +349,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                     size="sm"
                     disabled={deleteSession.isPending}
                   >
-                    <Trash2 className="mr-1 h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                     {t("actions.delete")}
                   </Button>
                 </ActionConfirmingDialog>

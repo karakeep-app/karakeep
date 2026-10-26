@@ -94,7 +94,7 @@ export function WebhooksEditorDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <PlusCircle className="mr-2 size-4" />
+          <PlusCircle className="size-4" />
           {t("settings.webhooks.create_webhook")}
         </Button>
       </DialogTrigger>
@@ -173,7 +173,7 @@ export function WebhooksEditorDialog() {
             variant="default"
             className="items-center"
           >
-            <Plus className="mr-2 size-4" />
+            <Plus className="size-4" />
             Add
           </ActionButton>
         </DialogFooter>
@@ -223,7 +223,7 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="secondary">
-          <Edit className="mr-2 size-4" />
+          <Edit className="size-4" />
           {t("actions.edit")}
         </Button>
       </DialogTrigger>
@@ -298,7 +298,7 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
             type="submit"
             className="items-center"
           >
-            <Save className="mr-2 size-4" />
+            <Save className="size-4" />
             {t("actions.save")}
           </ActionButton>
         </DialogFooter>
@@ -354,7 +354,7 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="secondary">
-          <KeyRound className="mr-2 size-4" />
+          <KeyRound className="size-4" />
           {webhook.hasToken
             ? t("settings.webhooks.edit_auth_token")
             : t("settings.webhooks.add_auth_token")}
@@ -419,7 +419,7 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
             })}
             className="items-center"
           >
-            <Trash2 className="mr-2 size-4" />
+            <Trash2 className="size-4" />
             {t("actions.delete")}
           </ActionButton>
           <ActionButton
@@ -430,7 +430,7 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
             type="submit"
             className="items-center"
           >
-            <Save className="mr-2 size-4" />
+            <Save className="size-4" />
             {t("actions.save")}
           </ActionButton>
         </DialogFooter>
@@ -473,13 +473,13 @@ export function WebhookRow({ webhook }: { webhook: ZWebhook }) {
               className="items-center"
               type="button"
             >
-              <Trash2 className="mr-2 size-4" />
+              <Trash2 className="size-4" />
               {t("actions.delete")}
             </ActionButton>
           )}
         >
           <Button variant="destructive" disabled={isDeleting}>
-            <Trash2 className="mr-2 size-4" />
+            <Trash2 className="size-4" />
             {t("actions.delete")}
           </Button>
         </ActionConfirmingDialog>

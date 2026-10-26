@@ -1,4 +1,8 @@
-# Docker
+---
+sidebar_label: "Docker"
+---
+
+# Install Karakeep with Docker
 
 ### Requirements
 
@@ -89,4 +93,7 @@ Updating Karakeep will depend on what you used for the `KARAKEEP_VERSION` env va
 If your custom Compose file still uses the old Alpine Chrome image, follow the
 [Chrome image migration guide](../06-administration/09-chrome-image-migration.md).
 
-Note that if you want to upgrade/migrate `Meilisearch` versions, refer to the [troubleshooting](../06-administration/05-troubleshooting.md) page.
+Updating Karakeep doesn't change the Meilisearch image in your compose file. If
+you move Meilisearch to a newer version, for example by copying a newer compose
+file, it needs a one-time database upgrade first. Follow the
+[Meilisearch upgrade guide](../06-administration/10-meilisearch-upgrade.md).

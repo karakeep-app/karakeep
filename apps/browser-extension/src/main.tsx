@@ -6,11 +6,10 @@ import { HashRouter, Route, Routes } from "react-router-dom";
 
 import BookmarkDeletedPage from "./BookmarkDeletedPage.tsx";
 import BookmarkSavedPage from "./BookmarkSavedPage.tsx";
-import CustomHeadersPage from "./CustomHeadersPage.tsx";
 import Layout from "./Layout.tsx";
-import NotConfiguredPage from "./NotConfiguredPage.tsx";
 import OptionsPage from "./OptionsPage.tsx";
 import SavePage from "./SavePage.tsx";
+import ServerAddressPage from "./ServerAddressPage.tsx";
 import SignInPage from "./SignInPage.tsx";
 import { Providers } from "./utils/providers.tsx";
 
@@ -31,10 +30,9 @@ function App() {
                 element={<BookmarkDeletedPage />}
               />
             </Route>
-            <Route path="/notconfigured" element={<NotConfiguredPage />} />
             <Route path="/options" element={<OptionsPage />} />
             <Route path="/signin" element={<SignInPage />} />
-            <Route path="/customheaders" element={<CustomHeadersPage />} />
+            <Route path="/server" element={<ServerAddressPage />} />
           </Routes>
         </HashRouter>
       </Providers>

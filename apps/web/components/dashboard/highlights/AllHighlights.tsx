@@ -128,7 +128,7 @@ export default function AllHighlights({
           allHighlights.map((h) => (
             <React.Fragment key={h.id}>
               <Highlight highlight={h} />
-              <Separator className="m-2 h-0.5 bg-gray-100 last:hidden" />
+              <Separator className="m-2 h-0.5 bg-gray-100 last:hidden dark:bg-border" />
             </React.Fragment>
           ))}
         {allHighlights && allHighlights.length == 0 && (

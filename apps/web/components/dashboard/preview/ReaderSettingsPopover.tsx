@@ -154,7 +154,7 @@ export default function ReaderSettingsPopover({
                             className="h-5 w-5 text-muted-foreground hover:text-foreground"
                             onClick={() => clearLocalOverride("fontFamily")}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="size-3" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -229,7 +229,7 @@ export default function ReaderSettingsPopover({
                             className="h-5 w-5 text-muted-foreground hover:text-foreground"
                             onClick={() => clearLocalOverride("fontSize")}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="size-3" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -252,7 +252,7 @@ export default function ReaderSettingsPopover({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="h-7 w-7 bg-transparent dark:bg-transparent"
                   onClick={() =>
                     updateSession({
                       fontSize: Math.max(
@@ -263,7 +263,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className="size-3" />
                 </Button>
                 <Slider
                   value={[settings.fontSize]}
@@ -283,7 +283,7 @@ export default function ReaderSettingsPopover({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="h-7 w-7 bg-transparent dark:bg-transparent"
                   onClick={() =>
                     updateSession({
                       fontSize: Math.min(
@@ -294,7 +294,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="size-3" />
                 </Button>
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function ReaderSettingsPopover({
                             className="h-5 w-5 text-muted-foreground hover:text-foreground"
                             onClick={() => clearLocalOverride("lineHeight")}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="size-3" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -346,7 +346,7 @@ export default function ReaderSettingsPopover({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="h-7 w-7 bg-transparent dark:bg-transparent"
                   onClick={() =>
                     updateSession({
                       lineHeight: Math.max(
@@ -360,7 +360,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className="size-3" />
                 </Button>
                 <Slider
                   value={[settings.lineHeight]}
@@ -380,7 +380,7 @@ export default function ReaderSettingsPopover({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="h-7 w-7 bg-transparent dark:bg-transparent"
                   onClick={() =>
                     updateSession({
                       lineHeight: Math.min(
@@ -394,7 +394,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="size-3" />
                 </Button>
               </div>
             </div>
@@ -410,7 +410,7 @@ export default function ReaderSettingsPopover({
                     className="w-full"
                     onClick={() => clearSession()}
                   >
-                    <RotateCcw className="mr-2 h-4 w-4" />
+                    <RotateCcw className="h-4 w-4" />
                     {t("settings.info.reader_settings.reset_preview")}
                   </Button>
 
@@ -422,7 +422,7 @@ export default function ReaderSettingsPopover({
                       disabled={isSaving}
                       onClick={() => saveToDevice()}
                     >
-                      <Laptop className="mr-2 h-4 w-4" />
+                      <Laptop className="h-4 w-4" />
                       {t("settings.info.reader_settings.save_to_device")}
                     </Button>
                     <Button
@@ -432,7 +432,7 @@ export default function ReaderSettingsPopover({
                       disabled={isSaving}
                       onClick={() => saveToServer()}
                     >
-                      <Globe className="mr-2 h-4 w-4" />
+                      <Globe className="h-4 w-4" />
                       {t("settings.info.reader_settings.save_to_all_devices")}
                     </Button>
                   </div>

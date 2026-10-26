@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SidebarItem from "@/components/shared/sidebar/SidebarItem";
 import { Button } from "@/components/ui/button";
@@ -219,12 +218,12 @@ export default function AllLists({
           Lists
         </p>
         <EditListModal>
-          <Link href="#">
+          <button type="button" aria-label={t("lists.new_list")}>
             <Plus
               className="mr-2 size-4 text-muted-foreground"
               strokeWidth={1.5}
             />
-          </Link>
+          </button>
         </EditListModal>
       </li>
       <SidebarItem

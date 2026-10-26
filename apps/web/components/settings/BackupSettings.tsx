@@ -197,7 +197,7 @@ function BackupConfigurationForm() {
             loading={isUpdating}
             className="items-center"
           >
-            <Save className="mr-2 size-4" />
+            <Save className="size-4" />
             {t("settings.backups.configuration.save_settings")}
           </ActionButton>
         </form>
@@ -319,7 +319,7 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
               className="items-center"
               type="button"
             >
-              <Trash2 className="mr-2 size-4" />
+              <Trash2 className="size-4" />
               {t("settings.backups.list.actions.delete_backup")}
             </ActionButton>
           )}
@@ -376,7 +376,7 @@ function BackupsList() {
           variant="default"
           className="items-center"
         >
-          <Play className="mr-2 size-4" />
+          <Play className="size-4" />
           {t("settings.backups.list.create_backup_now")}
         </ActionButton>
       }

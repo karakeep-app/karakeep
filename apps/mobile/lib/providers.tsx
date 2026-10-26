@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { OfflineDownloadSync } from "@/components/OfflineDownloadSync";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { Toaster } from "sonner-native";
@@ -52,6 +53,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     >
       <TRPCSettingsProvider settings={settings} queryClient={queryClient}>
         <ClientConfigProvider>
+          <OfflineDownloadSync />
           <ConnectionStatusProvider enabled={!!settings.apiKey}>
             <ReaderSettingsProvider>
               {children}

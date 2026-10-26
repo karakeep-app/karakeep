@@ -9,8 +9,10 @@ import { Plus } from "lucide-react";
 export default async function ListsPage() {
   // oxlint-disable-next-line rules-of-hooks
   const { t } = await useTranslation();
-  const lists = await api.lists.list();
-  const stats = await api.users.stats();
+  const [lists, stats] = await Promise.all([
+    api.lists.list(),
+    api.users.bookmarkCounts(),
+  ]);
 
   return (
     <div className="flex flex-col gap-8">

@@ -330,7 +330,7 @@ export default function ImportSessionDetail({
       </Link>
 
       {/* Header */}
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-md border bg-card p-4">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -439,7 +439,7 @@ export default function ImportSessionDetail({
                   }
                   disabled={pauseSession.isPending}
                 >
-                  <Pause className="mr-1 h-4 w-4" />
+                  <Pause className="h-4 w-4" />
                   {t("settings.import_sessions.pause_session")}
                 </Button>
               )}
@@ -471,7 +471,7 @@ export default function ImportSessionDetail({
                   )}
                 >
                   <Button size="sm" disabled={finalizeSession.isPending}>
-                    <Play className="mr-1 h-4 w-4" />
+                    <Play className="h-4 w-4" />
                     {t("settings.import_sessions.finalize_staging")}
                   </Button>
                 </ActionConfirmingDialog>
@@ -485,7 +485,7 @@ export default function ImportSessionDetail({
                   }
                   disabled={resumeSession.isPending}
                 >
-                  <Play className="mr-1 h-4 w-4" />
+                  <Play className="h-4 w-4" />
                   {t("settings.import_sessions.resume_session")}
                 </Button>
               )}
@@ -517,7 +517,7 @@ export default function ImportSessionDetail({
                     size="sm"
                     disabled={deleteSession.isPending}
                   >
-                    <Trash2 className="mr-1 h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                     {t("actions.delete")}
                   </Button>
                 </ActionConfirmingDialog>
@@ -528,7 +528,7 @@ export default function ImportSessionDetail({
       </div>
 
       {/* Filter tabs + Results table */}
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-md border bg-card p-4">
         {stats.status === "archived" && (
           <p className="rounded-md bg-muted p-4 text-center text-sm text-muted-foreground">
             {t("settings.import_sessions.detail.archived_results")}

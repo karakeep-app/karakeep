@@ -53,7 +53,7 @@ export default function DeleteApiKey({
       )}
     >
       <Button variant="ghost" title={t("actions.delete")}>
-        <Trash size={18} />
+        <Trash className="size-[18px]" size={18} />
       </Button>
     </ActionConfirmingDialog>
   );

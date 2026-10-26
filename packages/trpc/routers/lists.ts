@@ -250,7 +250,7 @@ export const listsAppRouter = router({
     .input(
       z.object({
         listId: z.string(),
-        email: z.string().email(),
+        email: z.string().trim().toLowerCase().email(),
         role: z.enum(["viewer", "editor"]),
       }),
     )

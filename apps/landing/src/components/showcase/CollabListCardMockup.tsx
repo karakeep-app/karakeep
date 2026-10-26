@@ -7,13 +7,13 @@ const collaborators = [
     initial: "Y",
     name: "You",
     role: "Owner",
-    color: "bg-violet-100 text-violet-700",
+    color: "bg-neutral-900 text-white",
   },
   {
     initial: "L",
     name: "Layla",
     role: "Editor",
-    color: "bg-pink-100 text-pink-700",
+    color: "bg-sky-100 text-sky-700",
   },
   {
     initial: "T",

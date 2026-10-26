@@ -23,6 +23,7 @@ import {
   Download,
   FileDown,
   FileText,
+  FileVideo,
   ImagePlus,
   Link,
   List,
@@ -47,6 +48,7 @@ import {
 import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-grid-context";
 import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import {
+  usePreserveBookmarkVideo,
   useRecrawlBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
@@ -87,12 +89,22 @@ function isSubsectionItem(item: ActionItemType): item is SubsectionItem {
   return "items" in item;
 }
 
-export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
+export default function BookmarkOptions({
+  bookmark,
+  hiddenActions,
+  trigger,
+}: {
+  bookmark: ZBookmark;
+  // Ids of top-level actions to leave out of the menu
+  hiddenActions?: string[];
+  trigger?: React.ReactNode;
+}) {
   const { t } = useTranslation();
   const linkId = bookmark.id;
   const { data: session } = useSession();
 
-  const demoMode = !!useClientConfig().demoMode;
+  const clientConfig = useClientConfig();
+  const demoMode = !!clientConfig.demoMode;
 
   // Check if the current user owns this bookmark
   const isOwner = session?.user?.id === bookmark.userId;
@@ -122,13 +134,21 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     };
   }, []);
 
-  const { setOpen: setManageListsModalOpen, content: manageListsModal } =
-    useManageListsModal(bookmark.id);
+  const {
+    open: isManageListsModalOpen,
+    setOpen: setManageListsModalOpen,
+    content: manageListsModal,
+  } = useManageListsModal(bookmark.id);
 
   const [deleteBookmarkDialogOpen, setDeleteBookmarkDialogOpen] =
     useState(false);
   const [isTextEditorOpen, setTextEditorOpen] = useState(false);
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
+  const isAnyDialogOpen =
+    isManageListsModalOpen ||
+    deleteBookmarkDialogOpen ||
+    isTextEditorOpen ||
+    isEditBookmarkDialogOpen;
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -193,6 +213,13 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   const preservePdfMutator = useRecrawlBookmark({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_pdf"));
+    },
+    onError,
+  });
+
+  const preserveVideoMutator = usePreserveBookmarkVideo({
+    onSuccess: () => {
+      toast.success(t("toasts.bookmarks.preserve_video"));
     },
     onError,
   });
@@ -384,6 +411,16 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             },
           },
           {
+            id: "preserve-video",
+            title: t("actions.preserve_video"),
+            icon: <FileVideo className="size-4" />,
+            visible: clientConfig.crawler.videoDownloadOnDemand,
+            disabled: demoMode,
+            onClick: () => {
+              preserveVideoMutator.mutate({ bookmarkId: bookmark.id });
+            },
+          },
+          {
             id: "download-full-page-archive",
             title: t("actions.download_full_page_archive_file"),
             icon: <Download className="size-4" />,
@@ -473,6 +510,9 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   const visibleGroups = actionGroups
     .map((group) =>
       group.filter((item) => {
+        if (hiddenActions?.includes(item.id)) {
+          return false;
+        }
         if (isSubsectionItem(item)) {
           return item.visible && item.items.some((subItem) => subItem.visible);
         }
@@ -506,11 +546,26 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="px-1 focus-visible:ring-0">
-            <MoreHorizontal />
-          </Button>
+          {trigger ?? (
+            <Button
+              variant="ghost"
+              className="px-1 focus-visible:ring-0 has-[>svg]:px-1"
+            >
+              <MoreHorizontal className="size-6" />
+            </Button>
+          )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="min-w-44">
+        <DropdownMenuContent
+          className="min-w-44"
+          onCloseAutoFocus={(e) => {
+            // The menu restores focus to its trigger once its close animation
+            // ends. If an item opened a dialog, that steals focus from the
+            // dialog and dismisses any popover opened inside it in the meantime.
+            if (isAnyDialogOpen) {
+              e.preventDefault();
+            }
+          }}
+        >
           {visibleGroups.map((group, i) => (
             <Fragment key={i}>
               {i > 0 && <DropdownMenuSeparator />}

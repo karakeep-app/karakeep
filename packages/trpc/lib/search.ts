@@ -13,8 +13,11 @@ import {
   ne,
   notExists,
   notInArray,
+  not,
   notLike,
   or,
+  SQL,
+  sql,
 } from "drizzle-orm";
 
 import {
@@ -34,132 +37,58 @@ import { toAbsoluteDate } from "@karakeep/shared/utils/relativeDateUtils";
 
 import { AuthedContext } from "..";
 
-interface BookmarkQueryReturnType {
-  id: string;
+// SQLite caps expression depth at 1000 and a flat chain of N ANDs/ORs nests N
+// deep, so combine conditions as a balanced tree (depth log2(N)) instead.
+function combineBalanced(op: typeof and | typeof or, conditions: SQL[]): SQL {
+  if (conditions.length === 0) {
+    return sql`0`;
+  }
+  if (conditions.length === 1) {
+    return conditions[0];
+  }
+  const mid = Math.ceil(conditions.length / 2);
+  return op(
+    combineBalanced(op, conditions.slice(0, mid)),
+    combineBalanced(op, conditions.slice(mid)),
+  )!;
 }
 
-function intersect(
-  vals: BookmarkQueryReturnType[][],
-): BookmarkQueryReturnType[] {
-  if (!vals || vals.length === 0) {
-    return [];
-  }
-
-  if (vals.length === 1) {
-    return [...vals[0]];
-  }
-
-  const countMap = new Map<string, number>();
-  const map = new Map<string, BookmarkQueryReturnType>();
-
-  for (const arr of vals) {
-    for (const item of arr) {
-      countMap.set(item.id, (countMap.get(item.id) ?? 0) + 1);
-      map.set(item.id, item);
-    }
-  }
-
-  const result: BookmarkQueryReturnType[] = [];
-  for (const [id, count] of countMap) {
-    if (count === vals.length) {
-      result.push(map.get(id)!);
-    }
-  }
-
-  return result;
-}
-
-function union(vals: BookmarkQueryReturnType[][]): BookmarkQueryReturnType[] {
-  if (!vals || vals.length === 0) {
-    return [];
-  }
-
-  const uniqueIds = new Set<string>();
-  const map = new Map<string, BookmarkQueryReturnType>();
-  for (const arr of vals) {
-    for (const item of arr) {
-      uniqueIds.add(item.id);
-      map.set(item.id, item);
-    }
-  }
-
-  const result: BookmarkQueryReturnType[] = [];
-  for (const id of uniqueIds) {
-    result.push(map.get(id)!);
-  }
-
-  return result;
-}
-
-async function getIds(
+// Builds a condition on the `bookmarks` table that matches the bookmarks
+// selected by `matcher`. The condition doesn't scope by user, so it must be
+// applied to a query that already filters on `bookmarks.userId`.
+export async function getBookmarksConditionFromMatcher(
   ctx: AuthedContext,
   matcher: Matcher,
   visitedListIds = new Set<string>(),
-): Promise<BookmarkQueryReturnType[]> {
+): Promise<SQL> {
   const { db } = ctx;
   const userId = ctx.user.id;
 
   switch (matcher.type) {
     case "tagName": {
-      if (!matcher.inverse) {
-        return db
-          .selectDistinct({ id: bookmarks.id })
-          .from(bookmarkTags)
-          .crossJoin(tagsOnBookmarks)
-          .crossJoin(bookmarks)
+      const comp = matcher.inverse ? notInArray : inArray;
+      return comp(
+        bookmarks.id,
+        db
+          .select({ id: tagsOnBookmarks.bookmarkId })
+          .from(tagsOnBookmarks)
+          .innerJoin(bookmarkTags, eq(tagsOnBookmarks.tagId, bookmarkTags.id))
           .where(
             and(
               eq(bookmarkTags.userId, userId),
               eq(bookmarkTags.name, matcher.tagName),
-              eq(tagsOnBookmarks.tagId, bookmarkTags.id),
-              eq(bookmarks.id, tagsOnBookmarks.bookmarkId),
-              eq(bookmarks.userId, userId),
-            ),
-          );
-      }
-
-      const comp = matcher.inverse ? notExists : exists;
-      return db
-        .selectDistinct({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(tagsOnBookmarks)
-                .innerJoin(
-                  bookmarkTags,
-                  eq(tagsOnBookmarks.tagId, bookmarkTags.id),
-                )
-                .where(
-                  and(
-                    eq(tagsOnBookmarks.bookmarkId, bookmarks.id),
-                    eq(bookmarkTags.userId, userId),
-                    eq(bookmarkTags.name, matcher.tagName),
-                  ),
-                ),
             ),
           ),
-        );
+      );
     }
     case "tagged": {
       const comp = matcher.tagged ? exists : notExists;
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(tagsOnBookmarks)
-                .where(and(eq(tagsOnBookmarks.bookmarkId, bookmarks.id))),
-            ),
-          ),
-        );
+      return comp(
+        db
+          .select()
+          .from(tagsOnBookmarks)
+          .where(eq(tagsOnBookmarks.bookmarkId, bookmarks.id)),
+      );
     }
     case "listName": {
       // First, look up the list by name
@@ -172,317 +101,186 @@ async function getIds(
 
       if (lists.length === 0) {
         // No matching lists
-        return [];
+        return sql`0`;
       }
 
       // Use List model to resolve list membership (manual and smart)
       // Import dynamically to avoid circular dependency
       const { List } = await import("../models/lists");
-      const listBookmarkIds = [
-        ...new Set(
-          (
-            await Promise.all(
-              lists.map(async (list) => {
-                const listModel = await List.fromId(ctx, list.id);
-                return await listModel.getBookmarkIds(visitedListIds);
-              }),
-            )
-          ).flat(),
-        ),
-      ];
-
-      if (listBookmarkIds.length === 0) {
-        if (matcher.inverse) {
-          return db
-            .selectDistinct({ id: bookmarks.id })
-            .from(bookmarks)
-            .where(eq(bookmarks.userId, userId));
-        }
-        return [];
-      }
-
-      return db
-        .selectDistinct({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            matcher.inverse
-              ? notInArray(bookmarks.id, listBookmarkIds)
-              : inArray(bookmarks.id, listBookmarkIds),
-          ),
-        );
+      const conditions = await Promise.all(
+        lists.map(async (list) => {
+          const listModel = await List.fromId(ctx, list.id);
+          return await listModel.getBookmarksCondition(visitedListIds);
+        }),
+      );
+      const inLists = combineBalanced(or, conditions);
+      // Smart list conditions can evaluate to NULL (e.g. LIKE on a NULL
+      // column), so coalesce before negating.
+      return matcher.inverse ? sql`coalesce(${inLists}, 0) = 0` : inLists;
     }
     case "inlist": {
       const comp = matcher.inList ? exists : notExists;
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(bookmarksInLists)
-                .where(and(eq(bookmarksInLists.bookmarkId, bookmarks.id))),
-            ),
-          ),
-        );
+      return comp(
+        db
+          .select()
+          .from(bookmarksInLists)
+          .where(eq(bookmarksInLists.bookmarkId, bookmarks.id)),
+      );
     }
     case "rssFeedName": {
-      const comp = matcher.inverse ? notExists : exists;
-      return db
-        .selectDistinct({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(rssFeedImportsTable)
-                .innerJoin(
-                  rssFeedsTable,
-                  eq(rssFeedImportsTable.rssFeedId, rssFeedsTable.id),
-                )
-                .where(
-                  and(
-                    eq(rssFeedImportsTable.bookmarkId, bookmarks.id),
-                    eq(rssFeedsTable.userId, userId),
-                    eq(rssFeedsTable.name, matcher.feedName),
-                  ),
-                ),
+      const comp = matcher.inverse ? notInArray : inArray;
+      return comp(
+        bookmarks.id,
+        db
+          .select({ id: rssFeedImportsTable.bookmarkId })
+          .from(rssFeedImportsTable)
+          .innerJoin(
+            rssFeedsTable,
+            eq(rssFeedImportsTable.rssFeedId, rssFeedsTable.id),
+          )
+          .where(
+            and(
+              // NOT IN never matches if the subquery returns a NULL
+              isNotNull(rssFeedImportsTable.bookmarkId),
+              eq(rssFeedsTable.userId, userId),
+              eq(rssFeedsTable.name, matcher.feedName),
             ),
           ),
-        );
+      );
     }
     case "archived": {
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            eq(bookmarks.archived, matcher.archived),
-          ),
-        );
+      return eq(bookmarks.archived, matcher.archived);
     }
     case "url": {
       const comp = matcher.inverse ? notLike : like;
-      return db
-        .select({ id: bookmarkLinks.id })
-        .from(bookmarkLinks)
-        .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(bookmarkLinks.url, `%${matcher.url}%`),
-          ),
-        )
-        .union(
+      return or(
+        exists(
           db
-            .select({ id: bookmarkAssets.id })
-            .from(bookmarkAssets)
-            .leftJoin(bookmarks, eq(bookmarks.id, bookmarkAssets.id))
+            .select()
+            .from(bookmarkLinks)
             .where(
               and(
-                eq(bookmarks.userId, userId),
+                eq(bookmarkLinks.id, bookmarks.id),
+                comp(bookmarkLinks.url, `%${matcher.url}%`),
+              ),
+            ),
+        ),
+        exists(
+          db
+            .select()
+            .from(bookmarkAssets)
+            .where(
+              and(
+                eq(bookmarkAssets.id, bookmarks.id),
                 // When a user is asking for a link, the inverse matcher should match only assets with URLs.
                 isNotNull(bookmarkAssets.sourceUrl),
                 comp(bookmarkAssets.sourceUrl, `%${matcher.url}%`),
               ),
             ),
-        );
+        ),
+      )!;
     }
     case "title": {
-      const comp = matcher.inverse ? notLike : like;
-      if (matcher.inverse) {
-        return db
-          .select({ id: bookmarks.id })
-          .from(bookmarks)
-          .leftJoin(bookmarkLinks, eq(bookmarks.id, bookmarkLinks.id))
+      const linkTitleMatches = exists(
+        db
+          .select()
+          .from(bookmarkLinks)
           .where(
             and(
-              eq(bookmarks.userId, userId),
-              or(
-                isNull(bookmarks.title),
-                comp(bookmarks.title, `%${matcher.title}%`),
-              ),
-              or(
-                isNull(bookmarkLinks.title),
-                comp(bookmarkLinks.title, `%${matcher.title}%`),
-              ),
+              eq(bookmarkLinks.id, bookmarks.id),
+              like(bookmarkLinks.title, `%${matcher.title}%`),
             ),
-          );
-      }
-
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(bookmarks.title, `%${matcher.title}%`),
           ),
-        )
-        .union(
-          db
-            .select({ id: bookmarkLinks.id })
-            .from(bookmarkLinks)
-            .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
-            .where(
-              and(
-                eq(bookmarks.userId, userId),
-                comp(bookmarkLinks.title, `%${matcher.title}%`),
-              ),
-            ),
-        );
+      );
+      if (matcher.inverse) {
+        return and(
+          or(
+            isNull(bookmarks.title),
+            notLike(bookmarks.title, `%${matcher.title}%`),
+          ),
+          not(linkTitleMatches),
+        )!;
+      }
+      return or(like(bookmarks.title, `%${matcher.title}%`), linkTitleMatches)!;
     }
     case "favourited": {
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            eq(bookmarks.favourited, matcher.favourited),
-          ),
-        );
+      return eq(bookmarks.favourited, matcher.favourited);
     }
     case "hasNotes": {
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            matcher.hasNotes
-              ? and(isNotNull(bookmarks.note), ne(bookmarks.note, ""))
-              : or(isNull(bookmarks.note), eq(bookmarks.note, "")),
-          ),
-        );
+      return matcher.hasNotes
+        ? and(isNotNull(bookmarks.note), ne(bookmarks.note, ""))!
+        : or(isNull(bookmarks.note), eq(bookmarks.note, ""))!;
     }
     case "hasHighlights": {
-      const comp = matcher.hasHighlights ? exists : notExists;
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(
-              db
-                .select()
-                .from(highlights)
-                .where(
-                  and(
-                    eq(highlights.bookmarkId, bookmarks.id),
-                    eq(highlights.userId, userId),
-                  ),
-                ),
-            ),
-          ),
-        );
+      const comp = matcher.hasHighlights ? inArray : notInArray;
+      return comp(
+        bookmarks.id,
+        db
+          .select({ id: highlights.bookmarkId })
+          .from(highlights)
+          .where(eq(highlights.userId, userId)),
+      );
     }
     case "dateAfter": {
       const comp = matcher.inverse ? lt : gte;
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(bookmarks.createdAt, matcher.dateAfter),
-          ),
-        );
+      return comp(bookmarks.createdAt, matcher.dateAfter);
     }
     case "dateBefore": {
       const comp = matcher.inverse ? gt : lte;
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(bookmarks.createdAt, matcher.dateBefore),
-          ),
-        );
+      return comp(bookmarks.createdAt, matcher.dateBefore);
     }
     case "age": {
       const comp = matcher.relativeDate.direction === "newer" ? gte : lt;
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(bookmarks.createdAt, toAbsoluteDate(matcher.relativeDate)),
-          ),
-        );
+      return comp(bookmarks.createdAt, toAbsoluteDate(matcher.relativeDate));
     }
     case "type": {
       const comp = matcher.inverse ? ne : eq;
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            comp(bookmarks.type, matcher.typeName),
-          ),
-        );
+      return comp(bookmarks.type, matcher.typeName);
     }
     case "brokenLinks": {
       // Only applies to bookmarks of type LINK
-      return db
-        .select({ id: bookmarkLinks.id })
-        .from(bookmarkLinks)
-        .leftJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            matcher.brokenLinks
-              ? or(
-                  eq(bookmarkLinks.crawlStatus, "failure"),
-                  lt(bookmarkLinks.crawlStatusCode, 200),
-                  gt(bookmarkLinks.crawlStatusCode, 299),
-                )
-              : and(
-                  eq(bookmarkLinks.crawlStatus, "success"),
-                  gte(bookmarkLinks.crawlStatusCode, 200),
-                  lte(bookmarkLinks.crawlStatusCode, 299),
-                ),
+      return exists(
+        db
+          .select()
+          .from(bookmarkLinks)
+          .where(
+            and(
+              eq(bookmarkLinks.id, bookmarks.id),
+              matcher.brokenLinks
+                ? or(
+                    eq(bookmarkLinks.crawlStatus, "failure"),
+                    lt(bookmarkLinks.crawlStatusCode, 200),
+                    gt(bookmarkLinks.crawlStatusCode, 299),
+                  )
+                : and(
+                    eq(bookmarkLinks.crawlStatus, "success"),
+                    gte(bookmarkLinks.crawlStatusCode, 200),
+                    lte(bookmarkLinks.crawlStatusCode, 299),
+                  ),
+            ),
           ),
-        );
+      );
     }
     case "source": {
-      return db
-        .select({ id: bookmarks.id })
-        .from(bookmarks)
-        .where(
-          and(
-            eq(bookmarks.userId, userId),
-            matcher.inverse
-              ? or(
-                  ne(bookmarks.source, matcher.source),
-                  isNull(bookmarks.source),
-                )
-              : eq(bookmarks.source, matcher.source),
-          ),
-        );
+      return matcher.inverse
+        ? or(ne(bookmarks.source, matcher.source), isNull(bookmarks.source))!
+        : eq(bookmarks.source, matcher.source);
     }
     case "and": {
-      const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(ctx, m, visitedListIds)),
+      const conditions = await Promise.all(
+        matcher.matchers.map((m) =>
+          getBookmarksConditionFromMatcher(ctx, m, visitedListIds),
+        ),
       );
-      return intersect(vals);
+      return combineBalanced(and, conditions);
     }
     case "or": {
-      const vals = await Promise.all(
-        matcher.matchers.map((m) => getIds(ctx, m, visitedListIds)),
+      const conditions = await Promise.all(
+        matcher.matchers.map((m) =>
+          getBookmarksConditionFromMatcher(ctx, m, visitedListIds),
+        ),
       );
-      return union(vals);
+      return combineBalanced(or, conditions);
     }
     default: {
       const _exhaustiveCheck: never = matcher;
@@ -494,8 +292,11 @@ async function getIds(
 export async function getBookmarkIdsFromMatcher(
   ctx: AuthedContext,
   matcher: Matcher,
-  visitedListIds = new Set<string>(),
 ): Promise<string[]> {
-  const results = await getIds(ctx, matcher, visitedListIds);
+  const condition = await getBookmarksConditionFromMatcher(ctx, matcher);
+  const results = await ctx.db
+    .select({ id: bookmarks.id })
+    .from(bookmarks)
+    .where(and(eq(bookmarks.userId, ctx.user.id), condition));
   return results.map((r) => r.id);
 }

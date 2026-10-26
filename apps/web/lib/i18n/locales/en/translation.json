@@ -77,6 +77,7 @@
     "preserve_offline_archive": "Preserve Offline Archive",
     "download_full_page_archive_file": "Download Archive File",
     "preserve_as_pdf": "Preserve as PDF",
+    "preserve_video": "Preserve Video",
     "download_pdf_file": "Download PDF File",
     "edit_tags": "Edit Tags",
     "edit_notes": "Edit Notes",
@@ -235,7 +236,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Activity by Hour",
-        "activity_by_day": "Activity by Day"
+        "activity_by_day": "Activity by Day",
+        "busiest_around": "Busiest around {{hour}}"
       },
       "storage_breakdown": {
         "title": "Storage Breakdown"
@@ -428,7 +430,49 @@
       "broken_links": "Broken Links",
       "last_crawled_at": "Last Crawled At",
       "crawling_status": "Crawling Status",
-      "crawling_failed": "Crawling Failed"
+      "crawling_failed": "Crawling Failed",
+      "description": "Review links that could not be fetched, retry them or remove old bookmarks.",
+      "category_all": "Needs attention",
+      "category_blocked": "Access blocked",
+      "category_missing": "Not found",
+      "category_errors": "Other errors",
+      "category_all_hint": "Links to review",
+      "category_blocked_hint": "Restricted or rate limited",
+      "category_missing_hint": "Page missing or removed",
+      "category_errors_hint": "Server or crawl failures",
+      "blocked_hint": "A blocked request doesn't always mean a broken link. Some sites restrict automated access. Open the original page to check before deleting.",
+      "search": "Search by title or URL…",
+      "sort_recent": "Recently checked",
+      "sort_oldest": "Oldest check first",
+      "sort_domain": "Website A–Z",
+      "result_count_one": "{{count}} link to review",
+      "result_count_other": "{{count}} links to review",
+      "retry_selected": "Retry selected",
+      "empty": "No broken links found",
+      "empty_description": "None of your saved links currently have a reported crawl error.",
+      "select_visible": "Select all visible links",
+      "bookmark": "Bookmark",
+      "issue": "Issue",
+      "never_crawled": "No crawl date",
+      "issue_blocked": "Access blocked",
+      "issue_missing": "Not found",
+      "issue_server": "Server error",
+      "issue_http": "HTTP error",
+      "issue_failed": "Crawl failed",
+      "issue_blocked_hint": "The site restricted this request",
+      "issue_missing_hint": "The page may have been removed",
+      "issue_server_hint": "The site could not complete the request",
+      "issue_http_hint": "The site returned an unexpected response",
+      "issue_failed_hint": "No successful response was recorded",
+      "queued": "Queued",
+      "queued_count_one": "{{count}} link queued for another crawl.",
+      "queued_count_other": "{{count}} links queued for another crawl.",
+      "deleted_count_one": "{{count}} bookmark deleted.",
+      "deleted_count_other": "{{count}} bookmarks deleted.",
+      "action_failed": "{{count}} of {{total}} failed.",
+      "delete_title_one": "Delete {{count}} bookmark?",
+      "delete_title_other": "Delete {{count}} bookmarks?",
+      "delete_description": "This permanently deletes the selected bookmarks and their saved files, highlights and notes. This cannot be undone."
     },
     "manage_assets": {
       "manage_assets": "Manage Assets",
@@ -500,6 +544,15 @@
       "unlock_bigger_quota": "Unlock bigger quota and support the project",
       "subscribe_now": "Subscribe Now",
       "manage_billing": "Manage Billing",
+      "update_payment_method": "Update Payment Method",
+      "payment_failed": "Payment failed",
+      "payment_failed_title": "Your last payment failed",
+      "payment_failed_description": "We couldn't charge your payment method. Update it to keep your Paid plan. We'll retry the charge in the meantime, and your plan will switch to Free if all retries fail.",
+      "payment_failed_description_in_app": "We couldn't charge your payment method. Update it in your App Store or Google Play subscription settings to keep your Paid plan.",
+      "upgrade_from_mobile_app": "To upgrade to the Paid plan, use the Karakeep mobile app.",
+      "managed_by_app_store": "Your subscription was purchased through the App Store. You can manage it from your Apple account's subscription settings.",
+      "managed_by_play_store": "Your subscription was purchased through Google Play. You can manage it from the Google Play Store's subscription settings.",
+      "managed_by_mobile_app": "Your subscription was purchased through the mobile app. You can manage it from your device's subscription settings.",
       "subscription_canceled": "Your subscription has been canceled and will end on {{date}}. You can resubscribe at any time.",
       "usage_quotas": "Usage & Quotas",
       "track_usage": "Track your current usage against your plan limits",
@@ -629,6 +682,19 @@
         "backup_queued": "Backup job has been queued! It will be processed shortly.",
         "backup_deleted": "Backup has been deleted!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Clear filters",
+      "clear_selection": "Clear selection",
+      "delete_selected": "Delete selected",
+      "try_again": "Try again",
+      "sort": "Sort order",
+      "no_matches": "No matches found",
+      "adjust_filters": "Try a different search or clear your filters.",
+      "select_item": "Select {{name}}",
+      "selected": "{{count}} selected",
+      "showing": "Showing {{shown}} of {{total}}",
+      "load_more": "Load more"
     }
   },
   "admin": {
@@ -784,8 +850,10 @@
     }
   },
   "options": {
+    "theme": "Theme",
     "dark_mode": "Dark Mode",
     "light_mode": "Light Mode",
+    "system_mode": "System Mode",
     "apps_extensions": "Apps & Extensions",
     "documentation": "Documentation",
     "follow_us_on_x": "Follow us on X"
@@ -1072,6 +1140,7 @@
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
       "preserve_pdf": "PDF preservation has been triggered",
+      "preserve_video": "Video download has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!",
       "update_banner": "Banner has been updated!",

@@ -151,7 +151,7 @@ export default function AssetsSettingsPage() {
                                 )
                               }
                             >
-                              <Trash2 className="mr-2 size-4" />
+                              <Trash2 className="size-4" />
                               {t("actions.delete")}
                             </ActionButton>
                           )}

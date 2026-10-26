@@ -429,7 +429,7 @@ export class Bookmark extends BareBookmark {
   static async loadMulti(
     ctx: AuthedContext,
     // `ids` is intentionally not part of the public getBookmarks API; it's
-    // only settable by server-side callers (search, smart lists, public lists).
+    // only settable by server-side callers (search, public lists).
     input: z.infer<typeof zGetBookmarksRequestSchema> & { ids?: string[] },
   ): Promise<{
     bookmarks: Bookmark[];
@@ -459,11 +459,12 @@ export class Bookmark extends BareBookmark {
       });
     }
 
-    // Handle smart lists by converting to bookmark IDs
+    // Smart lists are queried through their condition on the bookmarks table
+    let smartListCondition: SQL | undefined;
     if (input.listId) {
       const list = await List.fromId(ctx, input.listId);
       if (list.type === "smart") {
-        input.ids = await list.getBookmarkIds();
+        smartListCondition = await list.getBookmarksCondition();
         delete input.listId;
       }
     }
@@ -493,8 +494,9 @@ export class Bookmark extends BareBookmark {
       );
     };
 
-    // Build common filter conditions (archived, favourited, ids)
+    // Build common filter conditions (archived, favourited, ids, smart list)
     const buildCommonFilters = (): (SQL | undefined)[] => [
+      smartListCondition,
       input.archived !== undefined
         ? eq(bookmarks.archived, input.archived)
         : undefined,

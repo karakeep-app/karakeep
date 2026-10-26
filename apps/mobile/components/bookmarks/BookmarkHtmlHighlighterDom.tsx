@@ -121,7 +121,14 @@ export default function BookmarkHtmlHighlighterDom({
   return (
     <div
       className={isDark ? "dark" : undefined}
-      style={{ maxWidth: "100vw", overflowX: "hidden" }}
+      style={{
+        width: "100%",
+        maxWidth: "100vw",
+        overflowX: "hidden",
+        // The content is capped to a readable width on tablets, so paint its
+        // background edge to edge.
+        background: contentStyle?.background,
+      }}
     >
       <ScrollProgressTracker
         onSavePosition={onSavePosition}

@@ -8,7 +8,7 @@
     "cheerio": "^1.2.0",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
-    "nodemailer": "^9.1.1",
+    "nodemailer": "^10.0.9",
     "ollama": "^0.5.14",
     "openai": "^6.34.0",
     "typescript-parsec": "^0.3.4",

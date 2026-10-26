@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
@@ -38,11 +39,9 @@ import {
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -57,6 +56,22 @@ import {
 
 import QueryExplainerTooltip from "../search/QueryExplainerTooltip";
 import { BookmarkListSelector } from "./BookmarkListSelector";
+
+// The emoji dataset is large, only load it when the picker is opened.
+const EmojiPicker = dynamic(
+  async () => {
+    const [{ default: data }, { default: Picker }] = await Promise.all([
+      import("@emoji-mart/data"),
+      import("@emoji-mart/react"),
+    ]);
+    return function EmojiPicker(props: {
+      onEmojiSelect: (e: { native: string }) => void;
+    }) {
+      return <Picker data={data} {...props} />;
+    };
+  },
+  { ssr: false },
+);
 
 export function EditListModal({
   open: userOpen,
@@ -108,13 +123,13 @@ export function EditListModal({
     });
   }, [open]);
 
+  const query = useWatch({ control: form.control, name: "query" });
   const parsedSearchQuery = useMemo(() => {
-    const query = form.getValues().query;
     if (!query) {
       return undefined;
     }
     return parseSearchQuery(query);
-  }, [form.watch("query")]);
+  }, [query]);
 
   const { mutate: createList, isPending: isCreating } = useCreateBookmarkList({
     onSuccess: (resp) => {
@@ -180,7 +195,7 @@ export function EditListModal({
       }
     },
   });
-  const listType = form.watch("type");
+  const listType = useWatch({ control: form.control, name: "type" });
 
   useEffect(() => {
     if (listType !== "smart") {
@@ -233,8 +248,7 @@ export function EditListModal({
                             {field.value}
                           </PopoverTrigger>
                           <PopoverContent className="w-auto">
-                            <Picker
-                              data={data}
+                            <EmojiPicker
                               onEmojiSelect={(e: { native: string }) =>
                                 field.onChange(e.native)
                               }
@@ -300,6 +314,8 @@ export function EditListModal({
                         <BookmarkListSelector
                           // Hide the current list from the list of parents
                           hideSubtreeOf={list ? list.id : undefined}
+                          // Lists can only be nested under lists you own
+                          ownedOnly
                           value={field.value}
                           onChange={field.onChange}
                           placeholder={t("lists.no_parent")}
@@ -312,7 +328,7 @@ export function EditListModal({
                           form.setValue("parentId", "");
                         }}
                       >
-                        <X />
+                        <X className="size-6" />
                       </Button>
                     </div>
                     <FormMessage />
@@ -378,7 +394,7 @@ export function EditListModal({
                       </div>
                       <FormDescription>
                         <Link
-                          href="https://docs.karakeep.app/Guides/search-query-language"
+                          href="https://docs.karakeep.com/Guides/search-query-language"
                           className="italic"
                           target="_blank"
                         >

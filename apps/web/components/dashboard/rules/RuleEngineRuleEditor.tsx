@@ -189,11 +189,11 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onCancel}>
-              <X className="mr-2 h-4 w-4" />
+              <X className="h-4 w-4" />
               {t("actions.cancel")}
             </Button>
             <ActionButton loading={isCreating || isUpdating} type="submit">
-              <Save className="mr-2 h-4 w-4" />
+              <Save className="h-4 w-4" />
               {t("settings.rules.save_rule")}
             </ActionButton>
           </div>

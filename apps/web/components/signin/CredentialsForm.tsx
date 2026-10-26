@@ -29,8 +29,6 @@ const signInSchema = z.object({
 const SIGNIN_FAILED = "Incorrect email or password";
 const OAUTH_FAILED = "OAuth login failed: ";
 
-const VERIFY_EMAIL_ERROR = "Please verify your email address before signing in";
-
 export default function CredentialsForm() {
   const [signinError, setSigninError] = useState("");
   const router = useRouter();
@@ -73,21 +71,22 @@ export default function CredentialsForm() {
     <div className="space-y-6">
       <Form {...form}>
         <form
+          // POST so a submit before hydration doesn't put the password in the URL.
+          method="post"
           onSubmit={form.handleSubmit(async (value) => {
             const resp = await signIn("credentials", {
-              redirect: false,
               email: value.email.trim(),
               password: value.password,
             });
-            if (!resp || !resp?.ok || resp.error) {
-              if (resp?.error === "CredentialsSignin") {
+            if (!resp.ok) {
+              if (resp.code === "INVALID_EMAIL_OR_PASSWORD") {
                 setSigninError(SIGNIN_FAILED);
-              } else if (resp?.error === VERIFY_EMAIL_ERROR) {
+              } else if (resp.code === "EMAIL_NOT_VERIFIED") {
                 router.replace(
                   `/check-email?email=${encodeURIComponent(value.email.trim())}`,
                 );
               } else {
-                setSigninError(resp?.error ?? SIGNIN_FAILED);
+                setSigninError(resp.error ?? SIGNIN_FAILED);
               }
               return;
             }

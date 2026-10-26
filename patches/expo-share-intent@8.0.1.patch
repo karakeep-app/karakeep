@@ -1,5 +1,5 @@
 diff --git a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt
-index ff5b1001e7bb3443482727cec48c22579465c73b..ea6c49ae22e8cc9126e45ffe163b3cc492413a7a 100644
+index ff5b1001e7bb3443482727cec48c22579465c73b..e9c385108f6cebd7cc987d0a65a734f3e8305786 100644
 --- a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt
 +++ b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentModule.kt
 @@ -41,6 +41,9 @@ class ExpoShareIntentModule : Module() {
@@ -12,7 +12,26 @@ index ff5b1001e7bb3443482727cec48c22579465c73b..ea6c49ae22e8cc9126e45ffe163b3cc4
      companion object {
          private var instance: ExpoShareIntentModule? = null
  
-@@ -180,24 +183,40 @@ class ExpoShareIntentModule : Module() {
+@@ -112,15 +115,9 @@ class ExpoShareIntentModule : Module() {
+         }
+ 
+         fun handleShareIntent(intent: Intent) {
+-            val activity = instance?.currentActivity
+-            if (activity != null && !activity.isTaskRoot) {
+-                val newIntent = Intent(intent).apply {
+-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+-                }
+-                activity.startActivity(newIntent)
+-                activity.finish()
+-                return
+-            }
++            // Shares from the share sheet reach the main activity in the app's own task through
++            // ExpoShareIntentTrampolineActivity. The main activity is still exported, so another app
++            // can start it directly (e.g. a share target it remembered from an older version).
+             if (intent.type == null) return
+             if (intent.type!!.startsWith("text/plain")) {
+                 // text / urls
+@@ -180,24 +177,40 @@ class ExpoShareIntentModule : Module() {
          Events("onChange", "onStateChange", "onError")
  
          AsyncFunction("getShareIntent") { _: String ->
@@ -59,7 +78,7 @@ index ff5b1001e7bb3443482727cec48c22579465c73b..ea6c49ae22e8cc9126e45ffe163b3cc4
          }
  
          OnCreate {
-@@ -223,15 +242,9 @@ class ExpoShareIntentModule : Module() {
+@@ -223,15 +236,9 @@ class ExpoShareIntentModule : Module() {
              if (DocumentsContract.isDocumentUri(context, uri)) {
                  // ExternalStorageProvider
                  if (isExternalStorageDocument(uri)) {
@@ -79,7 +98,7 @@ index ff5b1001e7bb3443482727cec48c22579465c73b..ea6c49ae22e8cc9126e45ffe163b3cc4
                      return try {
                          val id = DocumentsContract.getDocumentId(uri)
 diff --git a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt
-index db573ecbd560de3c71aa443b7ad88d1b5e1c8dc7..17a0efcb3839b883814c35697fde8b2759bfea19 100644
+index db573ecbd560de3c71aa443b7ad88d1b5e1c8dc7..4d90556a8640a6d269056d4546591c850e9e8595 100644
 --- a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt
 +++ b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentReactActivityLifecycleListener.kt
 @@ -13,10 +13,20 @@ import expo.modules.core.interfaces.ReactActivityLifecycleListener
@@ -106,8 +125,9 @@ index db573ecbd560de3c71aa443b7ad88d1b5e1c8dc7..17a0efcb3839b883814c35697fde8b27
 +        return false
      }
  }
+\ No newline at end of file
 diff --git a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt
-index 7f93abe410557d8f909148e57d7311cabbe75b36..538c6be0274b9d8cc022e00c11e0efb1d5c5b2c4 100644
+index 7f93abe410557d8f909148e57d7311cabbe75b36..809143015a733701ea93dbce90c65f1335b2e119 100644
 --- a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt
 +++ b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentSingleton.kt
 @@ -1,5 +1,6 @@
@@ -190,3 +210,91 @@ index 7f93abe410557d8f909148e57d7311cabbe75b36..538c6be0274b9d8cc022e00c11e0efb1
 +    return "$taskId:${fingerprint.hashCode()}"
 +  }
  }
+\ No newline at end of file
+diff --git a/android/src/main/java/expo/modules/shareintent/ExpoShareIntentTrampolineActivity.kt b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentTrampolineActivity.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..8258d653884938fe14eb99e3c16bb512aa109a12
+--- /dev/null
++++ b/android/src/main/java/expo/modules/shareintent/ExpoShareIntentTrampolineActivity.kt
+@@ -0,0 +1,39 @@
++package expo.modules.shareintent
++
++import android.app.Activity
++import android.content.Intent
++import android.os.Bundle
++import android.util.Log
++
++/**
++ * Receives the share intents (the config plugin puts the intent filters here instead of on the
++ * main activity) and forwards them to the main activity in the app's own task.
++ *
++ * Android launches the share target in the sharing app's task when the share sheet was started for
++ * a result (e.g. by apps using Flutter's share_plus), even if the target is singleTask. If that
++ * target were the main activity, a second react surface would mount in that task and get torn down
++ * (taking the main activity's surface with it) as soon as the share is moved to the app's task.
++ * This activity has no UI, so it doesn't matter which task it starts in.
++ */
++class ExpoShareIntentTrampolineActivity : Activity() {
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++        val target = packageManager.getLaunchIntentForPackage(packageName)?.component
++        if (target != null) {
++            val grantFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
++                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
++                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION or
++                Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
++            val forward = Intent(intent).apply {
++                component = target
++                // Drop the original launch flags (FORWARD_RESULT, NEW_DOCUMENT, MULTIPLE_TASK, ...),
++                // keeping only the uri grants so the main activity can read the shared files.
++                flags = (intent.flags and grantFlags) or Intent.FLAG_ACTIVITY_NEW_TASK
++            }
++            startActivity(forward)
++        } else {
++            Log.w("ExpoShareIntent", "No launch activity to forward the share to, dropping it")
++        }
++        finish()
++    }
++}
+diff --git a/plugin/build/android/withAndroidIntentFilters.js b/plugin/build/android/withAndroidIntentFilters.js
+index 8814220cab965a7393bc422873cfdf6be29b13a6..9c1f09acf391de61c6565cff8640c41e4a6f9ccd 100644
+--- a/plugin/build/android/withAndroidIntentFilters.js
++++ b/plugin/build/android/withAndroidIntentFilters.js
+@@ -46,7 +46,7 @@ function renderIntentFilterCategory(category) {
+     }));
+ }
+ function addIntentFilters(androidManifest, currentIntentFilters, filters, multiFilters) {
+-    const mainActivity = config_plugins_1.AndroidConfig.Manifest.getMainActivityOrThrow(androidManifest);
++    const application = config_plugins_1.AndroidConfig.Manifest.getMainApplicationOrThrow(androidManifest);
+     // DEFAULT VALUE (text and url)
+     const newFilters = filters || ["text/*"];
+     console.warn(`[expo-share-intent] add android filters (${newFilters.join(" ")}) and multi-filters (${multiFilters ? multiFilters.join(" ") : ""})`);
+@@ -74,8 +74,26 @@ function addIntentFilters(androidManifest, currentIntentFilters, filters, multiF
+         ...newIntentFilters,
+         ...newMultiIntentFilters,
+     ]);
+-    // adds them properly to the manifest
+-    mainActivity["intent-filter"] = mainActivity["intent-filter"]?.concat(renderedNewIntentFilters);
++    // Shares go through a trampoline activity that forwards them to the main activity in the app's
++    // own task, see ExpoShareIntentTrampolineActivity. Drop the share filters older versions of
++    // this plugin put on the main activity (left behind by a prebuild without --clean), or it'd
++    // show up as a second share target that bypasses the trampoline.
++    const mainActivity = config_plugins_1.AndroidConfig.Manifest.getMainActivityOrThrow(androidManifest);
++    const shareActions = ["android.intent.action.SEND", "android.intent.action.SEND_MULTIPLE"];
++    mainActivity["intent-filter"] = mainActivity["intent-filter"]?.filter((filter) => !filter.action?.some((action) => shareActions.includes(action.$?.["android:name"])));
++    const trampolineName = "expo.modules.shareintent.ExpoShareIntentTrampolineActivity";
++    application["activity"] = (application["activity"] ?? []).filter((activity) => activity.$["android:name"] !== trampolineName);
++    application["activity"].push({
++        $: {
++            "android:name": trampolineName,
++            "android:exported": "true",
++            "android:excludeFromRecents": "true",
++            "android:noHistory": "true",
++            "android:taskAffinity": "",
++            "android:theme": "@android:style/Theme.NoDisplay",
++        },
++        "intent-filter": renderedNewIntentFilters,
++    });
+     return androidManifest;
+ }
+ const withAndroidIntentFilters = (config, parameters) => {
