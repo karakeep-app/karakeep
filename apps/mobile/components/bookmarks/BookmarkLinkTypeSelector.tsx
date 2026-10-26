@@ -14,7 +14,8 @@ export type BookmarkLinkType =
   | "reader"
   | "screenshot"
   | "archive"
-  | "pdf";
+  | "pdf"
+  | "screenPdf";
 
 function getAvailableViewTypes(bookmark: ZBookmark): BookmarkLinkType[] {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
@@ -38,6 +39,9 @@ function getAvailableViewTypes(bookmark: ZBookmark): BookmarkLinkType[] {
   }
   if (bookmark.assets.some((asset) => asset.assetType === "pdf")) {
     availableTypes.push("pdf");
+  }
+  if (bookmark.assets.some((asset) => asset.assetType === "screenPdf")) {
+    availableTypes.push("screenPdf");
   }
 
   return availableTypes;
@@ -117,6 +121,17 @@ export default function BookmarkLinkTypeSelector({
       state: type === "pdf" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "doc",
+      }),
+      imageColor: Platform.select({
+        ios: menuIconColor,
+      }),
+    },
+    {
+      id: "screenPdf" as const,
+      title: "Screen PDF",
+      state: type === "screenPdf" ? ("on" as const) : undefined,
+      image: Platform.select({
+        ios: "doc.richtext",
       }),
       imageColor: Platform.select({
         ios: menuIconColor,

@@ -44,11 +44,13 @@ import {
   List,
   ListX,
   Maximize2,
+  Moon,
   MoreHorizontal,
   Pencil,
   RotateCw,
   Square,
   SquarePen,
+  Sun,
   Tag,
   Trash2,
 } from "lucide-react";
@@ -355,6 +357,13 @@ export default function BookmarkOptions({
     onError,
   });
 
+  const preserveScreenPdfMutator = usePreserveOfflineCopy({
+    onSuccess: () => {
+      toast.success(t("toasts.bookmarks.preserve_screen_pdf"));
+    },
+    onError,
+  });
+
   const preserveVideoMutator = usePreserveBookmarkVideo({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_video"));
@@ -416,6 +425,30 @@ export default function BookmarkOptions({
     visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
     disabled: demoMode,
     onClick: () => crawlBookmarkMutator.mutate({ bookmarkId: bookmark.id }),
+  };
+  const recrawlLightAction: ActionItem = {
+    id: "recrawl-light",
+    title: t("actions.recrawl_in_light_theme"),
+    icon: <Sun className="size-4" />,
+    visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
+    disabled: demoMode,
+    onClick: () =>
+      crawlBookmarkMutator.mutate({
+        bookmarkId: bookmark.id,
+        colorScheme: "light",
+      }),
+  };
+  const recrawlDarkAction: ActionItem = {
+    id: "recrawl-dark",
+    title: t("actions.recrawl_in_dark_theme"),
+    icon: <Moon className="size-4" />,
+    visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
+    disabled: demoMode,
+    onClick: () =>
+      crawlBookmarkMutator.mutate({
+        bookmarkId: bookmark.id,
+        colorScheme: "dark",
+      }),
   };
   // It's the first thing to try on a page that couldn't be fetched
   const hasCrawlFailed =
@@ -580,6 +613,19 @@ export default function BookmarkOptions({
             },
           },
           {
+            id: "preserve-screen-pdf",
+            title: t("actions.preserve_as_screen_pdf"),
+            icon: <FileText className="size-4" />,
+            visible: true,
+            disabled: demoMode,
+            onClick: () => {
+              preserveScreenPdfMutator.mutate({
+                bookmarkId: bookmark.id,
+                kind: "screenPdf",
+              });
+            },
+          },
+          {
             id: "preserve-video",
             title: t("actions.preserve_video"),
             icon: <FileVideo className="size-4" />,
@@ -622,9 +668,24 @@ export default function BookmarkOptions({
               }
             },
           },
+          {
+            id: "download-screen-pdf",
+            title: t("actions.download_screen_pdf_file"),
+            icon: <Download className="size-4" />,
+            visible: !!(bookmark.content as ZBookmarkedLink).screenPdfAssetId,
+            disabled: false,
+            onClick: () => {
+              const link = bookmark.content as ZBookmarkedLink;
+              if (link.screenPdfAssetId) {
+                window.open(getAssetUrl(link.screenPdfAssetId), "_blank");
+              }
+            },
+          },
         ],
       },
       ...(hasCrawlFailed ? [] : [recrawlAction]),
+      recrawlLightAction,
+      recrawlDarkAction,
       {
         id: "download-asset",
         title: t("actions.download"),

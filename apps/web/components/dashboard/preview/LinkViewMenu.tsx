@@ -64,6 +64,12 @@ function useOfflineCopyActions(bookmarkId: string) {
     },
     onError,
   });
+  const { mutate: archiveScreenPdf } = usePreserveOfflineCopy({
+    onSuccess: () => {
+      toast.success(t("toasts.bookmarks.preserve_screen_pdf"));
+    },
+    onError,
+  });
   const { mutate: downloadVideo } = usePreserveBookmarkVideo({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_video"));
@@ -73,6 +79,7 @@ function useOfflineCopyActions(bookmarkId: string) {
   return {
     archive: () => archivePage({ bookmarkId, kind: "fullPageArchive" }),
     pdf: () => archivePdf({ bookmarkId, kind: "pdf" }),
+    screenPdf: () => archiveScreenPdf({ bookmarkId, kind: "screenPdf" }),
     video: () => downloadVideo({ bookmarkId }),
   };
 }
@@ -169,6 +176,12 @@ export default function LinkViewMenu({
       available: !!link.pdfAssetId,
     },
     {
+      id: "screenPdf",
+      icon: FileText,
+      label: t("common.screen_pdf"),
+      available: !!link.screenPdfAssetId,
+    },
+    {
       id: "archive",
       icon: Save,
       label: t("preview.archived_page"),
@@ -187,6 +200,10 @@ export default function LinkViewMenu({
         !link.pdfAssetId && {
           label: t("preview.saved_copies.no_pdf"),
           run: offlineCopies.pdf,
+        },
+        !link.screenPdfAssetId && {
+          label: t("preview.saved_copies.no_screen_pdf"),
+          run: offlineCopies.screenPdf,
         },
         !hasArchive && {
           label: t("preview.saved_copies.no_archive"),

@@ -6,11 +6,14 @@ import { useTranslation } from "@/lib/i18n/client";
 import { useInterfaceLang } from "@/lib/userLocalSettings/bookmarksLayout";
 import { updateInterfaceLang } from "@/lib/userLocalSettings/userLocalSettings";
 import { useUserSettings } from "@/lib/userSettings";
-import { Laptop, Moon, Sun } from "lucide-react";
+import { Laptop, Moon, Palette, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { langNameMappings } from "@karakeep/shared/langs";
-import { ZUserSettings } from "@karakeep/shared/types/users";
+import {
+  ZCrawlerColorScheme,
+  ZUserSettings,
+} from "@karakeep/shared/types/users";
 
 import { Label } from "../ui/label";
 import {
@@ -28,7 +31,8 @@ type SavableField =
   | "language"
   | "timezone"
   | "bookmarkClickAction"
-  | "archiveDisplayBehaviour";
+  | "archiveDisplayBehaviour"
+  | "crawlerColorScheme";
 
 const THEME_OPTIONS = [
   { value: "light", icon: Sun, label: "options.light_mode" },
@@ -132,6 +136,18 @@ export default function UserOptions() {
   > = {
     show: t("settings.info.user_settings.archive_display_behaviour.show"),
     hide: t("settings.info.user_settings.archive_display_behaviour.hide"),
+  };
+
+  const crawlerColorSchemeTranslation: Record<
+    "default" | ZCrawlerColorScheme,
+    string
+  > = {
+    default: t(
+      "settings.info.user_settings.crawler_color_scheme.server_default",
+    ),
+    system: t("settings.info.user_settings.crawler_color_scheme.system"),
+    light: t("settings.info.user_settings.crawler_color_scheme.light"),
+    dark: t("settings.info.user_settings.crawler_color_scheme.dark"),
   };
 
   // Get all supported timezones and format them nicely
@@ -252,6 +268,45 @@ export default function UserOptions() {
             </SelectTrigger>
             <SelectContent>
               {Object.entries(archiveDisplayBehaviourTranslation).map(
+                ([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ),
+              )}
+            </SelectContent>
+          </Select>
+        </SettingsRow>
+
+        <SettingsRow
+          label={
+            <Label htmlFor="crawler-color-scheme">
+              {t("settings.info.user_settings.crawler_color_scheme.title")}
+            </Label>
+          }
+          hint={hint("crawlerColorScheme")}
+        >
+          <Select
+            disabled={!!clientConfig.demoMode}
+            value={data.crawlerColorScheme ?? "default"}
+            onValueChange={(value) => {
+              save("crawlerColorScheme", {
+                crawlerColorScheme:
+                  value === "default" ? null : (value as ZCrawlerColorScheme),
+              });
+            }}
+          >
+            <SelectTrigger id="crawler-color-scheme">
+              <SelectValue>
+                {
+                  crawlerColorSchemeTranslation[
+                    data.crawlerColorScheme ?? "default"
+                  ]
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(crawlerColorSchemeTranslation).map(
                 ([value, label]) => (
                   <SelectItem key={value} value={value}>
                     {label}
