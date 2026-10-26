@@ -101,6 +101,50 @@ describe("normalizeHtmlCharset", () => {
       '<script>const url = "?charset=shift_jis";</script><meta charset=UTF-8>',
     );
   });
+
+  it("adds a declaration after <head> when the document has none", () => {
+    const html =
+      '<!DOCTYPE html><html lang="en"><head><title>t</title></head><body>’</body></html>';
+    expect(normalizeHtmlCharset(html)).toBe(
+      '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>t</title></head><body>’</body></html>',
+    );
+  });
+
+  it("inserts after <html> when there is no head tag", () => {
+    expect(normalizeHtmlCharset("<html><body>hi</body></html>")).toBe(
+      '<html><meta charset="UTF-8"><body>hi</body></html>',
+    );
+  });
+
+  it("keeps the doctype first when there is no html or head tag", () => {
+    // A start tag before the doctype would flip the document into quirks mode.
+    expect(normalizeHtmlCharset("<!DOCTYPE html><body>hi</body>")).toBe(
+      '<!DOCTYPE html><meta charset="UTF-8"><body>hi</body>',
+    );
+  });
+
+  it("prepends for bare fragments", () => {
+    expect(normalizeHtmlCharset("<p>hi</p>")).toBe(
+      '<meta charset="UTF-8"><p>hi</p>',
+    );
+  });
+
+  it("does not add a declaration when an http-equiv one already covers it", () => {
+    const html =
+      '<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"></head><body/>';
+    expect(normalizeHtmlCharset(html)).toBe(html);
+  });
+
+  it("adds an early declaration when the only one is outside the sniff window", () => {
+    const prefix = "<b>" + "a".repeat(1100) + "</b>";
+    const html = `<html><head>${prefix}<meta charset="shift_jis"></head>`;
+    const out = normalizeHtmlCharset(html);
+    // The late declaration is still rewritten…
+    expect(out).toContain(`${prefix}<meta charset="UTF-8">`);
+    // …and a fresh one is inserted where viewers will actually honor it.
+    expect(out).toContain('<head><meta charset="UTF-8">');
+    expect(out.match(/charset="UTF-8"/g)).toHaveLength(2);
+  });
 });
 
 describe("decodeHtmlResponse", () => {

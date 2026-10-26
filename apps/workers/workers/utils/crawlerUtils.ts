@@ -96,18 +96,26 @@ function sniffMetaCharset(body: Uint8Array): string | undefined {
   return head.match(META_CHARSET_RE)?.[2];
 }
 
+const UTF8_META = '<meta charset="UTF-8">';
+
 /**
- * Rewrite the HTML's charset declarations to UTF-8.
+ * Make the HTML self-describing as UTF-8: rewrite existing charset
+ * declarations to UTF-8, and add one when the document has none.
  *
  * The crawled HTML is a UTF-8 string (from the DOM serialization or from
  * `decodeHtmlResponse`), but the declaration the original page used to declare
  * its legacy encoding (e.g. `<meta charset="shift_jis">` on oricon.co.jp)
  * survives serialization untouched, and monolith passes the document through
  * without transcoding. Left alone, viewers decode the UTF-8 bytes as the legacy
- * encoding and render mojibake.
+ * encoding and render mojibake. Conversely, pages that declare their charset
+ * only in the HTTP header (e.g. UTF-8 pages like indiewire.com) end up with no
+ * declaration at all, so viewers of the archive fall back to windows-1252; the
+ * archive is also often opened as a standalone file, where no header exists at
+ * all, hence adding the declaration here (the API additionally serves HTML
+ * assets with an explicit `charset=utf-8`).
  */
 export function normalizeHtmlCharset(html: string): string {
-  return html.replace(/<meta[^>]*>/gi, (metaTag) =>
+  const normalized = html.replace(/<meta[^>]*>/gi, (metaTag) =>
     metaTag.replace(
       // Quoted values run up to their closing quote; unquoted values stop at
       // whitespace, `>`, or a quote (the end of the surrounding attribute),
@@ -117,4 +125,26 @@ export function normalizeHtmlCharset(html: string): string {
         `charset=${quote ?? ""}UTF-8${quote ?? ""}`,
     ),
   );
+  // Browsers only honor meta declarations inside the first 1024 bytes (never
+  // fewer characters than that), so a declaration outside that window doesn't
+  // count for viewers of the saved file and we insert a fresh one.
+  if (META_CHARSET_RE.test(normalized.slice(0, 1024))) {
+    return normalized;
+  }
+  return insertUtf8CharsetMeta(normalized);
+}
+
+function insertUtf8CharsetMeta(html: string): string {
+  // Insert after the first of <head>, <html> or <!DOCTYPE> — never before the
+  // doctype, which would flip the document into quirks mode. A meta between
+  // <html> and <head> still ends up in the head per the HTML parsing rules.
+  const anchor =
+    html.match(/<head[^>]*>/i) ??
+    html.match(/<html[^>]*>/i) ??
+    html.match(/<!doctype[^>]*>/i);
+  if (!anchor) {
+    return `${UTF8_META}${html}`;
+  }
+  const index = anchor.index! + anchor[0].length;
+  return `${html.slice(0, index)}${UTF8_META}${html.slice(index)}`;
 }
