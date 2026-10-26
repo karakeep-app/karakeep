@@ -8,13 +8,14 @@ import { useInterfaceLang } from "@/lib/userLocalSettings/bookmarksLayout";
 import { updateInterfaceLang } from "@/lib/userLocalSettings/userLocalSettings";
 import { useUserSettings } from "@/lib/userSettings";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Archive, Bookmark, Clock } from "lucide-react";
+import { Archive, Bookmark, Clock, Palette } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useUpdateUserSettings } from "@karakeep/shared-react/hooks/users";
 import { langNameMappings } from "@karakeep/shared/langs";
 import {
+  ZCrawlerColorScheme,
   ZUserSettings,
   zUserSettingsSchema,
 } from "@karakeep/shared/types/users";
@@ -92,6 +93,18 @@ export default function UserOptions() {
   > = {
     show: t("settings.info.user_settings.archive_display_behaviour.show"),
     hide: t("settings.info.user_settings.archive_display_behaviour.hide"),
+  };
+
+  const crawlerColorSchemeTranslation: Record<
+    "default" | ZCrawlerColorScheme,
+    string
+  > = {
+    default: t(
+      "settings.info.user_settings.crawler_color_scheme.server_default",
+    ),
+    system: t("settings.info.user_settings.crawler_color_scheme.system"),
+    light: t("settings.info.user_settings.crawler_color_scheme.light"),
+    dark: t("settings.info.user_settings.crawler_color_scheme.dark"),
   };
 
   // Get all supported timezones and format them nicely
@@ -179,6 +192,46 @@ export default function UserOptions() {
                       {tz.label}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="crawlerColorScheme"
+          render={({ field }) => (
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2 text-sm font-medium">
+                <Palette className="h-4 w-4" />
+                {t("settings.info.user_settings.crawler_color_scheme.title")}
+              </Label>
+              <Select
+                disabled={!!clientConfig.demoMode}
+                value={field.value ?? "default"}
+                onValueChange={(value) => {
+                  mutate({
+                    crawlerColorScheme:
+                      value === "default"
+                        ? null
+                        : (value as ZCrawlerColorScheme),
+                  });
+                }}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue>
+                    {crawlerColorSchemeTranslation[field.value ?? "default"]}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(crawlerColorSchemeTranslation).map(
+                    ([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </div>

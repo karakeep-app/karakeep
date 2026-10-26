@@ -81,19 +81,29 @@ export function BookmarkLinkBrowserPreview({
   );
 }
 
-export function BookmarkLinkPdfPreview({ bookmark }: { bookmark: ZBookmark }) {
+export function BookmarkLinkPdfPreview({
+  bookmark,
+  assetType = "pdf",
+}: {
+  bookmark: ZBookmark;
+  assetType?: "pdf" | "screenPdf";
+}) {
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     throw new Error("Wrong content type rendered");
   }
 
-  const asset = bookmark.assets.find((r) => r.assetType == "pdf");
+  const asset = bookmark.assets.find((r) => r.assetType == assetType);
 
   const assetSource = useAssetUrl(asset?.id ?? "");
 
   if (!asset) {
     return (
       <View className="flex-1 bg-background">
-        <Text>Asset has no PDF</Text>
+        <Text>
+          {assetType === "screenPdf"
+            ? "Asset has no Screen PDF"
+            : "Asset has no PDF"}
+        </Text>
       </View>
     );
   }

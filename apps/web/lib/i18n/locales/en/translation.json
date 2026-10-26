@@ -29,6 +29,7 @@
     "source": "Source",
     "screenshot": "Screenshot",
     "pdf": "Archived PDF",
+    "screen_pdf": "Screen PDF",
     "video": "Video",
     "archive": "Archive",
     "home": "Home",
@@ -73,12 +74,16 @@
     "toggle_show_archived": "Show Archived",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
+    "recrawl_in_light_theme": "Recrawl in Light Theme",
+    "recrawl_in_dark_theme": "Recrawl in Dark Theme",
     "offline_copies": "Offline Copies",
     "preserve_offline_archive": "Preserve Offline Archive",
     "download_full_page_archive_file": "Download Archive File",
     "preserve_as_pdf": "Preserve as PDF",
+    "preserve_as_screen_pdf": "Preserve as Screen PDF",
     "preserve_video": "Preserve Video",
     "download_pdf_file": "Download PDF File",
+    "download_screen_pdf_file": "Download Screen PDF File",
     "edit_tags": "Edit Tags",
     "edit_notes": "Edit Notes",
     "add_to_list": "Add to List",
@@ -157,6 +162,13 @@
           "title": "Archived Bookmarks",
           "show": "Show archived bookmarks in tags and lists",
           "hide": "Hide archived bookmarks in tags and lists"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler Color Scheme",
+          "server_default": "Server default",
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
         }
       },
       "reader_settings": {
@@ -1131,6 +1143,7 @@
       "refetch": "Re-fetch has been enqueued!",
       "full_page_archive": "Full Page Archive creation has been triggered",
       "preserve_pdf": "PDF preservation has been triggered",
+      "preserve_screen_pdf": "Screen PDF preservation has been triggered",
       "preserve_video": "Video download has been triggered",
       "delete_from_list": "The bookmark has been deleted from the list",
       "clipboard_copied": "Link has been added to your clipboard!",

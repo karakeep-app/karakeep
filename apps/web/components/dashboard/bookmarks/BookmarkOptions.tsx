@@ -29,9 +29,11 @@ import {
   List,
   ListX,
   MoreHorizontal,
+  Moon,
   Pencil,
   RotateCw,
   SquarePen,
+  Sun,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -213,6 +215,13 @@ export default function BookmarkOptions({
   const preservePdfMutator = useRecrawlBookmark({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_pdf"));
+    },
+    onError,
+  });
+
+  const preserveScreenPdfMutator = useRecrawlBookmark({
+    onSuccess: () => {
+      toast.success(t("toasts.bookmarks.preserve_screen_pdf"));
     },
     onError,
   });
@@ -411,6 +420,19 @@ export default function BookmarkOptions({
             },
           },
           {
+            id: "preserve-screen-pdf",
+            title: t("actions.preserve_as_screen_pdf"),
+            icon: <FileText className="size-4" />,
+            visible: true,
+            disabled: demoMode,
+            onClick: () => {
+              preserveScreenPdfMutator.mutate({
+                bookmarkId: bookmark.id,
+                storeScreenPdf: true,
+              });
+            },
+          },
+          {
             id: "preserve-video",
             title: t("actions.preserve_video"),
             icon: <FileVideo className="size-4" />,
@@ -453,6 +475,19 @@ export default function BookmarkOptions({
               }
             },
           },
+          {
+            id: "download-screen-pdf",
+            title: t("actions.download_screen_pdf_file"),
+            icon: <Download className="size-4" />,
+            visible: !!(bookmark.content as ZBookmarkedLink).screenPdfAssetId,
+            disabled: false,
+            onClick: () => {
+              const link = bookmark.content as ZBookmarkedLink;
+              if (link.screenPdfAssetId) {
+                window.open(getAssetUrl(link.screenPdfAssetId), "_blank");
+              }
+            },
+          },
         ],
       },
       {
@@ -469,6 +504,30 @@ export default function BookmarkOptions({
             disabled: demoMode,
             onClick: () =>
               crawlBookmarkMutator.mutate({ bookmarkId: bookmark.id }),
+          },
+          {
+            id: "recrawl-light",
+            title: t("actions.recrawl_in_light_theme"),
+            icon: <Sun className="size-4" />,
+            visible: bookmark.content.type === BookmarkTypes.LINK,
+            disabled: demoMode,
+            onClick: () =>
+              crawlBookmarkMutator.mutate({
+                bookmarkId: bookmark.id,
+                colorScheme: "light",
+              }),
+          },
+          {
+            id: "recrawl-dark",
+            title: t("actions.recrawl_in_dark_theme"),
+            icon: <Moon className="size-4" />,
+            visible: bookmark.content.type === BookmarkTypes.LINK,
+            disabled: demoMode,
+            onClick: () =>
+              crawlBookmarkMutator.mutate({
+                bookmarkId: bookmark.id,
+                colorScheme: "dark",
+              }),
           },
           {
             id: "download-asset",

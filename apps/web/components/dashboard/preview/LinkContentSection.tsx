@@ -107,11 +107,17 @@ function VideoSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
-function PDFSection({ link }: { link: ZBookmarkedLink }) {
+function PDFSection({
+  assetId,
+  title,
+}: {
+  assetId?: string | null;
+  title: string;
+}) {
   return (
     <iframe
-      title="PDF Viewer"
-      src={`/api/assets/${link.pdfAssetId}`}
+      title={title}
+      src={`/api/assets/${assetId}`}
       className="relative h-full min-w-full"
     />
   );
@@ -177,7 +183,16 @@ export default function LinkContentSection({
   } else if (section === "video") {
     content = <VideoSection link={bookmark.content} />;
   } else if (section === "pdf") {
-    content = <PDFSection link={bookmark.content} />;
+    content = (
+      <PDFSection assetId={bookmark.content.pdfAssetId} title="PDF Viewer" />
+    );
+  } else if (section === "screenPdf") {
+    content = (
+      <PDFSection
+        assetId={bookmark.content.screenPdfAssetId}
+        title="Screen PDF Viewer"
+      />
+    );
   } else if (section === "screenshot") {
     content = <ScreenshotSection link={bookmark.content} />;
   } else {
@@ -239,6 +254,15 @@ export default function LinkContentSection({
                 <div className="flex items-center">
                   <FileText className="mr-2 h-4 w-4" />
                   {t("common.pdf")}
+                </div>
+              </SelectItem>
+              <SelectItem
+                value="screenPdf"
+                disabled={!bookmark.content.screenPdfAssetId}
+              >
+                <div className="flex items-center">
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t("common.screen_pdf")}
                 </div>
               </SelectItem>
               <SelectItem

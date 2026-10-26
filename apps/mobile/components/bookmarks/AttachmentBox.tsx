@@ -26,6 +26,7 @@ import { useColorScheme } from "@/lib/useColorScheme";
 const ASSET_ICONS: Record<ZAssetType, typeof Paperclip> = {
   screenshot: Camera,
   pdf: FileText,
+  screenPdf: FileText,
   assetScreenshot: Camera,
   fullPageArchive: Archive,
   precrawledArchive: Archive,
