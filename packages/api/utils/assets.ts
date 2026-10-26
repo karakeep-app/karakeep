@@ -6,6 +6,7 @@ import {
   getAssetSize,
   readAssetMetadata,
 } from "@karakeep/shared-server";
+import { ASSET_TYPES } from "@karakeep/shared/assetdb";
 
 import { toWebReadableStream } from "./upload";
 
@@ -23,7 +24,17 @@ export async function serveAsset(c: Context, assetId: string, userId: string) {
   ]);
 
   // Default Headers
-  c.header("Content-type", metadata.contentType);
+  // Stored HTML assets are always UTF-8 (the crawler decodes/serializes them
+  // as such), but the stored metadata declares a bare "text/html". Without an
+  // explicit charset — and for archives saved before the HTML itself carried a
+  // declaration, without one there either — browsers fall back to windows-1252
+  // and render mojibake. Declare the actual encoding.
+  c.header(
+    "Content-type",
+    metadata.contentType === ASSET_TYPES.TEXT_HTML
+      ? `${metadata.contentType}; charset=utf-8`
+      : metadata.contentType,
+  );
   c.header("X-Content-Type-Options", "nosniff");
   c.header("Cache-Control", "private, max-age=31536000, immutable");
   c.header(
