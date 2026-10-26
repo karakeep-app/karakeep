@@ -1,4 +1,8 @@
-# Unraid
+---
+sidebar_label: "Unraid"
+---
+
+# Install Karakeep on Unraid
 
 ## Docker Compose Manager Plugin (Recommended)
 

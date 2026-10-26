@@ -7,9 +7,9 @@ import UseCases from "./components/UseCases";
 export default function Homepage() {
   return (
     <>
+      <Platforms />
       <UseCases />
       <LlmReady />
-      <Platforms />
       <OpenSource />
       <ClosingCta />
     </>

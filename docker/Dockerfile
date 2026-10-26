@@ -9,8 +9,7 @@ RUN apt-get update \
     && cargo install monolith --locked
 
 ################# Base Builder ##############
-# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
-FROM node:24.18.1-slim AS base
+FROM node:24-slim AS base
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -88,9 +87,7 @@ FROM base AS mcp_builder
 RUN (cd apps/mcp && pnpm --config.verify-deps-before-run=false build)
 
 ################# The All-in-one builder ##############
-
-# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
-FROM node:24.18.1-slim AS aio_builder
+FROM node:24-slim AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -222,9 +219,7 @@ RUN rm /etc/s6-overlay/s6-rc.d/svc-workers/dependencies.d/init-db-migration \
 ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 ################# The cli ##############
-
-# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
-FROM node:24.18.1-slim AS cli
+FROM node:24-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -238,9 +233,7 @@ ENV SERVER_VERSION=${SERVER_VERSION}
 ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
-
-# Replace with node:24-slim as soon as https://github.com/nodejs/node/pull/65042 is fixed and uploaded to Docker hub
-FROM node:24.18.1-slim AS mcp
+FROM node:24-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 

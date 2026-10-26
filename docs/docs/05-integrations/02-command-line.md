@@ -102,7 +102,7 @@ karakeep --api-key <key> --server-addr <addr> whoami
 For example:
 
 ```
-karakeep --api-key mysupersecretkey --server-addr https://try.karakeep.app whoami
+karakeep --api-key mysupersecretkey --server-addr https://try.karakeep.com whoami
 {
   id: 'j29gnbzxxd01q74j2lu88tnb',
   name: 'Test User',
@@ -116,7 +116,7 @@ CLI reads `~/.config/karakeep/config.json`.
 
 ```json
 {
-  "serverAddr": "https://try.karakeep.app",
+  "serverAddr": "https://try.karakeep.com",
   "apiKey": "mysupersecretkey"
 }
 ```

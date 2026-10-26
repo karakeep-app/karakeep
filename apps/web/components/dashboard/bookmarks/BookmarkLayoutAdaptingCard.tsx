@@ -125,6 +125,7 @@ function BulkEditSelectionOverlay({ bookmark }: { bookmark: ZBookmark }) {
   const toggleBookmark = useBulkActionsStore((state) => state.toggleBookmark);
   const { resolvedTheme } = useTheme();
   const { data: session } = useSession();
+  const { t } = useTranslation();
 
   // Don't show selector for non-owned bookmarks or when bulk edit is disabled
   const isOwner = session?.user?.id === bookmark.userId;
@@ -139,6 +140,8 @@ function BulkEditSelectionOverlay({ bookmark }: { bookmark: ZBookmark }) {
         },
         resolvedTheme === "dark" ? "bg-white" : "bg-black",
       )}
+      aria-label={t("actions.select")}
+      aria-pressed={isSelected}
       onClick={() => toggleBookmark(bookmark.id)}
     ></button>
   );

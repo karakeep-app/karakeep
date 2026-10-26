@@ -8,7 +8,7 @@
 | `apps/workers`           | The background workers logic                           |
 | `apps/mobile`            | The react native based mobile app                      |
 | `apps/browser-extension` | The browser extension                                  |
-| `apps/landing`           | The landing page of [karakeep.app](https://karakeep.app) |
+| `apps/landing`           | The landing page of [karakeep.com](https://karakeep.com) |
 
 ## Shared Packages
 

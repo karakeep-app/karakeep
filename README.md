@@ -24,7 +24,7 @@ Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a 
 - Collaborate with others on the same list.
 - Full text & semantic search of all the content stored.
 - LLM-based automatic tagging and summarization. With supports for local models using ollama!
-- LLM Agents (e.g. OpenClaw, Hermes) friendly with powerful [CLI](https://docs.karakeep.app/integrations/command-line), and [official skills](https://docs.karakeep.app/integrations/agentic-skills).
+- LLM Agents (e.g. OpenClaw, Hermes) friendly with powerful [CLI](https://docs.karakeep.com/integrations/command-line), and [official skills](https://docs.karakeep.com/integrations/agentic-skills).
 - Rule-based engine for customized management.
 - OCR for extracting text from images.
 - [Chrome plugin](https://chromewebstore.google.com/detail/karakeep/kgcjekpmcjjogibpjebkhaanilehneje), [Firefox addon](https://addons.mozilla.org/en-US/firefox/addon/karakeep/), and [Safari extension](https://apps.apple.com/gb/app/karakeep-app/id6479258022?platform=mac) for quick bookmarking.
@@ -45,15 +45,15 @@ Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a 
 
 ## Documentation
 
-- [Installation](https://docs.karakeep.app/Installation/docker)
-- [Configuration](https://docs.karakeep.app/configuration)
-- [Screenshots](https://docs.karakeep.app/screenshots)
-- [Security Considerations](https://docs.karakeep.app/security-considerations)
-- [Development](https://docs.karakeep.app/Development/setup)
+- [Installation](https://docs.karakeep.com/Installation/docker)
+- [Configuration](https://docs.karakeep.com/configuration)
+- [Screenshots](https://docs.karakeep.com/screenshots)
+- [Security Considerations](https://docs.karakeep.com/security-considerations)
+- [Development](https://docs.karakeep.com/Development/setup)
 
 ## Demo
 
-You can access the demo at [https://try.karakeep.app](https://try.karakeep.app). Login with the following creds:
+You can access the demo at [https://try.karakeep.com](https://try.karakeep.com). Login with the following creds:
 
 ```
 email: demo@karakeep.app
@@ -100,6 +100,12 @@ Translations live in [`apps/web/lib/i18n/locales`](apps/web/lib/i18n/locales), o
 ## Karakeep Cloud ☁️
 
 If you're not comfortable with self-hosting, you can use our managed Karakeep cloud at [cloud.karakeep.app](https://cloud.karakeep.app). Cloud subscriptions support the development of Karakeep.
+
+## One-click Deployment 🚀
+
+Want to self-host without setting up a server by hand? Hostinger has a one-click Karakeep template that deploys the full stack on your own VPS. Use the code `KARAKEEP10` for 10% off annual plans. Check out the [Hostinger guide](https://docs.karakeep.com/Installation/hostinger) for a walkthrough. Hostinger shares some of its revenue with the maintainer.
+
+[![Deploy on Hostinger](https://assets.hostinger.com/vps/deploy.svg)](https://www.hostg.xyz/aff_c?offer_id=815&aff_id=243872&url_id=6969)
 
 ## Support
 

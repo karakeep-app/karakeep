@@ -8,7 +8,7 @@ For AI agents and automation, use the tools below.
 
 Use the Karakeep CLI to manage bookmarks, lists, tags, and imports from the terminal.
 
-- [CLI documentation](https://docs.karakeep.app/integrations/command-line)
+- [CLI documentation](https://docs.karakeep.com/integrations/command-line)
 - [npm package](https://www.npmjs.com/package/@karakeep/cli)
 - [Source code](https://github.com/karakeep-app/karakeep/tree/main/apps/cli)
 
@@ -16,7 +16,7 @@ Use the Karakeep CLI to manage bookmarks, lists, tags, and imports from the term
 
 Connect Karakeep to Claude Desktop and other MCP clients.
 
-- [MCP documentation](https://docs.karakeep.app/integrations/mcp)
+- [MCP documentation](https://docs.karakeep.com/integrations/mcp)
 - [npm package](https://www.npmjs.com/package/@karakeep/mcp)
 - [Source code](https://github.com/karakeep-app/karakeep/tree/main/apps/mcp)
 
@@ -24,7 +24,7 @@ Connect Karakeep to Claude Desktop and other MCP clients.
 
 Teach compatible agents how to search, save, and organize content in Karakeep.
 
-- [Agent skills documentation](https://docs.karakeep.app/integrations/agentic-skills)
+- [Agent skills documentation](https://docs.karakeep.com/integrations/agentic-skills)
 - [Karakeep skill](https://raw.githubusercontent.com/karakeep-app/karakeep/refs/heads/main/skills/SKILL.md)
 - [skills.sh](https://skills.sh/karakeep-app/karakeep/karakeep)
 - [ClawHub](https://clawhub.ai/karakeep/karakeep-app)
@@ -33,18 +33,18 @@ Teach compatible agents how to search, save, and organize content in Karakeep.
 
 Guides for installing, configuring, using, and administering Karakeep.
 
-- [Documentation](https://docs.karakeep.app)
-- [Installation](https://docs.karakeep.app/installation/docker)
-- [Configuration](https://docs.karakeep.app/configuration/environment-variables)
-- [Advanced workflows](https://docs.karakeep.app/using-karakeep/advanced-workflows)
-- [Search query language](https://docs.karakeep.app/using-karakeep/search-query-language)
-- [Security considerations](https://docs.karakeep.app/administration/security-considerations)
+- [Documentation](https://docs.karakeep.com)
+- [Installation](https://docs.karakeep.com/installation/docker)
+- [Configuration](https://docs.karakeep.com/configuration/environment-variables)
+- [Advanced workflows](https://docs.karakeep.com/using-karakeep/advanced-workflows)
+- [Search query language](https://docs.karakeep.com/using-karakeep/search-query-language)
+- [Security considerations](https://docs.karakeep.com/administration/security-considerations)
 
 ## REST API
 
 Use the authenticated HTTP API to manage bookmarks, lists, tags, highlights, assets, and backups.
 
-- [API documentation](https://docs.karakeep.app/api)
+- [API documentation](https://docs.karakeep.com/api/karakeep-api)
 - [OpenAPI spec (JSON)](https://raw.githubusercontent.com/karakeep-app/karakeep/refs/heads/main/packages/open-api/karakeep-openapi-spec.json)
 
 ## TypeScript SDK
@@ -58,9 +58,9 @@ The official TypeScript client for the Karakeep API.
 
 Run Karakeep on your own infrastructure using Docker, Kubernetes, or a supported community package.
 
-- [Docker installation](https://docs.karakeep.app/installation/docker)
-- [Kubernetes installation](https://docs.karakeep.app/installation/kubernetes)
-- [Environment variables](https://docs.karakeep.app/configuration/environment-variables)
+- [Docker installation](https://docs.karakeep.com/installation/docker)
+- [Kubernetes installation](https://docs.karakeep.com/installation/kubernetes)
+- [Environment variables](https://docs.karakeep.com/configuration/environment-variables)
 - [Releases](https://github.com/karakeep-app/karakeep/releases)
 
 ## Cloud and pricing
@@ -68,18 +68,18 @@ Run Karakeep on your own infrastructure using Docker, Kubernetes, or a supported
 Use the managed Karakeep service without running your own server.
 
 - [Karakeep Cloud](https://cloud.karakeep.app)
-- [Pricing (Markdown)](https://karakeep.app/pricing.md)
-- [Pricing (HTML)](https://karakeep.app/pricing)
+- [Pricing (Markdown)](https://karakeep.com/pricing.md)
+- [Pricing (HTML)](https://karakeep.com/pricing)
 
 ## Apps and extensions
 
 Save and read content through the mobile apps, browser extensions, and community integrations.
 
-- [Apps and extensions](https://karakeep.app/apps)
+- [Apps and extensions](https://karakeep.com/apps)
 
 ## Project
 
-- [Homepage](https://karakeep.app)
+- [Homepage](https://karakeep.com)
 - [GitHub repository](https://github.com/karakeep-app/karakeep)
 - [Discord community](https://discord.gg/NrgeYywsFh)
 - [License](https://github.com/karakeep-app/karakeep/blob/main/LICENSE)

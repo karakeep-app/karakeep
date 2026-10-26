@@ -153,9 +153,12 @@ export class User {
       },
     });
 
+    // past_due subscriptions are still being retried by Stripe, so they can
+    // charge the user just like active ones.
     if (
       subscription?.status === "active" ||
-      subscription?.status === "trialing"
+      subscription?.status === "trialing" ||
+      subscription?.status === "past_due"
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",

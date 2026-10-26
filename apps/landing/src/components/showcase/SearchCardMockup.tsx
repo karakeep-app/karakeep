@@ -66,7 +66,7 @@ export default function SearchCardMockup() {
           that pasta recipe with the crispy garlic bits
         </span>
         <div className="flex shrink-0 items-center gap-[5px] rounded-[7px] bg-[#f1f3f5] px-[9px] py-1">
-          <Sparkles className="size-3 text-[#7c3aed]" />
+          <Sparkles className="size-3 text-neutral-700" />
           <span className="text-xs font-medium text-neutral-900">Semantic</span>
           <ChevronDown className="size-2.5 text-neutral-500" />
         </div>

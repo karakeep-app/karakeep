@@ -330,7 +330,7 @@ export default function ImportSessionDetail({
       </Link>
 
       {/* Header */}
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-md border bg-card p-4">
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -528,7 +528,7 @@ export default function ImportSessionDetail({
       </div>
 
       {/* Filter tabs + Results table */}
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-md border bg-card p-4">
         {stats.status === "archived" && (
           <p className="rounded-md bg-muted p-4 text-center text-sm text-muted-foreground">
             {t("settings.import_sessions.detail.archived_results")}

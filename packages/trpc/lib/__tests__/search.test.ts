@@ -333,6 +333,71 @@ describe("getBookmarkIdsFromMatcher", () => {
     expect(result).toEqual([]);
   });
 
+  it("should handle listName matcher referencing a smart list", async () => {
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "l5",
+      userId: testUserId,
+      name: "pages",
+      icon: "🚀",
+      type: "smart",
+      query: "title:page",
+    });
+
+    const result = await getBookmarkIdsFromMatcher(mockCtx, {
+      type: "listName",
+      listName: "pages",
+      inverse: false,
+    });
+    expect(result.sort()).toEqual(["b2", "b4"]);
+
+    // b1 has a NULL title, which must still be excluded from the smart list
+    // (and hence included in the inverse).
+    const inverseResult = await getBookmarkIdsFromMatcher(mockCtx, {
+      type: "listName",
+      listName: "pages",
+      inverse: true,
+    });
+    expect(inverseResult.sort()).toEqual(["b1", "b3", "b5", "b6"]);
+  });
+
+  it("should handle a smart list that references itself", async () => {
+    await mockCtx.db.insert(bookmarkLists).values({
+      id: "l5",
+      userId: testUserId,
+      name: "loop",
+      icon: "🚀",
+      type: "smart",
+      query: "list:loop or is:fav",
+    });
+
+    const result = await getBookmarkIdsFromMatcher(mockCtx, {
+      type: "listName",
+      listName: "loop",
+      inverse: false,
+    });
+    expect(result.sort()).toEqual(["b2", "b4"]);
+  });
+
+  it("should handle AND/OR matchers beyond SQLite's expression depth limit", async () => {
+    const orResult = await getBookmarkIdsFromMatcher(mockCtx, {
+      type: "or",
+      matchers: Array.from({ length: 2000 }, () => ({
+        type: "favourited" as const,
+        favourited: true,
+      })),
+    });
+    expect(orResult.sort()).toEqual(["b2", "b4"]);
+
+    const andResult = await getBookmarkIdsFromMatcher(mockCtx, {
+      type: "and",
+      matchers: Array.from({ length: 2000 }, () => ({
+        type: "archived" as const,
+        archived: true,
+      })),
+    });
+    expect(andResult.sort()).toEqual(["b2", "b3", "b6"]);
+  });
+
   it("should handle archived matcher", async () => {
     const matcher: Matcher = { type: "archived", archived: true };
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
@@ -394,7 +459,7 @@ describe("getBookmarkIdsFromMatcher", () => {
       inverse: false,
     };
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
-    expect(result).toEqual(["b1", "b4", "b6"]);
+    expect(result.sort()).toEqual(["b1", "b4", "b6"]);
   });
 
   it("should handle url matcher with inverse=true", async () => {
@@ -559,7 +624,7 @@ describe("getBookmarkIdsFromMatcher", () => {
       ],
     };
     const result = await getBookmarkIdsFromMatcher(mockCtx, matcher);
-    expect(result).toEqual(["b4", "b5"]);
+    expect(result.sort()).toEqual(["b4", "b5"]);
   });
 
   it("should handle nested complex matchers", async () => {

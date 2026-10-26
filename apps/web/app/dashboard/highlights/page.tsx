@@ -22,7 +22,7 @@ export default async function HighlightsPage() {
         <Highlighter className="mr-2" />
         <p className="text-2xl">{t("common.highlights")}</p>
       </div>
-      <div className="flex flex-col gap-8 rounded-md border bg-background p-4">
+      <div className="flex flex-col gap-8 rounded-md border bg-card p-4">
         <AllHighlights highlights={highlights} />
       </div>
     </div>

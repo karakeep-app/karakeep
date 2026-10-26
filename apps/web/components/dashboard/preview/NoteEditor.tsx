@@ -30,7 +30,7 @@ export function NoteEditor({
 
   return (
     <Textarea
-      className="min-h-[5rem] w-full resize-y overflow-auto rounded-md bg-background p-2.5 text-sm text-foreground placeholder:text-muted-foreground"
+      className="min-h-[5rem] w-full resize-y overflow-auto rounded-md bg-background p-2.5 text-sm text-foreground placeholder:text-muted-foreground dark:bg-input/30"
       defaultValue={bookmark.note ?? ""}
       disabled={demoMode || disabled}
       placeholder="Write some notes ..."

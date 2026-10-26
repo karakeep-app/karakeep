@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, or, sql } from "drizzle-orm";
+import { and, count, eq, inArray, or, SQL, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -26,7 +26,7 @@ import { switchCase } from "@karakeep/shared/utils/switch";
 import { AuthedContext, Context } from "..";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
 import { RuleEngine } from "../lib/ruleEngine";
-import { getBookmarkIdsFromMatcher } from "../lib/search";
+import { getBookmarksConditionFromMatcher } from "../lib/search";
 import { Bookmark } from "./bookmarks";
 import { ListInvitation } from "./listInvitations";
 import { zRuleEngineRuleEventSchema } from "@karakeep/shared/types/rules";
@@ -1008,7 +1008,10 @@ export abstract class List {
   }
 
   abstract get type(): "manual" | "smart";
-  abstract getBookmarkIds(visitedListIds?: Set<string>): Promise<string[]>;
+  abstract getBookmarkIds(): Promise<string[]>;
+  // A condition on the `bookmarks` table matching the list's bookmarks. It
+  // doesn't scope by user, so callers must also filter on `bookmarks.userId`.
+  abstract getBookmarksCondition(visitedListIds?: Set<string>): Promise<SQL>;
   abstract getSize(): Promise<number>;
   abstract addBookmark(bookmarkId: string): Promise<void>;
   abstract removeBookmark(bookmarkId: string): Promise<void>;
@@ -1048,13 +1051,15 @@ export class SmartList extends List {
     return this.parsedQuery;
   }
 
-  async getBookmarkIds(visitedListIds = new Set<string>()): Promise<string[]> {
+  async getBookmarksCondition(
+    visitedListIds = new Set<string>(),
+  ): Promise<SQL> {
     if (visitedListIds.size >= SmartList.MAX_VISITED_LISTS) {
-      return [];
+      return sql`0`;
     }
 
     if (visitedListIds.has(this.list.id)) {
-      return [];
+      return sql`0`;
     }
 
     const newVisitedListIds = new Set(visitedListIds);
@@ -1062,17 +1067,39 @@ export class SmartList extends List {
 
     const parsedQuery = this.getParsedQuery();
     if (!parsedQuery.matcher) {
-      return [];
+      return sql`0`;
     }
-    return await getBookmarkIdsFromMatcher(
+    return await getBookmarksConditionFromMatcher(
       this.ctx,
       parsedQuery.matcher,
       newVisitedListIds,
     );
   }
 
+  async getBookmarkIds(): Promise<string[]> {
+    const results = await this.ctx.db
+      .select({ id: bookmarks.id })
+      .from(bookmarks)
+      .where(
+        and(
+          eq(bookmarks.userId, this.ctx.user.id),
+          await this.getBookmarksCondition(),
+        ),
+      );
+    return results.map((r) => r.id);
+  }
+
   async getSize(): Promise<number> {
-    return await this.getBookmarkIds().then((ids) => ids.length);
+    const results = await this.ctx.db
+      .select({ count: count() })
+      .from(bookmarks)
+      .where(
+        and(
+          eq(bookmarks.userId, this.ctx.user.id),
+          await this.getBookmarksCondition(),
+        ),
+      );
+    return results[0].count;
   }
 
   addBookmark(_bookmarkId: string): Promise<void> {
@@ -1114,12 +1141,22 @@ export class ManualList extends List {
     return this.list.type;
   }
 
-  async getBookmarkIds(_visitedListIds?: Set<string>): Promise<string[]> {
+  async getBookmarkIds(): Promise<string[]> {
     const results = await this.ctx.db
       .select({ id: bookmarksInLists.bookmarkId })
       .from(bookmarksInLists)
       .where(eq(bookmarksInLists.listId, this.list.id));
     return results.map((r) => r.id);
+  }
+
+  async getBookmarksCondition(_visitedListIds?: Set<string>): Promise<SQL> {
+    return inArray(
+      bookmarks.id,
+      this.ctx.db
+        .select({ id: bookmarksInLists.bookmarkId })
+        .from(bookmarksInLists)
+        .where(eq(bookmarksInLists.listId, this.list.id)),
+    );
   }
 
   async getSize(): Promise<number> {

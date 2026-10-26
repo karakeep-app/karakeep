@@ -74,6 +74,7 @@ let respond: (
 ) => unknown;
 const saved = {
   id: "saved-id",
+  title: "Saved title",
   note: "Keep this saved note",
   tags: [{ id: "tag-id", name: "Research", attachedBy: "human" }],
   content: {
@@ -262,7 +263,7 @@ describe("opening the extension", () => {
       mount();
       expect(await screen.findByDisplayValue(saved.note)).toBeTruthy();
       expect(await screen.findByText("Research")).toBeTruthy();
-      expect(await screen.findByText("📚 Reading")).toBeTruthy();
+      expect(await screen.findByText("Reading")).toBeTruthy();
       expect(
         requests.find((r) => r.path === "bookmarks.checkUrl")?.input,
       ).toEqual({ url });
@@ -272,7 +273,7 @@ describe("opening the extension", () => {
       fireEvent.change(screen.getByDisplayValue(saved.note), {
         target: { value: "Edited note" },
       });
-      fireEvent.click(screen.getByRole("button", { name: "Save Note" }));
+      fireEvent.click(screen.getByRole("button", { name: "Save note" }));
       await waitFor(() =>
         expect(mutations()).toEqual([
           expect.objectContaining({
@@ -283,6 +284,54 @@ describe("opening the extension", () => {
       );
     },
   );
+
+  it("keeps the upstream title editor and saves a title only on explicit Enter", async () => {
+    mount();
+    const title = await screen.findByDisplayValue(saved.title);
+    expect(mutations()).toEqual([]);
+    fireEvent.change(title, { target: { value: "Edited saved title" } });
+    expect(mutations()).toEqual([]);
+    fireEvent.keyDown(title, { key: "Enter" });
+    await waitFor(() =>
+      expect(mutations()).toEqual([
+        expect.objectContaining({
+          path: "bookmarks.updateBookmark",
+          input: { bookmarkId: "saved-id", title: "Edited saved title" },
+        }),
+      ]),
+    );
+    expect(capturePageWithSingleFile).not.toHaveBeenCalled();
+    expect(uploadSingleFileAsset).not.toHaveBeenCalled();
+  });
+
+  it("keeps the upstream manual form submission and its edited title and note", async () => {
+    const original = respond;
+    respond = (path, input, auth) =>
+      path === "bookmarks.checkUrl"
+        ? { bookmarkId: null }
+        : original(path, input, auth);
+    settings.useSingleFile = false;
+    mount();
+    const title = await screen.findByRole("textbox", { name: "Title" });
+    const note = screen.getByRole("textbox", { name: /Note/ });
+    fireEvent.change(title, { target: { value: "Manual form title" } });
+    fireEvent.change(note, { target: { value: "Manual form note" } });
+    expect(mutations()).toEqual([]);
+    fireEvent.submit(title.closest("form")!);
+    await waitFor(() =>
+      expect(mutations()).toEqual([
+        expect.objectContaining({
+          path: "bookmarks.createBookmark",
+          input: expect.objectContaining({
+            url,
+            title: "Manual form title",
+            note: "Manual form note",
+          }),
+        }),
+      ]),
+    );
+    expect(capturePageWithSingleFile).not.toHaveBeenCalled();
+  });
 
   it("waits for lookup before offering a save", async () => {
     const lookup = deferred<unknown>();
@@ -323,9 +372,9 @@ describe("opening the extension", () => {
         ? { bookmarkId: null }
         : original(path, input, auth);
     mount();
-    const save = await screen.findByRole("button", { name: "Save Bookmark" });
+    const save = await screen.findByRole("button", { name: "Save bookmark" });
     expect(mutations()).toEqual([]);
-    fireEvent.change(screen.getByPlaceholderText("Add notes..."), {
+    fireEvent.change(screen.getByPlaceholderText("Why are you saving this?"), {
       target: { value: "A new note" },
     });
     fireEvent.click(save);
@@ -367,7 +416,7 @@ describe("opening the extension", () => {
         );
       mount();
       fireEvent.click(
-        await screen.findByRole("button", { name: "Save Bookmark" }),
+        await screen.findByRole("button", { name: "Save bookmark" }),
       );
       await waitFor(() => expect(mutations()).toHaveLength(1));
       expect(mutations()[0].input).not.toHaveProperty("precrawledArchiveId");
@@ -398,7 +447,7 @@ describe("opening the extension", () => {
         : original(path, input, auth);
     mount();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Save Bookmark" }),
+      await screen.findByRole("button", { name: "Save bookmark" }),
     );
     await waitFor(() =>
       expect(capturePageWithSingleFile).toHaveBeenCalledOnce(),
@@ -454,8 +503,10 @@ describe("opening the extension", () => {
     async (failure) => {
       mount();
       const notes = await screen.findByDisplayValue(saved.note);
-      const tags = await screen.findByText("Add Tags...");
-      const lists = await screen.findByText("📚 Reading");
+      const title = await screen.findByRole("textbox", { name: "Title" });
+      fireEvent.change(title, { target: { value: "Keep my unsaved title" } });
+      const tags = await screen.findByText("Add tag");
+      const lists = await screen.findByText("Reading");
       fireEvent.change(notes, { target: { value: "Keep my unsaved note" } });
       const original = respond;
       if (failure === "server") {
@@ -476,18 +527,24 @@ describe("opening the extension", () => {
       });
       expect(await screen.findByRole("alert")).toBeTruthy();
       expect(screen.getByDisplayValue("Keep my unsaved note")).toBe(notes);
-      expect(screen.getByText("Add Tags...")).toBe(tags);
-      expect(screen.getByText("📚 Reading")).toBe(lists);
+      expect(screen.getByDisplayValue("Keep my unsaved title")).toBe(title);
+      expect(screen.getByText("Add tag")).toBe(tags);
+      expect(screen.getByText("Reading")).toBe(lists);
       expect(mutations()).toEqual([]);
 
       respond = (path, input, auth) =>
         path === "bookmarks.getBookmark"
-          ? { ...saved, note: "A refreshed server note" }
+          ? {
+              ...saved,
+              title: "A refreshed server title",
+              note: "A refreshed server note",
+            }
           : original(path, input, auth);
       fireEvent.click(screen.getByRole("button", { name: "Try Again" }));
       await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
       expect(screen.getByDisplayValue("Keep my unsaved note")).toBe(notes);
-      fireEvent.click(screen.getByRole("button", { name: "Save Note" }));
+      expect(screen.getByDisplayValue("Keep my unsaved title")).toBe(title);
+      fireEvent.click(screen.getByRole("button", { name: "Save note" }));
       await waitFor(() =>
         expect(mutations()).toEqual([
           expect.objectContaining({
@@ -513,7 +570,7 @@ describe("opening the extension", () => {
       mount();
       expect(await screen.findByRole("alert")).toBeTruthy();
       expect(screen.queryByRole("textbox")).toBeNull();
-      expect(screen.queryByText("Add Tags...")).toBeNull();
+      expect(screen.queryByText("Add tag")).toBeNull();
       expect(mutations()).toEqual([]);
     },
   );
@@ -535,8 +592,8 @@ describe("opening the extension", () => {
       });
       expect(await screen.findByRole("alert")).toBeTruthy();
       expect(screen.queryByRole("textbox")).toBeNull();
-      expect(screen.queryByText("Add Tags...")).toBeNull();
-      expect(screen.queryByText("📚 Reading")).toBeNull();
+      expect(screen.queryByText("Add tag")).toBeNull();
+      expect(screen.queryByText("Reading")).toBeNull();
       expect(!!screen.queryByRole("link", { name: "Sign in" })).toBe(
         code === "UNAUTHORIZED",
       );
@@ -573,7 +630,7 @@ describe("opening the extension", () => {
     });
     mount();
     fireEvent.click(
-      await screen.findByRole("button", { name: "Save Bookmark" }),
+      await screen.findByRole("button", { name: "Save bookmark" }),
     );
     await waitFor(() => expect(mutations()).toHaveLength(1));
     expect(mutations()[0].input).toMatchObject({
@@ -616,7 +673,7 @@ describe("opening the extension", () => {
     );
     expect(await screen.findByDisplayValue(saved.note)).toBeTruthy();
     await act(async () => oldLookup.resolve({ bookmarkId: null }));
-    expect(screen.queryByRole("button", { name: "Save Bookmark" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Save bookmark" })).toBeNull();
     expect(mutations()).toEqual([]);
   });
 
@@ -629,7 +686,9 @@ describe("opening the extension", () => {
           ? { bookmarkId: null }
           : original(path, input, auth);
       mount();
-      const notes = await screen.findByPlaceholderText("Add notes...");
+      const notes = await screen.findByPlaceholderText(
+        "Why are you saving this?",
+      );
       const title = screen.getByPlaceholderText("Untitled");
       fireEvent.change(notes, { target: { value: "Keep this unsaved draft" } });
       fireEvent.change(title, { target: { value: "Edited draft title" } });
@@ -651,7 +710,7 @@ describe("opening the extension", () => {
         }
       });
       await act(async () => reloadedTab.resolve([currentTab]));
-      await screen.findByRole("button", { name: "Save Bookmark" });
+      await screen.findByRole("button", { name: "Save bookmark" });
       expect(screen.getByDisplayValue("Keep this unsaved draft")).toBe(notes);
       expect(screen.getByDisplayValue("Edited draft title")).toBe(title);
       expect(browser.tabs.query).not.toHaveBeenCalled();
@@ -768,7 +827,9 @@ describe("opening the extension", () => {
         ? { bookmarkId: null }
         : original(path, input, auth);
     mount();
-    const notes = await screen.findByPlaceholderText("Add notes...");
+    const notes = await screen.findByPlaceholderText(
+      "Why are you saving this?",
+    );
     const title = screen.getByPlaceholderText("Untitled");
     fireEvent.change(notes, { target: { value: "Keep this unsaved draft" } });
     fireEvent.change(title, { target: { value: "Edited draft title" } });

@@ -61,7 +61,7 @@ export const viewport: Viewport = {
   // when a user picks a theme opposite to their system preference.
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#020817" },
+    { media: "(prefers-color-scheme: dark)", color: "#030303" },
   ],
 };
 

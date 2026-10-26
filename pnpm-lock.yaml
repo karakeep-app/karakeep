@@ -21,7 +21,7 @@ overrides:
 patchedDependencies:
   expo-modules-jsi@57.1.1: 0de91114675edaf8158061b65f08995617cd872a813892f81e28394ded741a77
   expo-share-intent@8.0.1: 0d82bc4e13dd196d0d74ab0507c5d042d1ca0df6403534afd76a8e18410436c6
-  patchright-core@1.59.4: bad8f4246d462dedf01a4188e8d958032e1d8f1fcf243b33b1ecafe7ca41a1bd
+  patchright-core@1.59.4: e9c5d33d907bd9189082dcc2d58060bbcbd1ec3d633715b0762970b0d8898f3a
   react-native@0.86.3: 7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1
   react-tweet@3.2.2: d7b79c3ae412d8e700a8c176df42ee89112c9bdc91d2aad0ebb7d5b011b49993
   xcode@3.0.1: 725863c0591d89ca053226c49fe7bc321f320391ec5f78b6c2e8e41ab1868805
@@ -132,8 +132,8 @@ importers:
         version: 4.3.6
     devDependencies:
       '@crxjs/vite-plugin':
-        specifier: 2.7.1
-        version: 2.7.1(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))
+        specifier: 3.0.0
+        version: 3.0.0(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))
       '@karakeep/tailwind-config':
         specifier: workspace:^0.1.0
         version: link:../../tooling/tailwind
@@ -517,6 +517,12 @@ importers:
       react-native-pdf:
         specifier: 7.0.3
         version: 7.0.3(react-native-blob-util@0.21.2(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+      react-native-purchases:
+        specifier: ^10.12.2
+        version: 10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+      react-native-purchases-ui:
+        specifier: ^10.12.2
+        version: 10.12.2(react-native-purchases@10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
       react-native-reanimated:
         specifier: 4.5.1
         version: 4.5.1(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
@@ -3312,8 +3318,8 @@ packages:
     peerDependencies:
       commander: ~12.1.0
 
-  '@crxjs/vite-plugin@2.7.1':
-    resolution: {integrity: sha512-mn77Lc1ilIvbO7ZqijjNy+AnRgc8srkfHOtV6HrGrYZgRe8YI3aIcSjHJCU5Kq75SejEZGrdAoHdn3gBGeKpEA==}
+  '@crxjs/vite-plugin@3.0.0':
+    resolution: {integrity: sha512-86InOwnuCC6WPAC6/fsZYAzrmxbWn4qLtrchA6iApJ+CoWugHbyWJlsav1ZH2quw+Laq+1T6LBHMjYwxEVtyEQ==}
     peerDependencies:
       vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
@@ -6700,6 +6706,15 @@ packages:
 
   '@restatedev/restate-sdk@1.16.2':
     resolution: {integrity: sha512-L2XqUukvdGYmqCqsFvJzTsaU3JiuFzsYSh6nK19Q1yKNOr/bBBZKdic0o0hza5P5QdiiFC5jLHJ5wCWt77IO0Q==}
+
+  '@revenuecat/purchases-js-hybrid-mappings@19.10.0':
+    resolution: {integrity: sha512-oHS+x18B2Q6dtaZJPuicJorhR+xUaAdt/tpLE1wQQHngkHksKN6AwbZDdt3x3rHHmEDjqgircORCbe5EwLF4hA==}
+
+  '@revenuecat/purchases-js@1.70.0':
+    resolution: {integrity: sha512-07e1rzlk9bMbMTthJduhcOwbQQhvFZJiFKskmoqOVnEYmQaRq/PayxtYgHhpK5UnmqOhzqRUzXfNqpvUggEP4w==}
+
+  '@revenuecat/purchases-typescript-internal@19.10.0':
+    resolution: {integrity: sha512-uf/I9z+d2eU2bfEXe/pODyd2EUP137PqqtcC1YyU9Mr0KBptMDqbGKdfiZeRDShbUcX7d6D3lEhQA32hQQNX0w==}
 
   '@rn-primitives/hooks@1.3.0':
     resolution: {integrity: sha512-BR97reSu7uVDpyMeQdRJHT0w8KdS6jdYnOL6xQtqS2q3H6N7vXBlX4LFERqJZphD+aziJFIAJ3HJF1vtt6XlpQ==}
@@ -10751,6 +10766,10 @@ packages:
     resolution: {integrity: sha512-EQsFzMUJkCKGr1ePqlYADkIUmHW1s3ZXr5Yqy6wbGrfUCphpl2maM/kyOIRA2HpP3AaFQTZXD4ldjek+nccddA==}
     engines: {node: '>=14.14'}
 
+  fs-extra@11.4.1:
+    resolution: {integrity: sha512-KYAb4c9BJQI6QqGKthV68OHe0badztdXJWKo0WtBA9IuCFPTKvE5ZdUBglP833aMjhaSPNO4A5j/EkzZtGlKjA==}
+    engines: {node: '>=14.14'}
+
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
@@ -14455,6 +14474,27 @@ packages:
       react: 19.2.3
       react-native: '*'
       react-native-blob-util: '>=0.13.7'
+
+  react-native-purchases-ui@10.12.2:
+    resolution: {integrity: sha512-8fPyN1JzRVrjjTAMGKsek1NCeUhr02DDHSNwDryumXw5wEkzx2u/c+cJgz0ksRNw5dC2382P0b+zVi6zB6qgRA==}
+    peerDependencies:
+      react: 19.2.3
+      react-native: '>= 0.73.0'
+      react-native-purchases: 10.12.2
+      react-native-web: '*'
+    peerDependenciesMeta:
+      react-native-web:
+        optional: true
+
+  react-native-purchases@10.12.2:
+    resolution: {integrity: sha512-gM6gp3N8zBDyDuTa0YRErsX+Xr2dfM93brkfDYfGuTec8gqzdU1KjgGvA//kk9h52d7E89rD93lIgqdsGxLfpA==}
+    peerDependencies:
+      react: 19.2.3
+      react-native: '>= 0.73.0'
+      react-native-web: '*'
+    peerDependenciesMeta:
+      react-native-web:
+        optional: true
 
   react-native-reanimated@4.5.1:
     resolution: {integrity: sha512-RnMvtDuR+68ig864gAvZCOdZehqhC5rFmMo0kn+ARfgVSTvFeF6IFLBVgMPUu0KwihaapEyW24WRi6nEyy1kSA==}
@@ -19062,14 +19102,14 @@ snapshots:
     dependencies:
       commander: 12.1.0
 
-  '@crxjs/vite-plugin@2.7.1(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))':
+  '@crxjs/vite-plugin@3.0.0(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))':
     dependencies:
       '@webcomponents/custom-elements': 1.6.0
       acorn-walk: 8.3.5
       convert-source-map: 2.0.0
       debug: 4.4.3
       es-module-lexer: 0.10.5
-      fs-extra: 11.4.0
+      fs-extra: 11.4.1
       jsesc: 3.1.0
       magic-string: 0.30.21
       node-html-parser: 7.1.0
@@ -23222,9 +23262,7 @@ snapshots:
       metro-runtime: 0.84.6
     transitivePeerDependencies:
       - '@babel/core'
-      - bufferutil
       - supports-color
-      - utf-8-validate
 
   '@react-native/normalize-color@2.1.0': {}
 
@@ -23356,6 +23394,14 @@ snapshots:
   '@restatedev/restate-sdk@1.16.2':
     dependencies:
       '@restatedev/restate-sdk-core': 1.16.2
+
+  '@revenuecat/purchases-js-hybrid-mappings@19.10.0':
+    dependencies:
+      '@revenuecat/purchases-js': 1.70.0
+
+  '@revenuecat/purchases-js@1.70.0': {}
+
+  '@revenuecat/purchases-typescript-internal@19.10.0': {}
 
   '@rn-primitives/hooks@1.3.0(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)':
     dependencies:
@@ -27750,6 +27796,12 @@ snapshots:
       jsonfile: 6.2.1
       universalify: 2.0.1
 
+  fs-extra@11.4.1:
+    dependencies:
+      graceful-fs: 4.2.11
+      jsonfile: 6.2.1
+      universalify: 2.0.1
+
   fs.realpath@1.0.0: {}
 
   fsevents@2.3.2:
@@ -31089,11 +31141,11 @@ snapshots:
       no-case: 3.0.4
       tslib: 2.8.1
 
-  patchright-core@1.59.4(patch_hash=bad8f4246d462dedf01a4188e8d958032e1d8f1fcf243b33b1ecafe7ca41a1bd): {}
+  patchright-core@1.59.4(patch_hash=e9c5d33d907bd9189082dcc2d58060bbcbd1ec3d633715b0762970b0d8898f3a): {}
 
   patchright@1.59.4:
     dependencies:
-      patchright-core: 1.59.4(patch_hash=bad8f4246d462dedf01a4188e8d958032e1d8f1fcf243b33b1ecafe7ca41a1bd)
+      patchright-core: 1.59.4(patch_hash=e9c5d33d907bd9189082dcc2d58060bbcbd1ec3d633715b0762970b0d8898f3a)
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -32187,6 +32239,24 @@ snapshots:
       react: 19.2.3
       react-native: 0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3)
       react-native-blob-util: 0.21.2(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+
+  react-native-purchases-ui@10.12.2(react-native-purchases@10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      '@revenuecat/purchases-typescript-internal': 19.10.0
+      react: 19.2.3
+      react-native: 0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3)
+      react-native-purchases: 10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3)
+    optionalDependencies:
+      react-native-web: 0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+
+  react-native-purchases@10.12.2(react-native-web@0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      '@revenuecat/purchases-js-hybrid-mappings': 19.10.0
+      '@revenuecat/purchases-typescript-internal': 19.10.0
+      react: 19.2.3
+      react-native: 0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3)
+    optionalDependencies:
+      react-native-web: 0.21.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
 
   react-native-reanimated@4.5.1(react-native-worklets@0.10.1(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3))(react-native@0.86.3(patch_hash=7d74c7fbd33e9f3f3f8a8ba47a013acfc098948e39c7faab1232e6edca358ac1)(@babel/core@7.29.7)(@react-native/metro-config@0.86.3(@babel/core@7.29.7))(@types/react@19.2.15)(react@19.2.3))(react@19.2.3):
     dependencies:
