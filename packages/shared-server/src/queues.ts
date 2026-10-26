@@ -179,6 +179,25 @@ export const EmbeddingsQueue = createDeferredQueue<ZEmbeddingsRequest>(
   },
 );
 
+/**
+ * Re-generates a bookmark's embedding after the text it's derived from changed
+ * (e.g. a new or edited summary). Tagging is intentionally not re-run: the
+ * embedding is only refreshed so similarity results stay up to date.
+ */
+export async function triggerEmbeddingRefresh(
+  bookmarkId: string,
+  opts?: Omit<EnqueueOptions, "idempotencyKey">,
+) {
+  await EmbeddingsQueue.enqueue(
+    {
+      bookmarkId,
+      type: "embed",
+      runTaggingOnComplete: false,
+    },
+    opts,
+  );
+}
+
 // Search Indexing Worker
 export const zSearchIndexingRequestSchema = z.object({
   bookmarkId: z.string(),

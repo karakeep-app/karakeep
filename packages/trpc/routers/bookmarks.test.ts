@@ -54,6 +54,7 @@ vi.mock("@karakeep/shared-server", async (original) => {
       enqueue: vi.fn(),
     },
     triggerSearchReindex: vi.fn(),
+    triggerEmbeddingRefresh: vi.fn(),
   };
 });
 
@@ -281,6 +282,47 @@ describe("Bookmark Routes", () => {
     expect(res.content.publisher).toEqual("New Publisher");
     expect(res.content.datePublished).toEqual(linkUpdateDate);
     expect(res.content.dateModified).toEqual(linkUpdateDate);
+  });
+
+  test<CustomTestContext>("updating a summary refreshes the embedding", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].bookmarks;
+    const bookmark = await api.createBookmark({
+      type: BookmarkTypes.TEXT,
+      text: "some content",
+    });
+    const refreshMock = getTestQueueMocks().embeddingsEnqueue;
+    refreshMock.mockClear();
+
+    // Unrelated updates must not re-embed.
+    await api.updateBookmark({ bookmarkId: bookmark.id, favourited: true });
+    expect(refreshMock).not.toHaveBeenCalled();
+
+    // The title is part of the embedded text as well.
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      title: "A new title",
+    });
+    expect(refreshMock).toHaveBeenCalledWith(bookmark.id, {
+      groupId: expect.any(String),
+    });
+
+    refreshMock.mockClear();
+    await api.updateBookmark({
+      bookmarkId: bookmark.id,
+      summary: "A new summary",
+    });
+    expect(refreshMock).toHaveBeenCalledWith(bookmark.id, {
+      groupId: expect.any(String),
+    });
+
+    // Clearing the summary also changes the text the embedding is based on.
+    refreshMock.mockClear();
+    await api.updateBookmark({ bookmarkId: bookmark.id, summary: null });
+    expect(refreshMock).toHaveBeenCalledWith(bookmark.id, {
+      groupId: expect.any(String),
+    });
   });
 
   test<CustomTestContext>("update bookmark - non-link type error", async ({

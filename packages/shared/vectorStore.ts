@@ -42,6 +42,11 @@ export interface VectorSimilarSearchOptions {
   // Different filters are ANDed together
   filter?: VectorFilterQuery[];
   limit?: number;
+  // Number of hits to skip. Combined with `limit`, this allows paginating
+  // through the ranked neighbours.
+  offset?: number;
+  // Drop hits whose ranking score is below this threshold (0..1)
+  rankingScoreThreshold?: number;
 }
 
 export interface VectorSearchResponse {

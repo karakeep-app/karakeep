@@ -1627,7 +1627,8 @@
     "crawl_failed": "Tuto stránku se nepodařilo načíst",
     "continue_reading": "Pokračuj tam, kde jsi skončil",
     "continue_reading_percent": "Pokračuj tam, kde jsi skončil ({{percent}} %)",
-    "continue_button": "Pokračovat"
+    "continue_button": "Pokračovat",
+    "similar_articles": "Podobné články"
   },
   "dialogs": {
     "bookmarks": {

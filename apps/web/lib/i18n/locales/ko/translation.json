@@ -350,7 +350,8 @@
     "crawl_failed": "이 페이지를 가져오지 못했습니다",
     "continue_reading": "이어서 읽기",
     "continue_reading_percent": "이어서 읽기 ({{percent}}%)",
-    "continue_button": "계속"
+    "continue_button": "계속",
+    "similar_articles": "비슷한 글"
   },
   "editor": {
     "multiple_urls_dialog_title": "URL을 별도의 북마크로 가져올까요?",

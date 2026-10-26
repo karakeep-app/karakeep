@@ -106,10 +106,11 @@ class MeiliSearchVectorClient implements VectorStoreClient {
       id: options.id,
       filter: options.filter?.map((f) => filterToMeiliSearchFilter(f)),
       limit: options.limit ?? 10,
+      offset: options.offset,
       attributesToRetrieve: ["id"],
       showRankingScore: true,
       embedder: "default",
-      rankingScoreThreshold: 0.75,
+      rankingScoreThreshold: options.rankingScoreThreshold,
     });
 
     return {

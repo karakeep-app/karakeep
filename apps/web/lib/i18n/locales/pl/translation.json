@@ -1555,7 +1555,8 @@
     "crawl_failed": "Nie udało się pobrać tej strony",
     "continue_reading": "Kontynuuj, gdzie skończyłeś",
     "continue_reading_percent": "Kontynuuj tam, gdzie skończyłeś ({{percent}}%)",
-    "continue_button": "Kontynuuj"
+    "continue_button": "Kontynuuj",
+    "similar_articles": "Podobne artykuły"
   },
   "highlights": {
     "no_highlights": "Nie masz jeszcze żadnych wyróżnień.",

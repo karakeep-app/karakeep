@@ -1644,7 +1644,8 @@
     "crawl_failed": "Níorbh fhéidir an leathanach seo a fháil",
     "continue_reading": "Lean ar aghaidh ón áit ar stop tú",
     "continue_reading_percent": "Lean ar aghaidh ón áit ar stop tú ({{percent}}%)",
-    "continue_button": "Lean ar aghaidh"
+    "continue_button": "Lean ar aghaidh",
+    "similar_articles": "Ailt chosúla"
   },
   "dialogs": {
     "bookmarks": {

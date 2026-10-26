@@ -149,7 +149,7 @@ INFERENCE_OUTPUT_SCHEMA=json
 
 ## Embedding Models
 
-Karakeep uses embedding models for stuff like semantic search and refining tag suggestions. Typically, when you configure an embedding model, you'll want to configure its default num dimensions and context length. Those are done via:
+Karakeep uses embedding models for stuff like semantic search, similar-article suggestions, and refining tag suggestions. Typically, when you configure an embedding model, you'll want to configure its default num dimensions and context length. Those are done via:
 
 ```
 EMBEDDING_TEXT_MODEL=
@@ -177,5 +177,7 @@ Once you've configured an embedding model, you'll also want to enable auto-embed
 ```
 EMBEDDING_ENABLE_AUTO_INDEXING=true
 ```
+
+Bookmark embeddings are generated from the bookmark title plus its AI summary once one is available. Bookmarks without a summary use the title plus a readable content excerpt instead. If summaries are generated or edited later, the embedding is refreshed automatically.
 
 Note: Embeddings from different models are not compatible with each other. If you're to ever change the embedding model or the number of dimensions, you'll need to regenerate embeddings for *all* of your bookmarks.

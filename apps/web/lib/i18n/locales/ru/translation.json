@@ -1471,7 +1471,8 @@
     "crawl_failed": "Не удалось загрузить эту страницу",
     "continue_reading": "Продолжить с места, где остановились",
     "continue_reading_percent": "Продолжить с места, где остановились ({{percent}}%)",
-    "continue_button": "Продолжить"
+    "continue_button": "Продолжить",
+    "similar_articles": "Похожие статьи"
   },
   "toasts": {
     "highlights": {

@@ -1366,7 +1366,8 @@
     "crawl_failed": "无法获取此页面",
     "continue_reading": "从上次结束的地方继续",
     "continue_reading_percent": "从上次结束的地方继续（{{percent}}%）",
-    "continue_button": "继续"
+    "continue_button": "继续",
+    "similar_articles": "相似文章"
   },
   "editor": {
     "multiple_urls_dialog_title": "将 URL 导入为单独的书签？",

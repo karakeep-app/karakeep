@@ -587,6 +587,7 @@ async function getPotentiallyRelevantTags(
             id: bookmarkId,
             limit: 10,
             filter: userFilter,
+            rankingScoreThreshold: RELEVANT_TAG_SCORE_THRESHOLD,
           })
           .then((r) => r.hits.map((r) => r.id));
 

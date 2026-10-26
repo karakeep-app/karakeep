@@ -27,6 +27,7 @@ import {
   QueuePriority,
   QuotaService,
   SUPPORTED_BOOKMARK_ASSET_TYPES,
+  triggerEmbeddingRefresh,
   triggerSearchReindex,
   VideoWorkerQueue,
 } from "@karakeep/shared-server";
@@ -49,12 +50,15 @@ import type {
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
+  DEFAULT_NUM_SIMILAR_BOOKMARKS,
   MAX_NUM_BOOKMARKS_PER_PAGE,
   zBookmarkSchema,
   zBookmarkReadableContentFormatSchema,
   zBookmarkReadableContentSchema,
   zGetBookmarksRequestSchema,
   zGetBookmarksResponseSchema,
+  zGetSimilarBookmarksRequestSchema,
+  zGetSimilarBookmarksResponseSchema,
   zManipulatedTagSchema,
   zNewBookmarkRequestSchema,
   zSearchBookmarksCursor,
@@ -92,6 +96,13 @@ const HYBRID_CANDIDATES_PER_SOURCE = MAX_NUM_BOOKMARKS_PER_PAGE;
  * `(1 + cosine) / 2`), so this drops anything below ~0.2 cosine similarity.
  */
 const SEMANTIC_SCORE_THRESHOLD = 0.6;
+/**
+ * Maximum number of vector-store pages to scan while looking for similar
+ * bookmarks that are eligible to be shown. Archived bookmarks are filtered out
+ * after the vector search, so a page can come back empty even when further
+ * matches exist.
+ */
+const MAX_SIMILAR_BOOKMARKS_FETCH_PASSES = 5;
 
 export const ensureBookmarkOwnership = experimental_trpcMiddleware<{
   ctx: AuthedContext;
@@ -312,6 +323,11 @@ export const bookmarksAppRouter = router({
             triggerSearchReindex(alreadyExists.id, {
               groupId: ctx.user.id,
             }),
+            input.summary !== undefined || input.title !== undefined
+              ? triggerEmbeddingRefresh(alreadyExists.id, {
+                  groupId: ctx.user.id,
+                })
+              : Promise.resolve(),
             new WebhooksService(ctx.db).triggerWebhook(
               alreadyExists.id,
               "edited",
@@ -756,6 +772,16 @@ export const bookmarksAppRouter = router({
         triggerSearchReindex(input.bookmarkId, {
           groupId: ctx.user.id,
         }),
+        // The embedding is derived from the title and the summary/content, so
+        // refresh it whenever any of those inputs changes.
+        input.summary !== undefined ||
+        input.title !== undefined ||
+        input.text !== undefined ||
+        input.assetContent !== undefined
+          ? triggerEmbeddingRefresh(input.bookmarkId, {
+              groupId: ctx.user.id,
+            })
+          : Promise.resolve(),
         new WebhooksService(ctx.db).triggerWebhook(
           input.bookmarkId,
           "edited",
@@ -806,6 +832,11 @@ export const bookmarksAppRouter = router({
       });
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        // The text is part of the embedding fallback used when no summary is
+        // set, so refresh it as well.
+        triggerEmbeddingRefresh(input.bookmarkId, {
           groupId: ctx.user.id,
         }),
         new WebhooksService(ctx.db).triggerWebhook(
@@ -1280,6 +1311,135 @@ export const bookmarksAppRouter = router({
           : null,
       };
     }),
+  getSimilarBookmarks: bookmarksProcedure
+    .input(zGetSimilarBookmarksRequestSchema)
+    .output(zGetSimilarBookmarksResponseSchema)
+    .query(async ({ input, ctx }) => {
+      const limit = input.limit ?? DEFAULT_NUM_SIMILAR_BOOKMARKS;
+      const offset = input.cursor?.offset ?? 0;
+
+      // Similar bookmarks are only exposed to the bookmark's owner for now.
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: and(
+          eq(bookmarks.id, input.bookmarkId),
+          eq(bookmarks.userId, ctx.user.id),
+        ),
+        columns: {
+          embeddingStatus: true,
+        },
+      });
+      if (!bookmark) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Bookmark not found",
+        });
+      }
+
+      // Without a successfully indexed embedding there is nothing to rank
+      // against. This also covers bookmarks whose embedding is still pending.
+      if (bookmark.embeddingStatus !== "success") {
+        return { bookmarks: [], nextCursor: null };
+      }
+
+      const vectorStoreClient = await getVectorStoreClient();
+      if (!vectorStoreClient) {
+        return { bookmarks: [], nextCursor: null };
+      }
+
+      const vectorFilter = [
+        {
+          type: "eq" as const,
+          field: "userId" as const,
+          value: ctx.user.id,
+        },
+      ];
+
+      const pageHits: { id: string; score: number }[] = [];
+      const visibleById = new Map<string, Bookmark>();
+      let consumed = 0;
+      let exhausted = false;
+
+      for (
+        let pass = 0;
+        pass < MAX_SIMILAR_BOOKMARKS_FETCH_PASSES &&
+        pageHits.length < limit &&
+        !exhausted;
+        pass++
+      ) {
+        const remaining = limit - pageHits.length;
+        let response;
+        try {
+          response = await vectorStoreClient.findSimilar({
+            id: input.bookmarkId,
+            filter: vectorFilter,
+            // Fetch one extra hit so we can tell whether another page exists.
+            limit: remaining + 1,
+            offset: offset + consumed,
+          });
+        } catch (e) {
+          // A stale or missing vector shouldn't break the preview page.
+          logger.warn(
+            `Failed to fetch similar bookmarks for ${input.bookmarkId}: ${e}`,
+          );
+          if (pageHits.length === 0) {
+            return { bookmarks: [], nextCursor: null };
+          }
+          exhausted = true;
+          break;
+        }
+
+        // Meilisearch excludes the anchor document, but filtering it here keeps
+        // this correct for any vector store implementation.
+        const hits = response.hits.filter((hit) => hit.id !== input.bookmarkId);
+        if (hits.length === 0) {
+          exhausted = true;
+          break;
+        }
+
+        // Archived bookmarks are not eligible. The vector store can't filter on
+        // that field yet, so drop them after loading.
+        const { bookmarks: visibleBookmarks } = await Bookmark.loadMulti(ctx, {
+          ids: hits.map((hit) => hit.id),
+          archived: false,
+          includeContent: false,
+          sortOrder: "desc", // Doesn't matter, we re-order by similarity below.
+        });
+        for (const visible of visibleBookmarks) {
+          visibleById.set(visible.id, visible);
+        }
+
+        let pageFilled = false;
+        for (const hit of hits) {
+          consumed++;
+          if (!visibleById.has(hit.id)) {
+            continue;
+          }
+          pageHits.push(hit);
+          if (pageHits.length === limit) {
+            pageFilled = true;
+            break;
+          }
+        }
+
+        if (pageFilled) {
+          break;
+        }
+        // A short response means there are no further hits in the index.
+        if (hits.length < remaining + 1) {
+          exhausted = true;
+        }
+      }
+
+      return {
+        bookmarks: pageHits
+          .map((hit) => visibleById.get(hit.id))
+          .filter((visible): visible is Bookmark => visible !== undefined)
+          .map((visible) => visible.asZBookmark()),
+        // If we stopped because we filled the page, there may be more results
+        // beyond the current offset.
+        nextCursor: exhausted ? null : { offset: offset + consumed },
+      };
+    }),
   checkUrl: bookmarksProcedure
     .input(
       z.object({
@@ -1743,6 +1903,11 @@ export const bookmarksAppRouter = router({
         .where(eq(bookmarks.id, input.bookmarkId));
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        // Similarity is derived from Title + Summary; refresh the vector as
+        // soon as the new summary is saved.
+        triggerEmbeddingRefresh(input.bookmarkId, {
           groupId: ctx.user.id,
         }),
         new WebhooksService(ctx.db).triggerWebhook(

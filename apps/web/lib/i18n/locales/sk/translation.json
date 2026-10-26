@@ -1544,7 +1544,8 @@
     "crawl_failed": "Túto stránku sa nepodarilo načítať",
     "continue_reading": "Pokračovať tam, kde si prestal",
     "continue_reading_percent": "Pokračovať tam, kde si prestal ({{percent}} %)",
-    "continue_button": "Pokračovať"
+    "continue_button": "Pokračovať",
+    "similar_articles": "Podobné články"
   },
   "toasts": {
     "highlights": {

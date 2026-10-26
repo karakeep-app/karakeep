@@ -1403,6 +1403,7 @@
     "continue_reading": "Continue where you left off",
     "continue_reading_percent": "Continue where you left off ({{percent}}%)",
     "continue_button": "Continue",
+    "similar_articles": "Similar Articles",
     "tabs": {
       "content": "Content",
       "details": "Details"

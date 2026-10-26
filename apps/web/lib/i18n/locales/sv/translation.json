@@ -1517,7 +1517,8 @@
     "crawl_failed": "Det gick inte att hämta den här sidan",
     "continue_reading": "Fortsätt där du slutade",
     "continue_reading_percent": "Fortsätt där du slutade ({{percent}} %)",
-    "continue_button": "Fortsätt"
+    "continue_button": "Fortsätt",
+    "similar_articles": "Liknande artiklar"
   },
   "dialogs": {
     "bookmarks": {

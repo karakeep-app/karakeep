@@ -1377,7 +1377,8 @@
     "crawl_failed": "Diese Seite konnte nicht abgerufen werden",
     "continue_reading": "Da weitermachen, wo du aufgehört hast",
     "continue_reading_percent": "Da weitermachen, wo du aufgehört hast ({{percent}}%)",
-    "continue_button": "Weiter"
+    "continue_button": "Weiter",
+    "similar_articles": "Ähnliche Artikel"
   },
   "editor": {
     "multiple_urls_dialog_title": "URLs als separate Lesezeichen importieren?",

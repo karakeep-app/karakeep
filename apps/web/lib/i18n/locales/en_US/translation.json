@@ -1547,7 +1547,8 @@
     "crawl_failed": "Couldn't fetch this page",
     "continue_reading": "Continue where you left off",
     "continue_reading_percent": "Continue where you left off ({{percent}}%)",
-    "continue_button": "Continue"
+    "continue_button": "Continue",
+    "similar_articles": "Similar Articles"
   },
   "toasts": {
     "highlights": {

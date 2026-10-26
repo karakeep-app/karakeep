@@ -1087,7 +1087,8 @@
     "crawl_failed": "Не вдалося отримати цю сторінку",
     "continue_reading": "Продовжити з місця, де зупинилися",
     "continue_reading_percent": "Продовжити з місця, де зупинились ({{percent}}%)",
-    "continue_button": "Продовжити"
+    "continue_button": "Продовжити",
+    "similar_articles": "Схожі статті"
   },
   "layouts": {
     "masonry": "Кам'яна кладка",

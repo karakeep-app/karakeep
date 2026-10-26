@@ -27,7 +27,6 @@ import { workerStatsCounter } from "../metrics";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 const MAX_EMBEDDING_CONTENT_EXCERPT_LENGTH = 3000;
-const MAX_EMBEDDING_METADATA_LENGTH = 800;
 
 export class EmbeddingsWorker {
   static async build() {
@@ -154,14 +153,13 @@ async function fetchBookmark(bookmarkId: string) {
       link: true,
       text: true,
       asset: true,
-      tagsOnBookmarks: {
-        with: {
-          tag: true,
-        },
-      },
     },
   });
 }
+
+export type EmbeddableBookmark = NonNullable<
+  Awaited<ReturnType<typeof fetchBookmark>>
+>;
 
 function normalizeEmbeddingText(text: string | null | undefined) {
   const normalized = text?.replace(/\s+/g, " ").trim();
@@ -175,69 +173,11 @@ function truncateText(text: string, maxLength: number) {
   return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
 }
 
-function hostnameFromUrl(url: string | null | undefined) {
-  if (!url) {
-    return null;
-  }
-  try {
-    return new URL(url).hostname;
-  } catch {
-    return null;
-  }
-}
-
-function urlForEmbedding(url: string | null | undefined) {
-  if (!url) {
-    return null;
-  }
-  try {
-    const parsed = new URL(url);
-    parsed.search = "";
-    parsed.hash = "";
-    return parsed.toString();
-  } catch {
-    return normalizeEmbeddingText(url);
-  }
-}
-
-function metadataForEmbedding(metadata: string | null | undefined) {
-  const normalized = normalizeEmbeddingText(metadata);
-  if (!normalized) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(normalized) as unknown;
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      const fields: string[] = [];
-      for (const [key, value] of Object.entries(parsed)) {
-        if (
-          typeof value === "string" ||
-          typeof value === "number" ||
-          typeof value === "boolean"
-        ) {
-          fields.push(`${key}: ${value}`);
-        }
-      }
-      if (fields.length > 0) {
-        return truncateText(fields.join("; "), MAX_EMBEDDING_METADATA_LENGTH);
-      }
-    }
-  } catch {
-    // Fall back to the raw metadata string.
-  }
-
-  return truncateText(normalized, MAX_EMBEDDING_METADATA_LENGTH);
-}
-
-function appendProfileField(parts: string[], label: string, value: unknown) {
-  if (value instanceof Date) {
-    parts.push(`${label}: ${value.toISOString().slice(0, 10)}`);
-    return;
-  }
-  if (typeof value !== "string") {
-    return;
-  }
+function appendEmbeddingField(
+  parts: string[],
+  label: string,
+  value: string | null | undefined,
+) {
   const normalized = normalizeEmbeddingText(value);
   if (normalized) {
     parts.push(`${label}: ${normalized}`);
@@ -254,83 +194,52 @@ function contentBudget(maxTextLength: number) {
   );
 }
 
-async function buildEmbeddingText(
-  bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
+/**
+ * Builds the text that gets embedded for a bookmark.
+ *
+ * - When a summary exists, similarity is based on `Title` + `Summary`. The
+ *   summary is the distilled signal, so URL/metadata/tags are intentionally
+ *   left out.
+ * - Before a summary exists (or for bookmark types that aren't summarized),
+ *   fall back to `Title` + the readable `Content excerpt`.
+ */
+export async function buildEmbeddingText(
+  bookmark: EmbeddableBookmark,
 ): Promise<string | null> {
   const parts: string[] = [];
 
-  appendProfileField(parts, "Title", bookmark.title);
-  parts.push(`Type: ${bookmark.type}`);
+  // Prefer the user-provided title, then fall back to the crawled page title
+  // or the asset file name.
+  const title = bookmark.title?.trim()
+    ? bookmark.title
+    : (bookmark.link?.title ?? bookmark.asset?.fileName ?? null);
+  appendEmbeddingField(parts, "Title", title);
 
-  const tags = bookmark.tagsOnBookmarks.map((t) => t.tag.name).sort();
-  if (tags.length > 0) {
-    parts.push(`Tags: ${tags.join(", ")}`);
-  }
-
-  appendProfileField(parts, "Summary", bookmark.summary);
-  appendProfileField(parts, "Note", bookmark.note);
-
-  let rawContent: string | null = null;
-
-  if (bookmark.link) {
-    appendProfileField(parts, "Domain", hostnameFromUrl(bookmark.link.url));
-    appendProfileField(parts, "URL", urlForEmbedding(bookmark.link.url));
-    if (
-      bookmark.link.title &&
-      normalizeEmbeddingText(bookmark.link.title) !==
-        normalizeEmbeddingText(bookmark.title)
-    ) {
-      appendProfileField(parts, "Page title", bookmark.link.title);
+  const summary = normalizeEmbeddingText(bookmark.summary);
+  if (summary) {
+    parts.push(`Summary: ${summary}`);
+  } else {
+    let rawContent: string | null = null;
+    if (bookmark.link) {
+      rawContent = await Bookmark.getBookmarkPlainTextContent(
+        bookmark.link,
+        bookmark.userId,
+      );
+    } else if (bookmark.text) {
+      rawContent = bookmark.text.text;
+    } else if (bookmark.asset) {
+      rawContent = bookmark.asset.content;
     }
-    appendProfileField(parts, "Description", bookmark.link.description);
-    appendProfileField(parts, "Author", bookmark.link.author);
-    appendProfileField(parts, "Publisher", bookmark.link.publisher);
-    appendProfileField(parts, "Published", bookmark.link.datePublished);
-    rawContent = await Bookmark.getBookmarkPlainTextContent(
-      bookmark.link,
-      bookmark.userId,
-    );
-  } else if (bookmark.text) {
-    appendProfileField(
-      parts,
-      "Source URL",
-      urlForEmbedding(bookmark.text.sourceUrl),
-    );
-    appendProfileField(
-      parts,
-      "Source domain",
-      hostnameFromUrl(bookmark.text.sourceUrl),
-    );
-    rawContent = bookmark.text.text;
-  } else if (bookmark.asset) {
-    appendProfileField(
-      parts,
-      "Source URL",
-      urlForEmbedding(bookmark.asset.sourceUrl),
-    );
-    appendProfileField(
-      parts,
-      "Source domain",
-      hostnameFromUrl(bookmark.asset.sourceUrl),
-    );
-    appendProfileField(parts, "File name", bookmark.asset.fileName);
-    appendProfileField(parts, "Asset type", bookmark.asset.assetType);
-    appendProfileField(
-      parts,
-      "Metadata",
-      metadataForEmbedding(bookmark.asset.metadata),
-    );
-    rawContent = bookmark.asset.content;
-  }
 
-  const normalizedContent = normalizeEmbeddingText(rawContent);
-  if (normalizedContent) {
-    parts.push(
-      `Content excerpt: ${truncateText(
-        normalizedContent,
-        contentBudget(serverConfig.embedding.contextLength),
-      )}`,
-    );
+    const normalizedContent = normalizeEmbeddingText(rawContent);
+    if (normalizedContent) {
+      parts.push(
+        `Content excerpt: ${truncateText(
+          normalizedContent,
+          contentBudget(serverConfig.embedding.contextLength),
+        )}`,
+      );
+    }
   }
 
   if (parts.length === 0) {

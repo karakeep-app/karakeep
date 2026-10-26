@@ -1524,7 +1524,8 @@
     "crawl_failed": "تعذر جلب هذه الصفحة",
     "continue_reading": "استمر من حيث توقفت",
     "continue_reading_percent": "استمر من حيث توقفت ({{percent}}%)",
-    "continue_button": "استمر"
+    "continue_button": "استمر",
+    "similar_articles": "مقالات مشابهة"
   },
   "editor": {
     "multiple_urls_dialog_title": "استيراد الروابط كإشارات مرجعية منفصلة؟",

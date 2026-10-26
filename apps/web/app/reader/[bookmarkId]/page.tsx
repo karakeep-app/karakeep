@@ -22,6 +22,7 @@ import ReaderBarActions, {
 import ReaderView from "@/components/dashboard/preview/ReaderView";
 import { hostname } from "@/components/dashboard/preview/SavedPageOverview";
 import { readerColumnWidth } from "@/components/dashboard/preview/readerColumn";
+import SimilarBookmarksBox from "@/components/dashboard/preview/SimilarBookmarksBox";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -282,6 +283,15 @@ export default function ReaderViewPage() {
                       {t("preview.finish_and_archive")}
                     </Button>
                   </footer>
+                )}
+                {isOwner && (
+                  <div className="mt-10 border-t pt-6 print:hidden">
+                    <SimilarBookmarksBox
+                      bookmarkId={bookmarkId}
+                      isOwner={isOwner}
+                      variant="reader"
+                    />
+                  </div>
                 )}
               </div>
             ) : (

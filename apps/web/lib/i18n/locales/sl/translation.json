@@ -1648,7 +1648,8 @@
     "crawl_failed": "Te strani ni bilo mogoče pridobiti",
     "continue_reading": "Nadaljuj, kjer si končal",
     "continue_reading_percent": "Nadaljuj, kjer si končal ({{percent}} %)",
-    "continue_button": "Nadaljuj"
+    "continue_button": "Nadaljuj",
+    "similar_articles": "Podobni članki"
   },
   "highlights": {
     "no_highlights": "Še nimaš nobenih poudarkov.",

@@ -65,6 +65,7 @@ import LinkContentSection, {
 } from "./LinkContentSection";
 import { NoteEditor } from "./NoteEditor";
 import { hostname } from "./SavedPageOverview";
+import SimilarBookmarksBox from "./SimilarBookmarksBox";
 import { TextContentSection } from "./TextContentSection";
 
 const NARROW_TAB_CLASS =
@@ -531,6 +532,11 @@ export default function BookmarkPreview({
       <Separator />
       <NoteEditor key={bookmark.id} bookmark={bookmark} disabled={!isOwner} />
       <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
+      <SimilarBookmarksBox
+        bookmarkId={bookmark.id}
+        isOwner={isOwner}
+        variant="sidebar"
+      />
       <Separator />
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
     </div>

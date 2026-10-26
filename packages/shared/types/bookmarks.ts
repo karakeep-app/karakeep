@@ -368,6 +368,34 @@ export const zSearchBookmarksRequestSchema = z.object({
   includeContent: z.boolean().optional().default(false),
 });
 
+export const DEFAULT_NUM_SIMILAR_BOOKMARKS = 20;
+export const MAX_NUM_SIMILAR_BOOKMARKS = 50;
+
+export const zGetSimilarBookmarksRequestSchema = z.object({
+  bookmarkId: z.string(),
+  limit: z.number().int().min(1).max(MAX_NUM_SIMILAR_BOOKMARKS).optional(),
+  cursor: z
+    .object({
+      offset: z.number().int().min(0),
+    })
+    .nullish(),
+});
+export type ZGetSimilarBookmarksRequest = z.infer<
+  typeof zGetSimilarBookmarksRequestSchema
+>;
+
+export const zGetSimilarBookmarksResponseSchema = z.object({
+  bookmarks: z.array(zBookmarkSchema),
+  nextCursor: z
+    .object({
+      offset: z.number().int().min(0),
+    })
+    .nullable(),
+});
+export type ZGetSimilarBookmarksResponse = z.infer<
+  typeof zGetSimilarBookmarksResponseSchema
+>;
+
 export const zPublicBookmarkSchema = z.object({
   id: z.string(),
   createdAt: z.date(),
