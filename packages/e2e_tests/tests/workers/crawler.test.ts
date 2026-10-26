@@ -4,6 +4,7 @@ import { createKarakeepClient } from "@karakeep/sdk";
 
 import { createTestUser } from "../../utils/api";
 import { waitUntil } from "../../utils/general";
+import { getTrpcClient } from "../../utils/trpc";
 
 describe("Crawler Tests", () => {
   const port = inject("karakeepPort");
@@ -66,6 +67,55 @@ describe("Crawler Tests", () => {
       bookmark.assets.find((a) => a.assetType === "screenshot"),
     ).toBeDefined();
     expect(bookmark.assets.find((a) => a.assetType === "pdf")).toBeDefined();
+  });
+
+  it("should preserve a screen pdf on demand", async () => {
+    let { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "link",
+        url: "http://nginx:80/hello.html",
+      },
+    });
+    assert(bookmark);
+
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data);
+      assert(data.content.type === "link");
+      return data.content.crawledAt !== null;
+    }, "Bookmark is crawled");
+
+    const trpc = getTrpcClient(apiKey);
+    await trpc.bookmarks.recrawlBookmark.mutate({
+      bookmarkId: bookmark.id,
+      storeScreenPdf: true,
+    });
+
+    let screenPdfAssetId: string | undefined;
+    await waitUntil(
+      async () => {
+        const data = await getBookmark(bookmark!.id);
+        assert(data);
+        screenPdfAssetId = data.assets.find(
+          (a) => a.assetType === "screenPdf",
+        )?.id;
+        return screenPdfAssetId !== undefined;
+      },
+      "Screen PDF is captured",
+      120000,
+    );
+    assert(screenPdfAssetId);
+
+    const assetResponse = await fetch(
+      `http://localhost:${port}/api/v1/assets/${screenPdfAssetId}`,
+      { headers: { authorization: `Bearer ${apiKey}` } },
+    );
+    expect(assetResponse.ok).toBe(true);
+    expect(assetResponse.headers.get("content-type")).toContain(
+      "application/pdf",
+    );
+    const bytes = new Uint8Array(await assetResponse.arrayBuffer());
+    expect(new TextDecoder().decode(bytes.slice(0, 4))).toBe("%PDF");
   });
 
   it("should crawl browser-rendered content", async () => {

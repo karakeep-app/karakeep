@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Screen PDF very long test page</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, sans-serif;
+      }
+
+      .long-content {
+        height: 100000px;
+        background: linear-gradient(#fee2e2, #dbeafe);
+      }
+
+      .footer {
+        padding: 40px;
+        background: #f8fafc;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="long-content">VERY LONG CONTENT — 100000px</div>
+    <footer class="footer">
+      VERY LONG FOOTER — outside the fallback capture
+    </footer>
+  </body>
+</html>
