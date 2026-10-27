@@ -64,35 +64,10 @@ async function injectSingleFileContentScript(tabId: number): Promise<void> {
   if (!files || files.length === 0) {
     throw new Error("SingleFile content script not declared in manifest");
   }
-  // The bundle is an ES module (crxjs emits chunks with `import.meta`), so
-  // `executeScript({ files })` — which loads as a classic script — fails.
-  // Use a dynamic import in the isolated world instead.
-  const urls = files.map((f) => chrome.runtime.getURL(f));
-  const [result] = await chrome.scripting.executeScript({
-    target: { tabId },
-    func: async (moduleUrls: string[]) => {
-      try {
-        for (const url of moduleUrls) {
-          await import(/* @vite-ignore */ url);
-        }
-        return { ok: true as const };
-      } catch (e) {
-        return {
-          ok: false as const,
-          error: e instanceof Error ? e.message : String(e),
-        };
-      }
-    },
-    args: [urls],
-  });
-  const res = result?.result;
-  // Treat the re-entry guard as success — the listener is already registered
-  // from a concurrent injection, so the retried sendMessage will succeed.
-  if (!res || (!res.ok && !res.error?.includes("already loaded"))) {
-    throw new Error(
-      `Failed to inject SingleFile content script: ${res?.error ?? "unknown error"}`,
-    );
-  }
+  // The content script is built as a standalone IIFE (see `standaloneFiles` in
+  // vite.config.ts), so it registers its CAPTURE_PAGE listener synchronously
+  // and the listener exists once `executeScript` resolves.
+  await chrome.scripting.executeScript({ target: { tabId }, files });
 }
 
 /**
