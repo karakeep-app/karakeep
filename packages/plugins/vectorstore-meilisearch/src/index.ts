@@ -110,7 +110,7 @@ async function configureVectorIndex(
         console.warn(
           `[meilisearch-vector] Failed to configure embedders (${Object.keys(updates).join(", ")}): ${task.error.message}. ` +
             `Similar articles keep working against the search-profile vectors; ` +
-            `to switch them to the lean format, run \`karakeep admin regenerate-embeddings --status all\` ` +
+            `to switch them to the lean format, run \`karakeep admin jobs regenerate-embeddings --status all\` ` +
             `(it empties the index first, after which the embedder is added and the embeddings are regenerated).`,
         );
       }

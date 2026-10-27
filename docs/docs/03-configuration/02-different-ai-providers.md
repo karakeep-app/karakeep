@@ -187,7 +187,7 @@ EMBEDDING_ENABLE_AUTO_INDEXING=true
 Note: Embeddings from different models are not compatible with each other. If you're to ever change the embedding model or the number of dimensions, you'll need to regenerate embeddings for *all* of your bookmarks. The same applies when upgrading to this release: existing bookmarks keep their previously generated vectors, which remain usable. To rebuild all vectors with the current format, run the admin regeneration when it's convenient for you:
 
 ```
-karakeep admin regenerate-embeddings --status all
+karakeep admin jobs regenerate-embeddings --status all
 ```
 
 The CLI can also regenerate embeddings selectively (`--status failure` / `--status pending`, optionally limited to bookmarks modified within a duration, e.g. `--modified-within 24h`).
