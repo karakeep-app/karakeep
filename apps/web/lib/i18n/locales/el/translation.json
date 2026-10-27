@@ -1470,7 +1470,8 @@
     "continue_reading_percent": "Συνεχίστε από εκεί που σταματήσατε ({{percent}}%)",
     "continue_button": "Συνεχίστε",
     "similar_articles": "Παρόμοια άρθρα",
-    "similar_articles_show_all": "Εμφάνιση όλων"
+    "similar_articles_show_all": "Εμφάνιση όλων",
+    "similar_articles_show_less": "Εμφάνιση λιγότερων"
   },
   "editor": {
     "multiple_urls_dialog_title": "Εισαγωγή των URL ως ξεχωριστών σελιδοδεικτών;",

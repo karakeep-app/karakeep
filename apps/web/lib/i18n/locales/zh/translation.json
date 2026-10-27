@@ -1368,7 +1368,8 @@
     "continue_reading_percent": "从上次结束的地方继续（{{percent}}%）",
     "continue_button": "继续",
     "similar_articles": "相似文章",
-    "similar_articles_show_all": "显示全部"
+    "similar_articles_show_all": "显示全部",
+    "similar_articles_show_less": "收起"
   },
   "editor": {
     "multiple_urls_dialog_title": "将 URL 导入为单独的书签？",

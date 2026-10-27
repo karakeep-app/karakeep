@@ -1519,7 +1519,8 @@
     "continue_reading_percent": "Fortsätt där du slutade ({{percent}} %)",
     "continue_button": "Fortsätt",
     "similar_articles": "Liknande artiklar",
-    "similar_articles_show_all": "Visa alla"
+    "similar_articles_show_all": "Visa alla",
+    "similar_articles_show_less": "Visa färre"
   },
   "dialogs": {
     "bookmarks": {

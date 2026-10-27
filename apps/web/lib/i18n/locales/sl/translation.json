@@ -1650,7 +1650,8 @@
     "continue_reading_percent": "Nadaljuj, kjer si končal ({{percent}} %)",
     "continue_button": "Nadaljuj",
     "similar_articles": "Podobni članki",
-    "similar_articles_show_all": "Prikaži vse"
+    "similar_articles_show_all": "Prikaži vse",
+    "similar_articles_show_less": "Prikaži manj"
   },
   "highlights": {
     "no_highlights": "Še nimaš nobenih poudarkov.",

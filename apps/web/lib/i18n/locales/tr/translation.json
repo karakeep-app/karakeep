@@ -1397,7 +1397,8 @@
     "continue_reading_percent": "Kaldığınız yerden devam edin ({{percent}}%)",
     "continue_button": "Devam et",
     "similar_articles": "Benzer makaleler",
-    "similar_articles_show_all": "Tümünü göster"
+    "similar_articles_show_all": "Tümünü göster",
+    "similar_articles_show_less": "Daha az göster"
   },
   "editor": {
     "multiple_urls_dialog_title": "URL'ler ayrı yer işaretleri olarak mı içe aktarılsın?",

@@ -1611,7 +1611,8 @@
     "continue_reading_percent": "Tiếp tục từ chỗ bạn đã dừng lại ({{percent}}%)",
     "continue_button": "Tiếp tục",
     "similar_articles": "Bài viết tương tự",
-    "similar_articles_show_all": "Hiển thị tất cả"
+    "similar_articles_show_all": "Hiển thị tất cả",
+    "similar_articles_show_less": "Hiển thị ít hơn"
   },
   "bookmark_editor": {
     "title": "Sửa chi tiết",

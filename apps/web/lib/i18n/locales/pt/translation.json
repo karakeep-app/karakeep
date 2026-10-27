@@ -1460,7 +1460,8 @@
     "continue_reading_percent": "Continuar de onde parou ({{percent}}%)",
     "continue_button": "Continuar",
     "similar_articles": "Artigos semelhantes",
-    "similar_articles_show_all": "Mostrar tudo"
+    "similar_articles_show_all": "Mostrar tudo",
+    "similar_articles_show_less": "Mostrar menos"
   },
   "editor": {
     "new_item": "Novo marcador",

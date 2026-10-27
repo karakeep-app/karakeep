@@ -1526,7 +1526,8 @@
     "continue_reading_percent": "استمر من حيث توقفت ({{percent}}%)",
     "continue_button": "استمر",
     "similar_articles": "مقالات مشابهة",
-    "similar_articles_show_all": "عرض الكل"
+    "similar_articles_show_all": "عرض الكل",
+    "similar_articles_show_less": "عرض أقل"
   },
   "editor": {
     "multiple_urls_dialog_title": "استيراد الروابط كإشارات مرجعية منفصلة؟",

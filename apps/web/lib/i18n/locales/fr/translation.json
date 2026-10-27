@@ -1393,7 +1393,8 @@
     "continue_reading_percent": "Continuez là où vous vous êtes arrêté ({{percent}} %)",
     "continue_button": "Continuer",
     "similar_articles": "Articles similaires",
-    "similar_articles_show_all": "Tout afficher"
+    "similar_articles_show_all": "Tout afficher",
+    "similar_articles_show_less": "Afficher moins"
   },
   "editor": {
     "multiple_urls_dialog_title": "Importer les URL comme marque-pages séparés ?",

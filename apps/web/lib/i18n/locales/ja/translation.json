@@ -1441,7 +1441,8 @@
     "continue_reading_percent": "続きから再開（{{percent}}%）",
     "continue_button": "続ける",
     "similar_articles": "類似記事",
-    "similar_articles_show_all": "すべて表示"
+    "similar_articles_show_all": "すべて表示",
+    "similar_articles_show_less": "表示を減らす"
   },
   "editor": {
     "multiple_urls_dialog_title": "URLを個別のブックマークとしてインポートしますか？",
