@@ -126,6 +126,8 @@ describe("Subscription Routes", () => {
         hasActiveSubscription: false,
         paymentFailed: false,
         cancelAtPeriodEnd: false,
+        provider: null,
+        store: null,
       });
     });
 
@@ -165,6 +167,8 @@ describe("Subscription Routes", () => {
         hasActiveSubscription: true,
         paymentFailed: false,
         cancelAtPeriodEnd: true,
+        provider: "stripe",
+        store: null,
       });
     });
 
@@ -221,6 +225,8 @@ describe("Subscription Routes", () => {
         hasActiveSubscription: false,
         paymentFailed: false,
         cancelAtPeriodEnd: false,
+        provider: null,
+        store: null,
       });
     });
 

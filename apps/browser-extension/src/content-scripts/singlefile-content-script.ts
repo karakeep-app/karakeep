@@ -10,29 +10,28 @@ declare global {
   }
 }
 
-if (window.__karakeepSingleFileLoaded__) {
-  // Already registered in this page context — don't re-register listeners.
-  // Using `throw` short-circuits re-injection cleanly.
-  throw new Error("karakeep singlefile content script already loaded");
+// Re-injecting into a page that already has the script must be a no-op, so
+// listeners aren't registered twice.
+if (!window.__karakeepSingleFileLoaded__) {
+  window.__karakeepSingleFileLoaded__ = true;
+
+  init({});
+
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (message.type === "CAPTURE_PAGE") {
+      captureCurrentPage({ blockImages: message.blockImages === true })
+        .then((html) => sendResponse({ success: true, html }))
+        .catch((error) =>
+          sendResponse({
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
+      // Return true to indicate we'll send a response asynchronously
+      return true;
+    }
+  });
 }
-window.__karakeepSingleFileLoaded__ = true;
-
-init({});
-
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type === "CAPTURE_PAGE") {
-    captureCurrentPage({ blockImages: message.blockImages === true })
-      .then((html) => sendResponse({ success: true, html }))
-      .catch((error) =>
-        sendResponse({
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
-    // Return true to indicate we'll send a response asynchronously
-    return true;
-  }
-});
 
 async function captureCurrentPage(opts: {
   blockImages: boolean;

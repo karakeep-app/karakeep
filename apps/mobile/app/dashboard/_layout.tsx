@@ -334,6 +334,15 @@ export default function Dashboard() {
         }}
       />
       <Stack.Screen
+        name="settings/subscription"
+        options={{
+          ...settingsScreenOptions,
+          title: "Subscription",
+          headerTitle: "Subscription",
+          headerBackTitle: "Back",
+        }}
+      />
+      <Stack.Screen
         name="settings/usage"
         options={{
           ...settingsScreenOptions,

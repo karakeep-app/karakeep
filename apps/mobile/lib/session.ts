@@ -7,6 +7,7 @@ import { clearPersistedCache } from "./offlineCache";
 import { clearOfflineDownloadStorage } from "./offlineDownloadPrefs";
 import { clearOfflineLibrary } from "./offlineLibrary";
 import { resetOfflineDownloads } from "./offlineSync";
+import { resetPurchasesUser } from "./purchases";
 import useAppSettings from "./settings";
 
 export function useSession() {
@@ -18,7 +19,10 @@ export function useSession() {
     api.apiKeys.revoke.mutationOptions(),
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Finish signing out of RevenueCat before the next user can sign in, so
+    // a late reset can't log out the next user's purchases identity.
+    await resetPurchasesUser();
     if (settings.apiKeyId) {
       deleteKey({ id: settings.apiKeyId });
     }
