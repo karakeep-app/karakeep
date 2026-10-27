@@ -25,6 +25,7 @@ import { useTranslation } from "@/lib/i18n/client";
 import { canGoBackInApp, cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
+import { useQueryState } from "nuqs";
 import {
   Bookmark,
   Building,
@@ -49,6 +50,7 @@ import {
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import SummarizeBookmarkArea from "../bookmarks/SummarizeBookmarkArea";
+
 import ActionBar from "./ActionBar";
 import type { PreviewViewState } from "./PreviewDialogContext";
 import type { PreviewNavigation } from "./usePreviewNavigation";
@@ -60,6 +62,7 @@ import { BookmarkListsField } from "./BookmarkListsField";
 import HighlightsBox from "./HighlightsBox";
 import { ICON_CONTROL_CLASS, IconTooltip } from "./IconControl";
 import LinkContentSection, {
+  getDefaultLinkSection,
   SECTIONS_WITH_TITLE,
   useLinkSection,
 } from "./LinkContentSection";
@@ -432,6 +435,16 @@ export default function BookmarkPreview({
     ),
   );
 
+  // The effective content section for link bookmarks (only relevant there).
+  // The reader section renders the similar-articles box in-content, so the
+  // sidebar box is hidden in that case to avoid showing the carousel twice.
+  const [linkSection] = useQueryState("section", {
+    defaultValue:
+      bookmark && bookmark.content.type === BookmarkTypes.LINK
+        ? getDefaultLinkSection(bookmark)
+        : "not-a-link",
+  });
+
   if (!bookmark) {
     return error ? (
       <div className="flex h-full items-center justify-center bg-card p-4">
@@ -448,6 +461,12 @@ export default function BookmarkPreview({
 
   // Check if the current user owns this bookmark
   const isOwner = session?.user?.id === bookmark.userId;
+
+  // The reader section renders the similar-articles box in-content, so the
+  // sidebar box is hidden in that case to avoid showing the carousel twice.
+  const showSidebarSimilarBookmarks =
+    bookmark.content.type !== BookmarkTypes.LINK || linkSection !== "cached";
+
   const sourceUrl = getSourceUrl(bookmark);
   const hasViewControls =
     !!sourceUrl || bookmark.content.type !== BookmarkTypes.TEXT;
@@ -532,11 +551,13 @@ export default function BookmarkPreview({
       <Separator />
       <NoteEditor key={bookmark.id} bookmark={bookmark} disabled={!isOwner} />
       <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
-      <SimilarBookmarksBox
-        bookmarkId={bookmark.id}
-        isOwner={isOwner}
-        variant="sidebar"
-      />
+      {showSidebarSimilarBookmarks && (
+        <SimilarBookmarksBox
+          bookmarkId={bookmark.id}
+          isOwner={isOwner}
+          variant="sidebar"
+        />
+      )}
       <Separator />
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
     </div>
