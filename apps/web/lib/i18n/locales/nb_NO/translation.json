@@ -1609,7 +1609,8 @@
     "continue_reading": "Fortsett der du slapp",
     "continue_reading_percent": "Fortsett der du slapp ({{percent}} %)",
     "continue_button": "Fortsett",
-    "similar_articles": "Lignende artikler"
+    "similar_articles": "Lignende artikler",
+    "similar_articles_show_all": "Vis alle"
   },
   "dialogs": {
     "bookmarks": {

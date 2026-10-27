@@ -351,7 +351,8 @@
     "continue_reading": "이어서 읽기",
     "continue_reading_percent": "이어서 읽기 ({{percent}}%)",
     "continue_button": "계속",
-    "similar_articles": "비슷한 글"
+    "similar_articles": "비슷한 글",
+    "similar_articles_show_all": "전체 보기"
   },
   "editor": {
     "multiple_urls_dialog_title": "URL을 별도의 북마크로 가져올까요?",

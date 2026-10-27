@@ -1649,7 +1649,8 @@
     "continue_reading": "Nadaljuj, kjer si končal",
     "continue_reading_percent": "Nadaljuj, kjer si končal ({{percent}} %)",
     "continue_button": "Nadaljuj",
-    "similar_articles": "Podobni članki"
+    "similar_articles": "Podobni članki",
+    "similar_articles_show_all": "Prikaži vse"
   },
   "highlights": {
     "no_highlights": "Še nimaš nobenih poudarkov.",

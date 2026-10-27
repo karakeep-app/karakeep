@@ -1378,7 +1378,8 @@
     "continue_reading": "Da weitermachen, wo du aufgehört hast",
     "continue_reading_percent": "Da weitermachen, wo du aufgehört hast ({{percent}}%)",
     "continue_button": "Weiter",
-    "similar_articles": "Ähnliche Artikel"
+    "similar_articles": "Ähnliche Artikel",
+    "similar_articles_show_all": "Alle anzeigen"
   },
   "editor": {
     "multiple_urls_dialog_title": "URLs als separate Lesezeichen importieren?",

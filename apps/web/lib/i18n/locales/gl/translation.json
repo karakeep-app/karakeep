@@ -1470,7 +1470,8 @@
     "continue_reading": "Continúa onde o deixaches",
     "continue_reading_percent": "Continúa onde o deixaches ({{percent}}%)",
     "continue_button": "Continúa",
-    "similar_articles": "Artigos similares"
+    "similar_articles": "Artigos similares",
+    "similar_articles_show_all": "Amosar todo"
   },
   "editor": {
     "multiple_urls_dialog_title": "Importar os URL como marcadores separados?",

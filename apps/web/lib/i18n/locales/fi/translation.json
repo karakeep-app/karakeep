@@ -1469,7 +1469,8 @@
     "continue_reading": "Jatka siitä, mihin jäit",
     "continue_reading_percent": "Jatka siitä, mihin jäit ({{percent}} %)",
     "continue_button": "Jatka",
-    "similar_articles": "Samankaltaiset artikkelit"
+    "similar_articles": "Samankaltaiset artikkelit",
+    "similar_articles_show_all": "Näytä kaikki"
   },
   "editor": {
     "multiple_urls_dialog_title": "Tuodaanko URL-osoitteet erillisinä kirjanmerkkeinä?",

@@ -1517,7 +1517,8 @@
     "continue_reading": "Folytasd, ahol abbahagytad",
     "continue_reading_percent": "Folytasd, ahol abbahagytad ({{percent}}%)",
     "continue_button": "Folytatás",
-    "similar_articles": "Hasonló cikkek"
+    "similar_articles": "Hasonló cikkek",
+    "similar_articles_show_all": "Összes megjelenítése"
   },
   "dialogs": {
     "bookmarks": {

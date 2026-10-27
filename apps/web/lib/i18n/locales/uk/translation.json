@@ -1088,7 +1088,8 @@
     "continue_reading": "Продовжити з місця, де зупинилися",
     "continue_reading_percent": "Продовжити з місця, де зупинились ({{percent}}%)",
     "continue_button": "Продовжити",
-    "similar_articles": "Схожі статті"
+    "similar_articles": "Схожі статті",
+    "similar_articles_show_all": "Показати все"
   },
   "layouts": {
     "masonry": "Кам'яна кладка",

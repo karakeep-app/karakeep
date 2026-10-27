@@ -1444,7 +1444,8 @@
     "continue_reading": "Fortsæt, hvor du slap",
     "continue_reading_percent": "Fortsæt, hvor du slap ({{percent}}%)",
     "continue_button": "Fortsæt",
-    "similar_articles": "Lignende artikler"
+    "similar_articles": "Lignende artikler",
+    "similar_articles_show_all": "Vis alle"
   },
   "toasts": {
     "highlights": {

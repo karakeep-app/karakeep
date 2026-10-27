@@ -1645,7 +1645,8 @@
     "continue_reading": "Lean ar aghaidh ón áit ar stop tú",
     "continue_reading_percent": "Lean ar aghaidh ón áit ar stop tú ({{percent}}%)",
     "continue_button": "Lean ar aghaidh",
-    "similar_articles": "Ailt chosúla"
+    "similar_articles": "Ailt chosúla",
+    "similar_articles_show_all": "Taispeáin uile"
   },
   "dialogs": {
     "bookmarks": {

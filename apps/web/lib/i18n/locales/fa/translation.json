@@ -1469,7 +1469,8 @@
     "continue_reading": "ادامه از جایی که متوقف شدید",
     "continue_reading_percent": "ادامه از جایی که متوقف شدید ({{percent}}%)",
     "continue_button": "ادامه",
-    "similar_articles": "مقالات مشابه"
+    "similar_articles": "مقالات مشابه",
+    "similar_articles_show_all": "نمایش همه"
   },
   "editor": {
     "multiple_urls_dialog_title": "آدرس‌ها به‌عنوان نشانک‌های جداگانه درون‌ریزی شوند؟",
