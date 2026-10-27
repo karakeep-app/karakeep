@@ -43,6 +43,90 @@ function filterToMeiliSearchFilter(filter: VectorFilterQuery): string {
   }
 }
 
+/**
+ * Configures the vector index (filterable attributes + embedders) and returns
+ * whether the lean `similar` embedder ended up configured. Similar-document
+ * lookups use it when available and fall back to the search-profile embedder
+ * otherwise (upgrade path: existing documents predate the split).
+ */
+async function configureVectorIndex(
+  meiliClient: Meilisearch,
+  index: Index<MeiliVectorDocument>,
+): Promise<boolean> {
+  const desiredFilterableAttributes = ["id", "userId"].sort();
+
+  const settings = await index.getSettings();
+
+  // Configure filterable attributes
+  if (
+    JSON.stringify(settings.filterableAttributes?.sort()) !==
+    JSON.stringify(desiredFilterableAttributes)
+  ) {
+    console.log(
+      `[meilisearch-vector] Updating filterable attributes to ${desiredFilterableAttributes} from ${settings.filterableAttributes}`,
+    );
+    const taskId = await index.updateFilterableAttributes(
+      desiredFilterableAttributes,
+    );
+    await meiliClient.tasks.waitForTask(taskId.taskUid);
+  }
+
+  // Configure embedders for vector search. Both embedders are userProvided
+  // since we generate embeddings ourselves: `default` for the rich search
+  // profile, `similar` for the lean similar-articles text.
+  const currentEmbedders = settings.embedders;
+  const desiredDimensions = serverConfig.embedding.dimensions;
+  const desiredEmbedders = {
+    default: {
+      source: "userProvided" as const,
+      dimensions: desiredDimensions,
+    },
+    similar: {
+      source: "userProvided" as const,
+      dimensions: desiredDimensions,
+    },
+  };
+  const updates = Object.fromEntries(
+    Object.entries(desiredEmbedders).filter(([name, desired]) => {
+      const current = currentEmbedders?.[name];
+      return (
+        !current ||
+        current.source != "userProvided" ||
+        current.dimensions !== desired.dimensions
+      );
+    }),
+  );
+  if (Object.keys(updates).length > 0) {
+    console.log(
+      `[meilisearch-vector] Configuring user-provided embedders: ${Object.keys(updates).join(", ")}`,
+    );
+    try {
+      // waitForTask resolves even for failed tasks; check the outcome
+      // explicitly. Adding a userProvided embedder fails when existing
+      // documents don't provide vectors for it yet.
+      const taskId = await index.updateEmbedders(updates);
+      const task = await meiliClient.tasks.waitForTask(taskId.taskUid);
+      if (task.error) {
+        console.warn(
+          `[meilisearch-vector] Failed to configure embedders (${Object.keys(updates).join(", ")}): ${task.error.message}. ` +
+            `Similar articles keep working against the search-profile vectors; ` +
+            `to switch them to the lean format, run \`karakeep admin regenerate-embeddings --status all\` ` +
+            `(it empties the index first, after which the embedder is added and the embeddings are regenerated).`,
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `[meilisearch-vector] Failed to enqueue the embedder update (${Object.keys(updates).join(", ")}). Vector search may not work: ${error}`,
+      );
+    }
+  }
+
+  // Re-check the settings after any update; the task outcomes above don't
+  // tell us reliably whether the embedder ended up configured.
+  const embedders = (await index.getSettings()).embedders;
+  return embedders?.similar?.source === "userProvided";
+}
+
 class MeiliSearchVectorClient implements VectorStoreClient {
   private batchQueue: BatchingDocumentQueue<MeiliVectorDocument>;
 
@@ -52,6 +136,11 @@ class MeiliSearchVectorClient implements VectorStoreClient {
     jobTimeoutSec: number,
     batchSize: number,
     batchTimeoutMs: number,
+    // The embedder used for similar-document lookups. "similar" when the
+    // index has the lean similar-articles embedder configured; "default"
+    // (the rich search profile) as a fallback for indexes whose documents
+    // predate the split, so similar articles keep working there.
+    private similarEmbedder: string,
   ) {
     this.batchQueue = new BatchingDocumentQueue(
       index,
@@ -114,7 +203,7 @@ class MeiliSearchVectorClient implements VectorStoreClient {
       offset: options.offset,
       attributesToRetrieve: ["id"],
       showRankingScore: true,
-      embedder: "similar",
+      embedder: this.similarEmbedder,
       rankingScoreThreshold: options.rankingScoreThreshold,
     });
 
@@ -130,6 +219,10 @@ class MeiliSearchVectorClient implements VectorStoreClient {
   async clearIndex(): Promise<void> {
     const task = await this.index.deleteAllDocuments();
     await this.ensureTaskSuccess(task.taskUid);
+    // The index is empty now, so a `similar` embedder that couldn't be
+    // configured before (documents without lean vectors) can be added here.
+    // This makes the "regenerate embeddings" remediation self-contained.
+    await configureVectorIndex(this.client, this.index);
   }
 
   private async ensureTaskSuccess(taskUid: number): Promise<void> {
@@ -232,74 +325,21 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
       );
     }
 
-    await this.configureIndex(indexFound);
+    const similarEmbedderAvailable = await configureVectorIndex(
+      this.client,
+      indexFound,
+    );
     this.vectorClient = new MeiliSearchVectorClient(
       indexFound,
       this.client,
       serverConfig.embedding.jobTimeoutSec,
       envConfig.MEILI_BATCH_SIZE,
       envConfig.MEILI_BATCH_TIMEOUT_MS,
+      // Use the lean similar-articles embedder when it's configured; fall
+      // back to the search-profile embedder for indexes whose documents
+      // predate the split (upgrade path).
+      similarEmbedderAvailable ? "similar" : "default",
     );
     return this.vectorClient;
-  }
-
-  private async configureIndex(
-    index: Index<MeiliVectorDocument>,
-  ): Promise<void> {
-    const desiredFilterableAttributes = ["id", "userId"].sort();
-
-    const settings = await index.getSettings();
-
-    // Configure filterable attributes
-    if (
-      JSON.stringify(settings.filterableAttributes?.sort()) !==
-      JSON.stringify(desiredFilterableAttributes)
-    ) {
-      console.log(
-        `[meilisearch-vector] Updating filterable attributes to ${desiredFilterableAttributes} from ${settings.filterableAttributes}`,
-      );
-      const taskId = await index.updateFilterableAttributes(
-        desiredFilterableAttributes,
-      );
-      await this.client!.tasks.waitForTask(taskId.taskUid);
-    }
-
-    // Configure embedders for vector search. Both embedders are userProvided
-    // since we generate embeddings ourselves: `default` for the rich search
-    // profile, `similar` for the lean similar-articles text.
-    const currentEmbedders = settings.embedders;
-    const desiredDimensions = serverConfig.embedding.dimensions;
-    const desiredEmbedders = {
-      default: {
-        source: "userProvided" as const,
-        dimensions: desiredDimensions,
-      },
-      similar: {
-        source: "userProvided" as const,
-        dimensions: desiredDimensions,
-      },
-    };
-    const updates = Object.fromEntries(
-      Object.entries(desiredEmbedders).filter(([name, desired]) => {
-        const current = currentEmbedders?.[name];
-        return (
-          !current ||
-          current.source != "userProvided" ||
-          current.dimensions !== desired.dimensions
-        );
-      }),
-    );
-    if (Object.keys(updates).length > 0) {
-      console.log(
-        `[meilisearch-vector] Configuring user-provided embedders: ${Object.keys(updates).join(", ")}`,
-      );
-      try {
-        await index.updateEmbedders(updates).waitTask();
-      } catch (error) {
-        console.warn(
-          `[meilisearch-vector] Failed to configure embedders. Vector search may not work: ${error}`,
-        );
-      }
-    }
   }
 }
