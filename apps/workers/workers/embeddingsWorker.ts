@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import type { ZEmbeddingsRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -79,6 +79,36 @@ export class EmbeddingsWorker {
   }
 }
 
+/**
+ * Pure decision for how a job outcome updates the bookmark's embedding
+ * status, which tracks whether a usable vector is indexed:
+ *
+ * - "success" is only confirmed by a completed index job. It is never
+ *   downgraded: when a later embed (e.g. an embedding refresh after an edit)
+ *   fails permanently, the previously indexed — possibly stale — vector
+ *   remains usable for similarity results.
+ * - "failure" means vector generation or persistence permanently failed while
+ *   no usable vector is known to exist, so it only applies to bookmarks that
+ *   are still "pending". Those are picked up again by the admin
+ *   "regenerate embeddings (status: failure)" action.
+ */
+export function embeddingStatusUpdate(
+  request: ZEmbeddingsRequest,
+  status: "success" | "failure",
+): { value: "success" | "failure"; onlyWhenPending: boolean } | null {
+  if (status === "success") {
+    // Only a completed index job confirms that a vector is persisted.
+    return request.type === "index"
+      ? { value: "success", onlyWhenPending: false }
+      : null;
+  }
+  // Delete jobs don't track a status, and failures must not downgrade
+  // bookmarks that already have a usable (indexed) vector.
+  return request.type === "delete"
+    ? null
+    : { value: "failure", onlyWhenPending: true };
+}
+
 async function attemptMarkEmbeddingStatus(
   jobData: object | undefined,
   status: "success" | "failure",
@@ -88,16 +118,21 @@ async function attemptMarkEmbeddingStatus(
   }
   try {
     const request = zEmbeddingsRequestSchema.parse(jobData);
-    if (
-      request.type !== "index" &&
-      !(request.type === "embed" && status === "failure")
-    ) {
+    const update = embeddingStatusUpdate(request, status);
+    if (!update) {
       return;
     }
     await db
       .update(bookmarks)
-      .set({ embeddingStatus: status })
-      .where(eq(bookmarks.id, request.bookmarkId));
+      .set({ embeddingStatus: update.value })
+      .where(
+        update.onlyWhenPending
+          ? and(
+              eq(bookmarks.id, request.bookmarkId),
+              eq(bookmarks.embeddingStatus, "pending"),
+            )
+          : eq(bookmarks.id, request.bookmarkId),
+      );
   } catch (e) {
     logger.error(
       `Something went wrong when marking the embedding status: ${e}`,
@@ -474,7 +509,7 @@ function fingerprint(text: string): string {
 
 type EmbedRequest = Extract<ZEmbeddingsRequest, { type: "embed" }>;
 
-async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
+export async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
   const jobId = job.id;
   const data = job.data;
   const bookmarkId = data.bookmarkId;
