@@ -15,7 +15,7 @@ import LoadingSpinner from "@/components/ui/spinner";
 import { ASSET_TYPE_TO_ICON } from "@/lib/attachments";
 import useUpload from "@/lib/hooks/upload-file";
 import { useTranslation } from "@/lib/i18n/client";
-import { cn } from "@/lib/utils";
+import { cn, formatBytes } from "@/lib/utils";
 import {
   ChevronRight,
   Download,
@@ -296,7 +296,12 @@ export default function AttachmentBox({
                 {attachmentName(t, asset)}
               </p>
             </Link>
-            <div className="flex shrink-0 gap-0.5">
+            <div className="flex shrink-0 items-center gap-0.5">
+              {asset.size != null && (
+                <span className="mr-1 whitespace-nowrap text-xs tabular-nums text-muted-foreground">
+                  {formatBytes(asset.size)}
+                </span>
+              )}
               <IconTooltip label={t("actions.download")}>
                 <Link
                   aria-label={t("actions.download")}

@@ -465,6 +465,10 @@
                 "fileName": {
                   "type": "string",
                   "nullable": true
+                },
+                "size": {
+                  "type": "number",
+                  "nullable": true
                 }
               },
               "required": [
@@ -2472,6 +2476,10 @@
                     },
                     "fileName": {
                       "type": "string",
+                      "nullable": true
+                    },
+                    "size": {
+                      "type": "number",
                       "nullable": true
                     }
                   },
