@@ -264,4 +264,30 @@ describe("getSimilarBookmarks", () => {
     ).rejects.toMatchObject({ code: "NOT_FOUND" });
     expect(similarMocks.findSimilar).not.toHaveBeenCalled();
   });
+
+  test<CustomTestContext>("filters out other users' bookmarks even if the vector store returns them", async (context) => {
+    const { apiCallers } = context;
+    const source = await createEmbeddedBookmark(context, "source");
+    const visible = await createEmbeddedBookmark(context, "visible");
+    // Owned by another user; a misbehaving vector store (e.g. missing
+    // userId filter) could still return it.
+    const foreign = await createTextBookmark(context, "foreign", 1);
+    await markEmbedded(context, foreign.id);
+    similarMocks.findSimilar.mockResolvedValue({
+      hits: [
+        { id: foreign.id, score: 0.99 },
+        { id: visible.id, score: 0.9 },
+      ],
+      processingTimeMs: 1,
+    });
+
+    const result = await apiCallers[0].bookmarks.getSimilarBookmarks({
+      bookmarkId: source.id,
+    });
+
+    expect(result.bookmarks.map((bookmark) => bookmark.id)).toEqual([
+      visible.id,
+    ]);
+    expect(result.nextCursor).toBeNull();
+  });
 });

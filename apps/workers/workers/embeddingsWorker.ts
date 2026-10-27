@@ -27,6 +27,7 @@ import { workerStatsCounter } from "../metrics";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 const MAX_EMBEDDING_CONTENT_EXCERPT_LENGTH = 3000;
+const MAX_EMBEDDING_METADATA_LENGTH = 800;
 
 export class EmbeddingsWorker {
   static async build() {
@@ -153,6 +154,11 @@ async function fetchBookmark(bookmarkId: string) {
       link: true,
       text: true,
       asset: true,
+      tagsOnBookmarks: {
+        with: {
+          tag: true,
+        },
+      },
     },
   });
 }
@@ -184,6 +190,75 @@ function appendEmbeddingField(
   }
 }
 
+function hostnameFromUrl(url: string | null | undefined) {
+  if (!url) {
+    return null;
+  }
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function urlForEmbedding(url: string | null | undefined) {
+  if (!url) {
+    return null;
+  }
+  try {
+    const parsed = new URL(url);
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch {
+    return normalizeEmbeddingText(url);
+  }
+}
+
+function metadataForEmbedding(metadata: string | null | undefined) {
+  const normalized = normalizeEmbeddingText(metadata);
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(normalized) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const fields: string[] = [];
+      for (const [key, value] of Object.entries(parsed)) {
+        if (
+          typeof value === "string" ||
+          typeof value === "number" ||
+          typeof value === "boolean"
+        ) {
+          fields.push(`${key}: ${value}`);
+        }
+      }
+      if (fields.length > 0) {
+        return truncateText(fields.join("; "), MAX_EMBEDDING_METADATA_LENGTH);
+      }
+    }
+  } catch {
+    // Fall back to the raw metadata string.
+  }
+
+  return truncateText(normalized, MAX_EMBEDDING_METADATA_LENGTH);
+}
+
+function appendProfileField(parts: string[], label: string, value: unknown) {
+  if (value instanceof Date) {
+    parts.push(`${label}: ${value.toISOString().slice(0, 10)}`);
+    return;
+  }
+  if (typeof value !== "string") {
+    return;
+  }
+  const normalized = normalizeEmbeddingText(value);
+  if (normalized) {
+    parts.push(`${label}: ${normalized}`);
+  }
+}
+
 function contentBudget(maxTextLength: number) {
   return Math.max(
     500,
@@ -194,8 +269,13 @@ function contentBudget(maxTextLength: number) {
   );
 }
 
+export interface EmbeddingTexts {
+  search: string | null;
+  similar: string | null;
+}
+
 /**
- * Builds the text that gets embedded for a bookmark.
+ * Builds the lean text that gets embedded for similar-article lookups.
  *
  * - When a summary exists, similarity is based on `Title` + `Summary`. The
  *   summary is the distilled signal, so URL/metadata/tags are intentionally
@@ -203,7 +283,7 @@ function contentBudget(maxTextLength: number) {
  * - Before a summary exists (or for bookmark types that aren't summarized),
  *   fall back to `Title` + the readable `Content excerpt`.
  */
-export async function buildEmbeddingText(
+export async function buildSimilarEmbeddingText(
   bookmark: EmbeddableBookmark,
 ): Promise<string | null> {
   const parts: string[] = [];
@@ -219,17 +299,7 @@ export async function buildEmbeddingText(
   if (summary) {
     parts.push(`Summary: ${summary}`);
   } else {
-    let rawContent: string | null = null;
-    if (bookmark.link) {
-      rawContent = await Bookmark.getBookmarkPlainTextContent(
-        bookmark.link,
-        bookmark.userId,
-      );
-    } else if (bookmark.text) {
-      rawContent = bookmark.text.text;
-    } else if (bookmark.asset) {
-      rawContent = bookmark.asset.content;
-    }
+    const rawContent = await getRawContent(bookmark);
 
     const normalizedContent = normalizeEmbeddingText(rawContent);
     if (normalizedContent) {
@@ -246,7 +316,125 @@ export async function buildEmbeddingText(
     return null;
   }
 
-  const fullText = parts.join("\n\n");
+  return truncateToContextLength(parts.join("\n\n"));
+}
+
+/**
+ * Builds the rich search-profile text that gets embedded for semantic search
+ * and tag suggestions. Deliberately much broader than the similar-articles
+ * text: those two features need to match on tags, domains, notes, and
+ * metadata — which would only add noise to similarity ranking.
+ */
+export async function buildSearchEmbeddingText(
+  bookmark: EmbeddableBookmark,
+): Promise<string | null> {
+  const parts: string[] = [];
+
+  appendProfileField(parts, "Title", bookmark.title);
+  parts.push(`Type: ${bookmark.type}`);
+
+  const tags = bookmark.tagsOnBookmarks.map((t) => t.tag.name).sort();
+  if (tags.length > 0) {
+    parts.push(`Tags: ${tags.join(", ")}`);
+  }
+
+  appendProfileField(parts, "Summary", bookmark.summary);
+  appendProfileField(parts, "Note", bookmark.note);
+
+  if (bookmark.link) {
+    appendProfileField(parts, "Domain", hostnameFromUrl(bookmark.link.url));
+    appendProfileField(parts, "URL", urlForEmbedding(bookmark.link.url));
+    if (
+      bookmark.link.title &&
+      normalizeEmbeddingText(bookmark.link.title) !==
+        normalizeEmbeddingText(bookmark.title)
+    ) {
+      appendProfileField(parts, "Page title", bookmark.link.title);
+    }
+    appendProfileField(parts, "Description", bookmark.link.description);
+    appendProfileField(parts, "Author", bookmark.link.author);
+    appendProfileField(parts, "Publisher", bookmark.link.publisher);
+    appendProfileField(parts, "Published", bookmark.link.datePublished);
+  } else if (bookmark.text) {
+    appendProfileField(
+      parts,
+      "Source URL",
+      urlForEmbedding(bookmark.text.sourceUrl),
+    );
+    appendProfileField(
+      parts,
+      "Source domain",
+      hostnameFromUrl(bookmark.text.sourceUrl),
+    );
+  } else if (bookmark.asset) {
+    appendProfileField(
+      parts,
+      "Source URL",
+      urlForEmbedding(bookmark.asset.sourceUrl),
+    );
+    appendProfileField(
+      parts,
+      "Source domain",
+      hostnameFromUrl(bookmark.asset.sourceUrl),
+    );
+    appendProfileField(parts, "File name", bookmark.asset.fileName);
+    appendProfileField(parts, "Asset type", bookmark.asset.assetType);
+    appendProfileField(
+      parts,
+      "Metadata",
+      metadataForEmbedding(bookmark.asset.metadata),
+    );
+  }
+
+  const normalizedContent = normalizeEmbeddingText(
+    await getRawContent(bookmark),
+  );
+  if (normalizedContent) {
+    parts.push(
+      `Content excerpt: ${truncateText(
+        normalizedContent,
+        contentBudget(serverConfig.embedding.contextLength),
+      )}`,
+    );
+  }
+
+  if (parts.length === 0) {
+    return null;
+  }
+
+  return truncateToContextLength(parts.join("\n\n"));
+}
+
+/**
+ * Builds both embedding texts for a bookmark: the lean similar-articles text
+ * and the rich semantic-search profile text.
+ */
+export async function buildEmbeddingTexts(
+  bookmark: EmbeddableBookmark,
+): Promise<EmbeddingTexts> {
+  return {
+    similar: await buildSimilarEmbeddingText(bookmark),
+    search: await buildSearchEmbeddingText(bookmark),
+  };
+}
+
+async function getRawContent(
+  bookmark: EmbeddableBookmark,
+): Promise<string | null> {
+  if (bookmark.link) {
+    return await Bookmark.getBookmarkPlainTextContent(
+      bookmark.link,
+      bookmark.userId,
+    );
+  } else if (bookmark.text) {
+    return bookmark.text.text;
+  } else if (bookmark.asset) {
+    return bookmark.asset.content;
+  }
+  return null;
+}
+
+function truncateToContextLength(fullText: string): string {
   const maxTextLength = serverConfig.embedding.contextLength;
   return fullText.length > maxTextLength
     ? fullText.substring(0, maxTextLength)
@@ -286,11 +474,14 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
       const document: BookmarkVectorDocument = {
         id: bookmarkId,
         userId: data.userId,
-        vector: data.embedding,
+        vectors: {
+          search: data.embedding,
+          similar: data.similarEmbedding ?? null,
+        },
       };
       await vectorStoreClient.addVectors([document]);
       logger.info(
-        `[embeddings][${jobId}] Indexed embedding for bookmark ${bookmarkId} with ${data.embedding.length} dimensions`,
+        `[embeddings][${jobId}] Indexed embedding for bookmark ${bookmarkId} with ${data.embedding.length} dimensions${data.similarEmbedding ? ` (and a ${data.similarEmbedding.length}-dimensional similar-articles vector)` : ""}`,
       );
       return;
     }
@@ -346,8 +537,15 @@ async function runEmbed(
     return;
   }
 
-  const embeddingText = await buildEmbeddingText(bookmark);
-  if (!embeddingText) {
+  const embeddingTexts = await buildEmbeddingTexts(bookmark);
+  const slots = ["search", "similar"] as const;
+  const inputs: string[] = [];
+  for (const slot of slots) {
+    if (embeddingTexts[slot]) {
+      inputs.push(embeddingTexts[slot]!);
+    }
+  }
+  if (inputs.length === 0) {
     logger.info(
       `[embeddings][${jobId}] No content found for bookmark ${bookmarkId}, skipping embedding generation`,
     );
@@ -357,27 +555,33 @@ async function runEmbed(
     return;
   }
 
-  addLogFields<"embeddingsWorker.run">({
-    "embedding.text_size": embeddingText.length,
-  });
-  logger.debug(
-    `[embeddings][${jobId}] Embedding text length: ${embeddingText.length} characters`,
-  );
+  for (const slot of slots) {
+    if (embeddingTexts[slot]) {
+      logger.debug(
+        `[embeddings][${jobId}] Embedding text length (${slot === "search" ? "search profile" : "similar articles"}): ${embeddingTexts[slot]!.length} characters`,
+      );
+    }
+  }
 
-  const embeddingResponse = await embeddingClient.generateEmbeddingFromText([
-    embeddingText,
-  ]);
+  // One inference call generates all requested vectors (one per slot). The
+  // client validates each returned embedding against EMBEDDING_DIMENSIONS.
+  const embeddingResponse =
+    await embeddingClient.generateEmbeddingFromText(inputs);
 
   if (
     !embeddingResponse.embeddings ||
-    embeddingResponse.embeddings.length === 0
+    embeddingResponse.embeddings.length !== inputs.length
   ) {
     throw new Error(
       `[embeddings][${jobId}] No embeddings returned from inference client`,
     );
   }
 
-  const embedding = embeddingResponse.embeddings[0]!;
+  const vectors = Object.fromEntries(
+    slots
+      .filter((slot) => embeddingTexts[slot])
+      .map((slot, i) => [slot, embeddingResponse.embeddings[i]!]),
+  ) as { search: number[]; similar?: number[] };
   addLogFields<"embeddingsWorker.run">({
     "embedding.prompt_tokens": embeddingResponse.promptTokens,
     "embedding.total_tokens": embeddingResponse.totalTokens,
@@ -385,13 +589,15 @@ async function runEmbed(
 
   // Hand off persistence to a separate "index" job whose retries are isolated
   // from tagging, then dispatch tagging last so nothing after it can throw and
-  // cause this run to retry (and double-enqueue tagging).
+  // cause this run to retry (and double-enqueue tagging). Tagging gets the
+  // search-profile vector, matching what semantic search ranks against.
   await EmbeddingsQueue.enqueue(
     {
       type: "index",
       bookmarkId,
       userId: bookmark.userId,
-      embedding,
+      embedding: vectors.search,
+      similarEmbedding: vectors.similar,
     },
     {
       priority: job.priority,
@@ -399,10 +605,15 @@ async function runEmbed(
     },
   );
   if (shouldTag) {
-    await enqueueTagging(bookmarkId, bookmark.userId, job.priority, embedding);
+    await enqueueTagging(
+      bookmarkId,
+      bookmark.userId,
+      job.priority,
+      vectors.search,
+    );
   }
 
   logger.info(
-    `[embeddings][${jobId}] Generated embedding for bookmark ${bookmarkId} with ${embedding.length} dimensions using ${embeddingResponse.totalTokens ?? "unknown"} tokens; dispatched indexing${shouldTag ? " + tagging" : ""}`,
+    `[embeddings][${jobId}] Generated ${inputs.length} embeddings for bookmark ${bookmarkId} (${inputs.map((t) => `${t.length} chars`).join(", ")}) using ${embeddingResponse.totalTokens ?? "unknown"} tokens; dispatched indexing${shouldTag ? " + tagging" : ""}`,
   );
 }

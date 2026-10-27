@@ -15,12 +15,16 @@ import { PluginProvider } from "@karakeep/shared/plugins";
 import { envConfig } from "./env";
 import { BatchingDocumentQueue } from "../../lib/batchingDocumentQueue";
 
-// Meilisearch document type that includes the vector field
+// Meilisearch document type that includes the vector fields. Karakeep computes
+// vectors itself, so both embedders are userProvided: `default` holds the rich
+// search profile used by semantic search and tag suggestions, `similar` holds
+// the lean similar-articles vector.
 interface MeiliVectorDocument {
   id: string;
   userId: string;
   _vectors: {
     default: unknown;
+    similar?: unknown;
   };
 }
 
@@ -63,7 +67,8 @@ class MeiliSearchVectorClient implements VectorStoreClient {
       id: doc.id,
       userId: doc.userId,
       _vectors: {
-        default: doc.vector,
+        default: doc.vectors.search,
+        ...(doc.vectors.similar ? { similar: doc.vectors.similar } : {}),
       },
     }));
 
@@ -109,7 +114,7 @@ class MeiliSearchVectorClient implements VectorStoreClient {
       offset: options.offset,
       attributesToRetrieve: ["id"],
       showRankingScore: true,
-      embedder: "default",
+      embedder: "similar",
       rankingScoreThreshold: options.rankingScoreThreshold,
     });
 
@@ -259,29 +264,40 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
       await this.client!.tasks.waitForTask(taskId.taskUid);
     }
 
-    // Configure embedders for vector search
+    // Configure embedders for vector search. Both embedders are userProvided
+    // since we generate embeddings ourselves: `default` for the rich search
+    // profile, `similar` for the lean similar-articles text.
     const currentEmbedders = settings.embedders;
     const desiredDimensions = serverConfig.embedding.dimensions;
-    const currentEmbedder = currentEmbedders?.default;
-    if (
-      !currentEmbedder ||
-      currentEmbedder.source != "userProvided" ||
-      currentEmbedder.dimensions !== desiredDimensions
-    ) {
-      console.log(`[meilisearch-vector] Configuring user-provided embedder`);
+    const desiredEmbedders = {
+      default: {
+        source: "userProvided" as const,
+        dimensions: desiredDimensions,
+      },
+      similar: {
+        source: "userProvided" as const,
+        dimensions: desiredDimensions,
+      },
+    };
+    const updates = Object.fromEntries(
+      Object.entries(desiredEmbedders).filter(([name, desired]) => {
+        const current = currentEmbedders?.[name];
+        return (
+          !current ||
+          current.source != "userProvided" ||
+          current.dimensions !== desired.dimensions
+        );
+      }),
+    );
+    if (Object.keys(updates).length > 0) {
+      console.log(
+        `[meilisearch-vector] Configuring user-provided embedders: ${Object.keys(updates).join(", ")}`,
+      );
       try {
-        // Use userProvided embedder since we generate embeddings ourselves
-        await index
-          .updateEmbedders({
-            default: {
-              source: "userProvided",
-              dimensions: desiredDimensions,
-            },
-          })
-          .waitTask();
+        await index.updateEmbedders(updates).waitTask();
       } catch (error) {
         console.warn(
-          `[meilisearch-vector] Failed to configure embedder. Vector search may not work: ${error}`,
+          `[meilisearch-vector] Failed to configure embedders. Vector search may not work: ${error}`,
         );
       }
     }

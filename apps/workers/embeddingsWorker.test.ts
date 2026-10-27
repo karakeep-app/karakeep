@@ -1,5 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+
 vi.mock("metrics", () => ({
   workerStatsCounter: {
     labels: () => ({ inc: vi.fn() }),
@@ -12,7 +14,10 @@ vi.mock("workerTracing", () => ({
 }));
 
 import type { EmbeddableBookmark } from "./workers/embeddingsWorker";
-import { buildEmbeddingText } from "./workers/embeddingsWorker";
+import {
+  buildEmbeddingTexts,
+  buildSimilarEmbeddingText,
+} from "./workers/embeddingsWorker";
 
 function embeddableBookmark(
   overrides: Partial<EmbeddableBookmark>,
@@ -29,9 +34,9 @@ function embeddableBookmark(
   } as unknown as EmbeddableBookmark;
 }
 
-describe("buildEmbeddingText", () => {
+describe("buildSimilarEmbeddingText", () => {
   test("uses Title + Summary once a summary exists", async () => {
-    const text = await buildEmbeddingText(
+    const text = await buildSimilarEmbeddingText(
       embeddableBookmark({
         title: "Async Rust",
         summary: "  Futures, pinning\n\nand executors explained.  ",
@@ -45,7 +50,7 @@ describe("buildEmbeddingText", () => {
   });
 
   test("uses only the summary when the title is missing", async () => {
-    const text = await buildEmbeddingText(
+    const text = await buildSimilarEmbeddingText(
       embeddableBookmark({
         summary: "A short summary.",
       }),
@@ -55,7 +60,7 @@ describe("buildEmbeddingText", () => {
   });
 
   test("uses the crawled page title when no user title is set", async () => {
-    const text = await buildEmbeddingText(
+    const text = await buildSimilarEmbeddingText(
       embeddableBookmark({
         summary: "Summary text.",
         link: { title: "Crawled Page Title" } as never,
@@ -66,7 +71,7 @@ describe("buildEmbeddingText", () => {
   });
 
   test("falls back to the crawled content for links without a summary", async () => {
-    const text = await buildEmbeddingText(
+    const text = await buildSimilarEmbeddingText(
       embeddableBookmark({
         title: "Link",
         link: {
@@ -80,7 +85,7 @@ describe("buildEmbeddingText", () => {
   });
 
   test("falls back to Title + Content excerpt without a summary", async () => {
-    const text = await buildEmbeddingText(
+    const text = await buildSimilarEmbeddingText(
       embeddableBookmark({
         title: "My note",
         text: { text: "  Some\n\nnote   content " } as never,
@@ -91,8 +96,44 @@ describe("buildEmbeddingText", () => {
   });
 
   test("returns null when there is nothing to embed", async () => {
-    const text = await buildEmbeddingText(embeddableBookmark({}));
+    const text = await buildSimilarEmbeddingText(embeddableBookmark({}));
 
     expect(text).toBeNull();
+  });
+});
+
+describe("buildEmbeddingTexts", () => {
+  test("the search profile is richer than the similar-articles text", async () => {
+    const texts = await buildEmbeddingTexts(
+      embeddableBookmark({
+        type: BookmarkTypes.LINK,
+        title: "Async Rust",
+        summary: "Futures explained.",
+        link: {
+          contentAssetId: null,
+          htmlContent: "<p>Some article body</p>",
+          url: "https://example.com/rust?page=1",
+          author: "Jane Doe",
+        } as never,
+        tagsOnBookmarks: [
+          { tag: { name: "rust" } },
+          { tag: { name: "async" } },
+        ] as never,
+      }),
+    );
+
+    // Lean similar-articles text: only title + summary.
+    expect(texts.similar).toBe(
+      "Title: Async Rust\n\nSummary: Futures explained.",
+    );
+    // Rich search profile: tags, domain, description, author, content.
+    expect(texts.search).toContain("Type: link");
+    expect(texts.search).toContain("Tags: async, rust");
+    expect(texts.search).toContain("Domain: example.com");
+    expect(texts.search).toContain("Author: Jane Doe");
+    expect(texts.search).toContain("Content excerpt: Some article body");
+    // The URL is stripped of query params and not part of the lean text.
+    expect(texts.search).toContain("https://example.com/rust");
+    expect(texts.similar).not.toContain("example.com");
   });
 });
