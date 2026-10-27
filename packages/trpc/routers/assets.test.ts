@@ -9,6 +9,51 @@ import { defaultBeforeEach } from "../testUtils";
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("Asset Routes", () => {
+  test<CustomTestContext>("bookmark details and listings include attachment sizes", async ({
+    apiCallers,
+    db,
+  }) => {
+    const api = apiCallers[0];
+    const user = await api.users.whoami();
+    const bookmark = await api.bookmarks.createBookmark({
+      url: "https://example.com/attachment-sizes",
+      type: BookmarkTypes.LINK,
+    });
+    await db.insert(assets).values([
+      {
+        id: "archive-with-size",
+        assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+        bookmarkId: bookmark.id,
+        userId: user.id,
+        size: 3 * 1024 * 1024,
+      },
+      {
+        id: "empty-upload",
+        assetType: AssetTypes.USER_UPLOADED,
+        bookmarkId: bookmark.id,
+        userId: user.id,
+        fileName: "empty.txt",
+        size: 0,
+      },
+    ]);
+
+    const details = await api.bookmarks.getBookmark({
+      bookmarkId: bookmark.id,
+    });
+    const listing = await api.bookmarks.getBookmarks({});
+    for (const result of [details, listing.bookmarks[0]]) {
+      expect(result.assets).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: "archive-with-size",
+            size: 3 * 1024 * 1024,
+          }),
+          expect.objectContaining({ id: "empty-upload", size: 0 }),
+        ]),
+      );
+    }
+  });
+
   test<CustomTestContext>("mutate assets", async ({ apiCallers, db }) => {
     const api = apiCallers[0].assets;
     const userId = await apiCallers[0].users.whoami().then((u) => u.id);
@@ -67,7 +112,9 @@ describe("Asset Routes", () => {
         bookmarkId: bookmark.id,
       });
       b.assets.sort((a, b) => a.id.localeCompare(b.id));
-      expect(b.assets).toEqual(expected);
+      expect(b.assets).toEqual(
+        expected.map((asset) => ({ ...asset, size: 0 })),
+      );
     };
 
     await api.attachAsset({
