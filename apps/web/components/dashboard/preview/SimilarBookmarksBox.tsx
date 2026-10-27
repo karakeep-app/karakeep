@@ -322,6 +322,16 @@ export default function SimilarBookmarksBox({
           <LoadingSpinner className="size-4" />
         </div>
       )}
+      {expanded && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => setExpanded(false)}
+        >
+          {t("preview.similar_articles_show_less")}
+        </Button>
+      )}
     </div>
   );
 }

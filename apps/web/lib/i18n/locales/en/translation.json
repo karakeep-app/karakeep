@@ -1405,6 +1405,7 @@
     "continue_button": "Continue",
     "similar_articles": "Similar Articles",
     "similar_articles_show_all": "Show all",
+    "similar_articles_show_less": "Show less",
     "tabs": {
       "content": "Content",
       "details": "Details"
