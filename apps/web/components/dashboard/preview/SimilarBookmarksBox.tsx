@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import LoadingSpinner from "@/components/ui/spinner";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
@@ -17,7 +18,10 @@ import {
   getSourceUrl,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
-const PREFETCH_DISTANCE_PX = 600;
+// Number of rows shown in the collapsed details-column list.
+const DEFAULT_VISIBLE_ROWS = 4;
+// Height of the folded grid on the full reader page (roughly two card rows).
+const GRID_FOLDED_MAX_HEIGHT = "max-h-[30rem]";
 
 function getHostname(url: string | null | undefined) {
   if (!url) {
@@ -46,32 +50,32 @@ function getBookmarkSubtitle(bookmark: ZBookmark) {
   }
 }
 
-function getBookmarkIcon(bookmark: ZBookmark) {
+function getBookmarkIcon(bookmark: ZBookmark, className?: string) {
   switch (bookmark.content.type) {
     case BookmarkTypes.TEXT:
-      return <NotebookPen className="size-8 text-muted-foreground" />;
+      return <NotebookPen className={cn("text-muted-foreground", className)} />;
     case BookmarkTypes.ASSET:
       return bookmark.content.assetType === "pdf" ? (
-        <FileText className="size-8 text-muted-foreground" />
+        <FileText className={cn("text-muted-foreground", className)} />
       ) : (
-        <ImageIcon className="size-8 text-muted-foreground" />
+        <ImageIcon className={cn("text-muted-foreground", className)} />
       );
     default:
-      return <Newspaper className="size-8 text-muted-foreground" />;
+      return <Newspaper className={cn("text-muted-foreground", className)} />;
   }
 }
 
-function SimilarBookmarkCard({
+/**
+ * Thumbnail shared by both layouts. Sized by the caller; the list variant uses
+ * a thumbnail as tall as two lines of title text (h-10).
+ */
+function SimilarBookmarkThumb({
   bookmark,
-  href,
-  variant,
+  className,
 }: {
   bookmark: ZBookmark;
-  href: string;
-  variant: "sidebar" | "reader";
+  className?: string;
 }) {
-  const title = getBookmarkTitle(bookmark) ?? "Untitled";
-  const subtitle = getBookmarkSubtitle(bookmark);
   const image =
     bookmark.content.type === BookmarkTypes.LINK
       ? getBookmarkLinkImageUrl(bookmark.content)
@@ -82,32 +86,95 @@ function SimilarBookmarkCard({
       : null;
 
   return (
+    <div
+      className={cn(
+        "relative flex shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted",
+        className,
+      )}
+    >
+      {image ? (
+        <Image
+          alt=""
+          src={image.url}
+          fill
+          unoptimized
+          className="object-cover"
+        />
+      ) : favicon ? (
+        <Image src={favicon} alt="" width={20} height={20} unoptimized />
+      ) : (
+        getBookmarkIcon(bookmark, "size-5")
+      )}
+    </div>
+  );
+}
+
+/**
+ * Compact row used in the details column: a thumbnail roughly as tall as two
+ * lines of text, with the bookmark title rendered next to it.
+ */
+function SimilarBookmarkRow({
+  bookmark,
+  href,
+}: {
+  bookmark: ZBookmark;
+  href: string;
+}) {
+  const title = getBookmarkTitle(bookmark) ?? "Untitled";
+  return (
     <Link
       href={href}
       prefetch={false}
-      className={cn(
-        "group flex shrink-0 snap-start flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-primary/40 hover:bg-accent",
-        variant === "sidebar" ? "w-40" : "w-56",
-      )}
+      className="group flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
     >
-      <div
-        className={cn(
-          "relative flex w-full items-center justify-center overflow-hidden bg-muted",
-          variant === "sidebar" ? "h-24" : "h-32",
-        )}
-      >
-        {image ? (
+      <SimilarBookmarkThumb bookmark={bookmark} className="h-10 w-14" />
+      <span className="line-clamp-2 min-w-0 text-sm font-medium leading-snug">
+        {title}
+      </span>
+    </Link>
+  );
+}
+
+/**
+ * Card used in the full-width grid on the reader page.
+ */
+function SimilarBookmarkCard({
+  bookmark,
+  href,
+}: {
+  bookmark: ZBookmark;
+  href: string;
+}) {
+  const title = getBookmarkTitle(bookmark) ?? "Untitled";
+  const subtitle = getBookmarkSubtitle(bookmark);
+
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className="group flex w-full flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-primary/40 hover:bg-accent"
+    >
+      <div className="relative flex h-32 w-full items-center justify-center overflow-hidden bg-muted">
+        {bookmark.content.type === BookmarkTypes.LINK &&
+        getBookmarkLinkImageUrl(bookmark.content) ? (
           <Image
             alt=""
-            src={image.url}
+            src={getBookmarkLinkImageUrl(bookmark.content)!.url}
             fill
             unoptimized
             className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
-        ) : favicon ? (
-          <Image src={favicon} alt="" width={32} height={32} unoptimized />
+        ) : bookmark.content.type === BookmarkTypes.LINK &&
+          bookmark.content.favicon ? (
+          <Image
+            src={bookmark.content.favicon}
+            alt=""
+            width={32}
+            height={32}
+            unoptimized
+          />
         ) : (
-          getBookmarkIcon(bookmark)
+          getBookmarkIcon(bookmark, "size-8")
         )}
       </div>
       <div className="flex flex-col gap-1 p-2">
@@ -124,18 +191,29 @@ function SimilarBookmarkCard({
   );
 }
 
+/**
+ * Similar-articles box.
+ *
+ * - `list` (default): compact vertical list for the preview's details column,
+ *   showing a few rows with a "Show all" expander. Always used unless the
+ *   bookmark is open full screen in the reader.
+ * - `grid`: responsive full-width grid at the end of the full reader page,
+ *   folded after roughly two rows with a "Show more" expander.
+ */
 export default function SimilarBookmarksBox({
   bookmarkId,
   isOwner,
-  variant = "sidebar",
+  variant = "list",
 }: {
   bookmarkId: string;
   isOwner: boolean;
-  variant?: "sidebar" | "reader";
+  variant?: "list" | "grid";
 }) {
   const api = useTRPC();
   const { t } = useTranslation();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [gridOverflows, setGridOverflows] = useState(false);
 
   const { data, isPending, hasNextPage, fetchNextPage, isFetchingNextPage } =
     useInfiniteQuery(
@@ -155,43 +233,45 @@ export default function SimilarBookmarksBox({
     [data],
   );
 
-  // Reset the carousel position when navigating to another bookmark.
+  // Collapse again when navigating to another bookmark.
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = 0;
-    }
+    setExpanded(false);
   }, [bookmarkId]);
 
-  // Load the next batch while the user is still a few cards away from the end,
-  // so they never have to wait when they reach the last loaded item.
+  // While expanded, keep paging until everything is loaded.
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el || !hasNextPage || isFetchingNextPage) {
-      return;
-    }
-    const nearEnd =
-      el.scrollLeft + el.clientWidth >= el.scrollWidth - PREFETCH_DISTANCE_PX;
-    if (nearEnd) {
+    if (expanded && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [bookmarks.length, fetchNextPage, hasNextPage, isFetchingNextPage]);
+  }, [expanded, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Detect whether the folded grid actually hides content at this viewport.
+  useEffect(() => {
+    if (variant !== "grid" || expanded) {
+      return;
+    }
+    const el = gridRef.current;
+    if (!el) {
+      return;
+    }
+    setGridOverflows(el.scrollHeight > el.clientHeight + 1);
+  }, [variant, expanded, bookmarks.length]);
 
   if (!isOwner || isPending || bookmarks.length === 0) {
     return null;
   }
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (!hasNextPage || isFetchingNextPage) {
-      return;
-    }
-    const el = e.currentTarget;
-    if (
-      el.scrollLeft + el.clientWidth >=
-      el.scrollWidth - PREFETCH_DISTANCE_PX
-    ) {
-      fetchNextPage();
-    }
-  };
+  const visibleBookmarks =
+    variant === "list" && !expanded
+      ? bookmarks.slice(0, DEFAULT_VISIBLE_ROWS)
+      : bookmarks;
+  const canExpand =
+    hasNextPage ||
+    (variant === "list"
+      ? bookmarks.length > DEFAULT_VISIBLE_ROWS
+      : gridOverflows);
+  const hrefFor = (id: string) =>
+    variant === "grid" ? `/reader/${id}` : `/dashboard/preview/${id}`;
 
   return (
     <div className="flex flex-col gap-2">
@@ -199,29 +279,49 @@ export default function SimilarBookmarksBox({
         <Newspaper className="size-3.5" />
         {t("preview.similar_articles")}
       </p>
-      <div
-        ref={scrollRef}
-        onScroll={handleScroll}
-        className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1"
-      >
-        {bookmarks.map((bookmark) => (
-          <SimilarBookmarkCard
-            key={bookmark.id}
-            bookmark={bookmark}
-            variant={variant}
-            href={
-              variant === "reader"
-                ? `/reader/${bookmark.id}`
-                : `/dashboard/preview/${bookmark.id}`
-            }
-          />
-        ))}
-        {isFetchingNextPage && (
-          <div className="flex w-16 shrink-0 items-center justify-center">
-            <LoadingSpinner className="size-4" />
-          </div>
-        )}
-      </div>
+      {variant === "list" ? (
+        <div className="flex flex-col gap-0.5">
+          {visibleBookmarks.map((bookmark) => (
+            <SimilarBookmarkRow
+              key={bookmark.id}
+              bookmark={bookmark}
+              href={hrefFor(bookmark.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div
+          ref={gridRef}
+          className={cn(
+            "grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6",
+            !expanded && GRID_FOLDED_MAX_HEIGHT,
+            !expanded && "overflow-hidden",
+          )}
+        >
+          {visibleBookmarks.map((bookmark) => (
+            <SimilarBookmarkCard
+              key={bookmark.id}
+              bookmark={bookmark}
+              href={hrefFor(bookmark.id)}
+            />
+          ))}
+        </div>
+      )}
+      {!expanded && canExpand && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => setExpanded(true)}
+        >
+          {t("preview.similar_articles_show_all")}
+        </Button>
+      )}
+      {expanded && isFetchingNextPage && (
+        <div className="flex items-center justify-center py-2">
+          <LoadingSpinner className="size-4" />
+        </div>
+      )}
     </div>
   );
 }

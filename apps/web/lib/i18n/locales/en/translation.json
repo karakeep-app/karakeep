@@ -1404,6 +1404,7 @@
     "continue_reading_percent": "Continue where you left off ({{percent}}%)",
     "continue_button": "Continue",
     "similar_articles": "Similar Articles",
+    "similar_articles_show_all": "Show all",
     "tabs": {
       "content": "Content",
       "details": "Details"

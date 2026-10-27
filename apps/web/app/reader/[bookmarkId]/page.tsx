@@ -284,20 +284,21 @@ export default function ReaderViewPage() {
                     </Button>
                   </footer>
                 )}
-                {isOwner && (
-                  <div className="mt-10 border-t pt-6 print:hidden">
-                    <SimilarBookmarksBox
-                      bookmarkId={bookmarkId}
-                      isOwner={isOwner}
-                      variant="reader"
-                    />
-                  </div>
-                )}
               </div>
             ) : (
               <FullPageSpinner />
             )}
           </article>
+
+          {bookmark && isOwner && (
+            <section className="mx-auto mt-10 max-w-7xl border-t px-4 pb-12 pt-6 sm:px-6 print:hidden">
+              <SimilarBookmarksBox
+                bookmarkId={bookmarkId}
+                isOwner={isOwner}
+                variant="grid"
+              />
+            </section>
+          )}
         </main>
 
         {/* Highlights Sidebar */}
