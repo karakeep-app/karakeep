@@ -272,10 +272,19 @@ export default function SimilarBookmarksBox({
     (variant === "list"
       ? bookmarks.length > DEFAULT_VISIBLE_ROWS
       : gridOverflows);
-  const hrefFor = (id: string) =>
-    variant === "grid" ? `/reader/${id}` : `/dashboard/preview/${id}`;
+  const hrefFor = (bookmark: ZBookmark) => {
+    if (variant === "list") {
+      return `/dashboard/preview/${bookmark.id}`;
+    }
+    // Grid, on the full reader page: link bookmarks stay in the reader; text
+    // notes and assets open their regular preview view instead, since the
+    // reader only renders link content.
+    return bookmark.content.type === BookmarkTypes.LINK
+      ? `/reader/${bookmark.id}`
+      : `/dashboard/preview/${bookmark.id}`;
+  };
 
-  return (
+  const body = (
     <div className="flex flex-col gap-2">
       <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         <Newspaper className="size-3.5" />
@@ -287,7 +296,7 @@ export default function SimilarBookmarksBox({
             <SimilarBookmarkRow
               key={bookmark.id}
               bookmark={bookmark}
-              href={hrefFor(bookmark.id)}
+              href={hrefFor(bookmark)}
             />
           ))}
         </div>
@@ -304,7 +313,7 @@ export default function SimilarBookmarksBox({
             <SimilarBookmarkCard
               key={bookmark.id}
               bookmark={bookmark}
-              href={hrefFor(bookmark.id)}
+              href={hrefFor(bookmark)}
             />
           ))}
         </div>
@@ -335,5 +344,15 @@ export default function SimilarBookmarksBox({
         </Button>
       )}
     </div>
+  );
+
+  // The reader page layout owns no chrome of its own: the section (divider +
+  // spacing) lives here so nothing renders when there are no neighbors.
+  return variant === "grid" ? (
+    <section className="mx-auto mt-10 max-w-7xl border-t px-4 pb-12 pt-6 sm:px-6 print:hidden">
+      {body}
+    </section>
+  ) : (
+    body
   );
 }
