@@ -157,6 +157,12 @@ EMBEDDING_DIMENSIONS=
 EMBEDDING_CONTEXT_LENGTH=
 ```
 
+Each bookmark carries two embeddings, both generated with the same configured model:
+
+- a lean **similar-articles vector**, computed from the bookmark title plus its AI summary once one is available (bookmarks without a summary use the title plus a readable content excerpt instead). Only used to find similar articles.
+- a rich **search profile vector**, which also includes the bookmark's type, tags, note, domain, URL, description, author, publisher, published date, and asset metadata. Used by semantic search and to refine tag suggestions, where those fields are the strongest matching signals.
+
+If summaries are generated or edited later, both vectors are refreshed automatically.
 
 Embeddings can use a different OpenAI-compatible provider. Set either override independently; any unset value falls back to its corresponding `OPENAI_*` setting.
 
@@ -178,6 +184,10 @@ Once you've configured an embedding model, you'll also want to enable auto-embed
 EMBEDDING_ENABLE_AUTO_INDEXING=true
 ```
 
-Bookmark embeddings are generated from the bookmark title plus its AI summary once one is available. Bookmarks without a summary use the title plus a readable content excerpt instead. If summaries are generated or edited later, the embedding is refreshed automatically.
+Note: Embeddings from different models are not compatible with each other. If you're to ever change the embedding model or the number of dimensions, you'll need to regenerate embeddings for *all* of your bookmarks. The same applies when upgrading to this release: existing bookmarks keep their previously generated vectors, which remain usable. To rebuild all vectors with the current format, run the admin regeneration when it's convenient for you:
 
-Note: Embeddings from different models are not compatible with each other. If you're to ever change the embedding model or the number of dimensions, you'll need to regenerate embeddings for *all* of your bookmarks.
+```
+karakeep admin regenerate-embeddings --status all
+```
+
+The CLI can also regenerate embeddings selectively (`--status failure` / `--status pending`, optionally limited to bookmarks modified within a duration, e.g. `--modified-within 24h`).

@@ -534,8 +534,9 @@ async function fetchBookmark(linkId: string) {
   });
 }
 
-// Matches the rankingScoreThreshold the vector store applies in findSimilar, so
-// the search({vector}) path returns comparably relevant neighbors.
+// The threshold applied to both vector searches for tag suggestions, so only
+// meaningfully similar bookmarks contribute their tags. The vector store
+// applies no threshold of its own; callers own their relevance floor.
 const RELEVANT_TAG_SCORE_THRESHOLD = 0.75;
 
 /**
