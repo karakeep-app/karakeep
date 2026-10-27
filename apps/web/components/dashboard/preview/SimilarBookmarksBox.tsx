@@ -124,6 +124,7 @@ function SimilarBookmarkRow({
   return (
     <Link
       href={href}
+      replace
       prefetch={false}
       className="group flex items-center gap-2 rounded-lg p-1.5 transition-colors hover:bg-accent"
     >
@@ -151,6 +152,7 @@ function SimilarBookmarkCard({
   return (
     <Link
       href={href}
+      replace
       prefetch={false}
       className="group flex w-full flex-col overflow-hidden rounded-lg border bg-card transition-colors hover:border-primary/40 hover:bg-accent"
     >
