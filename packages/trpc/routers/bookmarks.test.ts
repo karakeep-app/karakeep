@@ -1841,6 +1841,95 @@ describe("Bookmark Routes", () => {
       expect(result.bookmarkId).toBeNull();
     });
 
+    test<CustomTestContext>("does not ignore query string by default", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      await api.createBookmark({
+        url: "https://example.com/models/1",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api.checkUrl({
+        url: "https://example.com/models/1?modelVersionId=2",
+      });
+      expect(result.bookmarkId).toBeNull();
+    });
+
+    test<CustomTestContext>("matches URL ignoring query string when requested", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const withoutQuery = await api.createBookmark({
+        url: "https://example.com/models/1",
+        type: BookmarkTypes.LINK,
+      });
+      const withQuery = await api.createBookmark({
+        url: "https://example.com/models/3/?modelVersionId=4",
+        type: BookmarkTypes.LINK,
+      });
+
+      // Current page has a query, bookmark doesn't
+      expect(
+        (
+          await api.checkUrl({
+            url: "https://example.com/models/1?modelVersionId=2#top",
+            ignoreQuery: true,
+          })
+        ).bookmarkId,
+      ).toEqual(withoutQuery.id);
+
+      // Bookmark has a query, current page doesn't
+      expect(
+        (
+          await api.checkUrl({
+            url: "https://example.com/models/3",
+            ignoreQuery: true,
+          })
+        ).bookmarkId,
+      ).toEqual(withQuery.id);
+
+      // Different query values on the same path
+      expect(
+        (
+          await api.checkUrl({
+            url: "https://example.com/models/3?modelVersionId=5",
+            ignoreQuery: true,
+          })
+        ).bookmarkId,
+      ).toEqual(withQuery.id);
+
+      // Paths that only share a prefix still don't match
+      expect(
+        (
+          await api.checkUrl({
+            url: "https://example.com/models/10?modelVersionId=2",
+            ignoreQuery: true,
+          })
+        ).bookmarkId,
+      ).toBeNull();
+    });
+
+    test<CustomTestContext>("prefers exact match over query-insensitive match", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      await api.createBookmark({
+        url: "https://example.com/watch?v=a",
+        type: BookmarkTypes.LINK,
+      });
+      const exact = await api.createBookmark({
+        url: "https://example.com/watch?v=b",
+        type: BookmarkTypes.LINK,
+      });
+
+      const result = await api.checkUrl({
+        url: "https://example.com/watch?v=b",
+        ignoreQuery: true,
+      });
+      expect(result.bookmarkId).toEqual(exact.id);
+    });
+
     test<CustomTestContext>("does not return bookmarks from other users", async ({
       apiCallers,
     }) => {
