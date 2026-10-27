@@ -165,6 +165,17 @@ export const zEmbeddingsRequestSchema = z.discriminatedUnion("type", [
     // Lean similar-articles vector. Optional for backward compatibility with
     // index jobs enqueued before the split into search/similar vectors.
     similarEmbedding: z.array(z.number()).optional(),
+    // Fingerprints of the embedding texts the vectors were computed from.
+    // The index job re-derives the texts and skips itself when they changed
+    // in the meantime (a fresh embed job is enqueued instead), so a stale
+    // generation can never overwrite a newer one. Optional for backward
+    // compatibility with jobs enqueued by older versions.
+    fingerprints: z
+      .object({
+        search: z.string(),
+        similar: z.string().optional(),
+      })
+      .optional(),
   }),
   z.object({
     type: z.literal("delete"),
@@ -187,6 +198,11 @@ export const EmbeddingsQueue = createDeferredQueue<ZEmbeddingsRequest>(
  * Re-generates a bookmark's embedding after the text it's derived from changed
  * (e.g. a new or edited summary). Tagging is intentionally not re-run: the
  * embedding is only refreshed so similarity results stay up to date.
+ *
+ * The idempotency key is derived from the bookmark, so refreshes enqueued
+ * while an identical one is still pending coalesce instead of piling up. The
+ * pending job re-reads the bookmark state at run time, so the last enqueued
+ * refresh always works on the newest text.
  */
 export async function triggerEmbeddingRefresh(
   bookmarkId: string,
@@ -198,7 +214,10 @@ export async function triggerEmbeddingRefresh(
       type: "embed",
       runTaggingOnComplete: false,
     },
-    opts,
+    {
+      ...opts,
+      idempotencyKey: `embed-refresh:${bookmarkId}`,
+    },
   );
 }
 

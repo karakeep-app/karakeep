@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 
 import type { ZEmbeddingsRequest } from "@karakeep/shared-server";
@@ -7,6 +8,7 @@ import {
   addLogFields,
   EmbeddingsQueue,
   OpenAIQueue,
+  triggerEmbeddingRefresh,
   zEmbeddingsRequestSchema,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
@@ -283,9 +285,10 @@ export interface EmbeddingTexts {
  * - Before a summary exists (or for bookmark types that aren't summarized),
  *   fall back to `Title` + the readable `Content excerpt`.
  */
-export async function buildSimilarEmbeddingText(
+function buildSimilarEmbeddingTextFromContent(
   bookmark: EmbeddableBookmark,
-): Promise<string | null> {
+  rawContent: string | null,
+): string | null {
   const parts: string[] = [];
 
   // Prefer the user-provided title, then fall back to the crawled page title
@@ -299,8 +302,6 @@ export async function buildSimilarEmbeddingText(
   if (summary) {
     parts.push(`Summary: ${summary}`);
   } else {
-    const rawContent = await getRawContent(bookmark);
-
     const normalizedContent = normalizeEmbeddingText(rawContent);
     if (normalizedContent) {
       parts.push(
@@ -320,14 +321,27 @@ export async function buildSimilarEmbeddingText(
 }
 
 /**
+ * Builds the lean similar-articles embedding text for a bookmark.
+ */
+export async function buildSimilarEmbeddingText(
+  bookmark: EmbeddableBookmark,
+): Promise<string | null> {
+  return buildSimilarEmbeddingTextFromContent(
+    bookmark,
+    await getRawContent(bookmark),
+  );
+}
+
+/**
  * Builds the rich search-profile text that gets embedded for semantic search
  * and tag suggestions. Deliberately much broader than the similar-articles
  * text: those two features need to match on tags, domains, notes, and
  * metadata — which would only add noise to similarity ranking.
  */
-export async function buildSearchEmbeddingText(
+function buildSearchEmbeddingTextFromContent(
   bookmark: EmbeddableBookmark,
-): Promise<string | null> {
+  rawContent: string | null,
+): string | null {
   const parts: string[] = [];
 
   appendProfileField(parts, "Title", bookmark.title);
@@ -386,9 +400,7 @@ export async function buildSearchEmbeddingText(
     );
   }
 
-  const normalizedContent = normalizeEmbeddingText(
-    await getRawContent(bookmark),
-  );
+  const normalizedContent = normalizeEmbeddingText(rawContent);
   if (normalizedContent) {
     parts.push(
       `Content excerpt: ${truncateText(
@@ -406,15 +418,30 @@ export async function buildSearchEmbeddingText(
 }
 
 /**
+ * Builds the rich semantic-search / tag-suggestion embedding text for a
+ * bookmark.
+ */
+export async function buildSearchEmbeddingText(
+  bookmark: EmbeddableBookmark,
+): Promise<string | null> {
+  return buildSearchEmbeddingTextFromContent(
+    bookmark,
+    await getRawContent(bookmark),
+  );
+}
+
+/**
  * Builds both embedding texts for a bookmark: the lean similar-articles text
- * and the rich semantic-search profile text.
+ * and the rich semantic-search profile text. The (potentially expensive)
+ * content read is shared between the two.
  */
 export async function buildEmbeddingTexts(
   bookmark: EmbeddableBookmark,
 ): Promise<EmbeddingTexts> {
+  const rawContent = await getRawContent(bookmark);
   return {
-    similar: await buildSimilarEmbeddingText(bookmark),
-    search: await buildSearchEmbeddingText(bookmark),
+    similar: buildSimilarEmbeddingTextFromContent(bookmark, rawContent),
+    search: buildSearchEmbeddingTextFromContent(bookmark, rawContent),
   };
 }
 
@@ -439,6 +466,10 @@ function truncateToContextLength(fullText: string): string {
   return fullText.length > maxTextLength
     ? fullText.substring(0, maxTextLength)
     : fullText;
+}
+
+function fingerprint(text: string): string {
+  return createHash("sha256").update(text).digest("hex");
 }
 
 type EmbedRequest = Extract<ZEmbeddingsRequest, { type: "embed" }>;
@@ -471,6 +502,39 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
       return;
     }
     case "index": {
+      // Guard against stale generations: the bookmark may have changed (or
+      // been deleted) between the vector generation and this run. Re-derive
+      // the texts and only index when they still match what the vectors were
+      // computed from; otherwise enqueue a fresh embed job, which regenerates
+      // from the current state.
+      const bookmark = await fetchBookmark(bookmarkId);
+      if (!bookmark) {
+        logger.info(
+          `[embeddings][${jobId}] Bookmark ${bookmarkId} not found anymore, skipping vector indexing`,
+        );
+        return;
+      }
+      if (data.fingerprints) {
+        const fingerprints = data.fingerprints;
+        const current = await buildEmbeddingTexts(bookmark);
+        const isStale = (["search", "similar"] as const).some((slot) => {
+          const expected = fingerprints[slot];
+          if (!expected) {
+            return false;
+          }
+          return !current[slot] || fingerprint(current[slot]!) !== expected;
+        });
+        if (isStale) {
+          logger.info(
+            `[embeddings][${jobId}] Bookmark text changed since the vectors were generated, skipping stale indexing and re-enqueueing an embed`,
+          );
+          await triggerEmbeddingRefresh(bookmarkId, {
+            priority: job.priority,
+            groupId: bookmark.userId,
+          });
+          return;
+        }
+      }
       const document: BookmarkVectorDocument = {
         id: bookmarkId,
         userId: data.userId,
@@ -598,6 +662,12 @@ async function runEmbed(
       userId: bookmark.userId,
       embedding: vectors.search,
       similarEmbedding: vectors.similar,
+      fingerprints: {
+        search: fingerprint(embeddingTexts.search!),
+        ...(embeddingTexts.similar
+          ? { similar: fingerprint(embeddingTexts.similar) }
+          : {}),
+      },
     },
     {
       priority: job.priority,
