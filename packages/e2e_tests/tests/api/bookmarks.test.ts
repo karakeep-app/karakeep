@@ -684,6 +684,7 @@ describe("Bookmarks API", () => {
         .filter((a) => a.assetType === "precrawledArchive")
         .map((a) => a.id);
       expect(assetIds2).toEqual([firstAssetId]); // same asset
+      expect(bookmark2!.createdAt).toEqual(bookmark!.createdAt);
     });
 
     it("should support precrawling via singlefile with ifexists=overwrite", async () => {
@@ -729,6 +730,7 @@ describe("Bookmarks API", () => {
         (a) => a.assetType === "precrawledArchive",
       );
       expect(precrawledAssets.length).toBe(1);
+      expect(bookmark2!.createdAt).toEqual(bookmark!.createdAt);
     });
 
     it("should support precrawling via singlefile with ifexists=overwrite-recrawl", async () => {
@@ -820,6 +822,7 @@ describe("Bookmarks API", () => {
         (asset) => asset.id !== firstAssetId,
       )?.id;
       expect(secondAssetId).toBeDefined();
+      expect(bookmark2!.createdAt).toEqual(bookmark!.createdAt);
     });
 
     it("should support precrawling via singlefile with ifexists=append-recrawl", async () => {
