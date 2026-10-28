@@ -953,52 +953,55 @@ describe("Bookmark Routes", () => {
     const originallySavedAt = new Date("2026-01-01T00:00:00.000Z");
     const resavedAt = new Date("2026-01-02T00:00:00.000Z");
 
-    for (const source of ["rss", "import", "singlefile"] as const) {
-      vi.useFakeTimers();
-      try {
-        vi.setSystemTime(originallySavedAt);
-        const original = await api.createBookmark({
-          url: `https://example.com/resave-exempt-${source}`,
-          type: BookmarkTypes.LINK,
-          source,
-        });
-        await api.updateBookmark({
-          bookmarkId: original.id,
-          archived: true,
-        });
+    try {
+      for (const source of ["rss", "import", "singlefile"] as const) {
+        vi.useFakeTimers();
+        try {
+          vi.setSystemTime(originallySavedAt);
+          const original = await api.createBookmark({
+            url: `https://example.com/resave-exempt-${source}`,
+            type: BookmarkTypes.LINK,
+            source,
+          });
+          await api.updateBookmark({
+            bookmarkId: original.id,
+            archived: true,
+          });
 
-        triggerWebhookSpy.mockClear();
-        vi.setSystemTime(resavedAt);
+          triggerWebhookSpy.mockClear();
+          vi.setSystemTime(resavedAt);
 
-        const duplicate = await api.createBookmark({
-          url: `https://example.com/resave-exempt-${source}`,
-          type: BookmarkTypes.LINK,
-          source,
-        });
-        expect(duplicate).toMatchObject({
-          id: original.id,
-          alreadyExists: true,
-          archived: true,
-          createdAt: originallySavedAt,
-        });
+          const duplicate = await api.createBookmark({
+            url: `https://example.com/resave-exempt-${source}`,
+            type: BookmarkTypes.LINK,
+            source,
+          });
+          expect(duplicate).toMatchObject({
+            id: original.id,
+            alreadyExists: true,
+            archived: true,
+            createdAt: originallySavedAt,
+          });
 
-        const [afterResave] = await db
-          .select({
-            createdAt: bookmarks.createdAt,
-            archived: bookmarks.archived,
-          })
-          .from(bookmarks)
-          .where(eq(bookmarks.id, original.id));
-        assert(afterResave);
-        expect(afterResave).toMatchObject({
-          archived: true,
-          createdAt: originallySavedAt,
-        });
-        expect(triggerWebhookSpy).not.toHaveBeenCalled();
-      } finally {
-        triggerWebhookSpy.mockRestore();
-        vi.useRealTimers();
+          const [afterResave] = await db
+            .select({
+              createdAt: bookmarks.createdAt,
+              archived: bookmarks.archived,
+            })
+            .from(bookmarks)
+            .where(eq(bookmarks.id, original.id));
+          assert(afterResave);
+          expect(afterResave).toMatchObject({
+            archived: true,
+            createdAt: originallySavedAt,
+          });
+          expect(triggerWebhookSpy).not.toHaveBeenCalled();
+        } finally {
+          vi.useRealTimers();
+        }
       }
+    } finally {
+      triggerWebhookSpy.mockRestore();
     }
   });
 

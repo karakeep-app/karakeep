@@ -653,6 +653,13 @@ describe("Bookmarks API", () => {
       const bookmarkId = data?.id;
       if (!bookmarkId) throw new Error("Bookmark ID not found");
 
+      // Set an older createdAt to reliably catch date resets on re-upload
+      const olderDate = "2020-01-01T00:00:00.000Z";
+      await client.PATCH("/bookmarks/{bookmarkId}", {
+        params: { path: { bookmarkId } },
+        body: { createdAt: olderDate },
+      });
+
       // Get the bookmark and record the precrawled asset id
       const { data: bookmark, response: getResponse1 } = await client.GET(
         "/bookmarks/{bookmarkId}",
@@ -693,6 +700,13 @@ describe("Bookmarks API", () => {
       expect(response?.status).toBe(201);
       const bookmarkId = data?.id;
       if (!bookmarkId) throw new Error("Bookmark ID not found");
+
+      // Set an older createdAt to reliably catch date resets on re-upload
+      const olderDate = "2020-01-01T00:00:00.000Z";
+      await client.PATCH("/bookmarks/{bookmarkId}", {
+        params: { path: { bookmarkId } },
+        body: { createdAt: olderDate },
+      });
 
       // Record the asset
       const { data: bookmark, response: getResponse1 } = await client.GET(
@@ -785,6 +799,13 @@ describe("Bookmarks API", () => {
       expect(response?.status).toBe(201);
       const bookmarkId = data?.id;
       if (!bookmarkId) throw new Error("Bookmark ID not found");
+
+      // Set an older createdAt to reliably catch date resets on re-upload
+      const olderDate = "2020-01-01T00:00:00.000Z";
+      await client.PATCH("/bookmarks/{bookmarkId}", {
+        params: { path: { bookmarkId } },
+        body: { createdAt: olderDate },
+      });
 
       // Record the first asset
       const { data: bookmark, response: getResponse1 } = await client.GET(
