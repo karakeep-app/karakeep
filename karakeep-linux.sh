@@ -197,7 +197,8 @@ install_karakeep() {
     curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o /usr/bin/yt-dlp && chmod +x /usr/bin/yt-dlp
   fi
 
-  curl -fsSL https://github.com/Y2Z/monolith/releases/latest/download/monolith-gnu-linux-x86_64 -o /usr/bin/monolith && chmod +x /usr/bin/monolith
+  curl -fsSL "https://github.com/Y2Z/monolith/releases/download/v2.11.6/monolith-cli-linux-$(uname -m)" -o /usr/bin/monolith
+  chmod +x /usr/bin/monolith
   curl -fsSLO https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
   DEBIAN_FRONTEND=noninteractive $shh apt-get install -y ./meilisearch.deb && rm ./meilisearch.deb
   msg_done "Installed dependencies"
