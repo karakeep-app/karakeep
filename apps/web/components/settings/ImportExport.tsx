@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { ActionButton } from "@/components/ui/action-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import FilePickerButton from "@/components/ui/file-picker-button";
+import InfoTooltip from "@/components/ui/info-tooltip";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -26,10 +28,12 @@ import { SettingsPage, SettingsSection } from "./SettingsPage";
 function ImportCard({
   text,
   description,
+  titleExtra,
   children,
 }: {
   text: string;
   description: string;
+  titleExtra?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -39,12 +43,107 @@ function ImportCard({
           <Download className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium">{text}</h3>
+          <h3 className="flex items-center gap-1.5 font-medium">
+            {text}
+            {titleExtra}
+          </h3>
           <p>{description}</p>
         </div>
         {children}
       </CardContent>
     </Card>
+  );
+}
+
+function InstagramImportCard({
+  runUploadBookmarkFile,
+}: {
+  runUploadBookmarkFile: ReturnType<
+    typeof useBookmarkImport
+  >["runUploadBookmarkFile"];
+}) {
+  const { t } = useTranslation();
+  const [postsFile, setPostsFile] = useState<File | null>(null);
+  const [collectionsFile, setCollectionsFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const onImport = async () => {
+    if (!postsFile) {
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const [postsHtml, collectionsHtml] = await Promise.all([
+        postsFile.text(),
+        collectionsFile?.text(),
+      ]);
+      const combinedFile = new File(
+        [JSON.stringify({ postsHtml, collectionsHtml })],
+        "instagram-saved.json",
+        { type: "application/json" },
+      );
+      await runUploadBookmarkFile({
+        file: combinedFile,
+        source: "instagram-saved",
+      });
+      setPostsFile(null);
+      setCollectionsFile(null);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
+  return (
+    <ImportCard
+      text="Instagram Saved"
+      description={t(
+        "settings.import.import_bookmarks_from_instagram_saved_export",
+      )}
+      titleExtra={
+        <InfoTooltip size={14}>
+          <p className="max-w-64">
+            {t(
+              "settings.import.import_bookmarks_from_instagram_saved_export_details",
+            )}
+          </p>
+        </InfoTooltip>
+      }
+    >
+      <div className="flex items-center gap-2">
+        <FilePickerButton
+          size="sm"
+          variant="outline"
+          loading={false}
+          accept=".html"
+          multiple={false}
+          onFileSelect={setPostsFile}
+        >
+          <p className="max-w-20 truncate" title={postsFile?.name}>
+            {postsFile ? postsFile.name : "Posts*"}
+          </p>
+        </FilePickerButton>
+        <FilePickerButton
+          size="sm"
+          variant="outline"
+          loading={false}
+          accept=".html"
+          multiple={false}
+          onFileSelect={setCollectionsFile}
+        >
+          <p className="max-w-20 truncate" title={collectionsFile?.name}>
+            {collectionsFile ? collectionsFile.name : "Collections"}
+          </p>
+        </FilePickerButton>
+        <ActionButton
+          size="sm"
+          loading={isImporting}
+          disabled={!postsFile}
+          onClick={onImport}
+        >
+          <p>Import</p>
+        </ActionButton>
+      </div>
+    </ImportCard>
   );
 }
 
@@ -340,6 +439,35 @@ export function ImportExportRow() {
             className="flex items-center gap-2"
             onFileSelect={(file) =>
               runUploadBookmarkFile({ file, source: "onetab" })
+            }
+          >
+            <p>Import</p>
+          </FilePickerButton>
+        </ImportCard>
+        <InstagramImportCard runUploadBookmarkFile={runUploadBookmarkFile} />
+        <ImportCard
+          text="TikTok Favorites"
+          description={t(
+            "settings.import.import_bookmarks_from_tiktok_favorites_export",
+          )}
+          titleExtra={
+            <InfoTooltip size={14}>
+              <p className="max-w-64">
+                {t(
+                  "settings.import.import_bookmarks_from_tiktok_favorites_export_details",
+                )}
+              </p>
+            </InfoTooltip>
+          }
+        >
+          <FilePickerButton
+            size={"sm"}
+            loading={false}
+            accept=".json"
+            multiple={false}
+            className="flex items-center gap-2"
+            onFileSelect={(file) =>
+              runUploadBookmarkFile({ file, source: "tiktok-favorites" })
             }
           >
             <p>Import</p>
