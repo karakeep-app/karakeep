@@ -10,7 +10,7 @@
     </a>
 </div>
 
-# <img height="50px" src="./screenshots/logo.png" />
+# <picture><source media="(prefers-color-scheme: dark)" srcset="./screenshots/logo-white.png" /><img alt="Karakeep" height="50px" src="./screenshots/logo.png" /></picture>
 
 Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a touch of AI for the data hoarders out there.
 
