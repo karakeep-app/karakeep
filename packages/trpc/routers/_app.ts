@@ -11,6 +11,7 @@ import { importSessionsRouter } from "./importSessions";
 import { invitesAppRouter } from "./invites";
 import { listsAppRouter } from "./lists";
 import { promptsAppRouter } from "./prompts";
+import { promptTemplatesAppRouter } from "./promptTemplates";
 import { publicBookmarks } from "./publicBookmarks";
 import { rulesAppRouter } from "./rules";
 import { subscriptionsRouter } from "./subscriptions";
@@ -25,6 +26,7 @@ export const appRouter = router({
   lists: listsAppRouter,
   tags: tagsAppRouter,
   prompts: promptsAppRouter,
+  promptTemplates: promptTemplatesAppRouter,
   admin: adminAppRouter,
   feeds: feedsAppRouter,
   backups: backupsAppRouter,

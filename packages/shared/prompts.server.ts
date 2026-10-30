@@ -1,7 +1,10 @@
 import type { Tiktoken } from "js-tiktoken";
 
 import type { ZTagStyle } from "./types/users";
-import { constructSummaryPrompt, constructTextTaggingPrompt } from "./prompts";
+import {
+  constructSummaryPrompt,
+  constructTextTaggingPrompt,
+} from "./prompts.external";
 
 let encoding: Tiktoken | null = null;
 
