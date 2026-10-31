@@ -419,6 +419,7 @@ export type FetchWithProxyOptions = Omit<
 
 interface PreparedFetchOptions {
   maxRedirects: number;
+  followRedirects: boolean;
   baseHeaders: Headers;
   method: string;
   body?: RequestInit["body"];
@@ -433,7 +434,7 @@ export function prepareFetchOptions(
     headers: initHeaders,
     method: initMethod,
     body: initBody,
-    redirect: _ignoredRedirect,
+    redirect: initRedirect,
     ...restOptions
   } = options;
 
@@ -441,6 +442,11 @@ export function prepareFetchOptions(
 
   return {
     maxRedirects,
+    // "manual" hands the first redirect response back to the caller untouched
+    // (so it can read Set-Cookie/Location) instead of following it. Every other
+    // value keeps the default behaviour of following redirects with per-hop
+    // URL validation.
+    followRedirects: initRedirect !== "manual",
     baseHeaders: cloneHeaders(initHeaders),
     method: initMethod?.toUpperCase?.() ?? "GET",
     body: initBody,
@@ -480,6 +486,7 @@ export const fetchWithProxy = async (
 ) => {
   const {
     maxRedirects,
+    followRedirects,
     baseHeaders,
     method: preparedMethod,
     body: preparedBody,
@@ -517,7 +524,7 @@ export const fetchWithProxy = async (
       }),
     );
 
-    if (!isRedirectResponse(response)) {
+    if (!isRedirectResponse(response) || !followRedirects) {
       return response;
     }
 
