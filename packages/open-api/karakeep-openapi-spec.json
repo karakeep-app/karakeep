@@ -458,6 +458,7 @@
                     "bookmarkAsset",
                     "precrawledArchive",
                     "userUploaded",
+                    "noteImage",
                     "avatar",
                     "unknown"
                   ]
@@ -2338,6 +2339,7 @@
                       "bookmarkAsset",
                       "precrawledArchive",
                       "userUploaded",
+                      "noteImage",
                       "avatar",
                       "unknown"
                     ],
@@ -2376,6 +2378,7 @@
                         "bookmarkAsset",
                         "precrawledArchive",
                         "userUploaded",
+                        "noteImage",
                         "avatar",
                         "unknown"
                       ]

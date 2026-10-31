@@ -19,6 +19,7 @@ import {
   addLogFields,
   AssetPreprocessingQueue,
   buildCrawlIdempotencyKey,
+  deleteAsset,
   EmbeddingsQueue,
   LinkCrawlerQueue,
   logEvent,
@@ -61,6 +62,7 @@ import {
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
+import { getAssetIdsFromContent } from "@karakeep/shared/utils/assetUtils";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
@@ -572,7 +574,23 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
-      await ctx.db.transaction((tx) => {
+      let candidateRemovedAssetIds: string[] = [];
+      let removedAssetIds: string[] = [];
+      if (input.text) {
+        const existingText = await ctx.db.query.bookmarkTexts.findFirst({
+          where: eq(bookmarkTexts.id, input.bookmarkId),
+          columns: { text: true },
+        });
+        if (existingText?.text) {
+          const oldAssetIds = getAssetIdsFromContent(existingText.text);
+          const newAssetIds = getAssetIdsFromContent(input.text);
+          candidateRemovedAssetIds = [...oldAssetIds].filter(
+            (id) => !newAssetIds.has(id),
+          );
+        }
+      }
+
+      ctx.db.transaction((tx) => {
         let somethingChanged = false;
 
         // Update link-specific fields if any are provided
@@ -636,6 +654,22 @@ export const bookmarksAppRouter = router({
             });
           }
           somethingChanged = true;
+
+          if (candidateRemovedAssetIds.length > 0) {
+            const deletedAssets = tx
+              .delete(assets)
+              .where(
+                and(
+                  inArray(assets.id, candidateRemovedAssetIds),
+                  eq(assets.bookmarkId, input.bookmarkId),
+                  eq(assets.userId, ctx.user.id),
+                  eq(assets.assetType, AssetTypes.NOTE_IMAGE),
+                ),
+              )
+              .returning({ id: assets.id })
+              .all();
+            removedAssetIds = deletedAssets.map((a) => a.id);
+          }
         }
 
         if (input.assetContent !== undefined) {
@@ -700,6 +734,18 @@ export const bookmarksAppRouter = router({
             .run();
         }
       });
+
+      if (removedAssetIds.length > 0) {
+        await Promise.all(
+          removedAssetIds.map((assetId) =>
+            deleteAsset({ userId: ctx.user.id, assetId }).catch((error) => {
+              logger.error(
+                `Failed to delete asset ${assetId} for bookmark ${input.bookmarkId} after it was removed from the note text: ${error instanceof Error ? error.message : error}`,
+              );
+            }),
+          ),
+        );
+      }
 
       // Refetch the updated bookmark data to return the full object
       const updatedBookmark = (
