@@ -431,7 +431,8 @@
     "offline_downloaded_automatically": "Downloaded automatically",
     "offline_lists_intro": "Articles in these lists are downloaded, including ones added later. Nested lists have to be selected separately.",
     "offline_lists_empty": "You don't have any lists yet",
-    "offline_lists_header": "Keep Lists Offline"
+    "offline_lists_header": "Keep Lists Offline",
+    "subscription": "Subscription"
   },
   "stats": {
     "this_week": "This week",
@@ -593,5 +594,31 @@
     "download_label": "Download {{name}}",
     "download_hint": "Opens options to save or share this attachment",
     "tap_hint": "Tap an attachment to save or share it."
+  },
+  "subscription": {
+    "plan": "Plan",
+    "plan_custom": "Custom",
+    "billed_through": "Billed through",
+    "billed_web": "Web",
+    "billed_app_store": "App Store",
+    "billed_play_store": "Google Play",
+    "billed_mobile_app": "Mobile app",
+    "ends_on": "Ends on",
+    "renews_on": "Renews on",
+    "past_due_footer": "There's a problem with your payment method. Update it in your store's subscription settings to keep your plan.",
+    "web_managed_footer": "Your subscription is managed from the Karakeep web app's settings.",
+    "custom_tier_footer": "Your plan is managed by the Karakeep team.",
+    "usage": "Usage",
+    "storage": "Storage",
+    "upgrade": "Upgrade",
+    "manage": "Manage Subscription",
+    "restore": "Restore Purchases",
+    "usage_of": "{{used}} of {{quota}}",
+    "usage_unlimited": "{{used}} (unlimited)",
+    "error": "Something went wrong. Please try again.",
+    "upgraded": "You're now on the Paid plan.",
+    "purchase_pending": "We couldn't confirm your purchase yet. Try Restore Purchases in a moment.",
+    "purchases_restored": "Purchases restored",
+    "no_subscription": "No active subscription found"
   }
 }

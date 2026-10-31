@@ -63,7 +63,7 @@ Only OIDC compliant OAuth providers are supported! For information on how to set
 :::
 
 :::info
-When setting up OAuth, the allowed redirect URLs configured at the provider should be set to `<KARAKEEP_ADDRESS>/api/auth/callback/custom` where `<KARAKEEP_ADDRESS>` is the address you configured in `NEXTAUTH_URL` (for example: `https://try.karakeep.app/api/auth/callback/custom`).
+When setting up OAuth, the allowed redirect URLs configured at the provider should be set to `<KARAKEEP_ADDRESS>/api/auth/callback/custom` where `<KARAKEEP_ADDRESS>` is the address you configured in `NEXTAUTH_URL` (for example: `https://try.karakeep.com/api/auth/callback/custom`).
 :::
 
 | Name                                        | Required | Default                | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |

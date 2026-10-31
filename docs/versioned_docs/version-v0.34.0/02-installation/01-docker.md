@@ -1,4 +1,8 @@
-# Docker
+---
+sidebar_label: "Docker"
+---
+
+# Install Karakeep with Docker
 
 ### Requirements
 

@@ -1,4 +1,8 @@
-# Hostinger
+---
+sidebar_label: "Hostinger"
+---
+
+# Host Karakeep on Hostinger
 
 :::info
 Note: Hostinger shares some of its revenue from hosting Karakeep with the maintainer of this project.
@@ -14,7 +18,7 @@ Use the coupon code `KARAKEEP10` at checkout for 10% off annual (or longer) plan
 
 ### 1. Pick a plan
 
-Click the **Deploy on Hostinger** button above. It opens Hostinger's VPS page with the Karakeep template selected. Choose a plan and billing period, apply the `KARAKEEP10` coupon if you're going for an annual or longer plan, and complete the checkout.
+Click the **Deploy on Hostinger** button above, or open [Hostinger's Karakeep template](https://www.hostg.xyz/aff_c?offer_id=815&aff_id=243872&url_id=6969) directly. Either one opens Hostinger's VPS page with the Karakeep template selected. Choose a plan and billing period, apply the `KARAKEEP10` coupon if you're going for an annual or longer plan, and complete the checkout.
 
 The smallest plan is enough for most personal collections. Pick a bigger one if you plan to archive a lot of full-page content or videos, since the crawler and Meilisearch are the heaviest parts of the stack.
 

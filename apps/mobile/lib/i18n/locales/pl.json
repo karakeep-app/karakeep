@@ -431,7 +431,8 @@
     "offline_downloaded_automatically": "Pobrane automatycznie",
     "offline_lists_intro": "Artykuły z tych list są pobierane, również te dodane później. Listy zagnieżdżone trzeba wybrać osobno.",
     "offline_lists_empty": "Nie masz jeszcze żadnych list",
-    "offline_lists_header": "Zachowuj listy offline"
+    "offline_lists_header": "Zachowuj listy offline",
+    "subscription": "Subskrypcja"
   },
   "stats": {
     "this_week": "W tym tygodniu",
@@ -593,5 +594,31 @@
     "download_label": "Pobierz {{name}}",
     "download_hint": "Otwiera opcje zapisania lub udostępnienia tego załącznika",
     "tap_hint": "Dotknij załącznika, aby go zapisać lub udostępnić."
+  },
+  "subscription": {
+    "plan": "Plan",
+    "plan_custom": "Niestandardowy",
+    "billed_through": "Rozliczane przez",
+    "billed_web": "Web",
+    "billed_app_store": "App Store",
+    "billed_play_store": "Google Play",
+    "billed_mobile_app": "Aplikacja mobilna",
+    "ends_on": "Zakończenie",
+    "renews_on": "Odnowienie",
+    "past_due_footer": "Wystąpił problem z Twoją metodą płatności. Zaktualizuj jő w ustawieniach subskrypcji w sklepie, aby zachować swój plan.",
+    "web_managed_footer": "Twoja subskrypcja jest zarządzana w ustawieniach aplikacji internetowej Karakeep.",
+    "custom_tier_footer": "Twój plan jest zarządzany przez zespół Karakeep.",
+    "usage": "Zużycie",
+    "storage": "Pamięć",
+    "upgrade": "Ulepsz",
+    "manage": "Zarządzaj subskrypcją",
+    "restore": "Przywróć zakupy",
+    "usage_of": "{{used}} z {{quota}}",
+    "usage_unlimited": "{{used}} (bez limitu)",
+    "error": "Coś poszło nie tak. Spróbuj ponownie.",
+    "upgraded": "Masz teraz pŁatny plan.",
+    "purchase_pending": "Nie udało się jeszcze potwierdzić zakupu. Za chwilę spróbuj opcji „Przywróć zakupy”.",
+    "purchases_restored": "Zakupy przywrócone",
+    "no_subscription": "Nie znaleziono aktywnej subskrypcji"
   }
 }

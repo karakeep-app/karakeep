@@ -15,10 +15,10 @@ metadata:
     requires:
       bins:
         - karakeep
-    homepage: https://karakeep.app
+    homepage: https://karakeep.com
     links:
       repository: https://github.com/karakeep-app/karakeep
-      documentation: https://docs.karakeep.app
+      documentation: https://docs.karakeep.com
     emoji: 📦
     cliHelp: karakeep --help
     install:

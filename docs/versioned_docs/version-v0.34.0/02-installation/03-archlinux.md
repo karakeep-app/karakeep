@@ -1,4 +1,8 @@
-# Arch Linux
+---
+sidebar_label: "Arch Linux"
+---
+
+# Install Karakeep on Arch Linux
 
 ## Installation
 

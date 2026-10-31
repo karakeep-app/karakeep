@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FlatList,
   Platform,
@@ -81,7 +81,7 @@ export default function Lists() {
   const { colors } = useColorScheme();
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
-  const { data: lists, isPending, error, refetch } = useBookmarkLists();
+  const { data: lists, error, refetch } = useBookmarkLists();
   const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
     {},
   );
@@ -105,18 +105,23 @@ export default function Lists() {
     );
   }, [lists?.root, hasSharedLists]);
 
-  useEffect(() => {
-    setRefreshing(isPending);
-  }, [isPending]);
-
   if (!lists) {
     return <QueryPageState error={error} onRetry={() => refetch()} />;
   }
 
-  const onRefresh = () => {
-    queryClient.invalidateQueries(api.lists.list.pathFilter());
-    queryClient.invalidateQueries(api.lists.stats.pathFilter());
-    queryClient.invalidateQueries(api.lists.getPendingInvitations.pathFilter());
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries(api.lists.list.pathFilter()),
+        queryClient.invalidateQueries(api.lists.stats.pathFilter()),
+        queryClient.invalidateQueries(
+          api.lists.getPendingInvitations.pathFilter(),
+        ),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const links: ListLink[] = [

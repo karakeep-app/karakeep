@@ -659,6 +659,30 @@ describe("Search Query Parser", () => {
         },
       },
     });
+    expect(parseSearchQuery("-age:<3d")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "age",
+        relativeDate: {
+          direction: "older",
+          amount: 3,
+          unit: "day",
+        },
+      },
+    });
+    expect(parseSearchQuery("!age:>2y")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "age",
+        relativeDate: {
+          direction: "newer",
+          amount: 2,
+          unit: "year",
+        },
+      },
+    });
   });
 
   test("complex queries", () => {

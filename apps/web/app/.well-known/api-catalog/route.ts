@@ -1,7 +1,7 @@
 import serverConfig from "@karakeep/shared/config";
 
 const API_CATALOG_PROFILE = "https://www.rfc-editor.org/info/rfc9727";
-const API_DOCUMENTATION_URL = "https://docs.karakeep.app/api";
+const API_DOCUMENTATION_URL = "https://docs.karakeep.com/api/karakeep-api";
 const OPENAPI_SPEC_URL =
   "https://raw.githubusercontent.com/karakeep-app/karakeep/refs/heads/main/packages/open-api/karakeep-openapi-spec.json";
 

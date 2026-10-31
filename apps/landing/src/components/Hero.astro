@@ -1,8 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { CLOUD_SIGNUP_LINK, DEMO_LINK, GITHUB_LINK } from "../constants";
+import { GITHUB_LINK } from "../constants";
 import heroDashboard from "../assets/hero-dashboard.webp";
 import iosHome from "../assets/ios-home.webp";
 ---
@@ -10,7 +8,7 @@ import iosHome from "../assets/ios-home.webp";
 <section class="relative overflow-hidden bg-white px-4 pb-24 pt-16 sm:pt-24">
   <!-- Radial glow -->
   <div
-    class="pointer-events-none absolute -top-56 left-1/2 h-[520px] w-[980px] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(124,58,237,0.10),rgba(219,39,119,0.06),transparent)]"
+    class="pointer-events-none absolute -top-56 left-1/2 h-[520px] w-[980px] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(250,204,21,0.10),rgba(250,204,21,0.04),transparent)]"
   >
   </div>
 
@@ -22,14 +20,14 @@ import iosHome from "../assets/ios-home.webp";
       class="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm text-neutral-700 shadow-sm transition-all hover:border-neutral-300 hover:shadow-md"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 fill-yellow-400 text-yellow-400"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-      <span class="font-semibold text-neutral-900">28k+</span>
+      <span class="font-semibold text-neutral-900">30k+</span>
       <span class="text-neutral-500">stars on GitHub</span>
     </a>
     <h1
       class="mt-7 font-display text-4xl font-bold leading-[1.08] tracking-[-0.02em] text-neutral-900 sm:text-5xl lg:text-[64px]"
     >
       The
-      <span class="bg-gradient-to-r from-[#7c3aed] to-[#db2777] bg-clip-text text-transparent">
+      <span class="bg-[linear-gradient(transparent_58%,#fde047_58%,#fde047_92%,transparent_92%)] [box-decoration-break:clone]">
         Bookmark Everything
       </span>
       App
@@ -39,35 +37,19 @@ import iosHome from "../assets/ios-home.webp";
       tag them for you using AI for faster retrieval. Built for the data
       hoarders out there!
     </p>
-    <div class="mt-9 flex w-full flex-col items-center justify-center gap-4 sm:flex-row">
-      <a
-        href={CLOUD_SIGNUP_LINK}
-        class={cn("w-full px-9 shadow-[0_1px_2px_rgba(28,22,56,0.2),0_8px_24px_-8px_rgba(28,22,56,0.4)] sm:w-auto", buttonVariants({ variant: "brand", size: "lg" }))}
-      >
-        Sign Up
-      </a>
-      <a
-        href={DEMO_LINK}
-        target="_blank"
-        class={cn("w-full px-9 sm:w-auto", buttonVariants({ variant: "outline", size: "lg" }))}
-        rel="noreferrer"
-      >
-        Try Demo
-      </a>
-    </div>
   </div>
 
   <!-- Hero screenshot in a browser frame -->
   <div class="relative mx-auto mt-12 max-w-[1120px] sm:mt-16 lg:mt-[72px]">
     <!-- Glow behind the frame -->
     <div
-      class="pointer-events-none absolute -inset-6 rounded-[32px] bg-[linear-gradient(105deg,rgba(167,139,250,0.18),rgba(232,121,249,0.12),rgba(244,114,182,0.14))] blur-[48px]"
+      class="pointer-events-none absolute -inset-6 rounded-[32px] bg-[linear-gradient(105deg,rgba(250,204,21,0.12),rgba(163,163,163,0.10),rgba(250,204,21,0.10))] blur-[48px]"
     >
     </div>
     <div
-      class="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_-12px_rgba(124,58,237,0.12),0_48px_96px_-24px_rgba(15,23,42,0.22)]"
+      class="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_-12px_rgba(15,23,42,0.12),0_48px_96px_-24px_rgba(15,23,42,0.22)]"
     >
-      <div class="h-[3px] bg-gradient-to-r from-[#7c3aed] to-[#db2777]"></div>
+      <div class="h-[3px] bg-neutral-900"></div>
       <div class="flex h-11 items-center border-b border-neutral-100 bg-neutral-50 px-5">
         <div class="flex items-center gap-2">
           <div class="size-3 rounded-full bg-red-400"></div>

@@ -26,7 +26,7 @@
   },
   "scripts": {
     "build": "vite build && shx chmod +x dist/index.js",
-    "run": "tsx src/index.ts",
+    "run": "node --import tsx src/index.ts",
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
     "format": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore --check .",

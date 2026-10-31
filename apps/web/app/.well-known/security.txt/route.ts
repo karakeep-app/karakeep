@@ -8,7 +8,7 @@ export function GET() {
     serverConfig.publicUrl,
   );
   const lines = [
-    "Contact: mailto:security@karakeep.app",
+    "Contact: mailto:security@karakeep.com",
     `Expires: ${SECURITY_TXT_EXPIRY}`,
     ...(canonicalUrl.protocol === "https:"
       ? [`Canonical: ${canonicalUrl.toString()}`]

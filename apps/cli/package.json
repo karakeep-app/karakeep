@@ -33,7 +33,7 @@
   },
   "scripts": {
     "build": "vite build && chmod +x dist/index.mjs",
-    "run": "tsx src/index.ts",
+    "run": "node --import tsx src/index.ts",
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
     "format": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore --check .",

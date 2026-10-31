@@ -68,8 +68,8 @@ Browser gotchas:
 
 ## 5. Troubleshooting and running pieces by hand
 
-- **`listen EPERM ... tsx-*/*.pipe`**: the tsx CLI (`pnpm db:migrate`, `pnpm workers`, `pnpm seed:apply`) opens an IPC socket that the Claude Code sandbox blocks. Run the file through node's loader instead, e.g. `(cd packages/db && node --import tsx migrate.ts)`. The script already does this.
-- **`EMFILE: too many open files, watch`, then `.next/dev` "was deleted" and endless restarts**: native file watching is blocked in the sandbox. Keep `WATCHPACK_POLLING=true`.
+- **`listen EPERM ... tsx-*/*.pipe`**: the bare `tsx` CLI opens an IPC socket that the Claude Code sandbox blocks. Run the file through node's loader instead, e.g. `(cd packages/db && node --import tsx migrate.ts)`. The repo's package scripts (`pnpm db:migrate`, `pnpm seed:apply`, …) already do this.
+- **`EMFILE: too many open files, watch`**: native file watching is blocked in the sandbox. For `next dev` this shows up as `.next/dev` "was deleted" and endless restarts; keep `WATCHPACK_POLLING=true`. `pnpm workers` (`node --watch`) fails the same way; use `pnpm dev:worktree`, which runs the workers without watching.
 - **A stray `packages/db/db.db`**: migrations ran with an empty `DATA_DIR`. Scripts must `import "dotenv/config"` before `@karakeep/shared/config`, which parses `process.env` at import time. Delete the stray file and re-run.
 - **Jobs never run / queue errors**: `queue.db` needs `pnpm db:migrate:queue` (or `(cd apps/workers && node --import tsx scripts/migrateQueue.ts)`). The workers also migrate it on startup; the web app never does.
 - **Reset the data**: stop the script, then run `(cd tools/seed-snapshot && node --import tsx src/apply.ts --force)`.

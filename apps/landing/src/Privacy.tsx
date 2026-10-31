@@ -218,7 +218,7 @@ export default function PrivacyPolicy() {
         </p>
         <p className="text-base leading-relaxed text-gray-700">
           You can submit privacy requests by emailing info@localhostlabs.co.uk
-          or support@karakeep.app. We respond within timelines required by
+          or support@karakeep.com. We respond within timelines required by
           applicable law.
         </p>
 
@@ -282,10 +282,10 @@ export default function PrivacyPolicy() {
           <br />
           Support:{" "}
           <a
-            href="mailto:support@karakeep.app"
+            href="mailto:support@karakeep.com"
             className="text-blue-600 hover:underline"
           >
-            support@karakeep.app
+            support@karakeep.com
           </a>
         </p>
       </main>

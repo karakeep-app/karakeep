@@ -19,6 +19,7 @@ import {
 } from "@/components/settings/settings-list";
 import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import { Text } from "@/components/ui/Text";
+import { useClientConfig } from "@/lib/client-config";
 import { useServerVersion } from "@/lib/hooks";
 import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { getSystemLanguage } from "@/lib/i18n";
@@ -52,6 +53,9 @@ export default function Settings() {
     isLoading: isServerVersionLoading,
     error: serverVersionError,
   } = useServerVersion();
+  const clientConfig = useClientConfig();
+  const showSubscription =
+    clientConfig.stripe.isConfigured || clientConfig.revenueCat.isConfigured;
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState("");
 
@@ -81,7 +85,7 @@ export default function Settings() {
 
   useEffect(() => {
     if (error?.data?.code === "UNAUTHORIZED") {
-      logout();
+      void logout();
     }
   }, [error?.data?.code, logout]);
 
@@ -176,6 +180,15 @@ export default function Settings() {
       </SettingsGroup>
 
       <SettingsGroup header={t("settings.account")}>
+        {showSubscription ? (
+          <>
+            <SettingsNavigationRow
+              label={t("settings.subscription")}
+              onPress={() => router.push("/dashboard/settings/subscription")}
+            />
+            <SettingsSeparator />
+          </>
+        ) : null}
         <SettingsActionRow label={t("auth.log_out")} onPress={logout} />
         <SettingsSeparator />
         <SettingsActionRow

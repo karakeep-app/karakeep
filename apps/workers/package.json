@@ -20,7 +20,7 @@
     "async-mutex": "^0.4.1",
     "better-sqlite3": "^13.0.3",
     "data-uri-to-buffer": "^4.0.1",
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "dotenv": "^16.4.1",
     "drizzle-orm": "^0.45.4",
     "execa": "9.3.1",
@@ -67,9 +67,9 @@
     "vitest": "^4.1.11"
   },
   "scripts": {
-    "start": "tsx watch index.ts",
+    "start": "node --watch --import tsx index.ts",
     "start:prod": "node dist/index.js",
-    "migrate:queue": "tsx scripts/migrateQueue.ts",
+    "migrate:queue": "node --import tsx scripts/migrateQueue.ts",
     "build": "tsdown",
     "build:watch": "tsdown --watch",
     "lint": "oxlint --ignore-path=../../.gitignore .",

@@ -124,7 +124,10 @@ describe("Subscription Routes", () => {
         startDate: null,
         endDate: null,
         hasActiveSubscription: false,
+        paymentFailed: false,
         cancelAtPeriodEnd: false,
+        provider: null,
+        store: null,
       });
     });
 
@@ -162,8 +165,36 @@ describe("Subscription Routes", () => {
         startDate,
         endDate,
         hasActiveSubscription: true,
+        paymentFailed: false,
         cancelAtPeriodEnd: true,
+        provider: "stripe",
+        store: null,
       });
+    });
+
+    test<CustomTestContext>("keeps the paid tier and flags the failed payment while past_due", async ({
+      db,
+    }) => {
+      const user = await createTestUser(db, {
+        name: "Test User",
+        email: "test@test.com",
+        password: "pass1234",
+      });
+      const caller = getApiCaller(db, user.id);
+
+      await db.insert(subscriptions).values({
+        userId: user.id,
+        stripeCustomerId: "cus_123",
+        stripeSubscriptionId: "sub_123",
+        status: "past_due",
+        tier: "paid",
+      });
+
+      const status = await caller.subscriptions.getSubscriptionStatus();
+
+      expect(status.tier).toBe("paid");
+      expect(status.hasActiveSubscription).toBe(true);
+      expect(status.paymentFailed).toBe(true);
     });
   });
 
@@ -192,7 +223,10 @@ describe("Subscription Routes", () => {
         startDate: null,
         endDate: null,
         hasActiveSubscription: false,
+        paymentFailed: false,
         cancelAtPeriodEnd: false,
+        provider: null,
+        store: null,
       });
     });
 
@@ -1112,7 +1146,7 @@ describe("Subscription Routes", () => {
       });
 
       expect(subscription?.status).toBe("past_due");
-      expect(subscription?.tier).toBe("free"); // past_due status should set tier to free
+      expect(subscription?.tier).toBe("paid"); // past_due keeps the paid tier while Stripe retries
     });
 
     test<CustomTestContext>("handles customer.subscription.deleted event", async ({
@@ -1530,7 +1564,7 @@ describe("Subscription Routes", () => {
           object: {
             id: "sub_123",
             customer: "cus_123",
-            status: "past_due",
+            status: "unpaid",
             current_period_start: 1640995200,
             current_period_end: 1643673600,
             metadata: {
@@ -1540,12 +1574,12 @@ describe("Subscription Routes", () => {
         },
       };
 
-      // Mock the Stripe subscriptions.list response for past_due status
+      // Mock the Stripe subscriptions.list response for unpaid status
       mockSubscriptionsList.mockResolvedValue({
         data: [
           {
             id: "sub_123",
-            status: "past_due",
+            status: "unpaid",
             cancel_at_period_end: false,
             items: {
               data: [

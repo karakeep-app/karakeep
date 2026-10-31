@@ -7,7 +7,7 @@ const footerLinks = {
   Product: [
     { label: "Pricing", href: "/pricing/", internal: true },
     { label: "Apps & Extensions", href: "/apps/", internal: true },
-    { label: "Try Demo", href: "https://try.karakeep.app" },
+    { label: "Try Demo", href: "https://try.karakeep.com" },
     { label: "Karakeep Cloud", href: "https://cloud.karakeep.app" },
     { label: "Cloud Status Page", href: "https://status.karakeep.dev" },
   ],

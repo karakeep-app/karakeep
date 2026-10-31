@@ -7,7 +7,7 @@
   },
   "scripts": {
     "build": "tsc && chmod +x dist/index.js",
-    "run": "tsx --env-file=./.env src/index.ts",
+    "run": "node --env-file=./.env --import tsx src/index.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
