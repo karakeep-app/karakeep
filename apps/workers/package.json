@@ -20,7 +20,7 @@
     "async-mutex": "^0.4.1",
     "better-sqlite3": "^13.0.3",
     "data-uri-to-buffer": "^4.0.1",
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "dotenv": "^16.4.1",
     "drizzle-orm": "^0.45.4",
     "execa": "9.3.1",
