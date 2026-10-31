@@ -140,3 +140,11 @@ This is a server-side implementation that targets the internal tRPC API used by 
 :::
 
 Get it [here](https://github.com/gowinder/karaclone) (AGPL-3.0).
+
+### Comment Scraper
+
+_By [@supertj](https://github.com/supertj)._
+
+A browser extension for Chrome and Edge that exports Reddit and Hacker News threads to CSV, JSON or Markdown. It can also save an exported thread to Karakeep as a text bookmark. You add your server's address and an API key in the extension's settings, and the thread arrives as a Markdown note with numbered comments, their scores and a link back to the thread. The API key is stored in the browser, and the thread and the key go straight to your server. It's a commercial extension with a free plan, and saving to Karakeep works on the free plan.
+
+Get it [here](https://comment-scraper.com/docs#save-to-karakeep).
