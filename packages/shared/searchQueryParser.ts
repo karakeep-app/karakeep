@@ -312,7 +312,17 @@ MATCHER.setPattern(
                 text: "",
                 matcher: {
                   type: "age",
-                  relativeDate: { direction, amount, unit },
+                  relativeDate: {
+                    // "newer" (>=) and "older" (<) are exact complements, so
+                    // negating the qualifier is the same as flipping it.
+                    direction: minus
+                      ? direction === "newer"
+                        ? "older"
+                        : "newer"
+                      : direction,
+                    amount,
+                    unit,
+                  },
                 },
               };
             } catch {
