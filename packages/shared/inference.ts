@@ -362,6 +362,7 @@ export class OpenAIInferenceClient implements InferenceClient {
           optsWithDefaults.schema,
           this.config.outputSchema,
         ),
+        reasoning_effort: this.config.reasoningEffort,
         messages: [
           {
             role: "user",
