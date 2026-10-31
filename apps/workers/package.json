@@ -67,9 +67,9 @@
     "vitest": "^4.1.11"
   },
   "scripts": {
-    "start": "tsx watch index.ts",
+    "start": "node --watch --import tsx index.ts",
     "start:prod": "node dist/index.js",
-    "migrate:queue": "tsx scripts/migrateQueue.ts",
+    "migrate:queue": "node --import tsx scripts/migrateQueue.ts",
     "build": "tsdown",
     "build:watch": "tsdown --watch",
     "lint": "oxlint --ignore-path=../../.gitignore .",

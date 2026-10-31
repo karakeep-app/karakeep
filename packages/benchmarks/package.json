@@ -5,7 +5,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "bench": "tsx src/index.ts",
+    "bench": "node --import tsx src/index.ts",
     "lint": "oxlint --ignore-path=../../.gitignore --ignore-pattern='setup/docker-logs/**' .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore --ignore-pattern='setup/docker-logs/**' . --fix",
     "format": "oxfmt --ignore-path=../../.gitignore --ignore-path=./.gitignore --check .",

@@ -7,7 +7,7 @@
   "main": "index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "migrate": "tsx migrate.ts",
+    "migrate": "node --import tsx migrate.ts",
     "generate": "drizzle-kit generate",
     "studio": "drizzle-kit studio",
     "format": "oxfmt --ignore-path=../../.gitignore --check .",
