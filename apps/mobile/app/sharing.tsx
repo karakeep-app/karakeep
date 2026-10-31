@@ -49,9 +49,16 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
       return;
     }
     if (!isPending && shareIntent.webUrl) {
+      // Prefer the title reported by the sharing app (e.g. the browser) over
+      // the crawled one, as many sites block the crawler.
+      const sharedTitle = shareIntent.meta?.title?.trim();
       mutate({
         type: BookmarkTypes.LINK,
         url: shareIntent.webUrl,
+        title:
+          sharedTitle && sharedTitle !== shareIntent.webUrl
+            ? sharedTitle
+            : undefined,
         source: "mobile",
       });
     } else if (!isPending && shareIntent?.text) {
