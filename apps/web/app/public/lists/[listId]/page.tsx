@@ -42,13 +42,18 @@ export default async function PublicListPage(props: {
 }) {
   const params = await props.params;
   try {
-    const { list, bookmarks, nextCursor } =
-      await api.publicBookmarks.getPublicBookmarksInList({
+    const [{ list, bookmarks, nextCursor }, navigation] = await Promise.all([
+      api.publicBookmarks.getPublicBookmarksInList({
         listId: params.listId,
-      });
+      }),
+      api.publicBookmarks.getPublicListNavigation({
+        listId: params.listId,
+      }),
+    ]);
     return (
       <div className="space-y-3">
         <PublicListHeader
+          navigation={navigation}
           list={{
             id: params.listId,
             name: list.name,

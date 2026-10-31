@@ -12,6 +12,12 @@ import { zCursorV2 } from "@karakeep/shared/types/pagination";
 import { publicProcedure, router } from "../index";
 import { List } from "../models/lists";
 
+const zPublicListNavItemSchema = zBookmarkListSchema.pick({
+  id: true,
+  name: true,
+  icon: true,
+});
+
 export const publicBookmarks = router({
   getPublicListMetadata: publicProcedure
     .input(
@@ -34,6 +40,21 @@ export const publicBookmarks = router({
         input.listId,
         /* token */ null,
       );
+    }),
+  getPublicListNavigation: publicProcedure
+    .input(
+      z.object({
+        listId: z.string(),
+      }),
+    )
+    .output(
+      z.object({
+        parents: z.array(zPublicListNavItemSchema),
+        children: z.array(zPublicListNavItemSchema),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      return await List.getPublicListNavigation(ctx, input.listId);
     }),
   getPublicBookmarksInList: publicProcedure
     .input(
