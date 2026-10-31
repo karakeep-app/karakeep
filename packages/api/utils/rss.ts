@@ -8,6 +8,15 @@ import {
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import { isAllowedBookmarkUrl } from "@karakeep/shared/utils/url";
 
+const MAX_TEXT_TITLE_LENGTH = 80;
+
+function textTitle(text: string) {
+  const firstLine = text.trim().split("\n")[0].trim();
+  return firstLine.length > MAX_TEXT_TITLE_LENGTH
+    ? `${firstLine.slice(0, MAX_TEXT_TITLE_LENGTH - 1)}…`
+    : firstLine;
+}
+
 export function toRSS(
   params: {
     title: string;
@@ -32,25 +41,34 @@ export function toRSS(
         // predate URL validation, so feed readers can't follow them.
         (b.content.type === BookmarkTypes.LINK &&
           isAllowedBookmarkUrl(b.content.url)) ||
-        b.content.type === BookmarkTypes.ASSET,
+        b.content.type === BookmarkTypes.ASSET ||
+        b.content.type === BookmarkTypes.TEXT,
     )
     .forEach((bookmark) => {
       feed.item({
         date: bookmark.createdAt,
-        title: bookmark.title ?? "",
+        title:
+          bookmark.title ||
+          (bookmark.content.type === BookmarkTypes.TEXT
+            ? textTitle(bookmark.content.text)
+            : ""),
         url:
           bookmark.content.type === BookmarkTypes.LINK
             ? bookmark.content.url
             : bookmark.content.type === BookmarkTypes.ASSET
               ? `${serverConfig.publicUrl}${getAssetUrl(bookmark.content.assetId)}`
-              : "",
+              : params.siteUrl,
         guid: bookmark.id,
         author:
           bookmark.content.type === BookmarkTypes.LINK
             ? (bookmark.content.author ?? undefined)
             : undefined,
         categories: bookmark.tags,
-        description: bookmark.description ?? "",
+        description:
+          bookmark.description ||
+          (bookmark.content.type === BookmarkTypes.TEXT
+            ? bookmark.content.text
+            : ""),
       });
     });
 
