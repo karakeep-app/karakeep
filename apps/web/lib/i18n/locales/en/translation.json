@@ -494,6 +494,7 @@
       "delete_rule_confirmation": "Are you sure you want to delete this rule?",
       "whenever": "Whenever ...",
       "if": "If ...",
+      "preview_matches": "Preview Matches",
       "enter_rule_name": "Enter rule name",
       "describe_what_this_rule_does": "Describe what this rule does",
       "rule_has_been_created": "Rule has been created!",
