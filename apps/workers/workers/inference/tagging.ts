@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { getBookmarkDomain } from "network";
 import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
@@ -597,7 +597,15 @@ async function getPotentiallyRelevantTags(
     .selectDistinct({ name: bookmarkTags.name })
     .from(bookmarkTags)
     .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
-    .where(inArray(tagsOnBookmarks.bookmarkId, similarBookmarkIds))
+    // Trashed bookmarks keep their vector (so a restore doesn't need a
+    // re-embed), but they shouldn't influence the suggestions.
+    .innerJoin(bookmarks, eq(bookmarks.id, tagsOnBookmarks.bookmarkId))
+    .where(
+      and(
+        inArray(tagsOnBookmarks.bookmarkId, similarBookmarkIds),
+        isNull(bookmarks.deleteAt),
+      ),
+    )
     .limit(100);
 
   // Let's try to use shorter tags first

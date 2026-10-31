@@ -297,6 +297,12 @@ export async function getBookmarkIdsFromMatcher(
   const results = await ctx.db
     .select({ id: bookmarks.id })
     .from(bookmarks)
-    .where(and(eq(bookmarks.userId, ctx.user.id), condition));
+    .where(
+      and(
+        eq(bookmarks.userId, ctx.user.id),
+        isNull(bookmarks.deleteAt),
+        condition,
+      ),
+    );
   return results.map((r) => r.id);
 }

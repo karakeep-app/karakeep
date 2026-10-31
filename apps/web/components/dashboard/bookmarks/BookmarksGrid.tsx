@@ -185,6 +185,7 @@ export default function BookmarksGrid({
     setDeleteDialogOpen,
     isBulkDelete,
     deleteCount,
+    isPermanentDelete,
     confirmDelete,
     isDeletePending,
   } = useBookmarkKeyboardNavigation({
@@ -288,11 +289,18 @@ export default function BookmarksGrid({
         setOpen={setDeleteDialogOpen}
         title={t("dialogs.bookmarks.delete_confirmation_title")}
         description={
-          isBulkDelete
-            ? t("dialogs.bookmarks.bulk_delete_confirmation_description", {
-                count: deleteCount,
-              })
-            : t("dialogs.bookmarks.delete_confirmation_description")
+          isPermanentDelete
+            ? isBulkDelete
+              ? t(
+                  "dialogs.bookmarks.bulk_permanent_delete_confirmation_description",
+                  { count: deleteCount },
+                )
+              : t("dialogs.bookmarks.permanent_delete_confirmation_description")
+            : isBulkDelete
+              ? t("dialogs.bookmarks.bulk_delete_confirmation_description", {
+                  count: deleteCount,
+                })
+              : t("dialogs.bookmarks.delete_confirmation_description")
         }
         actionButton={() => (
           <ActionButton
@@ -301,7 +309,9 @@ export default function BookmarksGrid({
             loading={isDeletePending}
             onClick={confirmDelete}
           >
-            {t("actions.delete")}
+            {isPermanentDelete
+              ? t("actions.delete_permanently")
+              : t("actions.delete")}
           </ActionButton>
         )}
       />

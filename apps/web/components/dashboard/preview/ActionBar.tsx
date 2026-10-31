@@ -8,6 +8,7 @@ import {
   TooltipPortal,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useTrashBookmark } from "@/lib/hooks/useTrashBookmark";
 import { useTranslation } from "@/lib/i18n/client";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
@@ -25,6 +26,7 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
     useState(false);
 
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
+  const { mutate: trashBookmark } = useTrashBookmark();
 
   const onError = () => {
     toast({
@@ -145,19 +147,34 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             className="size-8 rounded-md"
             variant="ghost"
             size="none"
-            onClick={() => setDeleteBookmarkDialogOpen(true)}
+            onClick={() =>
+              bookmark.deleteAt
+                ? setDeleteBookmarkDialogOpen(true)
+                : trashBookmark({ bookmarkId: bookmark.id })
+            }
           >
             <Trash2 className="size-[18px]" size={18} strokeWidth={1.5} />
           </Button>
         </TooltipTrigger>
         <TooltipPortal>
-          <TooltipContent>{t("actions.delete")}</TooltipContent>
+          <TooltipContent>
+            {bookmark.deleteAt
+              ? t("actions.delete_permanently")
+              : t("actions.delete")}
+          </TooltipContent>
         </TooltipPortal>
       </Tooltip>
       <BookmarkOptions
         bookmark={bookmark}
         // Already available as buttons in this bar (or irrelevant outside the grid)
-        hiddenActions={["select", "edit", "favorite", "archive", "delete"]}
+        hiddenActions={[
+          "select",
+          "edit",
+          "favorite",
+          "archive",
+          "delete",
+          "delete-permanently",
+        ]}
         trigger={
           <ButtonWithTooltip
             tooltip={t("actions.more")}

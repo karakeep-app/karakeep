@@ -9,6 +9,8 @@ import {
   getTableColumns,
   gt,
   inArray,
+  isNotNull,
+  isNull,
   lt,
   lte,
   or,
@@ -36,6 +38,7 @@ import {
   EmbeddingsQueue,
   readAsset,
   SearchIndexingQueue,
+  triggerSearchReindex,
 } from "@karakeep/shared-server";
 
 import { WebhooksService } from "./webhooks.service";
@@ -43,6 +46,7 @@ import { getAlignedExpiry } from "@karakeep/shared/signedTokens";
 import {
   BookmarkTypes,
   DEFAULT_NUM_BOOKMARKS_PER_PAGE,
+  TRASH_RETENTION_DAYS,
   zGetBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
 import type {
@@ -137,10 +141,18 @@ export class BareBookmark {
 
   protected static async isAllowedToAccessBookmark(
     ctx: AuthedContext,
-    { id: bookmarkId, userId: bookmarkOwnerId }: { id: string; userId: string },
+    {
+      id: bookmarkId,
+      userId: bookmarkOwnerId,
+      deleteAt,
+    }: { id: string; userId: string; deleteAt?: Date | null },
   ): Promise<boolean> {
     if (bookmarkOwnerId == ctx.user.id) {
       return true;
+    }
+    // Only the owner can see the bookmarks in their trash
+    if (deleteAt) {
+      return false;
     }
     const bookmarkLists = await List.forBookmark(ctx, bookmarkId);
     return bookmarkLists.some((l) => l.canUserView());
@@ -494,7 +506,7 @@ export class Bookmark extends BareBookmark {
       );
     };
 
-    // Build common filter conditions (archived, favourited, ids, smart list)
+    // Build common filter conditions (archived, favourited, trashed, ids, smart list)
     const buildCommonFilters = (): (SQL | undefined)[] => [
       smartListCondition,
       input.archived !== undefined
@@ -503,6 +515,10 @@ export class Bookmark extends BareBookmark {
       input.favourited !== undefined
         ? eq(bookmarks.favourited, input.favourited)
         : undefined,
+      // Only the owner can see the bookmarks in their trash, even in shared lists
+      input.trashed
+        ? and(isNotNull(bookmarks.deleteAt), eq(bookmarks.userId, ctx.user.id))
+        : isNull(bookmarks.deleteAt),
       input.ids ? inArray(bookmarks.id, input.ids) : undefined,
     ];
 
@@ -1019,7 +1035,49 @@ export class Bookmark extends BareBookmark {
     );
   }
 
-  async delete() {
+  async moveToTrash() {
+    this.ensureOwnership();
+    const deleteAt = new Date(
+      Date.now() + TRASH_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+    );
+    await this.ctx.db
+      .update(bookmarks)
+      .set({ deleteAt })
+      .where(
+        and(
+          eq(bookmarks.userId, this.ctx.user.id),
+          eq(bookmarks.id, this.bookmark.id),
+          isNull(bookmarks.deleteAt),
+        ),
+      );
+    // A reindex (rather than a delete) looks at the current state when it
+    // runs, so it can't undo a restore that happens right after this.
+    await triggerSearchReindex(this.bookmark.id, {
+      groupId: this.ctx.user.id,
+    });
+  }
+
+  async restoreFromTrash() {
+    this.ensureOwnership();
+    await this.ctx.db
+      .update(bookmarks)
+      .set({ deleteAt: null })
+      .where(
+        and(
+          eq(bookmarks.userId, this.ctx.user.id),
+          eq(bookmarks.id, this.bookmark.id),
+        ),
+      );
+    await triggerSearchReindex(this.bookmark.id, {
+      groupId: this.ctx.user.id,
+    });
+  }
+
+  /**
+   * When `trashedBefore` is set, the bookmark is only deleted if it's still in
+   * the trash and expired by then. Returns whether the bookmark got deleted.
+   */
+  async delete({ trashedBefore }: { trashedBefore?: Date } = {}) {
     this.ensureOwnership();
     const deleted = await this.ctx.db
       .delete(bookmarks)
@@ -1027,8 +1085,13 @@ export class Bookmark extends BareBookmark {
         and(
           eq(bookmarks.userId, this.ctx.user.id),
           eq(bookmarks.id, this.bookmark.id),
+          trashedBefore ? lte(bookmarks.deleteAt, trashedBefore) : undefined,
         ),
       );
+    if (trashedBefore && deleted.changes === 0) {
+      // It got restored in the meantime
+      return false;
+    }
 
     await SearchIndexingQueue.enqueue(
       {
@@ -1061,5 +1124,6 @@ export class Bookmark extends BareBookmark {
     if (deleted.changes > 0) {
       await this.cleanupAssets();
     }
+    return deleted.changes > 0;
   }
 }
