@@ -533,7 +533,7 @@ export interface paths {
     };
     /**
      * Get a single asset
-     * @description Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type.
+     * @description Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type. Generic attachments use Content-Disposition: attachment and X-Content-Type-Options: nosniff, including via signed URLs.
      */
     get: operations["getAsset"];
     put?: never;
@@ -2970,6 +2970,11 @@ export interface operations {
     requestBody?: {
       content: {
         "multipart/form-data": {
+          /**
+           * @description Allow arbitrary files as userUploaded attachments. Omit for existing preview/asset bookmark uploads.
+           * @enum {string}
+           */
+          purpose?: "attachment";
           /**
            * Format: binary
            * @description File to be uploaded
