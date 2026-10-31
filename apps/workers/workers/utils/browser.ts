@@ -2,9 +2,7 @@
 // browser connection (and its reconnect-on-disconnect loop), the adblocker,
 // the cookie jar loaded from disk, and the tracking/reaping of browser
 // contexts so leaked ones eventually get closed.
-import * as dns from "dns";
 import { promises as fs } from "fs";
-import { createRequire } from "node:module";
 import * as path from "node:path";
 import * as os from "os";
 import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
@@ -14,21 +12,16 @@ import { fetchWithProxy } from "network";
 import type { RunProxyConfig } from "network";
 // patchright is a drop-in Playwright fork that drives Chrome without enabling
 // the CDP Runtime domain, the most widely checked automation signal.
-import {
-  Browser,
-  BrowserContext,
-  BrowserContextOptions,
-  chromium,
-} from "patchright";
+import { Browser, BrowserContext, BrowserContextOptions } from "patchright";
 import { raceWith, timeoutRace } from "utils";
 import { z } from "zod";
 
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import { loadAutoconsent } from "./autoconsent";
+import { closeBrowserConnection, connectBrowser } from "./browserConnection";
 import {
   normalizeBrowserUserAgent,
   redactUrlCredentials,
@@ -103,14 +96,18 @@ export function getPlaywrightProxyConfig(
     return undefined;
   }
 
-  const parsed = new URL(proxyUrl);
-
-  return {
-    server: proxyUrl,
-    username: parsed.username,
-    password: parsed.password,
-    bypass: runProxy.noProxy?.join(","),
-  };
+  try {
+    const parsed = new URL(proxyUrl);
+    return {
+      server: proxyUrl,
+      username: parsed.username,
+      password: parsed.password,
+      bypass: runProxy.noProxy?.join(","),
+    };
+  } catch {
+    // Do not include the proxy URL: it may contain credentials.
+    throw new Error("Invalid crawler proxy URL");
+  }
 }
 
 const browserUserAgents = new WeakMap<Browser, Promise<string | undefined>>();
@@ -199,48 +196,30 @@ function startContextReaper() {
   );
 }
 
-/**
- * The user agent to send when connecting to a remote Playwright server.
- * Playwright servers (and browserless, which picks the server version to run
- * from it) read the client's version from a `Playwright/<x.y.z>` user agent,
- * but patchright's version carries a "v" prefix ("v1.59.4") that defeats both:
- * browserless falls back to its newest, protocol-incompatible Playwright and
- * every crawl hangs. Advertise the bare Playwright version patchright tracks.
- */
-function getPlaywrightClientUserAgent(): string {
-  const { version } = createRequire(import.meta.url)(
-    "patchright/package.json",
-  ) as { version: string };
-  return `Playwright/${version.replace(/^v/, "")}`;
-}
-
-export async function startBrowserInstance() {
-  if (serverConfig.crawler.browserWebSocketUrl) {
+export async function startBrowserInstance(
+  signal: AbortSignal = exitAbortController.signal,
+) {
+  const endpoint =
+    serverConfig.crawler.browserCdpUrl ??
+    serverConfig.crawler.browserWebSocketUrl ??
+    serverConfig.crawler.browserWebUrl;
+  if (endpoint) {
     logger.info(
-      `[Crawler] Connecting to existing browser websocket address: ${redactUrlCredentials(serverConfig.crawler.browserWebSocketUrl)}`,
+      `[Crawler] Connecting to browser: ${redactUrlCredentials(endpoint)}`,
     );
-    return await chromium.connect(serverConfig.crawler.browserWebSocketUrl, {
-      timeout: 5000,
-      headers: { "User-Agent": getPlaywrightClientUserAgent() },
-    });
-  } else if (serverConfig.crawler.browserWebUrl) {
-    logger.info(
-      `[Crawler] Connecting to existing browser instance: ${redactUrlCredentials(serverConfig.crawler.browserWebUrl)}`,
-    );
-
-    const webUrl = new URL(serverConfig.crawler.browserWebUrl);
-    const { address } = await dns.promises.lookup(webUrl.hostname);
-    setUrlHostnameFromResolvedAddress(webUrl, address);
-    logger.info(
-      `[Crawler] Successfully resolved IP address, new address: ${redactUrlCredentials(webUrl.toString())}`,
-    );
-
-    return await chromium.connectOverCDP(webUrl.toString(), {
-      timeout: 5000,
-    });
   } else {
     logger.info(`Running in browserless mode`);
-    return undefined;
+  }
+  return await connectBrowser(serverConfig.crawler, signal);
+}
+
+/** Release only browsers acquired per crawl, never the shared connection. */
+export async function releaseBrowserInstance(browser: Browser): Promise<void> {
+  if (serverConfig.crawler.browserConnectOnDemand) {
+    await closeBrowserConnection(
+      browser,
+      serverConfig.crawler.browserCdpCloseOnRelease,
+    );
   }
 }
 
