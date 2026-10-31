@@ -4,6 +4,8 @@
 # the public port to it. Extra Chrome flags are passed as the container command.
 set -e
 
+socat TCP6-LISTEN:9222,fork,reuseaddr TCP4:127.0.0.1:9223 &
+sleep 0.1
 socat TCP4-LISTEN:9222,fork,reuseaddr TCP4:127.0.0.1:9223 &
 
 # SwiftShader keeps WebGL available without a GPU (even with --disable-gpu);
