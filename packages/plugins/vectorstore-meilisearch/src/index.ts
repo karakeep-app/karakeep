@@ -261,11 +261,13 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
     // Configure embedders for vector search
     const currentEmbedders = settings.embedders;
     const desiredDimensions = serverConfig.embedding.dimensions;
+    const desiredBinaryQuantized = envConfig.MEILI_BINARY_QUANTIZED;
     const currentEmbedder = currentEmbedders?.default;
     if (
       !currentEmbedder ||
       currentEmbedder.source != "userProvided" ||
-      currentEmbedder.dimensions !== desiredDimensions
+      currentEmbedder.dimensions !== desiredDimensions ||
+      (currentEmbedder.binaryQuantized ?? false) !== desiredBinaryQuantized
     ) {
       console.log(`[meilisearch-vector] Configuring user-provided embedder`);
       try {
@@ -275,6 +277,7 @@ export class MeiliSearchVectorProvider implements PluginProvider<VectorStoreClie
             default: {
               source: "userProvided",
               dimensions: desiredDimensions,
+              binaryQuantized: desiredBinaryQuantized,
             },
           })
           .waitTask();
