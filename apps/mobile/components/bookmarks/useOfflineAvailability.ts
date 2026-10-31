@@ -9,14 +9,16 @@ import {
   excludeFromOfflineDownloads,
   includeInOfflineDownloads,
 } from "../../lib/offlineDownloadPrefs";
+import { inlineBookmarkImages } from "../../lib/offlineImages";
 import {
+  getOfflineLibraryItems,
   getOfflineLibraryScope,
   OFFLINE_LIBRARY_SCHEMA_VERSION,
   removeOfflineArticle,
   saveOfflineArticle,
   useIsAvailableOffline,
 } from "../../lib/offlineLibrary";
-import useAppSettings from "../../lib/settings";
+import useAppSettings, { useSettings } from "../../lib/settings";
 
 export function useOfflineAvailability(bookmarkId: string) {
   const api = useTRPC();
@@ -33,6 +35,7 @@ export function useOfflineAvailability(bookmarkId: string) {
     }
 
     setIsSaving(true);
+    const isUpdate = isAvailableOffline;
     // The content-bearing response is a superset of the metadata-only one, so
     // this is the only bookmark the offline record needs.
     const contentOptions = api.bookmarks.getBookmark.queryOptions(
@@ -45,7 +48,13 @@ export function useOfflineAvailability(bookmarkId: string) {
     );
 
     try {
-      const bookmark = onlineManager.isOnline()
+      const isOnline = onlineManager.isOnline();
+      // The cached response would only replace the stored copy with one whose
+      // images couldn't be downloaded.
+      if (isUpdate && !isOnline) {
+        throw new Error("Connect to the internet to update the offline copy.");
+      }
+      const bookmark = isOnline
         ? await queryClient.fetchQuery(contentOptions)
         : queryClient.getQueryData(contentOptions.queryKey);
 
@@ -53,17 +62,30 @@ export function useOfflineAvailability(bookmarkId: string) {
         throw new Error("Connect to the internet to save this article.");
       }
 
+      const withImages = await inlineBookmarkImages(bookmark);
+      // Logged out (or switched accounts) while the images were downloading.
+      if (useSettings.getState().settings.settings.apiKey !== settings.apiKey) {
+        return;
+      }
+      // Removed while the update was downloading: don't bring it back.
+      if (
+        isUpdate &&
+        !getOfflineLibraryItems(scope).some(
+          (item) => item.bookmarkId === bookmarkId,
+        )
+      ) {
+        return;
+      }
+
       saveOfflineArticle(scope, {
         schemaVersion: OFFLINE_LIBRARY_SCHEMA_VERSION,
         bookmarkId,
         savedAt: Date.now(),
-        bookmark,
+        bookmark: withImages,
       });
       includeInOfflineDownloads(scope, bookmarkId);
       toast({
-        message: isAvailableOffline
-          ? "Offline copy updated"
-          : "Available offline",
+        message: isUpdate ? "Offline copy updated" : "Available offline",
         variant: "success",
       });
     } catch (error) {
