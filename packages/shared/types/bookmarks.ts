@@ -115,6 +115,7 @@ export const zAssetSchema = z.object({
   id: z.string(),
   assetType: zAssetTypesSchema,
   fileName: z.string().nullish(),
+  size: z.number().nullish(),
 });
 
 export const zBookmarkedLinkSchema = z.object({
