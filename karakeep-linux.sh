@@ -199,8 +199,8 @@ install_karakeep() {
 
   curl -fsSL "https://github.com/Y2Z/monolith/releases/download/v2.11.6/monolith-cli-linux-$(uname -m)" -o /usr/bin/monolith
   chmod +x /usr/bin/monolith
-  curl -fsSLO https://github.com/meilisearch/meilisearch/releases/latest/download/meilisearch.deb
-  DEBIAN_FRONTEND=noninteractive $shh apt-get install -y ./meilisearch.deb && rm ./meilisearch.deb
+  curl -fsSL "https://github.com/meilisearch/meilisearch/releases/download/v1.41.0/meilisearch-linux-$(uname -m | sed 's/x86_64/amd64/')" -o /usr/bin/meilisearch
+  chmod +x /usr/bin/meilisearch
   msg_done "Installed dependencies"
 
   msg_start "Installing Node.js..."
