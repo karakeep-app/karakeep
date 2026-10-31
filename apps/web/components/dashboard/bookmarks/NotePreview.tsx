@@ -31,7 +31,7 @@ export function NotePreview({ note, bookmarkId, className }: NotePreviewProps) {
       <PopoverTrigger asChild>
         <div
           className={cn(
-            "flex cursor-pointer items-center gap-1.5 text-sm font-light italic text-gray-500 dark:text-gray-400",
+            "relative z-20 flex cursor-pointer items-center gap-1.5 text-sm font-light italic text-gray-500 dark:text-gray-400",
             className,
           )}
         >

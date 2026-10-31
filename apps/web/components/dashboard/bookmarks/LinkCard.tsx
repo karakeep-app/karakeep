@@ -96,8 +96,11 @@ export default function LinkCard({
   className?: string;
   bookmarkIndex?: number;
 }) {
+  const { onClickUrl, urlTarget } = useOnClickUrl(bookmarkLink);
   return (
     <BookmarkLayoutAdaptingCard
+      href={onClickUrl}
+      target={urlTarget}
       title={<LinkTitle bookmark={bookmarkLink} />}
       footer={<FooterLinkURL url={getSourceUrl(bookmarkLink)} />}
       bookmark={bookmarkLink}

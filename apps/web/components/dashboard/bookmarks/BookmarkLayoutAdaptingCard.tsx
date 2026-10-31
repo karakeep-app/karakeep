@@ -55,6 +55,31 @@ interface Props {
   fitHeight?: boolean;
   wrapTags: boolean;
   bookmarkIndex?: number;
+  // Where clicking the empty areas of the card should take the user.
+  href?: string;
+  target?: "_blank" | "_self";
+}
+
+// A stretched link covering the whole card, so clicking anywhere that isn't
+// an interactive element behaves like clicking the title. Interactive children
+// sit above it using `relative z-20`.
+function CardLink({
+  href,
+  target,
+  bookmark,
+}: Pick<Props, "href" | "target" | "bookmark">) {
+  const isBulkEditEnabled = useBulkActionsStore((s) => s.isBulkEditEnabled);
+  if (!href || isBulkEditEnabled) return null;
+  return (
+    <Link
+      href={href}
+      target={target}
+      rel="noreferrer"
+      aria-label={getBookmarkTitle(bookmark) ?? undefined}
+      tabIndex={-1}
+      className="absolute inset-0 z-10"
+    />
+  );
 }
 
 function BottomRow({
@@ -66,7 +91,7 @@ function BottomRow({
 }) {
   return (
     <div className="justify flex w-full shrink-0 justify-between text-gray-500">
-      <div className="flex items-center gap-2 overflow-hidden text-nowrap font-light">
+      <div className="relative z-20 flex items-center gap-2 overflow-hidden text-nowrap font-light">
         {footer && <>{footer}•</>}
         <Link
           href={`/dashboard/preview/${bookmark.id}`}
@@ -318,6 +343,8 @@ function ListView({
   footer,
   className,
   bookmarkIndex,
+  href,
+  target,
 }: Props) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
@@ -336,6 +363,7 @@ function ListView({
       data-bookmark-index={bookmarkIndex}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
+      <CardLink href={href} target={target} bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
       <DragHandle
         bookmark={bookmark}
@@ -380,6 +408,8 @@ function GridView({
   layout,
   fitHeight = false,
   bookmarkIndex,
+  href,
+  target,
 }: Props & { layout: BookmarksLayoutTypes }) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
@@ -403,6 +433,7 @@ function GridView({
       data-bookmark-index={bookmarkIndex}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
+      <CardLink href={href} target={target} bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
       <DragHandle bookmark={bookmark} className="left-2 top-2" />
       <HoverActionBar bookmark={bookmark} />
@@ -438,6 +469,8 @@ function CompactView({
   footer,
   className,
   bookmarkIndex,
+  href,
+  target,
 }: Props) {
   const { showTitle } = useBookmarkDisplaySettings();
   const isBulkEditEnabled = useBulkActionsStore(
@@ -453,6 +486,7 @@ function CompactView({
       data-bookmark-index={bookmarkIndex}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
+      <CardLink href={href} target={target} bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
       <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
         <div className="flex items-center gap-2">
@@ -479,13 +513,15 @@ function CompactView({
             </div>
           )}
           {footer && (
-            <p className="flex shrink-0 gap-2 text-gray-500">•{footer}</p>
+            <p className="relative z-20 flex shrink-0 gap-2 text-gray-500">
+              •{footer}
+            </p>
           )}
           <p className="text-gray-500">•</p>
           <Link
             href={`/dashboard/preview/${bookmark.id}`}
             suppressHydrationWarning
-            className="shrink-0 gap-2 text-gray-500"
+            className="relative z-20 shrink-0 gap-2 text-gray-500"
           >
             <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
           </Link>

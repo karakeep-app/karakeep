@@ -16,7 +16,7 @@ export default function BookmarkActionBar({
   favouritedClassName?: string;
 }) {
   return (
-    <div className="flex text-gray-500">
+    <div className="relative z-20 flex text-gray-500">
       {bookmark.favourited && (
         <FavouritedActionIcon
           className={cn("m-1 size-8 rounded p-1", favouritedClassName)}

@@ -19,6 +19,7 @@ export default function UnknownCard({
   const { t } = useTranslation();
   return (
     <BookmarkLayoutAdaptingCard
+      href={`/dashboard/preview/${bookmark.id}`}
       title={bookmark.title}
       bookmark={bookmark}
       className={className}
