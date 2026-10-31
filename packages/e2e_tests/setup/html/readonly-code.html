@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Read-only code examples</title>
+  </head>
+  <body>
+    <article>
+      <h1>Read-only code examples</h1>
+      <p>
+        This article contains two code examples embedded in read-only editor
+        widgets. Saving the article should preserve their complete copy
+        payloads, including indentation, blank lines, and characters that look
+        like HTML. The first example keeps its original textarea while the
+        second renders only a visible line of an editor after the page loads.
+      </p>
+      <div
+        data-text-to-copy="project/&#10;  first.py&#10;&#10;&#9;print('saved')&#10;"
+      >
+        <div data-read-only>
+          <textarea>Loading code example</textarea>
+        </div>
+      </div>
+      <p>
+        The directory listing above uses spaces for the file name, an empty
+        line, and a tab for the final command. These characters are part of the
+        example and should survive extraction without being replaced by the
+        editor's loading placeholder or converted into a single line of prose.
+      </p>
+      <div id="rendered-code" data-text-to-copy="">
+        <div data-read-only="true">
+          <textarea>Loading code example</textarea>
+        </div>
+      </div>
+      <p>
+        The rendered example contains literal HTML inside a JavaScript string.
+        Its full copy payload includes a second statement separated by a blank
+        line, even though the visible editor only contains a placeholder line.
+        Both statements belong in the saved article as literal code.
+      </p>
+    </article>
+    <script>
+      const snippet = document.getElementById("rendered-code");
+      snippet.setAttribute(
+        "data-text-to-copy",
+        "const html = '<strong>literal</strong>';\n\nconsole.log(html);\n",
+      );
+      const editor = document.createElement("div");
+      editor.dataset.readOnly = "true";
+      const mirror = document.createElement("div");
+      mirror.className = "CodeMirror";
+      mirror.textContent = "Only a visible line";
+      editor.appendChild(mirror);
+      snippet.replaceChildren(editor);
+    </script>
+  </body>
+</html>

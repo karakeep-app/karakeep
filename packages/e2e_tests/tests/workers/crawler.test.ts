@@ -98,6 +98,36 @@ describe("Crawler Tests", () => {
     ).toBeDefined();
   });
 
+  it("should preserve complete read-only code snippets", async () => {
+    let { data: bookmark } = await client.POST("/bookmarks", {
+      body: {
+        type: "link",
+        url: "http://nginx:80/readonly-code.html",
+      },
+    });
+    assert(bookmark);
+
+    await waitUntil(async () => {
+      const data = await getBookmark(bookmark!.id);
+      assert(data && data.content.type === "link");
+      return data.content.crawledAt !== null;
+    }, "Read-only code bookmark is crawled");
+
+    bookmark = await getBookmark(bookmark.id);
+    assert(bookmark && bookmark.content.type === "link");
+    const html = bookmark.content.htmlContent;
+    expect(html).toContain("project/\n  first.py\n\n\tprint('saved')\n");
+    expect(html).toContain(
+      "const html = '&lt;strong&gt;literal&lt;/strong&gt;';\n\nconsole.log(html);\n",
+    );
+    expect(html).not.toContain("Loading code example");
+    expect(html).not.toContain("Only a visible line");
+    expect(html).not.toContain("<script");
+    expect(
+      bookmark.assets.find((a) => a.assetType === "screenshot"),
+    ).toBeDefined();
+  });
+
   it("should fail crawling a disallowed non-redirect URL", async () => {
     let { data: bookmark } = await client.POST("/bookmarks", {
       body: {
