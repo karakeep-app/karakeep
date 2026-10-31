@@ -61,7 +61,7 @@ beforeEach(async () => {
       userId: testUserId,
       archived: true,
       favourited: true,
-      createdAt: new Date("2024-01-02"),
+      createdAt: new Date("2024-01-02T10:00:00Z"),
       title: "example domain page",
       note: "",
     },
