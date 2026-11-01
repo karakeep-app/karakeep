@@ -97,8 +97,10 @@
     "@babel/core": "^7.29.7",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@tailwindcss/typography": "^0.5.10",
     "@types/react": "19.2.15",
     "ajv": "^8.20.0",
+    "metro-cache": "^0.84.5",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.9",
     "vitest": "^4.1.11"
