@@ -1,11 +1,9 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CircleCheck, ExternalLink, Trash2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-import {
-  useAutoRefreshingBookmarkQuery,
-  useDeleteBookmark,
-} from "@karakeep/shared-react/hooks/bookmarks";
+import { useDeleteBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
 
@@ -16,11 +14,13 @@ import { NoteEditor } from "./components/NoteEditor";
 import TagList from "./components/TagList";
 import { TagsSelector } from "./components/TagsSelector";
 import { TitleEditor } from "./components/TitleEditor";
+import { StatusMessage } from "./components/StatusMessage";
 import { Button, buttonVariants } from "./components/ui/button";
 import Spinner from "./Spinner";
 import { cn } from "./utils/css";
 import usePluginSettings from "./utils/settings";
 import { MessageType } from "./utils/type";
+import { useTRPC } from "./utils/trpc";
 
 function Section({
   title,
@@ -67,18 +67,67 @@ export default function BookmarkSavedPage() {
   });
 
   const { settings } = usePluginSettings();
-  const { data: bookmark } = useAutoRefreshingBookmarkQuery({
-    bookmarkId: bookmarkId ?? "",
-  });
+  const api = useTRPC();
+  const bookmarkQuery = useQuery(
+    api.bookmarks.getBookmark.queryOptions(
+      { bookmarkId: bookmarkId ?? "" },
+      {
+        enabled: !!bookmarkId,
+        staleTime: 0,
+        refetchOnMount: "always",
+        retry: false,
+      },
+    ),
+  );
 
   if (!bookmarkId) {
     return (
-      <ErrorCallout title="Bookmark not found">
-        This bookmark doesn&apos;t exist.
+      <ErrorCallout
+        className="[&_p]:text-red-700 dark:[&_p]:text-red-400"
+        title="Bookmark not found"
+      >
+        <p>This bookmark doesn&apos;t exist.</p>
       </ErrorCallout>
     );
   }
 
+  if (bookmarkQuery.isPending) {
+    return (
+      <div role="status">
+        <StatusMessage label="Loading bookmark…" />
+      </div>
+    );
+  }
+  const errorCode = bookmarkQuery.error?.data?.code;
+  const blockEditors =
+    !bookmarkQuery.data ||
+    errorCode === "UNAUTHORIZED" ||
+    errorCode === "FORBIDDEN" ||
+    errorCode === "NOT_FOUND";
+  const bookmarkError = bookmarkQuery.isError ? (
+    <ErrorCallout
+      className="[&_p]:text-red-700 dark:[&_p]:text-red-400"
+      title={
+        blockEditors ? "Couldn't load bookmark" : "Couldn't refresh bookmark"
+      }
+    >
+      <div className="flex flex-col gap-2">
+        <p className="text-red-700 dark:text-red-400">
+          {blockEditors
+            ? "Could not load this bookmark. It may have been deleted or you may need to sign in again."
+            : "Could not refresh this bookmark. You can keep editing and try again."}
+        </p>
+        <Button onClick={() => bookmarkQuery.refetch()}>Try Again</Button>
+        {errorCode === "UNAUTHORIZED" && <Link to="/signin">Sign in</Link>}
+        {blockEditors && <Link to="/">Check current page</Link>}
+      </div>
+    </ErrorCallout>
+  ) : null;
+  // A temporary refetch error retains data. Keep the editors and their drafts
+  // mounted unless the initial load failed or the server reports lost access.
+  if (bookmarkQuery.isError && blockEditors) return bookmarkError;
+
+  const bookmark = bookmarkQuery.data;
   // The title is editable below, so the header names where it came from.
   const sourceUrl = bookmark ? getSourceUrl(bookmark) : null;
   let subtitle: string | null = null;
@@ -94,8 +143,14 @@ export default function BookmarkSavedPage() {
 
   return (
     <div className="flex flex-col gap-5">
+      {bookmarkError}
       {error && (
-        <ErrorCallout title="Couldn't delete bookmark">{error}</ErrorCallout>
+        <ErrorCallout
+          className="[&_p]:text-red-700 dark:[&_p]:text-red-400"
+          title="Couldn't delete bookmark"
+        >
+          <p>{error}</p>
+        </ErrorCallout>
       )}
       <div className="flex items-start gap-3">
         <CircleCheck className="mt-0.5 size-5 shrink-0 text-green-600 dark:text-green-500" />
