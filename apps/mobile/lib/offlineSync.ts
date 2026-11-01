@@ -21,6 +21,7 @@ import {
   offlineDownloadStorage,
   updateOfflineDownloadPrefs,
 } from "./offlineDownloadPrefs";
+import { inlineBookmarkImages } from "./offlineImages";
 import {
   estimateOfflineArticleSize,
   getOfflineLibraryItems,
@@ -393,16 +394,19 @@ async function runOnce(
       isExcluded: (bookmarkId) =>
         getOfflineDownloadPrefs(scope).excludedIds.includes(bookmarkId),
       prepare: async (candidate: SyncCandidate) => {
-        const bookmark = await client.bookmarks.getBookmark.query(
+        const fetched = await client.bookmarks.getBookmark.query(
           { bookmarkId: candidate.bookmarkId, includeContent: true },
           { signal },
         );
         if (
-          bookmark.content.type === BookmarkTypes.LINK &&
-          typeof bookmark.content.htmlContent !== "string"
+          fetched.content.type === BookmarkTypes.LINK &&
+          typeof fetched.content.htmlContent !== "string"
         ) {
           throw new ContentUnavailable();
         }
+        const bookmark = await inlineBookmarkImages(fetched, {
+          signal,
+        });
         return {
           byteSize: estimateOfflineArticleSize(bookmark),
           save: () => {

@@ -63,6 +63,7 @@
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
     "expo-web-browser": "~57.0.3",
+    "htmlparser2": "^10.1.0",
     "lucide-react-native": "^0.513.0",
     "nativewind": "^4.2.6",
     "react": "19.2.3",

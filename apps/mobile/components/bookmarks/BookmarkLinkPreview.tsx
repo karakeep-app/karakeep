@@ -18,6 +18,7 @@ import { useReaderSettings, WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
 import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { useConnectionStatus } from "@/lib/useConnectionStatus";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, X } from "lucide-react-native";
 
@@ -129,23 +130,28 @@ export function BookmarkLinkReaderPreview({
       includeContent: true,
     }),
   );
+  const connectionStatus = useConnectionStatus();
   // The offline body is stored on its own, so fold it back into the bookmark
   // this component was already handed rather than reading the saved metadata.
+  // Unless the server is reachable, prefer it even over a cached response: its
+  // images are embedded, the cached response's would not load.
   const displayedBookmarkWithContent = useMemo(() => {
-    if (bookmarkWithContent) {
+    const offlineBookmark =
+      offlineHtmlContent !== undefined &&
+      bookmark.content.type === BookmarkTypes.LINK
+        ? {
+            ...bookmark,
+            content: { ...bookmark.content, htmlContent: offlineHtmlContent },
+          }
+        : undefined;
+    if (
+      bookmarkWithContent &&
+      (connectionStatus === "online" || !offlineBookmark)
+    ) {
       return bookmarkWithContent;
     }
-    if (
-      offlineHtmlContent === undefined ||
-      bookmark.content.type !== BookmarkTypes.LINK
-    ) {
-      return undefined;
-    }
-    return {
-      ...bookmark,
-      content: { ...bookmark.content, htmlContent: offlineHtmlContent },
-    };
-  }, [bookmark, bookmarkWithContent, offlineHtmlContent]);
+    return offlineBookmark;
+  }, [bookmark, bookmarkWithContent, connectionStatus, offlineHtmlContent]);
 
   const { data: highlights } = useQuery(
     api.highlights.getForBookmark.queryOptions({
