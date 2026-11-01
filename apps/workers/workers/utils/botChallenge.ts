@@ -5,12 +5,12 @@
 // page instead, so when one is detected we give it a bounded amount of time to
 // clear.
 import type { Page } from "patchright";
-import { abortRace, raceWith } from "utils";
 
 import { setSpanAttributes } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
+import { abortRace, raceWith } from "../../utils";
 import { isLikelyChallengePage, isWaitableChallenge } from "./metadataResolver";
 
 // Statuses bot-protection vendors serve their interstitials with.

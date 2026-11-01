@@ -1,7 +1,4 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { fetchWithProxy } from "network";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
@@ -14,6 +11,10 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
+
+import { workerStatsCounter } from "../metrics";
+import { fetchWithProxy } from "../network";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 export class WebhookWorker {
   static async build() {

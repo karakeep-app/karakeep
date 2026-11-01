@@ -4,7 +4,6 @@
   "include": ["src", "vite.config.mts"],
   "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "baseUrl": ".",
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json",
     "strictNullChecks": true,
     "paths": {

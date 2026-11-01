@@ -1,7 +1,4 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { buildImpersonatingAuthedContext } from "trpc";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZRuleEngineRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -15,6 +12,10 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
+
+import { workerStatsCounter } from "../metrics";
+import { buildImpersonatingAuthedContext } from "../trpc";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 export class RuleEngineWorker {
   static async build() {
