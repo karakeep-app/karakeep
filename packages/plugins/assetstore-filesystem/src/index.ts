@@ -1,6 +1,5 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { Glob } from "glob";
 
 import type { AssetMetadata, AssetStore } from "@karakeep/shared/assetdb";
 import {
@@ -193,12 +192,8 @@ export class LocalFileSystemAssetStore implements AssetStore {
   }
 
   async *getAllAssets() {
-    const assets = new Glob("/**/**/asset.bin", {
-      maxDepth: 3,
-      root: this.rootPath,
-      cwd: this.rootPath,
-      absolute: false,
-    });
+    // Assets live at <rootPath>/<userId>/<assetId>/asset.bin.
+    const assets = fs.promises.glob("*/*/asset.bin", { cwd: this.rootPath });
     for await (const file of assets) {
       const [userId, assetId] = file.split("/").slice(0, 2);
       const [size, metadata] = await Promise.all([
