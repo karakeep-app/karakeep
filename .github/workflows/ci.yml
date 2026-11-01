@@ -42,6 +42,19 @@ jobs:
       - name: Format
         run: pnpm format
 
+  mobile-i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup
+        uses: ./tooling/github/setup
+
+      - name: Mobile i18n sync & parity
+        run: node tools/mobile-i18n-sync.mjs --check
+
   typecheck:
     runs-on: ubuntu-latest
     steps:
@@ -74,6 +87,10 @@ jobs:
 
       - name: Workers Tests
         working-directory: apps/workers
+        run: pnpm test
+
+      - name: Mobile Tests
+        working-directory: apps/mobile
         run: pnpm test
 
       # - name: Plugins Tests
