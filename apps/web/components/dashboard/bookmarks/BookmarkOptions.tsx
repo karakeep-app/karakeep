@@ -16,8 +16,10 @@ import { useSession } from "@/lib/auth/client";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { useClientConfig } from "@/lib/clientConfig";
 import useUpload from "@/lib/hooks/upload-file";
+import { useTrashBookmark } from "@/lib/hooks/useTrashBookmark";
 import { useTranslation } from "@/lib/i18n/client";
 import {
+  ArchiveRestore,
   HardDriveDownload,
   Circle,
   Download,
@@ -50,6 +52,7 @@ import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-li
 import {
   usePreserveBookmarkVideo,
   useRecrawlBookmark,
+  useRestoreBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useRemoveBookmarkFromList } from "@karakeep/shared-react/hooks/lists";
@@ -220,6 +223,15 @@ export default function BookmarkOptions({
   const preserveVideoMutator = usePreserveBookmarkVideo({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_video"));
+    },
+    onError,
+  });
+
+  const { mutate: trashBookmark } = useTrashBookmark();
+
+  const restoreBookmarkMutator = useRestoreBookmark({
+    onSuccess: () => {
+      toast.success(t("toasts.bookmarks.restored"));
     },
     onError,
   });
@@ -502,12 +514,37 @@ export default function BookmarkOptions({
         visible: isOwner,
         disabled: demoMode,
         variant: "destructive",
+        onClick: () => trashBookmark({ bookmarkId: bookmark.id }),
+      },
+    ],
+  ];
+
+  const trashActionGroups: ActionItemType[][] = [
+    [
+      {
+        id: "restore",
+        title: t("actions.restore"),
+        icon: <ArchiveRestore className="size-4" />,
+        visible: isOwner,
+        disabled: demoMode,
+        onClick: () =>
+          restoreBookmarkMutator.mutate({ bookmarkId: bookmark.id }),
+      },
+    ],
+    [
+      {
+        id: "delete-permanently",
+        title: t("actions.delete_permanently"),
+        icon: <Trash2 className="size-4" />,
+        visible: isOwner,
+        disabled: demoMode,
+        variant: "destructive",
         onClick: () => setDeleteBookmarkDialogOpen(true),
       },
     ],
   ];
 
-  const visibleGroups = actionGroups
+  const visibleGroups = (bookmark.deleteAt ? trashActionGroups : actionGroups)
     .map((group) =>
       group.filter((item) => {
         if (hiddenActions?.includes(item.id)) {

@@ -86,6 +86,14 @@ async function runIndex(
     return;
   }
 
+  if (bookmark.deleteAt) {
+    logger.info(
+      `[search] Bookmark ${bookmarkId} is in the trash, removing it from the index ...`,
+    );
+    await searchClient.deleteDocuments([bookmarkId], { batch });
+    return;
+  }
+
   const document: BookmarkSearchDocument = {
     id: bookmark.id,
     userId: bookmark.userId,
@@ -124,14 +132,15 @@ async function runIndex(
 
   await searchClient.addDocuments([document], { batch });
 
-  // The bookmark might have been deleted while we were building the document,
-  // and its delete could have reached the index before our add. If it's gone
-  // now, remove it. Otherwise, the delete gets enqueued after our add landed.
+  // The bookmark might have been deleted (or trashed) while we were building
+  // the document, and its delete could have reached the index before our add.
+  // If it's gone now, remove it. Otherwise, the delete gets enqueued after our
+  // add landed.
   const stillExists = await db.query.bookmarks.findFirst({
     where: eq(bookmarks.id, bookmarkId),
-    columns: { id: true },
+    columns: { id: true, deleteAt: true },
   });
-  if (!stillExists) {
+  if (!stillExists || stillExists.deleteAt) {
     logger.info(
       `[search] Bookmark ${bookmarkId} was deleted while indexing, removing it from the index ...`,
     );

@@ -673,6 +673,13 @@
       "when": 1791654223159,
       "tag": "0095_add_in_app_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "6",
+      "when": 1793128770474,
+      "tag": "0096_add_bookmark_trash",
+      "breakpoints": true
     }
   ]
 }

@@ -207,10 +207,265 @@ describe("Bookmark Routes", () => {
     // Delete it
     await api.deleteBookmark({ bookmarkId: bookmark.id });
 
-    // It shouldn't be there anymore
+    // It goes to the trash instead of being deleted right away
+    const trashed = await api.getBookmark({ bookmarkId: bookmark.id });
+    expect(trashed.deleteAt).toBeInstanceOf(Date);
+    expect((await api.getBookmarks({})).bookmarks).toHaveLength(0);
+
+    // Deleting it permanently removes it for good
+    await api.permanentlyDeleteBookmark({ bookmarkId: bookmark.id });
     await expect(() =>
       api.getBookmark({ bookmarkId: bookmark.id }),
     ).rejects.toThrow(/Bookmark not found/);
+  });
+
+  describe("Trash", () => {
+    test<CustomTestContext>("trashed bookmarks only show up in the trash", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const kept = await api.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "kept",
+      });
+      const trashed = await api.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "trashed",
+        favourited: true,
+      });
+      const queueMocks = getTestQueueMocks();
+      queueMocks.triggerSearchReindex.mockClear();
+      await api.deleteBookmark({ bookmarkId: trashed.id });
+
+      const live = await api.getBookmarks({});
+      expect(live.bookmarks.map((b) => b.id)).toEqual([kept.id]);
+      expect(
+        (await api.getBookmarks({ favourited: true })).bookmarks,
+      ).toHaveLength(0);
+
+      const trash = await api.getBookmarks({ trashed: true });
+      expect(trash.bookmarks.map((b) => b.id)).toEqual([trashed.id]);
+      const deleteAt = trash.bookmarks[0].deleteAt!;
+      const expectedDeleteAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
+      expect(Math.abs(deleteAt.getTime() - expectedDeleteAt)).toBeLessThan(
+        60 * 1000,
+      );
+
+      // A reindex drops it from the index, while staying safe to race with a
+      // restore
+      expect(queueMocks.triggerSearchReindex).toHaveBeenCalledWith(
+        trashed.id,
+        expect.anything(),
+      );
+      expect(queueMocks.searchIndexingEnqueue).not.toHaveBeenCalledWith(
+        { bookmarkId: trashed.id, type: "delete" },
+        expect.anything(),
+      );
+    });
+
+    test<CustomTestContext>("restoring a bookmark takes it out of the trash", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "restore me",
+      });
+      await api.deleteBookmark({ bookmarkId: bookmark.id });
+      const triggerSearchReindexMock = getTestQueueMocks().triggerSearchReindex;
+      triggerSearchReindexMock.mockClear();
+
+      await api.restoreBookmark({ bookmarkId: bookmark.id });
+
+      const restored = await api.getBookmark({ bookmarkId: bookmark.id });
+      expect(restored.deleteAt).toBeNull();
+      expect((await api.getBookmarks({})).bookmarks).toHaveLength(1);
+      expect(
+        (await api.getBookmarks({ trashed: true })).bookmarks,
+      ).toHaveLength(0);
+      expect(triggerSearchReindexMock).toHaveBeenCalledWith(
+        bookmark.id,
+        expect.anything(),
+      );
+    });
+
+    test<CustomTestContext>("re-adding a trashed link restores it", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com/trashed",
+      });
+      await api.deleteBookmark({ bookmarkId: bookmark.id });
+
+      const resaved = await api.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com/trashed",
+      });
+      expect(resaved.id).toEqual(bookmark.id);
+      expect(resaved.alreadyExists).toEqual(true);
+      expect(
+        (await api.getBookmark({ bookmarkId: bookmark.id })).deleteAt,
+      ).toBeNull();
+    });
+
+    test<CustomTestContext>("trashed links aren't reported by checkUrl", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com/check",
+      });
+      await api.deleteBookmark({ bookmarkId: bookmark.id });
+
+      const res = await api.checkUrl({ url: "https://example.com/check" });
+      expect(res.bookmarkId).toBeNull();
+    });
+
+    test<CustomTestContext>("trashed bookmarks don't count towards tags and lists", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const bookmark = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "tagged",
+      });
+      await api.bookmarks.updateTags({
+        bookmarkId: bookmark.id,
+        attach: [{ tagName: "trash-tag" }],
+        detach: [],
+      });
+      const list = await api.lists.create({
+        name: "trash list",
+        icon: "🗑️",
+        type: "manual",
+      });
+      await api.lists.addToList({ listId: list.id, bookmarkId: bookmark.id });
+
+      await api.bookmarks.deleteBookmark({ bookmarkId: bookmark.id });
+
+      const tags = await api.tags.list();
+      const tag = tags.tags.find((t) => t.name === "trash-tag")!;
+      expect(tag.numBookmarks).toEqual(0);
+      expect(
+        (await api.bookmarks.getBookmarks({ tagId: tag.id })).bookmarks,
+      ).toHaveLength(0);
+      expect(
+        (await api.bookmarks.getBookmarks({ listId: list.id })).bookmarks,
+      ).toHaveLength(0);
+      const stats = await api.lists.stats();
+      expect(stats.stats.get(list.id)).toEqual(0);
+    });
+
+    test<CustomTestContext>("trashed bookmarks don't match smart lists", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const bookmark = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "favourite",
+        favourited: true,
+      });
+      const list = await api.lists.create({
+        name: "favs",
+        icon: "⭐",
+        type: "smart",
+        query: "is:fav",
+      });
+      expect(
+        (await api.bookmarks.getBookmarks({ listId: list.id })).bookmarks,
+      ).toHaveLength(1);
+
+      await api.bookmarks.deleteBookmark({ bookmarkId: bookmark.id });
+
+      expect(
+        (await api.bookmarks.getBookmarks({ listId: list.id })).bookmarks,
+      ).toHaveLength(0);
+      const stats = await api.lists.stats();
+      expect(stats.stats.get(list.id)).toEqual(0);
+    });
+
+    test<CustomTestContext>("highlights of trashed bookmarks are hidden", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const bookmark = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com/highlighted",
+      });
+      await api.highlights.create({
+        bookmarkId: bookmark.id,
+        startOffset: 0,
+        endOffset: 5,
+        color: "yellow",
+        text: "hello",
+        note: null,
+      });
+      expect((await api.highlights.getAll({})).highlights).toHaveLength(1);
+
+      await api.bookmarks.deleteBookmark({ bookmarkId: bookmark.id });
+      expect((await api.highlights.getAll({})).highlights).toHaveLength(0);
+
+      await api.bookmarks.restoreBookmark({ bookmarkId: bookmark.id });
+      expect((await api.highlights.getAll({})).highlights).toHaveLength(1);
+    });
+
+    test<CustomTestContext>("collaborators can't see trashed bookmarks", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "shared",
+      });
+      const list = await ownerApi.lists.create({
+        name: "shared list",
+        icon: "📚",
+        type: "manual",
+      });
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+      const collaborator = await collaboratorApi.users.whoami();
+      const { invitationId } = await ownerApi.lists.addCollaborator({
+        listId: list.id,
+        email: collaborator.email!,
+        role: "viewer",
+      });
+      await collaboratorApi.lists.acceptInvitation({ invitationId });
+
+      await collaboratorApi.bookmarks.getBookmark({ bookmarkId: bookmark.id });
+
+      await ownerApi.bookmarks.deleteBookmark({ bookmarkId: bookmark.id });
+
+      await expect(() =>
+        collaboratorApi.bookmarks.getBookmark({ bookmarkId: bookmark.id }),
+      ).rejects.toThrow(/Bookmark not found/);
+      expect(
+        (await collaboratorApi.bookmarks.getBookmarks({ listId: list.id }))
+          .bookmarks,
+      ).toHaveLength(0);
+      expect(
+        (
+          await collaboratorApi.bookmarks.getBookmarks({
+            listId: list.id,
+            trashed: true,
+          })
+        ).bookmarks,
+      ).toHaveLength(0);
+      expect(
+        (
+          await ownerApi.bookmarks.getBookmarks({
+            listId: list.id,
+            trashed: true,
+          })
+        ).bookmarks,
+      ).toHaveLength(1);
+    });
   });
 
   test<CustomTestContext>("update bookmark", async ({ apiCallers }) => {
@@ -1338,7 +1593,7 @@ describe("Bookmark Routes", () => {
       );
 
       // Delete the first bookmark
-      await api.deleteBookmark({ bookmarkId: bookmark1.id });
+      await api.permanentlyDeleteBookmark({ bookmarkId: bookmark1.id });
 
       // Now should be able to create a new bookmark
       const bookmark2 = await api.createBookmark({
@@ -1618,7 +1873,7 @@ describe("Bookmark Routes", () => {
       expect(progress.readingProgressOffset).toBe(500);
 
       // Delete the bookmark
-      await api.deleteBookmark({ bookmarkId: bookmark.id });
+      await api.permanentlyDeleteBookmark({ bookmarkId: bookmark.id });
 
       // Verify bookmark is gone (and implicitly, the progress cascade deleted)
       await expect(() =>

@@ -21,6 +21,8 @@ const mocks = vi.hoisted(() => ({
   updateMutateAsync: vi.fn(),
   deleteMutate: vi.fn(),
   deleteMutateAsync: vi.fn(),
+  permanentlyDeleteMutate: vi.fn(),
+  permanentlyDeleteMutateAsync: vi.fn(),
   recrawlMutateAsync: vi.fn(),
   removeFromListMutateAsync: vi.fn(),
   toastSuccess: vi.fn(),
@@ -66,6 +68,11 @@ vi.mock("@karakeep/shared-react/hooks/bookmarks", () => ({
   useDeleteBookmark: () => ({
     mutate: mocks.deleteMutate,
     mutateAsync: mocks.deleteMutateAsync,
+    isPending: false,
+  }),
+  usePermanentlyDeleteBookmark: () => ({
+    mutate: mocks.permanentlyDeleteMutate,
+    mutateAsync: mocks.permanentlyDeleteMutateAsync,
     isPending: false,
   }),
   useRecrawlBookmark: () => ({
@@ -308,6 +315,33 @@ describe("useBookmarkKeyboardNavigation", () => {
       bookmarkId: "owned",
       favourited: true,
     });
+  });
+
+  it("flags deleting a trashed bookmark as permanent", () => {
+    useKeyboardNavigationStore.setState({
+      focusedIndex: 0,
+      isNavigating: true,
+    });
+
+    const { result } = renderKeyboardHook([
+      { ...bookmark("trashed"), deleteAt: new Date() },
+    ]);
+    expect(result.current.isPermanentDelete).toBe(false);
+
+    act(() => {
+      hotkey("shift+3,delete").callback();
+    });
+    expect(result.current.deleteDialogOpen).toBe(true);
+    expect(result.current.isPermanentDelete).toBe(true);
+
+    act(() => {
+      void result.current.confirmDelete();
+    });
+    expect(mocks.permanentlyDeleteMutate).toHaveBeenCalledWith(
+      { bookmarkId: "trashed" },
+      expect.any(Object),
+    );
+    expect(mocks.deleteMutate).not.toHaveBeenCalled();
   });
 
   it("falls back to the focused bookmark when bulk selection is not actionable", () => {

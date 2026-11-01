@@ -1,5 +1,5 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, like, lt, or } from "drizzle-orm";
+import { and, eq, gt, inArray, isNull, like, lt, or } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -291,6 +291,7 @@ export const bookmarksAppRouter = router({
           const resaved = {
             createdAt: input.createdAt ?? now,
             archived: input.archived ?? false,
+            deleteAt: null,
             ...(input.title !== undefined ? { title: input.title } : {}),
             ...(input.favourited !== undefined
               ? { favourited: input.favourited }
@@ -815,6 +816,20 @@ export const bookmarksAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       addLogFields<"bookmark.delete">({ "bookmark.id": input.bookmarkId });
       const bookmark = await Bookmark.fromId(ctx, input.bookmarkId, false);
+      await bookmark.moveToTrash();
+    }),
+  restoreBookmark: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      const bookmark = await Bookmark.fromId(ctx, input.bookmarkId, false);
+      await bookmark.restoreFromTrash();
+    }),
+  permanentlyDeleteBookmark: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      const bookmark = await Bookmark.fromId(ctx, input.bookmarkId, false);
       await bookmark.delete();
     }),
   recrawlBookmark: bookmarksProcedure
@@ -1255,6 +1270,7 @@ export const bookmarksAppRouter = router({
         .where(
           and(
             eq(bookmarks.userId, ctx.user.id),
+            isNull(bookmarks.deleteAt),
             like(bookmarkLinks.url, `${normalizedInput}%`),
           ),
         );
@@ -1517,6 +1533,7 @@ export const bookmarksAppRouter = router({
         .where(
           and(
             eq(bookmarks.userId, ctx.user.id),
+            isNull(bookmarks.deleteAt),
             or(
               eq(bookmarkLinks.crawlStatus, "failure"),
               lt(bookmarkLinks.crawlStatusCode, 200),

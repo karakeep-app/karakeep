@@ -17,6 +17,7 @@ import {
   Home,
   Search,
   Tag,
+  Trash2,
 } from "lucide-react";
 
 import { PluginManager, PluginType } from "@karakeep/shared/plugins";
@@ -85,6 +86,11 @@ export default async function Dashboard({
         name: t("common.archive"),
         icon: <Archive size={18} />,
         path: "/dashboard/archive",
+      },
+      {
+        name: t("common.trash"),
+        icon: <Trash2 size={18} />,
+        path: "/dashboard/trash",
       },
     ].flat();
 

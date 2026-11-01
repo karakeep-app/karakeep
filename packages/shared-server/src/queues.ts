@@ -213,6 +213,10 @@ const zPurgeBookmarksOverQuotaTaskSchema = z.object({
   }),
 });
 
+const zPurgeExpiredTrashTaskSchema = z.object({
+  type: z.literal("purge_expired_trash"),
+});
+
 // System-wide tasks that can be triggered through the generic
 // `runAdminMaintenanceTask` endpoint. User-scoped (and destructive) tasks
 // have their own dedicated endpoints.
@@ -225,6 +229,7 @@ export const zAdminMaintenanceTaskSchema = z.discriminatedUnion("type", [
   zTidyAssetsTaskSchema,
   zMigrateLargeLinkHtmlTaskSchema,
   zPurgeBookmarksOverQuotaTaskSchema,
+  zPurgeExpiredTrashTaskSchema,
 ]);
 
 export type ZAdminMaintenanceTask = z.infer<typeof zAdminMaintenanceTaskSchema>;

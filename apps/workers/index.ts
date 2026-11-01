@@ -34,6 +34,9 @@ let backupSchedulingWorker:
 let feedRefreshingWorker:
   | typeof import("./workers/feedWorker").FeedRefreshingWorker
   | undefined;
+let trashPurgingWorker:
+  | typeof import("./workers/adminMaintenanceWorker").TrashPurgingWorker
+  | undefined;
 
 const workerBuilders = {
   crawler: async () => {
@@ -63,8 +66,9 @@ const workerBuilders = {
     return SearchIndexingWorker.build();
   },
   adminMaintenance: async () => {
-    const { AdminMaintenanceWorker } =
+    const { AdminMaintenanceWorker, TrashPurgingWorker } =
       await import("./workers/adminMaintenanceWorker");
+    trashPurgingWorker = TrashPurgingWorker;
     await AdminMaintenanceQueue.ensureInit();
     return AdminMaintenanceWorker.build();
   },
@@ -152,6 +156,10 @@ async function main() {
     backupSchedulingWorker?.start();
   }
 
+  if (workers.some((w) => w.name === "adminMaintenance")) {
+    trashPurgingWorker?.start();
+  }
+
   // Start import polling worker
   let importWorker = null;
   let importWorkerPromise: Promise<void> | null = null;
@@ -182,6 +190,9 @@ async function main() {
   }
   if (workers.some((w) => w.name === "backup")) {
     backupSchedulingWorker?.stop();
+  }
+  if (workers.some((w) => w.name === "adminMaintenance")) {
+    trashPurgingWorker?.stop();
   }
   if (importWorker) {
     importWorker.stop();

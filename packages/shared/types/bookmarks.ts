@@ -198,6 +198,8 @@ export const zBareBookmarkSchema = z.object({
   summary: z.string().nullish(),
   source: zBookmarkSourceSchema.nullish(),
   userId: z.string(),
+  // Set when the bookmark is in the trash
+  deleteAt: z.date().nullish(),
 });
 
 export type ZBareBookmark = z.infer<typeof zBareBookmarkSchema>;
@@ -284,9 +286,13 @@ export type ZNewBookmarkRequest = z.infer<typeof zNewBookmarkRequestSchema>;
 export const DEFAULT_NUM_BOOKMARKS_PER_PAGE = 20;
 export const MAX_NUM_BOOKMARKS_PER_PAGE = 100;
 
+export const TRASH_RETENTION_DAYS = 30;
+
 export const zGetBookmarksRequestSchema = z.object({
   archived: z.boolean().optional(),
   favourited: z.boolean().optional(),
+  // Bookmarks in the trash are only returned when this is set to true
+  trashed: z.boolean().optional(),
   tagId: z.string().optional(),
   listId: z.string().optional(),
   rssFeedId: z.string().optional(),

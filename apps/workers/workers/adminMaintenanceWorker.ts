@@ -1,4 +1,5 @@
 import { workerStatsCounter } from "metrics";
+import cron from "node-cron";
 import { withWorkerTracing } from "workerTracing";
 
 import {
@@ -13,7 +14,31 @@ import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
 import { runMigrateLargeLinkHtmlTask } from "./adminMaintenance/tasks/migrateLinkHtmlContent";
 import { runPurgeBookmarksOverQuotaTask } from "./adminMaintenance/tasks/purgeBookmarksOverQuota";
+import { runPurgeExpiredTrashTask } from "./adminMaintenance/tasks/purgeExpiredTrash";
 import { runTidyAssetsTask } from "./adminMaintenance/tasks/tidyAssets";
+
+// Run hourly
+export const TrashPurgingWorker = cron.schedule(
+  "0 * * * *",
+  async () => {
+    const currentHour = new Date();
+    currentHour.setMinutes(0, 0, 0);
+    try {
+      await AdminMaintenanceQueue.enqueue(
+        { type: "purge_expired_trash" },
+        { idempotencyKey: `purge_expired_trash-${currentHour.toISOString()}` },
+      );
+    } catch (error) {
+      logger.error(
+        `[adminMaintenance] Failed to schedule trash purge: ${error}`,
+      );
+    }
+  },
+  {
+    runOnInit: false,
+    scheduled: false,
+  },
+);
 
 export class AdminMaintenanceWorker {
   static async build() {
@@ -87,6 +112,8 @@ async function runAdminMaintenance(job: DequeuedJob<ZAdminMaintenanceTask>) {
       );
     case "purge_bookmarks_over_quota":
       return runPurgeBookmarksOverQuotaTask(job, task);
+    case "purge_expired_trash":
+      return runPurgeExpiredTrashTask(job);
     default: {
       const exhaustiveCheck: never = task;
       throw new Error(

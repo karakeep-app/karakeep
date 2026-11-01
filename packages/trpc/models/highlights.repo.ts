@@ -1,8 +1,18 @@
-import { and, desc, eq, like, lt, lte, or } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  isNotNull,
+  like,
+  lt,
+  lte,
+  notInArray,
+  or,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
-import { highlights } from "@karakeep/db/schema";
+import { bookmarks, highlights } from "@karakeep/db/schema";
 import {
   zHighlightSchema,
   zNewHighlightSchema,
@@ -14,6 +24,16 @@ type Highlight = z.infer<typeof zHighlightSchema>;
 
 export class HighlightsRepo {
   constructor(private db: DB) {}
+
+  private notInTrash() {
+    return notInArray(
+      highlights.bookmarkId,
+      this.db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(isNotNull(bookmarks.deleteAt)),
+    );
+  }
 
   async get(id: string): Promise<Highlight | null> {
     const highlight = await this.db.query.highlights.findFirst({
@@ -60,6 +80,7 @@ export class HighlightsRepo {
     const results = await this.db.query.highlights.findMany({
       where: and(
         eq(highlights.userId, userId),
+        this.notInTrash(),
         cursor
           ? or(
               lt(highlights.createdAt, cursor.createdAt),
@@ -99,6 +120,7 @@ export class HighlightsRepo {
     const results = await this.db.query.highlights.findMany({
       where: and(
         eq(highlights.userId, userId),
+        this.notInTrash(),
         or(
           like(highlights.text, searchPattern),
           like(highlights.note, searchPattern),

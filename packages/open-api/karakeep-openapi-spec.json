@@ -203,6 +203,11 @@
           "userId": {
             "type": "string"
           },
+          "deleteAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -1453,7 +1458,7 @@
       },
       "delete": {
         "operationId": "deleteBookmark",
-        "description": "Permanently delete a bookmark and all its associated data (tags, highlights, assets).",
+        "description": "Move a bookmark to the trash. Bookmarks in the trash are permanently deleted, along with all their associated data (tags, highlights, assets), after 30 days.",
         "summary": "Delete a bookmark",
         "tags": [
           "Bookmarks"
@@ -1470,7 +1475,7 @@
         ],
         "responses": {
           "204": {
-            "description": "No content — the bookmark was deleted successfully."
+            "description": "No content — the bookmark was moved to the trash."
           },
           "401": {
             "description": "Unauthorized — the Bearer token is missing, invalid, or expired.",
@@ -1669,6 +1674,11 @@
                     },
                     "userId": {
                       "type": "string"
+                    },
+                    "deleteAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time"
                     }
                   },
                   "required": [
@@ -1927,6 +1937,11 @@
                     },
                     "userId": {
                       "type": "string"
+                    },
+                    "deleteAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time"
                     }
                   },
                   "required": [
