@@ -1,0 +1,73 @@
+import type { ZProblemReportRecentError } from "@karakeep/shared/types/problemReports";
+import { MAX_PROBLEM_REPORT_RECENT_ERRORS } from "@karakeep/shared/types/problemReports";
+
+const MAX_MESSAGE_LENGTH = 2000;
+
+// In-memory ring buffer of the most recent client-side errors. It's only ever
+// read when the user explicitly submits a problem report.
+const recentErrors: ZProblemReportRecentError[] = [];
+let installed = false;
+
+function stringify(value: unknown): string {
+  if (value instanceof Error) {
+    return value.stack ?? `${value.name}: ${value.message}`;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function record(message: string, source?: string) {
+  recentErrors.push({
+    message: message.slice(0, MAX_MESSAGE_LENGTH),
+    source: source?.slice(0, 500),
+    timestamp: new Date().toISOString(),
+  });
+  if (recentErrors.length > MAX_PROBLEM_REPORT_RECENT_ERRORS) {
+    recentErrors.splice(
+      0,
+      recentErrors.length - MAX_PROBLEM_REPORT_RECENT_ERRORS,
+    );
+  }
+}
+
+export function installRecentErrorCapture() {
+  if (installed || typeof window === "undefined") {
+    return;
+  }
+  installed = true;
+
+  window.addEventListener("error", (event) => {
+    record(
+      stringify(event.error ?? event.message),
+      event.filename
+        ? `${event.filename}:${event.lineno}:${event.colno}`
+        : "window.onerror",
+    );
+  });
+
+  window.addEventListener("unhandledrejection", (event) => {
+    record(stringify(event.reason), "unhandledrejection");
+  });
+
+  // eslint-disable-next-line no-console
+  const originalConsoleError = console.error;
+  // eslint-disable-next-line no-console
+  console.error = (...args: unknown[]) => {
+    try {
+      record(args.map(stringify).join(" "), "console.error");
+    } catch {
+      // Never let error capturing break the app
+    }
+    originalConsoleError.apply(console, args);
+  };
+}
+
+export function getRecentErrors(): ZProblemReportRecentError[] {
+  return [...recentErrors];
+}

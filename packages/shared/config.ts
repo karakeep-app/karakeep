@@ -210,6 +210,9 @@ const allEnv = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+
+  // Problem reports
+  PROBLEM_REPORTS_EMAIL: z.string().email().optional(),
   EMAIL_VERIFICATION_REQUIRED: stringBool("false"),
 
   // Asset storage configuration
@@ -366,6 +369,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
             from: val.SMTP_FROM,
           }
         : undefined,
+    },
+    problemReports: {
+      enabled: !!val.PROBLEM_REPORTS_EMAIL,
+      email: val.PROBLEM_REPORTS_EMAIL,
     },
     inference: {
       isConfigured: !!val.OPENAI_API_KEY || !!val.OLLAMA_BASE_URL,
@@ -608,6 +615,15 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     });
     return z.NEVER;
   }
+  if (obj.problemReports.enabled && !obj.email.smtp) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "To enable problem reports (PROBLEM_REPORTS_EMAIL), SMTP settings must be configured",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
   if (obj.auth.turnstile.enabled && !obj.auth.turnstile.secretKey) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -689,6 +705,9 @@ export const clientConfig = {
   legal: {
     termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,
     privacyPolicyUrl: serverConfig.legal.privacyPolicyUrl,
+  },
+  problemReports: {
+    enabled: serverConfig.problemReports.enabled,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,
