@@ -41,7 +41,7 @@ export default function NavBar() {
             GitHub
           </a>
           <a
-            href="https://cloud.karakeep.app"
+            href="https://cloud.karakeep.com"
             className={cn(
               "text flex h-full w-20 gap-2",
               buttonVariants({ variant: "outline" }),
@@ -103,7 +103,7 @@ export default function NavBar() {
             </a>
             <div className="mt-2 flex gap-3">
               <a
-                href="https://cloud.karakeep.app"
+                href="https://cloud.karakeep.com"
                 className={cn(
                   "flex-1",
                   buttonVariants({ variant: "outline", size: "sm" }),
