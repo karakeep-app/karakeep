@@ -155,6 +155,83 @@ describe("Lists Routes", () => {
     ).rejects.toThrow(/List not found/);
   });
 
+  test<CustomTestContext>("merge doesn't move collaborators' bookmarks", async ({
+    apiCallers,
+  }) => {
+    const [ownerApi, editorApi, viewerApi] = apiCallers;
+
+    const sourceList = await ownerApi.lists.create({
+      name: "Source List",
+      type: "manual",
+      icon: "📚",
+    });
+    const targetList = await ownerApi.lists.create({
+      name: "Target List",
+      type: "manual",
+      icon: "📖",
+    });
+    await shareList(ownerApi, editorApi, sourceList.id, "editor");
+    await shareList(ownerApi, viewerApi, targetList.id, "viewer");
+
+    const ownerBookmarkId = await createTestBookmark(ownerApi);
+    const editorBookmarkId = await createTestBookmark(editorApi);
+    await ownerApi.lists.addToList({
+      listId: sourceList.id,
+      bookmarkId: ownerBookmarkId,
+    });
+    await editorApi.lists.addToList({
+      listId: sourceList.id,
+      bookmarkId: editorBookmarkId,
+    });
+
+    await ownerApi.lists.merge({
+      sourceId: sourceList.id,
+      targetId: targetList.id,
+      deleteSourceAfterMerge: true,
+    });
+
+    const { bookmarks } = await viewerApi.bookmarks.getBookmarks({
+      listId: targetList.id,
+    });
+    expect(bookmarks.map((b) => b.id)).toEqual([ownerBookmarkId]);
+    await expect(() =>
+      viewerApi.bookmarks.getBookmark({ bookmarkId: editorBookmarkId }),
+    ).rejects.toThrow(/Bookmark not found/);
+  });
+
+  test<CustomTestContext>("merge a list with only collaborators' bookmarks", async ({
+    apiCallers,
+  }) => {
+    const [ownerApi, editorApi] = apiCallers;
+
+    const sourceList = await ownerApi.lists.create({
+      name: "Source List",
+      type: "manual",
+      icon: "📚",
+    });
+    const targetList = await ownerApi.lists.create({
+      name: "Target List",
+      type: "manual",
+      icon: "📖",
+    });
+    await shareList(ownerApi, editorApi, sourceList.id, "editor");
+    await editorApi.lists.addToList({
+      listId: sourceList.id,
+      bookmarkId: await createTestBookmark(editorApi),
+    });
+
+    await ownerApi.lists.merge({
+      sourceId: sourceList.id,
+      targetId: targetList.id,
+      deleteSourceAfterMerge: false,
+    });
+
+    const { bookmarks } = await ownerApi.bookmarks.getBookmarks({
+      listId: targetList.id,
+    });
+    expect(bookmarks).toHaveLength(0);
+  });
+
   test<CustomTestContext>("delete list", async ({ apiCallers }) => {
     const api = apiCallers[0].lists;
 
