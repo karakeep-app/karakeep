@@ -101,7 +101,9 @@ import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
 import type { ParseSubprocessOutput } from "./utils/parseHtmlSubprocessIpc";
 import {
+  decodeHtmlResponse,
   normalizeContentType,
+  normalizeHtmlCharset,
   redactUrlCredentials,
   shouldRetryCrawlStatusCode,
   truncateUrl,
@@ -667,7 +669,7 @@ const getContentTypeAndMetadata = traced(
     // that would regress the asset-vs-webpage routing decision.
     const metadata = (async () => {
       try {
-        const htmlContent = await response.text();
+        const htmlContent = await decodeHtmlResponse(response);
         const { metadata: parsedMetadata } = await runParseSubprocess(
           htmlContent,
           response.url,
@@ -1746,7 +1748,7 @@ const browserlessCrawlPage = traced(
       `Successfully fetched the content of "${truncateUrl(url)}". Status: ${response.status}, Size: ${response.size}`,
     );
     return {
-      htmlContent: await response.text(),
+      htmlContent: await decodeHtmlResponse(response),
       statusCode: response.status,
       screenshot: undefined,
       pdf: undefined,
@@ -2156,7 +2158,11 @@ const archiveWebpage = traced(
     const assetPath = path.join(os.tmpdir(), assetId);
 
     const res = await execa({
-      input: html,
+      // The HTML is UTF-8, but it may still declare the original page's
+      // legacy encoding (e.g. shift_jis); monolith passes the document
+      // through as-is, so viewers would decode the archive with the wrong
+      // encoding. Rewrite the declaration to match the actual bytes.
+      input: normalizeHtmlCharset(html),
       cancelSignal: abortSignal,
       // Report failures through the result instead of throwing, so that they
       // are handled below and the temp file is cleaned up.
