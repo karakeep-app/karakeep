@@ -605,7 +605,7 @@
     "billed_mobile_app": "Aplikacja mobilna",
     "ends_on": "Zakończenie",
     "renews_on": "Odnowienie",
-    "past_due_footer": "Wystąpił problem z Twoją metodą płatności. Zaktualizuj jő w ustawieniach subskrypcji w sklepie, aby zachować swój plan.",
+    "past_due_footer": "Wystąpił problem z Twoją metodą płatności. Zaktualizuj ją w ustawieniach subskrypcji w sklepie, aby zachować swój plan.",
     "web_managed_footer": "Twoja subskrypcja jest zarządzana w ustawieniach aplikacji internetowej Karakeep.",
     "custom_tier_footer": "Twój plan jest zarządzany przez zespół Karakeep.",
     "usage": "Zużycie",
@@ -616,7 +616,7 @@
     "usage_of": "{{used}} z {{quota}}",
     "usage_unlimited": "{{used}} (bez limitu)",
     "error": "Coś poszło nie tak. Spróbuj ponownie.",
-    "upgraded": "Masz teraz pŁatny plan.",
+    "upgraded": "Masz teraz płatny plan.",
     "purchase_pending": "Nie udało się jeszcze potwierdzić zakupu. Za chwilę spróbuj opcji „Przywróć zakupy”.",
     "purchases_restored": "Zakupy przywrócone",
     "no_subscription": "Nie znaleziono aktywnej subskrypcji"
