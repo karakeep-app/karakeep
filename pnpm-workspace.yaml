@@ -24,7 +24,9 @@ trustPolicyExclude:
   - semver@6.3.1
   # faisalman (the author), 1.x maintenance after 2.0 prereleases had provenance.
   - ua-parser-js@1.0.41
-# Only direct dependencies may come from git repos or tarball URLs.
+# Only direct dependencies may come from git repos or tarball URLs. This is
+# already pnpm 11's default; it's set explicitly so a future default change
+# can't silently turn it off.
 blockExoticSubdeps: true
 
 allowBuilds:
