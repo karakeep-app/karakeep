@@ -9,3 +9,23 @@ export function createTestPdfFile(fileName = "test.pdf"): File {
     type: "application/pdf",
   });
 }
+
+const pdfWithTextFixturePath = path.join(
+  __dirname,
+  "..",
+  "fixtures",
+  "test-with-text.pdf",
+);
+const pdfWithTextContent = fs.readFileSync(pdfWithTextFixturePath);
+
+/**
+ * A PDF that actually carries extractable text, so asset preprocessing has
+ * something to put in `bookmarkAssets.content`. `test.pdf` has an empty page.
+ */
+export function createTestPdfFileWithText(
+  fileName = "test-with-text.pdf",
+): File {
+  return new File([pdfWithTextContent], fileName, {
+    type: "application/pdf",
+  });
+}

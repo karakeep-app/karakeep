@@ -208,7 +208,9 @@ function AISummarySection({
       },
     });
 
-  if (bookmark.content.type !== BookmarkTypes.LINK) {
+  // Unknown bookmarks carry no content relation, so there is nothing to
+  // summarize and the action would always fail.
+  if (bookmark.content.type === BookmarkTypes.UNKNOWN) {
     return null;
   }
 
