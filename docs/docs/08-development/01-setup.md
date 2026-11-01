@@ -72,7 +72,6 @@ Packages: +3129
 Progress: resolved 0, reused 2699, downloaded 0, added 3129, done
 
 devDependencies:
-+ @karakeep/prettier-config 0.1.0 <- tooling/prettier
 
 . prepare$ husky
 └─ Done in 45ms

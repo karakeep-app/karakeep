@@ -43,7 +43,6 @@ COPY packages/shared/package.json ./packages/shared/
 COPY packages/trpc/package.json ./packages/trpc/
 COPY tooling/github/package.json ./tooling/github/
 COPY tooling/oxlint/package.json ./tooling/oxlint/
-COPY tooling/prettier/package.json ./tooling/prettier/
 COPY tooling/tailwind/package.json ./tooling/tailwind/
 COPY tooling/typescript/package.json ./tooling/typescript/
 COPY ./patches ./patches
