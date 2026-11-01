@@ -39,7 +39,7 @@
     "portless": "^0.10.3",
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9",
+    "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vite-plugin-svgr": "^4.3.0"
   }
