@@ -12,7 +12,15 @@ export class LocalFileSystemAssetStore implements AssetStore {
   constructor(private readonly rootPath: string) {}
 
   private getAssetDir(userId: string, assetId: string) {
-    return path.join(this.rootPath, userId, assetId);
+    // Ids are used as path segments, so make sure they can't escape the
+    // user's directory (e.g. "../" traversal).
+    const root = path.resolve(this.rootPath);
+    const userDir = path.resolve(root, userId);
+    const assetDir = path.resolve(userDir, assetId);
+    if (path.dirname(userDir) !== root || path.dirname(assetDir) !== userDir) {
+      throw new Error("Invalid asset path");
+    }
+    return assetDir;
   }
 
   private async isPathExists(filePath: string) {
