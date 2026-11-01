@@ -77,6 +77,7 @@
     "format": "oxfmt --ignore-path=../../.gitignore --check .",
     "format:fix": "oxfmt --ignore-path=../../.gitignore .",
     "test": "vitest run",
+    "test:browser-cdp": "tsx scripts/browserCdpSmoke.ts",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   }

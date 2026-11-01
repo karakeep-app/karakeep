@@ -120,6 +120,7 @@ import {
   getPlaywrightProxyConfig,
   initializeBrowserEnvironment,
   PAGE_CLOSE_TIMEOUT_MS,
+  releaseBrowserInstance,
   startBrowserInstance,
   trackContext,
   untrackContext,
@@ -213,20 +214,21 @@ export class CrawlerWorker {
     // stays undefined). On-demand connections throw per-crawl, so those surface
     // as visible errors already.
     const hasBrowserBackend =
+      !!serverConfig.crawler.browserCdpUrl ||
       !!serverConfig.crawler.browserWebUrl ||
       !!serverConfig.crawler.browserWebSocketUrl;
     if (!hasBrowserBackend) {
       throw new Error(
         "[adhoc] No browser backend configured — refusing to run. crawlPage() " +
-          "would silently fall back to a plain HTTP fetch. Set BROWSER_WEB_URL " +
-          "or BROWSER_WEBSOCKET_URL to a reachable Chrome.",
+          "would silently fall back to a plain HTTP fetch. Set BROWSER_CDP_URL, " +
+          "BROWSER_WEBSOCKET_URL, or BROWSER_WEB_URL to a reachable browser.",
       );
     }
     if (!serverConfig.crawler.browserConnectOnDemand && !getGlobalBrowser()) {
       throw new Error(
         "[adhoc] Browser failed to connect — refusing to run. crawlPage() would " +
-          "silently fall back to a plain HTTP fetch. Check that BROWSER_WEB_URL / " +
-          "BROWSER_WEBSOCKET_URL points at a reachable Chrome.",
+          "silently fall back to a plain HTTP fetch. Check that BROWSER_CDP_URL / " +
+          "BROWSER_WEBSOCKET_URL / BROWSER_WEB_URL points at a reachable browser.",
       );
     }
   }
@@ -515,7 +517,9 @@ async function checkDomainRateLimit(ctx: CrawlContext): Promise<void> {
     return;
   }
 
-  const hostname = new URL(url).hostname;
+  const parsedUrl = URL.parse(url);
+  if (!parsedUrl) throw new Error("Invalid crawl URL");
+  const hostname = parsedUrl.hostname;
   const rateLimitResult = await rateLimitClient.checkRateLimit(
     {
       name: "domain-ratelimit",
@@ -833,7 +837,9 @@ const handleAsAssetBookmark = traced(
         `[Crawler][${jobId}] Failed to download required ${assetType} asset`,
       );
     }
-    const fileName = path.basename(new URL(url).pathname);
+    const parsedUrl = URL.parse(url);
+    if (!parsedUrl) throw new Error("Invalid asset URL");
+    const fileName = path.basename(parsedUrl.pathname);
     await db.transaction((trx) => {
       updateAsset(
         undefined,
@@ -1240,29 +1246,30 @@ export const crawlPage = traced(
       return browserlessCrawlPage(ctx);
     }
 
-    const browser = await getBrowserInstance();
+    const browser = await getBrowserInstance(abortSignal);
     if (!browser) {
       return browserlessCrawlPage(ctx);
     }
 
-    const proxyConfig = getPlaywrightProxyConfig(runProxy);
-    const userAgent = await getBrowserUserAgent(browser);
-    const isRunningInProxyContext =
-      proxyConfig !== undefined &&
-      !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
-    const context = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
-      userAgent,
-      // A UTC browser behind a proxy that geolocates elsewhere is a
-      // strong bot signal; this should match the proxy's location.
-      timezoneId: serverConfig.crawler.browserTimezone,
-      proxy: proxyConfig,
-      serviceWorkers: "block",
-    });
-
-    trackContext(jobId, context);
+    let context: BrowserContext | undefined;
     let page: Page | undefined;
     try {
+      const proxyConfig = getPlaywrightProxyConfig(runProxy);
+      const userAgent = await getBrowserUserAgent(browser);
+      const isRunningInProxyContext =
+        proxyConfig !== undefined &&
+        !matchesNoProxy(url, proxyConfig.bypass?.split(",") ?? []);
+      context = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+        userAgent,
+        // A UTC browser behind a proxy that geolocates elsewhere is a
+        // strong bot signal; this should match the proxy's location.
+        timezoneId: serverConfig.crawler.browserTimezone,
+        proxy: proxyConfig,
+        serviceWorkers: "block",
+      });
+
+      trackContext(jobId, context);
       const globalCookies = getGlobalCookies();
       if (globalCookies.length > 0) {
         await context.addCookies(globalCookies);
@@ -1359,14 +1366,22 @@ export const crawlPage = traced(
         url: activePage.url(),
       };
     } finally {
-      await closePageAndContext(ctx, page, context, browser);
+      if (context) {
+        await closePageAndContext(ctx, page, context, browser);
+      } else {
+        await releaseBrowserInstance(browser).catch((error: unknown) => {
+          log.warn(`Browser release failed: ${error}`);
+        });
+      }
     }
   },
 );
 
-async function getBrowserInstance(): Promise<Browser | undefined> {
+async function getBrowserInstance(
+  signal?: AbortSignal,
+): Promise<Browser | undefined> {
   return serverConfig.crawler.browserConnectOnDemand
-    ? startBrowserInstance()
+    ? startBrowserInstance(signal)
     : getGlobalBrowser();
 }
 
@@ -1411,7 +1426,7 @@ async function renderPrecrawledArchiveScreenshot(
   htmlContent: string,
 ): Promise<Buffer | undefined> {
   const { jobId, abortSignal, log } = ctx;
-  const browser = await getBrowserInstance();
+  const browser = await getBrowserInstance(abortSignal);
   if (!browser) {
     log.info(
       `No browser available. Skipping the screenshot of the precrawled archive.`,
@@ -1430,11 +1445,9 @@ async function renderPrecrawledArchiveScreenshot(
   } catch (e) {
     // closePageAndContext would close an on-demand browser, but it's never
     // reached without a context.
-    if (serverConfig.crawler.browserConnectOnDemand) {
-      await browser.close().catch((closeError: unknown) => {
-        log.warn(`browser.close() failed: ${closeError}`);
-      });
-    }
+    await releaseBrowserInstance(browser).catch((closeError: unknown) => {
+      log.warn(`Browser release failed: ${closeError}`);
+    });
     throw e;
   }
   trackContext(jobId, context);
@@ -1714,15 +1727,15 @@ const closePageAndContext = traced(
       log.warn(`context.close() timed out — leaving in active set for reaper`);
     }
 
-    // Only close the browser if it was created on demand
+    // The shared browser must stay open; owned CDP sessions can explicitly
+    // terminate instead of just disconnecting and accruing idle usage.
     if (serverConfig.crawler.browserConnectOnDemand) {
-      await browser
-        .close()
+      await releaseBrowserInstance(browser)
         .then(() => {
           untrackContext(jobId);
         })
         .catch((e: unknown) => {
-          log.warn(`browser.close() failed: ${e}`);
+          log.warn(`Browser release failed: ${e}`);
         });
     }
   },

@@ -117,7 +117,38 @@ const allEnv = z.object({
   CRAWLER_HEADLESS_BROWSER: stringBool("true"),
   BROWSER_WEB_URL: z.string().optional(),
   BROWSER_WEBSOCKET_URL: z.string().optional(),
-  BROWSER_CONNECT_ONDEMAND: stringBool("false"),
+  BROWSER_CDP_URL: z.url({ protocol: /^wss?$/ }).optional(),
+  BROWSER_CONNECT_HEADERS: z
+    .string()
+    .prefault("{}")
+    .transform((value, ctx) => {
+      try {
+        const headers = z
+          .record(
+            z.string().regex(/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/),
+            z.string().regex(/^[^\r\n]*$/),
+          )
+          .safeParse(JSON.parse(value));
+        if (headers.success) return headers.data;
+      } catch {
+        // Never include the supplied JSON in an error: it can contain tokens.
+      }
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "BROWSER_CONNECT_HEADERS must be a JSON object of valid HTTP headers with string values",
+      });
+      return z.NEVER;
+    }),
+  BROWSER_CONNECT_TIMEOUT_SEC: z.coerce.number().positive().default(5),
+  BROWSER_CONNECT_MIN_INTERVAL_MS: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .max(2_147_483_647)
+    .default(0),
+  BROWSER_CONNECT_ONDEMAND: optionalStringBool(),
+  BROWSER_CDP_CLOSE_ON_RELEASE: stringBool("false"),
   BROWSER_COOKIE_PATH: z.string().optional(),
   CRAWLER_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
   CRAWLER_NAVIGATE_TIMEOUT_SEC: z.coerce.number().default(30),
@@ -435,7 +466,14 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       headlessBrowser: val.CRAWLER_HEADLESS_BROWSER,
       browserWebUrl: val.BROWSER_WEB_URL,
       browserWebSocketUrl: val.BROWSER_WEBSOCKET_URL,
-      browserConnectOnDemand: val.BROWSER_CONNECT_ONDEMAND,
+      browserCdpUrl: val.BROWSER_CDP_URL,
+      browserConnectHeaders: val.BROWSER_CONNECT_HEADERS,
+      browserConnectTimeoutSec: val.BROWSER_CONNECT_TIMEOUT_SEC,
+      browserConnectMinIntervalMs: val.BROWSER_CONNECT_MIN_INTERVAL_MS,
+      // Remote CDP sessions should not be acquired/reconnected while idle.
+      browserConnectOnDemand:
+        val.BROWSER_CONNECT_ONDEMAND ?? !!val.BROWSER_CDP_URL,
+      browserCdpCloseOnRelease: val.BROWSER_CDP_CLOSE_ON_RELEASE,
       browserCookiePath: val.BROWSER_COOKIE_PATH,
       jobTimeoutSec: val.CRAWLER_JOB_TIMEOUT_SEC,
       navigateTimeoutSec: val.CRAWLER_NAVIGATE_TIMEOUT_SEC,
@@ -636,6 +674,30 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         "EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE must match EMBEDDING_DIMENSIONS",
       path: ["EMBEDDING_TEXT_MODEL_DIMENSION_OVERRIDE"],
       fatal: true,
+    });
+    return z.NEVER;
+  }
+  if (
+    val.BROWSER_CDP_URL &&
+    (val.BROWSER_WEB_URL || val.BROWSER_WEBSOCKET_URL)
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      message:
+        "BROWSER_CDP_URL cannot be combined with BROWSER_WEB_URL or BROWSER_WEBSOCKET_URL",
+      path: ["BROWSER_CDP_URL"],
+    });
+    return z.NEVER;
+  }
+  if (
+    val.BROWSER_CDP_CLOSE_ON_RELEASE &&
+    (!val.BROWSER_CDP_URL || !obj.crawler.browserConnectOnDemand)
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      message:
+        "BROWSER_CDP_CLOSE_ON_RELEASE requires BROWSER_CDP_URL and on-demand connections",
+      path: ["BROWSER_CDP_CLOSE_ON_RELEASE"],
     });
     return z.NEVER;
   }

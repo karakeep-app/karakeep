@@ -792,24 +792,38 @@ export const adminAppRouter = router({
       }
 
       browserStatus.configured =
+        !!serverConfig.crawler.browserCdpUrl ||
         !!serverConfig.crawler.browserWebUrl ||
         !!serverConfig.crawler.browserWebSocketUrl;
 
       if (browserStatus.configured) {
-        if (serverConfig.crawler.browserWebUrl) {
+        if (serverConfig.crawler.browserCdpUrl) {
+          browserStatus.pluginName = "CDP Browser";
+        } else if (serverConfig.crawler.browserWebUrl) {
           browserStatus.pluginName = "Browserless/Chrome";
         } else if (serverConfig.crawler.browserWebSocketUrl) {
           browserStatus.pluginName = "WebSocket Browser";
         }
 
         try {
-          if (serverConfig.crawler.browserWebUrl) {
+          if (serverConfig.crawler.browserCdpUrl) {
+            // Like the Playwright WebSocket case below, report configuration
+            // only. A live probe can acquire a metered browser session.
+            browserStatus.connected = true;
+            browserStatus.error =
+              "CDP URL configured (connection not checked to avoid acquiring a browser session)";
+          } else if (serverConfig.crawler.browserWebUrl) {
             const webUrl = new URL(serverConfig.crawler.browserWebUrl);
-            const { address } = await dns.promises.lookup(webUrl.hostname);
-            setUrlHostnameFromResolvedAddress(webUrl, address);
+            if (webUrl.protocol === "http:") {
+              const { address } = await dns.promises.lookup(webUrl.hostname);
+              setUrlHostnameFromResolvedAddress(webUrl, address);
+            }
             webUrl.pathname = "/json/version";
             const response = await fetch(`${webUrl.toString()}`, {
-              signal: AbortSignal.timeout(5000),
+              signal: AbortSignal.timeout(
+                serverConfig.crawler.browserConnectTimeoutSec * 1000,
+              ),
+              headers: serverConfig.crawler.browserConnectHeaders,
             });
             if (response.ok) {
               browserStatus.connected = true;
