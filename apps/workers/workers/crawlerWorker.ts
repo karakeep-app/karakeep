@@ -19,19 +19,6 @@ import { dataUriToBuffer } from "data-uri-to-buffer";
 import type { MimeBuffer } from "data-uri-to-buffer";
 import { and, eq, sql } from "drizzle-orm";
 import { execa } from "execa";
-import {
-  bookmarkCrawlLatencyHistogram,
-  crawlerStatusCodeCounter,
-  workerStatsCounter,
-} from "metrics";
-import {
-  fetchWithProxy,
-  getBookmarkDomain,
-  matchesNoProxy,
-  selectRunProxies,
-  validateUrl,
-} from "network";
-import type { RunProxyConfig } from "network";
 // patchright is a drop-in Playwright fork that drives Chrome without enabling
 // the CDP Runtime domain, the most widely checked automation signal.
 import {
@@ -40,15 +27,6 @@ import {
   BrowserContextOptions,
   Page,
 } from "patchright";
-import {
-  abortRace,
-  abortRaceResolve,
-  raceWith,
-  timeoutRace,
-  timeoutRejectRace,
-} from "utils";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
-import { getBookmarkDetails, updateAsset } from "workerUtils";
 
 import type { AssetMetadata, ZCrawlLinkRequest } from "@karakeep/shared-server";
 import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
@@ -99,13 +77,29 @@ import { tryCatch } from "@karakeep/shared/tryCatch";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
+import type { RunProxyConfig } from "../network";
 import type { ParseSubprocessOutput } from "./utils/parseHtmlSubprocessIpc";
 import {
-  normalizeContentType,
-  redactUrlCredentials,
-  shouldRetryCrawlStatusCode,
-  truncateUrl,
-} from "./utils/crawlerUtils";
+  bookmarkCrawlLatencyHistogram,
+  crawlerStatusCodeCounter,
+  workerStatsCounter,
+} from "../metrics";
+import {
+  fetchWithProxy,
+  getBookmarkDomain,
+  matchesNoProxy,
+  selectRunProxies,
+  validateUrl,
+} from "../network";
+import {
+  abortRace,
+  abortRaceResolve,
+  raceWith,
+  timeoutRace,
+  timeoutRejectRace,
+} from "../utils";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
+import { getBookmarkDetails, updateAsset } from "../workerUtils";
 import {
   installAutoconsent,
   waitForPageLoadAndAutoconsent,
@@ -124,6 +118,12 @@ import {
   trackContext,
   untrackContext,
 } from "./utils/browser";
+import {
+  normalizeContentType,
+  redactUrlCredentials,
+  shouldRetryCrawlStatusCode,
+  truncateUrl,
+} from "./utils/crawlerUtils";
 import {
   isLikelyChallengePage,
   resolveMetadata,

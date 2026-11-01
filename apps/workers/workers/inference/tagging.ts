@@ -1,6 +1,4 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { getBookmarkDomain } from "network";
-import { buildImpersonatingTRPCClient } from "trpc";
 import { z } from "zod";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 
@@ -33,6 +31,9 @@ import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
+
+import { getBookmarkDomain } from "../../network";
+import { buildImpersonatingTRPCClient } from "../../trpc";
 
 /**
  * The maximum length of the relevant tag names to avoid bloating the inference context.
