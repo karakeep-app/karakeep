@@ -62,11 +62,13 @@ const formSchema = z.object({
 });
 
 function collectDiagnostics(theme?: string): ZProblemReportClientDiagnostics {
+  // Truncate to the server-side limits so that, for example, a long search
+  // query in the URL doesn't cause the whole report to be rejected.
   return {
-    pageUrl: window.location.href,
-    userAgent: navigator.userAgent,
-    language: navigator.language,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    pageUrl: window.location.href.slice(0, 2000),
+    userAgent: navigator.userAgent.slice(0, 1000),
+    language: navigator.language.slice(0, 100),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone.slice(0, 100),
     viewport: `${window.innerWidth}x${window.innerHeight}`,
     screen: `${window.screen.width}x${window.screen.height}`,
     devicePixelRatio: window.devicePixelRatio,
@@ -118,7 +120,16 @@ export default function ReportProblemDialog() {
 
   const { mutate, isPending } = useMutation(
     api.problemReports.submit.mutationOptions({
-      onSuccess: (res) => setSubmittedReportId(res.reportId),
+      onSuccess: (res) => {
+        // If the dialog was closed while the report was in flight, don't
+        // populate the success screen (it'd show up the next time the
+        // dialog is opened). Confirm with a toast instead.
+        if (!useProblemReportStore.getState().open) {
+          toast.success(t("problem_report.toasts.sent"));
+          return;
+        }
+        setSubmittedReportId(res.reportId);
+      },
       onError: (e) =>
         toast.error(e.message || t("problem_report.toasts.failed")),
     }),

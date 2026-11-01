@@ -16,13 +16,21 @@ function stringify(value: unknown): string {
     return value;
   }
   try {
-    return JSON.stringify(value);
+    // JSON.stringify returns undefined for undefined, functions and symbols
+    return JSON.stringify(value) ?? String(value);
   } catch {
     return String(value);
   }
 }
 
-function record(message: string, source?: string) {
+function record(getMessage: () => string, source?: string) {
+  let message: string;
+  try {
+    message = getMessage();
+  } catch {
+    // Never let error capturing itself throw
+    return;
+  }
   recentErrors.push({
     message: message.slice(0, MAX_MESSAGE_LENGTH),
     source: source?.slice(0, 500),
@@ -44,7 +52,7 @@ export function installRecentErrorCapture() {
 
   window.addEventListener("error", (event) => {
     record(
-      stringify(event.error ?? event.message),
+      () => stringify(event.error ?? event.message),
       event.filename
         ? `${event.filename}:${event.lineno}:${event.colno}`
         : "window.onerror",
@@ -52,18 +60,14 @@ export function installRecentErrorCapture() {
   });
 
   window.addEventListener("unhandledrejection", (event) => {
-    record(stringify(event.reason), "unhandledrejection");
+    record(() => stringify(event.reason), "unhandledrejection");
   });
 
   // eslint-disable-next-line no-console
   const originalConsoleError = console.error;
   // eslint-disable-next-line no-console
   console.error = (...args: unknown[]) => {
-    try {
-      record(args.map(stringify).join(" "), "console.error");
-    } catch {
-      // Never let error capturing break the app
-    }
+    record(() => args.map(stringify).join(" "), "console.error");
     originalConsoleError.apply(console, args);
   };
 }

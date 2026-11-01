@@ -1291,7 +1291,8 @@
       "reference": "Reference: {{id}}"
     },
     "toasts": {
-      "failed": "Failed to send the report. Please try again later."
+      "failed": "Failed to send the report. Please try again later.",
+      "sent": "Your problem report has been sent."
     }
   }
 }
