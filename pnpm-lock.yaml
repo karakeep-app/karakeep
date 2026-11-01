@@ -23754,8 +23754,8 @@ snapshots:
   cheerio-select@2.1.0:
     dependencies:
       boolbase: 1.0.0
-      css-select: 5.2.2
-      css-what: 6.2.2
+      css-select: 5.1.0
+      css-what: 6.1.0
       domelementtype: 2.3.0
       domhandler: 5.0.3
       domutils: 3.2.2
