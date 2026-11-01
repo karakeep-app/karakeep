@@ -23,11 +23,10 @@
     "openapi-typescript": "^7.6.1",
     "tsx": "^4.23.13",
     "vite": "^8.3.0",
-    "vite-plugin-dts": "^4.5.4",
     "vite-tsconfig-paths": "^6.1.1"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.build.json && node -e \"require('node:fs').copyFileSync('src/karakeep-api.d.ts', 'dist/karakeep-api.d.ts')\"",
     "run": "node --import tsx src/index.ts",
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
