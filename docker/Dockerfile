@@ -61,9 +61,19 @@ COPY . .
 ################# DB Migrations Builder ##############
 FROM base AS db_migrations_builder
 
+# Bundle migrate.ts and its dependencies into one file, since /db_migrations
+# has no node_modules. rolldown transforms TypeScript without the TypeScript
+# API, which ncc's ts-loader needed. better-sqlite3 picks its prebuilt binary
+# by a computed path that can't be bundled, so it's copied in unbundled; its
+# only dependency, node-addon-api, is just for building the binary from source.
 RUN cd packages/db && \
-    pnpm exec ncc build migrate.ts -o /db_migrations && \
-    cp -R drizzle /db_migrations
+    pnpm exec rolldown migrate.ts --platform node --format cjs \
+      --external better-sqlite3 --file /db_migrations/index.js && \
+    cp -R drizzle /db_migrations && \
+    sqlite_dir=$(node -p "require('path').dirname(require.resolve('better-sqlite3/package.json'))") && \
+    mkdir -p /db_migrations/node_modules/better-sqlite3 && \
+    cp -R "$sqlite_dir/package.json" "$sqlite_dir/lib" "$sqlite_dir/prebuilds" \
+      /db_migrations/node_modules/better-sqlite3/
 
 ################# Web Builder ##############
 FROM base AS web_builder
