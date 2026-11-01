@@ -15,10 +15,13 @@
     "@karakeep/trpc": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@mozilla/readability": "^0.6.0",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@trpc/server": "^11.9.0",
     "@tsconfig/node22": "^22.0.0",
     "archiver": "^7.0.1",
     "async-mutex": "^0.4.1",
     "better-sqlite3": "^13.0.3",
+    "cheerio": "^1.2.0",
     "data-uri-to-buffer": "^4.0.1",
     "dompurify": "^3.4.17",
     "dotenv": "^16.4.1",
@@ -53,6 +56,7 @@
     "rss-parser": "^3.13.0",
     "sharp": "^0.35.5",
     "tesseract.js": "^7.0.0",
+    "winston": "^3.11.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
