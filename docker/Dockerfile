@@ -16,7 +16,8 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 
 # Keep Corepack current enough to verify modern pnpm release signatures.
-RUN npm install -g corepack@latest && corepack enable pnpm
+# Pinned so the build doesn't pick up whatever corepack was published last.
+RUN npm install -g corepack@0.36.0 && corepack enable pnpm
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \

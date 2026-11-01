@@ -24,8 +24,16 @@ jobs:
         run: pnpm build
         working-directory: apps/mcp
 
-      # npm 11.5.1 or later is required for trusted publishing
-      - run: npm install -g npm@latest
+      # npm 11.5.1 or later is required for trusted publishing. Node 24 has
+      # bundled it since v24.5.0, so check the version instead of installing
+      # npm@latest right before publishing.
+      - name: Check npm version
+        run: |
+          npm_version="$(npm -v)"
+          if ! printf '11.5.1\n%s\n' "$npm_version" | sort -V -C; then
+            echo "npm >= 11.5.1 is required for trusted publishing, found $npm_version" >&2
+            exit 1
+          fi
 
       - run: pnpm publish --access public --no-git-checks
         working-directory: apps/mcp
