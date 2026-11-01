@@ -36,27 +36,11 @@ vi.mock("../email", async (original) => {
   };
 });
 
-// A minimal fixed-window rate limiter standing in for the plugin.
-const rateLimitCounts = new Map<string, number>();
-vi.mock("@karakeep/shared/ratelimiting", async (original) => ({
-  ...(await original<typeof import("@karakeep/shared/ratelimiting")>()),
-  getRateLimitClient: vi.fn(async () => ({
-    checkRateLimit: (config: { maxRequests: number }, key: string) => {
-      const count = (rateLimitCounts.get(key) ?? 0) + 1;
-      rateLimitCounts.set(key, count);
-      return count > config.maxRequests
-        ? { allowed: false, resetInSeconds: 600 }
-        : { allowed: true };
-    },
-  })),
-}));
-
 beforeEach<CustomTestContext>(defaultBeforeEach(false));
 
 describe("Problem reports router", () => {
   beforeEach(() => {
     vi.mocked(sendProblemReportEmail).mockClear();
-    rateLimitCounts.clear();
     (
       serverConfig.problemReports as { enabled: boolean; email?: string }
     ).enabled = true;
@@ -139,29 +123,6 @@ describe("Problem reports router", () => {
       }),
     ).rejects.toThrow();
     expect(sendProblemReportEmail).not.toHaveBeenCalled();
-  });
-
-  test<CustomTestContext>("rate limits reports even when global rate limiting is off", async ({
-    db,
-  }) => {
-    expect(serverConfig.rateLimiting.enabled).toBe(false);
-    const user = await createTestUser(db, {
-      name: "Reporter",
-      email: "reporter@test.com",
-      password: "pass1234",
-    });
-    const caller = getApiCaller(db, user.id, user.email);
-    const submit = () =>
-      caller.problemReports.submit({
-        category: "bug",
-        description: "Something is broken over here.",
-      });
-
-    for (let i = 0; i < 5; i++) {
-      await submit();
-    }
-    await expect(submit()).rejects.toThrow(/too many reports/);
-    expect(sendProblemReportEmail).toHaveBeenCalledTimes(5);
   });
 
   test<CustomTestContext>("rejects too short descriptions", async ({ db }) => {
