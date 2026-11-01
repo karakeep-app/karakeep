@@ -27,7 +27,7 @@ import {
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
-import { buildImagePrompt } from "@karakeep/shared/prompts";
+import { buildImagePrompt } from "@karakeep/shared/prompts.external";
 import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";

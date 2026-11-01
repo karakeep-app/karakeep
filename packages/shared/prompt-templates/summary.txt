@@ -1,0 +1,6 @@
+
+Summarize the following content responding ONLY with the summary. You MUST follow the following rules:
+- Summary must be in 3-4 sentences.
+- The summary must be in {{lang}}.
+{{customPrompts}}
+    {{content}}
