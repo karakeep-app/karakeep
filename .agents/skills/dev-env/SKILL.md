@@ -62,7 +62,7 @@ Browser gotchas:
 
 ## 4. Not running in dev
 
-- **Meilisearch**: without `MEILI_ADDR`, search is disabled. Start it with `docker run -p 7700:7700 getmeili/meilisearch:v1.41.0` and set `MEILI_ADDR=http://127.0.0.1:7700` only if you need search. Port 7700 may already belong to another worktree's container.
+- **Meilisearch**: without `MEILI_ADDR`, search is disabled. Start it with `docker run -p 7700:7700 getmeili/meilisearch:v1.55.0` and set `MEILI_ADDR=http://127.0.0.1:7700` only if you need search. Port 7700 may already belong to another worktree's container.
 - **Crawling**: the workers run in "browserless mode" with no `BROWSER_WEB_URL`. The seed data is already crawled, so this only matters for newly added links.
 - **Inference**: no `OPENAI_API_KEY`, so no auto-tagging.
 
