@@ -38,5 +38,5 @@
     "sherif": "^1.6.1",
     "turbo": "^2.10.13"
   },
-  "packageManager": "pnpm@11.2.1"
+  "packageManager": "pnpm@11.28.9"
 }
