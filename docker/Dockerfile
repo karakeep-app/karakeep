@@ -1,12 +1,16 @@
 ################# Monolith Builder ##############
 FROM rust:1-bookworm AS monolith_builder
 
+# Pinned so that a new (or hijacked) crates.io release doesn't silently end up
+# in the image. Bump deliberately: https://crates.io/crates/monolith
+ARG MONOLITH_VERSION=2.11.7
+
 RUN apt-get update \
     && apt-get install --no-install-recommends -y \
         libssl-dev \
         pkg-config \
     && rm -rf /var/lib/apt/lists/* \
-    && cargo install monolith --locked
+    && cargo install monolith --version "${MONOLITH_VERSION}" --locked
 
 ################# Base Builder ##############
 FROM node:24-slim AS base
@@ -101,7 +105,14 @@ EXPOSE 3000
 ######################
 # Prepare s6-overlay
 ######################
+# The tarballs are verified against checksums pinned here, so a re-uploaded
+# release asset can't change what ends up in the image. When bumping the
+# version, take the checksums from the `.sha256` file published next to each
+# asset and verify them against the downloaded files.
 ARG S6_OVERLAY_VERSION=3.2.1.0
+ARG S6_OVERLAY_NOARCH_SHA256=42e038a9a00fc0fef70bf0bc42f625a9c14f8ecdfe77d4ad93281edf717e10c5
+ARG S6_OVERLAY_X86_64_SHA256=8bcbc2cada58426f976b159dcc4e06cbb1454d5f39252b3bb0c778ccf71c9435
+ARG S6_OVERLAY_AARCH64_SHA256=c8fd6b1f0380d399422fc986a1e6799f6a287e2cfa24813ad0b6a4fb4fa755cc
 ARG TARGETARCH
 
 # Install wget and xz-utils needed for s6-overlay
@@ -112,16 +123,19 @@ RUN apt-get update \
         xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
-ADD https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
-RUN tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
-    && case ${TARGETARCH} in \
-            "amd64")  S6_ARCH=x86_64   ;; \
-            "arm64")  S6_ARCH=aarch64  ;; \
+RUN case ${TARGETARCH} in \
+            "amd64")  S6_ARCH=x86_64;  S6_ARCH_SHA256=${S6_OVERLAY_X86_64_SHA256}  ;; \
+            "arm64")  S6_ARCH=aarch64; S6_ARCH_SHA256=${S6_OVERLAY_AARCH64_SHA256} ;; \
+            *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
         esac \
-    && echo https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz -O /tmp/s6-overlay-${S6_ARCH}.tar.xz \
-    && wget https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz -O /tmp/s6-overlay-${S6_ARCH}.tar.xz \
+    && S6_URL=https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION} \
+    && wget -q "${S6_URL}/s6-overlay-noarch.tar.xz" -O /tmp/s6-overlay-noarch.tar.xz \
+    && echo "${S6_OVERLAY_NOARCH_SHA256}  /tmp/s6-overlay-noarch.tar.xz" | sha256sum -c - \
+    && wget -q "${S6_URL}/s6-overlay-${S6_ARCH}.tar.xz" -O /tmp/s6-overlay-${S6_ARCH}.tar.xz \
+    && echo "${S6_ARCH_SHA256}  /tmp/s6-overlay-${S6_ARCH}.tar.xz" | sha256sum -c - \
+    && tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz \
     && tar -C / -Jxpf /tmp/s6-overlay-${S6_ARCH}.tar.xz \
-    && rm -f /tmp/s6-overlay-${S6_ARCH}.tar.xz
+    && rm -f /tmp/s6-overlay-noarch.tar.xz /tmp/s6-overlay-${S6_ARCH}.tar.xz
 
 # Copy the s6-overlay config
 COPY --chmod=755 ./docker/root/etc/s6-overlay /etc/s6-overlay
@@ -137,13 +151,21 @@ RUN apt-get update \
         ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+# Pinned and checksum-verified rather than taken from `releases/latest`, so the
+# image doesn't run whatever was uploaded last. yt-dlp has to keep up with site
+# changes, so bump this before cutting a release. The checksums come from the
+# release's SHA2-256SUMS file; verify them against the downloaded binaries.
+ARG YTDLP_VERSION=2026.10.26
+ARG YTDLP_LINUX_SHA256=767ba9dce7052aa196f8b12652f433d76de128ba168966fa84b6394d5e6c6795
+ARG YTDLP_LINUX_AARCH64_SHA256=e87e9533e89fe5889abaa21f5114dfe7756d6aa6219b83551add04d48b18e483
 ARG TARGETARCH
 RUN case ${TARGETARCH} in \
-        "amd64")  YTDLP_FILE=yt-dlp_linux ;; \
-        "arm64")  YTDLP_FILE=yt-dlp_linux_aarch64 ;; \
+        "amd64")  YTDLP_FILE=yt-dlp_linux;         YTDLP_SHA256=${YTDLP_LINUX_SHA256} ;; \
+        "arm64")  YTDLP_FILE=yt-dlp_linux_aarch64; YTDLP_SHA256=${YTDLP_LINUX_AARCH64_SHA256} ;; \
         *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
     esac \
-    && curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/${YTDLP_FILE} -o /usr/local/bin/yt-dlp \
+    && curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/download/${YTDLP_VERSION}/${YTDLP_FILE} -o /usr/local/bin/yt-dlp \
+    && echo "${YTDLP_SHA256}  /usr/local/bin/yt-dlp" | sha256sum -c - \
     && chmod +x /usr/local/bin/yt-dlp
 
 # yt-dlp >=2025.x requires a JavaScript runtime to extract YouTube formats.
