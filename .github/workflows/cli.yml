@@ -30,10 +30,6 @@ jobs:
         run: pnpm build
         working-directory: apps/cli
 
-      # npm 11.5.1 or later is required for trusted publishing
-      - name: Upgrade npm
-        run: npm install -g npm@latest
-
       - name: Publish stable release
         if: github.event_name == 'push'
         run: pnpm publish --access public --no-git-checks

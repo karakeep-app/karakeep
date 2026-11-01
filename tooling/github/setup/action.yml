@@ -12,12 +12,6 @@ runs:
         registry-url: https://registry.npmjs.org
 
     - shell: bash
-      run: pnpm add -g turbo
-
-    - shell: bash
-      run: npm install -g corepack@latest && corepack enable pnpm
-
-    - shell: bash
       run: pnpm install
       env:
         PUPPETEER_SKIP_DOWNLOAD: "true"
