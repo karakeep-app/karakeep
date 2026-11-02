@@ -26,6 +26,10 @@ chrome:
     - seccomp=unconfined
 ```
 
+Some hosts also restrict user namespaces themselves. Lifting that is a
+host-wide change: `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`
+on Ubuntu 23.10+, or `kernel.unprivileged_userns_clone=1` on older Debian.
+
 If the sandbox can't start, Chrome exits instead of running without it.
 
 ## Testing locally
