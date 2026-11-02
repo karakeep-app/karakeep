@@ -177,7 +177,7 @@ describe("OpenAIInferenceClient response handling", () => {
 
     await expect(
       client.inferFromImage("ocr", "image/png", "BASE64", { schema: null }),
-    ).rejects.toThrow(/INFERENCE_MAX_OUTPUT_TOKENS/);
+    ).rejects.toThrow(/OPENAI_IMAGE_REASONING_EFFORT/);
   });
 
   it("surfaces refusals", async () => {
