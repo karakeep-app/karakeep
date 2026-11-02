@@ -390,6 +390,26 @@ function cloneHeaders(init?: HeadersInit): Headers {
   return headers;
 }
 
+// Headers that carry credentials for the origin they were configured for (e.g.
+// a webhook's bearer token) and must not follow a redirect to another origin.
+// Mirrors what undici/WHATWG fetch and follow-redirects do.
+const ORIGIN_BOUND_HEADERS = ["authorization", "proxy-authorization", "cookie"];
+
+function stripCredentialsOnCrossOriginRedirect(
+  headers: Headers,
+  from: URL,
+  to: URL,
+): void {
+  // Origin includes the scheme, so an https -> http downgrade on the same host
+  // also counts as cross-origin.
+  if (from.origin === to.origin) {
+    return;
+  }
+  for (const header of ORIGIN_BOUND_HEADERS) {
+    headers.delete(header);
+  }
+}
+
 function isRedirectResponse(response: Response): boolean {
   return (
     response.status === 301 ||
@@ -551,6 +571,7 @@ export const fetchWithProxy = async (
       baseHeaders.delete("content-length");
     }
 
+    stripCredentialsOnCrossOriginRedirect(baseHeaders, requestUrl, nextUrl);
     currentUrl = nextUrl.toString();
     redirectsRemaining -= 1;
   }
@@ -622,7 +643,9 @@ export async function resolveValidatedRedirectUrl(
       throw new Error(`Too many redirects while resolving ${url}`);
     }
 
-    currentUrl = new URL(locationHeader, currentUrl).toString();
+    const nextUrl = new URL(locationHeader, currentUrl);
+    stripCredentialsOnCrossOriginRedirect(baseHeaders, requestUrl, nextUrl);
+    currentUrl = nextUrl.toString();
     redirectsRemaining -= 1;
   }
 }
