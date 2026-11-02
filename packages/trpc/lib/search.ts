@@ -226,8 +226,13 @@ export async function getBookmarksConditionFromMatcher(
       return comp(bookmarks.createdAt, matcher.dateAfter);
     }
     case "dateBefore": {
-      const comp = matcher.inverse ? gt : lte;
-      return comp(bookmarks.createdAt, matcher.dateBefore);
+      // `before:<date>` is inclusive of the whole day, so compare against
+      // the start of the following day.
+      const endOfDay = new Date(
+        matcher.dateBefore.getTime() + 24 * 60 * 60 * 1000,
+      );
+      const comp = matcher.inverse ? gte : lt;
+      return comp(bookmarks.createdAt, endOfDay);
     }
     case "age": {
       const comp = matcher.relativeDate.direction === "newer" ? gte : lt;

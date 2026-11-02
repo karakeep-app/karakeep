@@ -1,0 +1,73 @@
+#!/bin/sh
+# Runs the given command with the fewest privileges this container allows.
+#
+# - no_new_privs is set, so setuid binaries and file capabilities can't grant
+#   the process (or anything it spawns, e.g. yt-dlp, ghostscript or ffmpeg)
+#   more privileges.
+# - When running as root, every Linux capability is dropped except:
+#     * DAC_OVERRIDE and FOWNER, so root can keep using a data directory owned
+#       by another user (e.g. a bind-mounted host directory), and CHOWN, which
+#       SQLite uses to keep its -wal/-shm files owned by the database file's
+#       owner. Everything else in the image is owned by root anyway, so these
+#       grant little beyond that.
+#     * NET_BIND_SERVICE, unless PORT and WORKERS_PORT are known to be at
+#       least 1024 (or unset).
+#
+# File ownership is never changed. If the runtime doesn't allow dropping
+# capabilities (e.g. the container already runs without CAP_SETPCAP), it falls
+# back to only setting no_new_privs, and then to running the command as is.
+#
+# Set KARAKEEP_DISABLE_PRIVILEGE_DROP=true to skip all of this.
+
+if [ "${KARAKEEP_DISABLE_PRIVILEGE_DROP:-false}" = "true" ]; then
+  exec "$@"
+fi
+
+# Whether a port setting might end up below 1024. The app is lenient when
+# parsing ports (" 80 ", "+80" and "8e1" all mean 80), so only an unset or
+# zero (random) port, or a plain number of at least 1024, is known not to need
+# NET_BIND_SERVICE. Anything else keeps it.
+may_be_privileged_port() {
+  case "$1" in
+    "" | 0) return 1 ;;
+    *[!0-9]*) return 0 ;;
+  esac
+  [ "$1" -lt 1024 ]
+}
+
+if [ "$(id -u)" = "0" ]; then
+  # Capability numbers: CHOWN=0, DAC_OVERRIDE=1, FOWNER=3, NET_BIND_SERVICE=10.
+  KEEP_CAPS="+chown,+dac_override,+fowner"
+  KEEP_MASK=$(((1 << 0) | (1 << 1) | (1 << 3)))
+  if may_be_privileged_port "${PORT:-}" || may_be_privileged_port "${WORKERS_PORT:-}"; then
+    KEEP_CAPS="${KEEP_CAPS},+net_bind_service"
+    KEEP_MASK=$((KEEP_MASK | (1 << 10)))
+  fi
+  SETPRIV_DROP_CAPS="setpriv --no-new-privs --inh-caps=-all --ambient-caps=-all --bounding-set=-all,${KEEP_CAPS}"
+
+  # Dry run that checks the capabilities the process actually ends up with:
+  # some setpriv versions skip the bounding set without failing when
+  # CAP_SETPCAP is missing. If the drop didn't take, fall through instead of
+  # failing the service.
+  DROPPED=false
+  CAPS=$(${SETPRIV_DROP_CAPS} awk '/^Cap(Bnd|Eff):/ { print $2 }' /proc/self/status 2>/dev/null)
+  if [ -n "${CAPS}" ]; then
+    DROPPED=true
+    for CAP in ${CAPS}; do
+      if [ $((0x${CAP} & ~KEEP_MASK)) -ne 0 ]; then
+        DROPPED=false
+      fi
+    done
+  fi
+  if [ "${DROPPED}" = "true" ]; then
+    exec ${SETPRIV_DROP_CAPS} "$@"
+  fi
+  echo "WARNING: couldn't drop Linux capabilities, $1 keeps the container's full set." >&2
+fi
+
+if setpriv --no-new-privs true 2>/dev/null; then
+  exec setpriv --no-new-privs "$@"
+fi
+
+echo "WARNING: couldn't set no_new_privs for $1." >&2
+exec "$@"

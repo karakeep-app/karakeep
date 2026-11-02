@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 /**
  * Reading Progress Utilities
  *

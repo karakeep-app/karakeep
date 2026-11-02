@@ -375,13 +375,16 @@ export class User {
 
     this.user.image = assetId;
 
-    if (!previousImage || previousImage === assetId) {
+    // Only delete files backed by an asset row this user owns. `users.image`
+    // can hold arbitrary strings (e.g. OAuth picture URLs), so it must never be
+    // used as a storage key on its own.
+    if (!previousAsset || previousAsset.bookmarkId) {
       return;
     }
 
     await deleteAsset({
       userId: this.user.id,
-      assetId: previousImage,
+      assetId: previousAsset.id,
     }).catch(() => ({}));
   }
 

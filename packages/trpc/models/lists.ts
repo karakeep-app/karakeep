@@ -1269,18 +1269,31 @@ export class ManualList extends List {
       });
     }
 
-    const bookmarkIds = await this.getBookmarkIds();
+    // Only move the caller's own bookmarks, like addToList does. Bookmarks
+    // added by collaborators stay tied to their membership of the source list.
+    const ownedBookmarks = await this.ctx.db
+      .select({ id: bookmarksInLists.bookmarkId })
+      .from(bookmarksInLists)
+      .innerJoin(bookmarks, eq(bookmarks.id, bookmarksInLists.bookmarkId))
+      .where(
+        and(
+          eq(bookmarksInLists.listId, this.list.id),
+          eq(bookmarks.userId, this.ctx.user.id),
+        ),
+      );
 
     await this.ctx.db.transaction((tx) => {
-      tx.insert(bookmarksInLists)
-        .values(
-          bookmarkIds.map((id) => ({
-            bookmarkId: id,
-            listId: targetList.id,
-          })),
-        )
-        .onConflictDoNothing()
-        .run();
+      if (ownedBookmarks.length > 0) {
+        tx.insert(bookmarksInLists)
+          .values(
+            ownedBookmarks.map(({ id }) => ({
+              bookmarkId: id,
+              listId: targetList.id,
+            })),
+          )
+          .onConflictDoNothing()
+          .run();
+      }
 
       if (deleteSourceAfterMerge) {
         tx.delete(bookmarkLists)

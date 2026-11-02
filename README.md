@@ -10,7 +10,7 @@
     </a>
 </div>
 
-# <img height="50px" src="./screenshots/logo.png" />
+# <picture><source media="(prefers-color-scheme: dark)" srcset="./screenshots/logo-white.png" /><img alt="Karakeep" height="50px" src="./screenshots/logo.png" /></picture>
 
 Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a touch of AI for the data hoarders out there.
 
@@ -99,7 +99,7 @@ Translations live in [`apps/web/lib/i18n/locales`](apps/web/lib/i18n/locales), o
 
 ## Karakeep Cloud ☁️
 
-If you're not comfortable with self-hosting, you can use our managed Karakeep cloud at [cloud.karakeep.app](https://cloud.karakeep.app). Cloud subscriptions support the development of Karakeep.
+If you're not comfortable with self-hosting, you can use our managed Karakeep cloud at [cloud.karakeep.com](https://cloud.karakeep.com). Cloud subscriptions support the development of Karakeep.
 
 ## One-click Deployment 🚀
 

@@ -1,6 +1,5 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { Glob } from "glob";
 
 import type { AssetMetadata, AssetStore } from "@karakeep/shared/assetdb";
 import {
@@ -12,7 +11,15 @@ export class LocalFileSystemAssetStore implements AssetStore {
   constructor(private readonly rootPath: string) {}
 
   private getAssetDir(userId: string, assetId: string) {
-    return path.join(this.rootPath, userId, assetId);
+    // Ids are used as path segments, so make sure they can't escape the
+    // user's directory (e.g. "../" traversal).
+    const root = path.resolve(this.rootPath);
+    const userDir = path.resolve(root, userId);
+    const assetDir = path.resolve(userDir, assetId);
+    if (path.dirname(userDir) !== root || path.dirname(assetDir) !== userDir) {
+      throw new Error("Invalid asset path");
+    }
+    return assetDir;
   }
 
   private async isPathExists(filePath: string) {
@@ -185,12 +192,8 @@ export class LocalFileSystemAssetStore implements AssetStore {
   }
 
   async *getAllAssets() {
-    const assets = new Glob("/**/**/asset.bin", {
-      maxDepth: 3,
-      root: this.rootPath,
-      cwd: this.rootPath,
-      absolute: false,
-    });
+    // Assets live at <rootPath>/<userId>/<assetId>/asset.bin.
+    const assets = fs.promises.glob("*/*/asset.bin", { cwd: this.rootPath });
     for await (const file of assets) {
       const [userId, assetId] = file.split("/").slice(0, 2);
       const [size, metadata] = await Promise.all([

@@ -19,7 +19,8 @@ vi.mock("@karakeep/shared/config", () => ({
   },
 }));
 
-vi.mock("@karakeep/shared/ratelimiting", () => ({
+vi.mock("@karakeep/shared/ratelimiting", async (original) => ({
+  ...(await original<typeof import("@karakeep/shared/ratelimiting")>()),
   getRateLimitClient: getRateLimitClientMock,
 }));
 
@@ -57,7 +58,7 @@ describe("createRateLimitMiddleware", () => {
       .get("/", (c) => c.text("ok"));
   }
 
-  it("includes the authed user id in the rate limit key", async () => {
+  it("keys authed requests by user id instead of ip", async () => {
     const response = await buildApp({
       user: {
         id: "user-123",
@@ -71,11 +72,11 @@ describe("createRateLimitMiddleware", () => {
     expect(response.status).toBe(200);
     expect(client.checkRateLimit).toHaveBeenCalledWith(
       config,
-      "127.0.0.1:user:user-123:assets.upload",
+      "user:user-123:assets.upload",
     );
   });
 
-  it("keeps the existing ip-based key for unauthed requests", async () => {
+  it("keys unauthed requests by ip", async () => {
     await buildApp({
       user: null,
       db: {} as never,
@@ -84,7 +85,51 @@ describe("createRateLimitMiddleware", () => {
 
     expect(client.checkRateLimit).toHaveBeenCalledWith(
       config,
-      "127.0.0.1:assets.upload",
+      "ip:127.0.0.1:assets.upload",
     );
+  });
+
+  it("rate limits authed requests even without an ip", async () => {
+    await buildApp({
+      user: {
+        id: "user-123",
+        email: "user@example.com",
+        role: "user",
+      },
+      db: {} as never,
+      req: { ip: null },
+    }).request("http://localhost/");
+
+    expect(client.checkRateLimit).toHaveBeenCalledWith(
+      config,
+      "user:user-123:assets.upload",
+    );
+  });
+
+  it("skips rate limiting when there's neither a user nor an ip", async () => {
+    const response = await buildApp({
+      user: null,
+      db: {} as never,
+      req: { ip: null },
+    }).request("http://localhost/");
+
+    expect(response.status).toBe(200);
+    expect(client.checkRateLimit).not.toHaveBeenCalled();
+  });
+
+  it("skips rate limiting for internal (impersonated) calls", async () => {
+    const response = await buildApp({
+      user: {
+        id: "user-123",
+        email: "user@example.com",
+        role: "user",
+      },
+      auth: { type: "internal" },
+      db: {} as never,
+      req: { ip: null },
+    }).request("http://localhost/");
+
+    expect(response.status).toBe(200);
+    expect(client.checkRateLimit).not.toHaveBeenCalled();
   });
 });

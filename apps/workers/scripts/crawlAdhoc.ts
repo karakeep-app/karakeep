@@ -90,9 +90,9 @@ function scoreHtml(
 async function main() {
   // Dynamic imports so the DATA_DIR override above takes effect first.
   const { default: serverConfig } = await import("@karakeep/shared/config");
-  const { selectRunProxies } = await import("network");
+  const { selectRunProxies } = await import("../network");
   const { crawlPage, crawlLogger, CrawlerWorker } =
-    await import("workers/crawlerWorker");
+    await import("../workers/crawlerWorker");
 
   const { values } = parseArgs({
     options: {

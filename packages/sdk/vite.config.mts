@@ -1,7 +1,6 @@
 // This file is shamelessly copied from immich's CLI vite config
 // https://github.com/immich-app/immich/blob/main/cli/vite.config.ts
 import { defineConfig } from "vite";
-import dts from "vite-plugin-dts";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
@@ -20,8 +19,6 @@ export default defineConfig({
     ssr: true,
     sourcemap: true,
   },
-  plugins: [
-    tsconfigPaths({ skip: (dir) => dir === ".claude" }),
-    dts({ rollupTypes: true, copyDtsFiles: true }),
-  ],
+  // Type declarations are emitted by tsc (see the build script).
+  plugins: [tsconfigPaths({ skip: (dir) => dir === ".claude" })],
 });

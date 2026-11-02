@@ -1,7 +1,5 @@
 import "dotenv/config";
 
-import { buildServer } from "server";
-
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
@@ -27,6 +25,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 import { shutdownPromise } from "./exit";
+import { buildServer } from "./server";
 
 let backupSchedulingWorker:
   | typeof import("./workers/backupWorker").BackupSchedulingWorker

@@ -15,7 +15,7 @@ export default function ServerAddress() {
   const iconColor = colorScheme === "dark" ? "#d1d5db" : "#374151";
   const { settings, setSettings } = useAppSettings();
   const [address, setAddress] = useState(
-    settings.address ?? "https://cloud.karakeep.app",
+    settings.address ?? "https://cloud.karakeep.com",
   );
   const [error, setError] = useState<string | undefined>();
 
@@ -120,7 +120,7 @@ export default function ServerAddress() {
             Enter the URL of your Karakeep server
           </Text>
           <Input
-            placeholder="https://cloud.karakeep.app"
+            placeholder="https://cloud.karakeep.com"
             value={address}
             onChangeText={(text) => {
               setAddress(text);

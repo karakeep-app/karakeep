@@ -20,7 +20,7 @@ enum LoginType {
   ApiKey,
 }
 
-const DEFAULT_SERVER_ADDRESS = "https://cloud.karakeep.app";
+const DEFAULT_SERVER_ADDRESS = "https://cloud.karakeep.com";
 const CONNECTION_ERROR_MESSAGE =
   "Couldn’t connect to this Karakeep server. Check the server address and your internet connection, then try again.";
 

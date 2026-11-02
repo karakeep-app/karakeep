@@ -10,15 +10,15 @@ jobs:
     runs-on: xcode-27
     steps:
       - name: Setup repo
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Setup Expo
-        uses: expo/expo-github-action@c7b66a9c327a43a8fa7c0158e7f30d6040d2481e # v8
+        uses: expo/expo-github-action@8.2.1
         with:
           expo-version: latest
           eas-version: latest
@@ -33,7 +33,7 @@ jobs:
           EXPO_PUBLIC_REVENUECAT_IOS_API_KEY: ${{ secrets.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY }}
 
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: karakeep-ios
           path: ${{ github.workspace }}/app-release.ipa

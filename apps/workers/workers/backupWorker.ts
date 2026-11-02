@@ -6,9 +6,7 @@ import { join } from "node:path";
 import { createId } from "@paralleldrive/cuid2";
 import archiver from "archiver";
 import { and, eq, inArray } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZBackupRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -34,7 +32,9 @@ import { AuthedContext } from "@karakeep/trpc";
 import { Backup } from "@karakeep/trpc/models/backups";
 import { List } from "@karakeep/trpc/models/lists";
 
+import { workerStatsCounter } from "../metrics";
 import { buildImpersonatingAuthedContext } from "../trpc";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 import { fetchBookmarksInBatches } from "./utils/fetchBookmarks";
 
 // Run daily at midnight UTC
