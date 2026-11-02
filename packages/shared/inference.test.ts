@@ -5,6 +5,11 @@ import { OpenAIInferenceClient } from "./inference";
 import type { OpenAIInferenceConfig } from "./inference";
 
 const capturedBodies: Record<string, unknown>[] = [];
+const defaultResponse = {
+  choices: [{ message: { content: "{}" }, finish_reason: "stop" }],
+  usage: { total_tokens: 1 },
+};
+let nextResponse: unknown = defaultResponse;
 const tagSchema = z.object({ tags: z.array(z.string()) });
 
 vi.mock("openai", () => {
@@ -14,10 +19,7 @@ vi.mock("openai", () => {
         completions: {
           create: vi.fn(async (body: Record<string, unknown>) => {
             capturedBodies.push(body);
-            return {
-              choices: [{ message: { content: "{}" } }],
-              usage: { total_tokens: 1 },
-            };
+            return nextResponse;
           }),
         },
       },
@@ -92,5 +94,87 @@ describe("OpenAIInferenceClient response_format", () => {
       type: "json_schema",
       json_schema: { name: "schema" },
     });
+  });
+});
+
+function completionWith(
+  message: { content: string | null; refusal?: string | null },
+  finishReason: string,
+) {
+  return {
+    choices: [{ message, finish_reason: finishReason }],
+    usage: { total_tokens: 1 },
+  };
+}
+
+describe("OpenAIInferenceClient response handling", () => {
+  beforeEach(() => {
+    capturedBodies.length = 0;
+    nextResponse = defaultResponse;
+  });
+
+  it("passes reasoning_effort for image inference", async () => {
+    const client = new OpenAIInferenceClient({
+      ...makeConfig("plain"),
+      reasoningEffort: "low",
+    });
+
+    await client.inferFromImage("ocr", "image/png", "BASE64", {
+      schema: null,
+    });
+
+    expect(capturedBodies[0].reasoning_effort).toBe("low");
+  });
+
+  it("returns an empty string for image inference that legitimately produced no text", async () => {
+    nextResponse = completionWith({ content: "" }, "stop");
+    const client = new OpenAIInferenceClient(makeConfig("plain"));
+
+    const res = await client.inferFromImage("ocr", "image/png", "BASE64", {
+      schema: null,
+    });
+
+    expect(res.response).toBe("");
+  });
+
+  it("still throws on empty schema-backed image inference", async () => {
+    nextResponse = completionWith({ content: "" }, "stop");
+    const client = new OpenAIInferenceClient(makeConfig("json"));
+
+    await expect(
+      client.inferFromImage("tag this image", "image/png", "BASE64", {
+        schema: tagSchema,
+      }),
+    ).rejects.toThrow(/no message content/);
+  });
+
+  it("still throws on empty text inference", async () => {
+    nextResponse = completionWith({ content: "" }, "stop");
+    const client = new OpenAIInferenceClient(makeConfig("plain"));
+
+    await expect(
+      client.inferFromText("summarize", { schema: null }),
+    ).rejects.toThrow(/no message content/);
+  });
+
+  it("explains when the output token limit was hit", async () => {
+    nextResponse = completionWith({ content: null }, "length");
+    const client = new OpenAIInferenceClient(makeConfig("plain"));
+
+    await expect(
+      client.inferFromImage("ocr", "image/png", "BASE64", { schema: null }),
+    ).rejects.toThrow(/INFERENCE_MAX_OUTPUT_TOKENS/);
+  });
+
+  it("surfaces refusals", async () => {
+    nextResponse = completionWith(
+      { content: null, refusal: "I can't help with that" },
+      "stop",
+    );
+    const client = new OpenAIInferenceClient(makeConfig("plain"));
+
+    await expect(
+      client.inferFromImage("ocr", "image/png", "BASE64", { schema: null }),
+    ).rejects.toThrow(/refused the request: I can't help with that/);
   });
 });
