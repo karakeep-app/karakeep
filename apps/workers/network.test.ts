@@ -130,3 +130,53 @@ describe("createPinnedLookup", () => {
     expect(result).toEqual({ address: "93.184.216.34", family: 4 });
   });
 });
+
+describe("IPv4-embedding IPv6 addresses", () => {
+  // DNS can return these in AAAA records, and a NAT64/SIIT translator on the
+  // host network routes them to the embedded IPv4 address, so they must be
+  // judged by that address.
+  test.each([
+    "64:ff9b::7f00:1", // NAT64 -> 127.0.0.1
+    "64:ff9b::a9fe:a9fe", // NAT64 -> 169.254.169.254
+    "64:ff9b::a00:1", // NAT64 -> 10.0.0.1
+    "::ffff:0:7f00:1", // IPv4-translated -> 127.0.0.1
+    "::ffff:0:a9fe:a9fe", // IPv4-translated -> 169.254.169.254
+  ])("refuses to return %s", async (address) => {
+    const lookup = createPinnedLookup([address]);
+
+    const error = await new Promise<NodeJS.ErrnoException>(
+      (resolve, reject) => {
+        lookup("rebind.example", { family: 6 }, (lookupError) => {
+          if (lookupError) {
+            resolve(lookupError);
+          } else {
+            reject(new Error(`Expected the lookup to reject ${address}`));
+          }
+        });
+      },
+    );
+
+    expect(error.code).toBe("ENOTFOUND");
+  });
+
+  test("allows NAT64 addresses of public IPv4 hosts (DNS64 networks)", async () => {
+    // 64:ff9b::808:808 -> 8.8.8.8
+    const lookup = createPinnedLookup(["64:ff9b::808:808"]);
+
+    const result = await new Promise<{ address: string; family: number }>(
+      (resolve, reject) => {
+        lookup("dns64.example", { family: 6 }, (error, address, family) => {
+          if (error) {
+            reject(error);
+          } else if (typeof address !== "string" || family === undefined) {
+            reject(new Error("Expected a single lookup result"));
+          } else {
+            resolve({ address, family });
+          }
+        });
+      },
+    );
+
+    expect(result).toEqual({ address: "64:ff9b::808:808", family: 6 });
+  });
+});

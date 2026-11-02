@@ -75,19 +75,25 @@ async function resolveHostAddresses(hostname: string): Promise<string[]> {
   throw new Error(errorMessage);
 }
 
+// IPv6 ranges that carry an IPv4 address in their last 32 bits, which a
+// translator (NAT64/SIIT) on the host network may route to that IPv4 address:
+// IPv4-mapped (::ffff:0:0/96), the NAT64 well-known prefix (64:ff9b::/96,
+// RFC 6052) and IPv4-translated addresses (::ffff:0:0:0/96, RFC 6145).
+// They aren't blocked wholesale because on IPv6-only networks DNS64
+// synthesizes NAT64 addresses for every public IPv4-only site.
+const IPV4_EMBEDDING_RANGES = new Set(["ipv4Mapped", "rfc6052", "rfc6145"]);
+
 function isAddressForbidden(address: string): boolean {
   if (!ipaddr.isValid(address)) {
     return true;
   }
   const parsed = ipaddr.parse(address);
-  if (
-    parsed.kind() === "ipv6" &&
-    (parsed as ipaddr.IPv6).isIPv4MappedAddress()
-  ) {
-    const mapped = (parsed as ipaddr.IPv6).toIPv4Address();
-    return DISALLOWED_IP_RANGES.has(mapped.range());
+  const range = parsed.range();
+  if (parsed.kind() === "ipv6" && IPV4_EMBEDDING_RANGES.has(range)) {
+    const embedded = new ipaddr.IPv4(parsed.toByteArray().slice(12));
+    return DISALLOWED_IP_RANGES.has(embedded.range());
   }
-  return DISALLOWED_IP_RANGES.has(parsed.range());
+  return DISALLOWED_IP_RANGES.has(range);
 }
 
 export function getBookmarkDomain(url?: string | null): string | undefined {
