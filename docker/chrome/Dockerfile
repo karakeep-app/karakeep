@@ -47,6 +47,10 @@ RUN apt-get update \
 
 COPY --chmod=755 docker/chrome/entrypoint.sh /usr/local/bin/chrome-entrypoint.sh
 
+# Nothing here needs setuid/setgid binaries (Chrome runs as nobody and doesn't
+# use the setuid chrome-sandbox helper), so remove every path back to root.
+RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} +
+
 ENV HOME=/tmp
 USER 65534:65534
 EXPOSE 9222
