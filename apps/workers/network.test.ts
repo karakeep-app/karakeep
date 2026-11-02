@@ -141,6 +141,8 @@ describe("IPv4-embedding IPv6 addresses", () => {
     "64:ff9b::a00:1", // NAT64 -> 10.0.0.1
     "::ffff:0:7f00:1", // IPv4-translated -> 127.0.0.1
     "::ffff:0:a9fe:a9fe", // IPv4-translated -> 169.254.169.254
+    "::ffff:127.0.0.1", // IPv4-mapped -> 127.0.0.1
+    "::ffff:169.254.169.254", // IPv4-mapped -> 169.254.169.254
   ])("refuses to return %s", async (address) => {
     const lookup = createPinnedLookup([address]);
 
