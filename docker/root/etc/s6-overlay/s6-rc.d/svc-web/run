@@ -2,4 +2,4 @@
 # shellcheck shell=bash
 
 cd /app/apps/web;
-exec node server.js;
+exec /etc/s6-overlay/scripts/drop-privileges node server.js;
