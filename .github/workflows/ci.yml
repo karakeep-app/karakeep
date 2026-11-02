@@ -16,15 +16,30 @@ env:
   FORCE_COLOR: 3
 
 jobs:
+  actions-lock:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Install gh-actions-lock
+        run: gh extension install github/gh-actions-lock --pin v0.4.0
+
+      - name: Verify actions.lock
+        run: gh actions-lock --verify
+
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Lint
         run: pnpm lint && pnpm exec sherif
@@ -32,12 +47,12 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Format
         run: pnpm format
@@ -45,24 +60,24 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Typecheck
         run: pnpm typecheck
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Shared Package Tests
         working-directory: packages/shared
@@ -87,7 +102,7 @@ jobs:
       # The default docker driver can't import the registry build cache that
       # the e2e docker-compose file uses, so build with a buildx builder.
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@v3.12.0
 
       - name: E2E Tests
         working-directory: packages/e2e_tests
@@ -95,7 +110,7 @@ jobs:
 
       - name: Upload Docker Logs
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: e2e-docker-logs-${{ github.sha }}-${{ github.run_attempt }}
           path: packages/e2e_tests/setup/docker-logs/
@@ -103,12 +118,12 @@ jobs:
   open-api-spec:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Regenerate OpenAPI spec
         working-directory: packages/open-api
