@@ -22,6 +22,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
     const identity = getRateLimitIdentity({
       userId: c.var.ctx.user?.id,
       ip: c.var.ctx.req.ip,
+      internal: c.var.ctx.auth?.type === "internal",
     });
     if (!identity) {
       return next();

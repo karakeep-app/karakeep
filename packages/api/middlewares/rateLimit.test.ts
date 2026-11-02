@@ -116,4 +116,20 @@ describe("createRateLimitMiddleware", () => {
     expect(response.status).toBe(200);
     expect(client.checkRateLimit).not.toHaveBeenCalled();
   });
+
+  it("skips rate limiting for internal (impersonated) calls", async () => {
+    const response = await buildApp({
+      user: {
+        id: "user-123",
+        email: "user@example.com",
+        role: "user",
+      },
+      auth: { type: "internal" },
+      db: {} as never,
+      req: { ip: null },
+    }).request("http://localhost/");
+
+    expect(response.status).toBe(200);
+    expect(client.checkRateLimit).not.toHaveBeenCalled();
+  });
 });

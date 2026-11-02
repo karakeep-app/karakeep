@@ -137,4 +137,22 @@ describe("createRateLimitMiddleware", () => {
     ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
     expect(next).not.toHaveBeenCalled();
   });
+
+  it("skips rate limiting for internal (impersonated) calls", async () => {
+    const next = vi.fn().mockResolvedValue("ok");
+    const middleware = createRateLimitMiddleware(config);
+
+    const result = await middleware({
+      path: "bookmarks.createBookmark",
+      ctx: {
+        req: { ip: null },
+        user: { id: "user-123" },
+        auth: { type: "internal" },
+      },
+      next,
+    });
+
+    expect(result).toBe("ok");
+    expect(client.checkRateLimit).not.toHaveBeenCalled();
+  });
 });

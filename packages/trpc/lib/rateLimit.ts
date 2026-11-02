@@ -18,6 +18,7 @@ export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
     ctx: {
       req: { ip: string | null };
       user?: { id?: string | null } | null;
+      auth?: { type: string } | null;
     };
     next: () => Promise<T>;
   }) {
@@ -28,6 +29,7 @@ export function createRateLimitMiddleware<T>(config: RateLimitConfig) {
     const identity = getRateLimitIdentity({
       userId: opts.ctx.user?.id,
       ip: opts.ctx.req.ip,
+      internal: opts.ctx.auth?.type === "internal",
     });
 
     if (!identity) {
