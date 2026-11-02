@@ -1,0 +1,52 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Only keeps the karakeep-chrome image's browser and base image current. Everything else is updated by hand.",
+  "enabledManagers": ["custom.regex"],
+  "dependencyDashboard": false,
+  "semanticCommits": "enabled",
+  "semanticCommitType": "deps",
+  "semanticCommitScope": "chrome",
+  "labels": ["dependencies"],
+  "customDatasources": {
+    "google-chrome-linux-stable": {
+      "defaultRegistryUrlTemplate": "https://versionhistory.googleapis.com/v1/chrome/platforms/linux/channels/stable/versions",
+      "transformTemplates": ["{ \"releases\": [versions.{ \"version\": version }] }"]
+    }
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Google Chrome stable, installed in the karakeep-chrome image",
+      "managerFilePatterns": ["/^docker/chrome/Dockerfile$/", "/^\\.github/workflows/chrome\\.yml$/"],
+      "matchStrings": [
+        "ARG GOOGLE_CHROME_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+\\.\\d+)",
+        "GOOGLE_CHROME_VERSION: (?<currentValue>\\d+\\.\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "google-chrome-stable",
+      "datasourceTemplate": "custom.google-chrome-linux-stable",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Debian base image of the karakeep-chrome image",
+      "managerFilePatterns": ["/^docker/chrome/Dockerfile$/"],
+      "matchStrings": ["ARG DEBIAN_DIGEST=(?<currentDigest>sha256:[a-f0-9]{64})"],
+      "depNameTemplate": "docker.io/library/debian",
+      "currentValueTemplate": "trixie-slim",
+      "datasourceTemplate": "docker"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "One PR per Chrome release, covering both files that pin it",
+      "matchDepNames": ["google-chrome-stable"],
+      "groupName": "Google Chrome",
+      "separateMajorMinor": false,
+      "separateMultipleMajor": false
+    },
+    {
+      "matchDepNames": ["docker.io/library/debian"],
+      "commitMessageTopic": "Debian base image"
+    }
+  ]
+}

@@ -26,17 +26,24 @@ native target architectures before publishing.
 
 ## Updating the image
 
-1. Pick a Google Chrome stable version that's still available in Google's
-   package pool
-   (`https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/`).
-2. Update `GOOGLE_CHROME_VERSION` in both `Dockerfile` and
-   `.github/workflows/chrome.yml`, and reset the image revision in the
-   workflow. The arm64 image installs Debian trixie's current Chromium.
-3. Open a pull request and let both native architecture build jobs pass.
-4. After merge, manually dispatch the `Chrome Image` workflow from `main`.
+Renovate (`renovate.json` at the repo root) opens a pull request whenever a new
+Google Chrome stable is out or the pinned Debian base image digest changes. Its
+Chrome version comes from Google's version history API, and the pull request
+updates `GOOGLE_CHROME_VERSION` in both `Dockerfile` and
+`.github/workflows/chrome.yml`. The arm64 image installs Debian trixie's
+current Chromium, so every rebuild also picks up its security updates.
+
+1. Let both native architecture build jobs pass on the pull request (Renovate's,
+   or yours for a manual change). A brand new Chrome version can take a moment
+   to show up in Google's package pool
+   (`https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/`);
+   rerun the jobs if the download failed.
+2. After merge, manually dispatch the `Chrome Image` workflow from `main`.
    Publishing is gated by the `chrome-production` GitHub environment.
 
-Use `-r1` for a new browser version. Increment the revision for a packaging-only
-change. Never reuse or mutate a published versioned tag. Each release also moves
-the `latest` and `release` tags to the newly published manifest. They currently
-move together but may use separate promotion policies in the future.
+Every publish gets a new `<chrome version>-r<N>` tag. The workflow picks the
+first unused revision, starting at `-r1` for each browser version, so neither
+browser bumps nor packaging-only changes need to touch it. Published versioned
+tags are never reused or mutated. Each release also moves the `latest` and
+`release` tags to the newly published manifest. They currently move together
+but may use separate promotion policies in the future.

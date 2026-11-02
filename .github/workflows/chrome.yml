@@ -20,8 +20,8 @@ concurrency:
 env:
   IMAGE: ghcr.io/karakeep-app/karakeep-chrome
   # Google Chrome version (amd64); arm64 images use Debian's Chromium.
+  # Kept current by Renovate (renovate.json), together with the Dockerfile.
   GOOGLE_CHROME_VERSION: 156.0.8078.47
-  IMAGE_REVISION: r1
 
 jobs:
   metadata:
@@ -71,6 +71,54 @@ jobs:
           platforms: ${{ matrix.platform }}
           tags: karakeep-chrome:build-check
 
+  revision:
+    name: Pick the image revision
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'karakeep-app/karakeep' &&
+      github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      tag: ${{ steps.revision.outputs.tag }}
+
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Every publish gets a new tag, <chrome version>-r<N>, with N starting at
+      # 1 for each browser version. Picking it here means a Chrome bump (e.g.
+      # from Renovate) doesn't also have to reset a revision by hand.
+      - name: Pick the first unused revision
+        id: revision
+        run: |
+          for n in $(seq 1 99); do
+            tag="${IMAGE}:${GOOGLE_CHROME_VERSION}-r${n}"
+            if output=$(docker buildx imagetools inspect "$tag" 2>&1); then
+              continue
+            fi
+            if ! grep -qiE "not found|manifest unknown" <<<"$output"; then
+              echo "Couldn't check whether $tag exists:"
+              echo "$output"
+              exit 1
+            fi
+            echo "Publishing $tag"
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+            exit 0
+          done
+          echo "No unused revision left for ${GOOGLE_CHROME_VERSION}"
+          exit 1
+
   publish-architectures:
     name: Publish ${{ matrix.platform }}
     if: >-
@@ -80,6 +128,7 @@ jobs:
     needs:
       - metadata
       - build
+      - revision
     environment: chrome-production
     strategy:
       fail-fast: false
@@ -113,7 +162,7 @@ jobs:
 
       - name: Refuse to overwrite the immutable tag
         env:
-          VERSION_TAG: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}
+          VERSION_TAG: ${{ needs.revision.outputs.tag }}
         run: |
           if docker buildx imagetools inspect "$VERSION_TAG" >/dev/null 2>&1; then
             echo "Refusing to overwrite published image $VERSION_TAG"
@@ -131,7 +180,7 @@ jobs:
           file: docker/chrome/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}-${{ matrix.suffix }}
+          tags: ${{ needs.revision.outputs.tag }}-${{ matrix.suffix }}
 
   publish-manifest:
     name: Publish multi-architecture manifest
@@ -139,7 +188,9 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.repository == 'karakeep-app/karakeep' &&
       github.ref == 'refs/heads/main'
-    needs: publish-architectures
+    needs:
+      - revision
+      - publish-architectures
     environment: chrome-production
     runs-on: ubuntu-latest
     permissions:
@@ -161,7 +212,7 @@ jobs:
         env:
           LATEST_TAG: ${{ env.IMAGE }}:latest
           RELEASE_TAG: ${{ env.IMAGE }}:release
-          VERSION_TAG: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}
+          VERSION_TAG: ${{ needs.revision.outputs.tag }}
         run: |
           docker buildx imagetools create \
             --tag "$VERSION_TAG" \
@@ -174,7 +225,7 @@ jobs:
         env:
           LATEST_TAG: ${{ env.IMAGE }}:latest
           RELEASE_TAG: ${{ env.IMAGE }}:release
-          VERSION_TAG: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}
+          VERSION_TAG: ${{ needs.revision.outputs.tag }}
         run: |
           docker buildx imagetools inspect "$VERSION_TAG"
           docker buildx imagetools inspect "$LATEST_TAG"
