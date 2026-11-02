@@ -1,4 +1,8 @@
-# Debian 12/Ubuntu 24.04
+---
+sidebar_label: "Debian 12/Ubuntu 24.04"
+---
+
+# Install Karakeep on Debian 12/Ubuntu 24.04
 
 :::warning
 This script is a stripped-down version of those found in the [Proxmox Community Scripts](https://github.com/community-scripts/ProxmoxVE) repo. It has been adapted to work on baremetal Debian 12 or Ubuntu 24.04 installs **only**. Any other use is not supported and you use this script at your own risk.

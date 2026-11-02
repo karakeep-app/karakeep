@@ -1,10 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { fetchWithProxy } from "network";
 import cron from "node-cron";
-import { buildImpersonatingTRPCClient } from "trpc";
 import { TRPCError } from "@trpc/server";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 import { ZodError } from "zod";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
@@ -15,6 +11,10 @@ import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import { workerStatsCounter } from "../metrics";
+import { fetchWithProxy } from "../network";
+import { buildImpersonatingTRPCClient } from "../trpc";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 import { parseFeedItems } from "./utils/feedParser";
 
 type FeedRunResult = "success" | "failure";
@@ -203,7 +203,7 @@ async function run(
     response = await fetchWithProxy(feed.url, {
       signal: AbortSignal.timeout(5000),
       headers: {
-        "User-Agent": "Karakeep-RSS/1.0 (+https://karakeep.app)",
+        "User-Agent": "Karakeep-RSS/1.0 (+https://karakeep.com)",
         Accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
       },
     });

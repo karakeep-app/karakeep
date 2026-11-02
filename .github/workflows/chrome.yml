@@ -20,8 +20,8 @@ concurrency:
 env:
   IMAGE: ghcr.io/karakeep-app/karakeep-chrome
   # Google Chrome version (amd64); arm64 images use Debian's Chromium.
-  GOOGLE_CHROME_VERSION: 154.0.8037.57
-  IMAGE_REVISION: r1
+  GOOGLE_CHROME_VERSION: 156.0.8078.47
+  IMAGE_REVISION: r2
 
 jobs:
   metadata:
@@ -51,15 +51,15 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@v3.12.0
 
       - name: Build image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        uses: docker/build-push-action@v5.4.0
         with:
           build-args: |
             BUILD_REVISION=${{ github.sha }}
@@ -97,15 +97,15 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@v3.12.0
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -121,7 +121,7 @@ jobs:
           fi
 
       - name: Build and publish architecture image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        uses: docker/build-push-action@v5.4.0
         with:
           build-args: |
             BUILD_REVISION=${{ github.sha }}
@@ -148,10 +148,10 @@ jobs:
 
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@v3.12.0
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

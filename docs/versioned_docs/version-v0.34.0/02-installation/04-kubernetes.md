@@ -1,4 +1,8 @@
-# Kubernetes
+---
+sidebar_label: "Kubernetes"
+---
+
+# Deploy Karakeep on Kubernetes
 
 ### Requirements
 

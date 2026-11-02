@@ -17,7 +17,8 @@ vi.mock("@karakeep/shared/config", () => ({
   },
 }));
 
-vi.mock("@karakeep/shared/ratelimiting", () => ({
+vi.mock("@karakeep/shared/ratelimiting", async (original) => ({
+  ...(await original<typeof import("@karakeep/shared/ratelimiting")>()),
   getRateLimitClient: getRateLimitClientMock,
 }));
 
@@ -41,7 +42,7 @@ describe("createRateLimitMiddleware", () => {
     getRateLimitClientMock.mockResolvedValue(client);
   });
 
-  it("includes the authed user id in the rate limit key", async () => {
+  it("keys authed requests by user id instead of ip", async () => {
     const next = vi.fn().mockResolvedValue("ok");
     const middleware = createRateLimitMiddleware(config);
 
@@ -57,11 +58,11 @@ describe("createRateLimitMiddleware", () => {
     expect(result).toBe("ok");
     expect(client.checkRateLimit).toHaveBeenCalledWith(
       config,
-      "127.0.0.1:user:user-123:bookmarks.create",
+      "user:user-123:bookmarks.create",
     );
   });
 
-  it("keeps the existing ip-based key for unauthed requests", async () => {
+  it("keys unauthed requests by ip", async () => {
     const next = vi.fn().mockResolvedValue("ok");
     const middleware = createRateLimitMiddleware(config);
 
@@ -76,7 +77,82 @@ describe("createRateLimitMiddleware", () => {
 
     expect(client.checkRateLimit).toHaveBeenCalledWith(
       config,
-      "127.0.0.1:users.create",
+      "ip:127.0.0.1:users.create",
     );
+  });
+
+  it("rate limits authed requests even without an ip", async () => {
+    const next = vi.fn().mockResolvedValue("ok");
+    const middleware = createRateLimitMiddleware(config);
+
+    await middleware({
+      path: "bookmarks.create",
+      ctx: {
+        req: { ip: null },
+        user: { id: "user-123" },
+      },
+      next,
+    });
+
+    expect(client.checkRateLimit).toHaveBeenCalledWith(
+      config,
+      "user:user-123:bookmarks.create",
+    );
+  });
+
+  it("skips rate limiting when there's neither a user nor an ip", async () => {
+    const next = vi.fn().mockResolvedValue("ok");
+    const middleware = createRateLimitMiddleware(config);
+
+    const result = await middleware({
+      path: "users.create",
+      ctx: {
+        req: { ip: null },
+        user: null,
+      },
+      next,
+    });
+
+    expect(result).toBe("ok");
+    expect(client.checkRateLimit).not.toHaveBeenCalled();
+  });
+
+  it("rejects requests over the limit", async () => {
+    vi.mocked(client.checkRateLimit).mockResolvedValueOnce({
+      allowed: false,
+      resetInSeconds: 30,
+    });
+    const next = vi.fn().mockResolvedValue("ok");
+    const middleware = createRateLimitMiddleware(config);
+
+    await expect(
+      middleware({
+        path: "bookmarks.create",
+        ctx: {
+          req: { ip: "127.0.0.1" },
+          user: { id: "user-123" },
+        },
+        next,
+      }),
+    ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" });
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it("skips rate limiting for internal (impersonated) calls", async () => {
+    const next = vi.fn().mockResolvedValue("ok");
+    const middleware = createRateLimitMiddleware(config);
+
+    const result = await middleware({
+      path: "bookmarks.createBookmark",
+      ctx: {
+        req: { ip: null },
+        user: { id: "user-123" },
+        auth: { type: "internal" },
+      },
+      next,
+    });
+
+    expect(result).toBe("ok");
+    expect(client.checkRateLimit).not.toHaveBeenCalled();
   });
 });

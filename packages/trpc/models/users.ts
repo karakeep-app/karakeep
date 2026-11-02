@@ -153,9 +153,12 @@ export class User {
       },
     });
 
+    // past_due subscriptions are still being retried by Stripe, so they can
+    // charge the user just like active ones.
     if (
       subscription?.status === "active" ||
-      subscription?.status === "trialing"
+      subscription?.status === "trialing" ||
+      subscription?.status === "past_due"
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -372,13 +375,16 @@ export class User {
 
     this.user.image = assetId;
 
-    if (!previousImage || previousImage === assetId) {
+    // Only delete files backed by an asset row this user owns. `users.image`
+    // can hold arbitrary strings (e.g. OAuth picture URLs), so it must never be
+    // used as a storage key on its own.
+    if (!previousAsset || previousAsset.bookmarkId) {
       return;
     }
 
     await deleteAsset({
       userId: this.user.id,
-      assetId: previousImage,
+      assetId: previousAsset.id,
     }).catch(() => ({}));
   }
 

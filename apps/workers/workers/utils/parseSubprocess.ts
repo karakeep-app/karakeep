@@ -7,7 +7,6 @@ import * as path from "node:path";
 import { execa } from "execa";
 
 import { getTracer, withSpan } from "@karakeep/shared-server";
-import { getBookmarkDomain } from "network";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
@@ -16,11 +15,12 @@ import type {
   ParseSubprocessError,
   ParseSubprocessOutput,
 } from "./parseHtmlSubprocessIpc";
+import { getBookmarkDomain } from "../../network";
+import { truncateUrl } from "./crawlerUtils";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessOutputSchema,
 } from "./parseHtmlSubprocessIpc";
-import { truncateUrl } from "./crawlerUtils";
 
 const tracer = getTracer("@karakeep/workers");
 

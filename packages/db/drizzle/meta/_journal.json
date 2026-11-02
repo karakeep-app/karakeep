@@ -666,6 +666,13 @@
       "when": 1785711744217,
       "tag": "0094_migrate_to_better_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "6",
+      "when": 1791654223159,
+      "tag": "0095_add_in_app_subscriptions",
+      "breakpoints": true
     }
   ]
 }

@@ -544,6 +544,15 @@
       "unlock_bigger_quota": "Unlock bigger quota and support the project",
       "subscribe_now": "Subscribe Now",
       "manage_billing": "Manage Billing",
+      "update_payment_method": "Update Payment Method",
+      "payment_failed": "Payment failed",
+      "payment_failed_title": "Your last payment failed",
+      "payment_failed_description": "We couldn't charge your payment method. Update it to keep your Paid plan. We'll retry the charge in the meantime, and your plan will switch to Free if all retries fail.",
+      "payment_failed_description_in_app": "We couldn't charge your payment method. Update it in your App Store or Google Play subscription settings to keep your Paid plan.",
+      "upgrade_from_mobile_app": "To upgrade to the Paid plan, use the Karakeep mobile app.",
+      "managed_by_app_store": "Your subscription was purchased through the App Store. You can manage it from your Apple account's subscription settings.",
+      "managed_by_play_store": "Your subscription was purchased through Google Play. You can manage it from the Google Play Store's subscription settings.",
+      "managed_by_mobile_app": "Your subscription was purchased through the mobile app. You can manage it from your device's subscription settings.",
       "subscription_canceled": "Your subscription has been canceled and will end on {{date}}. You can resubscribe at any time.",
       "usage_quotas": "Usage & Quotas",
       "track_usage": "Track your current usage against your plan limits",
@@ -847,7 +856,8 @@
     "system_mode": "System Mode",
     "apps_extensions": "Apps & Extensions",
     "documentation": "Documentation",
-    "follow_us_on_x": "Follow us on X"
+    "follow_us_on_x": "Follow us on X",
+    "report_a_problem": "Report a Problem"
   },
   "lists": {
     "all_lists": "All Lists",
@@ -1254,5 +1264,35 @@
     "deselect_all": "Deselect all",
     "show_help": "Show keyboard shortcuts",
     "focus_search_alt": "Focus search"
+  },
+  "problem_report": {
+    "title": "Report a problem",
+    "description": "Tell us what went wrong. Your report will be emailed to the administrator of this Karakeep instance.",
+    "category": "What kind of problem is it?",
+    "categories": {
+      "bug": "Something isn't working",
+      "content": "Bookmark content / crawling issue",
+      "performance": "Slowness or performance",
+      "account": "Account or login",
+      "other": "Other"
+    },
+    "what_happened": "What happened?",
+    "what_happened_placeholder": "Describe what you were doing, what you expected to happen, and what happened instead.",
+    "include_diagnostics": "Include diagnostic information",
+    "include_diagnostics_description": "Helps with investigating. Includes the current page, browser details and recent errors from this tab.",
+    "view_diagnostics_one": "Show what will be sent ({{count}} recent error)",
+    "view_diagnostics_other": "Show what will be sent ({{count}} recent errors)",
+    "submit": "Send report",
+    "error_page_cta": "Report this problem",
+    "success": {
+      "title": "Thanks for your report!",
+      "description": "Your report has been sent to the administrator.",
+      "description_with_email": "Your report has been sent to the administrator. They may follow up with you at {{email}}.",
+      "reference": "Reference: {{id}}"
+    },
+    "toasts": {
+      "failed": "Failed to send the report. Please try again later.",
+      "sent": "Your problem report has been sent."
+    }
   }
 }

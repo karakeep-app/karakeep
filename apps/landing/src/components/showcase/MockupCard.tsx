@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Card shell shared by the hand-built showcase mockups: rounded, hairline
- * border, and a layered violet-tinted shadow.
+ * border, and a layered warm-tinted shadow.
  */
 export function MockupCard({
   className,
@@ -16,7 +16,7 @@ export function MockupCard({
   return (
     <div
       className={cn(
-        "w-full rounded-2xl border border-neutral-200/90 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_-16px_rgba(124,58,237,0.16),0_16px_40px_-12px_rgba(15,23,42,0.14)]",
+        "w-full rounded-2xl border border-neutral-200/90 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_48px_-16px_rgba(15,23,42,0.16),0_16px_40px_-12px_rgba(15,23,42,0.14)]",
         className,
       )}
     >

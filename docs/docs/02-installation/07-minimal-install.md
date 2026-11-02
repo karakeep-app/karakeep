@@ -1,4 +1,8 @@
-# Minimal Installation
+---
+sidebar_label: "Minimal Installation"
+---
+
+# Minimal Karakeep Installation
 
 :::warning
 Unless necessary, prefer the [full installation](/installation/docker) to leverage all the features of Karakeep. You'll be sacrificing a lot of functionality if you go with the minimal installation route.

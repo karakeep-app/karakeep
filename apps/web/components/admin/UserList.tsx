@@ -186,7 +186,7 @@ export default function UsersSection() {
         </div>
 
         <Table>
-          <TableHeader className="bg-gray-200">
+          <TableHeader className="bg-gray-200 dark:bg-muted">
             <TableRow>
               <TableHead>{t("common.name")}</TableHead>
               <TableHead>{t("common.email")}</TableHead>

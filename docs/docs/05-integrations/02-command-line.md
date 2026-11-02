@@ -102,7 +102,7 @@ karakeep --api-key <key> --server-addr <addr> whoami
 For example:
 
 ```
-karakeep --api-key mysupersecretkey --server-addr https://try.karakeep.app whoami
+karakeep --api-key mysupersecretkey --server-addr https://try.karakeep.com whoami
 {
   id: 'j29gnbzxxd01q74j2lu88tnb',
   name: 'Test User',
@@ -116,7 +116,7 @@ CLI reads `~/.config/karakeep/config.json`.
 
 ```json
 {
-  "serverAddr": "https://try.karakeep.app",
+  "serverAddr": "https://try.karakeep.com",
   "apiKey": "mysupersecretkey"
 }
 ```
@@ -124,7 +124,7 @@ CLI reads `~/.config/karakeep/config.json`.
 Command-line options take precedence over environment variables, and
 environment variables take precedence over the config file.
 If no server address is provided, the CLI defaults to
-`https://cloud.karakeep.app`.
+`https://cloud.karakeep.com`.
 
 To create or update this file interactively, run:
 

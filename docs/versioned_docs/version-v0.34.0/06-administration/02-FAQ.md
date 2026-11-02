@@ -17,7 +17,9 @@ Administrators can reset the password of any user. Contact an administrator to r
 
 #### If you are an administrator
 
-If you are an administrator and lost your password, you have to reset the password in the database.
+If you have [SMTP configured](../03-configuration/01-environment-variables.md#smtp-configuration), use the `Forgot your password?` link on the sign in page to get a reset link by email.
+
+Otherwise, you have to reset the password in the database.
 
 To reset the password:
 
@@ -29,8 +31,8 @@ To reset the password:
   - by e.g. running `sqlite3 db.db` (in your `data` directory)
   - or going through e.g. the `dbeaver` UI to locate the file in the data directory and connecting to it
 - Update the password in the database by running:
-  - `update user set password='$2a$10$5u40XUq/cD/TmLdCOyZ82ePENE6hpkbodJhsp7.e/BgZssUO5DDTa', salt='' where email='<YOUR_EMAIL_HERE>';`
-  - (don't forget to put your email address into the command)
+  - `update account set password='$2a$10$5u40XUq/cD/TmLdCOyZ82ePENE6hpkbodJhsp7.e/BgZssUO5DDTa' where providerId='credential' and userId=(select id from user where email='<YOUR_EMAIL_HERE>');`
+  - (don't forget to put your email address into the command, in lowercase)
 - The new password for your user is now `adminadmin`.
 - Start Karakeep again
 - Log in with your email address and the password `adminadmin` and change the password to whatever you want in the `User Settings`

@@ -1,4 +1,4 @@
-import deepEql from "deep-equal";
+import { isDeepStrictEqual } from "node:util";
 import { and, eq } from "drizzle-orm";
 
 import { db as globalDb, DB } from "@karakeep/db";
@@ -95,7 +95,7 @@ export class RuleEngine {
     ) {
       return ruleEvent.listIds.includes(event.listId);
     }
-    return deepEql(ruleEvent, event, { strict: true });
+    return isDeepStrictEqual(ruleEvent, event);
   }
 
   /**

@@ -13,19 +13,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Build MCP
         run: pnpm build
         working-directory: apps/mcp
-
-      # npm 11.5.1 or later is required for trusted publishing
-      - run: npm install -g npm@latest
 
       - run: pnpm publish --access public --no-git-checks
         working-directory: apps/mcp

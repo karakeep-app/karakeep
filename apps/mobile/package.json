@@ -78,6 +78,8 @@
     "react-native-mmkv": "^4.3.2",
     "react-native-nitro-modules": "^0.36.1",
     "react-native-pdf": "7.0.3",
+    "react-native-purchases": "^10.12.2",
+    "react-native-purchases-ui": "^10.12.2",
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
@@ -95,10 +97,12 @@
     "@babel/core": "^7.29.7",
     "@karakeep/tailwind-config": "workspace:^0.1.0",
     "@karakeep/tsconfig": "workspace:^0.1.0",
+    "@tailwindcss/typography": "^0.5.10",
     "@types/react": "19.2.15",
-    "ajv": "latest",
+    "ajv": "^8.20.0",
+    "metro-cache": "^0.84.5",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   },
   "expo": {

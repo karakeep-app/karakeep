@@ -16,7 +16,6 @@ import metascraperTitle from "metascraper-title";
 import metascraperUrl from "metascraper-url";
 import metascraperX from "metascraper-x";
 import metascraperYoutube from "metascraper-youtube";
-import { getRandomProxy } from "network";
 import winston from "winston";
 
 import serverConfig from "@karakeep/shared/config";
@@ -25,6 +24,7 @@ import logger from "@karakeep/shared/logger";
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
+import { getRandomProxy } from "../network";
 import { normalizeCodeSnippets } from "../workers/utils/normalizeCodeSnippets";
 import {
   parseSubprocessErrorSchema,

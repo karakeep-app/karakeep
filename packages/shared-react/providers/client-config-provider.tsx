@@ -29,7 +29,14 @@ export const DEFAULT_CLIENT_CONFIG: ZClientConfig = {
   crawler: {
     videoDownloadOnDemand: false,
   },
+  revenueCat: {
+    isConfigured: false,
+    purchasePlatforms: [],
+  },
   legal: {},
+  problemReports: {
+    enabled: false,
+  },
   disableNewReleaseCheck: true,
 };
 
@@ -72,9 +79,17 @@ export function ClientConfigProvider({
         ...DEFAULT_CLIENT_CONFIG.crawler,
         ...value?.crawler,
       },
+      revenueCat: {
+        ...DEFAULT_CLIENT_CONFIG.revenueCat,
+        ...value?.revenueCat,
+      },
       legal: {
         ...DEFAULT_CLIENT_CONFIG.legal,
         ...value?.legal,
+      },
+      problemReports: {
+        ...DEFAULT_CLIENT_CONFIG.problemReports,
+        ...value?.problemReports,
       },
     }),
     [value],

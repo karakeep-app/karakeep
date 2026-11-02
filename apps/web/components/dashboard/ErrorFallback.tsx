@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Home, RefreshCw } from "lucide-react";
+import { useClientConfig } from "@/lib/clientConfig";
+import { useTranslation } from "@/lib/i18n/client";
+import { useProblemReportStore } from "@/lib/store/useProblemReportStore";
+import { AlertTriangle, Bug, Home, RefreshCw } from "lucide-react";
 
 export default function ErrorFallback() {
+  const { t } = useTranslation();
+  const clientConfig = useClientConfig();
+  const setReportProblemOpen = useProblemReportStore((s) => s.setOpen);
   return (
-    <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:bg-slate-700/50 dark:shadow-md">
+    <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:border dark:bg-card dark:shadow-none">
       <div className="w-full max-w-md space-y-8 text-center">
         <div className="flex justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
@@ -36,6 +42,17 @@ export default function ErrorFallback() {
               Go Home
             </Button>
           </Link>
+
+          {clientConfig.problemReports.enabled && (
+            <Button
+              variant="ghost"
+              className="w-full"
+              onClick={() => setReportProblemOpen(true)}
+            >
+              <Bug className="h-4 w-4" />
+              {t("problem_report.error_page_cta")}
+            </Button>
+          )}
         </div>
       </div>
     </div>

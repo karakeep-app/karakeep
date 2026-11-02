@@ -69,8 +69,8 @@ export const users = sqliteTable("user", {
     mode: "boolean",
   }),
   // Admin-granted plan label (e.g. a collaborator name). While set, Stripe
-  // sync doesn't downgrade the user's entitlements; it's cleared when the
-  // user gets an active Stripe subscription.
+  // and in-app purchase syncs don't downgrade the user's entitlements; it's
+  // cleared when the user gets an active paid subscription.
   manualTierName: text("manualTierName"),
 
   // User Settings
@@ -959,6 +959,37 @@ export const subscriptions = sqliteTable(
   ],
 );
 
+// Subscriptions purchased through the mobile app stores (App Store / Google
+// Play). These are managed by RevenueCat, which is the source of truth; this
+// table mirrors the state of the configured RevenueCat entitlement.
+export const inAppSubscriptions = sqliteTable("inAppSubscriptions", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  // The RevenueCat store identifier (e.g. "app_store", "play_store").
+  store: text("store"),
+  productId: text("productId"),
+  status: text("status", {
+    enum: ["active", "expired"],
+  }).notNull(),
+  cancelAtPeriodEnd: integer("cancelAtPeriodEnd", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  billingIssue: integer("billingIssue", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  isSandbox: integer("isSandbox", { mode: "boolean" }).notNull().default(false),
+  startDate: integer("startDate", { mode: "timestamp" }),
+  endDate: integer("endDate", { mode: "timestamp" }),
+  createdAt: createdAtField(),
+  modifiedAt: modifiedAtField(),
+});
+
 export const importSessions = sqliteTable(
   "importSessions",
   {
@@ -1097,6 +1128,7 @@ export const userRelations = relations(users, ({ many, one }) => ({
   chatSessions: many(chatSessions),
   invites: many(invites),
   subscription: one(subscriptions),
+  inAppSubscription: one(inAppSubscriptions),
   importSessions: many(importSessions),
   listCollaborations: many(listCollaborators),
   backups: many(backupsTable),
@@ -1288,6 +1320,16 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const inAppSubscriptionsRelations = relations(
+  inAppSubscriptions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [inAppSubscriptions.userId],
+      references: [users.id],
+    }),
+  }),
+);
 
 export const chatSessionsRelations = relations(
   chatSessions,

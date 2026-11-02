@@ -23,6 +23,7 @@ export async function buildImpersonatingAuthedContext(
       email: user.email,
       role: user.role,
     },
+    auth: { type: "internal" },
     db,
     req: {
       ip: null,
