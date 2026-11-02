@@ -36,7 +36,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useSession } from "@/lib/auth/client";
 import { useTranslation } from "@/lib/i18n/client";
-import { getRecentErrors } from "@/lib/problemReport/recentErrors";
+import {
+  getRecentErrors,
+  setRecentErrorsOwner,
+} from "@/lib/problemReport/recentErrors";
 import { useProblemReportStore } from "@/lib/store/useProblemReportStore";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -90,6 +93,11 @@ export default function ReportProblemDialog() {
     null,
   );
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  const userId = session?.user.id ?? null;
+  useEffect(() => {
+    setRecentErrorsOwner(userId);
+  }, [userId]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -147,7 +155,7 @@ export default function ReportProblemDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         {submittedReportId ? (
           <div className="flex flex-col items-center gap-3 py-4 text-center">
             <CheckCircle2 className="size-12 text-green-600" />

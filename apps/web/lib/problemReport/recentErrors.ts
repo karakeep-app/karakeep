@@ -7,6 +7,8 @@ const MAX_MESSAGE_LENGTH = 2000;
 // read when the user explicitly submits a problem report.
 const recentErrors: ZProblemReportRecentError[] = [];
 let installed = false;
+// The user the buffered errors belong to. `undefined` means not known yet.
+let bufferOwner: string | null | undefined = undefined;
 
 function stringify(value: unknown): string {
   if (value instanceof Error) {
@@ -70,6 +72,16 @@ export function installRecentErrorCapture() {
     record(() => args.map(stringify).join(" "), "console.error");
     originalConsoleError.apply(console, args);
   };
+}
+
+// Login and logout are client-side navigations, so this module outlives a
+// session. Drop errors captured under a different account so they're never
+// attached to another user's report.
+export function setRecentErrorsOwner(userId: string | null) {
+  if (bufferOwner !== undefined && bufferOwner !== userId) {
+    recentErrors.length = 0;
+  }
+  bufferOwner = userId;
 }
 
 export function getRecentErrors(): ZProblemReportRecentError[] {
