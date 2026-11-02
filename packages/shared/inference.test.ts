@@ -113,33 +113,6 @@ describe("OpenAIInferenceClient response handling", () => {
     nextResponse = defaultResponse;
   });
 
-  it("uses the image-specific reasoning effort for image inference", async () => {
-    const client = new OpenAIInferenceClient({
-      ...makeConfig("plain"),
-      reasoningEffort: "high",
-      imageReasoningEffort: "low",
-    });
-
-    await client.inferFromImage("ocr", "image/png", "BASE64", {
-      schema: null,
-    });
-
-    expect(capturedBodies[0].reasoning_effort).toBe("low");
-  });
-
-  it("doesn't send the text reasoning effort to the image model", async () => {
-    const client = new OpenAIInferenceClient({
-      ...makeConfig("plain"),
-      reasoningEffort: "high",
-    });
-
-    await client.inferFromImage("ocr", "image/png", "BASE64", {
-      schema: null,
-    });
-
-    expect(capturedBodies[0].reasoning_effort).toBeUndefined();
-  });
-
   it("returns an empty string for image inference that legitimately produced no text", async () => {
     nextResponse = completionWith({ content: "" }, "stop");
     const client = new OpenAIInferenceClient(makeConfig("plain"));
@@ -177,7 +150,7 @@ describe("OpenAIInferenceClient response handling", () => {
 
     await expect(
       client.inferFromImage("ocr", "image/png", "BASE64", { schema: null }),
-    ).rejects.toThrow(/OPENAI_IMAGE_REASONING_EFFORT/);
+    ).rejects.toThrow(/INFERENCE_MAX_OUTPUT_TOKENS/);
   });
 
   it("surfaces refusals", async () => {

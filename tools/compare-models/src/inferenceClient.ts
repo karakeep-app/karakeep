@@ -19,7 +19,6 @@ export function createInferenceClient(modelName: string): InferenceClient {
     useMaxCompletionTokens: config.INFERENCE_USE_MAX_COMPLETION_TOKENS,
     outputSchema: "structured",
     reasoningEffort: config.INFERENCE_REASONING_EFFORT,
-    imageReasoningEffort: config.INFERENCE_REASONING_EFFORT,
   };
 
   return new OpenAIInferenceClient(inferenceConfig);

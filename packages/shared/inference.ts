@@ -179,9 +179,6 @@ export interface OpenAIInferenceConfig {
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
   reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
-  // Separate from reasoningEffort because the image model is configured
-  // independently and may not be a reasoning model.
-  imageReasoningEffort?: OpenAIInferenceConfig["reasoningEffort"];
   outputSchema: "structured" | "json" | "plain";
 }
 
@@ -281,7 +278,7 @@ export class OpenAIEmbeddingClient implements EmbeddingClient {
 
 function extractOpenAIMessageContent(
   chatCompletion: OpenAI.Chat.Completions.ChatCompletion,
-  opts: { allowEmpty: boolean; reasoningEffortEnvVar: string },
+  opts: { allowEmpty: boolean },
 ): string {
   const choice = chatCompletion.choices[0];
   if (!choice) {
@@ -296,7 +293,7 @@ function extractOpenAIMessageContent(
   }
   if (choice.finish_reason === "length") {
     throw new Error(
-      `Got no message content from OpenAI: the model hit the output token limit (INFERENCE_MAX_OUTPUT_TOKENS) before producing an answer. If you're using a reasoning model, consider increasing INFERENCE_MAX_OUTPUT_TOKENS or lowering ${opts.reasoningEffortEnvVar}.`,
+      `Got no message content from OpenAI: the model hit the output token limit (INFERENCE_MAX_OUTPUT_TOKENS) before producing an answer. If you're using a reasoning model, consider increasing INFERENCE_MAX_OUTPUT_TOKENS.`,
     );
   }
   if (opts.allowEmpty && choice.finish_reason === "stop") {
@@ -331,7 +328,6 @@ export class OpenAIInferenceClient implements InferenceClient {
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
       outputSchema: serverConfig.inference.outputSchema,
       reasoningEffort: serverConfig.inference.openAIReasoningEffort,
-      imageReasoningEffort: serverConfig.inference.openAIImageReasoningEffort,
     });
   }
 
@@ -366,7 +362,6 @@ export class OpenAIInferenceClient implements InferenceClient {
 
     const response = extractOpenAIMessageContent(chatCompletion, {
       allowEmpty: false,
-      reasoningEffortEnvVar: "OPENAI_REASONING_EFFORT",
     });
     return { response, totalTokens: chatCompletion.usage?.total_tokens };
   }
@@ -409,7 +404,6 @@ export class OpenAIInferenceClient implements InferenceClient {
             ],
           },
         ],
-        reasoning_effort: this.config.imageReasoningEffort,
       },
       {
         signal: optsWithDefaults.abortSignal,
@@ -421,7 +415,6 @@ export class OpenAIInferenceClient implements InferenceClient {
     // Structured requests (e.g. tagging) always expect a JSON payload.
     const response = extractOpenAIMessageContent(chatCompletion, {
       allowEmpty: optsWithDefaults.schema === null,
-      reasoningEffortEnvVar: "OPENAI_IMAGE_REASONING_EFFORT",
     });
     return { response, totalTokens: chatCompletion.usage?.total_tokens };
   }
