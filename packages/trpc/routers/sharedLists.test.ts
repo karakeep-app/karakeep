@@ -713,6 +713,55 @@ describe("Shared Lists", () => {
       expect(collaboratorBookmark?.note).toBeNull();
     });
 
+    test<CustomTestContext>("should hide the owner's highlight notes from collaborators", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+      const bookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Shared bookmark with a highlight",
+      });
+      await ownerApi.highlights.create({
+        bookmarkId: bookmark.id,
+        startOffset: 0,
+        endOffset: 6,
+        color: "yellow",
+        text: "Shared",
+        note: "Private highlight note",
+      });
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: bookmark.id,
+      });
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "viewer",
+      );
+
+      const ownerView = await ownerApi.highlights.getForBookmark({
+        bookmarkId: bookmark.id,
+      });
+      expect(ownerView.highlights).toHaveLength(1);
+      expect(ownerView.highlights[0].note).toBe("Private highlight note");
+
+      // The highlighted text stays visible; only the personal note is hidden.
+      const collaboratorView = await collaboratorApi.highlights.getForBookmark({
+        bookmarkId: bookmark.id,
+      });
+      expect(collaboratorView.highlights).toHaveLength(1);
+      expect(collaboratorView.highlights[0].text).toBe("Shared");
+      expect(collaboratorView.highlights[0].note).toBeNull();
+    });
+
     // Note: Asset handling for shared bookmarks is tested via the REST API in e2e tests
     // This is because tRPC tests don't have easy access to file upload functionality
 
