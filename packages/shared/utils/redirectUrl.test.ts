@@ -38,6 +38,27 @@ describe("validateRedirectUrl", () => {
     expect(validateRedirectUrl("/\r\n/evil.com")).toBe(undefined);
   });
 
+  it("should reject paths that normalize to a protocol-relative URL", () => {
+    expect(validateRedirectUrl("/a/..//evil.com")).toBe(undefined);
+    expect(validateRedirectUrl("/.//evil.com")).toBe(undefined);
+    expect(validateRedirectUrl("/a/../\\/evil.com")).toBe(undefined);
+    expect(validateRedirectUrl("//redirect-check.invalid//evil.com")).toBe(
+      undefined,
+    );
+    expect(validateRedirectUrl("/\\redirect-check.invalid//evil.com")).toBe(
+      undefined,
+    );
+    expect(validateRedirectUrl("//REDIRECT-CHECK.INVALID:80//evil.com")).toBe(
+      undefined,
+    );
+  });
+
+  it("should keep percent-encoded slashes encoded", () => {
+    // Browsers don't decode %2F/%5C in paths, so these stay on-site.
+    expect(validateRedirectUrl("/%2F/evil.com")).toBe("/%2F/evil.com");
+    expect(validateRedirectUrl("/%5Cevil.com")).toBe("/%5Cevil.com");
+  });
+
   it("should return the normalized same-origin path", () => {
     // Even when the placeholder origin is named, only the path survives.
     expect(validateRedirectUrl("/\\redirect-check.invalid/dashboard")).toBe(

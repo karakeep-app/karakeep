@@ -32,6 +32,13 @@ export function validateRedirectUrl(
     if (resolved.origin !== SAME_ORIGIN_BASE) {
       return undefined;
     }
+    // Dot-segment removal can turn "/a/..//evil.com" (or "//<base>//evil.com")
+    // into the path "//evil.com", which is protocol-relative once returned
+    // without its origin. After parsing, the path has no "\" or whitespace
+    // left, so a leading "//" is the only remaining way to leave the site.
+    if (resolved.pathname.startsWith("//")) {
+      return undefined;
+    }
     return `${resolved.pathname}${resolved.search}${resolved.hash}`;
   }
 
