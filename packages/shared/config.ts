@@ -76,6 +76,9 @@ const allEnv = z.object({
   OPENAI_REASONING_EFFORT: z
     .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
     .optional(),
+  OPENAI_IMAGE_REASONING_EFFORT: z
+    .enum(["none", "minimal", "low", "medium", "high", "xhigh"])
+    .optional(),
   OLLAMA_BASE_URL: z.string().url().optional(),
   OLLAMA_KEEP_ALIVE: z.string().optional(),
   CHAT_ENABLED: stringBool("false"),
@@ -385,6 +388,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       openAITimeoutSec: val.OPENAI_TIMEOUT_SEC,
       openAIServiceTier: val.OPENAI_SERVICE_TIER,
       openAIReasoningEffort: val.OPENAI_REASONING_EFFORT,
+      openAIImageReasoningEffort: val.OPENAI_IMAGE_REASONING_EFFORT,
       ollamaBaseUrl: val.OLLAMA_BASE_URL,
       ollamaKeepAlive: val.OLLAMA_KEEP_ALIVE,
       chatModel: val.CHAT_MODEL ?? val.INFERENCE_TEXT_MODEL,

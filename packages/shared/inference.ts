@@ -179,6 +179,9 @@ export interface OpenAIInferenceConfig {
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
   reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  // Separate from reasoningEffort because the image model is configured
+  // independently and may not be a reasoning model.
+  imageReasoningEffort?: OpenAIInferenceConfig["reasoningEffort"];
   outputSchema: "structured" | "json" | "plain";
 }
 
@@ -328,6 +331,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
       outputSchema: serverConfig.inference.outputSchema,
       reasoningEffort: serverConfig.inference.openAIReasoningEffort,
+      imageReasoningEffort: serverConfig.inference.openAIImageReasoningEffort,
     });
   }
 
@@ -404,7 +408,7 @@ export class OpenAIInferenceClient implements InferenceClient {
             ],
           },
         ],
-        reasoning_effort: this.config.reasoningEffort,
+        reasoning_effort: this.config.imageReasoningEffort,
       },
       {
         signal: optsWithDefaults.abortSignal,
