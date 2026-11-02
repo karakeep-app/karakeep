@@ -64,6 +64,7 @@ export const highlightsAppRouter = router({
     .use(ensureBookmarkAccess)
     .query(async ({ ctx }) => {
       const highlights = await ctx.highlightsService.getForBookmark(
+        ctx.actor,
         ctx.bookmark.id,
       );
       return { highlights };
