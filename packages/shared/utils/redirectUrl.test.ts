@@ -28,6 +28,25 @@ describe("validateRedirectUrl", () => {
     expect(validateRedirectUrl("//evil.com/path")).toBe(undefined);
   });
 
+  it("should reject paths that browsers treat as protocol-relative", () => {
+    // Browsers normalize "\" to "/" and drop tabs/newlines in URLs.
+    expect(validateRedirectUrl("/\\evil.com")).toBe(undefined);
+    expect(validateRedirectUrl("/\\/evil.com")).toBe(undefined);
+    expect(validateRedirectUrl("/\\\\evil.com/path")).toBe(undefined);
+    expect(validateRedirectUrl("/\t/evil.com")).toBe(undefined);
+    expect(validateRedirectUrl("/\n/evil.com")).toBe(undefined);
+    expect(validateRedirectUrl("/\r\n/evil.com")).toBe(undefined);
+  });
+
+  it("should return the normalized same-origin path", () => {
+    // Even when the placeholder origin is named, only the path survives.
+    expect(validateRedirectUrl("/\\redirect-check.invalid/dashboard")).toBe(
+      "/dashboard",
+    );
+    expect(validateRedirectUrl("/a/../dashboard")).toBe("/dashboard");
+    expect(validateRedirectUrl("/a\\b")).toBe("/a/b");
+  });
+
   it("should allow karakeep:// scheme for mobile app", () => {
     expect(validateRedirectUrl("karakeep://")).toBe("karakeep://");
     expect(validateRedirectUrl("karakeep://callback")).toBe(
