@@ -52,6 +52,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN pnpm install --frozen-lockfile
 
+# `pnpm exec`/`pnpm run` first check node_modules against the workspace and
+# install if they differ, which fails mid-way here (EXDEV across image layers).
+# Fail instead: every workspace package that COPY . . brings in must have its
+# package.json copied above, or be listed in .dockerignore.
+ENV pnpm_config_verify_deps_before_run=error
+
 COPY . .
 
 # Each app is built in its own stage so that images only build the apps they
@@ -83,18 +89,18 @@ RUN (cd apps/web && pnpm exec next build --experimental-build-mode compile)
 ################# Workers Builder ##############
 FROM base AS workers_builder
 
-RUN (cd apps/workers && pnpm --config.verify-deps-before-run=false build)
+RUN (cd apps/workers && pnpm build)
 RUN CI=true pnpm deploy --node-linker=isolated --legacy --filter @karakeep/workers --prod /prod/workers
 
 ################# CLI Builder ##############
 FROM base AS cli_builder
 
-RUN (cd apps/cli && pnpm --config.verify-deps-before-run=false build)
+RUN (cd apps/cli && pnpm build)
 
 ################# MCP Builder ##############
 FROM base AS mcp_builder
 
-RUN (cd apps/mcp && pnpm --config.verify-deps-before-run=false build)
+RUN (cd apps/mcp && pnpm build)
 
 ################# The All-in-one builder ##############
 FROM node:24-slim AS aio_builder
