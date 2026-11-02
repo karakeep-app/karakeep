@@ -63,6 +63,12 @@ describe("redirect credential handling", () => {
     const status = Number(new URLSearchParams(query).get("status") ?? 307);
     if (path === "/cross") {
       res.writeHead(status, { Location: `${targetOrigin}/landing` }).end();
+    } else if (path === "/to-localhost") {
+      res
+        .writeHead(307, {
+          Location: `${originUrl.replace("127.0.0.1", "localhost")}/landing`,
+        })
+        .end();
     } else if (path === "/same") {
       res.writeHead(status, { Location: "/landing" }).end();
     } else {
@@ -125,25 +131,24 @@ describe("redirect credential handling", () => {
 
   test("treats a different hostname on the same port as cross-origin", async () => {
     origin.requests.length = 0;
-    const localhostUrl = originUrl.replace("127.0.0.1", "localhost");
 
-    // 127.0.0.1 -> localhost is a different origin even though it reaches
-    // the same server.
-    const hop = startServer((_req, res) => {
-      res.writeHead(307, { Location: `${localhostUrl}/landing` }).end();
+    // 127.0.0.1 -> localhost on the same port reaches the same server but is
+    // a different origin, so only the hostname differs between the two hops.
+    await fetchWithProxy(`${originUrl}/to-localhost`, {
+      headers: credentialHeaders,
     });
-    await new Promise<void>((r) => hop.server.listen(0, "127.0.0.1", r));
-    const hopUrl = `http://127.0.0.1:${(hop.server.address() as AddressInfo).port}`;
 
-    try {
-      await fetchWithProxy(`${hopUrl}/`, { headers: credentialHeaders });
-    } finally {
-      await new Promise((r) => hop.server.close(r));
-    }
-
-    const landing = origin.requests.find((r) => r.url === "/landing");
-    expect(landing).toBeDefined();
-    expect(landing?.headers.authorization).toBeUndefined();
+    expect(origin.requests.map((r) => r.url)).toEqual([
+      "/to-localhost",
+      "/landing",
+    ]);
+    const [first, landing] = origin.requests;
+    expect(first.headers.authorization).toBe("Bearer webhook-secret");
+    expect(landing.headers.host).toBe(
+      new URL(originUrl).host.replace("127.0.0.1", "localhost"),
+    );
+    expect(landing.headers.authorization).toBeUndefined();
+    expect(landing.headers.cookie).toBeUndefined();
   });
 
   test("resolveValidatedRedirectUrl drops credentials across origins", async () => {
