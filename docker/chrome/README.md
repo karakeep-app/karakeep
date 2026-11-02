@@ -10,6 +10,24 @@ Shell: in A/B tests against bot-protected sites, the headless shell was blocked
 far more often (it leaks CDP automation even with a patched client), and so,
 to a lesser extent, was the Chromium build.
 
+## Sandbox
+
+Chrome runs as `nobody` with `no_new_privs` set, and the image has no setuid or
+setgid binaries. Chrome's own sandbox (which isolates every renderer) is off by
+default because it needs unprivileged user namespaces, which Docker's default
+seccomp profile blocks. To turn it on, set `KARAKEEP_CHROME_SANDBOX=true` and
+run the container where user namespaces are allowed, e.g. on Docker:
+
+```yaml
+chrome:
+  environment:
+    KARAKEEP_CHROME_SANDBOX: "true"
+  security_opt:
+    - seccomp=unconfined
+```
+
+If the sandbox can't start, Chrome exits instead of running without it.
+
 ## Testing locally
 
 Run Karakeep's e2e suite, which builds this image through its Compose file and
