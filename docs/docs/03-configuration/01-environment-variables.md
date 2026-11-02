@@ -251,14 +251,6 @@ Karakeep can send emails for various purposes such as email verification during 
 | SMTP_PASSWORD | No       | Not set | The password for SMTP authentication. For services like Gmail, use an app-specific password.    |
 | SMTP_FROM     | No       | Not set | The "from" email address that will appear in sent emails. This should be a valid email address. |
 
-## Problem Reports
-
-Users can report problems directly from the web app ("Report a Problem" in the profile menu). Each report is emailed to the configured address along with debugging information (the reporter's account, server version, and, if the user opts in, browser details and recent client-side errors). The email's `Reply-To` is set to the reporter so you can respond directly. Requires the SMTP settings above.
-
-| Name                  | Required | Default | Description                                                                                          |
-| --------------------- | -------- | ------- | ---------------------------------------------------------------------------------------------------- |
-| PROBLEM_REPORTS_EMAIL | No       | Not set | The email address that problem reports are sent to. Setting it enables the "Report a Problem" option. |
-
 ## Proxy Configuration
 
 If your Karakeep instance needs to connect through a proxy server, you can configure the following settings:
