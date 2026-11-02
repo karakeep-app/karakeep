@@ -1,10 +1,11 @@
 "use client";
 
 import type { UserLocalSettings } from "@/lib/userLocalSettings/types";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Session, SessionProvider } from "@/lib/auth/client";
+import { installRecentErrorCapture } from "@/lib/problemReport/recentErrors";
 import { UserLocalSettingsCtx } from "@/lib/userLocalSettings/bookmarksLayout";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createTRPCClient, httpBatchLink, loggerLink } from "@trpc/client";
@@ -60,6 +61,12 @@ export default function Providers({
   userLocalSettings: UserLocalSettings;
 }) {
   const queryClient = getQueryClient();
+
+  useEffect(() => {
+    if (clientConfig.problemReports.enabled) {
+      installRecentErrorCapture();
+    }
+  }, [clientConfig.problemReports.enabled]);
 
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({

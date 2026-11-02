@@ -856,7 +856,8 @@
     "system_mode": "System Mode",
     "apps_extensions": "Apps & Extensions",
     "documentation": "Documentation",
-    "follow_us_on_x": "Follow us on X"
+    "follow_us_on_x": "Follow us on X",
+    "report_a_problem": "Report a Problem"
   },
   "lists": {
     "all_lists": "All Lists",
@@ -1263,5 +1264,35 @@
     "deselect_all": "Deselect all",
     "show_help": "Show keyboard shortcuts",
     "focus_search_alt": "Focus search"
+  },
+  "problem_report": {
+    "title": "Report a problem",
+    "description": "Tell us what went wrong. Your report will be emailed to the administrator of this Karakeep instance.",
+    "category": "What kind of problem is it?",
+    "categories": {
+      "bug": "Something isn't working",
+      "content": "Bookmark content / crawling issue",
+      "performance": "Slowness or performance",
+      "account": "Account or login",
+      "other": "Other"
+    },
+    "what_happened": "What happened?",
+    "what_happened_placeholder": "Describe what you were doing, what you expected to happen, and what happened instead.",
+    "include_diagnostics": "Include diagnostic information",
+    "include_diagnostics_description": "Helps with investigating. Includes the current page, browser details and recent errors from this tab.",
+    "view_diagnostics_one": "Show what will be sent ({{count}} recent error)",
+    "view_diagnostics_other": "Show what will be sent ({{count}} recent errors)",
+    "submit": "Send report",
+    "error_page_cta": "Report this problem",
+    "success": {
+      "title": "Thanks for your report!",
+      "description": "Your report has been sent to the administrator.",
+      "description_with_email": "Your report has been sent to the administrator. They may follow up with you at {{email}}.",
+      "reference": "Reference: {{id}}"
+    },
+    "toasts": {
+      "failed": "Failed to send the report. Please try again later.",
+      "sent": "Your problem report has been sent."
+    }
   }
 }
