@@ -36,6 +36,7 @@ vi.mock("openai/helpers/zod", () => ({
 
 function makeConfig(
   outputSchema: OpenAIInferenceConfig["outputSchema"],
+  reasoningEffort?: OpenAIInferenceConfig["reasoningEffort"],
 ): OpenAIInferenceConfig {
   return {
     apiKey: "test-key",
@@ -45,6 +46,7 @@ function makeConfig(
     maxOutputTokens: 1024,
     useMaxCompletionTokens: false,
     outputSchema,
+    reasoningEffort,
   };
 }
 
@@ -92,5 +94,29 @@ describe("OpenAIInferenceClient response_format", () => {
       type: "json_schema",
       json_schema: { name: "schema" },
     });
+  });
+});
+
+describe("OpenAIInferenceClient reasoning_effort", () => {
+  beforeEach(() => {
+    capturedBodies.length = 0;
+  });
+
+  it("sends the configured reasoning effort for text inference", async () => {
+    const client = new OpenAIInferenceClient(makeConfig("json", "low"));
+
+    await client.inferFromText("summarize this text", { schema: null });
+
+    expect(capturedBodies[0].reasoning_effort).toBe("low");
+  });
+
+  it("sends the configured reasoning effort for image inference", async () => {
+    const client = new OpenAIInferenceClient(makeConfig("json", "low"));
+
+    await client.inferFromImage("describe this image", "image/png", "BASE64", {
+      schema: null,
+    });
+
+    expect(capturedBodies[0].reasoning_effort).toBe("low");
   });
 });
