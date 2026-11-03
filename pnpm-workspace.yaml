@@ -62,8 +62,7 @@ patchedDependencies:
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
 
-minimumReleaseAgeExclude:
-  [
+minimumReleaseAgeExclude: [
     "@next/bundle-analyzer@16.4.1",
     "@next/env@16.4.1",
     "@next/swc-darwin-arm64@16.4.1",
@@ -77,6 +76,16 @@ minimumReleaseAgeExclude:
     next@16.4.1,
     liteque@0.10.0,
     "@astrojs/react@6.0.6",
+    # Better Auth's Nov 3, 2026 security release.
+    "@better-auth/core@1.7.16",
+    "@better-auth/drizzle-adapter@1.7.16",
+    "@better-auth/kysely-adapter@1.7.16",
+    "@better-auth/memory-adapter@1.7.16",
+    "@better-auth/mongo-adapter@1.7.16",
+    "@better-auth/prisma-adapter@1.7.16",
+    "@better-auth/telemetry@1.7.16",
+    better-auth@1.7.16,
+    better-call@1.4.5,
   ]
 
 overrides:

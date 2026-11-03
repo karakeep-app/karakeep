@@ -60,7 +60,7 @@
     "@trpc/client": "^11.9.0",
     "@trpc/server": "^11.9.0",
     "@trpc/tanstack-react-query": "^11.9.0",
-    "better-auth": "1.7.10",
+    "better-auth": "1.7.16",
     "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
