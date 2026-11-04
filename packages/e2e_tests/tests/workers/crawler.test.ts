@@ -72,6 +72,109 @@ describe("Crawler Tests", () => {
     expect(bookmark.assets.find((a) => a.assetType === "pdf")).toBeDefined();
   });
 
+  it.each([
+    ["pdf", 404],
+    ["pdf", 410],
+    ["image", 404],
+    ["image", 410],
+  ])(
+    "preserves a saved copy when an %s probe is followed by HTTP %i",
+    async (assetType, status) => {
+      const name = `asset-recrawl-${randomUUID()}.html`;
+      const fixtureDir = new URL("../../setup/html/", import.meta.url);
+      const fixturePath = fileURLToPath(new URL(name, fixtureDir));
+      await writeFile(
+        fixturePath,
+        await readFile(new URL("hello.html", fixtureDir)),
+        {
+          flag: "wx",
+        },
+      );
+      let fixtureExists = true;
+      try {
+        const { data: created } = await client.POST("/bookmarks", {
+          body: {
+            type: "link",
+            url: `http://nginx:80/missing-${assetType}-${status}-${name}`,
+          },
+        });
+        assert(created);
+        const bookmarkId = created.id;
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(bookmarkId);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "success"
+          );
+        }, "initial crawl completes");
+        const trpc = getTrpcClient(apiKey);
+        await trpc.bookmarks.recrawlBookmark.mutate({
+          bookmarkId,
+          archiveFullPage: true,
+          storePdf: true,
+        });
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(bookmarkId);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "success" &&
+            bookmark.assets.some(
+              (asset) => asset.assetType === "fullPageArchive",
+            )
+          );
+        }, "initial offline archive completes");
+        const before = await getBookmark(bookmarkId);
+        assert(before && before.content.type === "link");
+        const savedAssets = before.assets.filter((asset) =>
+          ["screenshot", "pdf", "fullPageArchive"].includes(asset.assetType),
+        );
+        expect(savedAssets).toHaveLength(3);
+        const readAsset = async (id: string) => {
+          const response = await fetch(
+            `http://localhost:${port}/api/v1/assets/${id}`,
+            {
+              headers: { authorization: `Bearer ${apiKey}` },
+            },
+          );
+          expect(response.status).toBe(200);
+          return Buffer.from(await response.arrayBuffer());
+        };
+        const savedBytes = await Promise.all(
+          savedAssets.map((asset) => readAsset(asset.id)),
+        );
+        await unlink(fixturePath);
+        fixtureExists = false;
+        await trpc.bookmarks.recrawlBookmark.mutate({
+          bookmarkId,
+          archiveFullPage: true,
+          storePdf: true,
+        });
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(bookmarkId);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "failure"
+          );
+        }, "asset download failure completes");
+        const after = await getBookmark(bookmarkId);
+        assert(after && after.content.type === "link");
+        expect(after.content.title).toBe(before.content.title);
+        expect(after.content.htmlContent).toBe(before.content.htmlContent);
+        expect(after.assets).toEqual(before.assets);
+        for (const [index, asset] of savedAssets.entries()) {
+          expect(await readAsset(asset.id)).toEqual(savedBytes[index]);
+        }
+        const brokenLinks = await trpc.bookmarks.getBrokenLinks.query();
+        expect(
+          brokenLinks.bookmarks.find((item) => item.id === bookmarkId),
+        ).toMatchObject({ statusCode: status, isCrawlingFailure: true });
+      } finally {
+        if (fixtureExists) await unlink(fixturePath);
+      }
+    },
+    180_000,
+  );
+
   it.each([404, 410])(
     "preserves saved copies when a recrawl returns %i",
     async (status) => {

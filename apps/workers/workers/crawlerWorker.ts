@@ -447,13 +447,25 @@ async function runCrawler(
   const isPdf = contentType === ASSET_TYPES.APPLICATION_PDF;
 
   if (isPdf) {
-    await handleAsAssetBookmark(ctx, "pdf");
+    const result = await handleAsAssetBookmark(
+      ctx,
+      "pdf",
+      hasSavedCopy,
+      numRetriesLeft,
+    );
+    if (result) return result;
   } else if (
     contentType &&
     IMAGE_ASSET_TYPES.has(contentType) &&
     SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)
   ) {
-    await handleAsAssetBookmark(ctx, "image");
+    const result = await handleAsAssetBookmark(
+      ctx,
+      "image",
+      hasSavedCopy,
+      numRetriesLeft,
+    );
+    if (result) return result;
   } else {
     // First crawls can write probe metadata early for a faster preview. For
     // saved copies, wait for the browser result before writing anything: the
@@ -851,10 +863,32 @@ async function loadStoredProbeMetadata(
  */
 const handleAsAssetBookmark = traced(
   "handleAsAssetBookmark",
-  async (ctx: CrawlContext, assetType: "image" | "pdf") => {
-    const { url, userId, jobId, bookmarkId } = ctx;
+  async (
+    ctx: CrawlContext,
+    assetType: "image" | "pdf",
+    hasSavedCopy: boolean,
+    numRetriesLeft: number,
+  ): Promise<CrawlerRunResult | undefined> => {
+    const { url, userId, jobId, bookmarkId, log } = ctx;
     setSpanAttributes({ "asset.type": assetType });
-    const downloaded = await downloadAndStoreFile(ctx, url, assetType);
+    let downloaded: Awaited<ReturnType<typeof downloadAndStoreFile>>;
+    try {
+      downloaded = await downloadAndStoreFile(ctx, url, assetType);
+    } catch (error) {
+      if (
+        error instanceof AssetDownloadHttpError &&
+        (error.statusCode === 404 || error.statusCode === 410) &&
+        numRetriesLeft === 0 &&
+        (hasSavedCopy ||
+          hasSavedBookmarkCopy(await getBookmarkDetails(bookmarkId)))
+      ) {
+        log.info(
+          `Preserving the existing copy after HTTP ${error.statusCode}.`,
+        );
+        return { status: "preserved", statusCode: error.statusCode };
+      }
+      throw error;
+    }
     if (!downloaded) {
       // Unlike screenshots and banner images, this download is the crawl's
       // primary result. Without it the bookmark cannot be converted to an
@@ -2003,6 +2037,15 @@ function decodeDataUriImage(ctx: CrawlContext, url: string) {
   return { image: asset, contentType };
 }
 
+class AssetDownloadHttpError extends Error {
+  constructor(
+    fileType: string,
+    readonly statusCode: number,
+  ) {
+    super(`Failed to download ${fileType}: ${statusCode}`);
+  }
+}
+
 async function fetchAsset(ctx: CrawlContext, url: string, fileType: string) {
   ctx.log.info(`Downloading ${fileType} from "${truncateUrl(url)}"`);
   const response = await fetchWithProxy(
@@ -2013,7 +2056,7 @@ async function fetchAsset(ctx: CrawlContext, url: string, fileType: string) {
     ctx.runProxy,
   );
   if (!response.ok || response.body == null) {
-    throw new Error(`Failed to download ${fileType}: ${response.status}`);
+    throw new AssetDownloadHttpError(fileType, response.status);
   }
 
   const contentType = normalizeContentType(
@@ -2168,6 +2211,12 @@ const downloadAndStoreFile = traced(
       // into a best-effort download miss: the queue runner must observe it so
       // the crawl is retried and is not reported as successfully completed.
       abortSignal.throwIfAborted();
+      if (
+        e instanceof AssetDownloadHttpError &&
+        (e.statusCode === 404 || e.statusCode === 410)
+      ) {
+        throw e;
+      }
       return null;
     } finally {
       if (assetPath) {
