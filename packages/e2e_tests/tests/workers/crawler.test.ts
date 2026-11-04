@@ -1,7 +1,16 @@
 import { randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { readFile, unlink, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { assert, beforeEach, describe, expect, inject, it } from "vitest";
+import {
+  assert,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  inject,
+  it,
+} from "vitest";
 
 import { createKarakeepClient } from "@karakeep/sdk";
 
@@ -324,6 +333,262 @@ describe("Crawler Tests", () => {
     },
     90_000,
   );
+
+  describe("concurrent first crawls", () => {
+    const fixturePort = inject("crawlerRacePort");
+    const fixtureUrl = `http://localhost:${fixturePort}`;
+
+    beforeAll(async () => {
+      execFileSync(
+        "docker",
+        ["compose", "exec", "-d", "web", "node", "/crawler-race-fixture.mjs"],
+        {
+          cwd: fileURLToPath(new URL("../../", import.meta.url)),
+        },
+      );
+      await waitUntil(
+        async () => (await fetch(`${fixtureUrl}/health`)).ok,
+        "race fixture is ready",
+      );
+    });
+
+    async function control(id: string, action = "") {
+      const response = await fetch(`${fixtureUrl}/control/${id}${action}`);
+      if (!response.ok)
+        throw new Error(`Race fixture failed: ${response.status}`);
+      return response;
+    }
+
+    async function readAsset(id: string) {
+      const response = await fetch(
+        `http://localhost:${port}/api/v1/assets/${id}`,
+        {
+          headers: { authorization: `Bearer ${apiKey}` },
+        },
+      );
+      expect(response.status).toBe(200);
+      return Buffer.from(await response.arrayBuffer());
+    }
+
+    it.each([404, 410])(
+      "keeps a copy saved after the initial HTTP %i check",
+      async (status) => {
+        const id = randomUUID();
+        await control(id, `/init?mode=late&status=${status}`);
+        const { data: created } = await client.POST("/bookmarks", {
+          body: { type: "link", url: `http://nginx/crawl-race/${id}/page` },
+        });
+        assert(created);
+        try {
+          await waitUntil(
+            async () =>
+              (await (await control(id)).json()).bannerWaiting === true,
+            "missing crawl pauses after its initial check",
+          );
+          const initial = await getBookmark(created.id);
+          assert(initial && initial.content.type === "link");
+          expect(initial.content.crawledAt).toBeNull();
+          const trpc = getTrpcClient(apiKey);
+          await trpc.bookmarks.recrawlBookmark.mutate({
+            bookmarkId: created.id,
+            archiveFullPage: true,
+            storePdf: true,
+          });
+          await waitUntil(async () => {
+            const b = await getBookmark(created.id);
+            return (
+              b?.content.type === "link" &&
+              b.content.crawlStatus === "success" &&
+              b.content.title === "Good title" &&
+              b.assets.some((a) => a.assetType === "fullPageArchive")
+            );
+          }, "concurrent good copy is saved");
+          const good = await getBookmark(created.id);
+          assert(good && good.content.type === "link");
+          const goodHtmlContent = good.content.htmlContent;
+          const copies = good.assets.filter((a) =>
+            ["screenshot", "pdf", "fullPageArchive"].includes(a.assetType),
+          );
+          expect(copies).toHaveLength(3);
+          const bytes = await Promise.all(copies.map((a) => readAsset(a.id)));
+          await control(id, "/release_banner");
+          await waitUntil(async () => {
+            const b = await getBookmark(created.id);
+            return (
+              b?.content.type === "link" &&
+              (b.content.crawlStatus === "failure" ||
+                b.content.htmlContent !== goodHtmlContent)
+            );
+          }, "late missing crawl finishes");
+          const after = await getBookmark(created.id);
+          assert(after && after.content.type === "link");
+          expect(after.content.crawlStatus).toBe("failure");
+          expect(after.content.title).toBe(good.content.title);
+          expect(after.content.htmlContent).toBe(good.content.htmlContent);
+          expect(after.assets).toEqual(good.assets);
+          for (const [index, asset] of copies.entries())
+            expect(await readAsset(asset.id)).toEqual(bytes[index]);
+          const broken = await trpc.bookmarks.getBrokenLinks.query();
+          expect(
+            broken.bookmarks.find((b) => b.id === created.id),
+          ).toMatchObject({ statusCode: status, isCrawlingFailure: true });
+        } finally {
+          await control(id, "/release_banner");
+        }
+      },
+      180_000,
+    );
+
+    it("does not write late probe metadata after another crawl saves a copy", async () => {
+      const id = randomUUID();
+      await control(id, "/init?mode=probe-late&status=404");
+      const { data: created } = await client.POST("/bookmarks", {
+        body: { type: "link", url: `http://nginx/crawl-race/${id}/page` },
+      });
+      assert(created);
+      try {
+        await waitUntil(async () => {
+          const state = await (await control(id)).json();
+          return state.probeWaiting && state.missingWaiting;
+        }, "first probe and browser response are held");
+        await control(id, "/release_missing");
+        let missingJob = "";
+        const crawlerLogs = () =>
+          execFileSync("docker", ["compose", "logs", "--no-color", "web"], {
+            cwd: fileURLToPath(new URL("../../", import.meta.url)),
+            encoding: "utf8",
+          });
+        await waitUntil(async () => {
+          const logs = crawlerLogs();
+          const start = logs
+            .split("\n")
+            .find(
+              (line) =>
+                line.includes(`crawl-race/${id}/page`) &&
+                line.includes("Will crawl"),
+            );
+          missingJob = start?.match(/\[Crawler\]\[([^\]]+)\]/)?.[1] ?? "";
+          return Boolean(
+            missingJob &&
+            logs.includes(
+              `[Crawler][${missingJob}] Parse subprocess completed successfully.`,
+            ),
+          );
+        }, "missing crawl passes its first check and waits for the probe");
+        const trpc = getTrpcClient(apiKey);
+        await trpc.bookmarks.recrawlBookmark.mutate({
+          bookmarkId: created.id,
+          archiveFullPage: true,
+          storePdf: true,
+        });
+        await waitUntil(async () => {
+          const b = await getBookmark(created.id);
+          return (
+            b?.content.type === "link" &&
+            b.content.crawlStatus === "success" &&
+            b.content.title === "Good title" &&
+            b.assets.some((a) => a.assetType === "fullPageArchive")
+          );
+        }, "good copy is saved before the first probe finishes");
+        const good = await getBookmark(created.id);
+        assert(good && good.content.type === "link");
+        expect(good.content.imageUrl).toBeNull();
+        await control(id, "/release_probe");
+        await waitUntil(async () => {
+          const b = await getBookmark(created.id);
+          return (
+            b?.content.type === "link" && b.content.crawlStatus === "failure"
+          );
+        }, "missing browser crawl preserves the copy");
+        const logs = crawlerLogs();
+        expect(logs).toContain(
+          `[Crawler][${missingJob}] Extracted page metadata from the content-type probe`,
+        );
+        expect(logs).not.toContain(
+          `[Crawler][${missingJob}] Wrote early metadata from the content-type probe.`,
+        );
+        const after = await getBookmark(created.id);
+        assert(after && after.content.type === "link");
+        expect(after.content.imageUrl).toBe(good.content.imageUrl);
+        expect(after.content.title).toBe(good.content.title);
+        expect(after.content.htmlContent).toBe(good.content.htmlContent);
+        expect(after.assets).toEqual(good.assets);
+      } finally {
+        await control(id, "/release_missing");
+        await control(id, "/release_probe");
+      }
+    }, 180_000);
+
+    it.each([404, 410])(
+      "replaces an initial HTTP %i copy when the already-running good crawl finishes",
+      async (status) => {
+        const id = randomUUID();
+        await control(id, `/init?mode=reverse&status=${status}`);
+        const { data: created } = await client.POST("/bookmarks", {
+          body: { type: "link", url: `http://nginx/crawl-race/${id}/page` },
+        });
+        assert(created);
+        try {
+          await waitUntil(
+            async () => (await (await control(id)).json()).browserRequests >= 1,
+            "missing browser crawl begins",
+          );
+          const trpc = getTrpcClient(apiKey);
+          await trpc.bookmarks.recrawlBookmark.mutate({
+            bookmarkId: created.id,
+            archiveFullPage: true,
+            storePdf: true,
+          });
+          await waitUntil(
+            async () => (await (await control(id)).json()).goodWaiting === true,
+            "good crawl waits before saving",
+          );
+          await waitUntil(async () => {
+            const b = await getBookmark(created.id);
+            const broken = await trpc.bookmarks.getBrokenLinks.query();
+            return (
+              b?.content.type === "link" &&
+              b.content.crawlStatus === "success" &&
+              b.content.title === "Missing error title" &&
+              broken.bookmarks.some(
+                (item) => item.id === created.id && item.statusCode === status,
+              )
+            );
+          }, "initial missing copy is saved");
+          const before = await getBookmark(created.id);
+          assert(before && before.content.type === "link");
+          const old = before.assets.filter((a) =>
+            ["screenshot", "pdf"].includes(a.assetType),
+          );
+          expect(old).toHaveLength(2);
+          await control(id, "/release_good");
+          await waitUntil(async () => {
+            const b = await getBookmark(created.id);
+            return (
+              b?.content.type === "link" &&
+              b.content.crawlStatus === "success" &&
+              b.content.title === "Good title" &&
+              b.assets.some((a) => a.assetType === "fullPageArchive")
+            );
+          }, "good copy replaces missing page");
+          const after = await getBookmark(created.id);
+          assert(after && after.content.type === "link");
+          expect(after.content.htmlContent).toContain("Reliable saved content");
+          const copies = after.assets.filter((a) =>
+            ["screenshot", "pdf", "fullPageArchive"].includes(a.assetType),
+          );
+          expect(copies).toHaveLength(3);
+          expect(
+            copies.some((a) => old.some((oldAsset) => oldAsset.id === a.id)),
+          ).toBe(false);
+          await Promise.all(copies.map((a) => readAsset(a.id)));
+        } finally {
+          await control(id, "/release_good");
+        }
+      },
+      180_000,
+    );
+  });
 
   it("should crawl browser-rendered content", async () => {
     let { data: bookmark } = await client.POST("/bookmarks", {

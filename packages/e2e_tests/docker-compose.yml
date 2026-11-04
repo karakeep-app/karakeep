@@ -14,6 +14,9 @@ services:
     restart: unless-stopped
     ports:
       - "${KARAKEEP_PORT:-3000}:3000"
+      - "${CRAWLER_RACE_FIXTURE_PORT:-9199}:9199"
+    volumes:
+      - ./setup/crawler-race-fixture.mjs:/crawler-race-fixture.mjs:ro
     environment:
       DATA_DIR: /tmp
       DB_WAL_MODE: "true"

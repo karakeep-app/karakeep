@@ -48,6 +48,7 @@ export default async function ({ provide }: TestProject) {
   const karakeepPort = await getRandomPort();
   const aimockPort = await getRandomPort();
   const meiliPort = await getRandomPort();
+  const crawlerRacePort = await getRandomPort();
 
   const buildArg = process.env.E2E_TEST_NO_BUILD ? "" : "--build";
 
@@ -62,6 +63,7 @@ export default async function ({ provide }: TestProject) {
       KARAKEEP_PORT: karakeepPort.toString(),
       AIMOCK_PORT: aimockPort.toString(),
       MEILI_PORT: meiliPort.toString(),
+      CRAWLER_RACE_FIXTURE_PORT: crawlerRacePort.toString(),
     },
   });
 
@@ -77,10 +79,12 @@ export default async function ({ provide }: TestProject) {
   provide("karakeepPort", karakeepPort);
   provide("aimockPort", aimockPort);
   provide("meiliPort", meiliPort);
+  provide("crawlerRacePort", crawlerRacePort);
 
   process.env.KARAKEEP_PORT = karakeepPort.toString();
   process.env.AIMOCK_PORT = aimockPort.toString();
   process.env.MEILI_PORT = meiliPort.toString();
+  process.env.CRAWLER_RACE_FIXTURE_PORT = crawlerRacePort.toString();
 
   return async () => {
     console.log("Capturing docker logs...");
@@ -127,5 +131,6 @@ declare module "vitest" {
     karakeepPort: number;
     aimockPort: number;
     meiliPort: number;
+    crawlerRacePort: number;
   }
 }
