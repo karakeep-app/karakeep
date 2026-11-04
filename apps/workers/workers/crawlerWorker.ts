@@ -185,8 +185,47 @@ export function crawlLogger(jobId: string): CrawlLogger {
 // Worker
 // ---------------------------------------------------------------------------
 
-interface CrawlerRunResult {
-  status: "completed";
+type CrawlerRunResult =
+  | { status: "completed" }
+  | { status: "preserved"; statusCode: number };
+
+async function recordCrawlFailure(bookmarkId: string, statusCode?: number) {
+  await db.transaction((tx) => {
+    tx.update(bookmarkLinks)
+      .set({
+        crawlStatus: "failure",
+        ...(statusCode !== undefined ? { crawlStatusCode: statusCode } : {}),
+      })
+      .where(eq(bookmarkLinks.id, bookmarkId))
+      .run();
+    tx.update(bookmarks)
+      .set({ taggingStatus: null })
+      .where(
+        and(
+          eq(bookmarks.id, bookmarkId),
+          eq(bookmarks.taggingStatus, "pending"),
+        ),
+      )
+      .run();
+    tx.update(bookmarks)
+      .set({ summarizationStatus: null })
+      .where(
+        and(
+          eq(bookmarks.id, bookmarkId),
+          eq(bookmarks.summarizationStatus, "pending"),
+        ),
+      )
+      .run();
+    tx.update(bookmarks)
+      .set({ embeddingStatus: null })
+      .where(
+        and(
+          eq(bookmarks.id, bookmarkId),
+          eq(bookmarks.embeddingStatus, "pending"),
+        ),
+      )
+      .run();
+  });
 }
 
 export class CrawlerWorker {
@@ -247,18 +286,22 @@ export class CrawlerWorker {
             runCrawler(job, queue.opts.defaultJobArgs.numRetries),
           ),
         ),
-        onComplete: async (job: DequeuedJob<ZCrawlLinkRequest>) => {
+        onComplete: async (job, result) => {
           workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
-          logger.info(`[Crawler][${jobId}] Completed successfully`);
+          logger.info(
+            `[Crawler][${jobId}] Completed with result: ${result.status}`,
+          );
           const bookmarkId = job.data.bookmarkId;
           if (bookmarkId) {
-            await db
-              .update(bookmarkLinks)
-              .set({
-                crawlStatus: "success",
-              })
-              .where(eq(bookmarkLinks.id, bookmarkId));
+            if (result.status === "preserved") {
+              await recordCrawlFailure(bookmarkId, result.statusCode);
+            } else {
+              await db
+                .update(bookmarkLinks)
+                .set({ crawlStatus: "success" })
+                .where(eq(bookmarkLinks.id, bookmarkId));
+            }
           }
         },
         onError: async (job: DequeuedJobError<ZCrawlLinkRequest>) => {
@@ -272,47 +315,7 @@ export class CrawlerWorker {
           );
           const bookmarkId = job.data?.bookmarkId;
           if (bookmarkId && job.numRetriesLeft == 0) {
-            await db.transaction((tx) => {
-              tx.update(bookmarkLinks)
-                .set({
-                  crawlStatus: "failure",
-                })
-                .where(eq(bookmarkLinks.id, bookmarkId))
-                .run();
-              tx.update(bookmarks)
-                .set({
-                  taggingStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.taggingStatus, "pending"),
-                  ),
-                )
-                .run();
-              tx.update(bookmarks)
-                .set({
-                  summarizationStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.summarizationStatus, "pending"),
-                  ),
-                )
-                .run();
-              tx.update(bookmarks)
-                .set({
-                  embeddingStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.embeddingStatus, "pending"),
-                  ),
-                )
-                .run();
-            });
+            await recordCrawlFailure(bookmarkId);
           }
         },
       },
@@ -325,6 +328,20 @@ export class CrawlerWorker {
 
     return worker;
   }
+}
+
+function hasSavedBookmarkCopy(
+  bookmark: Awaited<ReturnType<typeof getBookmarkDetails>>,
+) {
+  return Boolean(
+    bookmark.crawledAt ||
+    bookmark.htmlContent ||
+    bookmark.screenshotAssetId ||
+    bookmark.pdfAssetId ||
+    bookmark.imageAssetId ||
+    bookmark.fullPageArchiveAssetId ||
+    bookmark.contentAssetId,
+  );
 }
 
 async function runCrawler(
@@ -347,6 +364,7 @@ async function runCrawler(
   addLogFields<"crawlerWorker.run">({
     "bookmark.id": bookmarkId,
   });
+  const bookmarkDetails = await getBookmarkDetails(bookmarkId);
   const {
     url,
     userId,
@@ -359,7 +377,7 @@ async function runCrawler(
     contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
     probeMetadataAt,
-  } = await getBookmarkDetails(bookmarkId);
+  } = bookmarkDetails;
 
   const userData = await db.query.users.findFirst({
     where: eq(users.id, userId),
@@ -410,6 +428,8 @@ async function runCrawler(
       `Skipped fetching content-type for the url ${url} as precrawledArchiveAssetId exists`,
     );
   }
+  const hasSavedCopy = hasSavedBookmarkCopy(bookmarkDetails);
+
   // Retry runs re-probe for the content type, but if a previous run already
   // extracted and stored the probe metadata (probeMetadataAt), don't re-fetch
   // it — reload it from the bookmark row instead.
@@ -435,27 +455,26 @@ async function runCrawler(
   ) {
     await handleAsAssetBookmark(ctx, "image");
   } else {
-    // Chain the early metadata write onto the (still running) probe
-    // extraction so a title/thumbnail lands as soon as it's ready, while the
-    // browser crawl proceeds in parallel. crawlAndParseUrl awaits this same
-    // promise before its own metadata write, so within this attempt the
-    // early write always precedes the final merged one. Across attempts the
-    // ordering can't be relied on (a failed attempt's write may fire after a
-    // retry finished) — that case is guarded by the write itself being
-    // fill-only (see writeProbeMetadata). On retry runs where the probe
-    // metadata was already stored, reload it from the bookmark row instead.
-    // Never rejects.
+    // First crawls can write probe metadata early for a faster preview. For
+    // saved copies, wait for the browser result before writing anything: the
+    // probe can succeed even when the browser receives a missing-page error.
+    // The fill-only early write also guards against late writes across retries.
+    // On retries, reload probe metadata that was already stored. Never rejects.
     const probeMetadataPromise = reuseStoredProbeMetadata
       ? loadStoredProbeMetadata(ctx)
-      : probeMetadata.then(async (metadata) => {
-          if (metadata) {
-            const { error } = await tryCatch(writeProbeMetadata(ctx, metadata));
-            if (error) {
-              log.warn(`Failed to write early probe metadata: ${error}`);
+      : hasSavedCopy
+        ? probeMetadata
+        : probeMetadata.then(async (metadata) => {
+            if (metadata) {
+              const { error } = await tryCatch(
+                writeProbeMetadata(ctx, metadata),
+              );
+              if (error) {
+                log.warn(`Failed to write early probe metadata: ${error}`);
+              }
             }
-          }
-          return metadata;
-        });
+            return metadata;
+          });
     const page = await crawlAndParseUrl(ctx, {
       oldAssets: {
         screenshotAssetId: oldScreenshotAssetId,
@@ -467,7 +486,12 @@ async function runCrawler(
       forceStorePdf: storePdf ?? false,
       numRetriesLeft,
       probeMetadataPromise,
+      hasSavedCopy,
     });
+
+    if (page.status === "preserved") {
+      return page;
+    }
 
     await enqueuePostCrawlJobs(ctx, job);
 
@@ -631,6 +655,12 @@ const getContentTypeAndMetadata = traced(
     log.info(
       `Content-type for the url ${truncateUrl(url)} is "${contentType}"`,
     );
+
+    // Do not route error pages as assets or extract their metadata. The
+    // browser crawl still determines the final status, which can differ.
+    if (response.status === 404 || response.status === 410) {
+      return { contentType: null, metadata: Promise.resolve(null) };
+    }
 
     if (!contentType || !PROBE_HTML_CONTENT_TYPES.has(contentType)) {
       return { contentType, metadata: Promise.resolve(null) };
@@ -897,6 +927,7 @@ interface CrawlAndParseUrlArgs {
   forceStorePdf: boolean;
   numRetriesLeft: number;
   probeMetadataPromise: Promise<ParseSubprocessOutput["metadata"] | null>;
+  hasSavedCopy: boolean;
 }
 
 /**
@@ -909,7 +940,10 @@ const crawlAndParseUrl = traced(
   async (
     ctx: CrawlContext,
     args: CrawlAndParseUrlArgs,
-  ): Promise<{ htmlContent: string; url: string }> => {
+  ): Promise<
+    | { status: "completed"; htmlContent: string; url: string }
+    | { status: "preserved"; statusCode: number }
+  > => {
     const { url, userId, jobId, bookmarkId, abortSignal, runProxy, log } = ctx;
     const {
       oldAssets,
@@ -917,6 +951,7 @@ const crawlAndParseUrl = traced(
       forceStorePdf,
       numRetriesLeft,
       probeMetadataPromise,
+      hasSavedCopy,
     } = args;
     const sanitizedProxyUrl = redactUrlCredentials(
       runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
@@ -985,6 +1020,15 @@ const crawlAndParseUrl = traced(
       log.info(
         `Received status code ${statusCode} on latest retry attempt. Proceeding without retry.`,
       );
+    }
+
+    if (
+      (statusCode === 404 || statusCode === 410) &&
+      (hasSavedCopy ||
+        hasSavedBookmarkCopy(await getBookmarkDetails(bookmarkId)))
+    ) {
+      log.info(`Preserving the existing copy after HTTP ${statusCode}.`);
+      return { status: "preserved", statusCode };
     }
 
     const {
@@ -1178,7 +1222,7 @@ const crawlAndParseUrl = traced(
       assetIdsToDelete.map((assetId) => silentDeleteAsset(userId, assetId)),
     );
 
-    return { htmlContent, url: browserUrl };
+    return { status: "completed", htmlContent, url: browserUrl };
   },
 );
 

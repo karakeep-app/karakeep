@@ -1,9 +1,13 @@
+import { randomUUID } from "node:crypto";
+import { readFile, unlink, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { assert, beforeEach, describe, expect, inject, it } from "vitest";
 
 import { createKarakeepClient } from "@karakeep/sdk";
 
 import { createTestUser } from "../../utils/api";
 import { waitUntil } from "../../utils/general";
+import { getTrpcClient } from "../../utils/trpc";
 
 describe("Crawler Tests", () => {
   const port = inject("karakeepPort");
@@ -67,6 +71,156 @@ describe("Crawler Tests", () => {
     ).toBeDefined();
     expect(bookmark.assets.find((a) => a.assetType === "pdf")).toBeDefined();
   });
+
+  it.each([404, 410])(
+    "preserves saved copies when a recrawl returns %i",
+    async (status) => {
+      const name = `recrawl-${randomUUID()}.html`;
+      const fixtureDir = new URL("../../setup/html/", import.meta.url);
+      const fixturePath = fileURLToPath(new URL(name, fixtureDir));
+      const html = await readFile(new URL("hello.html", fixtureDir));
+      await writeFile(fixturePath, html, { flag: "wx" });
+      let fixtureExists = true;
+      try {
+        const url = `http://nginx:80/${status === 410 ? "gone-" : ""}${name}`;
+        const { data: created } = await client.POST("/bookmarks", {
+          body: { type: "link", url },
+        });
+        assert(created);
+        const bookmarkId = created.id;
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(bookmarkId);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "success"
+          );
+        }, "initial crawl completes");
+
+        const trpc = getTrpcClient(apiKey);
+        await trpc.bookmarks.recrawlBookmark.mutate({
+          bookmarkId,
+          archiveFullPage: true,
+          storePdf: true,
+        });
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(bookmarkId);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "success" &&
+            bookmark.assets.some(
+              (asset) => asset.assetType === "fullPageArchive",
+            )
+          );
+        }, "initial offline archive completes");
+
+        const before = await getBookmark(bookmarkId);
+        assert(before && before.content.type === "link");
+        expect(before.content.htmlContent).toContain("Hello World");
+        const savedAssets = before.assets.filter((asset) =>
+          ["screenshot", "pdf", "fullPageArchive"].includes(asset.assetType),
+        );
+        expect(savedAssets).toHaveLength(3);
+        const readAsset = async (id: string) => {
+          const response = await fetch(
+            `http://localhost:${port}/api/v1/assets/${id}`,
+            {
+              headers: { authorization: `Bearer ${apiKey}` },
+            },
+          );
+          expect(response.status).toBe(200);
+          return Buffer.from(await response.arrayBuffer());
+        };
+        const savedBytes = await Promise.all(
+          savedAssets.map((asset) => readAsset(asset.id)),
+        );
+
+        await unlink(fixturePath);
+        fixtureExists = false;
+        await trpc.bookmarks.recrawlBookmark.mutate({
+          bookmarkId,
+          archiveFullPage: true,
+          storePdf: true,
+        });
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(bookmarkId);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "failure"
+          );
+        }, `recrawl returning ${status} completes`);
+
+        const after = await getBookmark(bookmarkId);
+        assert(after && after.content.type === "link");
+        expect(after.content.title).toBe(before.content.title);
+        expect(after.content.htmlContent).toBe(before.content.htmlContent);
+        expect(after.content.crawledAt).toEqual(before.content.crawledAt);
+        expect(after.assets).toEqual(before.assets);
+        for (const [index, asset] of savedAssets.entries()) {
+          expect(await readAsset(asset.id)).toEqual(savedBytes[index]);
+        }
+        const brokenLinks = await trpc.bookmarks.getBrokenLinks.query();
+        expect(
+          brokenLinks.bookmarks.find((item) => item.id === bookmarkId),
+        ).toMatchObject({
+          statusCode: status,
+          isCrawlingFailure: true,
+        });
+
+        // Once the source returns, a normal recrawl should still update it.
+        await writeFile(
+          fixturePath,
+          html.toString().replace("My test title", "Updated test title"),
+          { flag: "wx" },
+        );
+        fixtureExists = true;
+        await trpc.bookmarks.recrawlBookmark.mutate({
+          bookmarkId,
+          storePdf: true,
+        });
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(bookmarkId);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "success" &&
+            bookmark.content.title === "Updated test title"
+          );
+        }, "successful recrawl updates the copy");
+      } finally {
+        if (fixtureExists) {
+          await unlink(fixturePath);
+        }
+      }
+    },
+    180_000,
+  );
+
+  it.each([404, 410])(
+    "still processes a first crawl returning %i",
+    async (status) => {
+      const name = `missing-${randomUUID()}.html`;
+      const url = `http://nginx:80/${status === 410 ? "gone-" : ""}${name}`;
+      const { data: created } = await client.POST("/bookmarks", {
+        body: { type: "link", url },
+      });
+      assert(created);
+      await waitUntil(async () => {
+        const bookmark = await getBookmark(created.id);
+        return (
+          bookmark?.content.type === "link" &&
+          bookmark.content.crawlStatus === "success"
+        );
+      }, "first crawl of missing page completes");
+      const brokenLinks =
+        await getTrpcClient(apiKey).bookmarks.getBrokenLinks.query();
+      expect(
+        brokenLinks.bookmarks.find((item) => item.id === created.id),
+      ).toMatchObject({
+        statusCode: status,
+        isCrawlingFailure: false,
+      });
+    },
+    90_000,
+  );
 
   it("should crawl browser-rendered content", async () => {
     let { data: bookmark } = await client.POST("/bookmarks", {
