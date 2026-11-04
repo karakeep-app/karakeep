@@ -35,6 +35,7 @@ import {
   ReaderViewAssessment,
   unavailableReaderViewAssessment,
 } from "../workers/utils/readerViewAssessment";
+import { decodeResidualMetadataEntities } from "../workers/utils/metadataResolver";
 
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
@@ -236,11 +237,13 @@ async function main() {
   );
 
   // Run metascraper
-  const meta = await metascraperParser({
-    url,
-    html: htmlContent,
-    validateUrl: false,
-  });
+  const meta = decodeResidualMetadataEntities(
+    await metascraperParser({
+      url,
+      html: htmlContent,
+      validateUrl: false,
+    }),
+  );
 
   logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
 
