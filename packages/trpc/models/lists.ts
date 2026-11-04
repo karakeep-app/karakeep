@@ -35,6 +35,34 @@ interface ListCollaboratorEntry {
   membershipId: string;
 }
 
+// Returns the ids of all descendants of `rootId`. The traversal tracks visited
+// lists, so a cyclic hierarchy in existing data can't make it loop forever.
+function collectDescendantIds(
+  lists: { id: string; parentId: string | null }[],
+  rootId: string,
+): string[] {
+  const childrenOf = new Map<string, string[]>();
+  for (const l of lists) {
+    if (l.parentId) {
+      childrenOf.set(l.parentId, [...(childrenOf.get(l.parentId) ?? []), l.id]);
+    }
+  }
+
+  const visited = new Set([rootId]);
+  const result: string[] = [];
+  const queue = [rootId];
+  while (queue.length > 0) {
+    for (const childId of childrenOf.get(queue.pop()!) ?? []) {
+      if (!visited.has(childId)) {
+        visited.add(childId);
+        result.push(childId);
+        queue.push(childId);
+      }
+    }
+  }
+  return result;
+}
+
 export abstract class List {
   protected constructor(
     protected ctx: AuthedContext,
@@ -203,6 +231,46 @@ export abstract class List {
     };
   }
 
+  // Returns the public lists around a public list. Only lists that are public
+  // themselves and owned by the same user are exposed, and the ancestor chain
+  // stops at the first non-public list so private list names never leak.
+  static async getPublicListNavigation(ctx: Context, listId: string) {
+    const listdb = await this.getPublicList(ctx, listId, /* token */ null);
+    const columns = { id: true, name: true, icon: true } as const;
+
+    const parents: { id: string; name: string; icon: string }[] = [];
+    const visited = new Set([listdb.id]);
+    let parentId = listdb.parentId;
+    while (parentId && !visited.has(parentId)) {
+      visited.add(parentId);
+      const parent = await ctx.db.query.bookmarkLists.findFirst({
+        columns: { ...columns, parentId: true },
+        where: and(
+          eq(bookmarkLists.id, parentId),
+          eq(bookmarkLists.userId, listdb.userId),
+          eq(bookmarkLists.public, true),
+        ),
+      });
+      if (!parent) {
+        break;
+      }
+      parents.unshift({ id: parent.id, name: parent.name, icon: parent.icon });
+      parentId = parent.parentId;
+    }
+
+    const children = await ctx.db.query.bookmarkLists.findMany({
+      columns,
+      where: and(
+        eq(bookmarkLists.parentId, listdb.id),
+        eq(bookmarkLists.userId, listdb.userId),
+        eq(bookmarkLists.public, true),
+      ),
+      orderBy: (lists, { asc }) => [asc(lists.name)],
+    });
+
+    return { parents, children };
+  }
+
   static async getPublicListContents(
     ctx: Context,
     listId: string,
@@ -320,6 +388,7 @@ export abstract class List {
             parentId: input.parentId,
             type: input.type,
             query: input.query,
+            public: input.public,
           })
           .returning()
           .get();
@@ -656,51 +725,23 @@ export abstract class List {
   async getChildren(): Promise<(ManualList | SmartList)[]> {
     const lists = await List.getAllOwned(this.ctx);
     const listById = new Map(lists.map((l) => [l.id, l]));
-
-    const adjecencyList = new Map<string, string[]>();
-
-    // Initialize all lists with empty arrays first
-    lists.forEach((l) => {
-      adjecencyList.set(l.id, []);
-    });
-
-    // Then populate the parent-child relationships
-    lists.forEach((l) => {
-      const parentId = l.asZBookmarkList().parentId;
-      if (parentId) {
-        const currentChildren = adjecencyList.get(parentId) ?? [];
-        currentChildren.push(l.id);
-        adjecencyList.set(parentId, currentChildren);
-      }
-    });
-
-    const resultIds: string[] = [];
-    const queue: string[] = [this.list.id];
-    // Guard against cycles in the hierarchy
-    const visited = new Set<string>([this.list.id]);
-
-    while (queue.length > 0) {
-      const id = queue.pop()!;
-      const children = adjecencyList.get(id) ?? [];
-      children.forEach((childId) => {
-        if (visited.has(childId)) {
-          return;
-        }
-        visited.add(childId);
-        queue.push(childId);
-        resultIds.push(childId);
-      });
-    }
-
-    return resultIds.map((id) => listById.get(id)!);
+    const descendantIds = collectDescendantIds(
+      lists.map((l) => ({ id: l.id, parentId: l.asZBookmarkList().parentId })),
+      this.list.id,
+    );
+    return descendantIds.map((id) => listById.get(id)!);
   }
 
   async update(
     input: z.infer<typeof zEditBookmarkListSchemaWithValidation>,
   ): Promise<void> {
     this.ensureCanManage();
-    // The ancestry check and the write share an immediate transaction so
-    // that concurrent moves can't both pass the check and form a cycle.
+    const cascadePublic =
+      input.applyPublicToChildren && input.public !== undefined;
+    // The ancestry check, the write and the privacy cascade share an
+    // immediate transaction so that concurrent moves can't both pass the
+    // check and form a cycle, and the list and its descendants change
+    // together.
     const result = await this.ctx.db.transaction(
       (tx) => {
         if (input.parentId) {
@@ -711,7 +752,8 @@ export abstract class List {
             this.list.id,
           );
         }
-        return tx
+
+        const rows = tx
           .update(bookmarkLists)
           .set({
             name: input.name,
@@ -729,12 +771,38 @@ export abstract class List {
           )
           .returning()
           .all();
+        if (rows.length == 0) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+
+        if (cascadePublic) {
+          const descendantIds = collectDescendantIds(
+            tx
+              .select({
+                id: bookmarkLists.id,
+                parentId: bookmarkLists.parentId,
+              })
+              .from(bookmarkLists)
+              .where(eq(bookmarkLists.userId, this.ctx.user.id))
+              .all(),
+            this.list.id,
+          );
+          if (descendantIds.length > 0) {
+            tx.update(bookmarkLists)
+              .set({ public: input.public })
+              .where(
+                and(
+                  inArray(bookmarkLists.id, descendantIds),
+                  eq(bookmarkLists.userId, this.ctx.user.id),
+                ),
+              )
+              .run();
+          }
+        }
+        return rows;
       },
       { behavior: "immediate" },
     );
-    if (result.length == 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
     invariant(result[0].userId === this.ctx.user.id);
     // Fetch current collaborators to update hasCollaborators
     const collaboratorsCount =

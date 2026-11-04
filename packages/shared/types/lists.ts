@@ -26,6 +26,7 @@ export const zNewBookmarkListSchema = z
     type: z.enum(["manual", "smart"]).optional().default("manual"),
     query: z.string().min(1).optional(),
     parentId: z.string().nullish(),
+    public: z.boolean().optional(),
   })
   .refine((val) => val.type === "smart" || !val.query, {
     message: "Manual lists cannot have a query",
@@ -85,12 +86,18 @@ export const zEditBookmarkListSchema = z.object({
   parentId: z.string().nullish(),
   query: z.string().min(1).optional(),
   public: z.boolean().optional(),
+  // Also apply `public` to all the list's descendants.
+  applyPublicToChildren: z.boolean().optional(),
 });
 
 export const zEditBookmarkListSchemaWithValidation = zEditBookmarkListSchema
   .refine((val) => val.parentId != val.listId, {
     message: "List can't be its own parent",
     path: ["parentId"],
+  })
+  .refine((val) => !val.applyPublicToChildren || val.public !== undefined, {
+    message: "applyPublicToChildren requires public to be set",
+    path: ["applyPublicToChildren"],
   })
   .refine(
     (val) => !val.query || parseSearchQuery(val.query).result === "full",

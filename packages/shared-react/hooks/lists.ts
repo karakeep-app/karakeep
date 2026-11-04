@@ -38,7 +38,10 @@ export function useEditBookmarkList(
       onSuccess: (res, req, meta, context) => {
         queryClient.invalidateQueries(api.lists.list.pathFilter());
         queryClient.invalidateQueries(
-          api.lists.get.queryFilter({ listId: req.listId }),
+          req.applyPublicToChildren
+            ? // The privacy of all descendants changed too.
+              api.lists.get.pathFilter()
+            : api.lists.get.queryFilter({ listId: req.listId }),
         );
         if (res.type === "smart") {
           queryClient.invalidateQueries(
