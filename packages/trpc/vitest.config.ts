@@ -10,5 +10,8 @@ export default defineConfig({
     alias: {
       "@/*": "./*",
     },
+    env: {
+      NEXTAUTH_SECRET: "test-secret",
+    },
   },
 });

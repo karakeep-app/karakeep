@@ -41,7 +41,11 @@ export function BookmarkMarkdownComponent({
           {bookmark.content.text}
         </MarkdownReadonly>
       ) : (
-        <MarkdownEditor onSave={onSave} isSaving={isPending}>
+        <MarkdownEditor
+          bookmarkId={bookmark.id}
+          onSave={onSave}
+          isSaving={isPending}
+        >
           {bookmark.content.text}
         </MarkdownEditor>
       )}
