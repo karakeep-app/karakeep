@@ -91,6 +91,26 @@ jobs:
         working-directory: apps/workers
         run: pnpm test
 
+      - name: Web Tests
+        working-directory: apps/web
+        run: pnpm test
+
+      - name: API Tests
+        working-directory: packages/api
+        run: pnpm test
+
+      - name: Shared Server Tests
+        working-directory: packages/shared-server
+        run: pnpm test
+
+      - name: MCP Tests
+        working-directory: apps/mcp
+        run: pnpm test
+
+      - name: Mobile Tests
+        working-directory: apps/mobile
+        run: pnpm test
+
       # - name: Plugins Tests
       #   working-directory: packages/plugins
       #   run: pnpm test
