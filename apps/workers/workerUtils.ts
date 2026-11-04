@@ -99,6 +99,32 @@ export function replaceBookmarkAssets(
   return existing.map(({ id }) => id);
 }
 
+/** Replaces an archive only if its crawl still owns the saved link content. */
+export function replaceArchiveIfCurrent(
+  txn: KarakeepDBTransaction,
+  bookmarkId: string,
+  crawlRevision: string,
+  newAsset: DBAssetType,
+): string[] | null {
+  const current = txn
+    .select({ id: bookmarkLinks.id })
+    .from(bookmarkLinks)
+    .where(
+      and(
+        eq(bookmarkLinks.id, bookmarkId),
+        eq(bookmarkLinks.crawlRevision, crawlRevision),
+      ),
+    )
+    .get();
+  if (!current) return null;
+  return replaceBookmarkAssets(
+    txn,
+    bookmarkId,
+    AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+    newAsset,
+  );
+}
+
 export function updateAsset(
   oldAssetId: string | undefined,
   newAsset: DBAssetType,

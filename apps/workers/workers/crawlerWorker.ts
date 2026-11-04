@@ -104,6 +104,7 @@ import {
   getBookmarkDetails,
   missingAssetStatusCode,
   persistCrawlInTransaction,
+  replaceArchiveIfCurrent,
   replaceBookmarkAssets,
   recordCrawlFailure,
   updateAsset,
@@ -474,7 +475,12 @@ async function runCrawler(
       (serverConfig.crawler.fullPageArchive || archiveFullPage) &&
       !page.archiveHandled
     ) {
-      await storeFullPageArchive(ctx, page.htmlContent, page.url);
+      await storeFullPageArchive(
+        ctx,
+        page.htmlContent,
+        page.url,
+        page.crawlRevision,
+      );
     }
   }
 
@@ -922,6 +928,7 @@ const crawlAndParseUrl = traced(
         htmlContent: string;
         url: string;
         archiveHandled: boolean;
+        crawlRevision: string;
       }
     | { status: "preserved"; statusCode: number }
   > => {
@@ -1133,6 +1140,9 @@ const crawlAndParseUrl = traced(
         ? (readableContent?.content ?? null)
         : null;
     readableContent = null;
+    // A unique token ties any later full-page archive to this content commit,
+    // even when two crawls finish within the same second.
+    const crawlRevision = newAssetId();
     const saved = await db.transaction(
       (txn) => {
         return persistCrawlInTransaction(txn, bookmarkId, isMissingPage, () => {
@@ -1141,6 +1151,7 @@ const crawlAndParseUrl = traced(
             .set({
               ...metadataValues,
               crawledAt: new Date(),
+              crawlRevision,
               htmlContent: inlineHtmlContent,
               contentAssetId:
                 htmlContentAssetInfo.result === "stored"
@@ -1268,6 +1279,7 @@ const crawlAndParseUrl = traced(
       htmlContent,
       url: browserUrl,
       archiveHandled: isMissingPage,
+      crawlRevision,
     };
   },
 );
@@ -1280,29 +1292,38 @@ async function storeFullPageArchive(
   ctx: CrawlContext,
   htmlContent: string,
   url: string,
+  crawlRevision: string,
 ): Promise<void> {
-  const { bookmarkId, userId } = ctx;
+  const { bookmarkId, userId, log } = ctx;
   const archiveResult = await archiveWebpage(ctx, htmlContent, url);
   if (!archiveResult) {
     return;
   }
   const { assetId, size, contentType } = archiveResult;
-  const oldAssetIds = await db.transaction((txn) => {
-    return replaceBookmarkAssets(
-      txn,
-      bookmarkId,
-      AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-      {
-        id: assetId,
-        bookmarkId,
-        userId,
-        assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-        contentType,
-        size,
-        fileName: null,
-      },
+  let oldAssetIds: string[] | null;
+  try {
+    oldAssetIds = await db.transaction(
+      (txn) =>
+        replaceArchiveIfCurrent(txn, bookmarkId, crawlRevision, {
+          id: assetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+          contentType,
+          size,
+          fileName: null,
+        }),
+      { behavior: "immediate" },
     );
-  });
+  } catch (error) {
+    await silentDeleteAsset(userId, assetId);
+    throw error;
+  }
+  if (oldAssetIds === null) {
+    log.info("Discarding an archive for superseded bookmark content.");
+    await silentDeleteAsset(userId, assetId);
+    return;
+  }
   await Promise.all(oldAssetIds.map((id) => silentDeleteAsset(userId, id)));
 }
 

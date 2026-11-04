@@ -25,6 +25,7 @@ import {
   missingAssetStatusCode,
   persistCrawlInTransaction,
   recordCrawlFailure,
+  replaceArchiveIfCurrent,
   replaceBookmarkAssets,
 } from "./workerUtils";
 
@@ -44,6 +45,75 @@ async function createLink() {
     .values({ id: bookmark.id, url: "https://example.com" });
   return { userId: user.id, bookmarkId: bookmark.id };
 }
+
+describe("full-page archive revisions", () => {
+  it("keeps the newer archive when an older crawl finishes archiving last", async () => {
+    const { userId, bookmarkId } = await createLink();
+    const archive = (id: string) => ({
+      id,
+      bookmarkId,
+      userId,
+      assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+    });
+    const sameSecond = new Date("2026-01-01T12:00:00Z");
+    await db.insert(assets).values(archive("previous-archive"));
+    await db
+      .update(bookmarkLinks)
+      .set({
+        crawledAt: sameSecond,
+        htmlContent: "same content",
+        crawlRevision: "crawl-a",
+      })
+      .where(eq(bookmarkLinks.id, bookmarkId));
+    // A starts archiving. B commits an indistinguishable page in the same second.
+    await db
+      .update(bookmarkLinks)
+      .set({
+        crawledAt: sameSecond,
+        htmlContent: "same content",
+        crawlRevision: "crawl-b",
+      })
+      .where(eq(bookmarkLinks.id, bookmarkId));
+    expect(
+      db.transaction((tx) =>
+        replaceArchiveIfCurrent(
+          tx,
+          bookmarkId,
+          "crawl-b",
+          archive("archive-b"),
+        ),
+      ),
+    ).toEqual(["previous-archive"]);
+    expect(
+      db.transaction((tx) =>
+        replaceArchiveIfCurrent(
+          tx,
+          bookmarkId,
+          "crawl-a",
+          archive("archive-a"),
+        ),
+      ),
+    ).toBeNull();
+    expect(
+      db.select().from(assets).where(eq(assets.bookmarkId, bookmarkId)).all(),
+    ).toMatchObject([{ id: "archive-b" }]);
+  });
+
+  it("rejects an archive after the link is deleted", async () => {
+    const { userId, bookmarkId } = await createLink();
+    await db.delete(bookmarks).where(eq(bookmarks.id, bookmarkId));
+    expect(
+      db.transaction((tx) =>
+        replaceArchiveIfCurrent(tx, bookmarkId, "crawl-a", {
+          id: "archive-a",
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+        }),
+      ),
+    ).toBeNull();
+  });
+});
 
 describe("missing-page crawl persistence", () => {
   it.each([
