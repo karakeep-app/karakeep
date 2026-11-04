@@ -1149,7 +1149,10 @@ const crawlAndParseUrl = traced(
           txn
             .update(bookmarkLinks)
             .set({
-              ...metadataValues,
+              // Normal pages already published metadata before asset storage.
+              // Only missing pages need their metadata committed atomically
+              // with the protected content write.
+              ...(isMissingPage ? metadataValues : {}),
               crawledAt: new Date(),
               crawlRevision,
               htmlContent: inlineHtmlContent,

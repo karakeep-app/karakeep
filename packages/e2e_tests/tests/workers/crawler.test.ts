@@ -370,6 +370,45 @@ describe("Crawler Tests", () => {
       return Buffer.from(await response.arrayBuffer());
     }
 
+    it("keeps metadata edited after the initial metadata write", async () => {
+      const id = randomUUID();
+      await control(id, "/init?mode=metadata-edit");
+      const { data: created } = await client.POST("/bookmarks", {
+        body: { type: "link", url: `http://nginx/crawl-race/${id}/page` },
+      });
+      assert(created);
+      try {
+        await waitUntil(
+          async () => (await (await control(id)).json()).bannerWaiting === true,
+          "crawl pauses after writing its metadata",
+        );
+        const before = await getBookmark(created.id);
+        assert(before && before.content.type === "link");
+        expect(before.content.description).toBe("Original description");
+        const trpc = getTrpcClient(apiKey);
+        await trpc.bookmarks.updateBookmark.mutate({
+          bookmarkId: created.id,
+          description: "User-edited description",
+          author: "User-edited author",
+        });
+        await control(id, "/release_banner");
+        await waitUntil(async () => {
+          const bookmark = await getBookmark(created.id);
+          return (
+            bookmark?.content.type === "link" &&
+            bookmark.content.crawlStatus === "success"
+          );
+        }, "crawl finishes after the metadata edit");
+        const after = await getBookmark(created.id);
+        assert(after && after.content.type === "link");
+        expect(after.content.description).toBe("User-edited description");
+        expect(after.content.author).toBe("User-edited author");
+        expect(after.content.htmlContent).toContain("Reliable saved content");
+      } finally {
+        await control(id, "/release_banner");
+      }
+    }, 180_000);
+
     it.each([404, 410])(
       "keeps a copy saved after the initial HTTP %i check",
       async (status) => {

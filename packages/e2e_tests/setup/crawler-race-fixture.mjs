@@ -76,6 +76,17 @@ http
       return send(res, 200, "text/html", goodHtml);
     }
     state.browserRequests++;
+    if (state.mode === "metadata-edit") {
+      const image = `<meta property="og:image" content="http://nginx/crawl-race/${target[1]}/banner">`;
+      const description =
+        '<meta name="description" content="Original description">';
+      return send(
+        res,
+        200,
+        "text/html",
+        goodHtml.replace("</head>", `${image}${description}</head>`),
+      );
+    }
     if (state.browserRequests === 1) {
       const image =
         state.mode === "late"
