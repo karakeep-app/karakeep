@@ -410,6 +410,67 @@ describe("Crawler Tests", () => {
     }, 180_000);
 
     it.each([404, 410])(
+      "keeps good crawl metadata and later user edits after an HTTP %i crawl commits",
+      async (status) => {
+        const id = randomUUID();
+        await control(id, `/init?mode=overlap&status=${status}`);
+        const { data: created } = await client.POST("/bookmarks", {
+          body: { type: "link", url: `http://nginx/crawl-race/${id}/page` },
+        });
+        assert(created);
+        const trpc = getTrpcClient(apiKey);
+        try {
+          await waitUntil(
+            async () =>
+              (await (await control(id)).json()).bannerWaiting === true,
+            "missing crawl waits before saving",
+          );
+          await trpc.bookmarks.recrawlBookmark.mutate({
+            bookmarkId: created.id,
+          });
+          await waitUntil(
+            async () =>
+              (await (await control(id)).json()).goodBannerWaiting === true,
+            "good crawl publishes metadata and waits before saving",
+          );
+          await control(id, "/release_banner");
+          await waitUntil(async () => {
+            const b = await getBookmark(created.id);
+            return (
+              b?.content.type === "link" &&
+              !!b.content.htmlContent?.includes("Error page content")
+            );
+          }, "missing crawl commits before the good crawl");
+          await trpc.bookmarks.updateBookmark.mutate({
+            bookmarkId: created.id,
+            description: "User-edited description",
+          });
+          await control(id, "/release_good_banner");
+          await waitUntil(async () => {
+            const b = await getBookmark(created.id);
+            return (
+              b?.content.type === "link" &&
+              b.content.crawlStatus === "success" &&
+              !!b.content.htmlContent?.includes("Reliable saved content")
+            );
+          }, "good crawl saves its content");
+          const after = await getBookmark(created.id);
+          assert(after && after.content.type === "link");
+          expect(after.content.title).toBe("Good title");
+          const broken = await trpc.bookmarks.getBrokenLinks.query();
+          expect(
+            broken.bookmarks.find((b) => b.id === created.id),
+          ).toBeUndefined();
+          expect(after.content.description).toBe("User-edited description");
+        } finally {
+          await control(id, "/release_banner");
+          await control(id, "/release_good_banner");
+        }
+      },
+      180_000,
+    );
+
+    it.each([404, 410])(
       "keeps a copy saved after the initial HTTP %i check",
       async (status) => {
         const id = randomUUID();

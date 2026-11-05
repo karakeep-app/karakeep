@@ -22,6 +22,7 @@ vi.mock("@karakeep/db", async (original) => ({
 import {
   AssetDownloadHttpError,
   hasSavedBookmarkCopyInTransaction,
+  metadataForCrawlCommit,
   missingAssetStatusCode,
   persistCrawlInTransaction,
   recordCrawlFailure,
@@ -116,6 +117,95 @@ describe("full-page archive revisions", () => {
 });
 
 describe("missing-page crawl persistence", () => {
+  it.each([404, 410])(
+    "keeps an overlapping good preview and user edits after HTTP %i",
+    async (status) => {
+      const { bookmarkId } = await createLink();
+      await db
+        .update(bookmarkLinks)
+        .set({
+          title: "Good title",
+          description: "Good description",
+          crawlStatusCode: 200,
+          hasCrawlMetadata: true,
+        })
+        .where(eq(bookmarkLinks.id, bookmarkId));
+      db.transaction(
+        (tx) => {
+          tx.update(bookmarkLinks)
+            .set({
+              ...metadataForCrawlCommit(tx, bookmarkId, true, {
+                title: "Missing",
+                description: "Error",
+                crawlStatusCode: status,
+              }),
+              htmlContent: "error content",
+              crawledAt: new Date(),
+            })
+            .where(eq(bookmarkLinks.id, bookmarkId))
+            .run();
+        },
+        { behavior: "immediate" },
+      );
+      await db
+        .update(bookmarkLinks)
+        .set({ description: "User edit" })
+        .where(eq(bookmarkLinks.id, bookmarkId));
+      db.transaction(
+        (tx) => {
+          tx.update(bookmarkLinks)
+            .set({
+              ...metadataForCrawlCommit(tx, bookmarkId, false, {
+                title: "Good title",
+                description: "Good description",
+                crawlStatusCode: 200,
+              }),
+              htmlContent: "good content",
+            })
+            .where(eq(bookmarkLinks.id, bookmarkId))
+            .run();
+        },
+        { behavior: "immediate" },
+      );
+      expect(
+        db
+          .select()
+          .from(bookmarkLinks)
+          .where(eq(bookmarkLinks.id, bookmarkId))
+          .get(),
+      ).toMatchObject({
+        title: "Good title",
+        description: "User edit",
+        crawlStatusCode: 200,
+        htmlContent: "good content",
+      });
+    },
+  );
+
+  it("still saves metadata for an initial missing page", async () => {
+    const { bookmarkId } = await createLink();
+    db.transaction(
+      (tx) => {
+        tx.update(bookmarkLinks)
+          .set(
+            metadataForCrawlCommit(tx, bookmarkId, true, {
+              title: "Missing",
+              crawlStatusCode: 404,
+            }),
+          )
+          .where(eq(bookmarkLinks.id, bookmarkId))
+          .run();
+      },
+      { behavior: "immediate" },
+    );
+    expect(
+      db
+        .select()
+        .from(bookmarkLinks)
+        .where(eq(bookmarkLinks.id, bookmarkId))
+        .get(),
+    ).toMatchObject({ title: "Missing", crawlStatusCode: 404 });
+  });
   it.each([
     AssetTypes.LINK_SCREENSHOT,
     AssetTypes.LINK_PDF,

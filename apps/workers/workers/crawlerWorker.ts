@@ -102,6 +102,7 @@ import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 import {
   AssetDownloadHttpError,
   getBookmarkDetails,
+  metadataForCrawlCommit,
   missingAssetStatusCode,
   persistCrawlInTransaction,
   replaceArchiveIfCurrent,
@@ -1085,7 +1086,7 @@ const crawlAndParseUrl = traced(
     if (!isMissingPage) {
       await db
         .update(bookmarkLinks)
-        .set(metadataValues)
+        .set({ ...metadataValues, hasCrawlMetadata: true })
         .where(eq(bookmarkLinks.id, bookmarkId));
     }
 
@@ -1149,10 +1150,12 @@ const crawlAndParseUrl = traced(
           txn
             .update(bookmarkLinks)
             .set({
-              // Normal pages already published metadata before asset storage.
-              // Only missing pages need their metadata committed atomically
-              // with the protected content write.
-              ...(isMissingPage ? metadataValues : {}),
+              ...metadataForCrawlCommit(
+                txn,
+                bookmarkId,
+                isMissingPage,
+                metadataValues,
+              ),
               crawledAt: new Date(),
               crawlRevision,
               htmlContent: inlineHtmlContent,

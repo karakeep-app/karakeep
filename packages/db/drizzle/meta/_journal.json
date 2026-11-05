@@ -680,6 +680,13 @@
       "when": 1793803861509,
       "tag": "0096_add_crawl_revision",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "6",
+      "when": 1793856072383,
+      "tag": "0097_preserve_good_crawl_metadata",
+      "breakpoints": true
     }
   ]
 }

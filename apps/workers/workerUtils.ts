@@ -60,6 +60,26 @@ export function persistCrawlInTransaction(
   return true;
 }
 
+/** Keep normal crawl previews when a missing page commits before their content. */
+export function metadataForCrawlCommit<
+  T extends { crawlStatusCode: number | null },
+>(
+  txn: KarakeepDBTransaction,
+  bookmarkId: string,
+  isMissingPage: boolean,
+  metadata: T,
+): Partial<T> {
+  if (isMissingPage) {
+    const link = txn
+      .select({ hasCrawlMetadata: bookmarkLinks.hasCrawlMetadata })
+      .from(bookmarkLinks)
+      .where(eq(bookmarkLinks.id, bookmarkId))
+      .get();
+    if (!link?.hasCrawlMetadata) return metadata;
+  }
+  return { crawlStatusCode: metadata.crawlStatusCode } as Partial<T>;
+}
+
 // Queue backends may serialize an error before delivering it to onError.
 export class AssetDownloadHttpError extends Error {
   constructor(
