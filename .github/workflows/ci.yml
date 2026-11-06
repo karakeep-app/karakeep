@@ -83,6 +83,10 @@ jobs:
         working-directory: packages/shared
         run: pnpm test
 
+      - name: Shared React Package Tests
+        working-directory: packages/shared-react
+        run: pnpm test
+
       - name: TRPC Tests
         working-directory: packages/trpc
         run: pnpm test
