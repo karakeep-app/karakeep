@@ -99,6 +99,28 @@ export const toOffsetParentSpace = (
   };
 };
 
+/**
+ * Converts a viewport-relative point (for example a mouse event's
+ * `clientX` / `clientY`) into the coordinate space of `offsetParent`.
+ *
+ * The saved-highlight edit popover is anchored at the click position rather
+ * than at a selection rect, so it needs the same containing-block correction
+ * that `toOffsetParentSpace` applies to rectangles.
+ */
+export const toOffsetParentSpacePoint = (
+  point: { x: number; y: number },
+  offsetParent: HTMLElement | null,
+): HighlightMenuPosition => {
+  if (!offsetParent) {
+    return { x: point.x, y: point.y };
+  }
+  const parentRect = offsetParent.getBoundingClientRect();
+  return {
+    x: point.x - (parentRect.left + offsetParent.clientLeft),
+    y: point.y - (parentRect.top + offsetParent.clientTop),
+  };
+};
+
 export interface HighlightMenuPosition {
   x: number;
   y: number;

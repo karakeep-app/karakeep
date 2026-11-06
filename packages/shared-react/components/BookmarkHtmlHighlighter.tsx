@@ -17,6 +17,7 @@ import {
 import {
   computeHighlightMenuPosition,
   getFixedPositionOffsetParent,
+  toOffsetParentSpacePoint,
 } from "../lib/highlightPosition";
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
 import { Button } from "./ui/button";
@@ -251,10 +252,20 @@ const BookmarkHTMLHighlighter = forwardRef<
           return;
         }
         setSelectedHighlight(highlight);
-        setMenuPosition({
-          x: e.clientX,
-          y: e.clientY,
-        });
+        // The anchor is a `position: fixed` element, so its coordinates are
+        // resolved against the closest ancestor that establishes a containing
+        // block (an ancestor with a transform/filter). In the preview modal the
+        // highlighter lives inside a centered `DialogContent`, which uses
+        // `translate-x-[-50%] translate-y-[-50%]` and therefore *is* such a
+        // containing block. Converting the click coordinates into that
+        // ancestor's coordinate space keeps the popover anchored to the
+        // clicked highlight instead of covering it.
+        setMenuPosition(
+          toOffsetParentSpacePoint(
+            { x: e.clientX, y: e.clientY },
+            getFixedPositionOffsetParent(contentRef.current),
+          ),
+        );
         return;
       }
     }

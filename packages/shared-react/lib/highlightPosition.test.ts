@@ -6,6 +6,7 @@ import {
   computeHighlightMenuPosition,
   getFixedPositionOffsetParent,
   toOffsetParentSpace,
+  toOffsetParentSpacePoint,
 } from "./highlightPosition";
 
 /**
@@ -114,6 +115,85 @@ describe("toOffsetParentSpace", () => {
 
     document.body.removeChild(dialog);
     expect(content).toBeTruthy();
+  });
+});
+
+describe("toOffsetParentSpacePoint", () => {
+  it("returns viewport coordinates when there is no offset parent", () => {
+    expect(toOffsetParentSpacePoint({ x: 300, y: 400 }, null)).toEqual({
+      x: 300,
+      y: 400,
+    });
+  });
+
+  it("converts a click point into the offset parent's space", () => {
+    const { dialog, content } = buildModalTree(
+      { left: 100, top: 50 },
+      { left: 120, top: 80 },
+    );
+
+    // 300 - 100 = 200, 400 - 50 = 350
+    expect(toOffsetParentSpacePoint({ x: 300, y: 400 }, dialog)).toEqual({
+      x: 200,
+      y: 350,
+    });
+
+    document.body.removeChild(dialog);
+    expect(content).toBeTruthy();
+  });
+
+  /**
+   * The saved-highlight edit popover is anchored at the click position rather
+   * than at a selection rect, so it needs the same containing-block
+   * correction. Without it the edit popover stays shifted by the dialog's
+   * origin and covers the clicked highlight.
+   */
+  it("resolves the click anchor back onto the click position", () => {
+    const dialogOrigin = { left: 100, top: 50 };
+    const { dialog, content } = buildModalTree(dialogOrigin, {
+      left: 120,
+      top: 80,
+    });
+
+    const click = { x: 300, y: 400 };
+    const position = toOffsetParentSpacePoint(
+      click,
+      getFixedPositionOffsetParent(content),
+    );
+
+    // Resolve the fixed anchor back into viewport coordinates.
+    const resolved = {
+      x: position.x + dialogOrigin.left,
+      y: position.y + dialogOrigin.top,
+    };
+
+    expect(resolved.x).toBe(click.x);
+    expect(resolved.y).toBe(click.y);
+
+    document.body.removeChild(dialog);
+  });
+
+  it("would misplace the click anchor if the viewport coordinates were used verbatim", () => {
+    const dialogOrigin = { left: 100, top: 50 };
+    const { dialog } = buildModalTree(dialogOrigin, {
+      left: 120,
+      top: 80,
+    });
+
+    const click = { x: 300, y: 400 };
+    const legacy = { x: click.x, y: click.y };
+
+    const resolved = {
+      x: legacy.x + dialogOrigin.left,
+      y: legacy.y + dialogOrigin.top,
+    };
+
+    expect(resolved.x).not.toBe(click.x);
+    expect(resolved.y).not.toBe(click.y);
+    expect(resolved.x - click.x).toBe(dialogOrigin.left);
+    expect(resolved.y - click.y).toBe(dialogOrigin.top);
+
+    document.body.removeChild(dialog);
   });
 });
 
