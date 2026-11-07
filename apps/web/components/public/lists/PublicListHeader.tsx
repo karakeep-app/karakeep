@@ -1,10 +1,18 @@
 import Link from "next/link";
 import KarakeepLogo from "@/components/KarakeepIcon";
+import { badgeVariants } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { BookmarkIcon, RssIcon } from "lucide-react";
+import { BookmarkIcon, ChevronRight, RssIcon } from "lucide-react";
+
+interface PublicListNavItem {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 export default function PublicListHeader({
   list,
+  navigation,
 }: {
   list: {
     id: string;
@@ -13,6 +21,10 @@ export default function PublicListHeader({
     icon: string;
     ownerName: string;
     numItems: number;
+  };
+  navigation: {
+    parents: PublicListNavItem[];
+    children: PublicListNavItem[];
   };
 }) {
   const rssLink = `/api/v1/rss/lists/${list.id}`;
@@ -27,6 +39,24 @@ export default function PublicListHeader({
               {list.icon}
             </span>
             <div className="min-w-0 flex-1">
+              {navigation.parents.length > 0 && (
+                <nav
+                  aria-label="Parent lists"
+                  className="mb-1 flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
+                >
+                  {navigation.parents.map((parent) => (
+                    <span key={parent.id} className="flex items-center gap-1">
+                      <Link
+                        href={`/public/lists/${parent.id}`}
+                        className="hover:text-foreground hover:underline"
+                      >
+                        {parent.icon} {parent.name}
+                      </Link>
+                      <ChevronRight className="size-3" />
+                    </span>
+                  ))}
+                </nav>
+              )}
               <h1 className="text-3xl font-bold leading-tight text-foreground">
                 {list.name}
               </h1>
@@ -34,6 +64,22 @@ export default function PublicListHeader({
                 <p className="mt-2 text-lg leading-relaxed text-muted-foreground">
                   {list.description}
                 </p>
+              )}
+              {navigation.children.length > 0 && (
+                <nav
+                  aria-label="Sub-lists"
+                  className="mt-3 flex flex-wrap gap-2"
+                >
+                  {navigation.children.map((child) => (
+                    <Link
+                      key={child.id}
+                      href={`/public/lists/${child.id}`}
+                      className={badgeVariants({ variant: "outline" })}
+                    >
+                      {child.icon} {child.name}
+                    </Link>
+                  ))}
+                </nav>
               )}
             </div>
           </div>
