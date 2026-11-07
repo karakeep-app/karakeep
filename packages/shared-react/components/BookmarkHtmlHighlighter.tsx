@@ -2,6 +2,7 @@ import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -51,6 +52,20 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
     onSave(selectedColor, noteText || null);
   };
 
+  // Anchor the popover to a virtual element in viewport coordinates. A DOM
+  // anchor with `position: fixed` gets positioned relative to any transformed
+  // ancestor instead of the viewport (e.g. the bookmark preview dialog), which
+  // made the popover cover the selection.
+  const anchorRef = useMemo(
+    () => ({
+      current: {
+        getBoundingClientRect: () =>
+          new DOMRect(position?.x ?? 0, position?.y ?? 0, 0, 0),
+      },
+    }),
+    [position],
+  );
+
   return (
     <Popover
       open={position !== null}
@@ -60,13 +75,7 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
         }
       }}
     >
-      <PopoverAnchor
-        className="fixed"
-        style={{
-          left: position?.x,
-          top: position?.y,
-        }}
-      />
+      <PopoverAnchor virtualRef={anchorRef} />
       <PopoverContent
         side={isMobile ? "bottom" : "top"}
         className="w-80 space-y-3 p-3"
