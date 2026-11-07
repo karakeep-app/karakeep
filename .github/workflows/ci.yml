@@ -109,9 +109,9 @@ jobs:
         working-directory: packages/e2e_tests
         run: docker compose build web
 
-      # The chrome image is only built when its build inputs (docker/chrome and
-      # its compose build definition) changed in this PR/push, or when its tag
-      # hasn't been published yet.
+      # The chrome image is only built when its build inputs (docker/chrome,
+      # .dockerignore and its compose build definition) changed in this
+      # PR/push, or when its tag hasn't been published yet.
       - name: Pull E2E images
         id: e2e-pulled-images
         background: true
@@ -129,7 +129,7 @@ jobs:
             git fetch --quiet --depth=1 origin "$BASE_SHA" && base="$BASE_SHA" || base=""
           fi
           if [[ -n "$base" ]] \
-            && git diff --quiet "$base" HEAD -- ../../docker/chrome docker-compose.yml \
+            && git diff --quiet "$base" HEAD -- ../../docker/chrome ../../.dockerignore docker-compose.yml \
             && docker pull --quiet "$KARAKEEP_CHROME_IMAGE"; then
             echo "Using the published $KARAKEEP_CHROME_IMAGE"
           else
