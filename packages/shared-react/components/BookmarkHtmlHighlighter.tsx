@@ -14,8 +14,8 @@ import {
   ZHighlightColor,
 } from "@karakeep/shared/types/highlights";
 import {
+  createHighlightResolver,
   getHighlightContext,
-  resolveHighlightRange,
 } from "@karakeep/shared/utils/highlight-anchoring";
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
@@ -210,9 +210,9 @@ const BookmarkHTMLHighlighter = forwardRef<
 
     // Offsets are only a hint: relocate each highlight using its stored
     // quote and context so that content changes don't misplace it.
-    const fullText = getFullText();
+    const resolveRange = createHighlightResolver(getFullText());
     highlights.forEach((highlight) => {
-      const range = resolveHighlightRange(fullText, highlight);
+      const range = resolveRange(highlight);
       if (!range) {
         return;
       }

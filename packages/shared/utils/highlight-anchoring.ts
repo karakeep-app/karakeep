@@ -55,14 +55,7 @@ interface NormalizedText {
   map: number[];
 }
 
-// The same document text is typically resolved against many highlights in a
-// row, so remember the last normalization.
-let lastNormalized: { raw: string; result: NormalizedText } | null = null;
-
 function normalizeWithMap(raw: string): NormalizedText {
-  if (lastNormalized?.raw === raw) {
-    return lastNormalized.result;
-  }
   let text = "";
   const map: number[] = [];
   let inWhitespace = false;
@@ -81,9 +74,7 @@ function normalizeWithMap(raw: string): NormalizedText {
     map.push(i);
   }
   map.push(raw.length);
-  const result = { text, map };
-  lastNormalized = { raw, result };
-  return result;
+  return { text, map };
 }
 
 function normalize(s: string): string {
@@ -160,6 +151,27 @@ export function resolveHighlightRange(
   fullText: string,
   anchor: HighlightAnchor,
 ): ResolvedHighlightRange | null {
+  return createHighlightResolver(fullText)(anchor);
+}
+
+/**
+ * Returns a resolver (see resolveHighlightRange) bound to `fullText`. Use it
+ * to resolve many highlights against the same text: the text is normalized at
+ * most once and shared between them.
+ */
+export function createHighlightResolver(
+  fullText: string,
+): (anchor: HighlightAnchor) => ResolvedHighlightRange | null {
+  let norm: NormalizedText | null = null;
+  return (anchor) =>
+    resolve(fullText, () => (norm ??= normalizeWithMap(fullText)), anchor);
+}
+
+function resolve(
+  fullText: string,
+  getNormalized: () => NormalizedText,
+  anchor: HighlightAnchor,
+): ResolvedHighlightRange | null {
   const { startOffset, endOffset } = anchor;
   const quote = anchor.text;
 
@@ -182,7 +194,7 @@ export function resolveHighlightRange(
     }
   }
 
-  const norm = normalizeWithMap(fullText);
+  const norm = getNormalized();
   const untrimmedQuote = normalize(quote);
   const normQuote = untrimmedQuote.trim();
   if (!normQuote) return null;
