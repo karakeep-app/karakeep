@@ -9,6 +9,7 @@ import {
   it,
   signIn,
   waitForTaggingToFinish,
+  WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
 
 type WebTestUser = Awaited<ReturnType<typeof createWebTestUser>>;
@@ -255,43 +256,53 @@ it("adds the selected bookmarks to a list in bulk", async ({ page }) => {
   await expect(cardWithText(page, "Grocery list")).toHaveCount(0);
 });
 
-it("tags the selected bookmarks in bulk", async ({ page }) => {
-  const texts = ["Sourdough starter", "Focaccia recipe", "Car insurance"];
-  const user = await seedTextBookmarks(texts);
-  await signInAndWaitForCards(page, user.email, user.ids.length);
-  await selectInBulk(page, ["Sourdough starter", "Focaccia recipe"]);
-  await clickBulkAction(page, "Edit Tags");
+it(
+  "tags the selected bookmarks in bulk",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    const texts = ["Sourdough starter", "Focaccia recipe", "Car insurance"];
+    const user = await seedTextBookmarks(texts);
+    await signInAndWaitForCards(page, user.email, user.ids.length);
+    await selectInBulk(page, ["Sourdough starter", "Focaccia recipe"]);
+    await clickBulkAction(page, "Edit Tags");
 
-  const dialog = page.getByRole("dialog", { name: "Edit Tags of 2 Bookmarks" });
-  const tagInput = dialog.getByPlaceholder("Search or create tags...");
-  await tagInput.click();
-  await tagInput.fill("baking");
-  // The tag doesn't exist yet, so the only option is the one creating it.
-  await page.getByRole("option", { name: "baking", exact: true }).click();
-  await expect(
-    page.getByText('Tag "baking" has been added to 2 bookmarks!'),
-  ).toBeVisible();
-  // Close the tag suggestions first; they cover the dialog's footer.
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("listbox")).toHaveCount(0);
-  await dialog
-    .getByRole("button", { name: "Close", exact: true })
-    .first()
-    .click();
-  await expect(dialog).toHaveCount(0);
+    const dialog = page.getByRole("dialog", {
+      name: "Edit Tags of 2 Bookmarks",
+    });
+    const tagInput = dialog.getByPlaceholder("Search or create tags...");
+    await tagInput.click();
+    await tagInput.fill("baking");
+    // The tag doesn't exist yet, so the only option is the one creating it.
+    await page.getByRole("option", { name: "baking", exact: true }).click();
+    await expect(
+      page.getByText('Tag "baking" has been added to 2 bookmarks!'),
+    ).toBeVisible();
+    // Close the tag suggestions first; they cover the dialog's footer.
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("listbox")).toHaveCount(0);
+    await dialog
+      .getByRole("button", { name: "Close", exact: true })
+      .first()
+      .click();
+    await expect(dialog).toHaveCount(0);
 
-  const bookmarks = await getBookmarks(user, user.ids);
-  expect(bookmarks.map((b) => b.tags.map((t) => t.name))).toEqual([
-    ["baking"],
-    ["baking"],
-    [],
-  ]);
-  // Cards show a skeleton instead of their tags while tagging is pending.
-  for (const id of user.ids) {
-    await waitForTaggingToFinish(user.trpc, id);
-  }
-  await page.reload();
-  await expect(cardWithText(page, "Sourdough starter")).toContainText("baking");
-  await expect(cardWithText(page, "Focaccia recipe")).toContainText("baking");
-  await expect(cardWithText(page, "Car insurance")).not.toContainText("baking");
-});
+    const bookmarks = await getBookmarks(user, user.ids);
+    expect(bookmarks.map((b) => b.tags.map((t) => t.name))).toEqual([
+      ["baking"],
+      ["baking"],
+      [],
+    ]);
+    // Cards show a skeleton instead of their tags while tagging is pending.
+    for (const id of user.ids) {
+      await waitForTaggingToFinish(user.trpc, id);
+    }
+    await page.reload();
+    await expect(cardWithText(page, "Sourdough starter")).toContainText(
+      "baking",
+    );
+    await expect(cardWithText(page, "Focaccia recipe")).toContainText("baking");
+    await expect(cardWithText(page, "Car insurance")).not.toContainText(
+      "baking",
+    );
+  },
+);

@@ -10,6 +10,7 @@ import {
   it,
   signIn,
   submitSignInForm,
+  WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
 
 function listBookmarksWithKey(apiKey: string) {
@@ -246,80 +247,84 @@ it("creates, edits and deletes a webhook", async ({ page }) => {
   expect((await trpc.webhooks.list.query()).webhooks).toHaveLength(0);
 });
 
-it("creates a rule that tags new bookmarks, then disables and deletes it", async ({
-  page,
-}) => {
-  const { trpc, email } = await createWebTestUser();
-  const tag = await trpc.tags.create.mutate({ name: "inbox" });
-  await signIn(page, email);
+it(
+  "creates a rule that tags new bookmarks, then disables and deletes it",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    const { trpc, email } = await createWebTestUser();
+    const tag = await trpc.tags.create.mutate({ name: "inbox" });
+    await signIn(page, email);
 
-  await page.goto("/settings/rules");
-  await expect(page.getByText("No rules created yet")).toBeVisible();
-  await page.getByRole("button", { name: "Create Rule", exact: true }).click();
+    await page.goto("/settings/rules");
+    await expect(page.getByText("No rules created yet")).toBeVisible();
+    await page
+      .getByRole("button", { name: "Create Rule", exact: true })
+      .click();
 
-  await page.getByLabel("Rule Name", { exact: true }).fill("Tag everything");
-  await page
-    .getByLabel("Description", { exact: true })
-    .fill("Adds the inbox tag to new bookmarks");
-  // The new rule defaults to "A bookmark is added" -> "Add Tag".
-  await expect(
-    page.getByRole("combobox").filter({ hasText: "A bookmark is added" }),
-  ).toBeVisible();
-  await page
-    .getByRole("combobox")
-    .filter({ hasText: "Select a tag..." })
-    .click();
-  await page.getByRole("option", { name: "inbox", exact: true }).click();
-  await expect(
-    page.getByRole("combobox").filter({ hasText: "inbox" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Save Rule", exact: true }).click();
-  await expect(page.getByText("Rule has been created!")).toBeVisible();
+    await page.getByLabel("Rule Name", { exact: true }).fill("Tag everything");
+    await page
+      .getByLabel("Description", { exact: true })
+      .fill("Adds the inbox tag to new bookmarks");
+    // The new rule defaults to "A bookmark is added" -> "Add Tag".
+    await expect(
+      page.getByRole("combobox").filter({ hasText: "A bookmark is added" }),
+    ).toBeVisible();
+    await page
+      .getByRole("combobox")
+      .filter({ hasText: "Select a tag..." })
+      .click();
+    await page.getByRole("option", { name: "inbox", exact: true }).click();
+    await expect(
+      page.getByRole("combobox").filter({ hasText: "inbox" }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Save Rule", exact: true }).click();
+    await expect(page.getByText("Rule has been created!")).toBeVisible();
 
-  // Saving closes the editor and lists the rule.
-  await expect(
-    page.getByRole("button", { name: "Save Rule", exact: true }),
-  ).not.toBeVisible();
-  const ruleCard = page
-    .locator("div")
-    .filter({ has: page.getByRole("heading", { name: "Tag everything" }) })
-    .filter({ has: page.getByRole("switch") })
-    .last();
-  await expect(ruleCard).toContainText("Adds the inbox tag to new bookmarks");
-  await expect(ruleCard).toContainText("Bookmark Added");
-  await expect(ruleCard).toContainText("1 action");
+    // Saving closes the editor and lists the rule.
+    await expect(
+      page.getByRole("button", { name: "Save Rule", exact: true }),
+    ).not.toBeVisible();
+    const ruleCard = page
+      .locator("div")
+      .filter({ has: page.getByRole("heading", { name: "Tag everything" }) })
+      .filter({ has: page.getByRole("switch") })
+      .last();
+    await expect(ruleCard).toContainText("Adds the inbox tag to new bookmarks");
+    await expect(ruleCard).toContainText("Bookmark Added");
+    await expect(ruleCard).toContainText("1 action");
 
-  const [rule] = (await trpc.rules.list.query()).rules;
-  expect(rule.enabled).toBe(true);
-  expect(rule.event).toEqual({ type: "bookmarkAdded" });
-  expect(rule.actions).toEqual([{ type: "addTag", tagId: tag.id }]);
+    const [rule] = (await trpc.rules.list.query()).rules;
+    expect(rule.enabled).toBe(true);
+    expect(rule.event).toEqual({ type: "bookmarkAdded" });
+    expect(rule.actions).toEqual([{ type: "addTag", tagId: tag.id }]);
 
-  // The rule is evaluated by the workers.
-  const bookmark = await trpc.bookmarks.createBookmark.mutate({
-    type: BookmarkTypes.TEXT,
-    text: "A freshly added note",
-  });
-  await expect
-    .poll(
-      async () =>
-        (
-          await trpc.bookmarks.getBookmark.query({ bookmarkId: bookmark.id })
-        ).tags.map((t) => t.name),
-      { timeout: 60000 },
-    )
-    .toContain("inbox");
+    // The rule is evaluated by the workers.
+    const bookmark = await trpc.bookmarks.createBookmark.mutate({
+      type: BookmarkTypes.TEXT,
+      text: "A freshly added note",
+    });
+    await expect
+      .poll(
+        async () =>
+          (
+            await trpc.bookmarks.getBookmark.query({ bookmarkId: bookmark.id })
+          ).tags.map((t) => t.name),
+        { timeout: 90000 },
+      )
+      .toContain("inbox");
 
-  await ruleCard.getByRole("switch").click();
-  await expect(page.getByText("Rule has been updated!")).toBeVisible();
-  await expect(ruleCard.getByRole("switch")).not.toBeChecked();
-  await page.reload();
-  await expect(ruleCard.getByRole("switch")).not.toBeChecked();
-  expect((await trpc.rules.list.query()).rules[0].enabled).toBe(false);
+    await ruleCard.getByRole("switch").click();
+    await expect(page.getByText("Rule has been updated!")).toBeVisible();
+    await expect(ruleCard.getByRole("switch")).not.toBeChecked();
+    await page.reload();
+    await expect(ruleCard.getByRole("switch")).not.toBeChecked();
+    expect((await trpc.rules.list.query()).rules[0].enabled).toBe(false);
 
-  await ruleCard.getByRole("button").last().click();
-  const confirm = page.getByRole("dialog", { name: "Delete Rule" });
-  await confirm.getByRole("button", { name: "Delete", exact: true }).click();
-  await expect(page.getByText("Rule has been deleted!")).toBeVisible();
-  await expect(page.getByText("No rules created yet")).toBeVisible();
-  expect((await trpc.rules.list.query()).rules).toHaveLength(0);
-});
+    await ruleCard.getByRole("button").last().click();
+    const confirm = page.getByRole("dialog", { name: "Delete Rule" });
+    await confirm.getByRole("button", { name: "Delete", exact: true }).click();
+    await expect(page.getByText("Rule has been deleted!")).toBeVisible();
+    await expect(page.getByText("No rules created yet")).toBeVisible();
+    expect((await trpc.rules.list.query()).rules).toHaveLength(0);
+  },
+);

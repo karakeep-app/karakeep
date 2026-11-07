@@ -51,10 +51,15 @@ export function bookmarkCards(page: Page) {
   return page.locator("[data-bookmark-index]").filter({ visible: true });
 }
 
+// Tests that wait on the background workers (crawling, indexing, tagging)
+// get a longer timeout: when the whole e2e suite runs, the worker tests fill
+// the queues and a job can wait for a minute or more.
+export const WORKER_TEST_TIMEOUT = 180000;
+
 // Cards show a skeleton instead of their tags until the bookmark's tagging
 // job has run (a no-op for test users, who have auto-tagging disabled). That
-// job can sit in the queue for a while when the workers are busy, so wait for
-// it before asserting on the tags shown on a card.
+// job can sit in the queue for a while, so wait for it before asserting on
+// the tags shown on a card. Tests calling this should use WORKER_TEST_TIMEOUT.
 export async function waitForTaggingToFinish(
   trpc: ReturnType<typeof getTrpcClient>,
   bookmarkId: string,
@@ -67,7 +72,7 @@ export async function waitForTaggingToFinish(
       return taggingStatus !== "pending";
     },
     "Tagging job is done",
-    30000,
+    90000,
   );
 }
 

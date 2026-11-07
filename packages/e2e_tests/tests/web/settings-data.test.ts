@@ -9,6 +9,7 @@ import {
   createWebTestUser,
   it,
   signIn,
+  WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
 
 async function exportBookmarks(page: Page): Promise<string> {
@@ -89,7 +90,7 @@ it("exports bookmarks as Karakeep JSON and Netscape HTML", async ({ page }) => {
 // can take a while when the workers are busy.
 it(
   "imports a Netscape HTML bookmarks file",
-  { timeout: 150000 },
+  { timeout: WORKER_TEST_TIMEOUT },
   async ({ page }) => {
     const { trpc, email } = await createWebTestUser();
     await signIn(page, email);
@@ -154,69 +155,77 @@ it(
   },
 );
 
-it("subscribes to an RSS feed, fetches it, then disables and deletes it", async ({
-  page,
-}) => {
-  const { trpc, email } = await createWebTestUser();
-  await signIn(page, email);
+it(
+  "subscribes to an RSS feed, fetches it, then disables and deletes it",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    const { trpc, email } = await createWebTestUser();
+    await signIn(page, email);
 
-  await page.goto("/settings/feeds");
-  await expect(
-    page.getByText("You don't have any RSS subscriptions yet."),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Add a Subscription", exact: true })
-    .click();
-  const dialog = page.getByRole("dialog", { name: "Subscribe to a new Feed" });
-  await dialog.getByLabel("Name", { exact: true }).fill("Test blog");
-  await dialog
-    .getByLabel("URL", { exact: true })
-    .fill("http://nginx:80/feed.xml");
-  await dialog.getByRole("button", { name: "Add", exact: true }).click();
-  await expect(dialog).not.toBeVisible();
-  await expect(page.getByText("Feed has been created!")).toBeVisible();
+    await page.goto("/settings/feeds");
+    await expect(
+      page.getByText("You don't have any RSS subscriptions yet."),
+    ).toBeVisible();
+    await page
+      .getByRole("button", { name: "Add a Subscription", exact: true })
+      .click();
+    const dialog = page.getByRole("dialog", {
+      name: "Subscribe to a new Feed",
+    });
+    await dialog.getByLabel("Name", { exact: true }).fill("Test blog");
+    await dialog
+      .getByLabel("URL", { exact: true })
+      .fill("http://nginx:80/feed.xml");
+    await dialog.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(dialog).not.toBeVisible();
+    await expect(page.getByText("Feed has been created!")).toBeVisible();
 
-  const row = page.getByRole("row").filter({ hasText: "Test blog" });
-  await expect(row).toContainText("http://nginx:80/feed.xml");
-  await expect(row.getByRole("switch")).toBeChecked();
-  const [feed] = (await trpc.feeds.list.query()).feeds;
+    const row = page.getByRole("row").filter({ hasText: "Test blog" });
+    await expect(row).toContainText("http://nginx:80/feed.xml");
+    await expect(row.getByRole("switch")).toBeChecked();
+    const [feed] = (await trpc.feeds.list.query()).feeds;
 
-  // The fetch button is icon-only; its tooltip identifies it.
-  const fetchButton = row.getByRole("button").nth(1);
-  await fetchButton.hover();
-  await expect(page.getByRole("tooltip")).toHaveText("Fetch Now");
-  await fetchButton.click();
-  await expect(page.getByText("Feed fetch has been enqueued!")).toBeVisible();
-  await expect
-    .poll(
-      async () =>
-        (await trpc.feeds.get.query({ feedId: feed.id })).lastFetchedStatus,
-      { timeout: 60000 },
-    )
-    .toBe("success");
-  await page.reload();
-  await expect(row.getByTitle("Successful")).toBeVisible();
+    // The fetch button is icon-only; its tooltip identifies it.
+    const fetchButton = row.getByRole("button").nth(1);
+    await fetchButton.hover();
+    await expect(page.getByRole("tooltip")).toHaveText("Fetch Now");
+    await fetchButton.click();
+    await expect(page.getByText("Feed fetch has been enqueued!")).toBeVisible();
+    await expect
+      .poll(
+        async () =>
+          (await trpc.feeds.get.query({ feedId: feed.id })).lastFetchedStatus,
+        { timeout: 90000 },
+      )
+      .toBe("success");
+    await page.reload();
+    await expect(row.getByTitle("Successful")).toBeVisible();
 
-  await row.getByRole("link", { name: "Test blog" }).click();
-  await expect(page).toHaveURL(new RegExp(`/dashboard/feeds/${feed.id}$`));
-  const cards = bookmarkCards(page);
-  await expect(cards.filter({ hasText: "First Test Article" })).toBeVisible();
-  await expect(cards.filter({ hasText: "Second Test Article" })).toBeVisible();
+    await row.getByRole("link", { name: "Test blog" }).click();
+    await expect(page).toHaveURL(new RegExp(`/dashboard/feeds/${feed.id}$`));
+    const cards = bookmarkCards(page);
+    await expect(cards.filter({ hasText: "First Test Article" })).toBeVisible();
+    await expect(
+      cards.filter({ hasText: "Second Test Article" }),
+    ).toBeVisible();
 
-  await page.goto("/settings/feeds");
-  await row.getByRole("switch").click();
-  await expect(page.getByText("RSS Feed disabled")).toBeVisible();
-  await expect(row.getByRole("switch")).not.toBeChecked();
-  expect((await trpc.feeds.get.query({ feedId: feed.id })).enabled).toBe(false);
+    await page.goto("/settings/feeds");
+    await row.getByRole("switch").click();
+    await expect(page.getByText("RSS Feed disabled")).toBeVisible();
+    await expect(row.getByRole("switch")).not.toBeChecked();
+    expect((await trpc.feeds.get.query({ feedId: feed.id })).enabled).toBe(
+      false,
+    );
 
-  await row.getByRole("button").last().click();
-  const confirm = page.getByRole("dialog", {
-    name: 'Delete Feed "Test blog"?',
-  });
-  await confirm.getByRole("button", { name: "Delete", exact: true }).click();
-  await expect(row).not.toBeVisible();
-  await expect(
-    page.getByText("You don't have any RSS subscriptions yet."),
-  ).toBeVisible();
-  expect((await trpc.feeds.list.query()).feeds).toHaveLength(0);
-});
+    await row.getByRole("button").last().click();
+    const confirm = page.getByRole("dialog", {
+      name: 'Delete Feed "Test blog"?',
+    });
+    await confirm.getByRole("button", { name: "Delete", exact: true }).click();
+    await expect(row).not.toBeVisible();
+    await expect(
+      page.getByText("You don't have any RSS subscriptions yet."),
+    ).toBeVisible();
+    expect((await trpc.feeds.list.query()).feeds).toHaveLength(0);
+  },
+);

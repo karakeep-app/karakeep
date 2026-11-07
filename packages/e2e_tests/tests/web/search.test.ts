@@ -8,6 +8,7 @@ import {
   createWebTestUser,
   it,
   signIn,
+  WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
 import { waitUntil } from "../../utils/general";
 
@@ -73,7 +74,7 @@ async function seedSearchableBookmarks(page: Page) {
       return result.bookmarks.length === MARKERS.length;
     },
     "All seeded bookmarks are indexed",
-    30000,
+    90000,
   );
 
   await signIn(page, email);
@@ -109,54 +110,66 @@ async function expectResults(page: Page, expected: Marker[]) {
     .toEqual([...expected].sort());
 }
 
-it("filters favourites with is:fav and its negation", async ({ page }) => {
-  await seedSearchableBookmarks(page);
-  await search(page, "is:fav");
-  await expectResults(page, ["Quokka"]);
-  await search(page, "-is:fav");
-  await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
+it(
+  "filters favourites with is:fav and its negation",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    await seedSearchableBookmarks(page);
+    await search(page, "is:fav");
+    await expectResults(page, ["Quokka"]);
+    await search(page, "-is:fav");
+    await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
 
-  // The query lives in the URL, so it survives a reload.
-  await page.reload();
-  await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
-});
+    // The query lives in the URL, so it survives a reload.
+    await page.reload();
+    await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
+  },
+);
 
-it("filters archived bookmarks with is:archived and !is:archived", async ({
-  page,
-}) => {
-  await seedSearchableBookmarks(page);
-  await search(page, "is:archived");
-  await expectResults(page, ["Pelican"]);
-  await search(page, "!is:archived");
-  await expectResults(page, ["Quokka", "Narwhal", "Axolotl"]);
-});
+it(
+  "filters archived bookmarks with is:archived and !is:archived",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    await seedSearchableBookmarks(page);
+    await search(page, "is:archived");
+    await expectResults(page, ["Pelican"]);
+    await search(page, "!is:archived");
+    await expectResults(page, ["Quokka", "Narwhal", "Axolotl"]);
+  },
+);
 
-it("filters by tag with # and tag: and by list with list:", async ({
-  page,
-}) => {
-  await seedSearchableBookmarks(page);
-  await search(page, "#urgent");
-  await expectResults(page, ["Quokka"]);
-  await search(page, 'tag:"work in progress"');
-  await expectResults(page, ["Pelican"]);
-  await search(page, "-#urgent");
-  await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
-  await search(page, 'list:"Weekend reading"');
-  await expectResults(page, ["Narwhal"]);
-  await search(page, "#doesnotexist");
-  await expectResults(page, []);
-});
+it(
+  "filters by tag with # and tag: and by list with list:",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    await seedSearchableBookmarks(page);
+    await search(page, "#urgent");
+    await expectResults(page, ["Quokka"]);
+    await search(page, 'tag:"work in progress"');
+    await expectResults(page, ["Pelican"]);
+    await search(page, "-#urgent");
+    await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
+    await search(page, 'list:"Weekend reading"');
+    await expectResults(page, ["Narwhal"]);
+    await search(page, "#doesnotexist");
+    await expectResults(page, []);
+  },
+);
 
-it("combines qualifiers with boolean logic and free text", async ({ page }) => {
-  await seedSearchableBookmarks(page);
-  await search(page, 'is:fav or list:"Weekend reading"');
-  await expectResults(page, ["Quokka", "Narwhal"]);
-  await search(page, "-is:archived -is:inlist -#urgent");
-  await expectResults(page, ["Axolotl"]);
-  await search(page, "is:fav is:archived");
-  await expectResults(page, []);
-  await search(page, "migration is:archived");
-  await expectResults(page, ["Pelican"]);
-  await search(page, "migration -is:archived");
-  await expectResults(page, []);
-});
+it(
+  "combines qualifiers with boolean logic and free text",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    await seedSearchableBookmarks(page);
+    await search(page, 'is:fav or list:"Weekend reading"');
+    await expectResults(page, ["Quokka", "Narwhal"]);
+    await search(page, "-is:archived -is:inlist -#urgent");
+    await expectResults(page, ["Axolotl"]);
+    await search(page, "is:fav is:archived");
+    await expectResults(page, []);
+    await search(page, "migration is:archived");
+    await expectResults(page, ["Pelican"]);
+    await search(page, "migration -is:archived");
+    await expectResults(page, []);
+  },
+);
