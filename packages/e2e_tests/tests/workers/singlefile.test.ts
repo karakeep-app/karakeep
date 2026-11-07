@@ -83,6 +83,6 @@ describe("Singlefile archive parsing", () => {
     expect(bookmark.content.title).toBe("Inline images");
     // The reader view keeps the images, not the placeholders used while parsing.
     expect(bookmark.content.htmlContent).toContain(firstImage);
-    expect(bookmark.content.htmlContent).not.toContain("karakeep.invalid");
+    expect(bookmark.content.htmlContent).not.toContain("KarakeepStash");
   }, 120000);
 });
