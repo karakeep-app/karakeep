@@ -7,7 +7,9 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   bookmarkCards,
   createWebTestUser,
+  goto,
   it,
+  reload,
   signIn,
   WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
@@ -51,7 +53,7 @@ it("exports bookmarks as Karakeep JSON and Netscape HTML", async ({ page }) => {
   });
   await signIn(page, email);
 
-  await page.goto("/settings/import");
+  await goto(page, "/settings/import");
   await expect(
     page.getByRole("heading", { name: "Import / Export", exact: true }),
   ).toBeVisible();
@@ -95,7 +97,7 @@ it(
     const { trpc, email } = await createWebTestUser();
     await signIn(page, email);
 
-    await page.goto("/settings/import");
+    await goto(page, "/settings/import");
     await expect(page.getByText("No import sessions yet")).toBeVisible();
 
     const htmlCard = page
@@ -144,7 +146,7 @@ it(
     expect(root).toBeDefined();
     expect(folder?.parentId).toBe(root?.id);
 
-    await page.goto("/dashboard/bookmarks");
+    await goto(page, "/dashboard/bookmarks");
     const cards = bookmarkCards(page);
     await expect(
       cards.filter({ hasText: "Imported research page" }),
@@ -162,7 +164,7 @@ it(
     const { trpc, email } = await createWebTestUser();
     await signIn(page, email);
 
-    await page.goto("/settings/feeds");
+    await goto(page, "/settings/feeds");
     await expect(
       page.getByText("You don't have any RSS subscriptions yet."),
     ).toBeVisible();
@@ -198,7 +200,7 @@ it(
         { timeout: 90000 },
       )
       .toBe("success");
-    await page.reload();
+    await reload(page);
     await expect(row.getByTitle("Successful")).toBeVisible();
 
     await row.getByRole("link", { name: "Test blog" }).click();
@@ -209,7 +211,7 @@ it(
       cards.filter({ hasText: "Second Test Article" }),
     ).toBeVisible();
 
-    await page.goto("/settings/feeds");
+    await goto(page, "/settings/feeds");
     await row.getByRole("switch").click();
     await expect(page.getByText("RSS Feed disabled")).toBeVisible();
     await expect(row.getByRole("switch")).not.toBeChecked();

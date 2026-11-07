@@ -3,7 +3,7 @@ import { expect } from "playwright/test";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import { createWebTestUser, it, signIn } from "../../utils/browser";
+import { createWebTestUser, goto, it, signIn } from "../../utils/browser";
 
 async function seedPreview(page: Page) {
   const { trpc, email } = await createWebTestUser();
@@ -45,7 +45,7 @@ it("opens and closes a bookmark preview modal", async ({ page }) => {
 
 it("loads a bookmark preview directly as a full page", async ({ page }) => {
   const previewPath = await seedPreview(page);
-  await page.goto(previewPath);
+  await goto(page, previewPath);
   await expect(page).toHaveURL(new RegExp(`${previewPath}$`));
   await expect(
     page.getByRole("heading", { name: "Weekend plans" }),

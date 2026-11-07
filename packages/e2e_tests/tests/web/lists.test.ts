@@ -6,7 +6,9 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   bookmarkCards,
   createWebTestUser,
+  goto,
   it,
+  reload,
   signIn,
 } from "../../utils/browser";
 
@@ -52,7 +54,7 @@ it("adds a bookmark through the list dialog and finds it in the list", async ({
   ).toBeVisible();
   await expect(bookmark).toBeVisible();
   await expect(cards).toHaveCount(1);
-  await page.reload();
+  await reload(page);
   await expect(bookmark).toBeVisible();
   await expect(cards).toHaveCount(1);
 });
@@ -116,7 +118,7 @@ it("creates a list from the sidebar and shows it on All Lists", async ({
   await expect(
     page.getByRole("main").getByRole("link", { name: /Recipes to try/ }),
   ).toBeVisible();
-  await page.reload();
+  await reload(page);
   await expect(
     page.getByRole("main").getByRole("link", { name: /Recipes to try/ }),
   ).toBeVisible();
@@ -192,7 +194,7 @@ it("removes a bookmark from a list through the card menu", async ({ page }) => {
     });
   }
   await signIn(page, email);
-  await page.goto(`/dashboard/lists/${list.id}`);
+  await goto(page, `/dashboard/lists/${list.id}`);
 
   const cards = bookmarkCards(page);
   await expect(cards).toHaveCount(2);
@@ -206,7 +208,7 @@ it("removes a bookmark from a list through the card menu", async ({ page }) => {
   await expect(cards).toHaveCount(1);
   await expect(cards).toContainText("Keep me in the queue");
 
-  await page.reload();
+  await reload(page);
   await expect(cards).toHaveCount(1);
   await expect(cards).toContainText("Keep me in the queue");
   const inList = await trpc.bookmarks.getBookmarks.query({ listId: list.id });
@@ -254,7 +256,7 @@ it("creates a smart list that shows only matching bookmarks", async ({
   await expect(cards.filter({ hasText: "Hike the ridge trail" })).toBeVisible();
   await expect(cards).toHaveCount(1);
 
-  await page.reload();
+  await reload(page);
   await expect(cards.filter({ hasText: "Hike the ridge trail" })).toBeVisible();
   await expect(cards).toHaveCount(1);
   const { lists } = await trpc.lists.list.query();
@@ -279,7 +281,7 @@ it("renames and then deletes a list from its options menu", async ({
     bookmarkId: bookmark.id,
   });
   await signIn(page, email);
-  await page.goto(`/dashboard/lists/${list.id}`);
+  await goto(page, `/dashboard/lists/${list.id}`);
 
   await listHeaderOptions(page, "Old ideas").click();
   await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
@@ -295,7 +297,7 @@ it("renames and then deletes a list from its options menu", async ({
   ).toBeVisible();
   await expect(sidebarListItem(page, /Fresh ideas/)).toBeVisible();
   await expect(sidebarListItem(page, /Old ideas/)).toHaveCount(0);
-  await page.reload();
+  await reload(page);
   await expect(
     page.getByRole("heading", { level: 1, name: "Fresh ideas" }),
   ).toBeVisible();
@@ -337,7 +339,7 @@ it("makes a list public and opens it while logged out", async ({ page }) => {
     bookmarkId: bookmark.id,
   });
   await signIn(page, email);
-  await page.goto(`/dashboard/lists/${list.id}`);
+  await goto(page, `/dashboard/lists/${list.id}`);
 
   const browser = page.context().browser();
   if (!browser) {
@@ -351,7 +353,7 @@ it("makes a list public and opens it while logged out", async ({ page }) => {
     const anonPage = await anonContext.newPage();
     const publicPath = `/public/lists/${list.id}`;
     // Private lists aren't reachable through the public URL.
-    await anonPage.goto(publicPath);
+    await goto(anonPage, publicPath);
     await expect(
       anonPage.getByRole("heading", { name: "List not found" }),
     ).toBeVisible();
@@ -378,7 +380,7 @@ it("makes a list public and opens it while logged out", async ({ page }) => {
     ).toBeVisible();
     expect((await trpc.lists.get.query({ listId: list.id })).public).toBe(true);
 
-    await anonPage.goto(publicPath);
+    await goto(anonPage, publicPath);
     await expect(
       anonPage.getByRole("heading", { level: 1, name: "Best of the web" }),
     ).toBeVisible();
@@ -407,7 +409,7 @@ it("invites a collaborator who accepts and sees the list", async ({ page }) => {
     bookmarkId: bookmark.id,
   });
   await signIn(page, owner.email);
-  await page.goto(`/dashboard/lists/${list.id}`);
+  await goto(page, `/dashboard/lists/${list.id}`);
 
   await listHeaderOptions(page, "Team picks").click();
   await page

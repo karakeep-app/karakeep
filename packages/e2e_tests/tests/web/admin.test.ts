@@ -3,7 +3,13 @@ import { randomUUID } from "node:crypto";
 import { expect } from "playwright/test";
 import { inject } from "vitest";
 
-import { it, signIn, submitSignInForm } from "../../utils/browser";
+import {
+  goto,
+  it,
+  reload,
+  signIn,
+  submitSignInForm,
+} from "../../utils/browser";
 import { getTrpcClient } from "../../utils/trpc";
 
 const PASSWORD = "test1234";
@@ -87,7 +93,7 @@ it("shows the admin area only to admins", async ({ page }) => {
   ).toHaveCount(0);
   await page.keyboard.press("Escape");
 
-  await page.goto("/admin/users");
+  await goto(page, "/admin/users");
   await expect(page).toHaveURL(/\/dashboard\/bookmarks$/);
   await expect(page.getByText("Users List", { exact: true })).toHaveCount(0);
 
@@ -110,7 +116,7 @@ it("creates a user from the users page and the user can sign in", async ({
 }) => {
   const admin = await createUser("admin", "Ada Admin");
   await signIn(page, admin.email);
-  await page.goto("/admin/users");
+  await goto(page, "/admin/users");
   await expect(userRow(page, admin.email)).toBeVisible();
 
   const email = uniqueEmail("admin-e2e-created");
@@ -129,7 +135,7 @@ it("creates a user from the users page and the user can sign in", async ({
   const row = userRow(page, email);
   await expect(row).toContainText("Casey Created");
   await expect(row).toContainText("User");
-  await page.reload();
+  await reload(page);
   await expect(row).toContainText("Casey Created");
 
   const created = await seedAdminTrpc().admin.getUser.query({ email });
@@ -148,7 +154,7 @@ it("updates a user's role and quotas", async ({ page }) => {
   const admin = await createUser("admin", "Ada Admin");
   const target = await createUser("user", "Una Updated");
   await signIn(page, admin.email);
-  await page.goto("/admin/users");
+  await goto(page, "/admin/users");
 
   const dialog = page.getByRole("dialog", { name: "Edit User" });
   await openWith(userRowAction(page, target.email, "edit"), dialog);
@@ -161,7 +167,7 @@ it("updates a user's role and quotas", async ({ page }) => {
   await dialog.getByRole("button", { name: "Update", exact: true }).click();
   await expect(page.getByText("User updated successfully")).toBeVisible();
 
-  await page.reload();
+  await reload(page);
   const row = userRow(page, target.email);
   await expect(row).toContainText("0 / 25");
   await expect(row).toContainText("0 Bytes / 1.00 MB");
@@ -185,7 +191,7 @@ it("updates a user's role and quotas", async ({ page }) => {
   await dialog.getByRole("button", { name: "Update", exact: true }).click();
   await expect(dialog).not.toBeVisible();
 
-  await page.reload();
+  await reload(page);
   await expect(row).toContainText("0 / Unlimited");
   expect(
     await seedAdminTrpc().admin.getUser.query({ id: target.id }),
@@ -202,7 +208,7 @@ it("resets a user's password so they sign in with the new one", async ({
   const admin = await createUser("admin", "Ada Admin");
   const target = await createUser("user", "Pat Password");
   await signIn(page, admin.email);
-  await page.goto("/admin/users");
+  await goto(page, "/admin/users");
 
   const newPassword = `new-${randomUUID()}`;
   const dialog = page.getByRole("dialog", { name: "Reset Password" });
@@ -230,14 +236,14 @@ it("deletes a user from the users page", async ({ page }) => {
   const admin = await createUser("admin", "Ada Admin");
   const target = await createUser("user", "Dana Deleted");
   await signIn(page, admin.email);
-  await page.goto("/admin/users");
+  await goto(page, "/admin/users");
 
   const dialog = page.getByRole("dialog", { name: "Delete User" });
   await openWith(userRowAction(page, target.email, "delete"), dialog);
   await expect(dialog).toContainText("Dana Deleted");
   await dialog.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(page.getByText("User deleted", { exact: true })).toBeVisible();
-  await page.reload();
+  await reload(page);
   await expect(userRow(page, admin.email)).toBeVisible();
   await expect(userRow(page, target.email)).toHaveCount(0);
 
@@ -249,7 +255,7 @@ it("deletes a user from the users page", async ({ page }) => {
 it("sends and revokes an invite", async ({ page }) => {
   const admin = await createUser("admin", "Ada Admin");
   await signIn(page, admin.email);
-  await page.goto("/admin/users");
+  await goto(page, "/admin/users");
 
   const email = uniqueEmail("admin-e2e-invite");
   const dialog = page.getByRole("dialog", { name: "Send User Invitation" });
@@ -262,7 +268,7 @@ it("sends and revokes an invite", async ({ page }) => {
 
   const row = page.getByRole("row").filter({ hasText: email });
   await expect(row).toContainText("Ada Admin");
-  await page.reload();
+  await reload(page);
   await expect(row).toContainText("Ada Admin");
 
   // Actions are resend, then revoke.
@@ -272,7 +278,7 @@ it("sends and revokes an invite", async ({ page }) => {
   await confirm.getByRole("button", { name: "Revoke", exact: true }).click();
   await expect(confirm).not.toBeVisible();
   await expect(row).toHaveCount(0);
-  await page.reload();
+  await reload(page);
   await expect(page.getByText(/^User Invitations \(\d+\)$/)).toBeVisible();
   await expect(row).toHaveCount(0);
 });
@@ -280,7 +286,7 @@ it("sends and revokes an invite", async ({ page }) => {
 it("renders the overview and background jobs pages", async ({ page }) => {
   const admin = await createUser("admin", "Ada Admin");
   await signIn(page, admin.email);
-  await page.goto("/admin");
+  await goto(page, "/admin");
   await expect(page).toHaveURL(/\/admin\/overview$/);
 
   const main = page.getByRole("main");

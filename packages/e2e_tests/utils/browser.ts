@@ -1,4 +1,4 @@
-import type { Page } from "playwright/test";
+import type { Locator, Page } from "playwright/test";
 import { chromium, expect } from "playwright/test";
 import { inject, it as base } from "vitest";
 
@@ -25,13 +25,55 @@ export const it = base.extend<{ page: Page }>({
   },
 });
 
+// After a full page load, the server streams the page content in a hidden
+// `<div hidden id="S:n">` and an inline script reveals it a little later
+// (React batches these reveals into animation frames). If hydration finds the
+// content still unrevealed once the document has finished parsing (e.g. when
+// CI is busy), React gives up on it and renders a second copy on the client.
+// Both copies are in the DOM until the reveal script removes the hidden one,
+// so locators can match an element twice. Wait until no hidden segment is
+// left.
+async function waitForStreamedContent(page: Page) {
+  await expect(page.locator("div[hidden][id^='S:']")).toHaveCount(0);
+}
+
+// page.goto and page.reload, but also waiting for the streamed page content
+// (see waitForStreamedContent). Use these instead of calling page.goto or
+// page.reload directly.
+export async function goto(page: Page, url: string) {
+  await page.goto(url);
+  await waitForStreamedContent(page);
+}
+
+export async function reload(page: Page) {
+  await page.reload();
+  await waitForStreamedContent(page);
+}
+
+// Waits until React has hydrated the element. After a full page load, the
+// server-rendered HTML can be typed into before React attaches to it. When
+// React then hydrates a <textarea>, it resets it to its server-rendered value,
+// so text typed before that ends up mixed with the old value. Call this before
+// typing into a server-rendered textarea after goto or reload.
+export async function waitForHydration(locator: Locator) {
+  await expect
+    .poll(() =>
+      locator.evaluateAll((elements) =>
+        elements.some((element) =>
+          Object.keys(element).some((key) => key.startsWith("__reactFiber$")),
+        ),
+      ),
+    )
+    .toBe(true);
+}
+
 // Fills and submits the sign in form without checking the outcome.
 export async function submitSignInForm(
   page: Page,
   email: string,
   password: string,
 ) {
-  await page.goto("/signin");
+  await goto(page, "/signin");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
@@ -49,6 +91,16 @@ export async function signIn(page: Page, email: string, password = "test1234") {
 // so only the visible ones are matched.
 export function bookmarkCards(page: Page) {
   return page.locator("[data-bookmark-index]").filter({ visible: true });
+}
+
+// The editor card for new bookmarks at the top of the bookmark grids. Matched
+// by role, which skips hidden elements, like a server-rendered copy that's
+// still in the DOM.
+export function bookmarkEditor(page: Page) {
+  return page.getByRole("textbox", {
+    name: "Paste a link, write a note or drop an image…",
+    exact: true,
+  });
 }
 
 // Tests that wait on the background workers (crawling, indexing, tagging)
