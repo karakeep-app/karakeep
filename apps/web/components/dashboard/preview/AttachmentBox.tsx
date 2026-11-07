@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/sonner";
 import { ASSET_TYPE_TO_ICON } from "@/lib/attachments";
 import useUpload from "@/lib/hooks/upload-file";
 import { useTranslation } from "@/lib/i18n/client";
+import { formatBytes } from "@/lib/utils";
 import {
   ChevronsDownUp,
   Download,
@@ -170,21 +171,29 @@ export default function AttachmentBox({
       </div>
       <CollapsibleContent className="flex flex-col gap-1 py-3 text-sm">
         {bookmark.assets.map((asset) => (
-          <div key={asset.id} className="flex items-center justify-between">
+          <div
+            key={asset.id}
+            className="flex items-center justify-between gap-2"
+          >
             <Link
               target="_blank"
               href={getAssetUrl(asset.id)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground [&>svg]:shrink-0"
               prefetch={false}
             >
               {ASSET_TYPE_TO_ICON[asset.assetType]}
-              <p>
+              <p className="break-all">
                 {asset.assetType === "userUploaded" && asset.fileName
                   ? asset.fileName
                   : humanFriendlyNameForAssertType(asset.assetType)}
               </p>
             </Link>
-            <div className="flex gap-1 text-muted-foreground">
+            <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
+              {asset.size != null && (
+                <span className="mr-1 whitespace-nowrap text-xs tabular-nums">
+                  {formatBytes(asset.size)}
+                </span>
+              )}
               <Link
                 title="Download"
                 target="_blank"

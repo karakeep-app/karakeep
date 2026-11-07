@@ -5,6 +5,7 @@ import { defineConfig } from "vitest/config";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  oxc: { jsx: { runtime: "automatic" } },
   plugins: [tsconfigPaths({ skip: (dir) => dir === ".claude" })],
   test: {
     alias: {
