@@ -40,17 +40,26 @@ async function pathExists(targetPath: string): Promise<boolean> {
 function parseArgs(): { force: boolean; snapshot: string | null } {
   const args = process.argv.slice(2);
   let snapshot: string | null = null;
+  let force = false;
   for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--snapshot") {
-      snapshot = args[++i] ?? "";
-    } else if (args[i].startsWith("--snapshot=")) {
-      snapshot = args[i].slice("--snapshot=".length);
-    }
-    if (snapshot !== null && (snapshot === "" || snapshot.startsWith("--"))) {
-      throw new Error("--snapshot expects a snapshot archive name");
+    const arg = args[i];
+    if (arg === "--force") {
+      force = true;
+    } else if (arg === "--snapshot" || arg.startsWith("--snapshot=")) {
+      snapshot =
+        arg === "--snapshot"
+          ? (args[++i] ?? "")
+          : arg.slice("--snapshot=".length);
+      if (snapshot === "" || snapshot.startsWith("--")) {
+        throw new Error("--snapshot expects a snapshot archive name");
+      }
+    } else if (arg !== "--") {
+      // Rejected so a typo can't fall back to the default snapshot and, with
+      // --force, replace the data dir with it.
+      throw new Error(`Unknown argument: ${arg}`);
     }
   }
-  return { force: args.includes("--force"), snapshot };
+  return { force, snapshot };
 }
 
 interface SnapshotInfo {

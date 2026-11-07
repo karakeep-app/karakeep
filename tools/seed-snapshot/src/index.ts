@@ -236,10 +236,16 @@ function parseOptions(argv: string[]): Options {
   let replace = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === "--release") {
-      release = argv[++i] ?? null;
-    } else if (arg.startsWith("--release=")) {
-      release = arg.slice("--release=".length);
+    if (arg === "--release" || arg.startsWith("--release=")) {
+      release =
+        arg === "--release"
+          ? (argv[++i] ?? "")
+          : arg.slice("--release=".length);
+      // Without this, a missing version would silently fall back to a local
+      // build.
+      if (release === "" || release.startsWith("--")) {
+        throw new Error("--release expects a version like 0.32.0");
+      }
     } else if (arg === "--replace") {
       replace = true;
     } else if (arg === "--") {
