@@ -125,4 +125,33 @@ describe("resolveHighlightRange", () => {
     };
     expect(resolvedText("New intro. " + ORIGINAL, anchor)).toBe("lazy dog");
   });
+
+  test("keeps context aligned when the quote has edge whitespace", () => {
+    const original = "Alpha quote Beta. Gamma quote Delta.";
+    // Select the second " quote " including the spaces around it.
+    const anchor = anchorFor(original, " quote ", 1);
+    const updated = "Intro. ".repeat(5) + original;
+    const range = resolveHighlightRange(updated, anchor)!;
+    expect(updated.slice(range.startOffset, range.endOffset)).toBe("quote");
+    expect(range.startOffset).toBe(updated.indexOf("Gamma quote") + 6);
+  });
+
+  test("measures distance in raw offsets for legacy highlights", () => {
+    const original =
+      "quote " + "x".repeat(40) + " quote" + " ".repeat(200) + "end";
+    const anchor = { startOffset: 47, endOffset: 52, text: "quote" };
+    expect(resolveHighlightRange("!" + original, anchor)?.startOffset).toBe(48);
+  });
+
+  test("prefers context recovery over a weak exact match elsewhere", () => {
+    const original =
+      "Earlier we mentioned the company briefly. " +
+      "Later on, the founders built the company from scratch in a garage.";
+    const anchor = anchorFor(original, "the company", 1);
+    const updated = original.replace(
+      "built the company from",
+      "built our company from",
+    );
+    expect(resolvedText(updated, anchor)).toBe("our company");
+  });
 });

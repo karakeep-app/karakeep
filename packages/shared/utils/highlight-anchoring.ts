@@ -124,9 +124,9 @@ function findAll(haystack: string, needle: string): number[] {
 }
 
 /**
- * Converts a [start, end) range in normalized space to raw offsets. Leading
- * and trailing whitespace is trimmed so that the range never starts/ends on
- * a collapsed whitespace run.
+ * Converts a [start, end) range in normalized space to raw offsets. Callers
+ * must pass a range that doesn't start or end on a collapsed whitespace run,
+ * otherwise the raw range would cover only part of that run.
  */
 function toRawRange(
   norm: NormalizedText,
@@ -149,9 +149,10 @@ function toRawRange(
  *  3. Search for every occurrence of the (whitespace-normalized) quote and
  *     pick the one whose surrounding context best matches the stored
  *     prefix/suffix, using distance from the old offset as a tie-breaker.
- *  4. If the quote itself no longer exists, look for the stored prefix and
- *     suffix and take whatever is between them, provided its length is
- *     reasonably close to the original quote.
+ *  4. Look for the stored prefix and suffix and take whatever is between
+ *     them, provided its length is reasonably close to the original quote.
+ *     This recovers quotes that were edited, and wins over an exact match
+ *     from step 3 whose context matches less well.
  *
  * Returns null if the highlight can't be located anymore.
  */
@@ -182,70 +183,80 @@ export function resolveHighlightRange(
   }
 
   const norm = normalizeWithMap(fullText);
-  const normQuote = normalize(quote).trim();
-  const normPrefix = normalize(prefix);
-  const normSuffix = normalize(suffix);
+  const untrimmedQuote = normalize(quote);
+  const normQuote = untrimmedQuote.trim();
   if (!normQuote) return null;
-
-  // Approximate the old offset in normalized space, for distance scoring.
-  const approxNormStart = Math.round(
-    (startOffset / Math.max(1, fullText.length)) * norm.text.length,
+  // Whitespace trimmed off the edges of the quote moves into its context, so
+  // the context still sits right next to the trimmed quote.
+  const normPrefix = normalize(
+    prefix + (untrimmedQuote.startsWith(" ") ? " " : ""),
+  );
+  const normSuffix = normalize(
+    (untrimmedQuote.endsWith(" ") ? " " : "") + suffix,
   );
 
-  const candidates = findAll(norm.text, normQuote);
-  if (candidates.length > 0) {
-    let best = candidates[0];
-    let bestScore = -Infinity;
-    for (const pos of candidates) {
-      const before = norm.text.slice(Math.max(0, pos - normPrefix.length), pos);
-      const after = norm.text.slice(
-        pos + normQuote.length,
-        pos + normQuote.length + normSuffix.length,
-      );
-      const contextScore =
-        commonSuffixLength(before, normPrefix) +
-        commonPrefixLength(after, normSuffix);
-      // Distance only breaks ties between equally good context matches:
-      // it's in [0, 1) so it never outweighs a single matching context char.
-      const distance = Math.abs(pos - approxNormStart);
-      const score = contextScore + 1 / (1 + distance);
-      if (score > bestScore) {
-        bestScore = score;
-        best = pos;
+  // Number of context characters around normalized [start, end) that agree
+  // with the stored prefix/suffix.
+  const contextScore = (start: number, end: number) =>
+    commonSuffixLength(
+      norm.text.slice(Math.max(0, start - normPrefix.length), start),
+      normPrefix,
+    ) +
+    commonPrefixLength(
+      norm.text.slice(end, end + normSuffix.length),
+      normSuffix,
+    );
+  // Distance from the stored offset, measured in raw space so that whitespace
+  // elsewhere in the document doesn't skew it.
+  const distanceFromStored = (start: number) =>
+    Math.abs(norm.map[start] - startOffset);
+
+  let exact: { start: number; end: number; score: number } | null = null;
+  let bestExactRank = -Infinity;
+  for (const pos of findAll(norm.text, normQuote)) {
+    const end = pos + normQuote.length;
+    const score = contextScore(pos, end);
+    // Distance only breaks ties between equally good context matches:
+    // it's in (0, 1] so it never outweighs a single matching context char.
+    const rank = score + 1 / (1 + distanceFromStored(pos));
+    if (rank > bestExactRank) {
+      bestExactRank = rank;
+      exact = { start: pos, end, score };
+    }
+  }
+
+  const recovered = recoverFromContext();
+  if (recovered && (!exact || recovered.score > exact.score)) {
+    return toRawRange(norm, recovered.start, recovered.end);
+  }
+  return exact ? toRawRange(norm, exact.start, exact.end) : null;
+
+  function recoverFromContext() {
+    const trimmedPrefix = normPrefix.trimStart();
+    const trimmedSuffix = normSuffix.trimEnd();
+    if (trimmedPrefix.length < 8 || trimmedSuffix.length < 8) {
+      // Not enough context to confidently relocate.
+      return null;
+    }
+    const minLen = Math.floor(normQuote.length * 0.5);
+    const maxLen = Math.ceil(normQuote.length * 1.5) + 2;
+    let best: { start: number; end: number } | null = null;
+    let bestDistance = Infinity;
+    for (const p of findAll(norm.text, trimmedPrefix)) {
+      let start = p + trimmedPrefix.length;
+      let end = norm.text.indexOf(trimmedSuffix, start);
+      if (end === -1) continue;
+      // Trim whitespace at the edges of the recovered range.
+      while (start < end && norm.text[start] === " ") start++;
+      while (end > start && norm.text[end - 1] === " ") end--;
+      const len = end - start;
+      if (len === 0 || len < minLen || len > maxLen) continue;
+      const distance = distanceFromStored(start);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = { start, end };
       }
     }
-    return toRawRange(norm, best, best + normQuote.length);
+    return best ? { ...best, score: contextScore(best.start, best.end) } : null;
   }
-
-  // The quote itself was edited. Fall back to locating it via its context.
-  const trimmedPrefix = normPrefix.trimStart();
-  const trimmedSuffix = normSuffix.trimEnd();
-  if (trimmedPrefix.length < 8 || trimmedSuffix.length < 8) {
-    // Not enough context to confidently relocate.
-    return null;
-  }
-  const minLen = Math.floor(normQuote.length * 0.5);
-  const maxLen = Math.ceil(normQuote.length * 1.5) + 2;
-  let bestRange: { start: number; end: number } | null = null;
-  let bestDistance = Infinity;
-  for (const p of findAll(norm.text, trimmedPrefix)) {
-    const start = p + trimmedPrefix.length;
-    const s = norm.text.indexOf(trimmedSuffix, start);
-    if (s === -1) continue;
-    const len = s - start;
-    if (len < minLen || len > maxLen) continue;
-    const distance = Math.abs(start - approxNormStart);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      bestRange = { start, end: s };
-    }
-  }
-  if (!bestRange) return null;
-
-  // Trim whitespace at the edges of the recovered range.
-  let { start, end } = bestRange;
-  while (start < end && norm.text[start] === " ") start++;
-  while (end > start && norm.text[end - 1] === " ") end--;
-  if (start === end) return null;
-  return toRawRange(norm, start, end);
 }
