@@ -13,7 +13,6 @@ import { Textarea } from "./ui/textarea";
 export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
   const { data: bookmark } = useAutoRefreshingBookmarkQuery({ bookmarkId });
   const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [noteValue, setNoteValue] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -28,20 +27,19 @@ export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
   const updateBookmarkMutator = useUpdateBookmark({
     onSuccess: () => {
       setError(null);
-      setIsSaving(false);
       setHasUnsavedChanges(false);
     },
     onError: (e) => {
       setError(e.message || "Failed to save note");
-      setIsSaving(false);
     },
   });
+  const isSaving = updateBookmarkMutator.isPending;
+  const normalizedBookmarkNote = bookmark?.note ?? "";
 
   const handleSave = () => {
-    if (!bookmark || noteValue === bookmark.note || isSaving) {
+    if (!bookmark || noteValue === normalizedBookmarkNote || isSaving) {
       return;
     }
-    setIsSaving(true);
     setError(null);
     updateBookmarkMutator.mutate({
       bookmarkId: bookmark.id,
@@ -64,7 +62,9 @@ export function NoteEditor({ bookmarkId }: { bookmarkId: string }) {
         placeholder="Add a note…"
         onChange={(e) => {
           setNoteValue(e.currentTarget.value);
-          setHasUnsavedChanges(e.currentTarget.value !== bookmark.note);
+          setHasUnsavedChanges(
+            e.currentTarget.value !== normalizedBookmarkNote,
+          );
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
