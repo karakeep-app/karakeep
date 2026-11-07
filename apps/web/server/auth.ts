@@ -1,9 +1,9 @@
 import { cache } from "react";
 import { TURNSTILE_TOKEN_HEADER } from "@/lib/auth/constants";
+import { getClientIp } from "@/server/clientIp";
 import { createId } from "@paralleldrive/cuid2";
 import { count } from "drizzle-orm";
 import { headers } from "next/headers";
-import requestIp from "request-ip";
 import { z } from "zod";
 
 import { betterAuth } from "better-auth";
@@ -126,6 +126,23 @@ const RATE_LIMITS: Record<string, RateLimitConfig> = {
   },
 };
 
+// Limits per target email, on top of the per-IP ones above. They keep working
+// when the client IP can't be trusted (e.g. an instance exposed without a
+// reverse proxy), at the cost of letting someone use up an account's budget.
+// The login limit is set well above the per-IP one so that takes effort.
+const PER_EMAIL_RATE_LIMITS: Record<string, RateLimitConfig> = {
+  "/sign-in/email": {
+    name: "auth.login.perEmail",
+    windowMs: 15 * 60 * 1000,
+    maxRequests: 50,
+  },
+  "/request-password-reset": {
+    name: "auth.requestPasswordReset.perEmail",
+    windowMs: 15 * 60 * 1000,
+    maxRequests: 5,
+  },
+};
+
 const zSignUpBody = z.object({
   name: zUserNameSchema,
   email: z.string().email(),
@@ -204,12 +221,6 @@ function getTrustedOrigins(request: Request | undefined): string[] {
   return origins;
 }
 
-function getClientIp(requestHeaders: Headers | undefined) {
-  return requestIp.getClientIp({
-    headers: requestHeaders ? Object.fromEntries(requestHeaders.entries()) : {},
-  });
-}
-
 function getRequestEmail(body: unknown) {
   const parsed = zEmailBody.safeParse(body);
   return parsed.success ? parsed.data.email.trim().toLowerCase() : undefined;
@@ -220,28 +231,44 @@ async function checkRateLimit(
   ip: string | null,
   email: string | undefined,
 ) {
-  const config = RATE_LIMITS[path];
-  if (!config || !serverConfig.rateLimiting.enabled || !ip) {
+  if (!serverConfig.rateLimiting.enabled) {
+    return;
+  }
+  const checks: [RateLimitConfig, string][] = [];
+  const ipConfig = RATE_LIMITS[path];
+  if (ipConfig && ip) {
+    checks.push([
+      ipConfig,
+      path === "/sign-in/email"
+        ? `login:${ip}:${email ?? ""}`
+        : `${ip}:${path}`,
+    ]);
+  }
+  const emailConfig = PER_EMAIL_RATE_LIMITS[path];
+  if (emailConfig && email) {
+    checks.push([emailConfig, `email:${email}`]);
+  }
+  if (checks.length === 0) {
     return;
   }
   const client = await getRateLimitClient();
   if (!client) {
     return;
   }
-  const key =
-    path === "/sign-in/email" ? `login:${ip}:${email ?? ""}` : `${ip}:${path}`;
-  const result = await client.checkRateLimit(config, key);
-  if (!result.allowed) {
-    if (path === "/sign-in/email") {
-      logEvent({
-        "event.name": "user.login_failed",
-        "user.email": email,
-        "auth.failure_reason": "rate_limited",
+  for (const [config, key] of checks) {
+    const result = await client.checkRateLimit(config, key);
+    if (!result.allowed) {
+      if (path === "/sign-in/email") {
+        logEvent({
+          "event.name": "user.login_failed",
+          "user.email": email,
+          "auth.failure_reason": "rate_limited",
+        });
+      }
+      throw new APIError("TOO_MANY_REQUESTS", {
+        message: `Rate limit exceeded. Try again in ${result.resetInSeconds} seconds.`,
       });
     }
-    throw new APIError("TOO_MANY_REQUESTS", {
-      message: `Rate limit exceeded. Try again in ${result.resetInSeconds} seconds.`,
-    });
   }
 }
 

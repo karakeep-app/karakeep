@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { getServerAuthSession } from "@/server/auth";
-import requestIp from "request-ip";
+import { getClientIp } from "@/server/clientIp";
 
 import { db } from "@karakeep/db";
 import { Context, createCallerFactory } from "@karakeep/trpc";
@@ -10,9 +10,7 @@ import { appRouter } from "@karakeep/trpc/routers/_app";
 export async function createContextFromRequest(req: Request) {
   // TODO: This is a hack until we offer a proper REST API instead of the trpc based one.
   // Check if the request has an Authorization token, if it does, assume that API key authentication is requested.
-  const ip = requestIp.getClientIp({
-    headers: Object.fromEntries(req.headers.entries()),
-  });
+  const ip = getClientIp(req.headers);
   const authorizationHeader = req.headers.get("Authorization");
   if (authorizationHeader && authorizationHeader.startsWith("Bearer ")) {
     const token = authorizationHeader.split(" ")[1];
@@ -45,9 +43,7 @@ export const createContext = async (
   const session = await getServerAuthSession();
   if (ip === undefined) {
     const hdrs = await headers();
-    ip = requestIp.getClientIp({
-      headers: Object.fromEntries(hdrs.entries()),
-    });
+    ip = getClientIp(hdrs);
   }
   return {
     user: session?.user ?? null,

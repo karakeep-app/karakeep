@@ -225,6 +225,34 @@ const allEnv = z.object({
 
   // Rate limiting configuration
   RATE_LIMITING_ENABLED: stringBool("false"),
+  // Comma-separated IPs/CIDRs of reverse proxies whose X-Forwarded-For entries
+  // are trusted when working out a request's client IP. "private" expands to
+  // the loopback and private-network ranges; "none" trusts nothing.
+  TRUSTED_PROXIES: z
+    .string()
+    .default("private")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
+    .pipe(
+      z.array(
+        z.union([
+          z.literal("private"),
+          z.literal("none"),
+          z.ipv4(),
+          z.ipv6(),
+          z.cidrv4(),
+          z.cidrv6(),
+        ]),
+        {
+          error:
+            'TRUSTED_PROXIES must be a comma-separated list of IPs, CIDR ranges, "private" or "none"',
+        },
+      ),
+    ),
 
   // Redis configuration
   REDIS_URL: z.string().url().optional(),
@@ -555,6 +583,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     rateLimiting: {
       enabled: val.RATE_LIMITING_ENABLED,
     },
+    trustedProxies: val.TRUSTED_PROXIES,
     redis: {
       url: val.REDIS_URL,
     },
