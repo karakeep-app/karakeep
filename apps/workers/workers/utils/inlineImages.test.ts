@@ -68,6 +68,31 @@ describe("stashInlineImages", () => {
     expect(restored.metadata.image).toBe(first);
   });
 
+  it("leaves data URIs shown as text alone", () => {
+    const shown = base64Image(4096);
+    const html = `<pre><code>${shown}</code></pre><p>See ${shown} above.</p>`;
+
+    const stash = stashInlineImages(html, 1024);
+
+    expect(stash.count).toBe(0);
+    expect(stash.htmlContent).toBe(html);
+  });
+
+  it("replaces images in CSS url() and style attributes", () => {
+    const background = base64Image(4096);
+    const inline = base64Image(4096, "jpeg");
+    const html =
+      `<style>.hero { background: url("${background}") }</style>` +
+      `<div style="background-image: url(${inline})">Hi</div>`;
+
+    const stash = stashInlineImages(html, 1024);
+
+    expect(stash.count).toBe(2);
+    expect(stash.htmlContent).not.toContain(background);
+    expect(stash.htmlContent).not.toContain(inline);
+    expect(stash.restore(stash.htmlContent)).toBe(html);
+  });
+
   it("leaves non-image and non-base64 data URIs alone", () => {
     const svg = `data:image/svg+xml;utf8,<svg>${"x".repeat(5000)}</svg>`;
     const font = `data:font/woff2;base64,${"A".repeat(5000)}`;

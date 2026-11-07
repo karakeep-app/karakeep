@@ -22,6 +22,27 @@ export const DEFAULT_MIN_STASHED_IMAGE_LENGTH = 16 * 1024;
  */
 const PLACEHOLDER_LENGTH = 256;
 
+/**
+ * Whether the data URI at `offset` is an embedded resource (an attribute value
+ * inside a tag, or a CSS `url()`) rather than text the reader sees, such as a
+ * data URI shown in a code sample. Visible text is left alone so that content
+ * extraction and the reader-view assessment see the page exactly as it is.
+ *
+ * Base64 never contains `<` or `>`, so the nearest one before the URI tells
+ * whether it sits inside a tag. A `>` inside an earlier attribute value only
+ * makes this miss an image, which then stays in the document as before.
+ */
+function isEmbeddedResource(htmlContent: string, offset: number): boolean {
+  if (
+    htmlContent.lastIndexOf("<", offset) > htmlContent.lastIndexOf(">", offset)
+  ) {
+    return true;
+  }
+  return /url\(\s*["']?$/i.test(
+    htmlContent.slice(Math.max(0, offset - 16), offset),
+  );
+}
+
 export interface StashedInlineImages {
   /** The document with each large inline image replaced by a short one. */
   htmlContent: string;
@@ -56,8 +77,11 @@ export function stashInlineImages(
 
   const replaced = htmlContent.replace(
     BASE64_IMAGE_DATA_URI_PATTERN,
-    (dataUri, mimeType: string) => {
-      if (dataUri.length < minLength) {
+    (dataUri, mimeType: string, offset: number) => {
+      if (
+        dataUri.length < minLength ||
+        !isEmbeddedResource(htmlContent, offset)
+      ) {
         return dataUri;
       }
       bytes += dataUri.length;
