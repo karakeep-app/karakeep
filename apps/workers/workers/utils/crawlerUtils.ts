@@ -66,10 +66,11 @@ export function withDownloadTimeout(
   if (!(timeoutSec > 0) || !Number.isFinite(timeoutSec)) {
     return jobSignal;
   }
-  // AbortSignal.timeout only takes whole milliseconds that fit in 32 bits.
+  // AbortSignal.timeout only takes whole milliseconds, and its timer falls
+  // back to 1 ms for anything above the signed 32-bit range (~24.8 days).
   const timeoutMs = Math.min(
     Math.max(1, Math.round(timeoutSec * 1000)),
-    0xffffffff,
+    0x7fffffff,
   );
   return AbortSignal.any([jobSignal, AbortSignal.timeout(timeoutMs)]);
 }

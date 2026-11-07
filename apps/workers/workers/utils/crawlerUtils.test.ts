@@ -55,12 +55,24 @@ describe("withDownloadTimeout", () => {
     expect(signal.reason).toBe(reason);
   });
 
-  it.each([0.0015, 1.2345, 0.0001, 1e12])(
-    "accepts a budget of %s seconds",
+  it.each([0.0015, 1.2345, 0.0001])(
+    "accepts a fractional budget of %s seconds",
     (timeoutSec) => {
       const job = new AbortController();
       const signal = withDownloadTimeout(job.signal, timeoutSec);
       expect(signal).not.toBe(job.signal);
+      expect(signal.aborted).toBe(false);
+    },
+  );
+
+  it.each([3e6, 1e12])(
+    "keeps a huge budget of %s seconds pending instead of overflowing",
+    async (timeoutSec) => {
+      const job = new AbortController();
+      const signal = withDownloadTimeout(job.signal, timeoutSec);
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       expect(signal.aborted).toBe(false);
     },
   );
