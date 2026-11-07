@@ -358,20 +358,31 @@ async function run(
     );
   }
 
-  // It's ok if this is not transactional as the bookmarks will get linked in the next iteration.
-  await db
-    .insert(rssFeedImportsTable)
-    .values(
-      newEntries.map((item, idx) => {
-        const b = createdBookmarks[idx];
-        return {
-          entryId: item.guid!,
-          bookmarkId: b.status === "fulfilled" ? b.value.id : null,
-          rssFeedId: feed.id,
-        };
-      }),
-    )
-    .onConflictDoNothing();
+  // Entries left out here are retried on the next fetch, so only record the
+  // ones that got a bookmark, plus invalid ones that would never import.
+  // Anything else (e.g. the user running out of quota) gets retried.
+  const processedEntries = newEntries.flatMap((item, idx) => {
+    const b = createdBookmarks[idx];
+    if (
+      b.status === "rejected" &&
+      !(b.reason instanceof TRPCError && b.reason.code === "BAD_REQUEST")
+    ) {
+      return [];
+    }
+    return [
+      {
+        entryId: item.guid!,
+        bookmarkId: b.status === "fulfilled" ? b.value.id : null,
+        rssFeedId: feed.id,
+      },
+    ];
+  });
+  if (processedEntries.length > 0) {
+    await db
+      .insert(rssFeedImportsTable)
+      .values(processedEntries)
+      .onConflictDoNothing();
+  }
 
   logger.info(
     `[feed][${jobId}] Imported ${newEntries.length} feed entries from feed "${feed.name}" (${feed.id}); created ${createdBookmarkCount} bookmarks${bookmarkCreationFailures.length > 0 ? `, failed to create ${bookmarkCreationFailures.length}` : ""}.`,
