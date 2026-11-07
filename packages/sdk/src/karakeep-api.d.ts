@@ -1000,6 +1000,8 @@ export interface components {
        */
       color: "yellow" | "red" | "green" | "blue";
       text: string | null;
+      prefix: string | null;
+      suffix: string | null;
       note: string | null;
       id: string;
       userId: string;
@@ -2667,6 +2669,8 @@ export interface operations {
            */
           color?: "yellow" | "red" | "green" | "blue";
           text: string | null;
+          prefix?: string | null;
+          suffix?: string | null;
           note: string | null;
         };
       };

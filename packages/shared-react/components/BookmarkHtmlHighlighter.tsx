@@ -13,6 +13,10 @@ import {
   SUPPORTED_HIGHLIGHT_COLORS,
   ZHighlightColor,
 } from "@karakeep/shared/types/highlights";
+import {
+  getHighlightContext,
+  resolveHighlightRange,
+} from "@karakeep/shared/utils/highlight-anchoring";
 
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
 import { Button } from "./ui/button";
@@ -133,6 +137,8 @@ export interface Highlight {
   endOffset: number;
   color: ZHighlightColor;
   text: string | null;
+  prefix?: string | null;
+  suffix?: string | null;
   note?: string | null;
 }
 
@@ -202,9 +208,15 @@ const BookmarkHTMLHighlighter = forwardRef<
       }
     });
 
-    // Apply all highlights
+    // Offsets are only a hint: relocate each highlight using its stored
+    // quote and context so that content changes don't misplace it.
+    const fullText = getFullText();
     highlights.forEach((highlight) => {
-      applyHighlightByOffset(highlight);
+      const range = resolveHighlightRange(fullText, highlight);
+      if (!range) {
+        return;
+      }
+      applyHighlightByOffset({ ...highlight, ...range });
     });
   });
 
@@ -304,6 +316,20 @@ const BookmarkHTMLHighlighter = forwardRef<
     }
   };
 
+  const getFullText = (): string => {
+    if (!contentRef.current) return "";
+    let text = "";
+    const walker = document.createTreeWalker(
+      contentRef.current,
+      NodeFilter.SHOW_TEXT,
+      null,
+    );
+    while (walker.nextNode()) {
+      text += walker.currentNode.textContent ?? "";
+    }
+    return text;
+  };
+
   const getTextNodeOffset = (node: Node): number => {
     let offset = 0;
     const walker = document.createTreeWalker(
@@ -333,12 +359,20 @@ const BookmarkHTMLHighlighter = forwardRef<
 
     if (startOffset === -1 || endOffset === -1) return null;
 
+    const { prefix, suffix } = getHighlightContext(
+      getFullText(),
+      startOffset,
+      endOffset,
+    );
+
     const highlight: Highlight = {
       id: "NOT_SET",
       startOffset,
       endOffset,
       color,
       text: range.toString(),
+      prefix,
+      suffix,
     };
 
     applyHighlightByOffset(highlight);
