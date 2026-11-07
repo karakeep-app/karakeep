@@ -7,7 +7,9 @@ import { getAuthHeader } from "../../utils/api";
 import {
   bookmarkCards,
   createWebTestUser,
+  goto,
   it,
+  reload,
   signIn,
   submitSignInForm,
   WORKER_TEST_TIMEOUT,
@@ -25,7 +27,7 @@ it("changes the password and signs back in with the new one", async ({
   const { email } = await createWebTestUser();
   await signIn(page, email);
 
-  await page.goto("/settings/info");
+  await goto(page, "/settings/info");
   await expect(page.getByRole("heading", { name: "User Info" })).toBeVisible();
   await expect(page.locator("#email")).toHaveValue(email);
   await expect(page.locator("#name")).toHaveValue("Test User");
@@ -46,7 +48,7 @@ it("changes the password and signs back in with the new one", async ({
     page.getByLabel("Current Password", { exact: true }),
   ).toHaveValue("");
 
-  await page.goto("/dashboard/bookmarks");
+  await goto(page, "/dashboard/bookmarks");
   // The profile menu trigger is the avatar, named after the user's initial.
   await page.getByRole("button", { name: "T", exact: true }).click();
   await page.getByRole("menuitem", { name: "Sign Out", exact: true }).click();
@@ -67,7 +69,7 @@ it("rejects a password change with a wrong current password", async ({
   const { email } = await createWebTestUser();
   await signIn(page, email);
 
-  await page.goto("/settings/info");
+  await goto(page, "/settings/info");
   await page.getByLabel("Current Password", { exact: true }).fill("wrong-pass");
   await page.getByLabel("New Password", { exact: true }).fill("n3w-passw0rd");
   await page
@@ -81,7 +83,7 @@ it("rejects a password change with a wrong current password", async ({
   ).toBeVisible({ timeout: 30000 });
 
   // The old password keeps working.
-  await page.goto("/logout");
+  await goto(page, "/logout");
   await expect(page).toHaveURL(/\/signin/, { timeout: 30000 });
   await signIn(page, email);
 });
@@ -113,11 +115,11 @@ it("hides archived bookmarks in tags once the archive option is changed", async 
   await signIn(page, email);
 
   const cards = bookmarkCards(page);
-  await page.goto(`/dashboard/tags/${tag.id}`);
+  await goto(page, `/dashboard/tags/${tag.id}`);
   await expect(cards.filter({ hasText: "Already finished" })).toBeVisible();
   await expect(cards).toHaveCount(2);
 
-  await page.goto("/settings/info");
+  await goto(page, "/settings/info");
   const showOption = "Show archived bookmarks in tags and lists";
   const hideOption = "Hide archived bookmarks in tags and lists";
   await page.getByRole("combobox").filter({ hasText: showOption }).click();
@@ -129,7 +131,7 @@ it("hides archived bookmarks in tags once the archive option is changed", async 
     page.getByRole("combobox").filter({ hasText: hideOption }),
   ).toBeVisible();
 
-  await page.reload();
+  await reload(page);
   await expect(
     page.getByRole("combobox").filter({ hasText: hideOption }),
   ).toBeVisible();
@@ -137,7 +139,7 @@ it("hides archived bookmarks in tags once the archive option is changed", async 
     "hide",
   );
 
-  await page.goto(`/dashboard/tags/${tag.id}`);
+  await goto(page, `/dashboard/tags/${tag.id}`);
   await expect(cards.filter({ hasText: "Still reading" })).toBeVisible();
   await expect(cards).toHaveCount(1);
 });
@@ -146,7 +148,7 @@ it("creates an API key that works until it is deleted", async ({ page }) => {
   const { email } = await createWebTestUser();
   await signIn(page, email);
 
-  await page.goto("/settings/api-keys");
+  await goto(page, "/settings/api-keys");
   await page.getByRole("button", { name: "New API Key", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "New API Key" });
   await dialog.getByLabel("Name", { exact: true }).fill("My script");
@@ -173,7 +175,7 @@ it("creates an API key that works until it is deleted", async ({ page }) => {
   const row = page.getByRole("row").filter({ hasText: "My script" });
   await expect(row).toBeVisible();
   await expect(row).toContainText("Full access");
-  await page.reload();
+  await reload(page);
   await expect(row).toBeVisible();
 
   await row.getByRole("button", { name: "Delete", exact: true }).click();
@@ -195,7 +197,7 @@ it("creates, edits and deletes a webhook", async ({ page }) => {
   const { trpc, email } = await createWebTestUser();
   await signIn(page, email);
 
-  await page.goto("/settings/webhooks");
+  await goto(page, "/settings/webhooks");
   await expect(
     page.getByText("You don't have any webhooks configured yet."),
   ).toBeVisible();
@@ -232,7 +234,7 @@ it("creates, edits and deletes a webhook", async ({ page }) => {
 
   await expect(row).toContainText("http://nginx/hooks/second");
   await expect(row).toContainText("created, edited");
-  await page.reload();
+  await reload(page);
   await expect(row).toContainText("http://nginx/hooks/second");
   const { webhooks } = await trpc.webhooks.list.query();
   expect(webhooks).toHaveLength(1);
@@ -257,7 +259,7 @@ it(
     const tag = await trpc.tags.create.mutate({ name: "inbox" });
     await signIn(page, email);
 
-    await page.goto("/settings/rules");
+    await goto(page, "/settings/rules");
     await expect(page.getByText("No rules created yet")).toBeVisible();
     await page
       .getByRole("button", { name: "Create Rule", exact: true })
@@ -318,7 +320,7 @@ it(
     await ruleCard.getByRole("switch").click();
     await expect(page.getByText("Rule has been updated!")).toBeVisible();
     await expect(ruleCard.getByRole("switch")).not.toBeChecked();
-    await page.reload();
+    await reload(page);
     await expect(ruleCard.getByRole("switch")).not.toBeChecked();
     expect((await trpc.rules.list.query()).rules[0].enabled).toBe(false);
 

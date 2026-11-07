@@ -5,7 +5,9 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import {
   createWebTestUser,
+  goto,
   it,
+  reload,
   signIn,
   WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
@@ -67,7 +69,7 @@ async function seedHighlight(
 // Opens the bookmark's preview page and switches it to the reader view (the
 // test page has a screenshot, which is the default preview).
 async function openReaderView(page: Page, bookmarkId: string) {
-  await page.goto(`/dashboard/preview/${bookmarkId}`);
+  await goto(page, `/dashboard/preview/${bookmarkId}`);
   await page.getByRole("combobox").filter({ hasText: "Screenshot" }).click();
   await page.getByRole("option", { name: "Reader View" }).click();
   await expect(page).toHaveURL(/section=cached/);
@@ -150,7 +152,7 @@ it(
       color: "yellow",
     });
 
-    await page.reload();
+    await reload(page);
     await expect(mark).toHaveText("World");
     await expect(highlightCard(page, "World")).toContainText(
       "The classic greeting",
@@ -214,7 +216,7 @@ it(
       0,
     );
 
-    await page.reload();
+    await reload(page);
     await expect(heading).toBeVisible();
     await expect(mark).toHaveCount(0);
     const { highlights } = await user.trpc.highlights.getForBookmark.query({
@@ -233,7 +235,7 @@ it(
     await seedHighlight(user, bookmarkId, htmlContent, "World", "Drop this");
     await signIn(page, user.email);
 
-    await page.goto("/dashboard/highlights");
+    await goto(page, "/dashboard/highlights");
     const keep = highlightCard(page, "Hello");
     const drop = highlightCard(page, "World");
     await expect(keep).toContainText("Keep this");
@@ -245,7 +247,7 @@ it(
     await expect(drop).toHaveCount(0);
     await expect(keep).toBeVisible();
 
-    await page.reload();
+    await reload(page);
     await expect(keep).toContainText("Keep this");
     await expect(drop).toHaveCount(0);
     const { highlights } = await user.trpc.highlights.getForBookmark.query({

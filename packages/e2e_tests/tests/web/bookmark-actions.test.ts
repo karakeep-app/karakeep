@@ -5,16 +5,18 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import {
   bookmarkCards,
+  bookmarkEditor,
   createWebTestUser,
+  goto,
   it,
+  reload,
   signIn,
+  waitForHydration,
   waitForTaggingToFinish,
   WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
 
 type WebTestUser = Awaited<ReturnType<typeof createWebTestUser>>;
-
-const EDITOR_PLACEHOLDER = "Paste a link, write a note or drop an image…";
 
 // Creates a user with one text bookmark per entry in `texts`.
 async function seedTextBookmarks(texts: string[]) {
@@ -107,7 +109,7 @@ it("edits a bookmark's title from the card menu", async ({ page }) => {
   await expect(dialog).toHaveCount(0);
   await expect(card).toContainText("Meetup recap");
 
-  await page.reload();
+  await reload(page);
   await expect(card).toContainText("Meetup recap");
   const [bookmark] = await getBookmarks(user, user.ids);
   expect(bookmark.title).toBe("Meetup recap");
@@ -117,17 +119,19 @@ it("adds and edits a note on the preview page", async ({ page }) => {
   const user = await seedTextBookmarks(["A recipe for pancakes"]);
   await signInAndWaitForCards(page, user.email, user.ids.length);
   const [bookmarkId] = user.ids;
-  await page.goto(`/dashboard/preview/${bookmarkId}`);
+  await goto(page, `/dashboard/preview/${bookmarkId}`);
   const note = page
     .getByPlaceholder("Write some notes ...")
     .filter({ visible: true });
+  await waitForHydration(note);
   await expect(note).toHaveValue("");
 
   // The note is saved when the textarea loses focus.
   await note.fill("Use buttermilk");
   await note.blur();
   await expect(page.getByText("The bookmark has been updated!")).toBeVisible();
-  await page.reload();
+  await reload(page);
+  await waitForHydration(note);
   await expect(note).toHaveValue("Use buttermilk");
 
   await note.fill("Use buttermilk and a pinch of salt");
@@ -135,22 +139,22 @@ it("adds and edits a note on the preview page", async ({ page }) => {
   await expect
     .poll(async () => (await getBookmarks(user, [bookmarkId]))[0].note)
     .toBe("Use buttermilk and a pinch of salt");
-  await page.reload();
+  await reload(page);
   await expect(note).toHaveValue("Use buttermilk and a pinch of salt");
 });
 
 it("creates a text note from the editor card", async ({ page }) => {
   const user = await createWebTestUser();
   await signIn(page, user.email);
-  await page.getByPlaceholder(EDITOR_PLACEHOLDER).fill("Call the plumber");
+  await bookmarkEditor(page).fill("Call the plumber");
   await page.getByRole("button", { name: /^Save/ }).click();
 
   const card = bookmarkCards(page);
   await expect(card).toHaveCount(1);
   await expect(card).toContainText("Call the plumber");
-  await expect(page.getByPlaceholder(EDITOR_PLACEHOLDER)).toHaveValue("");
+  await expect(bookmarkEditor(page)).toHaveValue("");
 
-  await page.reload();
+  await reload(page);
   await expect(card).toContainText("Call the plumber");
   const { bookmarks } = await user.trpc.bookmarks.getBookmarks.query({});
   expect(bookmarks).toHaveLength(1);
@@ -216,8 +220,8 @@ it("selects all bookmarks and deletes them in bulk", async ({ page }) => {
     .click();
   await expect(bookmarkCards(page)).toHaveCount(0);
 
-  await page.reload();
-  await expect(page.getByPlaceholder(EDITOR_PLACEHOLDER)).toBeVisible();
+  await reload(page);
+  await expect(bookmarkEditor(page)).toBeVisible();
   await expect(bookmarkCards(page)).toHaveCount(0);
   const { bookmarks } = await user.trpc.bookmarks.getBookmarks.query({});
   expect(bookmarks).toHaveLength(0);
@@ -251,7 +255,7 @@ it("adds the selected bookmarks to a list in bulk", async ({ page }) => {
     user.ids.slice(0, 2).sort(),
   );
 
-  await page.goto(`/dashboard/lists/${list.id}`);
+  await goto(page, `/dashboard/lists/${list.id}`);
   await expect(bookmarkCards(page)).toHaveCount(2);
   await expect(cardWithText(page, "Grocery list")).toHaveCount(0);
 });
@@ -296,7 +300,7 @@ it(
     for (const id of user.ids) {
       await waitForTaggingToFinish(user.trpc, id);
     }
-    await page.reload();
+    await reload(page);
     await expect(cardWithText(page, "Sourdough starter")).toContainText(
       "baking",
     );

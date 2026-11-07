@@ -6,7 +6,9 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   bookmarkCards,
   createWebTestUser,
+  goto,
   it,
+  reload,
   signIn,
   waitForTaggingToFinish,
   WORKER_TEST_TIMEOUT,
@@ -118,7 +120,7 @@ it(
       card.getByRole("link", { name: "obsolete", exact: true }),
     ).toHaveCount(0);
 
-    await page.reload();
+    await reload(page);
     await expect(
       card.getByRole("link", { name: "conference-2026", exact: true }),
     ).toBeVisible();
@@ -174,7 +176,7 @@ it("creates a tag from the tags page", async ({ page }) => {
   // A freshly created tag isn't attached to anything yet.
   const tagPill = page.getByRole("link", { name: /^someday\s*0$/ });
   await expect(tagPill).toBeVisible();
-  await page.reload();
+  await reload(page);
   await expect(tagPill).toBeVisible();
   const tag = await getTagByName(trpc, "someday");
   expect(tag?.numBookmarks).toBe(0);
@@ -187,7 +189,7 @@ it("deletes a tag from the tags page", async ({ page }) => {
     "keeper",
   ]);
   await signIn(page, email);
-  await page.goto("/dashboard/tags");
+  await goto(page, "/dashboard/tags");
 
   const stalePill = page.getByRole("link", { name: /^stale\s*1$/ });
   await stalePill.hover();
@@ -198,7 +200,7 @@ it("deletes a tag from the tags page", async ({ page }) => {
   await expect(dialog).not.toBeVisible();
   await expect(stalePill).toHaveCount(0);
 
-  await page.reload();
+  await reload(page);
   await expect(page.getByRole("link", { name: /^keeper\s*1$/ })).toBeVisible();
   await expect(stalePill).toHaveCount(0);
   expect(await getTagByName(trpc, "stale")).toBeUndefined();
@@ -214,7 +216,7 @@ it(
     await waitForTaggingToFinish(trpc, chapter.id);
     const draft = await getTagByName(trpc, "draft");
     await signIn(page, email);
-    await page.goto(`/dashboard/tags/${draft!.id}`);
+    await goto(page, `/dashboard/tags/${draft!.id}`);
 
     await openTagOptions(page, "draft");
     await page.getByRole("menuitem", { name: "Rename", exact: true }).click();
@@ -230,7 +232,7 @@ it(
       exact: true,
     });
     await expect(heading).toBeVisible();
-    await page.reload();
+    await reload(page);
     await expect(heading).toBeVisible();
     const card = bookmarkCards(page);
     await expect(card).toHaveCount(1);
@@ -250,7 +252,7 @@ it("merges a tag into another from its tag page", async ({ page }) => {
   const js = await getTagByName(trpc, "js");
   const javascript = await getTagByName(trpc, "javascript");
   await signIn(page, email);
-  await page.goto(`/dashboard/tags/${js!.id}`);
+  await goto(page, `/dashboard/tags/${js!.id}`);
 
   await openTagOptions(page, "js");
   await page.getByRole("menuitem", { name: "Merge", exact: true }).click();

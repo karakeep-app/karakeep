@@ -7,6 +7,7 @@ import {
   bookmarkCards,
   createWebTestUser,
   it,
+  reload,
   signIn,
   WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
@@ -121,7 +122,7 @@ it(
     await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
 
     // The query lives in the URL, so it survives a reload.
-    await page.reload();
+    await reload(page);
     await expectResults(page, ["Pelican", "Narwhal", "Axolotl"]);
   },
 );

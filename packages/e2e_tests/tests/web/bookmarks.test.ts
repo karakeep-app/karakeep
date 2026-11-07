@@ -4,8 +4,10 @@ import { expect } from "playwright/test";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import {
+  bookmarkEditor,
   createWebTestUser,
   it,
+  reload,
   signIn,
   WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
@@ -29,9 +31,7 @@ it(
   async ({ page }) => {
     const { trpc, email } = await createWebTestUser();
     await signIn(page, email);
-    await page
-      .getByPlaceholder("Paste a link, write a note or drop an image…")
-      .fill("http://nginx/hello.html");
+    await bookmarkEditor(page).fill("http://nginx/hello.html");
     await page.getByRole("button", { name: /^Save/ }).click();
     const cards = page.locator("[data-bookmark-index]");
     await expect(cards).toHaveCount(1);
@@ -73,7 +73,7 @@ it("favorites a bookmark and shows it in Favourites", async ({ page }) => {
   await page.getByRole("link", { name: /Favourites/ }).click();
   await expect(page).toHaveURL(/\/dashboard\/favourites$/);
   await expect(bookmark).toHaveText(/A bookmark for the weekend/);
-  await page.reload();
+  await reload(page);
   await bookmark.hover();
   await expect(
     bookmark.getByRole("button", { name: "Unfavorite", exact: true }),
@@ -88,7 +88,7 @@ it("archives a bookmark and shows it in Archive", async ({ page }) => {
   await page.getByRole("link", { name: "Archive", exact: true }).click();
   await expect(page).toHaveURL(/\/dashboard\/archive$/);
   await expect(bookmark).toHaveText(/A bookmark for the weekend/);
-  await page.reload();
+  await reload(page);
   await bookmark.hover();
   await expect(
     bookmark.getByRole("button", { name: "Un-archive", exact: true }),
@@ -104,9 +104,7 @@ it("deletes a bookmark after confirmation", async ({ page }) => {
     .getByRole("button", { name: "Delete", exact: true })
     .click();
   await expect(bookmark).toHaveCount(0);
-  await page.reload();
-  await expect(
-    page.getByPlaceholder("Paste a link, write a note or drop an image…"),
-  ).toBeVisible();
+  await reload(page);
+  await expect(bookmarkEditor(page)).toBeVisible();
   await expect(bookmark).toHaveCount(0);
 });
