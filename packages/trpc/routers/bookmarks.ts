@@ -1225,6 +1225,10 @@ export const bookmarksAppRouter = router({
     .input(
       z.object({
         url: z.string(),
+        // When true, a bookmark whose URL only differs in its query string
+        // (e.g. `?modelVersionId=...` or `&t=123`) is also considered a match.
+        // An exact match (ignoring hash and trailing slash) is always preferred.
+        ignoreQuery: z.boolean().optional().default(false),
       }),
     )
     .output(
@@ -1233,10 +1237,14 @@ export const bookmarksAppRouter = router({
       }),
     )
     .query(async ({ input, ctx }) => {
-      // Normalize and compare URLs (ignoring hash fragment and trailing slash)
-      function normalizeUrl(url: string): string {
+      // Normalize and compare URLs (ignoring hash fragment and trailing slash,
+      // and optionally the query string)
+      function normalizeUrl(url: string, stripQuery = false): string {
         const u = new URL(url);
         u.hash = "";
+        if (stripQuery) {
+          u.search = "";
+        }
         let pathname = u.pathname;
         if (pathname.endsWith("/") && pathname !== "/") {
           pathname = pathname.slice(0, -1);
@@ -1245,8 +1253,26 @@ export const bookmarksAppRouter = router({
         return u.toString();
       }
 
-      // Strip hash before querying so the LIKE clause can match
+      function safeNormalizeUrl(
+        url: string | null,
+        stripQuery = false,
+      ): string | null {
+        if (!url) {
+          return null;
+        }
+        try {
+          return normalizeUrl(url, stripQuery);
+        } catch {
+          return null;
+        }
+      }
+
+      // Strip hash (and optionally the query) before querying so the LIKE
+      // clause can match
       const normalizedInput = normalizeUrl(input.url);
+      const likePrefix = input.ignoreQuery
+        ? normalizeUrl(input.url, true)
+        : normalizedInput;
 
       const results = await ctx.db
         .select({ id: bookmarkLinks.id, url: bookmarkLinks.url })
@@ -1255,7 +1281,7 @@ export const bookmarksAppRouter = router({
         .where(
           and(
             eq(bookmarks.userId, ctx.user.id),
-            like(bookmarkLinks.url, `${normalizedInput}%`),
+            like(bookmarkLinks.url, `${likePrefix}%`),
           ),
         );
 
@@ -1264,10 +1290,16 @@ export const bookmarksAppRouter = router({
       }
 
       const exactMatch = results.find(
-        (r) => r.url && normalizeUrl(r.url) === normalizedInput,
+        (r) => safeNormalizeUrl(r.url) === normalizedInput,
       );
+      if (exactMatch || !input.ignoreQuery) {
+        return { bookmarkId: exactMatch?.id ?? null };
+      }
 
-      return { bookmarkId: exactMatch?.id ?? null };
+      const queryInsensitiveMatch = results.find(
+        (r) => safeNormalizeUrl(r.url, true) === likePrefix,
+      );
+      return { bookmarkId: queryInsensitiveMatch?.id ?? null };
     }),
   getBookmarks: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
