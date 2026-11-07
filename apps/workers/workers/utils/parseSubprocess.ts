@@ -1,4 +1,4 @@
-// Runs the HTML parsing (metadata extraction + readability) in a separate
+// Runs the HTML parsing (metadata extraction + Defuddle content extraction) in a separate
 // node process with a bounded heap, so a pathological page can't OOM the
 // worker itself.
 import * as fs from "node:fs/promises";
