@@ -1,0 +1,70 @@
+import { describe, expect, it } from "vitest";
+
+import { stashInlineImages } from "./inlineImages";
+
+function base64Image(length: number, type = "png") {
+  return `data:image/${type};base64,${"A".repeat(length)}`;
+}
+
+describe("stashInlineImages", () => {
+  it("replaces large inline images and restores them in the output", () => {
+    const large = base64Image(50_000);
+    const html = `<article><p>Text</p><img src="${large}" alt="a"></article>`;
+
+    const stash = stashInlineImages(html, 1024);
+
+    expect(stash.count).toBe(1);
+    expect(stash.bytes).toBe(large.length);
+    expect(stash.htmlContent).not.toContain("base64");
+    expect(stash.htmlContent.length).toBeLessThan(200);
+    expect(stash.restore(stash.htmlContent)).toBe(html);
+  });
+
+  it("keeps small inline images such as lazy-load placeholders", () => {
+    const tiny = base64Image(60, "gif");
+    const html = `<img src="${tiny}" data-src="https://example.com/a.png">`;
+
+    const stash = stashInlineImages(html, 1024);
+
+    expect(stash.count).toBe(0);
+    expect(stash.htmlContent).toBe(html);
+  });
+
+  it("restores each image in its own place, including inside JSON", () => {
+    const first = base64Image(2048, "jpeg");
+    const second = base64Image(4096, "webp");
+    const stash = stashInlineImages(
+      `<img src="${first}"><img srcset="${second} 2x">`,
+      1024,
+    );
+
+    const output = JSON.stringify({
+      readableContent: { content: stash.htmlContent },
+      metadata: { image: stash.htmlContent.match(/https:[^"\s]+/)![0] },
+    });
+    const restored = JSON.parse(stash.restore(output));
+
+    expect(restored.readableContent.content).toBe(
+      `<img src="${first}"><img srcset="${second} 2x">`,
+    );
+    expect(restored.metadata.image).toBe(first);
+  });
+
+  it("leaves non-image and non-base64 data URIs alone", () => {
+    const svg = `data:image/svg+xml;utf8,<svg>${"x".repeat(5000)}</svg>`;
+    const font = `data:font/woff2;base64,${"A".repeat(5000)}`;
+    const html = `<img src='${svg}'><style>@font-face{src:url(${font})}</style>`;
+
+    const stash = stashInlineImages(html, 1024);
+
+    expect(stash.count).toBe(0);
+    expect(stash.htmlContent).toBe(html);
+  });
+
+  it("doesn't touch text that looks like a placeholder from another run", () => {
+    const first = stashInlineImages(`<img src="${base64Image(2048)}">`, 1024);
+    const second = stashInlineImages(`<img src="${base64Image(2048)}">`, 1024);
+
+    expect(second.restore(first.htmlContent)).toBe(first.htmlContent);
+  });
+});
