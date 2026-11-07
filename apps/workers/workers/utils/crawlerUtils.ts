@@ -63,8 +63,13 @@ export function withDownloadTimeout(
   jobSignal: AbortSignal,
   timeoutSec: number,
 ): AbortSignal {
-  if (!(timeoutSec > 0)) {
+  if (!(timeoutSec > 0) || !Number.isFinite(timeoutSec)) {
     return jobSignal;
   }
-  return AbortSignal.any([jobSignal, AbortSignal.timeout(timeoutSec * 1000)]);
+  // AbortSignal.timeout only takes whole milliseconds that fit in 32 bits.
+  const timeoutMs = Math.min(
+    Math.max(1, Math.round(timeoutSec * 1000)),
+    0xffffffff,
+  );
+  return AbortSignal.any([jobSignal, AbortSignal.timeout(timeoutMs)]);
 }

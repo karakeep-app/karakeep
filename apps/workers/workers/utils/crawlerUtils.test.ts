@@ -55,7 +55,17 @@ describe("withDownloadTimeout", () => {
     expect(signal.reason).toBe(reason);
   });
 
-  it.each([0, -1, Number.NaN])(
+  it.each([0.0015, 1.2345, 0.0001, 1e12])(
+    "accepts a budget of %s seconds",
+    (timeoutSec) => {
+      const job = new AbortController();
+      const signal = withDownloadTimeout(job.signal, timeoutSec);
+      expect(signal).not.toBe(job.signal);
+      expect(signal.aborted).toBe(false);
+    },
+  );
+
+  it.each([0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
     "returns the job signal itself for a budget of %s",
     (timeoutSec) => {
       const job = new AbortController();
