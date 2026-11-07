@@ -19,16 +19,17 @@ export default function SortOrderToggle() {
   const isInSearchPage = useInSearchPageStore((state) => state.inSearchPage);
   const { effectiveSearchMode } = useBookmarkSearchState();
 
-  const { sortOrder: currentSort, setSortOrder } = useSortOrderStore();
+  const {
+    sortOrder: currentSort,
+    defaultSortOrder,
+    setSortOrder,
+  } = useSortOrderStore();
 
-  // also see related on page enter sortOrder.relevance init
-  // in apps/web/app/dashboard/search/page.tsx
   useEffect(() => {
     if (!isInSearchPage && currentSort === "relevance") {
-      // reset to default sort order
-      setSortOrder("desc");
+      setSortOrder(defaultSortOrder);
     }
-  }, [isInSearchPage, currentSort, setSortOrder]);
+  }, [isInSearchPage, currentSort, defaultSortOrder, setSortOrder]);
 
   if (isInSearchPage && effectiveSearchMode !== "fts") {
     return null;
