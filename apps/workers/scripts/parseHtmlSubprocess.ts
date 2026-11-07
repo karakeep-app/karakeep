@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 
-import { Readability } from "@mozilla/readability";
+import { DefuddleClass } from "defuddle/node";
 import DOMPurify from "dompurify";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -75,9 +75,9 @@ const metascraperParser = metascraper([
  * standard `src` attribute (e.g. WeChat's data-src, data-actualsrc, data-srv, or
  * the common data-original / data-lazy patterns used by jQuery plugins).
  *
- * Readability and DOMPurify both operate on the DOM, so images with no `src` are
+ * Defuddle and DOMPurify both operate on the DOM, so images with no `src` are
  * either ignored or their placeholders are stripped.  We normalise these attributes
- * to `src` *before* passing the document to Readability so that the extracted
+ * to `src` *before* passing the document to Defuddle so that the extracted
  * article retains the actual image URLs.
  */
 const LAZY_SRC_ATTRS = [
@@ -132,6 +132,30 @@ function normalizeLazyLoadImages(document: Document): void {
   }
 }
 
+/**
+ * Extracts the main content with Defuddle. Its async extractors (YouTube
+ * transcripts, Reddit/X/Bilibili APIs, ...) stay disabled: they make their own
+ * HTTP requests, which would bypass the crawler's proxy settings. The sync
+ * parse() never calls them; the throwing fetch is a backstop in case a future
+ * version adds a network call to the sync path.
+ */
+function runDefuddle(
+  document: Document,
+  url: string,
+): { content: string } | null {
+  const result = new DefuddleClass(document, {
+    url,
+    useAsync: false,
+    fetch: () => {
+      throw new Error("Defuddle attempted a network request");
+    },
+  }).parse();
+  if (!result.content?.trim()) {
+    return null;
+  }
+  return { content: result.content };
+}
+
 function extractReadableContent(
   htmlContent: string,
   url: string,
@@ -144,8 +168,8 @@ function extractReadableContent(
   try {
     normalizeLazyLoadImages(dom.window.document);
     const documentClone = dom.window.document.cloneNode(true) as Document;
-    const readableContent = new Readability(documentClone).parse();
-    if (!readableContent || typeof readableContent.content !== "string") {
+    const readableContent = runDefuddle(documentClone, url);
+    if (!readableContent) {
       return {
         readableContent: null,
         readerViewAssessment: unavailableReaderViewAssessment(),
@@ -244,7 +268,7 @@ async function main() {
 
   logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
 
-  // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
+  // Conditionally run Defuddle (skip if metascraper already provided readable content, e.g. Reddit plugin)
   let readableContent: { content: string } | null = null;
   let readerViewAssessment: ReaderViewAssessment | null = null;
   if (!metadataOnly && meta.readableContentHtml) {

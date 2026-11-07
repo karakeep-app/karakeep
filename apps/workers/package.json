@@ -23,6 +23,7 @@
     "better-sqlite3": "^13.0.3",
     "cheerio": "^1.2.0",
     "data-uri-to-buffer": "^4.0.1",
+    "defuddle": "0.19.6",
     "dompurify": "^3.4.17",
     "dotenv": "^16.4.1",
     "drizzle-orm": "^0.45.4",
