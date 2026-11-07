@@ -25,6 +25,7 @@ import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
 import { getRandomProxy } from "../network";
+import { normalizeCodeSnippets } from "../workers/utils/normalizeCodeSnippets";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
@@ -143,6 +144,7 @@ function extractReadableContent(
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
   try {
     normalizeLazyLoadImages(dom.window.document);
+    normalizeCodeSnippets(dom.window.document);
     const documentClone = dom.window.document.cloneNode(true) as Document;
     const readableContent = new Readability(documentClone).parse();
     if (!readableContent || typeof readableContent.content !== "string") {
