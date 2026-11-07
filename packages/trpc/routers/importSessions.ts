@@ -57,7 +57,7 @@ export const importSessionsRouter = router({
     .input(zCreateImportSessionRequestSchema)
     .output(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      if (input.rootListId) {
+      if (input.rootListId !== undefined) {
         // The import worker adds every imported bookmark to the root list, so
         // the user must be able to add bookmarks to it.
         const list = await List.fromId(ctx, input.rootListId);

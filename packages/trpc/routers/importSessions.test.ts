@@ -469,6 +469,13 @@ describe("ImportSessions Routes", () => {
         rootListId: "nonexistent-list-id",
       }),
     ).rejects.toThrow("List not found");
+
+    await expect(
+      apiCallers[0].importSessions.createImportSession({
+        name: "Empty List Id Session",
+        rootListId: "",
+      }),
+    ).rejects.toThrow("List not found");
   });
 
   test<CustomTestContext>("cannot create session with a smart root list", async ({
