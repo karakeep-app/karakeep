@@ -16,13 +16,21 @@ import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import type { ZTagBasic } from "@karakeep/shared/types/tags";
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
+// The generator can seed either a local build of HEAD or a released image
+// (`--release 0.32.0`). Releases are seeded through the same tRPC client, so
+// everything below must only use procedures and inputs that exist in every
+// release we snapshot (currently v0.32.0 and later).
+
 type TrpcClient = ReturnType<typeof getTrpcClient>;
 type CrawlStatus = NonNullable<ZBookmarkedLink["crawlStatus"]>;
 
 const PASSWORD = "test1234";
+const RELEASE_IMAGE_REPO = "ghcr.io/karakeep-app/karakeep";
+const LOCAL_IMAGE = "karakeep-seed-snapshot:local";
+
 const USER_DATASETS = {
   test1: {
-    tagNames: ["research", "docs", "product"],
+    tagNames: ["research", "docs", "product", "unused"],
     urls: [
       "https://www.nasa.gov/",
       "https://www.nationalgeographic.com/",
@@ -45,6 +53,40 @@ const USER_DATASETS = {
       "https://www.postgresql.org/docs/current/index.html",
       "https://docs.docker.com/get-started/",
     ],
+    texts: [
+      {
+        title: "Seed snapshot note 1",
+        text: "Karakeep keeps everything in one place. The quick brown fox jumps over the lazy dog, and the highlights in this note should survive every upgrade.",
+        note: "A text bookmark with highlights",
+        highlights: [
+          { text: "quick brown fox", color: "yellow", note: null },
+          {
+            text: "survive every upgrade",
+            color: "green",
+            note: "The whole point of this snapshot",
+          },
+          { text: "Karakeep", color: "blue", note: null },
+        ],
+      },
+      {
+        title: "Seed snapshot note 2",
+        text: "# Markdown note\n\n- first item\n- second item\n\nSome **bold** text and a [link](https://karakeep.app).",
+        note: null,
+        highlights: [],
+      },
+    ],
+    assets: [
+      {
+        kind: "image",
+        fileName: "seed-pixel.png",
+        title: "Seed snapshot image",
+      },
+      {
+        kind: "pdf",
+        fileName: "seed-document.pdf",
+        title: "Seed snapshot PDF",
+      },
+    ],
     lists: {
       root: "Reading Queue",
       child: "Reference",
@@ -60,6 +102,15 @@ const USER_DATASETS = {
       "https://web.dev/",
       "https://www.raspberrypi.com/products/raspberry-pi-5/",
     ],
+    texts: [
+      {
+        title: "Seed snapshot note 3",
+        text: "Notes from the engineering sync: ship the migration tests before the next release.",
+        note: "Owned by test2",
+        highlights: [],
+      },
+    ],
+    assets: [],
     lists: {
       root: "Workbench",
       child: "Deep Dives",
@@ -85,11 +136,17 @@ const USERS = [
   { email: "test3@example.com", name: "Seed Test 3", datasetKey: null },
 ] as const;
 
+// A 1x1 PNG, small enough to inline.
+const PIXEL_PNG_BASE64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
+
 interface SeededBookmark {
   id: string;
-  url: string;
+  type: "link" | "text" | "asset";
+  url: string | null;
   title: string;
   crawlStatus: CrawlStatus | null;
+  note: string | null;
 }
 
 interface SeededUserManifest {
@@ -102,6 +159,12 @@ interface SeededUserManifest {
     tags: number;
     manualLists: number;
     smartLists: number;
+    highlights: number;
+    rules: number;
+    prompts: number;
+    feeds: number;
+    webhooks: number;
+    importSessions: number;
   };
   bookmarks: SeededBookmark[];
   tags: string[];
@@ -111,13 +174,38 @@ interface SeededUserManifest {
     parentName: string | null;
     query: string | null;
   }>;
+  highlights: Array<{ bookmarkTitle: string; text: string; color: string }>;
+  readingProgress: Array<{ bookmarkTitle: string; percent: number }>;
+}
+
+interface SharingManifest {
+  ownerEmail: string;
+  listName: string;
+  collaborators: Array<{
+    email: string;
+    role: "viewer" | "editor";
+    status: "accepted" | "pending";
+  }>;
+  bookmarksAddedByCollaborators: Array<{ email: string; title: string }>;
 }
 
 interface SnapshotManifest {
   createdAt: string;
+  // The Karakeep version whose image generated the data, or "dev" for a
+  // local build of the working tree.
+  karakeepVersion: string;
+  image: string;
+  // The commit the data was generated from: the release tag's commit, or HEAD
+  // for local builds.
   sourceCommit: string | null;
+  generatorCommit: string | null;
   archive: string;
   users: SeededUserManifest[];
+  sharing: SharingManifest[];
+}
+
+interface Options {
+  release: string | null;
 }
 
 function logStep(title: string): void {
@@ -138,6 +226,31 @@ function logWarn(message: string): void {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function parseOptions(argv: string[]): Options {
+  let release = process.env.SEED_SNAPSHOT_RELEASE ?? null;
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--release") {
+      release = argv[++i] ?? null;
+    } else if (arg.startsWith("--release=")) {
+      release = arg.slice("--release=".length);
+    } else if (arg === "--") {
+      continue;
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+  }
+  if (release !== null) {
+    release = release.replace(/^v/, "");
+    if (!/^\d+\.\d+\.\d+$/.test(release)) {
+      throw new Error(
+        `--release expects a version like 0.32.0, got "${release}"`,
+      );
+    }
+  }
+  return { release };
 }
 
 async function waitUntil(
@@ -170,19 +283,22 @@ async function getRandomPort(): Promise<number> {
   });
 }
 
-function getTrpcClient(
-  apiKey?: string,
-): ReturnType<typeof createTRPCClient<AppRouter>> {
+function getBaseUrl(): string {
   const port = process.env.KARAKEEP_PORT;
   if (!port) {
     throw new Error("KARAKEEP_PORT is not set. Did you start the containers?");
   }
+  return `http://localhost:${port}`;
+}
 
+function getTrpcClient(
+  apiKey?: string,
+): ReturnType<typeof createTRPCClient<AppRouter>> {
   return createTRPCClient<AppRouter>({
     links: [
       httpBatchLink({
         transformer: superjson,
-        url: `http://localhost:${port}/api/trpc`,
+        url: `${getBaseUrl()}/api/trpc`,
         headers() {
           return {
             authorization: apiKey ? `Bearer ${apiKey}` : undefined,
@@ -229,20 +345,36 @@ async function captureDockerLogs(
   }
 }
 
-async function startContainers(composeDir: string, dataDir: string) {
+async function startContainers(
+  composeDir: string,
+  dataDir: string,
+  image: string,
+  options: Options,
+) {
   const port = await getRandomPort();
   const skipBuild =
     process.env.SEED_SNAPSHOT_NO_BUILD === "1" ||
     process.env.SEED_SNAPSHOT_SKIP_BUILD === "1";
-  const buildArg = skipBuild ? "" : "--build";
   const composeEnv = {
     ...process.env,
     KARAKEEP_PORT: String(port),
     SEED_SNAPSHOT_DATA_DIR: dataDir,
+    SEED_SNAPSHOT_IMAGE: image,
   };
 
+  let upArgs: string;
+  if (options.release) {
+    // Released images are pulled explicitly so compose never falls back to
+    // building the working tree under the release's tag.
+    logStep(`Pulling ${image}`);
+    execFileSync("docker", ["pull", image], { stdio: "inherit" });
+    upArgs = "--no-build";
+  } else {
+    upArgs = skipBuild ? "" : "--build";
+  }
+
   logStep(`Starting docker compose on port ${port}`);
-  execSync(`docker compose up ${buildArg} -d`, {
+  execSync(`docker compose up ${upArgs} -d`, {
     cwd: composeDir,
     stdio: "inherit",
     env: composeEnv,
@@ -284,13 +416,39 @@ async function startContainers(composeDir: string, dataDir: string) {
   };
 }
 
+// Releases before better-auth (< 0.34) signed users up through the
+// `users.create` tRPC procedure. It no longer exists in AppRouter, so it's
+// called over plain HTTP. Returns false if the server doesn't have it.
+async function signUpUserLegacy(input: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<boolean> {
+  const response = await fetch(`${getBaseUrl()}/api/trpc/users.create`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      json: { ...input, confirmPassword: input.password },
+    }),
+  });
+  if (response.status === 404) {
+    return false;
+  }
+  if (!response.ok) {
+    throw new Error(
+      `Failed to sign up ${input.email}: ${response.status} ${await response.text()}`,
+    );
+  }
+  return true;
+}
+
 // Signs up through better-auth's endpoint, the same way the web app does.
-async function signUpUser(input: {
+async function signUpUserBetterAuth(input: {
   name: string;
   email: string;
   password: string;
 }) {
-  const baseUrl = `http://localhost:${process.env.KARAKEEP_PORT}`;
+  const baseUrl = getBaseUrl();
   const response = await fetch(`${baseUrl}/api/auth/sign-up/email`, {
     method: "POST",
     headers: {
@@ -312,9 +470,14 @@ async function createUser(
   authlessClient: TrpcClient,
   email: string,
   name: string,
-): Promise<TrpcClient> {
+): Promise<{ client: TrpcClient; apiKey: string }> {
   logInfo(`Creating ${email}`);
-  await signUpUser({ name, email, password: PASSWORD });
+  const input = { name, email, password: PASSWORD };
+  if (await signUpUserLegacy(input)) {
+    logInfo("Signed up through the legacy users.create procedure");
+  } else {
+    await signUpUserBetterAuth(input);
+  }
 
   const keyName = `seed-snapshot-${email}`;
   const { key } = await authlessClient.apiKeys.exchange.mutate({
@@ -323,7 +486,32 @@ async function createUser(
     keyName,
   });
 
-  return getTrpcClient(key);
+  return { client: getTrpcClient(key), apiKey: key };
+}
+
+async function uploadAsset(
+  apiKey: string,
+  file: { bytes: Uint8Array; fileName: string; contentType: string },
+): Promise<string> {
+  const form = new FormData();
+  form.append(
+    "file",
+    new File([new Uint8Array(file.bytes)], file.fileName, {
+      type: file.contentType,
+    }),
+  );
+  const response = await fetch(`${getBaseUrl()}/api/assets`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${apiKey}` },
+    body: form,
+  });
+  if (!response.ok) {
+    throw new Error(
+      `Failed to upload ${file.fileName}: ${response.status} ${await response.text()}`,
+    );
+  }
+  const { assetId } = (await response.json()) as { assetId: string };
+  return assetId;
 }
 
 async function seedTags(
@@ -381,12 +569,14 @@ async function createLists(
   };
 }
 
-async function createBookmarks(
+async function createLinkBookmarks(
   client: TrpcClient,
   dataset: UserDataset,
   tags: ZTagBasic[],
   lists: ZBookmarkList[],
 ): Promise<SeededBookmark[]> {
+  // The "unused" tag is left unattached on purpose.
+  const attachableTags = tags.filter((tag) => tag.name !== "unused");
   const bookmarks: SeededBookmark[] = [];
   for (const [index, url] of dataset.urls.entries()) {
     const bookmark = await client.bookmarks.createBookmark.mutate({
@@ -401,8 +591,8 @@ async function createBookmarks(
     });
 
     const attachedTags = [
-      tags[index % tags.length],
-      tags[(index + 1) % tags.length],
+      attachableTags[index % attachableTags.length],
+      attachableTags[(index + 1) % attachableTags.length],
     ];
     await client.bookmarks.updateTags.mutate({
       bookmarkId: bookmark.id,
@@ -418,14 +608,130 @@ async function createBookmarks(
       bookmarkId: bookmark.id,
     });
 
+    let note: string | null = null;
+    if (index % 3 === 0) {
+      note = `Seed note for bookmark ${index + 1}`;
+      await client.bookmarks.updateBookmark.mutate({
+        bookmarkId: bookmark.id,
+        note,
+      });
+    }
+
     bookmarks.push({
       id: bookmark.id,
+      type: "link",
       url,
       title: bookmark.title ?? `Seed snapshot bookmark ${index + 1}`,
       crawlStatus: null,
+      note,
     });
   }
   return bookmarks;
+}
+
+async function createTextBookmarks(
+  client: TrpcClient,
+  dataset: UserDataset,
+  tags: ZTagBasic[],
+): Promise<SeededBookmark[]> {
+  const bookmarks: SeededBookmark[] = [];
+  for (const [index, entry] of dataset.texts.entries()) {
+    const bookmark = await client.bookmarks.createBookmark.mutate({
+      type: BookmarkTypes.TEXT,
+      text: entry.text,
+      title: entry.title,
+      source: "web",
+      ...(entry.note ? { note: entry.note } : {}),
+      createdAt: new Date(Date.UTC(2025, 1, index + 1, 12, 0, 0)),
+    });
+    await client.bookmarks.updateTags.mutate({
+      bookmarkId: bookmark.id,
+      attach: [{ tagId: tags[0].id, tagName: tags[0].name }],
+      detach: [],
+    });
+    bookmarks.push({
+      id: bookmark.id,
+      type: "text",
+      url: null,
+      title: entry.title,
+      crawlStatus: null,
+      note: entry.note,
+    });
+  }
+  return bookmarks;
+}
+
+async function createAssetBookmarks(
+  client: TrpcClient,
+  apiKey: string,
+  dataset: UserDataset,
+  repoRoot: string,
+): Promise<SeededBookmark[]> {
+  const bookmarks: SeededBookmark[] = [];
+  for (const [index, entry] of dataset.assets.entries()) {
+    const bytes =
+      entry.kind === "image"
+        ? Buffer.from(PIXEL_PNG_BASE64, "base64")
+        : await fs.readFile(
+            path.join(repoRoot, "packages/e2e_tests/fixtures/test.pdf"),
+          );
+    const assetId = await uploadAsset(apiKey, {
+      bytes,
+      fileName: entry.fileName,
+      contentType: entry.kind === "image" ? "image/png" : "application/pdf",
+    });
+    const bookmark = await client.bookmarks.createBookmark.mutate({
+      type: BookmarkTypes.ASSET,
+      assetType: entry.kind,
+      assetId,
+      fileName: entry.fileName,
+      title: entry.title,
+      source: "web",
+      createdAt: new Date(Date.UTC(2025, 2, index + 1, 12, 0, 0)),
+    });
+    bookmarks.push({
+      id: bookmark.id,
+      type: "asset",
+      url: null,
+      title: entry.title,
+      crawlStatus: null,
+      note: null,
+    });
+  }
+  return bookmarks;
+}
+
+async function createHighlights(
+  client: TrpcClient,
+  dataset: UserDataset,
+  textBookmarks: SeededBookmark[],
+): Promise<SeededUserManifest["highlights"]> {
+  const highlights: SeededUserManifest["highlights"] = [];
+  for (const [index, entry] of dataset.texts.entries()) {
+    const bookmark = textBookmarks[index];
+    for (const spec of entry.highlights) {
+      const startOffset = entry.text.indexOf(spec.text);
+      if (startOffset < 0) {
+        throw new Error(
+          `Highlight text "${spec.text}" not found in "${entry.title}"`,
+        );
+      }
+      await client.highlights.create.mutate({
+        bookmarkId: bookmark.id,
+        startOffset,
+        endOffset: startOffset + spec.text.length,
+        color: spec.color,
+        text: spec.text,
+        note: spec.note,
+      });
+      highlights.push({
+        bookmarkTitle: bookmark.title,
+        text: spec.text,
+        color: spec.color,
+      });
+    }
+  }
+  return highlights;
 }
 
 function getTerminalCrawlStatus(bookmark: ZBookmark): CrawlStatus | null {
@@ -440,7 +746,9 @@ async function waitForCrawls(
   client: TrpcClient,
   bookmarks: SeededBookmark[],
 ): Promise<void> {
-  const pending = new Set(bookmarks.map((bookmark) => bookmark.id));
+  const pending = new Set(
+    bookmarks.filter((b) => b.type === "link").map((bookmark) => bookmark.id),
+  );
   await waitUntil(
     async () => {
       for (const bookmark of bookmarks) {
@@ -464,72 +772,331 @@ async function waitForCrawls(
   );
 }
 
-async function seedUser(
+async function recordReadingProgress(
   client: TrpcClient,
-  user: (typeof USERS)[number],
-  dataset: UserDataset,
-): Promise<SeededUserManifest> {
-  logStep(`Seeding ${user.email}`);
-  const tags = await seedTags(client, dataset.tagNames);
-  const { manualLists, smartLists } = await createLists(client, dataset);
-  const bookmarks = await createBookmarks(client, dataset, tags, manualLists);
-  await waitForCrawls(client, bookmarks);
+  bookmarks: SeededBookmark[],
+): Promise<SeededUserManifest["readingProgress"]> {
+  const crawled = bookmarks
+    .filter((b) => b.type === "link" && b.crawlStatus === "success")
+    .slice(0, 2);
+  const progress: SeededUserManifest["readingProgress"] = [];
+  for (const [index, bookmark] of crawled.entries()) {
+    const percent = index === 0 ? 35 : 80;
+    await client.bookmarks.updateReadingProgress.mutate({
+      bookmarkId: bookmark.id,
+      readingProgressOffset: percent * 10,
+      readingProgressPercent: percent,
+    });
+    progress.push({ bookmarkTitle: bookmark.title, percent });
+  }
+  return progress;
+}
 
+function emptyManifest(email: string): SeededUserManifest {
   return {
-    email: user.email,
+    email,
     password: PASSWORD,
-    seeded: true,
-    apiKeyName: `seed-snapshot-${user.email}`,
+    seeded: false,
+    apiKeyName: `seed-snapshot-${email}`,
     counts: {
-      bookmarks: bookmarks.length,
-      tags: tags.length,
-      manualLists: manualLists.length,
-      smartLists: smartLists.length,
+      bookmarks: 0,
+      tags: 0,
+      manualLists: 0,
+      smartLists: 0,
+      highlights: 0,
+      rules: 0,
+      prompts: 0,
+      feeds: 0,
+      webhooks: 0,
+      importSessions: 0,
     },
-    bookmarks,
-    tags: tags.map((tag) => tag.name),
-    lists: [...manualLists, ...smartLists].map((list) => ({
-      name: list.name,
-      type: list.type,
-      parentName:
-        list.parentId === manualLists[0]?.id ? manualLists[0].name : null,
-      query: list.query ?? null,
-    })),
+    bookmarks: [],
+    tags: [],
+    lists: [],
+    highlights: [],
+    readingProgress: [],
   };
 }
 
-async function createUsersAndSeedData(): Promise<SeededUserManifest[]> {
+interface SeededUserState {
+  manifest: SeededUserManifest;
+  client: TrpcClient;
+  tags: ZTagBasic[];
+  manualLists: ZBookmarkList[];
+}
+
+async function seedUser(
+  client: TrpcClient,
+  apiKey: string,
+  user: (typeof USERS)[number],
+  dataset: UserDataset,
+  repoRoot: string,
+): Promise<SeededUserState> {
+  logStep(`Seeding ${user.email}`);
+  const tags = await seedTags(client, dataset.tagNames);
+  const { manualLists, smartLists } = await createLists(client, dataset);
+  const links = await createLinkBookmarks(client, dataset, tags, manualLists);
+  const texts = await createTextBookmarks(client, dataset, tags);
+  const assets = await createAssetBookmarks(client, apiKey, dataset, repoRoot);
+  const highlights = await createHighlights(client, dataset, texts);
+  const bookmarks = [...links, ...texts, ...assets];
+  await waitForCrawls(client, bookmarks);
+  const readingProgress = await recordReadingProgress(client, bookmarks);
+
+  const manifest = emptyManifest(user.email);
+  manifest.seeded = true;
+  manifest.bookmarks = bookmarks;
+  manifest.tags = tags.map((tag) => tag.name);
+  manifest.lists = [...manualLists, ...smartLists].map((list) => ({
+    name: list.name,
+    type: list.type,
+    parentName:
+      list.parentId === manualLists[0]?.id ? manualLists[0].name : null,
+    query: list.query ?? null,
+  }));
+  manifest.highlights = highlights;
+  manifest.readingProgress = readingProgress;
+  manifest.counts.bookmarks = bookmarks.length;
+  manifest.counts.tags = tags.length;
+  manifest.counts.manualLists = manualLists.length;
+  manifest.counts.smartLists = smartLists.length;
+  manifest.counts.highlights = highlights.length;
+
+  return { manifest, client, tags, manualLists };
+}
+
+// test1 shares its root list with test2 (accepted, editor) and test3
+// (pending, viewer). test2 then adds one of its own bookmarks to the list.
+async function seedSharing(
+  owner: SeededUserState,
+  editor: SeededUserState,
+  pendingViewer: { email: string },
+): Promise<SharingManifest> {
+  logStep("Seeding a shared list");
+  const list = owner.manualLists[0];
+  await owner.client.lists.addCollaborator.mutate({
+    listId: list.id,
+    email: editor.manifest.email,
+    role: "editor",
+  });
+  const invitations = await editor.client.lists.getPendingInvitations.query();
+  const invitation = invitations.find((inv) => inv.listId === list.id);
+  if (!invitation) {
+    throw new Error(`No pending invitation for ${editor.manifest.email}`);
+  }
+  await editor.client.lists.acceptInvitation.mutate({
+    invitationId: invitation.id,
+  });
+
+  await owner.client.lists.addCollaborator.mutate({
+    listId: list.id,
+    email: pendingViewer.email,
+    role: "viewer",
+  });
+
+  const editorBookmark = editor.manifest.bookmarks.find(
+    (b) => b.type === "link",
+  );
+  if (!editorBookmark) {
+    throw new Error(`${editor.manifest.email} has no link bookmarks`);
+  }
+  await editor.client.lists.addToList.mutate({
+    listId: list.id,
+    bookmarkId: editorBookmark.id,
+  });
+  logSuccess(`Shared "${list.name}"`);
+
+  return {
+    ownerEmail: owner.manifest.email,
+    listName: list.name,
+    collaborators: [
+      { email: editor.manifest.email, role: "editor", status: "accepted" },
+      { email: pendingViewer.email, role: "viewer", status: "pending" },
+    ],
+    bookmarksAddedByCollaborators: [
+      { email: editor.manifest.email, title: editorBookmark.title },
+    ],
+  };
+}
+
+async function seedSettingsAndAutomation(state: SeededUserState) {
+  logStep(
+    `Seeding settings, rules, prompts and feeds for ${state.manifest.email}`,
+  );
+  const { client, tags, manualLists, manifest } = state;
+
+  await client.users.updateSettings.mutate({
+    bookmarkClickAction: "expand_bookmark_preview",
+    archiveDisplayBehaviour: "hide",
+    timezone: "Europe/London",
+    backupsEnabled: true,
+    backupsFrequency: "weekly",
+    backupsRetentionDays: 14,
+    readerFontSize: 18,
+    readerLineHeight: 1.6,
+    readerFontFamily: "serif",
+  });
+
+  await client.rules.create.mutate({
+    name: "Tag GitHub links",
+    description: "Seed snapshot rule",
+    enabled: true,
+    event: { type: "bookmarkAdded" },
+    condition: { type: "urlContains", str: "github.com" },
+    actions: [
+      { type: "addTag", tagId: tags[0].id },
+      { type: "addToList", listId: manualLists[1].id },
+    ],
+  });
+  await client.rules.create.mutate({
+    name: "Favourite tagged docs",
+    description: null,
+    enabled: false,
+    event: { type: "tagAdded", tagId: tags[1].id },
+    condition: {
+      type: "and",
+      conditions: [
+        { type: "bookmarkTypeIs", bookmarkType: "link" },
+        { type: "titleContains", str: "Seed" },
+      ],
+    },
+    actions: [{ type: "favouriteBookmark" }],
+  });
+  manifest.counts.rules = 2;
+
+  await client.prompts.create.mutate({
+    text: "Prefer short, lowercase tags.",
+    appliesTo: "all_tagging",
+  });
+  await client.prompts.create.mutate({
+    text: "Keep summaries under three sentences.",
+    appliesTo: "summary",
+  });
+  manifest.counts.prompts = 2;
+
+  // Disabled so the feed worker doesn't import a moving set of bookmarks.
+  await client.feeds.create.mutate({
+    name: "Karakeep releases",
+    url: "https://github.com/karakeep-app/karakeep/releases.atom",
+    enabled: false,
+    importTags: false,
+  });
+  manifest.counts.feeds = 1;
+}
+
+async function seedImportSession(state: SeededUserState) {
+  logStep(`Seeding an import session for ${state.manifest.email}`);
+  const { client, manifest } = state;
+  const { id } = await client.importSessions.createImportSession.mutate({
+    name: "Seed snapshot import",
+    rootListId: state.manualLists[0].id,
+  });
+  const imported = [
+    {
+      type: "text" as const,
+      title: "Seed snapshot imported note 1",
+      content: "Imported from another read-it-later app.",
+      tags: ["imported"],
+      listIds: [],
+    },
+    {
+      type: "text" as const,
+      title: "Seed snapshot imported note 2",
+      content: "Another imported note, archived on import.",
+      note: "Imported with a note",
+      tags: ["imported", "archive"],
+      listIds: [],
+      archived: true,
+    },
+  ];
+  await client.importSessions.stageImportedBookmarks.mutate({
+    importSessionId: id,
+    bookmarks: imported,
+  });
+  await client.importSessions.finalizeImportStaging.mutate({
+    importSessionId: id,
+  });
+  await waitUntil(
+    async () => {
+      const stats = await client.importSessions.getImportSessionStats.query({
+        importSessionId: id,
+      });
+      return stats.status === "completed" || stats.status === "failed";
+    },
+    "Import session to finish",
+    Number(process.env.SEED_SNAPSHOT_IMPORT_TIMEOUT_MS ?? 120_000),
+    2_000,
+  );
+  const stats = await client.importSessions.getImportSessionStats.query({
+    importSessionId: id,
+  });
+  logSuccess(
+    `Import session ${stats.status}: ${stats.completedBookmarks}/${stats.totalBookmarks} bookmarks`,
+  );
+  manifest.counts.importSessions = 1;
+  manifest.counts.bookmarks += stats.completedBookmarks;
+}
+
+// Created last, so none of the seeding above fires it.
+async function seedWebhook(state: SeededUserState) {
+  await state.client.webhooks.create.mutate({
+    url: "https://example.com/karakeep-seed-webhook",
+    events: ["created", "crawled"],
+    token: "seed-snapshot-token",
+  });
+  state.manifest.counts.webhooks = 1;
+}
+
+async function createUsersAndSeedData(repoRoot: string): Promise<{
+  users: SeededUserManifest[];
+  sharing: SharingManifest[];
+}> {
   const authlessClient = getTrpcClient();
-  const manifests: SeededUserManifest[] = [];
 
   logStep("Creating seed users");
+  const clients = new Map<string, { client: TrpcClient; apiKey: string }>();
   for (const user of USERS) {
-    const client = await createUser(authlessClient, user.email, user.name);
-    if (user.datasetKey) {
-      manifests.push(
-        await seedUser(client, user, USER_DATASETS[user.datasetKey]),
-      );
-    } else {
-      manifests.push({
-        email: user.email,
-        password: PASSWORD,
-        seeded: false,
-        apiKeyName: `seed-snapshot-${user.email}`,
-        counts: {
-          bookmarks: 0,
-          tags: 0,
-          manualLists: 0,
-          smartLists: 0,
-        },
-        bookmarks: [],
-        tags: [],
-        lists: [],
-      });
-      logSuccess(`${user.email} left empty`);
-    }
+    clients.set(
+      user.email,
+      await createUser(authlessClient, user.email, user.name),
+    );
   }
 
-  return manifests;
+  const seeded = new Map<string, SeededUserState>();
+  const manifests: SeededUserManifest[] = [];
+  for (const user of USERS) {
+    const { client, apiKey } = clients.get(user.email)!;
+    if (!user.datasetKey) {
+      const manifest = emptyManifest(user.email);
+      manifests.push(manifest);
+      logSuccess(`${user.email} left empty`);
+      continue;
+    }
+    const state = await seedUser(
+      client,
+      apiKey,
+      user,
+      USER_DATASETS[user.datasetKey],
+      repoRoot,
+    );
+    seeded.set(user.email, state);
+    manifests.push(state.manifest);
+  }
+
+  const test1 = seeded.get("test1@example.com")!;
+  const test2 = seeded.get("test2@example.com")!;
+  const sharing = [
+    await seedSharing(test1, test2, { email: "test3@example.com" }),
+  ];
+  await seedSettingsAndAutomation(test1);
+  await seedImportSession(test2);
+  await seedWebhook(test1);
+
+  // Let the background queues (rule engine, search indexing, asset
+  // preprocessing) drain before the data dir is archived.
+  await sleep(Number(process.env.SEED_SNAPSHOT_SETTLE_MS ?? 15_000));
+
+  return { users: manifests, sharing };
 }
 
 function formatSnapshotTimestamp(date: Date): string {
@@ -547,9 +1114,9 @@ function formatSnapshotTimestamp(date: Date): string {
   ].join("");
 }
 
-function getSourceCommit(repoRoot: string): string | null {
+function gitRevParse(repoRoot: string, rev: string): string | null {
   try {
-    return execSync("git rev-parse HEAD", {
+    return execFileSync("git", ["rev-parse", "--verify", "--quiet", rev], {
       cwd: repoRoot,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -562,15 +1129,21 @@ function getSourceCommit(repoRoot: string): string | null {
 async function writeSnapshot(params: {
   dataDir: string;
   repoRoot: string;
+  image: string;
+  options: Options;
   users: SeededUserManifest[];
+  sharing: SharingManifest[];
 }): Promise<void> {
   const snapshotsDir = path.join(params.repoRoot, "snapshots");
   await fs.mkdir(snapshotsDir, { recursive: true });
 
   const createdAt = new Date();
-  const timestamp = formatSnapshotTimestamp(createdAt);
-  const archiveName = `seed-data-${timestamp}.tar.gz`;
-  const manifestName = `seed-data-${timestamp}.json`;
+  const release = params.options.release;
+  const baseName = release
+    ? `seed-data-v${release}`
+    : `seed-data-${formatSnapshotTimestamp(createdAt)}`;
+  const archiveName = `${baseName}.tar.gz`;
+  const manifestName = `${baseName}.json`;
   const archivePath = path.join(snapshotsDir, archiveName);
   const manifestPath = path.join(snapshotsDir, manifestName);
 
@@ -588,11 +1161,18 @@ async function writeSnapshot(params: {
     },
   );
 
+  const headCommit = gitRevParse(params.repoRoot, "HEAD");
   const manifest: SnapshotManifest = {
     createdAt: createdAt.toISOString(),
-    sourceCommit: getSourceCommit(params.repoRoot),
+    karakeepVersion: release ?? "dev",
+    image: params.image,
+    sourceCommit: release
+      ? gitRevParse(params.repoRoot, `v${release}^{commit}`)
+      : headCommit,
+    generatorCommit: headCommit,
     archive: archiveName,
     users: params.users,
+    sharing: params.sharing,
   };
   await fs.writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 
@@ -600,18 +1180,49 @@ async function writeSnapshot(params: {
   logSuccess(`Wrote ${manifestPath}`);
 }
 
+// On Linux the container writes the data dir as root, so a previous run's
+// leftovers can't be removed as the current user. Fall back to deleting them
+// from inside a container.
+async function removeDataDir(dataDir: string): Promise<void> {
+  try {
+    await fs.rm(dataDir, { force: true, recursive: true });
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== "EACCES" && code !== "EPERM") throw error;
+    logInfo("Removing the previous data dir through docker");
+    execFileSync(
+      "docker",
+      [
+        "run",
+        "--rm",
+        "-v",
+        `${path.dirname(dataDir)}:/work`,
+        "alpine:3",
+        "rm",
+        "-rf",
+        `/work/${path.basename(dataDir)}`,
+      ],
+      { stdio: "inherit" },
+    );
+  }
+}
+
 async function main(): Promise<void> {
+  const options = parseOptions(process.argv.slice(2));
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const packageRoot = path.join(__dirname, "..");
   const repoRoot = path.join(packageRoot, "..", "..");
   const composeDir = packageRoot;
   const dataDir = path.join(packageRoot, ".tmp", "data");
+  const image = options.release
+    ? `${RELEASE_IMAGE_REPO}:${options.release}`
+    : LOCAL_IMAGE;
 
-  await fs.rm(dataDir, { force: true, recursive: true });
+  await removeDataDir(dataDir);
   await fs.mkdir(dataDir, { recursive: true });
   await fs.chmod(dataDir, 0o777);
 
-  const running = await startContainers(composeDir, dataDir);
+  const running = await startContainers(composeDir, dataDir, image, options);
 
   const stopContainers = async () => {
     await running.stop();
@@ -627,9 +1238,9 @@ async function main(): Promise<void> {
   process.on("SIGTERM", handleSignal);
 
   try {
-    const users = await createUsersAndSeedData();
+    const { users, sharing } = await createUsersAndSeedData(repoRoot);
     await stopContainers();
-    await writeSnapshot({ dataDir, repoRoot, users });
+    await writeSnapshot({ dataDir, repoRoot, image, options, users, sharing });
     logSuccess("Seed snapshot complete");
   } catch (error) {
     logWarn("Seed snapshot failed");

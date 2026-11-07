@@ -160,8 +160,8 @@ start() {
 Karakeep is ready at $NEXTAUTH_URL
 
 Seed users (password: test1234):
-  test1@example.com  admin, 20 bookmarks
-  test2@example.com  user, 4 bookmarks
+  test1@example.com  admin, 24 bookmarks, owns a shared list
+  test2@example.com  user, 7 bookmarks, collaborator on test1's list
   test3@example.com  user, no data
 
 Logs:
