@@ -75,7 +75,8 @@ jobs:
       - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
-          # HEAD^1 is needed to tell whether docker/chrome changed.
+          # For pull requests, HEAD is a merge commit whose first parent is the
+          # base, which is used to tell whether docker/chrome changed.
           fetch-depth: 2
 
       # The default docker driver can't import the registry build cache that
@@ -107,15 +108,26 @@ jobs:
         working-directory: packages/e2e_tests
         run: docker compose build web
 
-      # The chrome image is only built when it changed in this commit, or when
-      # its tag hasn't been published yet.
+      # The chrome image is only built when docker/chrome changed in this
+      # PR/push, or when its tag hasn't been published yet.
       - name: Pull E2E images
         id: e2e-pulled-images
         background: true
         working-directory: packages/e2e_tests
+        env:
+          # A push or a merge group can contain several commits, so compare
+          # against what was there before them. Pull requests use HEAD^1.
+          BASE_SHA: ${{ github.event_name == 'push' && github.event.before || github.event_name == 'merge_group' && github.event.merge_group.base_sha || '' }}
         run: |
           docker compose pull --ignore-buildable --quiet
-          if git diff --quiet HEAD^1 HEAD -- ../../docker/chrome \
+          base=HEAD^1
+          if [[ -n "$BASE_SHA" ]]; then
+            # Fails (and so builds chrome) if the SHA can't be fetched, e.g.
+            # the all-zeros SHA of a newly created branch.
+            git fetch --quiet --depth=1 origin "$BASE_SHA" && base="$BASE_SHA" || base=""
+          fi
+          if [[ -n "$base" ]] \
+            && git diff --quiet "$base" HEAD -- ../../docker/chrome \
             && docker pull --quiet "$KARAKEEP_CHROME_IMAGE"; then
             echo "Using the published $KARAKEEP_CHROME_IMAGE"
           else
