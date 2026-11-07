@@ -20,7 +20,6 @@ workflows:
         - 'actions/checkout@v4.3.1'
         - 'actions/setup-node@v4.4.0'
         - 'actions/upload-artifact@v4.6.2'
-        - 'docker/setup-buildx-action@v3.12.0'
         - 'pnpm/action-setup@v6.0.8'
     '.github/workflows/cli.yml':
         - 'actions/checkout@v4.3.1'
