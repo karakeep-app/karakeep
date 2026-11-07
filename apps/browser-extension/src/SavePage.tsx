@@ -27,7 +27,7 @@ import { isHttpUrl } from "./utils/url";
 
 export default function SavePage() {
   const api = useTRPC();
-  const { settings, isPending: isSettingsLoaded } = usePluginSettings();
+  const { settings, isLoaded: isSettingsLoaded } = usePluginSettings();
   const [error, setError] = useState<string | undefined>(undefined);
   const [isCapturing, setIsCapturing] = useState(false);
   const [pendingBookmark, setPendingBookmark] =

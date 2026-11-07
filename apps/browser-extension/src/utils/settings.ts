@@ -72,7 +72,7 @@ export default function usePluginSettings() {
     await STORAGE.set({ settings: newVal });
   };
 
-  return { settings, setSettings, isPending: isInit };
+  return { settings, setSettings, isLoaded: isInit };
 }
 
 export async function getPluginSettings() {
