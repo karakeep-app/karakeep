@@ -58,8 +58,10 @@ export async function reload(page: Page) {
 export async function waitForHydration(locator: Locator) {
   await expect
     .poll(() =>
-      locator.evaluate((element) =>
-        Object.keys(element).some((key) => key.startsWith("__reactFiber$")),
+      locator.evaluateAll((elements) =>
+        elements.some((element) =>
+          Object.keys(element).some((key) => key.startsWith("__reactFiber$")),
+        ),
       ),
     )
     .toBe(true);
