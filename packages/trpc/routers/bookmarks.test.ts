@@ -1,5 +1,13 @@
 import { eq } from "drizzle-orm";
-import { assert, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterEach,
+  assert,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 
 import {
   bookmarkLinks,
@@ -10,6 +18,8 @@ import {
 } from "@karakeep/db/schema";
 import * as sharedServer from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
+import type { InferenceClient } from "@karakeep/shared/inference";
+import { InferenceClientFactory } from "@karakeep/shared/inference";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { WebhooksService } from "../models/webhooks.service";
@@ -1139,6 +1149,117 @@ describe("Bookmark Routes", () => {
       .where(eq(bookmarkLinks.id, brokenBookmark.id));
     const emptyResult = await api.getBrokenLinks();
     expect(emptyResult.bookmarks.length).toEqual(0);
+  });
+
+  describe("summarizeBookmark", () => {
+    const inferFromText = vi.fn<InferenceClient["inferFromText"]>();
+
+    beforeEach(() => {
+      inferFromText.mockReset();
+      vi.spyOn(InferenceClientFactory, "build").mockReturnValue({
+        inferFromText,
+        inferFromImage: vi.fn(),
+        generateEmbeddingFromText: vi.fn(),
+      });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    async function createBookmarkWithFailedSummary({
+      apiCallers,
+      db,
+    }: CustomTestContext) {
+      const api = apiCallers[0].bookmarks;
+      const bookmark = await api.createBookmark({
+        url: "https://example.com/article",
+        type: BookmarkTypes.LINK,
+      });
+      await db
+        .update(bookmarkLinks)
+        .set({ htmlContent: "<p>Article content to summarize.</p>" })
+        .where(eq(bookmarkLinks.id, bookmark.id));
+      await db
+        .update(bookmarks)
+        .set({ summary: "Previous summary", summarizationStatus: "failure" })
+        .where(eq(bookmarks.id, bookmark.id));
+      return bookmark;
+    }
+
+    test<CustomTestContext>("marks a previously failed summary as successful", async (context) => {
+      const api = context.apiCallers[0].bookmarks;
+      const bookmark = await createBookmarkWithFailedSummary(context);
+      inferFromText.mockResolvedValue({
+        response: "New summary",
+        totalTokens: 12,
+      });
+
+      await expect(
+        api.summarizeBookmark({ bookmarkId: bookmark.id }),
+      ).resolves.toEqual({ summary: "New summary" });
+
+      expect(inferFromText).toHaveBeenCalledOnce();
+      expect(await api.getBookmark({ bookmarkId: bookmark.id })).toMatchObject({
+        summary: "New summary",
+        summarizationStatus: "success",
+      });
+    });
+
+    test<CustomTestContext>("preserves the previous summary and status when inference fails", async (context) => {
+      const api = context.apiCallers[0].bookmarks;
+      const bookmark = await createBookmarkWithFailedSummary(context);
+      inferFromText.mockRejectedValue(new Error("Inference unavailable"));
+
+      await expect(
+        api.summarizeBookmark({ bookmarkId: bookmark.id }),
+      ).rejects.toThrow("Inference unavailable");
+
+      expect(await api.getBookmark({ bookmarkId: bookmark.id })).toMatchObject({
+        summary: "Previous summary",
+        summarizationStatus: "failure",
+      });
+    });
+
+    test<CustomTestContext>("preserves the previous summary and status when inference returns no summary", async (context) => {
+      const api = context.apiCallers[0].bookmarks;
+      const bookmark = await createBookmarkWithFailedSummary(context);
+      inferFromText.mockResolvedValue({ response: "", totalTokens: 0 });
+
+      await expect(
+        api.summarizeBookmark({ bookmarkId: bookmark.id }),
+      ).rejects.toMatchObject({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to summarize bookmark",
+      });
+
+      expect(await api.getBookmark({ bookmarkId: bookmark.id })).toMatchObject({
+        summary: "Previous summary",
+        summarizationStatus: "failure",
+      });
+    });
+
+    test<CustomTestContext>("rejects another user's bookmark without invoking inference", async (context) => {
+      const bookmark = await createBookmarkWithFailedSummary(context);
+      vi.mocked(InferenceClientFactory.build).mockClear();
+
+      await expect(
+        context.apiCallers[1].bookmarks.summarizeBookmark({
+          bookmarkId: bookmark.id,
+        }),
+      ).rejects.toMatchObject({ code: "NOT_FOUND" });
+
+      expect(InferenceClientFactory.build).not.toHaveBeenCalled();
+      expect(inferFromText).not.toHaveBeenCalled();
+      expect(
+        await context.apiCallers[0].bookmarks.getBookmark({
+          bookmarkId: bookmark.id,
+        }),
+      ).toMatchObject({
+        summary: "Previous summary",
+        summarizationStatus: "failure",
+      });
+    });
   });
 
   describe("preserveVideo", () => {

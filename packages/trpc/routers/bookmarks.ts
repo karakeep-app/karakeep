@@ -1645,6 +1645,7 @@ Author: ${bookmark.author ?? ""}
         .update(bookmarks)
         .set({
           summary: summary.response,
+          summarizationStatus: "success",
         })
         .where(eq(bookmarks.id, input.bookmarkId));
       await Promise.all([
