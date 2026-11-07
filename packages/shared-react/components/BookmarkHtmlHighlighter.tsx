@@ -14,6 +14,11 @@ import {
   ZHighlightColor,
 } from "@karakeep/shared/types/highlights";
 
+import {
+  computeHighlightMenuPosition,
+  getFixedPositionOffsetParent,
+  toOffsetParentSpacePoint,
+} from "../lib/highlightPosition";
 import { HIGHLIGHT_COLOR_MAP } from "./highlights";
 import { Button } from "./ui/button";
 import { Popover, PopoverContent } from "./ui/popover";
@@ -247,10 +252,20 @@ const BookmarkHTMLHighlighter = forwardRef<
           return;
         }
         setSelectedHighlight(highlight);
-        setMenuPosition({
-          x: e.clientX,
-          y: e.clientY,
-        });
+        // The anchor is a `position: fixed` element, so its coordinates are
+        // resolved against the closest ancestor that establishes a containing
+        // block (an ancestor with a transform/filter). In the preview modal the
+        // highlighter lives inside a centered `DialogContent`, which uses
+        // `translate-x-[-50%] translate-y-[-50%]` and therefore *is* such a
+        // containing block. Converting the click coordinates into that
+        // ancestor's coordinate space keeps the popover anchored to the
+        // clicked highlight instead of covering it.
+        setMenuPosition(
+          toOffsetParentSpacePoint(
+            { x: e.clientX, y: e.clientY },
+            getFixedPositionOffsetParent(contentRef.current),
+          ),
+        );
         return;
       }
     }
@@ -266,12 +281,24 @@ const BookmarkHTMLHighlighter = forwardRef<
       return;
     }
 
-    // Position the menu based on device type
+    // Position the menu based on device type.
+    //
+    // The anchor is a `position: fixed` element, so its coordinates are
+    // resolved against the closest ancestor that establishes a containing
+    // block (an ancestor with a transform/filter). In the preview modal the
+    // highlighter lives inside a centered `DialogContent`, which uses
+    // `translate-x-[-50%] translate-y-[-50%]` and therefore *is* such a
+    // containing block. Converting the selection rect into that ancestor's
+    // coordinate space keeps the popover anchored to the selection instead of
+    // covering it.
     const rect = range.getBoundingClientRect();
-    setMenuPosition({
-      x: rect.left + rect.width / 2, // Center the menu horizontally
-      y: isMobile ? rect.bottom : rect.top, // Position below on mobile, above otherwise
-    });
+    setMenuPosition(
+      computeHighlightMenuPosition(
+        rect,
+        getFixedPositionOffsetParent(contentRef.current),
+        isMobile,
+      ),
+    );
 
     // Store the highlight for later use
     setPendingHighlight(createHighlightFromRange(range, "yellow"));

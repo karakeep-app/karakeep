@@ -20,7 +20,8 @@
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@karakeep/tsconfig": "workspace:^0.1.0"
+    "@karakeep/tsconfig": "workspace:^0.1.0",
+    "vitest": "^4.1.11"
   },
   "peerDependencies": {
     "react": "^19.2.1",
@@ -40,6 +41,7 @@
     "format": "oxfmt --ignore-path=../../.gitignore --check .",
     "format:fix": "oxfmt --ignore-path=../../.gitignore .",
     "lint": "oxlint --ignore-path=../../.gitignore .",
-    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix"
+    "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",
+    "test": "vitest"
   }
 }
