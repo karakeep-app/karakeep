@@ -1,9 +1,9 @@
 {
-  "createdAt": "2026-11-07T13:42:42.297Z",
+  "createdAt": "2026-11-07T19:21:25.479Z",
   "karakeepVersion": "0.33.2",
   "image": "ghcr.io/karakeep-app/karakeep:0.33.2",
   "sourceCommit": "98c0c7896e855a5f2104f89651bb7e1322712df4",
-  "generatorCommit": "4672ee0b7dcdcb826ccbae84cf7e0bbce7e59efe",
+  "generatorCommit": "779b3f2fd6c9dd8a1b0ace58b614fbe38104f7a3",
   "archive": "seed-data-v0.33.2.tar.gz",
   "users": [
     {
@@ -25,7 +25,7 @@
       },
       "bookmarks": [
         {
-          "id": "cupudimw8i4ydl7bjy60alp8",
+          "id": "hebmwkk0lg6h8rrqntxzmmli",
           "type": "link",
           "url": "https://www.nasa.gov/",
           "title": "Seed snapshot bookmark 1",
@@ -33,7 +33,7 @@
           "note": "Seed note for bookmark 1"
         },
         {
-          "id": "jpdh1925zb3wnt9o6u5m4yit",
+          "id": "qn4fbtz18uygwixtyvfy9jm5",
           "type": "link",
           "url": "https://www.nationalgeographic.com/",
           "title": "Seed snapshot bookmark 2",
@@ -41,7 +41,7 @@
           "note": null
         },
         {
-          "id": "embpy3a1zbbofla2d3ba0s98",
+          "id": "bysex6cw3z7y5d0bgwme7fsq",
           "type": "link",
           "url": "https://www.theverge.com/",
           "title": "Seed snapshot bookmark 3",
@@ -49,7 +49,7 @@
           "note": null
         },
         {
-          "id": "v8kigjc8kw51plipmzg5qam4",
+          "id": "udyw87n9xz8zl663k2kuzkjd",
           "type": "link",
           "url": "https://www.wired.com/",
           "title": "Seed snapshot bookmark 4",
@@ -57,7 +57,7 @@
           "note": "Seed note for bookmark 4"
         },
         {
-          "id": "dd9beu3958oczyyr9kzo5s4z",
+          "id": "uzck7i03sh0wduiiluq33fte",
           "type": "link",
           "url": "https://www.apple.com/ipad-pro/",
           "title": "Seed snapshot bookmark 5",
@@ -65,7 +65,7 @@
           "note": null
         },
         {
-          "id": "mlapmk4ywyv1156gwydgwew0",
+          "id": "k88rhyty6l2wsheg21d64l0h",
           "type": "link",
           "url": "https://www.figma.com/",
           "title": "Seed snapshot bookmark 6",
@@ -73,7 +73,7 @@
           "note": null
         },
         {
-          "id": "y8jyc0kegpdq78gst6rjghox",
+          "id": "jj7qlvnxitmqg1i33fffh350",
           "type": "link",
           "url": "https://linear.app/",
           "title": "Seed snapshot bookmark 7",
@@ -81,7 +81,7 @@
           "note": "Seed note for bookmark 7"
         },
         {
-          "id": "purrdoo0k7jqmnzg0m9puibk",
+          "id": "td9lk49eru35as5dzr5urlt6",
           "type": "link",
           "url": "https://www.notion.com/",
           "title": "Seed snapshot bookmark 8",
@@ -89,7 +89,7 @@
           "note": null
         },
         {
-          "id": "yyh90cs4k2lqsk5jizrrbyhu",
+          "id": "kwgduyqwvnney8cfs697nez3",
           "type": "link",
           "url": "https://stripe.com/",
           "title": "Seed snapshot bookmark 9",
@@ -97,7 +97,7 @@
           "note": null
         },
         {
-          "id": "ix1gtuej7rlgnsvgsp7xh0vr",
+          "id": "qf070b6qrgt6g1jcqpep4lzb",
           "type": "link",
           "url": "https://www.shopify.com/",
           "title": "Seed snapshot bookmark 10",
@@ -105,7 +105,7 @@
           "note": "Seed note for bookmark 10"
         },
         {
-          "id": "iqgxxvnrmhza1u1j4pq10ekp",
+          "id": "ogzns7x4slnhevoknfuuvy7x",
           "type": "link",
           "url": "https://developer.mozilla.org/en-US/docs/Web",
           "title": "Seed snapshot bookmark 11",
@@ -113,7 +113,7 @@
           "note": null
         },
         {
-          "id": "kqrlgr2i1vye6yksilu39k49",
+          "id": "zjk8j97d6ka0qnbl7nnc6ust",
           "type": "link",
           "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
           "title": "Seed snapshot bookmark 12",
@@ -121,7 +121,7 @@
           "note": null
         },
         {
-          "id": "qgkudtkbg18po2r8q3ptidz7",
+          "id": "eucgrfgqamk6xbuwt950tnr3",
           "type": "link",
           "url": "https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API",
           "title": "Seed snapshot bookmark 13",
@@ -129,7 +129,7 @@
           "note": "Seed note for bookmark 13"
         },
         {
-          "id": "zmpsmrpbd6jrx9u2iyd4sj2s",
+          "id": "grgfbir079dzngr779g1w7qp",
           "type": "link",
           "url": "https://developer.mozilla.org/en-US/docs/Web/CSS",
           "title": "Seed snapshot bookmark 14",
@@ -137,7 +137,7 @@
           "note": null
         },
         {
-          "id": "w6mdjnhfai1h72vg6hgzh8fc",
+          "id": "x8lv8nujrvrypcmstdnq2zlv",
           "type": "link",
           "url": "https://web.dev/learn/html",
           "title": "Seed snapshot bookmark 15",
@@ -145,7 +145,7 @@
           "note": null
         },
         {
-          "id": "lqlbhc3ghi1hehbmwwcm5y5g",
+          "id": "kjt908dpqkvfeejfb11msox2",
           "type": "link",
           "url": "https://web.dev/learn/css",
           "title": "Seed snapshot bookmark 16",
@@ -153,7 +153,7 @@
           "note": "Seed note for bookmark 16"
         },
         {
-          "id": "ak6cis0h2vqu32i4q3r27foz",
+          "id": "jn47o1hq3mxpl7eenytosr7h",
           "type": "link",
           "url": "https://web.dev/learn/javascript",
           "title": "Seed snapshot bookmark 17",
@@ -161,7 +161,7 @@
           "note": null
         },
         {
-          "id": "ufyj5qm9nafxjy64njaehq6g",
+          "id": "rbjg6yehuh86ap1ftdhdi260",
           "type": "link",
           "url": "https://www.raspberrypi.com/products/raspberry-pi-5/",
           "title": "Seed snapshot bookmark 18",
@@ -169,7 +169,7 @@
           "note": null
         },
         {
-          "id": "xx32ekwepkqdxvfspoe5n98z",
+          "id": "nyipgt0o2ovhtm4rjinuzkpm",
           "type": "link",
           "url": "https://www.postgresql.org/docs/current/index.html",
           "title": "Seed snapshot bookmark 19",
@@ -177,7 +177,7 @@
           "note": "Seed note for bookmark 19"
         },
         {
-          "id": "b54j9btdvzhtrb3uts7t22d3",
+          "id": "mgwprforhcab4c5sjmv4q7oq",
           "type": "link",
           "url": "https://docs.docker.com/get-started/",
           "title": "Seed snapshot bookmark 20",
@@ -185,7 +185,7 @@
           "note": null
         },
         {
-          "id": "jkvpwhxcgvpom1j0d3zyh4yz",
+          "id": "wmuz0y8f5mqljk9hdodgf8ty",
           "type": "text",
           "url": null,
           "title": "Seed snapshot note 1",
@@ -193,7 +193,7 @@
           "note": "A text bookmark with highlights"
         },
         {
-          "id": "sxw6a1zhu7hx07wf5tyrwdlf",
+          "id": "afbn6vbxupfzjixuutpp7mkr",
           "type": "text",
           "url": null,
           "title": "Seed snapshot note 2",
@@ -201,7 +201,7 @@
           "note": null
         },
         {
-          "id": "sgi6gitutbjato33o5ow2ya8",
+          "id": "oypnoj91wbzem3r78lhv2z0p",
           "type": "asset",
           "url": null,
           "title": "Seed snapshot image",
@@ -209,7 +209,7 @@
           "note": null
         },
         {
-          "id": "vywi6bc2gcxp4yskehmscyun",
+          "id": "xx0c1c427a412f7kjwzwe8xn",
           "type": "asset",
           "url": null,
           "title": "Seed snapshot PDF",
@@ -284,7 +284,7 @@
       "apiKeyName": "seed-snapshot-test2@example.com",
       "counts": {
         "bookmarks": 7,
-        "tags": 3,
+        "tags": 5,
         "manualLists": 2,
         "smartLists": 2,
         "highlights": 0,
@@ -296,7 +296,7 @@
       },
       "bookmarks": [
         {
-          "id": "j7ng6c8w1gnbjt61z1a4pav6",
+          "id": "w09wyidhqjichtyoxr26ira7",
           "type": "link",
           "url": "https://github.com/features/actions",
           "title": "Seed snapshot bookmark 1",
@@ -304,7 +304,7 @@
           "note": "Seed note for bookmark 1"
         },
         {
-          "id": "quwneqxhyo3a9ew6qr5zj40p",
+          "id": "c4lhnmb467euasgr10vjtbtl",
           "type": "link",
           "url": "https://www.cloudflare.com/",
           "title": "Seed snapshot bookmark 2",
@@ -312,7 +312,7 @@
           "note": null
         },
         {
-          "id": "fbi1h2cimohg1nds7ok9wa0c",
+          "id": "rjzwhghcexych1i9jlrhkmom",
           "type": "link",
           "url": "https://web.dev/",
           "title": "Seed snapshot bookmark 3",
@@ -320,7 +320,7 @@
           "note": null
         },
         {
-          "id": "zs779f5r9evd7nblimpik7su",
+          "id": "y9vhuesdvvyv964ry7au9vuc",
           "type": "link",
           "url": "https://www.raspberrypi.com/products/raspberry-pi-5/",
           "title": "Seed snapshot bookmark 4",
@@ -328,18 +328,36 @@
           "note": "Seed note for bookmark 4"
         },
         {
-          "id": "bc4e39zd04feetv0mg2yuohx",
+          "id": "ks19yj499ht43le6dyazrptr",
           "type": "text",
           "url": null,
           "title": "Seed snapshot note 3",
           "crawlStatus": null,
           "note": "Owned by test2"
+        },
+        {
+          "id": "yfh59zr7zb2vex3ioq1hxwk9",
+          "type": "text",
+          "url": null,
+          "title": "Seed snapshot imported note 1",
+          "crawlStatus": null,
+          "note": null
+        },
+        {
+          "id": "yq9sklvwqr4fe9k6pywg2tvy",
+          "type": "text",
+          "url": null,
+          "title": "Seed snapshot imported note 2",
+          "crawlStatus": null,
+          "note": "Imported with a note"
         }
       ],
       "tags": [
         "engineering",
         "design",
-        "ops"
+        "ops",
+        "imported",
+        "archive"
       ],
       "lists": [
         {

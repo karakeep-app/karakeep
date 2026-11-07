@@ -1,4 +1,5 @@
 import { execFileSync, execSync } from "child_process";
+import { existsSync } from "fs";
 import fs from "fs/promises";
 import net from "net";
 import path from "path";
@@ -14,6 +15,7 @@ import type {
 } from "@karakeep/shared/types/bookmarks";
 import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import type { ZTagBasic } from "@karakeep/shared/types/tags";
+import { normalizeTextLength } from "@karakeep/shared/utils/reading-progress-dom";
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
 // The generator can seed either a local build of HEAD or a released image
@@ -206,6 +208,7 @@ interface SnapshotManifest {
 
 interface Options {
   release: string | null;
+  replace: boolean;
 }
 
 function logStep(title: string): void {
@@ -230,12 +233,15 @@ function sleep(ms: number): Promise<void> {
 
 function parseOptions(argv: string[]): Options {
   let release = process.env.SEED_SNAPSHOT_RELEASE ?? null;
+  let replace = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--release") {
       release = argv[++i] ?? null;
     } else if (arg.startsWith("--release=")) {
       release = arg.slice("--release=".length);
+    } else if (arg === "--replace") {
+      replace = true;
     } else if (arg === "--") {
       continue;
     } else {
@@ -250,7 +256,7 @@ function parseOptions(argv: string[]): Options {
       );
     }
   }
-  return { release };
+  return { release, replace };
 }
 
 async function waitUntil(
@@ -782,9 +788,20 @@ async function recordReadingProgress(
   const progress: SeededUserManifest["readingProgress"] = [];
   for (const [index, bookmark] of crawled.entries()) {
     const percent = index === 0 ? 35 : 80;
+    // The reader stores the offset in normalized text characters, so derive
+    // it from the crawled content for the offset and percent to agree.
+    const latest = await client.bookmarks.getBookmark.query({
+      bookmarkId: bookmark.id,
+      includeContent: true,
+    });
+    const html =
+      latest.content.type === BookmarkTypes.LINK
+        ? (latest.content.htmlContent ?? "")
+        : "";
+    const textLength = normalizeTextLength(html.replace(/<[^>]*>/g, " "));
     await client.bookmarks.updateReadingProgress.mutate({
       bookmarkId: bookmark.id,
-      readingProgressOffset: percent * 10,
+      readingProgressOffset: Math.floor((textLength * percent) / 100),
       readingProgressPercent: percent,
     });
     progress.push({ bookmarkTitle: bookmark.title, percent });
@@ -1030,11 +1047,43 @@ async function seedImportSession(state: SeededUserState) {
   const stats = await client.importSessions.getImportSessionStats.query({
     importSessionId: id,
   });
-  logSuccess(
-    `Import session ${stats.status}: ${stats.completedBookmarks}/${stats.totalBookmarks} bookmarks`,
-  );
+  // A session is "completed" once nothing is pending, even if items failed.
+  if (
+    stats.status !== "completed" ||
+    stats.failedBookmarks > 0 ||
+    stats.completedBookmarks !== imported.length
+  ) {
+    throw new Error(
+      `Import session ${stats.status}: ${stats.completedBookmarks}/${imported.length} completed, ${stats.failedBookmarks} failed`,
+    );
+  }
+  logSuccess(`Import session completed: ${imported.length} bookmarks`);
+
+  const { items } = await client.importSessions.getImportSessionResults.query({
+    importSessionId: id,
+    limit: imported.length,
+  });
+  for (const item of items) {
+    if (!item.resultBookmarkId) {
+      throw new Error(`Imported "${item.title}" has no resulting bookmark`);
+    }
+    const entry = imported.find((e) => e.title === item.title);
+    manifest.bookmarks.push({
+      id: item.resultBookmarkId,
+      type: "text",
+      url: null,
+      title: item.title ?? "",
+      crawlStatus: null,
+      note: entry && "note" in entry ? (entry.note ?? null) : null,
+    });
+  }
+  // The import creates tags the user didn't have yet.
+  for (const tag of imported.flatMap((e) => e.tags)) {
+    if (!manifest.tags.includes(tag)) manifest.tags.push(tag);
+  }
   manifest.counts.importSessions = 1;
-  manifest.counts.bookmarks += stats.completedBookmarks;
+  manifest.counts.bookmarks = manifest.bookmarks.length;
+  manifest.counts.tags = manifest.tags.length;
 }
 
 // Created last, so none of the seeding above fires it.
@@ -1217,6 +1266,21 @@ async function main(): Promise<void> {
   const image = options.release
     ? `${RELEASE_IMAGE_REPO}:${options.release}`
     : LOCAL_IMAGE;
+
+  // Release snapshots are upgrade fixtures, and regenerating one changes its
+  // live-crawled data. Checked up front, before spending minutes seeding.
+  if (options.release && !options.replace) {
+    const existing = [".tar.gz", ".json"]
+      .map((ext) =>
+        path.join(repoRoot, "snapshots", `seed-data-v${options.release}${ext}`),
+      )
+      .filter((file) => existsSync(file));
+    if (existing.length > 0) {
+      throw new Error(
+        `${existing.map((f) => path.relative(repoRoot, f)).join(" and ")} already exist. Pass --replace to regenerate them.`,
+      );
+    }
+  }
 
   await removeDataDir(dataDir);
   await fs.mkdir(dataDir, { recursive: true });

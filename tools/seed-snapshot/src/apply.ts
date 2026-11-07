@@ -42,9 +42,12 @@ function parseArgs(): { force: boolean; snapshot: string | null } {
   let snapshot: string | null = null;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--snapshot") {
-      snapshot = args[++i] ?? null;
+      snapshot = args[++i] ?? "";
     } else if (args[i].startsWith("--snapshot=")) {
       snapshot = args[i].slice("--snapshot=".length);
+    }
+    if (snapshot !== null && (snapshot === "" || snapshot.startsWith("--"))) {
+      throw new Error("--snapshot expects a snapshot archive name");
     }
   }
   return { force: args.includes("--force"), snapshot };
@@ -123,23 +126,33 @@ async function main(): Promise<void> {
     : await findLatestSnapshot(snapshotsDir);
   logInfo(`Using ${path.relative(repoRoot, snapshotPath)}`);
 
-  if (await pathExists(dataDir)) {
-    if (!force) {
-      throw new Error(
-        `Refusing to overwrite existing data dir at ${dataDir}. Re-run with --force to replace it.`,
-      );
-    }
-
-    logStep("Removing existing data dir");
-    await fs.rm(dataDir, { force: true, recursive: true });
+  if ((await pathExists(dataDir)) && !force) {
+    throw new Error(
+      `Refusing to overwrite existing data dir at ${dataDir}. Re-run with --force to replace it.`,
+    );
   }
 
-  logStep("Applying seed snapshot");
-  await fs.mkdir(dataDir, { recursive: true });
-  execFileSync("tar", ["-xzf", snapshotPath, "-C", dataDir], {
-    cwd: repoRoot,
-    stdio: "inherit",
-  });
+  // Extract next to the data dir first, so a missing or corrupt archive
+  // leaves the existing data untouched.
+  logStep("Extracting seed snapshot");
+  const stagingDir = `${dataDir}.staging-${process.pid}`;
+  await fs.rm(stagingDir, { force: true, recursive: true });
+  await fs.mkdir(stagingDir, { recursive: true });
+  try {
+    execFileSync("tar", ["-xzf", snapshotPath, "-C", stagingDir], {
+      cwd: repoRoot,
+      stdio: "inherit",
+    });
+  } catch (error) {
+    await fs.rm(stagingDir, { force: true, recursive: true });
+    throw error;
+  }
+
+  if (await pathExists(dataDir)) {
+    logStep("Replacing existing data dir");
+    await fs.rm(dataDir, { force: true, recursive: true });
+  }
+  await fs.rename(stagingDir, dataDir);
 
   logSuccess(`Applied snapshot to ${dataDir}`);
 }

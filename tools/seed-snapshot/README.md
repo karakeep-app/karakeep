@@ -25,7 +25,9 @@ only use procedures and inputs that exist in the oldest release in
 through the legacy `users.create` procedure there.
 
 Don't regenerate or delete a release snapshot: they're fixtures for upgrades
-from that release. Add one for each new release instead.
+from that release, and regenerating one changes its live-crawled data. Add one
+for each new release instead. The generator refuses to overwrite an existing
+release snapshot unless you pass `--replace`.
 
 ## Applying
 
