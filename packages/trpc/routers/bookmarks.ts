@@ -206,12 +206,13 @@ const highBookmarkCreationRateLimitConfig = {
   maxRequests: 30,
 } as const;
 
-// Automated bulk flows rely on the dedup path for idempotency, so hitting an
-// existing bookmark from them must stay a no-op instead of unarchiving it and
-// bumping it to the top of the list.
+// Automated bulk flows and archival integrations rely on the dedup path for
+// idempotency, so hitting an existing bookmark from them must stay a no-op instead
+// of unarchiving it and bumping it to the top of the list.
 const RESAVE_EXEMPT_SOURCES: ReadonlySet<ZBookmarkSource> = new Set([
   "rss",
   "import",
+  "singlefile",
 ]);
 
 async function shouldUseLowPriorityQueues(
