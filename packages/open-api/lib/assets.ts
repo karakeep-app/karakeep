@@ -33,6 +33,12 @@ registry.registerPath({
       content: {
         "multipart/form-data": {
           schema: z.object({
+            purpose: z
+              .literal("attachment")
+              .optional()
+              .describe(
+                "Allow arbitrary files as userUploaded attachments. Omit for existing preview/asset bookmark uploads.",
+              ),
             file: z.instanceof(File).openapi({
               description: "File to be uploaded",
               type: "string",
@@ -79,7 +85,7 @@ registry.registerPath({
   method: "get",
   path: "/assets/{assetId}",
   description:
-    "Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type.",
+    "Download an asset's binary content. The response Content-Type header is set based on the asset's MIME type. Generic attachments use Content-Disposition: attachment and X-Content-Type-Options: nosniff, including via signed URLs.",
   summary: "Get a single asset",
   tags: ["Assets"],
   security: [{ [BearerAuth.name]: [] }],

@@ -331,12 +331,20 @@ export const bookmarksAppRouter = router({
       }
 
       if (input.type === BookmarkTypes.LINK && input.precrawledArchiveId) {
-        await Asset.ensureOwnership(ctx, input.precrawledArchiveId);
+        const archive = await Asset.fromId(ctx, input.precrawledArchiveId);
+        archive.ensureOwnership();
+        if (archive.asset.assetType === AssetTypes.USER_UPLOADED) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "User attachments cannot be used as page archives",
+          });
+        }
       }
       if (input.type === BookmarkTypes.ASSET) {
         const uploadedAsset = await Asset.fromId(ctx, input.assetId);
         uploadedAsset.ensureOwnership();
         if (
+          uploadedAsset.asset.assetType === AssetTypes.USER_UPLOADED ||
           !uploadedAsset.asset.contentType ||
           !SUPPORTED_BOOKMARK_ASSET_TYPES.has(uploadedAsset.asset.contentType)
         ) {

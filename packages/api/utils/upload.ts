@@ -3,11 +3,13 @@ import * as os from "os";
 import * as path from "path";
 import { Readable } from "stream";
 import { pipeline } from "stream/promises";
+import { eq } from "drizzle-orm";
 import { fileTypeFromBlob, supportedMimeTypes } from "file-type";
 import { bodyLimit } from "hono/body-limit";
 
 import { assets, AssetTypes } from "@karakeep/db/schema";
 import {
+  deleteAsset,
   newAssetId,
   QuotaService,
   saveAssetFromFile,
@@ -48,7 +50,7 @@ export function toWebReadableStream(
 export async function uploadAsset(
   user: AuthedContext["user"],
   db: AuthedContext["db"],
-  formData: { file: File } | { image: File },
+  formData: ({ file: File } | { image: File }) & { purpose?: "attachment" },
 ): Promise<
   | { error: string; status: 400 | 413 | 403 }
   | {
@@ -65,23 +67,39 @@ export async function uploadAsset(
     data = formData.image;
   }
 
+  if (data.size > MAX_UPLOAD_SIZE_BYTES) {
+    return { error: "Asset is too big", status: 413 };
+  }
+
   const detectedType = await fileTypeFromBlob(data);
-  const fallbackType =
-    data.type && data.type.trim().length > 0 ? data.type : null;
-  // Security: reject browser-provided MIME when we cannot sniff a valid type.
-  if (fallbackType && supportedMimeTypes.has(fallbackType) && !detectedType) {
+  const declaredType = data.type.split(";", 1)[0].trim().toLowerCase();
+  const fallbackType = /^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+$/.test(
+    declaredType,
+  )
+    ? declaredType
+    : null;
+  // Preview formats still require a recognized signature. Generic attachment
+  // declarations need not be detectable: they can only be downloaded.
+  if (
+    fallbackType &&
+    supportedMimeTypes.has(fallbackType) &&
+    !detectedType &&
+    (formData.purpose !== "attachment" ||
+      SUPPORTED_UPLOAD_ASSET_TYPES.has(fallbackType))
+  ) {
     return { error: "Unsupported asset type", status: 400 };
   }
   const contentType =
     detectedType?.mime ?? fallbackType ?? "application/octet-stream";
 
-  // Replace all non-ascii characters with underscores
-  const fileName = data.name.replace(/[^\x20-\x7E]/g, "_");
-  if (!SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)) {
+  // Only positively detected preview formats may render inline. Unsniffable
+  // text (including HTML/SVG) and unknown binaries remain opaque downloads.
+  const downloadOnly =
+    formData.purpose === "attachment" &&
+    (!detectedType || !SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType));
+  const fileName = data.name;
+  if (!downloadOnly && !SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)) {
     return { error: "Unsupported asset type", status: 400 };
-  }
-  if (data.size > MAX_UPLOAD_SIZE_BYTES) {
-    return { error: "Asset is too big", status: 413 };
   }
 
   let quotaApproved;
@@ -111,9 +129,9 @@ export async function uploadAsset(
       .insert(assets)
       .values({
         id: assetId,
-        // Initially, uploads are uploaded for unknown purpose
-        // And without an attached bookmark.
-        assetType: AssetTypes.UNKNOWN,
+        // Generic uploads are restricted to user attachments.
+        // All uploads start without an attached bookmark.
+        assetType: downloadOnly ? AssetTypes.USER_UPLOADED : AssetTypes.UNKNOWN,
         bookmarkId: null,
         userId: user.id,
         contentType,
@@ -122,13 +140,25 @@ export async function uploadAsset(
       })
       .returning();
 
-    await saveAssetFromFile({
-      userId: user.id,
-      assetId: assetDb.id,
-      assetPath: tempFilePath,
-      metadata: { contentType, fileName },
-      quotaApproved,
-    });
+    try {
+      await saveAssetFromFile({
+        userId: user.id,
+        assetId: assetDb.id,
+        assetPath: tempFilePath,
+        metadata: {
+          contentType,
+          fileName,
+          ...(downloadOnly ? { downloadOnly: true } : {}),
+        },
+        quotaApproved,
+      });
+    } catch (error) {
+      await db.delete(assets).where(eq(assets.id, assetDb.id));
+      await deleteAsset({ userId: user.id, assetId: assetDb.id }).catch(
+        () => ({}),
+      );
+      throw error;
+    }
 
     return {
       assetId: assetDb.id,

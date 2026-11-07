@@ -10,14 +10,18 @@ import {
 export default function useUpload({
   onSuccess,
   onError,
+  purpose,
 }: {
+  purpose?: "attachment";
   onError?: (e: ZUploadError, req: File) => void;
   onSuccess?: (resp: ZUploadResponse, req: File) => Promise<void>;
 }) {
   return useMutation({
+    scope: purpose === "attachment" ? { id: "attachment-upload" } : undefined,
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append("file", file);
+      if (purpose) formData.append("purpose", purpose);
       const resp = await fetch("/api/assets", {
         method: "POST",
         body: formData,
