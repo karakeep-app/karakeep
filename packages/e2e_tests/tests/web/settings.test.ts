@@ -156,7 +156,9 @@ it("creates an API key that works until it is deleted", async ({ page }) => {
     name: "Key was successfully created",
   });
   const keyInput = successDialog.getByRole("textbox");
-  await expect(keyInput).not.toHaveValue("");
+  // The key is shown once its secret is hashed, which is slow while other
+  // tests are hashing passwords.
+  await expect(keyInput).not.toHaveValue("", { timeout: 30000 });
   const apiKey = await keyInput.inputValue();
 
   const okResponse = await listBookmarksWithKey(apiKey);

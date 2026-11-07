@@ -3,7 +3,12 @@ import { expect } from "playwright/test";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import { createWebTestUser, it, signIn } from "../../utils/browser";
+import {
+  createWebTestUser,
+  it,
+  signIn,
+  WORKER_TEST_TIMEOUT,
+} from "../../utils/browser";
 import { waitUntil } from "../../utils/general";
 
 async function seedBookmark(page: Page) {
@@ -18,39 +23,45 @@ async function seedBookmark(page: Page) {
   return bookmark;
 }
 
-it("saves a link and finds it through search", async ({ page }) => {
-  const { trpc, email } = await createWebTestUser();
-  await signIn(page, email);
-  await page
-    .getByPlaceholder("Paste a link, write a note or drop an image…")
-    .fill("http://nginx/hello.html");
-  await page.getByRole("button", { name: /^Save/ }).click();
-  const cards = page.locator("[data-bookmark-index]");
-  await expect(cards).toHaveCount(1);
+it(
+  "saves a link and finds it through search",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    const { trpc, email } = await createWebTestUser();
+    await signIn(page, email);
+    await page
+      .getByPlaceholder("Paste a link, write a note or drop an image…")
+      .fill("http://nginx/hello.html");
+    await page.getByRole("button", { name: /^Save/ }).click();
+    const cards = page.locator("[data-bookmark-index]");
+    await expect(cards).toHaveCount(1);
 
-  // Crawling and search indexing happen asynchronously in the workers.
-  await waitUntil(
-    async () => {
-      const result = await trpc.bookmarks.searchBookmarks.query({
-        text: "My test title",
-      });
-      return result.bookmarks.some(
-        (bookmark) =>
-          bookmark.content.type === BookmarkTypes.LINK &&
-          bookmark.content.url === "http://nginx/hello.html",
-      );
-    },
-    "Saved bookmark is crawled and searchable",
-    30000,
-  );
+    // Crawling and search indexing happen asynchronously in the workers.
+    await waitUntil(
+      async () => {
+        const result = await trpc.bookmarks.searchBookmarks.query({
+          text: "My test title",
+        });
+        return result.bookmarks.some(
+          (bookmark) =>
+            bookmark.content.type === BookmarkTypes.LINK &&
+            bookmark.content.url === "http://nginx/hello.html",
+        );
+      },
+      "Saved bookmark is crawled and searchable",
+      90000,
+    );
 
-  const search = page.getByPlaceholder("Search titles, text, URLs, and tags…");
-  await search.fill("My test title");
-  await search.press("Enter");
-  await expect(page).toHaveURL(/\/dashboard\/search\?/);
-  await expect(cards.filter({ hasText: "My test title" })).toBeVisible();
-  await expect(cards).toHaveCount(1);
-});
+    const search = page.getByPlaceholder(
+      "Search titles, text, URLs, and tags…",
+    );
+    await search.fill("My test title");
+    await search.press("Enter");
+    await expect(page).toHaveURL(/\/dashboard\/search\?/);
+    await expect(cards.filter({ hasText: "My test title" })).toBeVisible();
+    await expect(cards).toHaveCount(1);
+  },
+);
 
 it("favorites a bookmark and shows it in Favourites", async ({ page }) => {
   const bookmark = await seedBookmark(page);

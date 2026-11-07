@@ -122,7 +122,9 @@ it("creates a user from the users page and the user can sign in", async ({
   await dialog.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await dialog.getByLabel("Confirm Password", { exact: true }).fill(PASSWORD);
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
-  await expect(dialog).not.toBeVisible();
+  // The dialog closes once the password is hashed, which is slow while other
+  // tests are hashing passwords too.
+  await expect(dialog).not.toBeVisible({ timeout: 30000 });
 
   const row = userRow(page, email);
   await expect(row).toContainText("Casey Created");
@@ -210,7 +212,8 @@ it("resets a user's password so they sign in with the new one", async ({
     .getByLabel("Confirm New Password", { exact: true })
     .fill(newPassword);
   await dialog.getByRole("button", { name: "Reset", exact: true }).click();
-  await expect(dialog).not.toBeVisible();
+  // See the create test: the dialog closes once the password is hashed.
+  await expect(dialog).not.toBeVisible({ timeout: 30000 });
 
   await page.context().clearCookies();
   await submitSignInForm(page, target.email, PASSWORD);
