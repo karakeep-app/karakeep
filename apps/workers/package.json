@@ -7,7 +7,7 @@
   "dependencies": {
     "@duckduckgo/autoconsent": "^16.6.0",
     "@ghostery/adblocker-playwright": "^2.5.1",
-    "@hono/node-server": "^1.19.17",
+    "@hono/node-server": "^2.1.6",
     "@hono/prometheus": "^1.0.2",
     "@karakeep/db": "workspace:^0.1.0",
     "@karakeep/shared": "workspace:^0.1.0",
