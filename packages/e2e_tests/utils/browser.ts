@@ -3,6 +3,7 @@ import { chromium, expect } from "playwright/test";
 import { inject, it as base } from "vitest";
 
 import { createTestUser } from "./api";
+import { waitUntil } from "./general";
 import { getTrpcClient } from "./trpc";
 
 export const it = base.extend<{ page: Page }>({
@@ -24,15 +25,50 @@ export const it = base.extend<{ page: Page }>({
   },
 });
 
-export async function signIn(page: Page, email: string) {
+// Fills and submits the sign in form without checking the outcome.
+export async function submitSignInForm(
+  page: Page,
+  email: string,
+  password: string,
+) {
   await page.goto("/signin");
   await page.getByLabel("Email", { exact: true }).fill(email);
-  await page.getByLabel("Password", { exact: true }).fill("test1234");
+  await page.getByLabel("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign In", exact: true }).click();
+}
+
+export async function signIn(page: Page, email: string, password = "test1234") {
+  await submitSignInForm(page, email, password);
   // Signing in verifies the password and then redirects through / to the
   // dashboard. While other test files are hashing passwords for their users,
   // this can take well over the default 5s expect timeout.
   await expect(page).toHaveURL(/\/dashboard\/bookmarks$/, { timeout: 30000 });
+}
+
+// The bookmark cards on screen. Hidden card elements can still be in the DOM,
+// so only the visible ones are matched.
+export function bookmarkCards(page: Page) {
+  return page.locator("[data-bookmark-index]").filter({ visible: true });
+}
+
+// Cards show a skeleton instead of their tags until the bookmark's tagging
+// job has run (a no-op for test users, who have auto-tagging disabled). That
+// job can sit in the queue for a while when the workers are busy, so wait for
+// it before asserting on the tags shown on a card.
+export async function waitForTaggingToFinish(
+  trpc: ReturnType<typeof getTrpcClient>,
+  bookmarkId: string,
+) {
+  await waitUntil(
+    async () => {
+      const { taggingStatus } = await trpc.bookmarks.getBookmark.query({
+        bookmarkId,
+      });
+      return taggingStatus !== "pending";
+    },
+    "Tagging job is done",
+    30000,
+  );
 }
 
 export async function createWebTestUser() {
