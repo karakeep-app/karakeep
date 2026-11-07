@@ -50,16 +50,42 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
     Haptics.selectionAsync();
     if (nativeEvent.event === "new") {
       openNewBookmarkModal();
-    } else if (nativeEvent.event === "library") {
+    } else if (
+      nativeEvent.event === "library" ||
+      nativeEvent.event === "camera"
+    ) {
+      const isCamera = nativeEvent.event === "camera";
+      const sourceName = isCamera ? "camera" : "photo library";
       try {
         uploadToastIdRef.current = sonnerToast.loading(
-          "Opening photo library...",
+          `Opening ${sourceName}...`,
         );
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ["images"],
-          quality: settings.imageQuality,
-          allowsMultipleSelection: false,
-        });
+        if (isCamera) {
+          const permission = await ImagePicker.requestCameraPermissionsAsync();
+          if (!permission.granted) {
+            sonnerToast.error(
+              permission.canAskAgain
+                ? "Camera permission is required to take a photo."
+                : "Camera access is disabled. Enable it in your device settings.",
+              { id: uploadToastIdRef.current },
+            );
+            uploadToastIdRef.current = null;
+            return;
+          }
+        }
+        const result = await (isCamera
+          ? ImagePicker.launchCameraAsync({
+              mediaTypes: ["images"],
+              quality: settings.imageQuality,
+            })
+          : ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ["images"],
+              quality: settings.imageQuality,
+              allowsMultipleSelection: false,
+              preferredAssetRepresentationMode:
+                ImagePicker.UIImagePickerPreferredAssetRepresentationMode
+                  .Compatible,
+            }));
         if (!result.canceled) {
           const asset = result.assets[0];
           if (!asset) {
@@ -81,12 +107,15 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
         }
       } catch {
         if (uploadToastIdRef.current !== null) {
-          sonnerToast.error("Failed to open photo library", {
-            id: uploadToastIdRef.current,
-          });
+          sonnerToast.error(
+            isCamera
+              ? "Unable to open camera. Check camera access and device availability."
+              : "Unable to open photo library.",
+            {
+              id: uploadToastIdRef.current,
+            },
+          );
           uploadToastIdRef.current = null;
-        } else {
-          sonnerToast.error("Failed to open photo library");
         }
       }
     } else if (nativeEvent.event === "clipboard") {
@@ -137,21 +166,27 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
 
   const actions = [
     {
-      id: "clipboard",
-      title: "Clipboard",
-      image: Platform.select({ ios: "clipboard" }),
-      imageColor: Platform.select({ ios: menuIconColor }),
-    },
-    {
       id: "new",
       title: "New Bookmark",
       image: Platform.select({ ios: "square.and.pencil" }),
       imageColor: Platform.select({ ios: menuIconColor }),
     },
     {
+      id: "clipboard",
+      title: "Clipboard",
+      image: Platform.select({ ios: "clipboard" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
+    {
       id: "library",
       title: "Photo Library",
       image: Platform.select({ ios: "photo" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
+    {
+      id: "camera",
+      title: "Camera",
+      image: Platform.select({ ios: "camera" }),
       imageColor: Platform.select({ ios: menuIconColor }),
     },
   ];
