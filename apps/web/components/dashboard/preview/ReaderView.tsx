@@ -174,6 +174,8 @@ export default function ReaderView({
               color: h.color,
               bookmarkId,
               text: h.text,
+              prefix: h.prefix ?? null,
+              suffix: h.suffix ?? null,
               note: h.note ?? null,
             })
           }

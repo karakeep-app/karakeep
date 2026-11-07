@@ -14,6 +14,9 @@ const zHighlightBaseSchema = z.object({
   endOffset: z.number(),
   color: zHighlightColorSchema.default("yellow"),
   text: z.string().nullable(),
+  // Text surrounding the highlight, used to re-anchor it when offsets drift.
+  prefix: z.string().nullable(),
+  suffix: z.string().nullable(),
   note: z.string().nullable(),
 });
 
@@ -27,7 +30,10 @@ export const zHighlightSchema = zHighlightBaseSchema.extend(
 
 export type ZHighlight = z.infer<typeof zHighlightSchema>;
 
-export const zNewHighlightSchema = zHighlightBaseSchema;
+export const zNewHighlightSchema = zHighlightBaseSchema.extend({
+  prefix: zHighlightBaseSchema.shape.prefix.optional(),
+  suffix: zHighlightBaseSchema.shape.suffix.optional(),
+});
 
 export const zUpdateHighlightSchema = z.object({
   highlightId: z.string(),

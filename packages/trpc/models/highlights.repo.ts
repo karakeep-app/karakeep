@@ -34,6 +34,8 @@ export class HighlightsRepo {
         endOffset: input.endOffset,
         color: input.color,
         text: input.text,
+        prefix: input.prefix ?? null,
+        suffix: input.suffix ?? null,
         note: input.note,
         userId,
       })
