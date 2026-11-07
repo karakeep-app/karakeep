@@ -339,6 +339,12 @@ export const bookmarkLinks = sqliteTable(
     >(),
     readerViewClassifierVersion: integer("readerViewClassifierVersion"),
     crawledAt: integer("crawledAt", { mode: "timestamp" }),
+    // Identifies the crawl that last committed this link's content.
+    crawlRevision: text("crawlRevision"),
+    // A normal crawl has published metadata, even if its content is still pending.
+    hasCrawlMetadata: integer("hasCrawlMetadata", { mode: "boolean" })
+      .notNull()
+      .default(false),
     crawlStatus: text("crawlStatus", {
       enum: ["pending", "failure", "success"],
     }).default("pending"),

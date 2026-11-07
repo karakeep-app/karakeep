@@ -14,6 +14,9 @@ services:
     restart: unless-stopped
     ports:
       - "${KARAKEEP_PORT:-3000}:3000"
+      - "${CRAWLER_RACE_FIXTURE_PORT:-9199}:9199"
+    volumes:
+      - ./setup/crawler-race-fixture.mjs:/crawler-race-fixture.mjs:ro
     environment:
       DATA_DIR: /tmp
       DB_WAL_MODE: "true"
@@ -24,6 +27,7 @@ services:
       BROWSER_WEB_URL: http://chrome:9222
       CRAWLER_NUM_WORKERS: 6
       CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+      CRAWLER_PREFLIGHT_USER_AGENT: karakeep-e2e-probe
       CRAWLER_STORE_PDF: "true"
       CRAWLER_VIDEO_DOWNLOAD: "true"
       CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: -1

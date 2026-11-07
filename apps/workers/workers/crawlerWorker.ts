@@ -17,7 +17,7 @@ import { Transform } from "stream";
 import { pipeline } from "stream/promises";
 import { dataUriToBuffer } from "data-uri-to-buffer";
 import type { MimeBuffer } from "data-uri-to-buffer";
-import { and, eq, sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { execa } from "execa";
 // patchright is a drop-in Playwright fork that drives Chrome without enabling
 // the CDP Runtime domain, the most widely checked automation signal.
@@ -99,7 +99,17 @@ import {
   timeoutRejectRace,
 } from "../utils";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
-import { getBookmarkDetails, updateAsset } from "../workerUtils";
+import {
+  AssetDownloadHttpError,
+  getBookmarkDetails,
+  metadataForCrawlCommit,
+  missingAssetStatusCode,
+  persistCrawlInTransaction,
+  replaceArchiveIfCurrent,
+  replaceBookmarkAssets,
+  recordCrawlFailure,
+  updateAsset,
+} from "../workerUtils";
 import {
   installAutoconsent,
   waitForPageLoadAndAutoconsent,
@@ -185,9 +195,9 @@ export function crawlLogger(jobId: string): CrawlLogger {
 // Worker
 // ---------------------------------------------------------------------------
 
-interface CrawlerRunResult {
-  status: "completed";
-}
+type CrawlerRunResult =
+  | { status: "completed" }
+  | { status: "preserved"; statusCode: number };
 
 export class CrawlerWorker {
   private static initPromise: Promise<void> | null = null;
@@ -247,18 +257,22 @@ export class CrawlerWorker {
             runCrawler(job, queue.opts.defaultJobArgs.numRetries),
           ),
         ),
-        onComplete: async (job: DequeuedJob<ZCrawlLinkRequest>) => {
+        onComplete: async (job, result) => {
           workerStatsCounter.labels("crawler", "completed").inc();
           const jobId = job.id;
-          logger.info(`[Crawler][${jobId}] Completed successfully`);
+          logger.info(
+            `[Crawler][${jobId}] Completed with result: ${result.status}`,
+          );
           const bookmarkId = job.data.bookmarkId;
           if (bookmarkId) {
-            await db
-              .update(bookmarkLinks)
-              .set({
-                crawlStatus: "success",
-              })
-              .where(eq(bookmarkLinks.id, bookmarkId));
+            if (result.status === "preserved") {
+              await recordCrawlFailure(bookmarkId, result.statusCode);
+            } else {
+              await db
+                .update(bookmarkLinks)
+                .set({ crawlStatus: "success" })
+                .where(eq(bookmarkLinks.id, bookmarkId));
+            }
           }
         },
         onError: async (job: DequeuedJobError<ZCrawlLinkRequest>) => {
@@ -272,47 +286,11 @@ export class CrawlerWorker {
           );
           const bookmarkId = job.data?.bookmarkId;
           if (bookmarkId && job.numRetriesLeft == 0) {
-            await db.transaction((tx) => {
-              tx.update(bookmarkLinks)
-                .set({
-                  crawlStatus: "failure",
-                })
-                .where(eq(bookmarkLinks.id, bookmarkId))
-                .run();
-              tx.update(bookmarks)
-                .set({
-                  taggingStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.taggingStatus, "pending"),
-                  ),
-                )
-                .run();
-              tx.update(bookmarks)
-                .set({
-                  summarizationStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.summarizationStatus, "pending"),
-                  ),
-                )
-                .run();
-              tx.update(bookmarks)
-                .set({
-                  embeddingStatus: null,
-                })
-                .where(
-                  and(
-                    eq(bookmarks.id, bookmarkId),
-                    eq(bookmarks.embeddingStatus, "pending"),
-                  ),
-                )
-                .run();
-            });
+            await recordCrawlFailure(
+              bookmarkId,
+              missingAssetStatusCode(job.error),
+              true,
+            );
           }
         },
       },
@@ -325,6 +303,20 @@ export class CrawlerWorker {
 
     return worker;
   }
+}
+
+function hasSavedBookmarkCopy(
+  bookmark: Awaited<ReturnType<typeof getBookmarkDetails>>,
+) {
+  return Boolean(
+    bookmark.crawledAt ||
+    bookmark.htmlContent ||
+    bookmark.screenshotAssetId ||
+    bookmark.pdfAssetId ||
+    bookmark.imageAssetId ||
+    bookmark.fullPageArchiveAssetId ||
+    bookmark.contentAssetId,
+  );
 }
 
 async function runCrawler(
@@ -347,19 +339,15 @@ async function runCrawler(
   addLogFields<"crawlerWorker.run">({
     "bookmark.id": bookmarkId,
   });
+  const bookmarkDetails = await getBookmarkDetails(bookmarkId);
   const {
     url,
     userId,
     createdAt,
     crawledAt,
-    screenshotAssetId: oldScreenshotAssetId,
-    pdfAssetId: oldPdfAssetId,
-    imageAssetId: oldImageAssetId,
-    fullPageArchiveAssetId: oldFullPageArchiveAssetId,
-    contentAssetId: oldContentAssetId,
     precrawledArchiveAssetId,
     probeMetadataAt,
-  } = await getBookmarkDetails(bookmarkId);
+  } = bookmarkDetails;
 
   const userData = await db.query.users.findFirst({
     where: eq(users.id, userId),
@@ -410,6 +398,8 @@ async function runCrawler(
       `Skipped fetching content-type for the url ${url} as precrawledArchiveAssetId exists`,
     );
   }
+  const hasSavedCopy = hasSavedBookmarkCopy(bookmarkDetails);
+
   // Retry runs re-probe for the content type, but if a previous run already
   // extracted and stored the probe metadata (probeMetadataAt), don't re-fetch
   // it — reload it from the bookmark row instead.
@@ -427,60 +417,70 @@ async function runCrawler(
   const isPdf = contentType === ASSET_TYPES.APPLICATION_PDF;
 
   if (isPdf) {
-    await handleAsAssetBookmark(ctx, "pdf");
+    const result = await handleAsAssetBookmark(
+      ctx,
+      "pdf",
+      hasSavedCopy,
+      numRetriesLeft,
+    );
+    if (result) return result;
   } else if (
     contentType &&
     IMAGE_ASSET_TYPES.has(contentType) &&
     SUPPORTED_UPLOAD_ASSET_TYPES.has(contentType)
   ) {
-    await handleAsAssetBookmark(ctx, "image");
+    const result = await handleAsAssetBookmark(
+      ctx,
+      "image",
+      hasSavedCopy,
+      numRetriesLeft,
+    );
+    if (result) return result;
   } else {
-    // Chain the early metadata write onto the (still running) probe
-    // extraction so a title/thumbnail lands as soon as it's ready, while the
-    // browser crawl proceeds in parallel. crawlAndParseUrl awaits this same
-    // promise before its own metadata write, so within this attempt the
-    // early write always precedes the final merged one. Across attempts the
-    // ordering can't be relied on (a failed attempt's write may fire after a
-    // retry finished) — that case is guarded by the write itself being
-    // fill-only (see writeProbeMetadata). On retry runs where the probe
-    // metadata was already stored, reload it from the bookmark row instead.
-    // Never rejects.
+    // A first crawl can publish a fast preview. The write rechecks under a
+    // transaction so a late probe cannot change a concurrently saved copy.
     const probeMetadataPromise = reuseStoredProbeMetadata
       ? loadStoredProbeMetadata(ctx)
-      : probeMetadata.then(async (metadata) => {
-          if (metadata) {
-            const { error } = await tryCatch(writeProbeMetadata(ctx, metadata));
-            if (error) {
-              log.warn(`Failed to write early probe metadata: ${error}`);
+      : hasSavedCopy
+        ? probeMetadata
+        : probeMetadata.then(async (metadata) => {
+            if (metadata) {
+              const { error } = await tryCatch(
+                writeProbeMetadata(ctx, metadata),
+              );
+              if (error)
+                log.warn(`Failed to write early probe metadata: ${error}`);
             }
-          }
-          return metadata;
-        });
+            return metadata;
+          });
     const page = await crawlAndParseUrl(ctx, {
-      oldAssets: {
-        screenshotAssetId: oldScreenshotAssetId,
-        pdfAssetId: oldPdfAssetId,
-        imageAssetId: oldImageAssetId,
-        contentAssetId: oldContentAssetId,
-      },
       precrawledArchiveAssetId,
       forceStorePdf: storePdf ?? false,
       numRetriesLeft,
       probeMetadataPromise,
+      hasSavedCopy,
+      archiveFullPage:
+        !precrawledArchiveAssetId &&
+        (serverConfig.crawler.fullPageArchive || archiveFullPage),
     });
+
+    if (page.status === "preserved") {
+      return page;
+    }
 
     await enqueuePostCrawlJobs(ctx, job);
 
     // Do the archival as a separate last step as it has the potential for failure
     if (
       !precrawledArchiveAssetId &&
-      (serverConfig.crawler.fullPageArchive || archiveFullPage)
+      (serverConfig.crawler.fullPageArchive || archiveFullPage) &&
+      !page.archiveHandled
     ) {
       await storeFullPageArchive(
         ctx,
         page.htmlContent,
         page.url,
-        oldFullPageArchiveAssetId,
+        page.crawlRevision,
       );
     }
   }
@@ -632,6 +632,12 @@ const getContentTypeAndMetadata = traced(
       `Content-type for the url ${truncateUrl(url)} is "${contentType}"`,
     );
 
+    // Do not route error pages as assets or extract their metadata. The
+    // browser crawl still determines the final status, which can differ.
+    if (response.status === 404 || response.status === 410) {
+      return { contentType: null, metadata: Promise.resolve(null) };
+    }
+
     if (!contentType || !PROBE_HTML_CONTENT_TYPES.has(contentType)) {
       return { contentType, metadata: Promise.resolve(null) };
     }
@@ -707,61 +713,52 @@ const getContentTypeAndMetadata = traced(
   },
 );
 
-/**
- * Writes the preview metadata extracted by the pre-crawl probe so the bookmark
- * gets a title/thumbnail before the (slow) browser render finishes.
- *
- * The write is strictly fill-only: each field is wrapped in
- * COALESCE(NULLIF(existing, ''), new) so it can only populate fields that are
- * currently empty and never override an existing value. This matters because
- * the probe extraction runs detached from the crawl attempt's lifecycle — if
- * an attempt fails early, this write can fire after a *retry* (possibly on
- * another worker) has already stored its final metadata, and it must not
- * clobber it. The post-render metadata write refines these values within the
- * owning attempt.
- */
+/** Writes a fill-only preview unless another crawl has already saved a copy. */
 async function writeProbeMetadata(
   ctx: CrawlContext,
   metadata: ParseSubprocessOutput["metadata"],
 ) {
   const { bookmarkId, log } = ctx;
-  // Don't store data URIs as they're not valid URLs and are usually quite large
   const image =
     metadata.image && !metadata.image.startsWith("data:")
       ? metadata.image
       : null;
-  if (!metadata.title && !metadata.description && !image && !metadata.logo) {
+  if (!metadata.title && !metadata.description && !image && !metadata.logo)
     return;
-  }
-  await db
-    .update(bookmarkLinks)
-    .set({
-      ...(metadata.title
-        ? {
-            title: sql`COALESCE(NULLIF(${bookmarkLinks.title}, ''), ${metadata.title})`,
-          }
-        : {}),
-      ...(metadata.description
-        ? {
-            description: sql`COALESCE(NULLIF(${bookmarkLinks.description}, ''), ${metadata.description})`,
-          }
-        : {}),
-      ...(image
-        ? {
-            imageUrl: sql`COALESCE(NULLIF(${bookmarkLinks.imageUrl}, ''), ${image})`,
-          }
-        : {}),
-      ...(metadata.logo
-        ? {
-            favicon: sql`COALESCE(NULLIF(${bookmarkLinks.favicon}, ''), ${metadata.logo})`,
-          }
-        : {}),
-      // Also record that the probe metadata has been fetched and stored, so
-      // crawl retries can skip re-fetching it (see loadStoredProbeMetadata).
-      probeMetadataAt: new Date(),
-    })
-    .where(eq(bookmarkLinks.id, bookmarkId));
-  log.info(`Wrote early metadata from the content-type probe.`);
+  const written = await db.transaction(
+    (txn) =>
+      persistCrawlInTransaction(txn, bookmarkId, true, () => {
+        txn
+          .update(bookmarkLinks)
+          .set({
+            ...(metadata.title
+              ? {
+                  title: sql`COALESCE(NULLIF(${bookmarkLinks.title}, ''), ${metadata.title})`,
+                }
+              : {}),
+            ...(metadata.description
+              ? {
+                  description: sql`COALESCE(NULLIF(${bookmarkLinks.description}, ''), ${metadata.description})`,
+                }
+              : {}),
+            ...(image
+              ? {
+                  imageUrl: sql`COALESCE(NULLIF(${bookmarkLinks.imageUrl}, ''), ${image})`,
+                }
+              : {}),
+            ...(metadata.logo
+              ? {
+                  favicon: sql`COALESCE(NULLIF(${bookmarkLinks.favicon}, ''), ${metadata.logo})`,
+                }
+              : {}),
+            probeMetadataAt: new Date(),
+          })
+          .where(eq(bookmarkLinks.id, bookmarkId))
+          .run();
+      }),
+    { behavior: "immediate" },
+  );
+  if (written) log.info("Wrote early metadata from the content-type probe.");
 }
 
 /**
@@ -821,10 +818,32 @@ async function loadStoredProbeMetadata(
  */
 const handleAsAssetBookmark = traced(
   "handleAsAssetBookmark",
-  async (ctx: CrawlContext, assetType: "image" | "pdf") => {
-    const { url, userId, jobId, bookmarkId } = ctx;
+  async (
+    ctx: CrawlContext,
+    assetType: "image" | "pdf",
+    hasSavedCopy: boolean,
+    numRetriesLeft: number,
+  ): Promise<CrawlerRunResult | undefined> => {
+    const { url, userId, jobId, bookmarkId, log } = ctx;
     setSpanAttributes({ "asset.type": assetType });
-    const downloaded = await downloadAndStoreFile(ctx, url, assetType);
+    let downloaded: Awaited<ReturnType<typeof downloadAndStoreFile>>;
+    try {
+      downloaded = await downloadAndStoreFile(ctx, url, assetType);
+    } catch (error) {
+      if (
+        error instanceof AssetDownloadHttpError &&
+        (error.statusCode === 404 || error.statusCode === 410) &&
+        numRetriesLeft === 0 &&
+        (hasSavedCopy ||
+          hasSavedBookmarkCopy(await getBookmarkDetails(bookmarkId)))
+      ) {
+        log.info(
+          `Preserving the existing copy after HTTP ${error.statusCode}.`,
+        );
+        return { status: "preserved", statusCode: error.statusCode };
+      }
+      throw error;
+    }
     if (!downloaded) {
       // Unlike screenshots and banner images, this download is the crawl's
       // primary result. Without it the bookmark cannot be converted to an
@@ -886,17 +905,12 @@ const handleAsAssetBookmark = traced(
 type DBAssetType = typeof assets.$inferInsert;
 
 interface CrawlAndParseUrlArgs {
-  /** Asset ids from a previous crawl of this bookmark, replaced (and deleted) on success. */
-  oldAssets: {
-    screenshotAssetId: string | undefined;
-    pdfAssetId: string | undefined;
-    imageAssetId: string | undefined;
-    contentAssetId: string | undefined;
-  };
   precrawledArchiveAssetId: string | undefined;
   forceStorePdf: boolean;
   numRetriesLeft: number;
   probeMetadataPromise: Promise<ParseSubprocessOutput["metadata"] | null>;
+  hasSavedCopy: boolean;
+  archiveFullPage: boolean;
 }
 
 /**
@@ -909,14 +923,24 @@ const crawlAndParseUrl = traced(
   async (
     ctx: CrawlContext,
     args: CrawlAndParseUrlArgs,
-  ): Promise<{ htmlContent: string; url: string }> => {
+  ): Promise<
+    | {
+        status: "completed";
+        htmlContent: string;
+        url: string;
+        archiveHandled: boolean;
+        crawlRevision: string;
+      }
+    | { status: "preserved"; statusCode: number }
+  > => {
     const { url, userId, jobId, bookmarkId, abortSignal, runProxy, log } = ctx;
     const {
-      oldAssets,
       precrawledArchiveAssetId,
       forceStorePdf,
       numRetriesLeft,
       probeMetadataPromise,
+      hasSavedCopy,
+      archiveFullPage,
     } = args;
     const sanitizedProxyUrl = redactUrlCredentials(
       runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
@@ -987,6 +1011,16 @@ const crawlAndParseUrl = traced(
       );
     }
 
+    const isMissingPage = statusCode === 404 || statusCode === 410;
+    if (
+      isMissingPage &&
+      (hasSavedCopy ||
+        hasSavedBookmarkCopy(await getBookmarkDetails(bookmarkId)))
+    ) {
+      log.info(`Preserving the existing copy after HTTP ${statusCode}.`);
+      return { status: "preserved", statusCode };
+    }
+
     const {
       metadata: renderMeta,
       readableContent: parsedReadableContent,
@@ -1037,21 +1071,24 @@ const crawlAndParseUrl = traced(
     // Phase 1: Write metadata immediately for fast user feedback.
     // Content and asset storage happen later and can be slow (banner
     // image download, screenshot/pdf upload, etc.).
-    await db
-      .update(bookmarkLinks)
-      .set({
-        title: meta.title,
-        description: meta.description,
-        // Don't store data URIs as they're not valid URLs and are usually quite large
-        imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
-        favicon: meta.logo,
-        crawlStatusCode: statusCode,
-        author: meta.author,
-        publisher: meta.publisher,
-        datePublished: parseDate(meta.datePublished),
-        dateModified: parseDate(meta.dateModified),
-      })
-      .where(eq(bookmarkLinks.id, bookmarkId));
+    const metadataValues = {
+      title: meta.title,
+      description: meta.description,
+      // Don't store data URIs as they're not valid URLs and are usually quite large
+      imageUrl: meta.image?.startsWith("data:") ? null : meta.image,
+      favicon: meta.logo,
+      crawlStatusCode: statusCode,
+      author: meta.author,
+      publisher: meta.publisher,
+      datePublished: parseDate(meta.datePublished),
+      dateModified: parseDate(meta.dateModified),
+    };
+    if (!isMissingPage) {
+      await db
+        .update(bookmarkLinks)
+        .set({ ...metadataValues, hasCrawlMetadata: true })
+        .where(eq(bookmarkLinks.id, bookmarkId));
+    }
 
     let readableContent = parsedReadableContent;
 
@@ -1088,6 +1125,14 @@ const crawlAndParseUrl = traced(
     }
     abortSignal.throwIfAborted();
 
+    // For an initial missing page, prepare its archive before committing any
+    // of the page's data. A concurrent successful crawl may finish meanwhile.
+    const missingArchive =
+      isMissingPage && archiveFullPage
+        ? await archiveWebpage(ctx, htmlContent, browserUrl)
+        : null;
+    abortSignal.throwIfAborted();
+
     // Phase 2: Write content and asset references.
     // TODO(important): Restrict the size of content to store
     const assetIdsToDelete: (string | undefined)[] = [];
@@ -1096,89 +1141,152 @@ const crawlAndParseUrl = traced(
         ? (readableContent?.content ?? null)
         : null;
     readableContent = null;
-    await db.transaction((txn) => {
-      txn
-        .update(bookmarkLinks)
-        .set({
-          crawledAt: new Date(),
-          htmlContent: inlineHtmlContent,
-          contentAssetId:
-            htmlContentAssetInfo.result === "stored"
-              ? htmlContentAssetInfo.assetId
-              : null,
-          readerViewStatus: readerViewAssessment?.status ?? null,
-          readerViewScore: readerViewAssessment?.score ?? null,
-          readerViewReasons,
-          readerViewClassifierVersion:
-            readerViewAssessment?.classifierVersion ?? null,
-        })
-        .where(eq(bookmarkLinks.id, bookmarkId))
-        .run();
+    // A unique token ties any later full-page archive to this content commit,
+    // even when two crawls finish within the same second.
+    const crawlRevision = newAssetId();
+    const saved = await db.transaction(
+      (txn) => {
+        return persistCrawlInTransaction(txn, bookmarkId, isMissingPage, () => {
+          txn
+            .update(bookmarkLinks)
+            .set({
+              ...metadataForCrawlCommit(
+                txn,
+                bookmarkId,
+                isMissingPage,
+                metadataValues,
+              ),
+              crawledAt: new Date(),
+              crawlRevision,
+              htmlContent: inlineHtmlContent,
+              contentAssetId:
+                htmlContentAssetInfo.result === "stored"
+                  ? htmlContentAssetInfo.assetId
+                  : null,
+              readerViewStatus: readerViewAssessment?.status ?? null,
+              readerViewScore: readerViewAssessment?.score ?? null,
+              readerViewReasons,
+              readerViewClassifierVersion:
+                readerViewAssessment?.classifierVersion ?? null,
+            })
+            .where(eq(bookmarkLinks.id, bookmarkId))
+            .run();
 
-      if (screenshotAssetInfo) {
-        updateAsset(
-          oldAssets.screenshotAssetId,
-          {
-            id: screenshotAssetInfo.assetId,
-            bookmarkId,
-            userId,
-            assetType: AssetTypes.LINK_SCREENSHOT,
-            contentType: screenshotAssetInfo.contentType,
-            size: screenshotAssetInfo.size,
-            fileName: screenshotAssetInfo.fileName,
-          },
-          txn,
-        );
-        assetIdsToDelete.push(oldAssets.screenshotAssetId);
-      }
-      if (pdfAssetInfo) {
-        updateAsset(
-          oldAssets.pdfAssetId,
-          {
-            id: pdfAssetInfo.assetId,
-            bookmarkId,
-            userId,
-            assetType: AssetTypes.LINK_PDF,
-            contentType: pdfAssetInfo.contentType,
-            size: pdfAssetInfo.size,
-            fileName: pdfAssetInfo.fileName,
-          },
-          txn,
-        );
-        assetIdsToDelete.push(oldAssets.pdfAssetId);
-      }
-      if (imageAssetInfo) {
-        updateAsset(oldAssets.imageAssetId, imageAssetInfo, txn);
-        assetIdsToDelete.push(oldAssets.imageAssetId);
-      }
-      if (htmlContentAssetInfo.result === "stored") {
-        updateAsset(
-          oldAssets.contentAssetId,
-          {
-            id: htmlContentAssetInfo.assetId,
-            bookmarkId,
-            userId,
-            assetType: AssetTypes.LINK_HTML_CONTENT,
-            contentType: ASSET_TYPES.TEXT_HTML,
-            size: htmlContentAssetInfo.size,
-            fileName: null,
-          },
-          txn,
-        );
-        assetIdsToDelete.push(oldAssets.contentAssetId);
-      } else if (oldAssets.contentAssetId) {
-        // Unlink the old content asset
-        txn.delete(assets).where(eq(assets.id, oldAssets.contentAssetId)).run();
-        assetIdsToDelete.push(oldAssets.contentAssetId);
-      }
-    });
+          if (screenshotAssetInfo) {
+            assetIdsToDelete.push(
+              ...replaceBookmarkAssets(
+                txn,
+                bookmarkId,
+                AssetTypes.LINK_SCREENSHOT,
+                {
+                  id: screenshotAssetInfo.assetId,
+                  bookmarkId,
+                  userId,
+                  assetType: AssetTypes.LINK_SCREENSHOT,
+                  contentType: screenshotAssetInfo.contentType,
+                  size: screenshotAssetInfo.size,
+                  fileName: screenshotAssetInfo.fileName,
+                },
+              ),
+            );
+          }
+          if (pdfAssetInfo) {
+            assetIdsToDelete.push(
+              ...replaceBookmarkAssets(txn, bookmarkId, AssetTypes.LINK_PDF, {
+                id: pdfAssetInfo.assetId,
+                bookmarkId,
+                userId,
+                assetType: AssetTypes.LINK_PDF,
+                contentType: pdfAssetInfo.contentType,
+                size: pdfAssetInfo.size,
+                fileName: pdfAssetInfo.fileName,
+              }),
+            );
+          }
+          if (imageAssetInfo) {
+            assetIdsToDelete.push(
+              ...replaceBookmarkAssets(
+                txn,
+                bookmarkId,
+                AssetTypes.LINK_BANNER_IMAGE,
+                imageAssetInfo,
+              ),
+            );
+          }
+          if (htmlContentAssetInfo.result === "stored") {
+            assetIdsToDelete.push(
+              ...replaceBookmarkAssets(
+                txn,
+                bookmarkId,
+                AssetTypes.LINK_HTML_CONTENT,
+                {
+                  id: htmlContentAssetInfo.assetId,
+                  bookmarkId,
+                  userId,
+                  assetType: AssetTypes.LINK_HTML_CONTENT,
+                  contentType: ASSET_TYPES.TEXT_HTML,
+                  size: htmlContentAssetInfo.size,
+                  fileName: null,
+                },
+              ),
+            );
+          } else {
+            assetIdsToDelete.push(
+              ...replaceBookmarkAssets(
+                txn,
+                bookmarkId,
+                AssetTypes.LINK_HTML_CONTENT,
+              ),
+            );
+          }
+          if (missingArchive) {
+            updateAsset(
+              undefined,
+              {
+                id: missingArchive.assetId,
+                bookmarkId,
+                userId,
+                assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+                contentType: missingArchive.contentType,
+                size: missingArchive.size,
+                fileName: null,
+              },
+              txn,
+            );
+          }
+        });
+      },
+      { behavior: "immediate" },
+    );
+
+    if (!saved && statusCode !== null) {
+      await Promise.all(
+        [
+          screenshotAssetInfo?.assetId,
+          pdfAssetInfo?.assetId,
+          htmlContentAssetInfo.result === "stored"
+            ? htmlContentAssetInfo.assetId
+            : undefined,
+          imageAssetInfo?.id,
+          missingArchive?.assetId,
+        ].map((assetId) => silentDeleteAsset(userId, assetId)),
+      );
+      log.info(`Preserving the existing copy after HTTP ${statusCode}.`);
+      return { status: "preserved", statusCode };
+    }
 
     // Delete the old assets if any
     await Promise.all(
       assetIdsToDelete.map((assetId) => silentDeleteAsset(userId, assetId)),
     );
 
-    return { htmlContent, url: browserUrl };
+    return {
+      status: "completed",
+      htmlContent,
+      url: browserUrl,
+      archiveHandled: isMissingPage,
+      crawlRevision,
+    };
   },
 );
 
@@ -1190,32 +1298,39 @@ async function storeFullPageArchive(
   ctx: CrawlContext,
   htmlContent: string,
   url: string,
-  oldAssetId: string | undefined,
+  crawlRevision: string,
 ): Promise<void> {
-  const { bookmarkId, userId } = ctx;
+  const { bookmarkId, userId, log } = ctx;
   const archiveResult = await archiveWebpage(ctx, htmlContent, url);
   if (!archiveResult) {
     return;
   }
   const { assetId, size, contentType } = archiveResult;
-  await db.transaction((txn) => {
-    updateAsset(
-      oldAssetId,
-      {
-        id: assetId,
-        bookmarkId,
-        userId,
-        assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
-        contentType,
-        size,
-        fileName: null,
-      },
-      txn,
+  let oldAssetIds: string[] | null;
+  try {
+    oldAssetIds = await db.transaction(
+      (txn) =>
+        replaceArchiveIfCurrent(txn, bookmarkId, crawlRevision, {
+          id: assetId,
+          bookmarkId,
+          userId,
+          assetType: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
+          contentType,
+          size,
+          fileName: null,
+        }),
+      { behavior: "immediate" },
     );
-  });
-  if (oldAssetId) {
-    await silentDeleteAsset(userId, oldAssetId);
+  } catch (error) {
+    await silentDeleteAsset(userId, assetId);
+    throw error;
   }
+  if (oldAssetIds === null) {
+    log.info("Discarding an archive for superseded bookmark content.");
+    await silentDeleteAsset(userId, assetId);
+    return;
+  }
+  await Promise.all(oldAssetIds.map((id) => silentDeleteAsset(userId, id)));
 }
 
 interface CrawlPageResult {
@@ -1969,7 +2084,7 @@ async function fetchAsset(ctx: CrawlContext, url: string, fileType: string) {
     ctx.runProxy,
   );
   if (!response.ok || response.body == null) {
-    throw new Error(`Failed to download ${fileType}: ${response.status}`);
+    throw new AssetDownloadHttpError(fileType, response.status);
   }
 
   const contentType = normalizeContentType(
@@ -2124,6 +2239,12 @@ const downloadAndStoreFile = traced(
       // into a best-effort download miss: the queue runner must observe it so
       // the crawl is retried and is not reported as successfully completed.
       abortSignal.throwIfAborted();
+      if (
+        e instanceof AssetDownloadHttpError &&
+        (e.statusCode === 404 || e.statusCode === 410)
+      ) {
+        throw e;
+      }
       return null;
     } finally {
       if (assetPath) {

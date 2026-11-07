@@ -1,0 +1,1 @@
+ALTER TABLE `bookmarkLinks` ADD `hasCrawlMetadata` integer DEFAULT false NOT NULL;
