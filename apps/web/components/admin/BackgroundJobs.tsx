@@ -40,6 +40,10 @@ interface JobStats {
   queued: number;
   pending?: number;
   failed?: number;
+  // When explicitly false, this job type is not configured to ever process
+  // anything (e.g. no embedding model set up), so it should never show as
+  // "Active" no matter how many items are queued/pending.
+  configured?: boolean;
 }
 
 interface JobAction {
@@ -168,7 +172,7 @@ function JobCard({
 }) {
   const { t } = useTranslation();
   const total = stats.queued + (stats.pending || 0) + (stats.failed || 0);
-  const hasActivity = total > 0;
+  const hasActivity = stats.configured !== false && total > 0;
 
   return (
     <Card className="relative overflow-hidden">
