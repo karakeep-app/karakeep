@@ -11,6 +11,7 @@ README.md
 ./data
 
 # Files that don't need to be included in the Docker image
+.github
 docs
 kubernetes
 charts
