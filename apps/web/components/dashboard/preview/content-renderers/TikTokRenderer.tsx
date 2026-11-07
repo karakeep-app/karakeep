@@ -5,10 +5,13 @@ import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { ContentRenderer } from "./types";
 
 function extractTikTokVideoId(url: string): string | null {
+  // Only numeric video ids work with the embed player. Share links
+  // (vm.tiktok.com/<code>, tiktok.com/t/<code>) carry a share code, not a
+  // video id: passing it to /embed/v2/ shows "Video currently unavailable".
+  // Those links now fall back to the default preview. Some share links
+  // redirect to tiktok.com/@/video/<id> with an empty user name, hence `*`.
   const patterns = [
-    /tiktok\.com\/@[^/]+\/video\/(\d+)/,
-    /tiktok\.com\/t\/([A-Za-z0-9]+)/,
-    /vm\.tiktok\.com\/([A-Za-z0-9]+)/,
+    /tiktok\.com\/@[^/]*\/video\/(\d+)/,
     /tiktok\.com\/v\/(\d+)/,
   ];
 
