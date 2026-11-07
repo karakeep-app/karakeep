@@ -79,14 +79,23 @@ jobs:
           # base, which is used to tell whether docker/chrome changed.
           fetch-depth: 2
 
-      # The default docker driver can't import the registry build cache that
-      # the e2e docker-compose file uses, so build with a buildx builder.
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.12.0
-        with:
-          # The runner is thrown away after the job, tearing the builder down
-          # only adds time.
-          cleanup: false
+      # With the containerd image store, the default docker driver can import
+      # the registry build cache that the e2e docker-compose file uses, and
+      # built images land straight in the image store instead of being
+      # exported from a buildx builder and loaded into docker.
+      - name: Enable the containerd image store
+        run: |
+          config=/etc/docker/daemon.json
+          current=$(sudo cat "$config" 2>/dev/null || echo '{}')
+          jq '.features["containerd-snapshotter"] = true' <<<"$current" \
+            | sudo tee "$config" >/dev/null
+          sudo systemctl restart docker
+          driver=$(docker info -f '{{ json .DriverStatus }}')
+          echo "Storage driver status: $driver"
+          if [[ "$driver" != *io.containerd.snapshotter* ]]; then
+            echo "The containerd image store isn't enabled"
+            exit 1
+          fi
 
       # Use the published chrome image that chrome.yml currently points at
       # instead of building it on every run.
