@@ -11,16 +11,20 @@ const SelectGroup = SelectPrimitive.Group;
 
 const SelectValue = SelectPrimitive.Value;
 
+/**
+ * How a closed select looks. Comboboxes use it as well, so a form has one kind
+ * of selector whether its options come from a list or a search.
+ */
+const selectTriggerClass =
+  "flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-[color,box-shadow] focus:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20 data-[placeholder]:text-muted-foreground/85 dark:bg-accent/40 dark:hover:bg-accent dark:aria-[invalid=true]:ring-destructive/40 max-sm:h-11 [&>span]:line-clamp-1 [&_svg]:pointer-events-none [&_svg]:shrink-0";
+
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
-    className={cn(
-      "flex h-10 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-[color,box-shadow] focus:outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:border-destructive aria-[invalid=true]:ring-destructive/20 data-[placeholder]:text-muted-foreground dark:bg-input/30 dark:hover:bg-input/50 dark:aria-[invalid=true]:ring-destructive/40 [&>span]:line-clamp-1 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-      className,
-    )}
+    className={cn(selectTriggerClass, className)}
     {...props}
   >
     {children}
@@ -146,6 +150,7 @@ const SelectSeparator = React.forwardRef<
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
 export {
+  selectTriggerClass,
   Select,
   SelectGroup,
   SelectValue,

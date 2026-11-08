@@ -47,6 +47,20 @@
     "show_password": "Show password",
     "hide_password": "Hide password"
   },
+  "form_errors": {
+    "required": "This field is required",
+    "string_min_one": "Use at least {{count}} character",
+    "string_min_other": "Use at least {{count}} characters",
+    "string_max_one": "Use at most {{count}} character",
+    "string_max_other": "Use at most {{count}} characters",
+    "number": "Enter a number",
+    "number_min": "Enter {{count}} or more",
+    "number_max": "Enter {{count}} or less",
+    "select_at_least_one": "Select at least {{count}} item",
+    "select_at_least_other": "Select at least {{count}} items",
+    "url": "Enter a full URL, like https://example.com",
+    "email": "Enter a valid email address, like name@example.com"
+  },
   "layouts": {
     "masonry": "Masonry",
     "grid": "Grid",
@@ -1092,6 +1106,7 @@
       "align_left": "Left Align",
       "align_center": "Center Align",
       "align_right": "Right Align",
+      "raw_markdown": "Raw Markdown",
       "markdown_shortcuts": {
         "label": "Markdown shortcuts",
         "heading": {

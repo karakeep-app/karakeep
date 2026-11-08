@@ -437,8 +437,7 @@ const BookmarkHTMLHighlighter = forwardRef<
       }
 
       const span = document.createElement("span");
-      span.classList.add(HIGHLIGHT_COLOR_MAP.bg[highlight.color]);
-      span.classList.add("text-gray-600");
+      span.classList.add(...HIGHLIGHT_COLOR_MAP.bg[highlight.color].split(" "));
       span.dataset.highlight = "true";
       span.dataset.highlightId = highlight.id;
       node.parentNode?.insertBefore(span, node);
