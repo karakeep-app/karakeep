@@ -252,7 +252,7 @@ it(
 
     // The delete button is the only button in a card on this page.
     await drop.getByRole("button").click();
-    await expect(page.getByText("Highlight has been deleted!")).toBeVisible();
+    await expect(page.getByText("Highlight deleted")).toBeVisible();
     await expect(drop).toHaveCount(0);
     await expect(keep).toBeVisible();
 

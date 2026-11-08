@@ -164,14 +164,26 @@ const ScrollProgressTracker = forwardRef<
       processScroll();
     };
 
-    const scrollParent = findScrollableParent(container);
-    const isWindowScroll = scrollParent === document.documentElement;
-    const target: HTMLElement | Window = isWindowScroll ? window : scrollParent;
-
-    target.addEventListener("scroll", handleScroll, { passive: true });
+    // A hidden container (e.g. in an inactive tab) has no scrollable parent
+    // yet, so the target is looked up again whenever the container resizes,
+    // which includes it being shown.
+    let target: HTMLElement | Window | null = null;
+    const bindScrollTarget = () => {
+      const scrollParent = findScrollableParent(container);
+      const next =
+        scrollParent === document.documentElement ? window : scrollParent;
+      if (next === target) return;
+      target?.removeEventListener("scroll", handleScroll);
+      target = next;
+      target.addEventListener("scroll", handleScroll, { passive: true });
+    };
+    bindScrollTarget();
+    const resizeObserver = new ResizeObserver(bindScrollTarget);
+    resizeObserver.observe(container);
 
     return () => {
-      target.removeEventListener("scroll", handleScroll);
+      resizeObserver.disconnect();
+      target?.removeEventListener("scroll", handleScroll);
       if (idleTimerId) clearTimeout(idleTimerId);
       if (hideBarTimerId) clearTimeout(hideBarTimerId);
       if (trailingTimerId) clearTimeout(trailingTimerId);

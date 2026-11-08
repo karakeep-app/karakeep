@@ -51,6 +51,8 @@ export function useDeleteHighlightWithUndo() {
               endOffset: deleted.endOffset,
               color: deleted.color,
               text: deleted.text,
+              prefix: deleted.prefix,
+              suffix: deleted.suffix,
               note: deleted.note,
             }),
         },

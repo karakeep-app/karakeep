@@ -1,12 +1,11 @@
 import { ActionButton } from "@/components/ui/action-button";
-import { toast } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 
-import { useDeleteHighlight } from "@karakeep/shared-react/hooks/highlights";
 import { ZHighlight } from "@karakeep/shared/types/highlights";
 
 import { HIGHLIGHT_COLOR_MAP } from "../preview/highlights";
+import { useDeleteHighlightWithUndo } from "./useDeleteHighlightWithUndo";
 
 function Wrapper({
   className,
@@ -37,21 +36,8 @@ export default function HighlightCard({
   className?: string;
   readOnly: boolean;
 }) {
-  const { mutate: deleteHighlight, isPending: isDeleting } = useDeleteHighlight(
-    {
-      onSuccess: () => {
-        toast({
-          description: "Highlight has been deleted!",
-        });
-      },
-      onError: () => {
-        toast({
-          description: "Something went wrong",
-          variant: "destructive",
-        });
-      },
-    },
-  );
+  const { mutate: deleteHighlight, isPending: isDeleting } =
+    useDeleteHighlightWithUndo();
 
   const onBookmarkClick = () => {
     document

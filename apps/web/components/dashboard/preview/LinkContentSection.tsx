@@ -201,6 +201,7 @@ export default function LinkContentSection({
           />
         </div>
         <ReaderView
+          className="mx-auto"
           style={{ ...column, lineHeight: settings.lineHeight }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}
