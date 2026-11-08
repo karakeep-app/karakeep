@@ -1,9 +1,11 @@
+import { useEffect, useRef } from "react";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
+import { useQueryState } from "nuqs";
 
 import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
@@ -17,6 +19,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import { useDeleteHighlightWithUndo } from "../highlights/useDeleteHighlightWithUndo";
 import BookmarkLoadError, { retryBookmarkQuery } from "./BookmarkLoadError";
+import { flashHighlight } from "./highlights";
 import ReadingProgressBanner from "./ReadingProgressBanner";
 
 export default function ReaderView({
@@ -79,6 +82,30 @@ export default function ReaderView({
     bookmarkId,
   });
 
+  // The highlights page links to a passage with ?highlight=<id>. Once it's drawn,
+  // scroll to it and flash it, once per id.
+  const [focusHighlightId] = useQueryState("highlight");
+  const focusedIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!focusHighlightId || focusedIdRef.current === focusHighlightId) {
+      return;
+    }
+    // Waits for the highlighter to settle, as every redraw replaces the spans.
+    const frame = requestAnimationFrame(() => {
+      const selector = `[data-highlight-id="${CSS.escape(focusHighlightId)}"]`;
+      const spans = Array.from(
+        document.querySelectorAll<HTMLElement>(selector),
+      ).filter((el) => el.offsetParent !== null);
+      if (!spans[0]) {
+        return;
+      }
+      focusedIdRef.current = focusHighlightId;
+      spans[0].scrollIntoView({ block: "center" });
+      flashHighlight(spans);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusHighlightId, highlights, cachedContent]);
+
   const onHighlightError = () => {
     toast({
       variant: "destructive",
@@ -136,7 +163,8 @@ export default function ReaderView({
   } else {
     content = (
       <ScrollProgressTracker
-        onSavePosition={onSavePosition}
+        // Jumping to a highlight isn't where they've read up to
+        onSavePosition={focusHighlightId ? undefined : onSavePosition}
         onScrollPositionChange={onScrollPositionChange}
         restorePosition={restorePosition}
         readingProgressOffset={readingProgressOffset}
