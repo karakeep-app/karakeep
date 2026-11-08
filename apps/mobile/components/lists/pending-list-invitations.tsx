@@ -6,6 +6,7 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { useSharedTranslation, useTranslation } from "@/lib/i18n/hooks";
 
 interface Invitation {
   id: string;
@@ -17,6 +18,8 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
   const api = useTRPC();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { t: tShared } = useSharedTranslation();
   const onError = (error: { message: string }) =>
     toast({
       message: error.message,
@@ -34,7 +37,10 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
           queryClient.invalidateQueries(api.lists.list.pathFilter()),
           queryClient.invalidateQueries(api.lists.stats.pathFilter()),
         ]);
-        toast({ message: "Invitation accepted", showProgress: false });
+        toast({
+          message: tShared("lists.invitations.accepted"),
+          showProgress: false,
+        });
       },
     }),
   );
@@ -45,7 +51,10 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
         await queryClient.invalidateQueries(
           api.lists.getPendingInvitations.pathFilter(),
         );
-        toast({ message: "Invitation declined", showProgress: false });
+        toast({
+          message: tShared("lists.invitations.declined"),
+          showProgress: false,
+        });
       },
     }),
   );
@@ -55,27 +64,31 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
       <Text className="font-semibold">{invitation.list.name}</Text>
       <Text variant="footnote" color="tertiary">
         {invitation.list.owner
-          ? `Invited by ${invitation.list.owner.name}. `
+          ? t("list_sharing.invited_by", { name: invitation.list.owner.name })
           : ""}
         {invitation.role === "editor"
-          ? "Can view, add, and remove bookmarks."
-          : "Can view bookmarks."}
+          ? t("list_sharing.role_editor_note")
+          : t("list_sharing.role_viewer_note")}
       </Text>
       <View className="flex-row items-center gap-3">
         <Button
-          accessibilityLabel={`Accept invitation to ${invitation.list.name}`}
+          accessibilityLabel={t("list_sharing.accept_invitation_label", {
+            name: invitation.list.name,
+          })}
           disabled={busy}
           onPress={() => accept.mutate({ invitationId: invitation.id })}
         >
-          <Text>Accept</Text>
+          <Text>{tShared("lists.invitations.accept")}</Text>
         </Button>
         <Button
-          accessibilityLabel={`Decline invitation to ${invitation.list.name}`}
+          accessibilityLabel={t("list_sharing.decline_invitation_label", {
+            name: invitation.list.name,
+          })}
           variant="plain"
           disabled={busy}
           onPress={() => decline.mutate({ invitationId: invitation.id })}
         >
-          <Text>Decline</Text>
+          <Text>{tShared("lists.invitations.decline")}</Text>
         </Button>
         {busy && <ActivityIndicator size="small" />}
       </View>
@@ -85,13 +98,14 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
 
 export function PendingListInvitations() {
   const api = useTRPC();
+  const { t } = useTranslation();
   const { data, error, refetch } = useQuery(
     api.lists.getPendingInvitations.queryOptions(),
   );
   if (error) {
     return (
       <Button variant="plain" onPress={() => void refetch()}>
-        <Text>Retry loading invitations</Text>
+        <Text>{t("list_sharing.retry_invitations")}</Text>
       </Button>
     );
   }
@@ -99,7 +113,7 @@ export function PendingListInvitations() {
   return (
     <View className="mb-4 gap-2">
       <Text variant="footnote" color="tertiary" className="px-4 uppercase">
-        Invitations
+        {t("list_sharing.invitations_header")}
       </Text>
       {data.map((invitation) => (
         <InvitationRow key={invitation.id} invitation={invitation} />

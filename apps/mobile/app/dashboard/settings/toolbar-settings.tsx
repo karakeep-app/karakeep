@@ -13,6 +13,8 @@ import {
 } from "@/components/settings/settings-list";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
+import { useToolbarActionLabels } from "@/components/bookmarks/BottomActions";
 import useAppSettings, {
   DEFAULT_OVERFLOW_ACTIONS,
   DEFAULT_TOOLBAR_ACTIONS,
@@ -23,6 +25,8 @@ const MAX_VISIBLE = 6;
 
 export default function ToolbarSettingsPage() {
   const { settings, setSettings } = useAppSettings();
+  const { t } = useTranslation();
+  const actionLabels = useToolbarActionLabels();
 
   const visible = settings.toolbarActions;
   const overflow = settings.overflowActions ?? [];
@@ -93,7 +97,7 @@ export default function ToolbarSettingsPage() {
                 <meta.Icon size={20} color={styles?.color?.toString()} />
               )}
             />
-            <Text className="flex-1">{meta.label}</Text>
+            <Text className="flex-1">{actionLabels[item]}</Text>
             <Pressable onPress={() => demoteToOverflow(item)} className="p-1.5">
               <TailwindResolver
                 className="text-muted-foreground"
@@ -140,7 +144,9 @@ export default function ToolbarSettingsPage() {
                 <meta.Icon size={20} color={styles?.color?.toString()} />
               )}
             />
-            <Text className="flex-1 text-muted-foreground">{meta.label}</Text>
+            <Text className="flex-1 text-muted-foreground">
+              {actionLabels[item]}
+            </Text>
             <Pressable
               onPress={() => promoteToVisible(item)}
               disabled={!canPromote}
@@ -166,11 +172,13 @@ export default function ToolbarSettingsPage() {
 
   return (
     <SettingsScreen>
-      <SettingsGroup header={`Visible actions (max ${MAX_VISIBLE})`}>
+      <SettingsGroup
+        header={t("settings.toolbar_visible", { max: MAX_VISIBLE })}
+      >
         {visible.length === 0 ? (
           <View className="px-4 py-3">
             <Text className="text-sm text-muted-foreground">
-              No visible actions. Only the overflow menu will show.
+              {t("settings.toolbar_visible_empty")}
             </Text>
           </View>
         ) : (
@@ -185,11 +193,11 @@ export default function ToolbarSettingsPage() {
         )}
       </SettingsGroup>
 
-      <SettingsGroup header="Overflow actions">
+      <SettingsGroup header={t("settings.toolbar_overflow")}>
         {overflow.length === 0 ? (
           <View className="px-4 py-3">
             <Text className="text-sm text-muted-foreground">
-              No overflow actions. All actions are visible on the toolbar.
+              {t("settings.toolbar_overflow_empty")}
             </Text>
           </View>
         ) : (
@@ -207,7 +215,7 @@ export default function ToolbarSettingsPage() {
       <SettingsGroup>
         <SettingsActionRow
           centered
-          label="Reset to Defaults"
+          label={t("settings.toolbar_reset")}
           onPress={resetToDefaults}
           tone="primary"
         />

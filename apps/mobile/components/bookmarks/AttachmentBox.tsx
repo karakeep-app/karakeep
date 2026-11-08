@@ -19,6 +19,7 @@ import { humanFriendlyNameForAssertType } from "@karakeep/shared/utils/assetUtil
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { useSharedTranslation, useTranslation } from "@/lib/i18n/hooks";
 import { downloadAttachment } from "@/lib/downloadAttachment";
 import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -42,6 +43,8 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
   const { settings } = useAppSettings();
   const { colors } = useColorScheme();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { t: tShared } = useSharedTranslation();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const downloadInProgress = useRef(false);
   const assets = [...bookmark.assets].sort((a, b) =>
@@ -59,7 +62,7 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
         message:
           error instanceof Error
             ? error.message
-            : "Failed to download attachment",
+            : t("attachments.download_failed"),
         variant: "destructive",
         showProgress: false,
       });
@@ -70,10 +73,10 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
   };
 
   return (
-    <GroupedSection header="Attachments">
+    <GroupedSection header={tShared("common.attachments")}>
       {assets.length === 0 ? (
         <Text color="tertiary" className="px-4 py-3">
-          No attachments
+          {t("attachments.none")}
         </Text>
       ) : (
         <>
@@ -89,8 +92,8 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
                 {index > 0 && <RowSeparator />}
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`Download ${name}`}
-                  accessibilityHint="Opens options to save or share this attachment"
+                  accessibilityLabel={t("attachments.download_label", { name })}
+                  accessibilityHint={t("attachments.download_hint")}
                   accessibilityState={{
                     disabled: downloadingId !== null,
                     busy: isDownloading,
@@ -116,7 +119,7 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
           })}
           <RowSeparator />
           <Text variant="footnote" color="tertiary" className="px-4 py-3">
-            Tap an attachment to save or share it.
+            {t("attachments.tap_hint")}
           </Text>
         </>
       )}

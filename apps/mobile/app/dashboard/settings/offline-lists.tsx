@@ -8,6 +8,7 @@ import {
 import QueryPageState from "@/components/QueryPageState";
 import { SettingsScreen } from "@/components/settings/settings-list";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import {
   setListKeptOffline,
   useOfflineDownloadPrefs,
@@ -19,6 +20,7 @@ import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 
 export default function OfflineLists() {
   const { settings } = useAppSettings();
+  const { t } = useTranslation();
   const scope = getOfflineLibraryScope(settings);
   const prefs = useOfflineDownloadPrefs(scope);
   const { data, error, refetch } = useBookmarkLists();
@@ -43,11 +45,10 @@ export default function OfflineLists() {
   return (
     <SettingsScreen>
       <Text className="px-1 text-sm text-muted-foreground">
-        Articles in these lists are downloaded, including ones added later.
-        Nested lists have to be selected separately.
+        {t("settings.offline_lists_intro")}
       </Text>
       <ListPicker
-        emptyMessage="You don't have any lists yet"
+        emptyMessage={t("settings.offline_lists_empty")}
         onSelect={(listId) =>
           setListKeptOffline(scope, listId, !prefs.listIds.includes(listId))
         }

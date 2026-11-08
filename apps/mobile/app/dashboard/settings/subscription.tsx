@@ -10,7 +10,15 @@ import {
   SettingsValueRow,
 } from "@/components/settings/settings-list";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonStrings,
+  useSharedTranslation,
+  useTranslation,
+} from "@/lib/i18n/hooks";
+import type { MobileTFunction } from "@/lib/i18n/hooks";
+import { getIntlLocale } from "@/lib/i18n";
 import { useInAppPurchases } from "@/lib/purchases";
+import { formatStorageSize } from "@/lib/storageSize";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -20,27 +28,9 @@ const STORE_SUBSCRIPTIONS_URL = Platform.select({
   default: "https://play.google.com/store/account/subscriptions",
 });
 
-const countFormatter = new Intl.NumberFormat();
-const storageFormatter = new Intl.NumberFormat(undefined, {
-  maximumFractionDigits: 1,
-});
-
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${countFormatter.format(bytes)} B`;
-
-  const units = ["KB", "MB", "GB", "TB"];
-  let value = bytes / 1024;
-  let unitIndex = 0;
-  while (value >= 1024 && unitIndex < units.length - 1) {
-    value /= 1024;
-    unitIndex += 1;
-  }
-  return `${storageFormatter.format(value)} ${units[unitIndex]}`;
-}
-
-function formatDate(date: Date | null | undefined) {
+function formatDate(date: Date | null | undefined, locale: string) {
   if (!date) return null;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -51,26 +41,28 @@ function formatUsage(
   used: number,
   quota: number | null,
   format: (n: number) => string,
+  t: MobileTFunction,
 ) {
   return quota === null
-    ? `${format(used)} (unlimited)`
-    : `${format(used)} of ${format(quota)}`;
+    ? t("subscription.usage_unlimited", { used: format(used) })
+    : t("subscription.usage_of", { used: format(used), quota: format(quota) });
 }
 
 function formatBillingSource(
   provider: string | null | undefined,
   store: string | null | undefined,
+  t: MobileTFunction,
 ) {
-  if (provider === "stripe") return "Web";
+  if (provider === "stripe") return t("subscription.billed_web");
   if (provider !== "in_app") return null;
   switch (store) {
     case "app_store":
     case "mac_app_store":
-      return "App Store";
+      return t("subscription.billed_app_store");
     case "play_store":
-      return "Google Play";
+      return t("subscription.billed_play_store");
     default:
-      return "Mobile app";
+      return t("subscription.billed_mobile_app");
   }
 }
 
@@ -78,7 +70,12 @@ export default function SubscriptionSettings() {
   const api = useTRPC();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const { t: tShared } = useSharedTranslation();
+  const { bookmarks: bookmarksLabel } = useCommonStrings();
   const { isAvailable: canPurchase } = useInAppPurchases();
+  const intlLocale = getIntlLocale();
+  const countFormatter = new Intl.NumberFormat(intlLocale);
   const [pendingAction, setPendingAction] = useState<
     "upgrade" | "restore" | "manage" | null
   >(null);
@@ -112,7 +109,7 @@ export default function SubscriptionSettings() {
     } catch (error) {
       console.warn(`Subscription ${action} failed`, error);
       toast({
-        message: "Something went wrong. Please try again.",
+        message: t("subscription.error"),
         variant: "destructive",
       });
     } finally {
@@ -136,13 +133,12 @@ export default function SubscriptionSettings() {
       ) {
         if (await refreshEntitlements()) {
           toast({
-            message: "You're now on the Paid plan.",
+            message: t("subscription.upgraded"),
             variant: "success",
           });
         } else {
           toast({
-            message:
-              "We couldn't confirm your purchase yet. Try Restore Purchases in a moment.",
+            message: t("subscription.purchase_pending"),
             variant: "destructive",
           });
         }
@@ -154,8 +150,8 @@ export default function SubscriptionSettings() {
       await Purchases.restorePurchases();
       toast({
         message: (await refreshEntitlements())
-          ? "Purchases restored"
-          : "No active subscription found",
+          ? t("subscription.purchases_restored")
+          : t("subscription.no_subscription"),
       });
     });
 
@@ -169,14 +165,14 @@ export default function SubscriptionSettings() {
 
   const planLabel =
     status?.tier === "custom"
-      ? (status.manualTierName ?? "Custom")
+      ? (status.manualTierName ?? t("subscription.plan_custom"))
       : status?.tier === "paid"
-        ? "Paid"
-        : "Free";
+        ? tShared("settings.subscription.paid")
+        : tShared("settings.subscription.free");
   const billingSource = status?.hasActiveSubscription
-    ? formatBillingSource(status.provider, status.store)
+    ? formatBillingSource(status.provider, status.store, t)
     : null;
-  const endDate = formatDate(status?.endDate);
+  const endDate = formatDate(status?.endDate, intlLocale);
   const isInAppSubscriber =
     status?.hasActiveSubscription && status.provider === "in_app";
   const isWebSubscriber =
@@ -184,18 +180,18 @@ export default function SubscriptionSettings() {
 
   let renewalLabel: string | null = null;
   if (status?.hasActiveSubscription && endDate) {
-    renewalLabel = status.cancelAtPeriodEnd ? "Ends on" : "Renews on";
+    renewalLabel = status.cancelAtPeriodEnd
+      ? t("subscription.ends_on")
+      : t("subscription.renews_on");
   }
 
   let planFooter: string | undefined;
   if (status?.status === "past_due" && isInAppSubscriber) {
-    planFooter =
-      "There's a problem with your payment method. Update it in your store's subscription settings to keep your plan.";
+    planFooter = t("subscription.past_due_footer");
   } else if (isWebSubscriber) {
-    planFooter =
-      "Your subscription is managed from the Karakeep web app's settings.";
+    planFooter = t("subscription.web_managed_footer");
   } else if (status?.tier === "custom") {
-    planFooter = "Your plan is managed by the Karakeep team.";
+    planFooter = t("subscription.custom_tier_footer");
   }
 
   const canUpgrade =
@@ -206,15 +202,18 @@ export default function SubscriptionSettings() {
 
   return (
     <SettingsScreen>
-      <SettingsGroup header="Plan" footer={planFooter}>
+      <SettingsGroup header={t("subscription.plan")} footer={planFooter}>
         <SettingsValueRow
-          label="Current plan"
-          value={isStatusLoading ? "Loading..." : planLabel}
+          label={tShared("settings.subscription.current_plan")}
+          value={isStatusLoading ? t("settings.loading") : planLabel}
         />
         {billingSource ? (
           <>
             <SettingsSeparator />
-            <SettingsValueRow label="Billed through" value={billingSource} />
+            <SettingsValueRow
+              label={t("subscription.billed_through")}
+              value={billingSource}
+            />
           </>
         ) : null}
         {renewalLabel && endDate ? (
@@ -226,22 +225,24 @@ export default function SubscriptionSettings() {
       </SettingsGroup>
 
       {usage ? (
-        <SettingsGroup header="Usage">
+        <SettingsGroup header={t("subscription.usage")}>
           <SettingsValueRow
-            label="Bookmarks"
+            label={bookmarksLabel}
             value={formatUsage(
               usage.bookmarks.used,
               usage.bookmarks.quota,
               (n) => countFormatter.format(n),
+              t,
             )}
           />
           <SettingsSeparator />
           <SettingsValueRow
-            label="Storage"
+            label={t("subscription.storage")}
             value={formatUsage(
               usage.storage.used,
               usage.storage.quota,
-              formatBytes,
+              (n) => formatStorageSize(n, intlLocale),
+              t,
             )}
           />
         </SettingsGroup>
@@ -254,7 +255,7 @@ export default function SubscriptionSettings() {
               <SettingsActionRow
                 disabled={pendingAction !== null}
                 isLoading={pendingAction === "upgrade"}
-                label="Upgrade"
+                label={t("subscription.upgrade")}
                 onPress={upgrade}
                 tone="primary"
               />
@@ -266,7 +267,7 @@ export default function SubscriptionSettings() {
               <SettingsActionRow
                 disabled={pendingAction !== null}
                 isLoading={pendingAction === "manage"}
-                label="Manage Subscription"
+                label={t("subscription.manage")}
                 onPress={manage}
                 tone="primary"
               />
@@ -276,7 +277,7 @@ export default function SubscriptionSettings() {
           <SettingsActionRow
             disabled={pendingAction !== null}
             isLoading={pendingAction === "restore"}
-            label="Restore Purchases"
+            label={t("subscription.restore")}
             onPress={restore}
             tone="default"
           />

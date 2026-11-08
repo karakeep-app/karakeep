@@ -7,6 +7,11 @@ import { EmojiPicker } from "@/components/ui/emoji-picker";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
 
 import { useCreateBookmarkList } from "@karakeep/shared-react/hooks/lists";
@@ -21,6 +26,9 @@ const NewListPage = () => {
     router.back();
   };
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const [text, setText] = useState("");
   const [icon, setIcon] = useState("📁");
   const [listType, setListType] = useState<ListType>("manual");
@@ -39,7 +47,7 @@ const NewListPage = () => {
     },
     onError: (error) => {
       // Extract error message from the error object
-      let errorMessage = "Something went wrong";
+      let errorMessage = strings.somethingWentWrong;
       if (error.data?.zodError) {
         errorMessage = Object.values(error.data.zodError.fieldErrors)
           .flat()
@@ -58,7 +66,7 @@ const NewListPage = () => {
     // Validate smart list has a query
     if (listType === "smart" && !query.trim()) {
       toast({
-        message: "Smart lists must have a search query",
+        message: t("lists.smart_needs_query"),
         variant: "destructive",
       });
       return;
@@ -81,14 +89,16 @@ const NewListPage = () => {
     >
       {/* List Type Selector */}
       <View className="gap-2">
-        <Text className="text-sm text-muted-foreground">List Type</Text>
+        <Text className="text-sm text-muted-foreground">
+          {t("lists.type_label")}
+        </Text>
         <View className="flex flex-row gap-2">
           <View className="flex-1">
             <Button
               variant={listType === "manual" ? "primary" : "secondary"}
               onPress={() => setListType("manual")}
             >
-              <Text>Manual</Text>
+              <Text>{t("lists.type_manual")}</Text>
             </Button>
           </View>
           <View className="flex-1">
@@ -96,7 +106,7 @@ const NewListPage = () => {
               variant={listType === "smart" ? "primary" : "secondary"}
               onPress={() => setListType("smart")}
             >
-              <Text>Smart</Text>
+              <Text>{t("lists.type_smart")}</Text>
             </Button>
           </View>
         </View>
@@ -106,10 +116,10 @@ const NewListPage = () => {
 
       <Input
         className="bg-card"
-        label="List Name"
+        label={t("lists.name_label")}
         labelClasses="text-sm text-muted-foreground"
         onChangeText={setText}
-        placeholder="Reading list"
+        placeholder={t("lists.name_placeholder")}
         autoFocus
         autoCapitalize="sentences"
       />
@@ -130,22 +140,24 @@ const NewListPage = () => {
       {/* Smart List Query Input */}
       {listType === "smart" && (
         <View className="gap-2">
-          <Text className="text-sm text-muted-foreground">Search Query</Text>
+          <Text className="text-sm text-muted-foreground">
+            {t("lists.search_query_label")}
+          </Text>
           <Input
             className="bg-card"
             onChangeText={setQuery}
             value={query}
-            placeholder="e.g., #important OR list:work"
+            placeholder={t("lists.search_query_placeholder")}
             autoCapitalize={"none"}
           />
           <Text className="text-xs italic text-muted-foreground">
-            Smart lists automatically show bookmarks matching your search query
+            {t("lists.smart_hint")}
           </Text>
         </View>
       )}
 
       <Button disabled={isPending} onPress={onSubmit}>
-        <Text>Save</Text>
+        <Text>{actions.save}</Text>
       </Button>
     </ScrollView>
   );

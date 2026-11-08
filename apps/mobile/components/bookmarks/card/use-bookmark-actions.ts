@@ -13,7 +13,13 @@ import {
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { useToast } from "../../ui/Toast";
+import { translateToolbarRender } from "../BottomActions";
 
 export interface BookmarkActionController {
   isOwner: boolean;
@@ -30,6 +36,9 @@ export function useBookmarkActions(
   isOwner: boolean,
 ): BookmarkActionController {
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const { settings } = useAppSettings();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const offlineAvailability = useOfflineAvailability(bookmark.id);
@@ -39,7 +48,7 @@ export function useBookmarkActions(
 
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -49,7 +58,7 @@ export function useBookmarkActions(
     useDeleteBookmark({
       onSuccess: () => {
         toast({
-          message: "The bookmark has been deleted!",
+          message: t("bookmark_actions.deleted"),
           showProgress: false,
         });
       },
@@ -64,7 +73,9 @@ export function useBookmarkActions(
     useUpdateBookmark({
       onSuccess: (response) => {
         toast({
-          message: `The bookmark has been ${response.archived ? "archived" : "un-archived"}!`,
+          message: response.archived
+            ? t("bookmark_actions.archived_message")
+            : t("bookmark_actions.unarchived_message"),
           showProgress: false,
         });
       },
@@ -86,12 +97,12 @@ export function useBookmarkActions(
 
   const deleteBookmarkAlert = () =>
     Alert.alert(
-      "Delete bookmark?",
-      "Are you sure you want to delete this bookmark?",
+      t("bookmark_actions.delete_title"),
+      t("bookmark_actions.delete_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
           style: "destructive",
         },
@@ -103,25 +114,25 @@ export function useBookmarkActions(
     menuActions.push(
       {
         id: "edit",
-        title: "Edit",
+        title: t("bookmark_actions.edit"),
         image: Platform.select({ ios: "pencil" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
       {
         id: "manage_list",
-        title: "Manage Lists",
+        title: t("bookmark_actions.manage_lists"),
         image: Platform.select({ ios: "list.bullet" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
       {
         id: "manage_tags",
-        title: "Manage Tags",
+        title: t("bookmark_actions.manage_tags"),
         image: Platform.select({ ios: "tag" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
       {
         id: "archive",
-        title: bookmark.archived ? "Un-archive" : "Archive",
+        title: translateToolbarRender(t, "archive", bookmark),
         image: Platform.select({ ios: "archivebox" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
@@ -132,15 +143,15 @@ export function useBookmarkActions(
     if (offlineAvailability.isAvailableOffline) {
       menuActions.push({
         id: "offline-group",
-        title: "Available offline",
+        title: t("bookmark_actions.available_offline"),
         image: Platform.select({ ios: "checkmark.circle" }),
         imageColor: Platform.select({ ios: menuIconColor }),
         subactions: [
           {
             id: "update-offline-copy",
             title: offlineAvailability.isSaving
-              ? "Saving offline copy..."
-              : "Update offline copy",
+              ? t("bookmark_actions.saving_offline_copy")
+              : t("bookmark_actions.update_offline_copy"),
             image: Platform.select({ ios: "arrow.clockwise" }),
             imageColor: Platform.select({ ios: menuIconColor }),
             attributes: {
@@ -149,7 +160,7 @@ export function useBookmarkActions(
           },
           {
             id: "remove-offline-copy",
-            title: "Remove offline copy",
+            title: t("bookmark_actions.remove_offline_copy"),
             attributes: { destructive: true },
             image: Platform.select({ ios: "trash" }),
             imageColor: Platform.select({ ios: destructiveMenuIconColor }),
@@ -160,8 +171,8 @@ export function useBookmarkActions(
       menuActions.push({
         id: "make-available-offline",
         title: offlineAvailability.isSaving
-          ? "Saving offline copy..."
-          : "Make available offline",
+          ? t("bookmark_actions.saving_offline_copy")
+          : t("bookmark_actions.make_available_offline"),
         image: Platform.select({ ios: "arrow.down.circle" }),
         imageColor: Platform.select({ ios: menuIconColor }),
         attributes: {
@@ -174,7 +185,7 @@ export function useBookmarkActions(
   if (isOwner) {
     menuActions.push({
       id: "delete",
-      title: "Delete",
+      title: t("bookmark_actions.delete"),
       attributes: { destructive: true },
       image: Platform.select({ ios: "trash" }),
       imageColor: Platform.select({ ios: destructiveMenuIconColor }),
