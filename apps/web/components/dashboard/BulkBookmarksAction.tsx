@@ -27,6 +27,7 @@ import {
 
 import BulkManageListsModal from "./bookmarks/BulkManageListsModal";
 import BulkTagModal from "./bookmarks/BulkTagModal";
+import { BulkDeleteDescription } from "./bookmarks/DeleteBookmarkConfirmationDialog";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./bookmarks/icons";
 
 export default function BulkBookmarksAction() {
@@ -324,7 +325,7 @@ export default function BulkBookmarksAction() {
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}
         title={t("dialogs.bookmarks.bulk_delete_title")}
-        description={<p>Are you sure you want to delete these bookmarks?</p>}
+        description={<BulkDeleteDescription bookmarks={selectedBookmarks} />}
         actionButton={() => (
           <ActionButton
             type="button"

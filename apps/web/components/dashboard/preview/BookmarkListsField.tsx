@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,8 +61,17 @@ export function BookmarkListsField({ bookmarkId }: { bookmarkId: string }) {
       });
     }
   };
-  const { mutate: addToList } = useAddBookmarkToList({ onError });
-  const { mutate: removeFromList } = useRemoveBookmarkFromList({ onError });
+  // A list's next toggle waits for its last one, or a quick check then uncheck
+  // could reach the server out of order and leave the bookmark in the list.
+  const pendingListIds = useRef(new Set<string>());
+  const onSettled = (_res: unknown, _err: unknown, req: { listId: string }) => {
+    pendingListIds.current.delete(req.listId);
+  };
+  const { mutate: addToList } = useAddBookmarkToList({ onError, onSettled });
+  const { mutate: removeFromList } = useRemoveBookmarkFromList({
+    onError,
+    onSettled,
+  });
 
   const memberIds = new Set(data?.lists.map((list) => list.id));
 
@@ -73,6 +82,10 @@ export function BookmarkListsField({ bookmarkId }: { bookmarkId: string }) {
   });
 
   const toggle = (list: ZBookmarkList) => {
+    if (pendingListIds.current.has(list.id)) {
+      return;
+    }
+    pendingListIds.current.add(list.id);
     const isMember = memberIds.has(list.id);
     queryClient.setQueryData(membershipKey, (old) =>
       old

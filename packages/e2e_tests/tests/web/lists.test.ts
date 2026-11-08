@@ -37,14 +37,10 @@ it("adds a bookmark through the list dialog and finds it in the list", async ({
     .getByRole("menuitem", { name: "Manage lists", exact: true })
     .click();
   const dialog = page.getByRole("dialog", { name: "Manage lists" });
-  await dialog.getByRole("combobox").click();
-  await page.getByRole("option", { name: /Weekend reading/ }).click();
-  await expect(dialog.getByRole("listitem")).toContainText("Weekend reading");
-  // Both the footer button and the corner icon are named Close.
-  await dialog
-    .getByRole("button", { name: "Close", exact: true })
-    .first()
-    .click();
+  const option = dialog.getByRole("option", { name: /Weekend reading/ });
+  await option.click();
+  await expect(option).toHaveAttribute("aria-checked", "true");
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
   await expect(dialog).not.toBeVisible();
 
   await page.getByRole("link", { name: /Weekend reading/ }).click();
