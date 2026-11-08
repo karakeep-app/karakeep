@@ -23,8 +23,8 @@ export default function ThemePage() {
             <SettingsChoiceRow
               label={
                 {
-                  dark: t("settings.theme_dark"),
-                  light: t("settings.theme_light"),
+                  dark: t("settings.theme_option_dark"),
+                  light: t("settings.theme_option_light"),
                   system: t("settings.theme_system"),
                 }[theme]
               }

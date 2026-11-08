@@ -19,6 +19,7 @@ import useAppSettings, {
   DEFAULT_OVERFLOW_ACTIONS,
   DEFAULT_TOOLBAR_ACTIONS,
 } from "@/lib/settings";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { GripVertical, Minus, Plus } from "lucide-react-native";
 
 const MAX_VISIBLE = 6;
@@ -94,7 +95,11 @@ export default function ToolbarSettingsPage() {
             <TailwindResolver
               className="text-foreground"
               comp={(styles) => (
-                <meta.Icon size={20} color={styles?.color?.toString()} />
+                <AppIcon
+                  icon={meta.Icon}
+                  size={20}
+                  color={styles?.color?.toString() ?? "#000"}
+                />
               )}
             />
             <Text className="flex-1">{actionLabels[item]}</Text>
@@ -110,7 +115,7 @@ export default function ToolbarSettingsPage() {
         </ScaleDecorator>
       );
     },
-    [demoteToOverflow],
+    [actionLabels, demoteToOverflow],
   );
 
   const renderOverflowItem = useCallback(
@@ -141,12 +146,14 @@ export default function ToolbarSettingsPage() {
             <TailwindResolver
               className="text-muted-foreground"
               comp={(styles) => (
-                <meta.Icon size={20} color={styles?.color?.toString()} />
+                <AppIcon
+                  icon={meta.Icon}
+                  size={20}
+                  color={styles?.color?.toString() ?? "#000"}
+                />
               )}
             />
-            <Text className="flex-1 text-muted-foreground">
-              {actionLabels[item]}
-            </Text>
+            <Text className="flex-1">{actionLabels[item]}</Text>
             <Pressable
               onPress={() => promoteToVisible(item)}
               disabled={!canPromote}
@@ -154,9 +161,7 @@ export default function ToolbarSettingsPage() {
             >
               <TailwindResolver
                 className={
-                  canPromote
-                    ? "text-muted-foreground"
-                    : "text-muted-foreground/30"
+                  canPromote ? "text-primary" : "text-muted-foreground/30"
                 }
                 comp={(styles) => (
                   <Plus size={18} color={styles?.color?.toString()} />
@@ -167,7 +172,7 @@ export default function ToolbarSettingsPage() {
         </ScaleDecorator>
       );
     },
-    [visible.length, promoteToVisible],
+    [actionLabels, visible.length, promoteToVisible],
   );
 
   return (

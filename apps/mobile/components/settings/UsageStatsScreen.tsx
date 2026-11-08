@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react-native";
 import { RefreshControl, useWindowDimensions, View } from "react-native";
+import { AppIcon } from "@/components/ui/AppIcon";
 import QueryPageState from "@/components/QueryPageState";
 import {
   SettingsScreen,
@@ -10,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { getIntlLocale } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/hooks";
+import type { MobileTFunction } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -22,9 +24,9 @@ import {
   Database,
   FileText,
   Globe2,
-  Hash,
-  Heart,
-  Highlighter,
+  Star,
+  Tag,
+  PenLine,
   Image as ImageIcon,
   Link2,
   List,
@@ -121,14 +123,42 @@ function formatHour(hour: number, locale: string) {
   }).format(new Date(2024, 0, 7, hour));
 }
 
-function formatAssetType(type: string) {
+type AssetTypeLabelKey =
+  | "stats.asset_saved_pages"
+  | "stats.asset_page_images"
+  | "stats.asset_screenshots"
+  | "stats.asset_full_page_archives"
+  | "stats.asset_archives"
+  | "stats.asset_pdfs"
+  | "stats.asset_videos"
+  | "stats.asset_uploads"
+  | "stats.asset_backups";
+
+const ASSET_TYPE_LABEL_KEYS: Record<string, AssetTypeLabelKey> = {
+  linkHtmlContent: "stats.asset_saved_pages",
+  linkBannerImage: "stats.asset_page_images",
+  linkScreenshot: "stats.asset_screenshots",
+  linkFullPageArchive: "stats.asset_full_page_archives",
+  linkPrecrawledArchive: "stats.asset_archives",
+  linkPdf: "stats.asset_pdfs",
+  linkVideo: "stats.asset_videos",
+  bookmarkAsset: "stats.asset_uploads",
+  backup: "stats.asset_backups",
+};
+
+function formatAssetType(type: string, t: MobileTFunction) {
+  const known = ASSET_TYPE_LABEL_KEYS[type];
+  if (known) {
+    return t(known);
+  }
+
   const spaced = type.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ");
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Text className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <Text className="px-4 text-[13px] uppercase leading-5 text-muted-foreground">
       {children}
     </Text>
   );
@@ -151,7 +181,7 @@ function SectionCard({
       style={{ borderCurve: "continuous" }}
     >
       <View className="flex-row items-center gap-2 px-4 pb-3 pt-4">
-        <Icon size={18} color={colors.primary} strokeWidth={2.25} />
+        <AppIcon icon={Icon} size={18} color={colors.primary} />
         <Text className="font-semibold">{title}</Text>
       </View>
       <SettingsSeparator className="mx-4 my-0" />
@@ -178,13 +208,13 @@ function MetricTile({
       className="rounded-2xl bg-card"
       style={{
         borderCurve: "continuous",
-        minHeight: 124,
-        padding: 16,
+        minHeight: 96,
+        padding: 12,
         width,
       }}
     >
       <View className="mb-4 h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-        <Icon size={16} color={colors.primary} strokeWidth={2.25} />
+        <AppIcon icon={Icon} size={16} color={colors.primary} />
       </View>
       <Text
         selectable
@@ -332,34 +362,20 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
 
   return (
     <View className="gap-6">
-      <View className="flex-row">
-        {[
-          [t("stats.this_week"), stats.bookmarkingActivity.thisWeek],
-          [t("stats.this_month"), stats.bookmarkingActivity.thisMonth],
-          [t("stats.this_year"), stats.bookmarkingActivity.thisYear],
-        ].map(([label, value], index) => (
-          <View
-            key={String(label)}
-            className={`flex-1 items-center px-1 ${index > 0 ? "border-l border-border" : ""}`}
-          >
-            <Text
-              selectable
-              className="text-xl font-semibold tabular-nums tracking-tight"
-            >
-              {formatNumber(value as number)}
-            </Text>
-            <Text className="mt-1 text-center text-xs text-muted-foreground">
-              {label}
-            </Text>
-          </View>
-        ))}
-      </View>
-
       <View className="gap-3">
-        <Text className="text-sm font-medium">{t("stats.days_you_save")}</Text>
+        <Text className="text-sm font-medium">
+          {t("stats.most_active_days")}
+        </Text>
         <View
           accessible
-          accessibilityLabel={`Bookmarks by weekday. ${dayNames.map((day, index) => `${day} ${activityByDay[index]}`).join(", ")}`}
+          accessibilityLabel={t("stats.by_weekday_a11y", {
+            days: dayNames
+              .map(
+                (day, index) =>
+                  `${day} ${getCountFormatter().format(activityByDay[index])}`,
+              )
+              .join(", "),
+          })}
           className="h-28 flex-row items-end gap-2"
         >
           {activityByDay.map((count, index) => (
@@ -367,7 +383,12 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
               key={dayNames[index]}
               className="h-full flex-1 justify-end gap-2"
             >
-              <View className="flex-1 justify-end">
+              <View className="flex-1 items-center justify-end gap-1">
+                {count > 0 && (
+                  <Text className="text-[10px] tabular-nums text-muted-foreground">
+                    {getCountFormatter().format(count)}
+                  </Text>
+                )}
                 <View
                   className="w-full min-w-1 rounded-t-md bg-primary"
                   style={{
@@ -377,7 +398,7 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
                 />
               </View>
               <Text className="text-center text-[10px] text-muted-foreground">
-                {dayNames[index].slice(0, 1)}
+                {dayNames[index]}
               </Text>
             </View>
           ))}
@@ -399,7 +420,9 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
           accessible
           accessibilityLabel={
             maxHour > 0
-              ? `Bookmarks by hour. ${t("stats.busiest_around", { time: formatHour(busiestHour, locale) })}`
+              ? t("stats.by_hour_a11y", {
+                  time: formatHour(busiestHour, locale),
+                })
               : t("stats.no_hourly_pattern")
           }
           className="h-16 flex-row items-end gap-1"
@@ -416,19 +439,17 @@ function ActivityCharts({ stats }: { stats: UserStats }) {
             />
           ))}
         </View>
-        <View className="flex-row justify-between">
-          <Text className="text-[10px] text-muted-foreground">
-            {formatHourTick(0, locale)}
-          </Text>
-          <Text className="text-[10px] text-muted-foreground">
-            {formatHourTick(6, locale)}
-          </Text>
-          <Text className="text-[10px] text-muted-foreground">
-            {formatHourTick(12, locale)}
-          </Text>
-          <Text className="text-[10px] text-muted-foreground">
-            {formatHourTick(18, locale)}
-          </Text>
+        {/* Four equal columns start at hours 0, 6, 12 and 18, so each label sits
+            under the bar it names. */}
+        <View className="flex-row">
+          {[0, 6, 12, 18].map((hour) => (
+            <Text
+              key={hour}
+              className="flex-1 text-[10px] text-muted-foreground"
+            >
+              {formatHourTick(hour, locale)}
+            </Text>
+          ))}
         </View>
       </View>
     </View>
@@ -567,7 +588,7 @@ export default function UsageStatsScreen() {
             className="items-center justify-center bg-primary/10"
             style={{ borderRadius: 22, height: 44, width: 44 }}
           >
-            <BookOpen size={21} color={colors.primary} strokeWidth={2.25} />
+            <AppIcon icon={BookOpen} size={20} color={colors.primary} />
           </View>
         </View>
         <SettingsSeparator className="mx-0" style={{ marginVertical: 18 }} />
@@ -596,7 +617,7 @@ export default function UsageStatsScreen() {
         <MetricTile
           label={t("stats.favourites")}
           value={formatNumber(stats.numFavorites)}
-          icon={Heart}
+          icon={Star}
           width={metricTileWidth}
         />
         <MetricTile
@@ -608,7 +629,7 @@ export default function UsageStatsScreen() {
         <MetricTile
           label={t("stats.tags")}
           value={formatNumber(stats.numTags)}
-          icon={Hash}
+          icon={Tag}
           width={metricTileWidth}
         />
         <MetricTile
@@ -620,7 +641,7 @@ export default function UsageStatsScreen() {
         <MetricTile
           label={t("stats.highlights")}
           value={formatNumber(stats.numHighlights)}
-          icon={Highlighter}
+          icon={PenLine}
           width={metricTileWidth}
         />
         <MetricTile
@@ -683,7 +704,7 @@ export default function UsageStatsScreen() {
             />
           </SectionCard>
 
-          <SectionCard title={t("stats.most_used_tags")} icon={Hash}>
+          <SectionCard title={t("stats.most_used_tags")} icon={Tag}>
             <RankedList
               items={stats.tagUsage.map(({ name, count }) => ({
                 label: name,
@@ -702,7 +723,7 @@ export default function UsageStatsScreen() {
               {assetsBySize.map((asset) => (
                 <ProgressRow
                   key={asset.type}
-                  label={formatAssetType(asset.type)}
+                  label={formatAssetType(asset.type, t)}
                   value={asset.totalSize}
                   total={stats.totalAssetSize}
                   color={colors.primary}

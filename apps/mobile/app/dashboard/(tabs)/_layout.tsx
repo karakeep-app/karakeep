@@ -20,7 +20,7 @@ export default function TabLayout() {
     >
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Icon
-          sf="house.fill"
+          sf="house"
           src={
             <NativeTabs.Trigger.VectorIcon
               family={MaterialCommunityIcons}
@@ -33,7 +33,7 @@ export default function TabLayout() {
 
       <NativeTabs.Trigger name="(lists)">
         <NativeTabs.Trigger.Icon
-          sf="list.clipboard.fill"
+          sf="list.bullet"
           src={
             <NativeTabs.Trigger.VectorIcon
               family={MaterialCommunityIcons}
@@ -46,7 +46,7 @@ export default function TabLayout() {
 
       <NativeTabs.Trigger name="(tags)">
         <NativeTabs.Trigger.Icon
-          sf="tag.fill"
+          sf="tag"
           src={
             <NativeTabs.Trigger.VectorIcon
               family={MaterialCommunityIcons}

@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import emojiData from "@emoji-mart/data";
 import type { FlashListRef } from "@shopify/flash-list";
 import { FlashList } from "@shopify/flash-list";
-import { ChevronDown, Search, X } from "lucide-react-native";
+import { Search, X } from "lucide-react-native";
 
 import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -189,27 +189,14 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
 
   return (
     <>
-      <View className="gap-1.5">
-        <Text className="text-sm text-muted-foreground">{t("emoji.icon")}</Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("emoji.open_picker", { icon: value })}
-          className="h-14 flex-row items-center rounded-xl border border-input bg-card px-3 active:opacity-70"
-          style={{ borderCurve: "continuous" }}
-          onPress={() => setVisible(true)}
-        >
-          <View className="h-10 w-10 items-center justify-center rounded-lg bg-background">
-            <Text className="text-2xl leading-8">{value}</Text>
-          </View>
-          <View className="flex-1 px-3">
-            <Text className="font-medium">{t("emoji.list_icon")}</Text>
-            <Text className="text-xs text-muted-foreground">
-              {t("emoji.list_icon_hint")}
-            </Text>
-          </View>
-          <ChevronDown size={18} color={colors.grey} />
-        </Pressable>
-      </View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("emoji.choose_emoji_for", { icon: value })}
+        className="h-11 w-14 items-center justify-center active:opacity-60"
+        onPress={() => setVisible(true)}
+      >
+        <Text className="text-2xl leading-8">{value}</Text>
+      </Pressable>
 
       <Modal
         visible={visible}
@@ -265,7 +252,7 @@ export function EmojiPicker({ value, onChange }: EmojiPickerProps) {
                   autoCapitalize="none"
                   autoCorrect={false}
                   returnKeyType="done"
-                  inputClasses="h-11 rounded-xl bg-background pl-10 pr-10"
+                  inputClasses="h-11 bg-background pl-10 pr-10"
                 />
                 {searchQuery.length > 0 && (
                   <Pressable

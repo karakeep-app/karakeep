@@ -192,7 +192,7 @@ export default function OfflineContent() {
 
   return (
     <SettingsScreen>
-      <Text className="px-1 text-sm text-muted-foreground">
+      <Text variant="footnote" color="tertiary" className="px-4">
         {t("settings.offline_intro")}
       </Text>
 
@@ -201,7 +201,7 @@ export default function OfflineContent() {
         footer={t("settings.offline_automatic_downloads_footer")}
       >
         <SettingsToggleRow
-          label={t("settings.offline_recent_articles")}
+          label={t("settings.offline_recent_articles_label")}
           onValueChange={(recentEnabled) =>
             updateOfflineDownloadPrefs(scope, (current) => ({
               ...current,
@@ -245,7 +245,7 @@ export default function OfflineContent() {
         footer={t("settings.offline_storage_network_footer")}
       >
         <SettingsMenuRow
-          label={t("settings.offline_storage_limit")}
+          label={t("settings.offline_storage_limit_label")}
           onSelect={(budgetMb) =>
             updateOfflineDownloadPrefs(scope, (current) => ({
               ...current,
@@ -257,7 +257,7 @@ export default function OfflineContent() {
         />
         <SettingsSeparator />
         <SettingsToggleRow
-          label={t("settings.offline_wifi_only")}
+          label={t("settings.offline_wifi_only_label")}
           onValueChange={(wifiOnly) =>
             updateOfflineDownloadPrefs(scope, (current) => ({
               ...current,
@@ -312,7 +312,7 @@ export default function OfflineContent() {
           <SettingsActionRow
             disabled={isBusy}
             isLoading={isBusy}
-            label={t("settings.offline_download_now")}
+            label={t("settings.offline_download_now_label")}
             onPress={() => void refreshOfflineDownloads({ force: true })}
             tone="primary"
           />
@@ -326,7 +326,7 @@ export default function OfflineContent() {
         />
         <SettingsGroup footer={t("settings.offline_downloads_include")}>
           <SettingsNavigationRow
-            label={t("settings.offline_downloaded_articles")}
+            label={t("settings.offline_downloaded_articles_label")}
             onPress={() => router.push("/dashboard/settings/offline-articles")}
             value={String(offlineLibrary.length)}
           />
@@ -334,7 +334,7 @@ export default function OfflineContent() {
             <>
               <SettingsSeparator />
               <SettingsActionRow
-                label={t("settings.offline_remove_all")}
+                label={t("settings.offline_remove_all_label")}
                 onPress={confirmRemoveAll}
               />
             </>
@@ -349,7 +349,7 @@ export default function OfflineContent() {
         />
         <SettingsGroup>
           <SettingsActionRow
-            label={t("settings.offline_clear_recent")}
+            label={t("settings.offline_clear_recent_label")}
             onPress={confirmClearRecentCache}
           />
         </SettingsGroup>

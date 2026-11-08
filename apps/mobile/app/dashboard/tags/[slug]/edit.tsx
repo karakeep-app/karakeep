@@ -2,16 +2,12 @@ import { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import QueryPageState from "@/components/QueryPageState";
-import { Button } from "@/components/ui/Button";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Input } from "@/components/ui/Input";
+import { SheetHeader } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
-import {
-  useCommonActions,
-  useCommonStrings,
-  useTranslation,
-} from "@/lib/i18n/hooks";
+import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import { useQuery } from "@tanstack/react-query";
 
 import { useUpdateTag } from "@karakeep/shared-react/hooks/tags";
@@ -25,7 +21,6 @@ export default function EditTagPage() {
   const api = useTRPC();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const actions = useCommonActions();
   const strings = useCommonStrings();
 
   if (typeof tagId !== "string") {
@@ -83,24 +78,26 @@ export default function EditTagPage() {
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
-      contentContainerClassName="gap-4 px-4 pb-8"
+      contentContainerClassName="gap-4 px-4 pt-2 pb-8"
     >
+      <SheetHeader
+        onSave={onSubmit}
+        saveDisabled={!name.trim()}
+        isDirty={!!tag && name !== tag.name}
+        isSaving={isPending}
+      />
       <Input
-        label={t("tags.name_label")}
-        labelClasses="text-sm text-muted-foreground"
-        inputClasses="bg-card"
+        accessibilityLabel={t("tags.name_field")}
         onChangeText={setName}
         onSubmitEditing={onSubmit}
         value={name}
-        placeholder={t("tags.name_placeholder")}
-        autoFocus
-        autoCapitalize="sentences"
+        placeholder={t("tags.name_field")}
+        autoCapitalize="none"
         returnKeyType="done"
       />
-
-      <Button disabled={isPending} onPress={onSubmit}>
-        <Text>{actions.save}</Text>
-      </Button>
+      <Text variant="footnote" color="tertiary" className="-mt-2 px-4">
+        {t("tags.rename_hint")}
+      </Text>
     </ScrollView>
   );
 }

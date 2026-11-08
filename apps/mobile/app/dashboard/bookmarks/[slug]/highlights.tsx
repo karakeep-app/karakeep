@@ -1,13 +1,16 @@
 import HighlightList from "@/components/highlights/HighlightList";
 import QueryPageState from "@/components/QueryPageState";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { HeaderTextButton } from "@/components/ui/SheetHeader";
+import { useTranslation } from "@/lib/i18n/hooks";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function BookmarkHighlightsPage() {
   const { slug } = useLocalSearchParams();
   const api = useTRPC();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   if (typeof slug !== "string") {
@@ -33,10 +36,23 @@ export default function BookmarkHighlightsPage() {
   };
 
   return (
-    <HighlightList
-      highlights={data.highlights}
-      onRefresh={onRefresh}
-      isRefreshing={isPending || isPlaceholderData}
-    />
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <HeaderTextButton
+              label={t("bookmarks.done")}
+              emphasized
+              onPress={() => router.back()}
+            />
+          ),
+        }}
+      />
+      <HighlightList
+        highlights={data.highlights}
+        onRefresh={onRefresh}
+        isRefreshing={isPending || isPlaceholderData}
+      />
+    </>
   );
 }

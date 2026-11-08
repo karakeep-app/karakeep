@@ -1,3 +1,4 @@
+import { AppIcon } from "@/components/ui/AppIcon";
 import { useState } from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
@@ -32,10 +33,14 @@ export function NotePreview({
   return (
     <>
       <Pressable onPress={() => setIsModalVisible(true)}>
-        <View className="flex flex-row items-center gap-2">
-          <NotepadText size={24} color={iconColor} />
+        <View className="flex flex-row items-start gap-1.5">
+          <View style={{ marginTop: 3 }}>
+            <AppIcon icon={NotepadText} size={14} color={iconColor} />
+          </View>
           <Text
-            className="flex-1 text-sm italic text-gray-500 dark:text-gray-400"
+            variant="footnote"
+            color="tertiary"
+            className="flex-1"
             numberOfLines={2}
           >
             {note}
@@ -66,9 +71,7 @@ export function NotePreview({
 
             {/* Note Content */}
             <ScrollView className="mb-4 max-h-96">
-              <Text className="text-sm text-gray-700 dark:text-gray-300">
-                {note}
-              </Text>
+              <Text variant="subhead">{note}</Text>
             </ScrollView>
 
             {/* Action Button */}

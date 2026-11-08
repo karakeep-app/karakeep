@@ -21,9 +21,8 @@ import { UserProfileHeader } from "@/components/settings/UserProfileHeader";
 import { Text } from "@/components/ui/Text";
 import { useClientConfig } from "@/lib/client-config";
 import { useServerVersion } from "@/lib/hooks";
-import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { getSystemLanguage } from "@/lib/i18n";
-import { langNameMappings } from "@karakeep/shared/langs";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import {
   getOfflineLibraryScope,
   useOfflineLibrary,
@@ -31,12 +30,12 @@ import {
 import { useSession } from "@/lib/session";
 import {
   getBookmarkViewLabels,
-  getThemeLabels,
   getTranslatedUploadQualityLabel,
 } from "@/lib/settings-display";
 import useAppSettings from "@/lib/settings";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+import { langNameMappings } from "@karakeep/shared/langs";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function Settings() {
@@ -48,16 +47,25 @@ export default function Settings() {
   const actions = useCommonActions();
   const offlineLibrary = useOfflineLibrary(getOfflineLibraryScope(settings));
   const { data, error } = useQuery(api.users.whoami.queryOptions());
-  const {
-    data: serverVersion,
-    isLoading: isServerVersionLoading,
-    error: serverVersionError,
-  } = useServerVersion();
+  const { data: serverVersion } = useServerVersion();
   const clientConfig = useClientConfig();
   const showSubscription =
     clientConfig.stripe.isConfigured || clientConfig.revenueCat.isConfigured;
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState("");
+
+  const themeLabels = {
+    dark: t("settings.theme_option_dark"),
+    light: t("settings.theme_option_light"),
+    system: t("settings.theme_system"),
+  };
+  const systemLanguage = getSystemLanguage();
+  const languageLabel =
+    settings.language === "system" || !settings.language
+      ? t("settings.language_system", {
+          language: langNameMappings[systemLanguage] ?? systemLanguage,
+        })
+      : (langNameMappings[settings.language] ?? settings.language);
 
   const { mutate: deleteAccount, isPending: isDeleting } = useMutation(
     api.users.deleteAccount.mutationOptions({
@@ -67,7 +75,7 @@ export default function Settings() {
         Alert.alert(
           t("settings.account_deleted_title"),
           t("settings.account_deleted_message"),
-          [{ text: "OK", onPress: logout }],
+          [{ text: t("actions.ok"), onPress: logout }],
         );
       },
       onError: (mutationError) => {
@@ -94,10 +102,21 @@ export default function Settings() {
     setPassword("");
   };
 
+  const handleLogout = () => {
+    Alert.alert(t("settings.log_out_title"), t("settings.log_out_message"), [
+      { text: actions.cancel, style: "cancel" },
+      {
+        text: t("auth.log_out"),
+        style: "destructive",
+        onPress: () => void logout(),
+      },
+    ]);
+  };
+
   const handleDeleteAccount = () => {
     Alert.alert(
-      t("settings.delete_account_title"),
-      t("settings.delete_account_message"),
+      t("settings.delete_account_confirm_title"),
+      t("settings.delete_account_confirm_message"),
       [
         { text: actions.cancel, style: "cancel" },
         {
@@ -127,26 +146,18 @@ export default function Settings() {
         <SettingsNavigationRow
           label={t("settings.language")}
           onPress={() => router.push("/dashboard/settings/language")}
-          value={
-            settings.language === "system" || !settings.language
-              ? t("settings.language_system", {
-                  language:
-                    langNameMappings[getSystemLanguage()] ??
-                    getSystemLanguage(),
-                })
-              : (langNameMappings[settings.language] ?? settings.language)
-          }
+          value={languageLabel}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
           label={t("settings.theme")}
           onPress={() => router.push("/dashboard/settings/theme")}
-          value={getThemeLabels()[settings.theme]}
+          value={themeLabels[settings.theme]}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
           isLoading={isLoading}
-          label={t("settings.open_bookmarks_in")}
+          label={t("headers.open_bookmarks_in")}
           onPress={() =>
             router.push("/dashboard/settings/bookmark-default-view")
           }
@@ -154,7 +165,7 @@ export default function Settings() {
         />
         <SettingsSeparator />
         <SettingsNavigationRow
-          label={t("settings.reader_view")}
+          label={t("headers.reader_settings")}
           onPress={() => router.push("/dashboard/settings/reading")}
         />
         <SettingsSeparator />
@@ -179,46 +190,57 @@ export default function Settings() {
         />
       </SettingsGroup>
 
-      <SettingsGroup header={t("settings.account")}>
-        {showSubscription ? (
-          <>
-            <SettingsNavigationRow
-              label={t("settings.subscription")}
-              onPress={() => router.push("/dashboard/settings/subscription")}
-            />
-            <SettingsSeparator />
-          </>
-        ) : null}
-        <SettingsActionRow label={t("auth.log_out")} onPress={logout} />
-        <SettingsSeparator />
-        <SettingsActionRow
-          disabled={isDeleting}
-          isLoading={isDeleting}
-          label={t("settings.delete_account")}
-          onPress={handleDeleteAccount}
-        />
-      </SettingsGroup>
+      {showSubscription ? (
+        <SettingsGroup header={t("settings.account")}>
+          <SettingsNavigationRow
+            label={t("settings.subscription")}
+            onPress={() => router.push("/dashboard/settings/subscription")}
+          />
+        </SettingsGroup>
+      ) : null}
 
       <SettingsGroup header={t("settings.about")}>
-        <SettingsValueRow
-          label={t("settings.server")}
-          value={isLoading ? t("settings.loading") : settings.address}
+        <SettingsNavigationRow
+          label={t("headers.server_connection")}
+          value={
+            isLoading
+              ? t("settings.loading_ellipsis")
+              : settings.address?.replace(/^https?:\/\//, "")
+          }
+          onPress={() => router.push("/test-connection")}
         />
         <SettingsSeparator />
         <SettingsValueRow
           label={t("settings.app_version")}
-          value={Constants.expoConfig?.version ?? t("settings.unavailable")}
+          value={Constants.expoConfig?.version ?? t("settings.unknown_version")}
         />
-        <SettingsSeparator />
-        <SettingsValueRow
-          label={t("settings.server_version")}
-          value={
-            isServerVersionLoading
-              ? t("settings.loading")
-              : serverVersionError
-                ? t("settings.unavailable")
-                : (serverVersion ?? t("settings.unavailable"))
-          }
+        {serverVersion && serverVersion.toLowerCase() !== "unknown" ? (
+          <>
+            <SettingsSeparator />
+            <SettingsValueRow
+              label={t("settings.server_version")}
+              value={serverVersion}
+            />
+          </>
+        ) : null}
+      </SettingsGroup>
+
+      <SettingsGroup>
+        <SettingsActionRow
+          centered
+          label={t("auth.log_out")}
+          onPress={handleLogout}
+          tone="default"
+        />
+      </SettingsGroup>
+
+      <SettingsGroup>
+        <SettingsActionRow
+          centered
+          disabled={isDeleting}
+          isLoading={isDeleting}
+          label={t("settings.delete_account")}
+          onPress={handleDeleteAccount}
         />
       </SettingsGroup>
 

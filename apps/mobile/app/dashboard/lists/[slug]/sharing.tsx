@@ -41,7 +41,7 @@ export default function ListSharingPage() {
           bottomOffset={16}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-          className="flex-1 bg-background"
+          className="flex-1"
         >
           <ListSharingSettings list={list} />
         </KeyboardAwareScrollView>

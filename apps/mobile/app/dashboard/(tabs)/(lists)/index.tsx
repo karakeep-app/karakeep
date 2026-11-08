@@ -1,41 +1,59 @@
-import { useMemo, useState } from "react";
-import {
-  FlatList,
-  Platform,
-  PlatformColor,
-  Pressable,
-  View,
-} from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import { FlatList, Platform, Pressable, View } from "react-native";
 import * as Haptics from "expo-haptics";
-import { Link, router } from "expo-router";
+import { Link, router, Stack, useFocusEffect } from "expo-router";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { PendingListInvitations } from "@/components/lists/pending-list-invitations";
 import QueryPageState from "@/components/QueryPageState";
+import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
 import ChevronRight from "@/components/ui/ChevronRight";
 import { FAB } from "@/components/ui/FAB";
+import { GroupedHeader, GroupedListRow } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
-import { useTranslation } from "@/lib/i18n/hooks";
+import { useSharedTranslation, useTranslation } from "@/lib/i18n/hooks";
+import {
+  getOfflineLibraryScope,
+  useOfflineLibrary,
+} from "@/lib/offlineLibrary";
 import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
+import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { condProps } from "@/lib/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Plus } from "lucide-react-native";
+import {
+  Archive,
+  ArrowDownToLine,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Star,
+  Users,
+} from "lucide-react-native";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { ZBookmarkListTreeNode } from "@karakeep/shared/utils/listUtils";
 
+const FAVOURITE_COLOR = "#ebb434";
+const LEVEL_INDENT = 22;
+// Where the name starts in a row: 16 padding + 24 icon + 12 gap.
+const SEPARATOR_INSET = 52;
+
 interface ListLink {
   id: string;
-  logo: string;
+  logo?: React.ReactNode;
+  emoji?: string;
   name: string;
-  href: string;
+  href?: string;
   level: number;
-  parent?: string;
   numChildren: number;
   collapsed: boolean;
-  isSharedSection?: boolean;
-  numBookmarks?: number;
+  count?: number;
+  isSmart?: boolean;
 }
+
+type ListItem =
+  | { kind: "header"; id: string; label: string }
+  | ({ kind: "row"; isFirst: boolean; isLast: boolean } & ListLink);
 
 function byName(a: ZBookmarkListTreeNode, b: ZBookmarkListTreeNode) {
   return a.item.name.localeCompare(b.item.name);
@@ -44,66 +62,251 @@ function byName(a: ZBookmarkListTreeNode, b: ZBookmarkListTreeNode) {
 function traverseTree(
   node: ZBookmarkListTreeNode,
   links: ListLink[],
-  showChildrenOf: Record<string, boolean>,
+  collapsedLists: Record<string, boolean>,
   listStats?: Map<string, number>,
-  parent?: string,
   level = 0,
 ) {
   links.push({
     id: node.item.id,
-    logo: node.item.icon,
+    emoji: node.item.icon,
     name: node.item.name,
     href: `/dashboard/lists/${node.item.id}`,
     level,
-    parent,
     numChildren: node.children?.length ?? 0,
-    collapsed: !showChildrenOf[node.item.id],
-    numBookmarks: listStats?.get(node.item.id),
+    collapsed: !!collapsedLists[node.item.id],
+    count: listStats ? (listStats.get(node.item.id) ?? 0) : undefined,
+    isSmart: node.item.type === "smart",
   });
 
-  if (node.children && showChildrenOf[node.item.id]) {
+  if (node.children && !collapsedLists[node.item.id]) {
     [...node.children]
       .sort(byName)
       .forEach((child) =>
-        traverseTree(
-          child,
-          links,
-          showChildrenOf,
-          listStats,
-          node.item.id,
-          level + 1,
-        ),
+        traverseTree(child, links, collapsedLists, listStats, level + 1),
       );
   }
+}
+
+function toRows(links: ListLink[]): ListItem[] {
+  return links.map((link, index) => ({
+    kind: "row" as const,
+    isFirst: index === 0,
+    isLast: index === links.length - 1,
+    ...link,
+  }));
+}
+
+function ListRow({
+  item,
+  onToggle,
+}: {
+  item: Extract<ListItem, { kind: "row" }>;
+  onToggle: (id: string) => void;
+}) {
+  const { colors } = useColorScheme();
+  const { t } = useTranslation();
+  const hasChildren = item.numChildren > 0;
+
+  const content = (
+    <Pressable
+      accessibilityRole="button"
+      onPress={item.href ? undefined : () => onToggle(item.id)}
+      className="min-h-11 flex-row items-center gap-3 py-2.5 pr-4 active:opacity-70"
+      style={{ paddingLeft: 16 + item.level * LEVEL_INDENT }}
+    >
+      <View className="w-6 items-center">
+        {item.logo ?? (
+          <Text className="text-[19px] leading-6">{item.emoji}</Text>
+        )}
+      </View>
+      <View className="min-w-0 flex-1 flex-row items-center gap-1.5">
+        <Text className="shrink" numberOfLines={1}>
+          {item.name}
+        </Text>
+        {item.isSmart && (
+          <Text
+            variant="caption2"
+            className="rounded bg-background px-1 text-muted-foreground dark:bg-muted/25 dark:text-foreground/80"
+          >
+            {t("lists.type_smart")}
+          </Text>
+        )}
+        {hasChildren && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              item.collapsed
+                ? t("lists_tab.show_children", { name: item.name })
+                : t("lists_tab.hide_children", { name: item.name })
+            }
+            hitSlop={12}
+            className="pl-0.5"
+            onPress={() => {
+              void Haptics.selectionAsync();
+              onToggle(item.id);
+            }}
+          >
+            {item.collapsed ? (
+              <AppIcon icon={ChevronDown} size={13} color={colors.primary} />
+            ) : (
+              <AppIcon icon={ChevronUp} size={13} color={colors.primary} />
+            )}
+          </Pressable>
+        )}
+      </View>
+      {item.count !== undefined && (
+        <Text variant="subhead" color="tertiary" className="tabular-nums">
+          {item.count}
+        </Text>
+      )}
+      {item.href && <ChevronRight size={18} />}
+    </Pressable>
+  );
+
+  return (
+    <GroupedListRow
+      isFirst={item.isFirst}
+      isLast={item.isLast}
+      separatorInset={SEPARATOR_INSET}
+    >
+      {item.href ? (
+        <Link asChild href={item.href}>
+          {content}
+        </Link>
+      ) : (
+        content
+      )}
+    </GroupedListRow>
+  );
 }
 
 export default function Lists() {
   const { colors } = useColorScheme();
   const { t } = useTranslation();
+  const { t: tShared } = useSharedTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const { data: lists, error, refetch } = useBookmarkLists();
-  const [showChildrenOf, setShowChildrenOf] = useState<Record<string, boolean>>(
+  // Open by default, so a list you've just nested is easy to find.
+  const [collapsedLists, setCollapsedLists] = useState<Record<string, boolean>>(
     {},
   );
   const api = useTRPC();
   const queryClient = useQueryClient();
-  const { data: listStats } = useQuery(api.lists.stats.queryOptions());
+  const { data: listStats, refetch: refetchListStats } = useQuery(
+    api.lists.stats.queryOptions(),
+  );
+  const { data: userStats, refetch: refetchUserStats } = useQuery(
+    api.users.stats.queryOptions(),
+  );
+  useFocusEffect(
+    useCallback(() => {
+      void refetchListStats();
+      void refetchUserStats();
+    }, [refetchListStats, refetchUserStats]),
+  );
 
-  // Check if there are any shared lists
-  const hasSharedLists = useMemo(() => {
-    return lists?.data.some((list) => list.userRole !== "owner") ?? false;
-  }, [lists?.data]);
+  const { settings } = useAppSettings();
+  const offlineLibrary = useOfflineLibrary(getOfflineLibraryScope(settings));
 
-  // Check if any list has children to determine if we need chevron spacing
-  const hasAnyListsWithChildren = useMemo(() => {
-    const checkForChildren = (node: ZBookmarkListTreeNode): boolean => {
-      if (node.children && node.children.length > 0) return true;
-      return false;
-    };
-    return (
-      Object.values(lists?.root ?? {}).some(checkForChildren) || hasSharedLists
-    );
-  }, [lists?.root, hasSharedLists]);
+  const openNewList = () => {
+    void Haptics.selectionAsync();
+    router.push("/dashboard/lists/new");
+  };
+
+  const items = useMemo<ListItem[]>(() => {
+    if (!lists) return [];
+
+    const library: ListLink[] = [
+      {
+        id: "fav",
+        logo: <AppIcon icon={Star} filled size={19} color={FAVOURITE_COLOR} />,
+        name: t("lists_tab.favourites"),
+        href: "/dashboard/favourites",
+        level: 0,
+        numChildren: 0,
+        collapsed: false,
+        count: userStats?.numFavorites,
+      },
+      {
+        id: "arch",
+        logo: <AppIcon icon={Archive} size={19} color={colors.icon} />,
+        name: t("lists_tab.archive"),
+        href: "/dashboard/archive",
+        level: 0,
+        numChildren: 0,
+        collapsed: false,
+        count: userStats?.numArchived,
+      },
+      {
+        id: "downloads",
+        logo: <AppIcon icon={ArrowDownToLine} size={19} color={colors.icon} />,
+        name: t("headers.downloads"),
+        href: "/dashboard/settings/offline-articles",
+        level: 0,
+        numChildren: 0,
+        collapsed: false,
+        count: offlineLibrary.length,
+      },
+    ];
+
+    const owned: ListLink[] = [];
+    Object.values(lists.root)
+      .filter((list) => list.item.userRole === "owner")
+      .sort(byName)
+      .forEach((list) =>
+        traverseTree(list, owned, collapsedLists, listStats?.stats),
+      );
+
+    const shared: ListLink[] = [];
+    const sharedRoots = Object.values(lists.root)
+      .filter((list) => list.item.userRole !== "owner")
+      .sort(byName);
+    if (sharedRoots.length > 0) {
+      shared.push({
+        id: "shared-section",
+        logo: <AppIcon icon={Users} size={19} color={colors.icon} />,
+        name: t("lists_tab.shared_with_me"),
+        level: 0,
+        numChildren: sharedRoots.length,
+        collapsed: !!collapsedLists["shared-section"],
+      });
+      if (!collapsedLists["shared-section"]) {
+        sharedRoots.forEach((list) =>
+          traverseTree(list, shared, collapsedLists, listStats?.stats, 1),
+        );
+      }
+    }
+
+    return [
+      ...toRows(library),
+      ...(shared.length > 0
+        ? [
+            {
+              kind: "header" as const,
+              id: "h-shared",
+              label: tShared("lists.shared"),
+            },
+            ...toRows(shared),
+          ]
+        : []),
+      {
+        kind: "header" as const,
+        id: "h-owned",
+        label: t("lists_tab.my_lists"),
+      },
+      ...toRows(owned),
+    ];
+  }, [
+    lists,
+    listStats,
+    userStats,
+    collapsedLists,
+    colors.grey,
+    colors.icon,
+    offlineLibrary.length,
+    t,
+    tShared,
+  ]);
 
   if (!lists) {
     return <QueryPageState error={error} onRetry={() => refetch()} />;
@@ -115,6 +318,7 @@ export default function Lists() {
       await Promise.all([
         queryClient.invalidateQueries(api.lists.list.pathFilter()),
         queryClient.invalidateQueries(api.lists.stats.pathFilter()),
+        queryClient.invalidateQueries(api.users.stats.pathFilter()),
         queryClient.invalidateQueries(
           api.lists.getPendingInvitations.pathFilter(),
         ),
@@ -124,178 +328,70 @@ export default function Lists() {
     }
   };
 
-  const links: ListLink[] = [
-    {
-      id: "fav",
-      logo: "⭐️",
-      name: t("lists_tab.favourites"),
-      href: "/dashboard/favourites",
-      level: 0,
-      numChildren: 0,
-      collapsed: false,
-    },
-    {
-      id: "arch",
-      logo: "🗄️",
-      name: t("lists_tab.archive"),
-      href: "/dashboard/archive",
-      level: 0,
-      numChildren: 0,
-      collapsed: false,
-    },
-  ];
-
-  // Add shared lists section if there are any
-  if (hasSharedLists) {
-    // Count shared lists to determine if section has children
-    const sharedListsCount = Object.values(lists.root).filter(
-      (list) => list.item.userRole !== "owner",
-    ).length;
-
-    links.push({
-      id: "shared-section",
-      logo: "👥",
-      name: t("lists_tab.shared_lists"),
-      href: "#",
-      level: 0,
-      numChildren: sharedListsCount,
-      collapsed: !showChildrenOf["shared-section"],
-      isSharedSection: true,
-    });
-
-    // Add shared lists as children if section is expanded
-    if (showChildrenOf["shared-section"]) {
-      Object.values(lists.root)
-        .sort(byName)
-        .forEach((list) => {
-          if (list.item.userRole !== "owner") {
-            traverseTree(
-              list,
-              links,
-              showChildrenOf,
-              listStats?.stats,
-              "shared-section",
-              1,
-            );
-          }
-        });
-    }
-  }
-
-  // Add owned lists only
-  Object.values(lists.root)
-    .sort(byName)
-    .forEach((list) => {
-      if (list.item.userRole === "owner") {
-        traverseTree(list, links, showChildrenOf, listStats?.stats);
-      }
-    });
-
   return (
     <>
+      {Platform.OS === "ios" && (
+        <Stack.Screen
+          options={{
+            headerRight: () => (
+              <View className="flex-row items-center gap-3 px-1">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t("lists_tab.new_list")}
+                  hitSlop={8}
+                  className="h-9 w-9 items-center justify-center active:opacity-60"
+                  onPress={openNewList}
+                >
+                  <AppIcon icon={Plus} size={21} color={colors.foreground} />
+                </Pressable>
+                <ProfileAvatarButton />
+              </View>
+            ),
+          }}
+        />
+      )}
       <FlatList
         ListHeaderComponent={PendingListInvitations}
         className="h-full"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
-          gap: 6,
-          paddingBottom: 20,
-          paddingHorizontal: 15,
+          paddingBottom: Platform.OS === "android" ? 96 : 32,
+          paddingHorizontal: 16,
           width: "100%",
           maxWidth: READABLE_CONTENT_MAX_WIDTH,
           alignSelf: "center",
-          marginBottom: 15,
         }}
-        renderItem={(l) => (
-          <View
-            className="flex flex-row items-center rounded-xl bg-card px-4 py-2"
-            style={{
-              borderCurve: "continuous",
-              ...condProps({
-                condition: l.item.level > 0,
-                props: { marginLeft: l.item.level * 20 },
-              }),
-            }}
-          >
-            {hasAnyListsWithChildren && (
-              <View style={{ width: 32 }}>
-                {l.item.numChildren > 0 && (
-                  <Pressable
-                    className="pr-2"
-                    onPress={() => {
-                      setShowChildrenOf((prev) => ({
-                        ...prev,
-                        [l.item.id]: !prev[l.item.id],
-                      }));
-                    }}
-                  >
-                    {l.item.collapsed ? (
-                      <ChevronRight color={colors.foreground} />
-                    ) : (
-                      <ChevronDown color={colors.foreground} />
-                    )}
-                  </Pressable>
-                )}
-              </View>
-            )}
-
-            {l.item.isSharedSection ? (
-              <Pressable
-                className="flex flex-1 flex-row items-center justify-between"
-                onPress={() => {
-                  setShowChildrenOf((prev) => ({
-                    ...prev,
-                    [l.item.id]: !prev[l.item.id],
-                  }));
-                }}
-              >
-                <Text className="mr-2 flex-1" numberOfLines={1}>
-                  {l.item.logo} {l.item.name}
-                </Text>
-              </Pressable>
-            ) : (
-              <Link
-                asChild
-                key={l.item.id}
-                href={l.item.href}
-                className="flex-1"
-              >
-                <Pressable className="flex flex-row items-center justify-between">
-                  <Text className="mr-2 flex-1" numberOfLines={1}>
-                    {l.item.logo} {l.item.name}
-                  </Text>
-                  <View className="flex flex-row items-center">
-                    {l.item.numBookmarks !== undefined && (
-                      <Text className="mr-2 text-xs text-muted-foreground">
-                        {l.item.numBookmarks}
-                      </Text>
-                    )}
-                    <ChevronRight />
-                  </View>
-                </Pressable>
-              </Link>
-            )}
-          </View>
-        )}
-        data={links}
+        renderItem={({ item }) =>
+          item.kind === "header" ? (
+            <View className="pb-1.5 pt-6">
+              <GroupedHeader label={item.label} />
+            </View>
+          ) : (
+            <ListRow
+              item={item}
+              onToggle={(id) =>
+                setCollapsedLists((prev) => ({ ...prev, [id]: !prev[id] }))
+              }
+            />
+          )
+        }
+        data={items}
         keyExtractor={(item) => item.id}
         refreshing={refreshing}
         onRefresh={onRefresh}
       />
-      <FAB>
-        <Pressable
-          className="h-full w-full items-center justify-center"
-          onPress={() => {
-            Haptics.selectionAsync();
-            router.push("/dashboard/lists/new");
-          }}
-        >
-          <Plus
-            size={24}
-            color={Platform.OS === "ios" ? PlatformColor("label") : "white"}
-          />
-        </Pressable>
-      </FAB>
+      {Platform.OS === "android" && (
+        <FAB>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("lists_tab.new_list")}
+            className="h-full w-full items-center justify-center"
+            onPress={openNewList}
+          >
+            <Plus size={24} color="white" />
+          </Pressable>
+        </FAB>
+      )}
     </>
   );
 }

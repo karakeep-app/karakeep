@@ -85,7 +85,11 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
             const name =
               asset.assetType === "userUploaded" && asset.fileName
                 ? asset.fileName
-                : humanFriendlyNameForAssertType(asset.assetType);
+                : asset.assetType === "linkHtmlContent"
+                  ? t("attachments.saved_page")
+                  : asset.assetType === "bookmarkAsset"
+                    ? t("attachments.original_file")
+                    : humanFriendlyNameForAssertType(asset.assetType);
             const isDownloading = downloadingId === asset.id;
             return (
               <Fragment key={asset.id}>

@@ -15,18 +15,14 @@ import {
 import { Text } from "@/components/ui/Text";
 import { useTranslation } from "@/lib/i18n/hooks";
 import { MOBILE_FONT_FAMILIES, useReaderSettings } from "@/lib/readerSettings";
-import { useColorScheme } from "@/lib/useColorScheme";
-import { RotateCcw } from "lucide-react-native";
 
 import {
-  formatFontSize,
   formatLineHeight,
   READER_SETTING_CONSTRAINTS,
 } from "@karakeep/shared/types/readers";
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
 
 export default function ReaderSettingsPage() {
-  const { isDarkColorScheme: isDark } = useColorScheme();
   const { t } = useTranslation();
 
   const {
@@ -129,13 +125,13 @@ export default function ReaderSettingsPage() {
 
   return (
     <SettingsScreen>
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
           {t("settings.reader_font_family")}
           {localOverrides.fontFamily !== undefined && (
-            <Text className="text-blue-500">
+            <Text variant="footnote" className="normal-case text-primary">
               {" "}
-              {t("settings.reader_local_suffix")}
+              · {t("settings.reader_this_device")}
             </Text>
           )}
         </Text>
@@ -165,15 +161,13 @@ export default function ReaderSettingsPage() {
         </SettingsGroup>
       </View>
 
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
-          {t("settings.reader_font_size", {
-            size: formatFontSize(displayFontSize),
-          })}
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
+          {t("settings.reader_font_size_value", { size: displayFontSize })}
           {localOverrides.fontSize !== undefined && (
-            <Text className="text-blue-500">
+            <Text variant="footnote" className="normal-case text-primary">
               {" "}
-              {t("settings.reader_local_suffix")}
+              · {t("settings.reader_this_device")}
             </Text>
           )}
         </Text>
@@ -201,15 +195,15 @@ export default function ReaderSettingsPage() {
         </SettingsGroup>
       </View>
 
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
-          {t("settings.reader_line_height", {
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
+          {t("settings.reader_line_height_value", {
             height: formatLineHeight(displayLineHeight),
           })}
           {localOverrides.lineHeight !== undefined && (
-            <Text className="text-blue-500">
+            <Text variant="footnote" className="normal-case text-primary">
               {" "}
-              {t("settings.reader_local_suffix")}
+              · {t("settings.reader_this_device")}
             </Text>
           )}
         </Text>
@@ -235,8 +229,8 @@ export default function ReaderSettingsPage() {
         </SettingsGroup>
       </View>
 
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
           {t("settings.reader_preview")}
         </Text>
         <ReaderPreview
@@ -251,7 +245,7 @@ export default function ReaderSettingsPage() {
         <SettingsActionRow
           centered
           disabled={!hasLocalOverrides}
-          label={t("settings.reader_save_default")}
+          label={t("settings.reader_save_default_all_devices")}
           onPress={handleSaveAsDefault}
           tone="primary"
         />
@@ -260,12 +254,9 @@ export default function ReaderSettingsPage() {
             <SettingsSeparator />
             <SettingsActionRow
               centered
-              label={t("settings.reader_clear_local")}
-              leading={
-                <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-              }
+              label={t("settings.reader_reset_this_device")}
               onPress={handleClearLocalOverrides}
-              tone="default"
+              tone="primary"
             />
           </>
         ) : null}
@@ -274,12 +265,9 @@ export default function ReaderSettingsPage() {
             <SettingsSeparator />
             <SettingsActionRow
               centered
-              label={t("settings.reader_clear_server")}
-              leading={
-                <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-              }
+              label={t("settings.reader_reset_all_devices")}
               onPress={handleClearServerDefaults}
-              tone="default"
+              tone="primary"
             />
           </>
         ) : null}
