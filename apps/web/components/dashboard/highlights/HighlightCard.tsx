@@ -81,7 +81,7 @@ export default function HighlightCard({
       behavior: "smooth",
       block: "center",
     });
-    flashHighlight(spans);
+    flashHighlight(highlight.id);
   };
 
   return (
