@@ -79,7 +79,9 @@ it(
     const card = bookmarkCards(page);
     await expect(card).toHaveCount(1);
     await card.locator('button[aria-haspopup="menu"]').click();
-    await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
+    await page
+      .getByRole("menuitem", { name: "Edit details", exact: true })
+      .click();
     const dialog = page.getByRole("dialog", { name: "Edit details" });
 
     await dialog.getByRole("button", { name: "Remove obsolete" }).click();

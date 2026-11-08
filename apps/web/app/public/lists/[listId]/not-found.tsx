@@ -27,7 +27,9 @@ export default async function PublicListPageNotFound() {
           <EmptyMedia variant="icon">
             <X />
           </EmptyMedia>
-          <EmptyTitle>{t("public_lists.not_found_title")}</EmptyTitle>
+          <EmptyTitle role="heading" aria-level={1}>
+            {t("public_lists.not_found_title")}
+          </EmptyTitle>
           <EmptyDescription>
             {t("public_lists.not_found_description")}
           </EmptyDescription>
