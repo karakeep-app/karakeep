@@ -46,6 +46,7 @@ import {
   Tag,
   Upload,
   Zap,
+  CircleHelp,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { z } from "zod";
@@ -97,23 +98,22 @@ function getHourLabels(locale: string | undefined): string[] {
 }
 
 /**
- * The composer in the web app saves without a source, so a missing source is
- * shown as a web save. This is only how the stats read, nothing stored changes.
+ * A missing source is its own row: bookmarks saved before sources were recorded
+ * have none, whichever app they came from.
  */
-function groupSources(
+function sortSources(
   sources: { source: BookmarkSource | null; count: number }[],
 ) {
-  const counts = new Map<BookmarkSource, number>();
-  for (const { source, count } of sources) {
-    const key = source ?? "web";
-    counts.set(key, (counts.get(key) ?? 0) + count);
-  }
-  return [...counts]
-    .map(([source, count]) => ({ source, count }))
+  return sources
+    .map(({ source, count }) => ({
+      source: source ?? ("unknown" as const),
+      count,
+    }))
     .sort((a, b) => b.count - a.count);
 }
 
-const sourceIcons: Record<BookmarkSource, LucideIcon> = {
+const sourceIcons: Record<BookmarkSource | "unknown", LucideIcon> = {
+  unknown: CircleHelp,
   api: Zap,
   web: Globe,
   extension: Chrome,
@@ -457,7 +457,7 @@ export default function StatsPage() {
       icon: <Image className={sectionIconClass} />,
     },
   ];
-  const sources = groupSources(stats.bookmarksBySource);
+  const sources = sortSources(stats.bookmarksBySource);
   const maxSourceCount = Math.max(...sources.map((s) => s.count), 0);
   const topDomains = stats.topDomains.slice(0, 8);
   const topTags = stats.tagUsage.slice(0, 8);

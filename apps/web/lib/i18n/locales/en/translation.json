@@ -295,6 +295,7 @@
         "title": "Bookmark sources",
         "empty": "No source data available",
         "names": {
+          "unknown": "Unknown",
           "api": "API",
           "web": "Web",
           "extension": "Browser extension",
