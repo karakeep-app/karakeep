@@ -82,7 +82,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-2xl font-semibold">
             Loading Invitation
           </CardTitle>
           <CardDescription>
@@ -102,7 +102,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-2xl font-semibold">
             Invalid Invitation
           </CardTitle>
           <CardDescription>
@@ -122,7 +122,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
           )}
 
           <Button onClick={handleBackToSignIn} className="w-full">
-            Back to Sign In
+            Back to sign in
           </Button>
         </CardContent>
       </Card>
@@ -133,7 +133,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-2xl font-semibold">
             Invitation Expired
           </CardTitle>
           <CardDescription>
@@ -156,7 +156,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
             variant="outline"
             className="w-full"
           >
-            Back to Sign In
+            Back to sign in
           </Button>
         </CardContent>
       </Card>
@@ -166,7 +166,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">
+        <CardTitle className="text-2xl font-semibold">
           Accept Your Invitation
         </CardTitle>
         <CardDescription>
@@ -297,7 +297,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
                   Creating Account...
                 </>
               ) : (
-                "Create Account & Sign In"
+                "Create account and sign in"
               )}
             </ActionButton>
 
@@ -307,7 +307,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
               onClick={handleBackToSignIn}
               className="w-full"
             >
-              Back to Sign In
+              Back to sign in
             </Button>
           </form>
         </Form>

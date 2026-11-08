@@ -113,7 +113,7 @@ export default function VerifyEmailPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
+          <CardTitle className="text-2xl font-semibold">
             Email Verification
           </CardTitle>
           <CardDescription>
@@ -140,7 +140,7 @@ export default function VerifyEmailPage() {
                 </AlertDescription>
               </Alert>
               <Button onClick={handleSignIn} className="w-full">
-                {isMobileRedirect ? "Open App" : "Sign In"}
+                {isMobileRedirect ? "Open app" : "Sign in"}
               </Button>
             </>
           )}
@@ -177,7 +177,7 @@ export default function VerifyEmailPage() {
                     variant="ghost"
                     className="w-full"
                   >
-                    Back to Sign In
+                    Back to sign in
                   </Button>
                 </div>
               )}
