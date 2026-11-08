@@ -21,9 +21,8 @@
 // - Some of those codes aren't valid BCP-47 (`zhtw`, `pt_BR`), so each
 //   language also has a `tag` that i18next and `Intl` run on.
 
-// Hermes has no Intl.PluralRules, which i18next needs to pick _one/_other keys.
-// It must load before i18next initializes.
-import "intl-pluralrules";
+// Must load before i18next initializes (see the file for why).
+import "./pluralRulesPolyfill";
 
 import i18next from "i18next";
 import type { Locale } from "date-fns";

@@ -61,7 +61,8 @@ runs on the tags (so `i18n.language` is a tag), while settings and
 `i18n.language` directly.
 
 Hermes has no `Intl.PluralRules`, so `index.ts` loads the `intl-pluralrules`
-polyfill before i18next initializes. Without it every plural key renders as
+polyfill (via `pluralRulesPolyfill.ts`, which also stops it from misreading
+grouped numbers like "1,003") before i18next initializes. Without it every plural key renders as
 its raw key on a device, even though the Node tests pass;
 `__tests__/plural-polyfill.test.ts` removes the native one to cover this.
 Avoid other newer built-ins Hermes lacks, such as `Array.prototype.toSorted`.

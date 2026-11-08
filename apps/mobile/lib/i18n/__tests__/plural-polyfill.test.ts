@@ -22,6 +22,20 @@ describe("without a native Intl.PluralRules", () => {
     expect(Intl.PluralRules).toBeDefined();
   });
 
+  it.each(SUPPORTED_LANGUAGES)("agrees with CLDR for %s", (lang) => {
+    const tag = getLanguageTag(lang);
+    const polyfilled = new Intl.PluralRules(tag);
+    const native = new NativePluralRules(tag);
+    for (const count of [
+      0, 1, 2, 3, 5, 11, 21, 100, 101, 1001, 1003, 1011, 2003, 10001, 100003,
+      1000000,
+    ]) {
+      expect(polyfilled.select(count), String(count)).toBe(
+        native.select(count),
+      );
+    }
+  });
+
   it.each(SUPPORTED_LANGUAGES)("picks %s plural forms", async (lang) => {
     await setAppLanguage(lang);
     const tag = getLanguageTag(lang);
@@ -29,7 +43,7 @@ describe("without a native Intl.PluralRules", () => {
     // The polyfill must agree with the native CLDR rules for every tag.
     const native = new NativePluralRules(tag);
     const t = i18n.getFixedT(null, "mobile");
-    for (const count of [0, 1, 2, 3, 5, 11, 21, 100, 1000000]) {
+    for (const count of [0, 1, 2, 3, 5, 11, 21, 100, 1003, 1000000]) {
       expect(t("tags_tab.bookmarks", { count }), String(count)).toBe(
         String(strings[`bookmarks_${native.select(count)}`]).replace(
           "{{count}}",
