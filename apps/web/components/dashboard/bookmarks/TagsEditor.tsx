@@ -234,8 +234,13 @@ export function TagsEditor({
   ) => {
     switch (actionMeta.action) {
       case "remove-value": {
-        // A new tag can't be detached until the server gives it an id.
+        // A new tag has no id to detach by yet, so only drop the chip. If
+        // its attach went through, the next refetch brings it back.
         if (isUnsaved(actionMeta.id)) {
+          pendingChangesRef.current.delete(actionMeta.name);
+          setOptimisticTags((prev) =>
+            prev.filter((t) => t.id != actionMeta.id),
+          );
           break;
         }
         pendingChangesRef.current.set(actionMeta.name, "detach");
@@ -375,8 +380,7 @@ export function TagsEditor({
               aria-label={t("tags.remove_named", {
                 name: tag.name,
               })}
-              className={cn(removeClassName, "disabled:opacity-50")}
-              disabled={isUnsaved(tag.id)}
+              className={removeClassName}
               onClick={(e) => {
                 e.stopPropagation();
                 onChange({
