@@ -427,19 +427,20 @@ export function TagsEditor({
             className="overflow-visible bg-transparent"
           >
             <PopoverAnchor asChild>
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5 max-sm:gap-y-3 [@media(pointer:coarse)]:gap-y-3">
                 {optimisticTags.map((tag) =>
                   renderChip(
                     tag,
                     cn(
-                      "inline-flex h-8 min-w-0 max-w-full items-center rounded bg-accent pl-2 text-sm text-foreground max-sm:h-11 [@media(pointer:coarse)]:h-11",
+                      "inline-flex h-8 min-w-0 max-w-full items-center rounded bg-accent pl-2 text-sm text-foreground",
                       isDisabled && "pr-2",
                     ),
-                    "flex size-8 shrink-0 items-center justify-center rounded text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:size-11 [@media(pointer:coarse)]:size-11",
+                    // Stays the chip's size, and reaches 44px for touch past its edges.
+                    "relative flex size-8 shrink-0 items-center justify-center rounded text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:after:absolute max-sm:after:-inset-1.5 [@media(pointer:coarse)]:after:absolute [@media(pointer:coarse)]:after:-inset-1.5",
                   ),
                 )}
                 {!isDisabled && (
-                  <label className="inline-flex h-8 cursor-pointer items-center gap-1 rounded px-2 text-sm text-muted-foreground transition-colors focus-within:bg-accent focus-within:text-foreground focus-within:ring-[3px] focus-within:ring-ring/50 hover:bg-accent hover:text-foreground max-sm:h-11 [@media(pointer:coarse)]:h-11">
+                  <label className="relative inline-flex h-8 cursor-pointer items-center gap-1 rounded px-2 text-sm text-muted-foreground transition-colors focus-within:bg-accent focus-within:text-foreground focus-within:ring-[3px] focus-within:ring-ring/50 hover:bg-accent hover:text-foreground max-sm:after:absolute max-sm:after:-inset-y-1.5 max-sm:after:inset-x-0 [@media(pointer:coarse)]:after:absolute [@media(pointer:coarse)]:after:-inset-y-1.5 [@media(pointer:coarse)]:after:inset-x-0">
                     <Plus className="size-4 shrink-0" />
                     <CommandPrimitive.Input
                       ref={inputRef}

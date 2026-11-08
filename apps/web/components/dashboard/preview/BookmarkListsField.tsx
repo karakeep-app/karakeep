@@ -89,13 +89,13 @@ export function BookmarkListsField({ bookmarkId }: { bookmarkId: string }) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5 max-sm:gap-y-3 [@media(pointer:coarse)]:gap-y-3">
       {data?.lists.map((list) => (
         <Link
           key={list.id}
           href={`/dashboard/lists/${list.id}`}
           title={list.name}
-          className="inline-flex h-8 max-w-full items-center gap-1 rounded-full bg-accent px-3 text-sm text-foreground outline-none hover:bg-accent/70 focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:h-11 [@media(pointer:coarse)]:h-11"
+          className="relative inline-flex h-8 max-w-full items-center gap-1 rounded-full bg-accent px-3 text-sm text-foreground outline-none hover:bg-accent/70 focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:after:absolute max-sm:after:-inset-y-1.5 max-sm:after:inset-x-0 [@media(pointer:coarse)]:after:absolute [@media(pointer:coarse)]:after:-inset-y-1.5 [@media(pointer:coarse)]:after:inset-x-0"
         >
           <span aria-hidden>{list.icon}</span>
           <span className="truncate">{list.name}</span>
@@ -107,7 +107,7 @@ export function BookmarkListsField({ bookmarkId }: { bookmarkId: string }) {
             variant="ghost"
             size="none"
             disabled={demoMode}
-            className="h-8 gap-1 rounded-full px-2 text-sm font-normal text-muted-foreground hover:text-foreground max-sm:h-11 [@media(pointer:coarse)]:h-11"
+            className="relative h-8 gap-1 rounded-full px-2 text-sm font-normal text-muted-foreground hover:text-foreground max-sm:after:absolute max-sm:after:-inset-y-1.5 max-sm:after:inset-x-0 [@media(pointer:coarse)]:after:absolute [@media(pointer:coarse)]:after:-inset-y-1.5 [@media(pointer:coarse)]:after:inset-x-0"
           >
             <Plus className="size-4" />
             {t("preview.lists_add")}
