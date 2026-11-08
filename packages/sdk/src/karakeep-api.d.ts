@@ -2385,7 +2385,7 @@ export interface operations {
         sort?: "name" | "usage" | "relevance";
         attachedBy?: "ai" | "human" | "none";
         cursor?: string;
-        limit?: number | null;
+        limit?: number;
       };
       header?: never;
       path?: never;

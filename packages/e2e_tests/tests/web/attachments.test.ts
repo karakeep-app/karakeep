@@ -47,7 +47,7 @@ it("attaches multiple generic files through the web picker and downloads identic
     },
   ];
   const picker = page
-    .getByTitle("Upload File", { exact: true })
+    .getByTitle("Upload file", { exact: true })
     .filter({ visible: true })
     .locator("..")
     .locator('input[type="file"]');
