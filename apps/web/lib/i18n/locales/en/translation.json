@@ -827,7 +827,7 @@
       },
       "list": {
         "title": "Your backups",
-        "description": "A zipped JSON copy of your bookmarks, tags, notes and lists. To restore one, unzip it and import it in <link>Import / export</link>.",
+        "description": "A zipped JSON copy of your bookmarks, tags, notes and lists. To restore one, unzip it and import it in <1>Import / export</1>.",
         "create_backup_now": "Create backup",
         "table": {
           "created_at": "Created at",

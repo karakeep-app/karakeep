@@ -25,7 +25,7 @@ import {
 import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { useClientConfig } from "@/lib/clientConfig";
-import { useTranslation } from "@/lib/i18n/client";
+import { Trans, useTranslation } from "@/lib/i18n/client";
 import { useUserSettings } from "@/lib/userSettings";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -466,24 +466,22 @@ function BackupsList() {
     </ActionButton>
   );
   const isEmpty = backups?.backups.length === 0;
-  const [restoreBefore, restoreLink, restoreAfter] = t(
-    "settings.backups.list.description",
-  ).split(/<\/?link>/);
 
   return (
     <SettingsSection
       title={t("settings.backups.list.title")}
       description={
-        <>
-          {restoreBefore}
-          <Link
-            href="/settings/import"
-            className="font-medium text-foreground underline underline-offset-4"
-          >
-            {restoreLink}
-          </Link>
-          {restoreAfter}
-        </>
+        <Trans
+          i18nKey="settings.backups.list.description"
+          components={{
+            1: (
+              <Link
+                href="/settings/import"
+                className="font-medium text-foreground underline underline-offset-4"
+              />
+            ),
+          }}
+        />
       }
       action={isEmpty ? undefined : createBackupButton}
     >
