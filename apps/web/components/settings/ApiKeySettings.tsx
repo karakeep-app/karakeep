@@ -1,5 +1,12 @@
 import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import RelativeTime from "@/components/ui/relative-time";
 import {
   StackedLabel,
@@ -35,12 +42,18 @@ export default async function ApiKeys({
   const { t } = await useTranslation();
   if (keys.length === 0) {
     return (
-      <EmptyState
-        icon={KeyRound}
-        title={t("settings.api_keys.no_keys")}
-        description={t("settings.api_keys.no_keys_description")}
-        action={<AddApiKey isAdmin={isAdmin} />}
-      />
+      <Empty className="border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <KeyRound />
+          </EmptyMedia>
+          <EmptyTitle>{t("settings.api_keys.no_keys")}</EmptyTitle>
+          <EmptyDescription>
+            {t("settings.api_keys.no_keys_description")}
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>{<AddApiKey isAdmin={isAdmin} />}</EmptyContent>
+      </Empty>
     );
   }
   return (

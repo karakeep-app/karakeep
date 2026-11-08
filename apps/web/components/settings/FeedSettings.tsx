@@ -44,7 +44,14 @@ import {
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
 import { Button } from "../ui/button";
-import { EmptyState } from "../ui/empty-state";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Dialog,
   DialogBody,
@@ -542,12 +549,18 @@ export default function FeedSettings() {
     >
       {isLoading && <FullPageSpinner />}
       {isEmpty && (
-        <EmptyState
-          icon={Rss}
-          title={t("settings.feeds.no_feeds")}
-          description={t("settings.feeds.no_feeds_description")}
-          action={<FeedsEditorDialog />}
-        />
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Rss />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.feeds.no_feeds")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.feeds.no_feeds_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>{<FeedsEditorDialog />}</EmptyContent>
+        </Empty>
       )}
       {feeds && feeds.feeds.length > 0 && (
         <SettingsSection>

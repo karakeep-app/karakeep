@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -280,7 +280,13 @@ function ImportSection() {
           ))}
         </ul>
       ) : (
-        <EmptyState compact title={t("settings.import.no_providers")} />
+        <Empty className="p-4 md:p-6">
+          <EmptyHeader>
+            <EmptyTitle className="text-base">
+              {t("settings.import.no_providers")}
+            </EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       )}
       {Object.entries(importProgress).map(([id, progress]) => {
         return (

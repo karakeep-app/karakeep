@@ -18,7 +18,14 @@ import {
 } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import FormattedDate from "@/components/ui/formatted-date";
 import {
   Select,
@@ -228,11 +235,17 @@ export default function BrokenLinksPage() {
         title={t("settings.broken_links.broken_links")}
         description={t("settings.broken_links.description")}
       >
-        <EmptyState
-          icon={CircleCheck}
-          title={t("settings.broken_links.empty")}
-          description={t("settings.broken_links.empty_description")}
-        />
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <CircleCheck />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.broken_links.empty")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.broken_links.empty_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </SettingsPage>
     );
   }
@@ -383,17 +396,24 @@ export default function BrokenLinksPage() {
             ))}
           </div>
         ) : !filtered.length ? (
-          <EmptyState
-            inCard
-            icon={Link2Off}
-            title={t("settings.maintenance.no_matches")}
-            description={t("settings.maintenance.adjust_filters")}
-            action={
+          <Empty className="p-4 md:p-6">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Link2Off />
+              </EmptyMedia>
+              <EmptyTitle className="text-base">
+                {t("settings.maintenance.no_matches")}
+              </EmptyTitle>
+              <EmptyDescription>
+                {t("settings.maintenance.adjust_filters")}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
               <Button variant="outline" size="sm" onClick={clearFilters}>
                 {t("settings.maintenance.clear_filters")}
               </Button>
-            }
-          />
+            </EmptyContent>
+          </Empty>
         ) : (
           <Table inCard className={stackedTable.table}>
             <TableHeader className={stackedTable.header}>

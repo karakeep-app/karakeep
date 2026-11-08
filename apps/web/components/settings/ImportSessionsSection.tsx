@@ -1,6 +1,12 @@
 "use client";
 
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { useListImportSessions } from "@/lib/hooks/useImportSessions";
 import { useTranslation } from "@/lib/i18n/client";
 import { Package } from "lucide-react";
@@ -30,7 +36,13 @@ export function ImportSessionsSection() {
         title={t("settings.import_sessions.title")}
         description={t("settings.import_sessions.description")}
       >
-        <EmptyState compact title={t("settings.import_sessions.load_error")} />
+        <Empty className="p-4 md:p-6">
+          <EmptyHeader>
+            <EmptyTitle className="text-base">
+              {t("settings.import_sessions.load_error")}
+            </EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       </SettingsSection>
     );
   }
@@ -47,13 +59,19 @@ export function ImportSessionsSection() {
           ))}
         </div>
       ) : (
-        <EmptyState
-          compact
-          inCard
-          icon={Package}
-          title={t("settings.import_sessions.no_sessions")}
-          description={t("settings.import_sessions.no_sessions_detail")}
-        />
+        <Empty className="p-4 md:p-6">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Package />
+            </EmptyMedia>
+            <EmptyTitle className="text-base">
+              {t("settings.import_sessions.no_sessions")}
+            </EmptyTitle>
+            <EmptyDescription>
+              {t("settings.import_sessions.no_sessions_detail")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
     </SettingsSection>
   );

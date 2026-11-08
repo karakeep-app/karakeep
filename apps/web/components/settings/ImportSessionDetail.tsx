@@ -7,7 +7,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "../ui/empty-state";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
 import { PageHeader } from "../ui/page-header";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Progress } from "@/components/ui/progress";
@@ -558,11 +558,13 @@ export default function ImportSessionDetail({
         {stats.status === "archived" ? null : isResultsLoading ? (
           <FullPageSpinner />
         ) : items.length === 0 ? (
-          <EmptyState
-            compact
-            inCard
-            title={t("settings.import_sessions.detail.no_results")}
-          />
+          <Empty className="p-4 md:p-6">
+            <EmptyHeader>
+              <EmptyTitle className="text-base">
+                {t("settings.import_sessions.detail.no_results")}
+              </EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <div className="flex flex-col gap-2">
             <Table inCard>

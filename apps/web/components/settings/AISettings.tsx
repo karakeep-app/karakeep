@@ -61,7 +61,13 @@ import {
 } from "@karakeep/shared/types/prompts";
 import { zUpdateUserSettingsSchema } from "@karakeep/shared/types/users";
 
-import { EmptyState } from "../ui/empty-state";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { SaveBar } from "./SaveBar";
 import { SavedHint, useAutosavedSettings, useSavedField } from "./SavedHint";
 import {
@@ -729,13 +735,19 @@ export function TaggingRules() {
       description={t("settings.ai.tagging_rule_description")}
     >
       {prompts && prompts.length == 0 && (
-        <EmptyState
-          compact
-          inCard
-          icon={ScrollText}
-          title={t("settings.ai.no_custom_prompts")}
-          description={t("settings.ai.no_custom_prompts_description")}
-        />
+        <Empty className="p-4 md:p-6">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ScrollText />
+            </EmptyMedia>
+            <EmptyTitle className="text-base">
+              {t("settings.ai.no_custom_prompts")}
+            </EmptyTitle>
+            <EmptyDescription>
+              {t("settings.ai.no_custom_prompts_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
       <div className="flex flex-col gap-2">
         {isLoading && <FullPageSpinner />}

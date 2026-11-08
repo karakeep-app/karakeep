@@ -48,7 +48,13 @@ import { zUpdateBackupSettingsSchema } from "@karakeep/shared/types/users";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
-import { EmptyState } from "../ui/empty-state";
+import {
+  Empty,
+  EmptyContent,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   StackedLabel,
   stackedTable,
@@ -464,13 +470,17 @@ function BackupsList() {
       {isLoading && <FullPageSpinner />}
 
       {isEmpty && (
-        <EmptyState
-          compact
-          inCard
-          icon={DatabaseBackup}
-          title={t("settings.backups.list.no_backups_title")}
-          action={createBackupButton}
-        />
+        <Empty className="p-4 md:p-6">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <DatabaseBackup />
+            </EmptyMedia>
+            <EmptyTitle className="text-base">
+              {t("settings.backups.list.no_backups_title")}
+            </EmptyTitle>
+          </EmptyHeader>
+          <EmptyContent>{createBackupButton}</EmptyContent>
+        </Empty>
       )}
 
       {backups && backups.backups.length > 0 && (

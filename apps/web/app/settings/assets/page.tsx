@@ -9,7 +9,13 @@ import {
 } from "@/components/settings/SettingsPage";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import {
   Select,
@@ -273,11 +279,17 @@ export default function AssetsSettingsPage() {
       }
     >
       {assets.length === 0 ? (
-        <EmptyState
-          icon={HardDrive}
-          title={t("settings.manage_assets.no_assets")}
-          description={t("settings.manage_assets.no_assets_description")}
-        />
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <HardDrive />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.manage_assets.no_assets")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.manage_assets.no_assets_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <SettingsSection>
           <ul className="-my-2 divide-y">

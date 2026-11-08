@@ -34,7 +34,14 @@ import {
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
 import { Button } from "../ui/button";
-import { EmptyState } from "../ui/empty-state";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Dialog,
   DialogBody,
@@ -615,12 +622,18 @@ export default function WebhookSettings() {
     >
       {isLoading && <FullPageSpinner />}
       {isEmpty && (
-        <EmptyState
-          icon={Webhook}
-          title={t("settings.webhooks.no_webhooks")}
-          description={t("settings.webhooks.no_webhooks_description")}
-          action={<WebhooksEditorDialog />}
-        />
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Webhook />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.webhooks.no_webhooks")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.webhooks.no_webhooks_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>{<WebhooksEditorDialog />}</EmptyContent>
+        </Empty>
       )}
       {webhooks && webhooks.webhooks.length > 0 && (
         <SettingsSection>

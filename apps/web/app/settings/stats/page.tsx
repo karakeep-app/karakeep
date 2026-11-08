@@ -7,7 +7,14 @@ import {
   SettingsSection,
 } from "@/components/settings/SettingsPage";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { StatTile } from "@/components/ui/stat-tile";
 import {
   Tooltip,
@@ -389,10 +396,14 @@ export default function StatsPage() {
         title={t("settings.stats.usage_statistics")}
         description={t("settings.stats.insights_description")}
       >
-        <EmptyState
-          icon={BarChart3}
-          title={t("settings.stats.failed_to_load")}
-        />
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <BarChart3 />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.stats.failed_to_load")}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
       </SettingsPage>
     );
   }
@@ -403,19 +414,25 @@ export default function StatsPage() {
         title={t("settings.stats.usage_statistics")}
         description={t("settings.stats.insights_description")}
       >
-        <EmptyState
-          icon={BarChart3}
-          title={t("settings.stats.empty_title")}
-          description={t("settings.stats.empty_description")}
-          action={
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <BarChart3 />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.stats.empty_title")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.stats.empty_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button asChild>
               <NextLink href="/settings/import">
                 <Upload className="size-4" />
                 {t("settings.stats.empty_action")}
               </NextLink>
             </Button>
-          }
-        />
+          </EmptyContent>
+        </Empty>
       </SettingsPage>
     );
   }
