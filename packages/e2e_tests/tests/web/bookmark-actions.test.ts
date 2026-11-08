@@ -65,25 +65,10 @@ async function selectInBulk(page: Page, texts: string[]) {
   }
 }
 
-// The desktop bulk toolbar buttons are icon-only and are only named by their
-// tooltips. Focusing a button opens its tooltip (hovering from one button to
-// the next doesn't reliably), so focus each one until its tooltip matches.
+// The toolbar holds a phone and a desktop set of the same buttons, and only the
+// visible set is in the accessibility tree.
 async function clickBulkAction(page: Page, name: string) {
-  const buttons = bulkToolbar(page).locator("button:visible");
-  await expect(buttons.first()).toBeVisible();
-  const count = await buttons.count();
-  for (let i = 0; i < count; i++) {
-    const button = buttons.nth(i);
-    await button.focus();
-    await expect(button).toHaveAttribute("aria-describedby", /.+/);
-    const tooltipId = await button.getAttribute("aria-describedby");
-    const tooltip = page.locator(`[id="${tooltipId}"]`);
-    if ((await tooltip.textContent())?.trim() === name) {
-      await button.click();
-      return;
-    }
-  }
-  throw new Error(`No bulk action named "${name}"`);
+  await bulkToolbar(page).getByRole("button", { name, exact: true }).click();
 }
 
 async function getBookmarks(user: WebTestUser, ids: string[]) {

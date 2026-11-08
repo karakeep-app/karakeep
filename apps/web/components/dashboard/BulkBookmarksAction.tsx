@@ -294,6 +294,7 @@ export default function BulkBookmarksAction() {
 
           return (
             <ActionButtonWithTooltip
+              aria-label={name}
               className={className}
               tooltip={name}
               disabled={disabled}
