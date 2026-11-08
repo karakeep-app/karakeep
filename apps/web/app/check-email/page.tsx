@@ -58,8 +58,8 @@ export default function CheckEmailPage() {
       <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-semibold">
-              Invalid Request
+            <CardTitle className="text-xl font-semibold">
+              Invalid request
             </CardTitle>
             <CardDescription>
               No email address provided. Please try signing up again.
@@ -79,8 +79,8 @@ export default function CheckEmailPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold">
-            Check Your Email
+          <CardTitle className="text-xl font-semibold">
+            Check your email
           </CardTitle>
           <CardDescription>
             We&apos;ve sent a verification link to your email address
@@ -123,7 +123,7 @@ export default function CheckEmailPage() {
                   Sending...
                 </>
               ) : (
-                "Resend Verification Email"
+                "Resend verification email"
               )}
             </Button>
             <Button

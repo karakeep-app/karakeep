@@ -32,8 +32,10 @@ const PasswordInput = React.forwardRef<
       <ButtonWithTooltip
         type="button"
         variant="ghost"
-        size="icon"
-        className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:bg-transparent focus-visible:ring-[3px] dark:hover:bg-transparent max-sm:size-11 [@media(pointer:coarse)]:size-11"
+        size="icon-sm"
+        // Inset so the focus ring stays inside the field; the ::after pads the
+        // tap target to 44px without changing what's drawn.
+        className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground after:absolute after:-inset-1.5 after:content-[''] hover:bg-transparent focus-visible:ring-[3px] dark:hover:bg-transparent"
         tooltip={label}
         aria-label={label}
         aria-controls={id}

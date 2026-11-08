@@ -101,7 +101,7 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
           Create your account
         </CardTitle>
         <CardDescription>
-          Join Karakeep to start organising your bookmarks
+          Join Karakeep to start organizing your bookmarks
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

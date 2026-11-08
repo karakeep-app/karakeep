@@ -113,8 +113,8 @@ export default function VerifyEmailPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-semibold">
-            Email Verification
+          <CardTitle className="text-xl font-semibold">
+            Email verification
           </CardTitle>
           <CardDescription>
             {status === "loading" && "Verifying your email address..."}
@@ -169,7 +169,7 @@ export default function VerifyEmailPage() {
                         Sending...
                       </>
                     ) : (
-                      "Resend Verification Email"
+                      "Resend verification email"
                     )}
                   </Button>
                   <Button
