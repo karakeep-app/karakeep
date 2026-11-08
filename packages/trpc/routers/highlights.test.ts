@@ -250,4 +250,123 @@ describe("Highlight Routes", () => {
       apiUser2.get({ highlightId: highlightUser1.id }),
     ).rejects.toThrow(/User is not allowed to access resource/);
   });
+
+  test<CustomTestContext>("getAll and search return the bookmark's title and url", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].highlights;
+    const bookmarksApi = apiCallers[0].bookmarks;
+
+    const untitled = await bookmarksApi.createBookmark({
+      url: "https://example.com/untitled",
+      type: BookmarkTypes.LINK,
+    });
+    const titled = await bookmarksApi.createBookmark({
+      url: "https://example.com/titled",
+      type: BookmarkTypes.LINK,
+      title: "A custom title",
+    });
+    const note = await bookmarksApi.createBookmark({
+      text: "A text bookmark",
+      type: BookmarkTypes.TEXT,
+    });
+
+    for (const { id } of [untitled, titled, note]) {
+      await api.create({
+        bookmarkId: id,
+        startOffset: 0,
+        endOffset: 5,
+        color: "yellow",
+        text: `quote ${id}`,
+        note: null,
+      });
+    }
+
+    const bookmarkOf = (
+      highlights: { bookmarkId: string; bookmark: unknown }[],
+      bookmarkId: string,
+    ) => highlights.find((h) => h.bookmarkId === bookmarkId)?.bookmark;
+
+    const { highlights } = await api.getAll({});
+    expect(bookmarkOf(highlights, untitled.id)).toEqual({
+      title: "https://example.com/untitled",
+      url: "https://example.com/untitled",
+    });
+    expect(bookmarkOf(highlights, titled.id)).toEqual({
+      title: "A custom title",
+      url: "https://example.com/titled",
+    });
+    expect(bookmarkOf(highlights, note.id)).toEqual({
+      title: null,
+      url: null,
+    });
+
+    const found = await api.search({ text: `quote ${titled.id}` });
+    expect(found.highlights.map((h) => h.bookmark)).toEqual([
+      { title: "A custom title", url: "https://example.com/titled" },
+    ]);
+  });
+
+  test<CustomTestContext>("getAll and search filter by color", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].highlights;
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      url: "https://example.com",
+      type: BookmarkTypes.LINK,
+    });
+    for (const color of ["red", "blue"] as const) {
+      await api.create({
+        bookmarkId: bookmark.id,
+        startOffset: 0,
+        endOffset: 5,
+        color,
+        text: "shared words",
+        note: null,
+      });
+    }
+
+    const reds = await api.getAll({ color: "red" });
+    expect(reds.highlights.map((h) => h.color)).toEqual(["red"]);
+
+    const blues = await api.search({ text: "shared", color: "blue" });
+    expect(blues.highlights.map((h) => h.color)).toEqual(["blue"]);
+
+    const none = await api.getAll({ color: "green" });
+    expect(none.highlights).toEqual([]);
+
+    const everything = await api.getAll({});
+    expect(everything.highlights).toHaveLength(2);
+  });
+
+  test<CustomTestContext>("getAll keeps paginating through the join", async ({
+    apiCallers,
+  }) => {
+    const api = apiCallers[0].highlights;
+    const bookmark = await apiCallers[0].bookmarks.createBookmark({
+      url: "https://example.com",
+      type: BookmarkTypes.LINK,
+    });
+    for (let i = 0; i < 3; i++) {
+      await api.create({
+        bookmarkId: bookmark.id,
+        startOffset: i,
+        endOffset: i + 1,
+        color: "yellow",
+        text: `quote ${i}`,
+        note: null,
+      });
+    }
+
+    const first = await api.getAll({ limit: 2 });
+    expect(first.highlights).toHaveLength(2);
+    expect(first.nextCursor).not.toBeNull();
+
+    const second = await api.getAll({ limit: 2, cursor: first.nextCursor });
+    expect(second.highlights).toHaveLength(1);
+    expect(second.nextCursor).toBeNull();
+
+    const ids = [...first.highlights, ...second.highlights].map((h) => h.id);
+    expect(new Set(ids).size).toBe(3);
+  });
 });

@@ -2,6 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
+import type {
+  ZGetAllHighlightsResponse,
+  ZHighlightColor,
+} from "@karakeep/shared/types/highlights";
 import {
   zHighlightSchema,
   zNewHighlightSchema,
@@ -55,11 +59,9 @@ export class HighlightsService {
     actor: Actor,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
-  ): Promise<{
-    highlights: Highlight[];
-    nextCursor: z.infer<typeof zCursorV2> | null;
-  }> {
-    return await this.repo.getAll(actorUserId(actor), cursor, limit);
+    color?: ZHighlightColor,
+  ): Promise<ZGetAllHighlightsResponse> {
+    return await this.repo.getAll(actorUserId(actor), cursor, limit, color);
   }
 
   async search(
@@ -67,15 +69,14 @@ export class HighlightsService {
     searchText: string,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
-  ): Promise<{
-    highlights: Highlight[];
-    nextCursor: z.infer<typeof zCursorV2> | null;
-  }> {
+    color?: ZHighlightColor,
+  ): Promise<ZGetAllHighlightsResponse> {
     return await this.repo.search(
       actorUserId(actor),
       searchText,
       cursor,
       limit,
+      color,
     );
   }
 

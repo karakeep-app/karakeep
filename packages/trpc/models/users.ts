@@ -20,6 +20,7 @@ import {
 import { deleteAsset, deleteUserAssets } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import {
+  zUpdateUserProfileSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
   zUserBookmarkCountsResponseSchema,
@@ -100,6 +101,9 @@ export class User {
               emailVerified: input.emailVerified ?? false,
               bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
               storageQuota: serverConfig.quotas.free.assetSizeBytes,
+              // New accounts open the preview. The column default stays
+              // "open_original_link" so existing users keep what they have.
+              bookmarkClickAction: "expand_bookmark_preview",
             })
             .returning()
             .all();
@@ -284,6 +288,15 @@ export class User {
         curatedTagIds: input.curatedTagIds,
         inferredTagLang: input.inferredTagLang,
       })
+      .where(eq(users.id, this.user.id));
+  }
+
+  async updateProfile(
+    input: z.infer<typeof zUpdateUserProfileSchema>,
+  ): Promise<void> {
+    await this.ctx.db
+      .update(users)
+      .set({ name: input.name })
       .where(eq(users.id, this.user.id));
   }
 

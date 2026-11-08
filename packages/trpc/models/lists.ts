@@ -1,14 +1,17 @@
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, count, eq, inArray, or, SQL, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, or, SQL, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
 import { KarakeepDBTransaction, SqliteError } from "@karakeep/db";
 import {
+  bookmarkAssets,
+  bookmarkLinks,
   bookmarkLists,
   bookmarks,
   bookmarksInLists,
+  bookmarkTexts,
   listCollaborators,
   ruleEngineRulesTable,
   users,
@@ -21,6 +24,7 @@ import {
   zNewBookmarkListSchema,
 } from "@karakeep/shared/types/lists";
 import { ZCursor } from "@karakeep/shared/types/pagination";
+import { getTextDisplayTitle } from "@karakeep/shared/utils/bookmarkUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext, Context } from "..";
@@ -1023,6 +1027,72 @@ export abstract class List {
 
 export class SmartList extends List {
   private static readonly MAX_VISITED_LISTS = 30;
+  private static readonly PREVIEW_SAMPLE_SIZE = 3;
+  private static readonly PREVIEW_TEXT_PREFIX = 2000;
+
+  /**
+   * What a smart list with this query would hold. Goes through the same SQL
+   * condition as a real smart list, so it doesn't need the search engine.
+   */
+  static async preview(
+    ctx: AuthedContext,
+    query: string,
+  ): Promise<{
+    count: number;
+    sample: { id: string; title: string | null }[];
+  }> {
+    const parsedQuery = parseSearchQuery(query);
+    if (parsedQuery.result !== "full" || parsedQuery.text.length > 0) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Smart search query is not valid",
+      });
+    }
+    if (!parsedQuery.matcher) {
+      return { count: 0, sample: [] };
+    }
+
+    const condition = and(
+      eq(bookmarks.userId, ctx.user.id),
+      await getBookmarksConditionFromMatcher(ctx, parsedQuery.matcher),
+    );
+    const [[{ matches }], sample] = await Promise.all([
+      ctx.db.select({ matches: count() }).from(bookmarks).where(condition),
+      ctx.db
+        .select({
+          id: bookmarks.id,
+          title: bookmarks.title,
+          linkTitle: bookmarkLinks.title,
+          url: bookmarkLinks.url,
+          // Only the first line is used, so don't read whole notes.
+          text: sql<
+            string | null
+          >`substr(${bookmarkTexts.text}, 1, ${SmartList.PREVIEW_TEXT_PREFIX})`,
+          fileName: bookmarkAssets.fileName,
+        })
+        .from(bookmarks)
+        .leftJoin(bookmarkLinks, eq(bookmarkLinks.id, bookmarks.id))
+        .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, bookmarks.id))
+        .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, bookmarks.id))
+        .where(condition)
+        .orderBy(desc(bookmarks.createdAt), desc(bookmarks.id))
+        .limit(SmartList.PREVIEW_SAMPLE_SIZE),
+    ]);
+
+    return {
+      count: matches,
+      sample: sample.map((row) => ({
+        id: row.id,
+        title:
+          row.title?.trim() ||
+          row.linkTitle?.trim() ||
+          row.url ||
+          row.fileName ||
+          (row.text ? getTextDisplayTitle(row.text) : null) ||
+          null,
+      })),
+    };
+  }
 
   parsedQuery: ReturnType<typeof parseSearchQuery> | null = null;
 
