@@ -226,7 +226,10 @@ function useAssetCardContext({
 }
 
 // Keeps the last lines of a card clear of the actions pinned to its corner.
+// Compact bar: two 18px icons + a 16px gap. Expanded: three 20px icons + two
+// 20px gaps. Each leaves an extra 8px of breathing room.
 const ACTIONS_CLEARANCE = 60;
+const EXPANDED_ACTIONS_CLEARANCE = 108;
 
 function CardActions({
   actions,
@@ -257,7 +260,7 @@ function CardLayout({ ctx }: { ctx: BookmarkCardContext }) {
         <BookmarkCardContainer.NoteSection />
         <View
           className="min-h-[22px] justify-center"
-          style={{ paddingRight: ACTIONS_CLEARANCE + 24 }}
+          style={{ paddingRight: EXPANDED_ACTIONS_CLEARANCE }}
         >
           <TagList bookmark={ctx.bookmark} maxVisible={3} />
         </View>
