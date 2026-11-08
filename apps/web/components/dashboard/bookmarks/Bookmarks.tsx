@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
+import { getUserLocalSettings } from "@/lib/userLocalSettings/userLocalSettings";
 import { api } from "@/server/api/client";
 import { getServerAuthSession } from "@/server/auth";
 
@@ -13,7 +14,7 @@ export default async function Bookmarks({
   showDivider,
   showEditorCard = false,
 }: {
-  query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is handled by the store
+  query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order comes from user local settings
   header?: React.ReactNode;
   showDivider?: boolean;
   showEditorCard?: boolean;
@@ -23,8 +24,10 @@ export default async function Bookmarks({
     redirect("/");
   }
 
+  const { sortOrder } = await getUserLocalSettings();
   const bookmarks = await api.bookmarks.getBookmarks({
     ...query,
+    sortOrder,
   });
 
   return (

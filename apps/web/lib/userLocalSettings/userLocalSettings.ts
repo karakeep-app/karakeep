@@ -62,3 +62,7 @@ export async function updateShowNewItemCard(showNewItemCard: boolean) {
 export async function updateImageFit(imageFit: "cover" | "contain") {
   await readModifyWrite(() => ({ imageFit }));
 }
+
+export async function updateSortOrder(sortOrder: "asc" | "desc") {
+  await readModifyWrite(() => ({ sortOrder }));
+}

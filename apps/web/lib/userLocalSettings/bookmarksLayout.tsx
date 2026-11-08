@@ -19,6 +19,7 @@ export const UserLocalSettingsCtx = createContext<
   showTitle: true,
   showNewItemCard: true,
   imageFit: "cover",
+  sortOrder: "desc",
 });
 
 function useUserLocalSettings() {
@@ -49,6 +50,11 @@ export function useInterfaceLang() {
 export function useGridColumns() {
   const settings = useUserLocalSettings();
   return settings.gridColumns;
+}
+
+export function useSortOrder() {
+  const settings = useUserLocalSettings();
+  return settings.sortOrder;
 }
 
 export function bookmarkLayoutSwitch<T>(
