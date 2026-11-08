@@ -10,6 +10,11 @@ import { GroupedSection, NavigationRow } from "@/components/ui/GroupedList";
 import { Input } from "@/components/ui/Input";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
 import { useQuery } from "@tanstack/react-query";
 
@@ -26,6 +31,9 @@ const EditListPage = () => {
   const [query, setQuery] = useState("");
   const [parentId, setParentId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const api = useTRPC();
   const { mutate, isPending: editIsPending } = useEditBookmarkList({
     onSuccess: () => {
@@ -33,7 +41,7 @@ const EditListPage = () => {
     },
     onError: (error) => {
       // Extract error message from the error object
-      let errorMessage = "Something went wrong";
+      let errorMessage = strings.somethingWentWrong;
       if (error.data?.zodError) {
         errorMessage = Object.values(error.data.zodError.fieldErrors)
           .flat()
@@ -82,13 +90,13 @@ const EditListPage = () => {
 
   const onSubmit = () => {
     if (!text.trim()) {
-      toast({ message: "List name can't be empty", variant: "destructive" });
+      toast({ message: t("lists.name_empty"), variant: "destructive" });
       return;
     }
 
     if (list?.type === "smart" && !query.trim()) {
       toast({
-        message: "Smart lists must have a search query",
+        message: t("lists.smart_needs_query"),
         variant: "destructive",
       });
       return;
@@ -119,14 +127,16 @@ const EditListPage = () => {
         >
           {/* List Type Info - not editable */}
           <View className="gap-2">
-            <Text className="text-sm text-muted-foreground">List Type</Text>
+            <Text className="text-sm text-muted-foreground">
+              {t("lists.type_label")}
+            </Text>
             <View className="flex flex-row gap-2">
               <View className="flex-1">
                 <Button
                   variant={list?.type === "manual" ? "primary" : "secondary"}
                   disabled
                 >
-                  <Text>Manual</Text>
+                  <Text>{t("lists.type_manual")}</Text>
                 </Button>
               </View>
               <View className="flex-1">
@@ -134,7 +144,7 @@ const EditListPage = () => {
                   variant={list?.type === "smart" ? "primary" : "secondary"}
                   disabled
                 >
-                  <Text>Smart</Text>
+                  <Text>{t("lists.type_smart")}</Text>
                 </Button>
               </View>
             </View>
@@ -144,11 +154,11 @@ const EditListPage = () => {
 
           <Input
             className="bg-card"
-            label="List Name"
+            label={t("lists.name_label")}
             labelClasses="text-sm text-muted-foreground"
             onChangeText={setText}
             value={text}
-            placeholder="Reading list"
+            placeholder={t("lists.name_placeholder")}
             autoFocus
             autoCapitalize="sentences"
           />
@@ -171,7 +181,7 @@ const EditListPage = () => {
           {list.userRole === "owner" && (
             <GroupedSection>
               <NavigationRow
-                label="Sharing & Access"
+                label={t("list_sharing.title")}
                 onPress={() =>
                   router.push(`/dashboard/lists/${listId}/sharing`)
                 }
@@ -183,24 +193,23 @@ const EditListPage = () => {
           {list?.type === "smart" && (
             <View className="gap-2">
               <Text className="text-sm text-muted-foreground">
-                Search Query
+                {t("lists.search_query_label")}
               </Text>
               <Input
                 className="bg-card"
                 onChangeText={setQuery}
                 value={query}
-                placeholder="e.g., #important OR list:work"
+                placeholder={t("lists.search_query_placeholder")}
                 autoCapitalize={"none"}
               />
               <Text className="text-xs italic text-muted-foreground">
-                Smart lists automatically show bookmarks matching your search
-                query
+                {t("lists.smart_hint")}
               </Text>
             </View>
           )}
 
           <Button disabled={editIsPending} onPress={onSubmit}>
-            <Text>Save</Text>
+            <Text>{actions.save}</Text>
           </Button>
         </ScrollView>
       )}

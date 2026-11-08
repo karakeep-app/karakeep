@@ -6,6 +6,7 @@ import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useToast } from "@/components/ui/Toast";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { useArchiveFilter } from "@/lib/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
@@ -18,6 +19,7 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function TagView() {
   const { slug } = useLocalSearchParams();
+  const { t } = useTranslation();
   const api = useTRPC();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
@@ -35,7 +37,7 @@ export default function TagView() {
       <Stack.Screen
         options={{
           headerTitle: tag?.name ?? "",
-          headerBackTitle: "Back",
+          headerBackTitle: t("app.back"),
           headerRight: () =>
             tag ? <TagActionsMenu tagId={tag.id} tagName={tag.name} /> : null,
         }}
@@ -67,10 +69,15 @@ function TagActionsMenu({
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const { layoutActions, handleLayoutAction } = useBookmarkListLayoutMenu();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { mutate: deleteTag } = useDeleteTag({
     onSuccess: () => {
       router.dismissTo("/dashboard/(tabs)/(tags)");
-      toast({ message: `Tag "${tagName}" deleted`, variant: "success" });
+      toast({
+        message: t("tags.deleted", { name: tagName }),
+        variant: "success",
+      });
     },
     onError: (error) => {
       toast({ message: error.message, variant: "destructive" });
@@ -79,12 +86,12 @@ function TagActionsMenu({
 
   const handleDelete = () => {
     Alert.alert(
-      "Delete Tag",
-      `Are you sure you want to delete the tag "${tagName}"?`,
+      t("tags.delete_title"),
+      t("tags.delete_message", { name: tagName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteTag({ tagId }),
           style: "destructive",
         },
@@ -104,13 +111,13 @@ function TagActionsMenu({
       actions={[
         {
           id: "edit",
-          title: "Edit Tag",
+          title: t("tags.edit_tag"),
           image: Platform.select({ ios: "square.and.pencil" }),
           imageColor: Platform.select({ ios: menuIconColor }),
         },
         {
           id: "delete_tag",
-          title: "Delete Tag",
+          title: t("tags.delete_title"),
           attributes: { destructive: true },
           image: Platform.select({ ios: "trash" }),
           imageColor: Platform.select({ ios: destructiveMenuIconColor }),

@@ -3,6 +3,7 @@ import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useBookmarkListLayoutMenu } from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useArchiveFilter } from "@/lib/hooks";
@@ -23,6 +24,7 @@ import { ZBookmarkList } from "@karakeep/shared/types/lists";
 
 export default function ListView() {
   const { slug } = useLocalSearchParams();
+  const { t } = useTranslation();
   const api = useTRPC();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
@@ -39,7 +41,7 @@ export default function ListView() {
       <Stack.Screen
         options={{
           headerTitle: list ? `${list.icon} ${list.name}` : "",
-          headerBackTitle: "Back",
+          headerBackTitle: t("app.back"),
           headerRight: () => (
             <ListActionsMenu
               listId={slug}
@@ -76,6 +78,8 @@ function ListActionsMenu({
 }) {
   const api = useTRPC();
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const { layoutActions, handleLayoutAction } = useBookmarkListLayoutMenu();
   const { settings } = useAppSettings();
@@ -99,10 +103,10 @@ function ListActionsMenu({
   );
 
   const handleDelete = () => {
-    Alert.alert("Delete List", "Are you sure you want to delete this list?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("lists.delete_title"), t("lists.delete_message"), [
+      { text: actions.cancel, style: "cancel" },
       {
-        text: "Delete",
+        text: t("bookmark_actions.delete"),
         onPress: () => {
           deleteList({ listId });
         },
@@ -112,10 +116,10 @@ function ListActionsMenu({
   };
 
   const handleLeave = () => {
-    Alert.alert("Leave List", "Are you sure you want to leave this list?", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("lists.leave_title"), t("lists.leave_message"), [
+      { text: actions.cancel, style: "cancel" },
       {
-        text: "Leave",
+        text: t("lists.leave"),
         onPress: () => {
           leaveList({ listId });
         },
@@ -153,7 +157,7 @@ function ListActionsMenu({
         },
         {
           id: "edit",
-          title: "Edit List",
+          title: t("lists.edit_list"),
           attributes: {
             hidden: role !== "owner",
           },
@@ -166,14 +170,17 @@ function ListActionsMenu({
         },
         {
           id: "sharing",
-          title: role === "owner" ? "Sharing & Access" : "People with Access",
+          title:
+            role === "owner"
+              ? t("list_sharing.title")
+              : t("list_sharing.people_with_access"),
           attributes: { hidden: role === "public" },
           image: Platform.select({ ios: "person.2" }),
           imageColor: Platform.select({ ios: menuIconColor }),
         },
         {
           id: "delete_list",
-          title: "Delete List",
+          title: t("lists.delete_list"),
           attributes: {
             destructive: true,
             hidden: role !== "owner",
@@ -188,7 +195,7 @@ function ListActionsMenu({
         ...layoutActions,
         {
           id: "leave",
-          title: "Leave List",
+          title: t("lists.leave_list"),
           attributes: {
             destructive: true,
             hidden: role === "owner",

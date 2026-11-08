@@ -11,6 +11,9 @@ import {
 } from "@/components/settings/settings-list";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { getDateFnsLocale, getIntlLocale } from "@/lib/i18n";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
+import type { MobileTFunction } from "@/lib/i18n/hooks";
 import { clearPersistedCache, usePersistedCacheSize } from "@/lib/offlineCache";
 import {
   BUDGET_MB_OPTIONS,
@@ -35,59 +38,43 @@ import { formatStorageSize, megabytesToBytes } from "@/lib/storageSize";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 
-const RECENT_LIMIT_MENU = RECENT_LIMIT_OPTIONS.map((value) => ({
-  value,
-  label: `${value} articles`,
-}));
-
-const BUDGET_MENU = BUDGET_MB_OPTIONS.map((value) => ({
-  value,
-  label: formatStorageSize(megabytesToBytes(value)),
-}));
-
-function pluralize(count: number, noun: string) {
-  return `${count} ${noun}${count === 1 ? "" : "s"}`;
-}
-
-function statusTitle(status: OfflineSyncStatus) {
+function statusTitle(t: MobileTFunction, status: OfflineSyncStatus) {
   switch (status.phase) {
     case "checking":
-      return "Checking for new articles…";
+      return t("settings.offline_status_checking");
     case "downloading":
-      return "Downloading articles…";
+      return t("settings.offline_status_downloading");
     case "wifi":
-      return "Waiting for Wi-Fi";
+      return t("settings.offline_status_wifi");
     case "offline":
-      return "Waiting for a connection";
+      return t("settings.offline_status_offline");
     case "paused":
-      return "Paused";
+      return t("settings.offline_status_paused");
     case "error":
-      return "Couldn't check for new articles";
+      return t("settings.offline_status_error");
     case "ready":
       if (status.budgetReached) {
-        return "Storage limit reached";
+        return t("settings.offline_status_budget");
       }
-      return status.failed > 0 ? "Some articles are missing" : "Up to date";
+      return status.failed > 0
+        ? t("settings.offline_status_missing")
+        : t("settings.offline_status_uptodate");
     case "idle":
     case "disabled":
-      return "Not checked yet";
+      return t("settings.offline_status_notchecked");
   }
 }
 
-function statusNotes(status: OfflineSyncStatus) {
+function statusNotes(t: MobileTFunction, status: OfflineSyncStatus) {
   const notes: string[] = [];
   if (status.phase === "error") {
-    notes.push("Articles that were already downloaded are still available.");
+    notes.push(t("settings.offline_note_error"));
   }
   if (status.failed > 0) {
-    notes.push(
-      `${pluralize(status.failed, "article")} couldn't be downloaded yet. Some may still be processing on the server.`,
-    );
+    notes.push(t("settings.offline_note_failed", { count: status.failed }));
   }
   if (status.budgetReached) {
-    notes.push(
-      "Raise the storage limit or keep fewer articles to download the rest.",
-    );
+    notes.push(t("settings.offline_note_budget"));
   }
   return notes;
 }
@@ -132,6 +119,8 @@ export default function OfflineContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { settings } = useAppSettings();
   const scope = getOfflineLibraryScope(settings);
   const prefs = useOfflineDownloadPrefs(scope);
@@ -146,14 +135,24 @@ export default function OfflineContent() {
   const autoEnabled = isAutoDownloadEnabled(prefs);
   const isBusy = status.phase === "checking" || status.phase === "downloading";
 
+  const recentLimitMenu = RECENT_LIMIT_OPTIONS.map((value) => ({
+    value,
+    label: t("settings.offline_recent_limit", { count: value }),
+  }));
+
+  const budgetMenu = BUDGET_MB_OPTIONS.map((value) => ({
+    value,
+    label: formatStorageSize(megabytesToBytes(value), getIntlLocale()),
+  }));
+
   const confirmRemoveAll = () => {
     Alert.alert(
-      "Remove all offline content?",
-      "Every downloaded article is removed from this device, and automatic downloads are turned off.",
+      t("settings.offline_remove_all_title"),
+      t("settings.offline_remove_all_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Remove All",
+          text: t("settings.offline_remove_all_confirm"),
           style: "destructive",
           onPress: () => {
             cancelOfflineDownloads();
@@ -172,37 +171,37 @@ export default function OfflineContent() {
 
   const confirmClearRecentCache = () => {
     Alert.alert(
-      "Clear recent cache?",
-      "Downloaded articles are kept. Everything else will be cached again as you browse.",
+      t("settings.offline_clear_title"),
+      t("settings.offline_clear_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Clear Cache",
+          text: t("settings.offline_clear_confirm"),
           style: "destructive",
           onPress: () => {
             queryClient.clear();
             clearPersistedCache();
-            toast({ message: "Recent cache cleared" });
+            toast({ message: t("settings.offline_cleared") });
           },
         },
       ],
     );
   };
 
-  const notes = statusNotes(status);
+  const notes = statusNotes(t, status);
 
   return (
     <SettingsScreen>
       <Text className="px-1 text-sm text-muted-foreground">
-        Keep articles on this device so you can read them without a connection.
+        {t("settings.offline_intro")}
       </Text>
 
       <SettingsGroup
-        header="Automatic downloads"
-        footer="Recent articles keeps your newest unarchived articles, replacing the oldest as new ones arrive."
+        header={t("settings.offline_automatic_downloads")}
+        footer={t("settings.offline_automatic_downloads_footer")}
       >
         <SettingsToggleRow
-          label="Recent articles"
+          label={t("settings.offline_recent_articles")}
           onValueChange={(recentEnabled) =>
             updateOfflineDownloadPrefs(scope, (current) => ({
               ...current,
@@ -215,48 +214,50 @@ export default function OfflineContent() {
           <>
             <SettingsSeparator />
             <SettingsMenuRow
-              label="Keep"
+              label={t("settings.offline_keep")}
               onSelect={(recentLimit) =>
                 updateOfflineDownloadPrefs(scope, (current) => ({
                   ...current,
                   recentLimit,
                 }))
               }
-              options={RECENT_LIMIT_MENU}
+              options={recentLimitMenu}
               value={prefs.recentLimit}
             />
           </>
         ) : null}
         <SettingsSeparator />
         <SettingsNavigationRow
-          label="Lists"
+          label={t("tabs.lists")}
           onPress={() => router.push("/dashboard/settings/offline-lists")}
           value={
             prefs.listIds.length > 0
-              ? `${prefs.listIds.length} selected`
-              : "None"
+              ? t("settings.offline_lists_selected", {
+                  count: prefs.listIds.length,
+                })
+              : t("settings.offline_lists_none")
           }
         />
       </SettingsGroup>
 
       <SettingsGroup
-        header="Storage & network"
-        footer="Lists take priority over recent articles when space runs out. Articles you save yourself are never removed automatically."
+        header={t("settings.offline_storage_network")}
+        footer={t("settings.offline_storage_network_footer")}
       >
         <SettingsMenuRow
-          label="Storage limit"
+          label={t("settings.offline_storage_limit")}
           onSelect={(budgetMb) =>
             updateOfflineDownloadPrefs(scope, (current) => ({
               ...current,
               budgetMb,
             }))
           }
-          options={BUDGET_MENU}
+          options={budgetMenu}
           value={prefs.budgetMb}
         />
         <SettingsSeparator />
         <SettingsToggleRow
-          label="Download only on Wi-Fi"
+          label={t("settings.offline_wifi_only")}
           onValueChange={(wifiOnly) =>
             updateOfflineDownloadPrefs(scope, (current) => ({
               ...current,
@@ -269,12 +270,14 @@ export default function OfflineContent() {
 
       {autoEnabled ? (
         <SettingsGroup
-          header="Status"
-          footer="Articles download while the app is open. Open it before going offline to be sure you have the latest."
+          header={t("settings.offline_status_header")}
+          footer={t("settings.offline_status_footer")}
         >
           <View className="gap-2 px-4 py-2">
             <View className="flex-row items-center justify-between gap-3">
-              <Text className="flex-1 font-medium">{statusTitle(status)}</Text>
+              <Text className="flex-1 font-medium">
+                {statusTitle(t, status)}
+              </Text>
               {status.total > 0 ? (
                 <Text color="tertiary" className="tabular-nums">
                   {status.ready} / {status.total}
@@ -283,10 +286,20 @@ export default function OfflineContent() {
             </View>
             {status.total > 0 ? <DownloadProgress status={status} /> : null}
             <Text variant="footnote" color="tertiary">
-              {formatStorageSize(usedBytes)} of{" "}
-              {formatStorageSize(megabytesToBytes(prefs.budgetMb))} used
+              {t("settings.offline_storage_used", {
+                used: formatStorageSize(usedBytes, getIntlLocale()),
+                budget: formatStorageSize(
+                  megabytesToBytes(prefs.budgetMb),
+                  getIntlLocale(),
+                ),
+              })}
               {status.lastCheckedAt !== undefined
-                ? ` · Checked ${formatDistanceToNow(status.lastCheckedAt, { addSuffix: true })}`
+                ? t("settings.offline_checked_ago", {
+                    ago: formatDistanceToNow(status.lastCheckedAt, {
+                      addSuffix: true,
+                      locale: getDateFnsLocale(),
+                    }),
+                  })
                 : ""}
             </Text>
             {notes.map((note) => (
@@ -299,7 +312,7 @@ export default function OfflineContent() {
           <SettingsActionRow
             disabled={isBusy}
             isLoading={isBusy}
-            label="Download now"
+            label={t("settings.offline_download_now")}
             onPress={() => void refreshOfflineDownloads({ force: true })}
             tone="primary"
           />
@@ -308,12 +321,12 @@ export default function OfflineContent() {
 
       <View className="gap-1.5">
         <SectionHeader
-          title="On this device"
-          detail={formatStorageSize(usedBytes)}
+          title={t("settings.offline_on_device")}
+          detail={formatStorageSize(usedBytes, getIntlLocale())}
         />
-        <SettingsGroup footer="Downloads include the article text and its images. Videos, PDFs and other attachments aren't downloaded.">
+        <SettingsGroup footer={t("settings.offline_downloads_include")}>
           <SettingsNavigationRow
-            label="Downloaded articles"
+            label={t("settings.offline_downloaded_articles")}
             onPress={() => router.push("/dashboard/settings/offline-articles")}
             value={String(offlineLibrary.length)}
           />
@@ -321,7 +334,7 @@ export default function OfflineContent() {
             <>
               <SettingsSeparator />
               <SettingsActionRow
-                label="Remove all offline content"
+                label={t("settings.offline_remove_all")}
                 onPress={confirmRemoveAll}
               />
             </>
@@ -331,12 +344,12 @@ export default function OfflineContent() {
 
       <View className="gap-1.5">
         <SectionHeader
-          title="Recent cache"
-          detail={formatStorageSize(recentCacheSize)}
+          title={t("settings.offline_recent")}
+          detail={formatStorageSize(recentCacheSize, getIntlLocale())}
         />
         <SettingsGroup>
           <SettingsActionRow
-            label="Clear recent cache"
+            label={t("settings.offline_clear_recent")}
             onPress={confirmClearRecentCache}
           />
         </SettingsGroup>

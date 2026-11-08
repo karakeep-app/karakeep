@@ -5,12 +5,14 @@ import { useQuery } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
+import { useTranslation } from "@/lib/i18n/hooks";
 import { ListSharingSettings } from "@/components/lists/list-sharing-settings";
 import QueryPageState from "@/components/QueryPageState";
 import { Text } from "@/components/ui/Text";
 
 export default function ListSharingPage() {
   const { slug } = useLocalSearchParams();
+  const { t } = useTranslation();
   const api = useTRPC();
   if (typeof slug !== "string") throw new Error("Unexpected param type");
   const {
@@ -22,14 +24,14 @@ export default function ListSharingPage() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: "Sharing & Access",
+          headerTitle: t("list_sharing.title"),
           headerRight: () => (
             <Pressable
               accessibilityRole="button"
               onPress={() => router.back()}
               className="px-2"
             >
-              <Text className="text-primary">Done</Text>
+              <Text className="text-primary">{t("bookmarks.done")}</Text>
             </Pressable>
           ),
         }}
