@@ -78,6 +78,7 @@ export default function AssetCard({
 }) {
   return (
     <BookmarkLayoutAdaptingCard
+      href={`/dashboard/preview/${bookmarkedAsset.id}`}
       title={bookmarkedAsset.title ?? bookmarkedAsset.content.fileName}
       footer={
         getSourceUrl(bookmarkedAsset) && (

@@ -35,7 +35,7 @@ export default function TagList({
               key={t.id}
               className={cn(
                 badgeVariants({ variant: "secondary" }),
-                "text-nowrap font-light text-gray-700 hover:bg-foreground hover:text-secondary dark:text-gray-400",
+                "relative z-20 text-nowrap font-light text-gray-700 hover:bg-foreground hover:text-secondary dark:text-gray-400",
               )}
               href={`/dashboard/tags/${t.id}`}
             >
