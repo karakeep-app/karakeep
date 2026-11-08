@@ -42,6 +42,9 @@ const PasswordInput = React.forwardRef<
         tooltip={label}
         aria-label={label}
         aria-controls={id}
+        // Out of the tab order so tabbing goes field to field; it's still
+        // clickable, and the field is just as usable without it.
+        tabIndex={-1}
         disabled={disabled}
         onClick={() => setIsVisible(!isVisible)}
       >
