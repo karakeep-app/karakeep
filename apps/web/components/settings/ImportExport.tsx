@@ -223,14 +223,15 @@ function ImportSection() {
     setInvalidSource(null);
     // Checked here so a wrong file gets an explanation next to its source. The
     // parser's own message is about the syntax of the file.
+    let parsed;
     try {
-      parseImportFile(source, await file.text());
+      parsed = parseImportFile(source, await file.text());
     } catch {
       setInvalidSource(source);
       return;
     }
     // Any other failure has already been reported by the hook.
-    runUploadBookmarkFile({ file, source }).catch(() => undefined);
+    runUploadBookmarkFile({ file, source, parsed }).catch(() => undefined);
   };
 
   const providers = useMemo(() => {

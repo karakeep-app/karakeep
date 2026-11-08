@@ -43,7 +43,12 @@ export default function ProfileNameForm({ name }: { name: string }) {
   const { mutate, isPending } = useUpdateUserProfile({
     onSuccess: (_res, req) => {
       markSaved("name");
+      // The field stays editable while saving, so keep anything typed since.
+      const current = form.getValues("name");
       form.reset({ name: req.name });
+      if (current !== req.name) {
+        form.setValue("name", current, { shouldDirty: true });
+      }
       // The account menu reads the name from the session.
       refetchSession();
       router.refresh();

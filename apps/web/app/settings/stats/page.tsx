@@ -113,18 +113,6 @@ function groupSources(
     .sort((a, b) => b.count - a.count);
 }
 
-/** The domain as people say it, with www. and bare counted as the one site. */
-function groupDomains(domains: { domain: string; count: number }[]) {
-  const counts = new Map<string, number>();
-  for (const { domain, count } of domains) {
-    const key = domain.replace(/^www\./i, "");
-    counts.set(key, (counts.get(key) ?? 0) + count);
-  }
-  return [...counts]
-    .map(([domain, count]) => ({ domain, count }))
-    .sort((a, b) => b.count - a.count);
-}
-
 const sourceIcons: Record<BookmarkSource, LucideIcon> = {
   api: Zap,
   web: Globe,
@@ -471,7 +459,7 @@ export default function StatsPage() {
   ];
   const sources = groupSources(stats.bookmarksBySource);
   const maxSourceCount = Math.max(...sources.map((s) => s.count), 0);
-  const topDomains = groupDomains(stats.topDomains).slice(0, 8);
+  const topDomains = stats.topDomains.slice(0, 8);
   const topTags = stats.tagUsage.slice(0, 8);
   const timezoneNote = userSettings?.timezone &&
     userSettings.timezone !== "UTC" && (

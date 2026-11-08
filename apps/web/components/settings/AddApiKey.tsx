@@ -146,12 +146,10 @@ function AddApiKeyForm({
   const [scopeChoices, setScopeChoices] = useState<
     Record<string, ScopeAccessChoice>
   >({});
-  const router = useRouter();
   const mutator = useMutation(
     api.apiKeys.create.mutationOptions({
       onSuccess: (resp) => {
         onSuccess(resp.key);
-        router.refresh();
       },
       onError: (e) => {
         if (!setServerFormErrors(form, e, { rejectedField: "name" })) {
@@ -326,6 +324,7 @@ function AddApiKeyForm({
 
 export default function AddApiKey({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [key, setKey] = useState<string | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   useEffect(() => {
@@ -343,6 +342,10 @@ export default function AddApiKey({ isAdmin }: { isAdmin: boolean }) {
   function handleOpenChange(open: boolean) {
     if (open) {
       setKey(undefined);
+    } else if (key) {
+      // Only once the key has been seen: with no keys yet, this dialog lives in
+      // the empty state, which the refreshed list replaces.
+      router.refresh();
     }
     setDialogOpen(open);
   }

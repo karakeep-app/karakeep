@@ -109,7 +109,18 @@ export function AIPreferences() {
   const showAutoSummarization = clientConfig.inference.enableAutoSummarization;
 
   const onSubmit = (data: z.infer<typeof zUpdateUserSettingsSchema>) => {
-    updateSettings(data, { onSuccess: () => form.reset(data) });
+    updateSettings(data, {
+      onSuccess: () => {
+        // The controls stay editable while saving, so keep any change made since.
+        const current = form.getValues();
+        form.reset(data);
+        for (const key of Object.keys(data) as (keyof typeof data)[]) {
+          if (current[key] !== data[key]) {
+            form.setValue(key, current[key], { shouldDirty: true });
+          }
+        }
+      },
+    });
   };
 
   return (
@@ -615,7 +626,17 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
         className="flex flex-wrap gap-2 sm:flex-nowrap"
         onSubmit={form.handleSubmit(async (value) => {
           await updatePrompt(value);
+          // Keep any edit made while the save was in flight.
+          const current = form.getValues();
           form.reset(value);
+          if (current.text !== value.text) {
+            form.setValue("text", current.text, { shouldDirty: true });
+          }
+          if (current.appliesTo !== value.appliesTo) {
+            form.setValue("appliesTo", current.appliesTo, {
+              shouldDirty: true,
+            });
+          }
         })}
       >
         <FormField

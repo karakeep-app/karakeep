@@ -109,24 +109,42 @@ function BackupConfigurationForm() {
     />
   );
 
+  const lastSentRef = React.useRef<Partial<Record<BackupField, unknown>>>({});
   const saveField = async <K extends BackupField>(field: K) => {
     if (!(await form.trigger(field))) {
       clearSaved();
       return;
     }
     const value = form.getValues(field);
-    if (value === form.formState.defaultValues?.[field]) {
+    // Compared with the last value sent rather than the saved one, so changing
+    // a field back while its first save is in flight still saves.
+    const lastSent =
+      field in lastSentRef.current
+        ? lastSentRef.current[field]
+        : form.formState.defaultValues?.[field];
+    if (value === lastSent) {
       return;
     }
+    lastSentRef.current[field] = value;
     updateSettings(
       { [field]: value },
       {
         onSuccess: () => {
+          // A newer save of this field is in flight and decides what it shows.
+          if (lastSentRef.current[field] !== value) {
+            return;
+          }
+          delete lastSentRef.current[field];
           form.resetField(field, { defaultValue: value });
           markSaved(field);
         },
         onError: () => {
-          // Back to what's actually saved, rather than what looks saved.
+          if (lastSentRef.current[field] !== value) {
+            return;
+          }
+          delete lastSentRef.current[field];
+          // Back to what's actually saved, rather than what looks saved. The
+          // settings refetch corrects this if an earlier save did land.
           form.resetField(field);
           markFailed(field);
         },

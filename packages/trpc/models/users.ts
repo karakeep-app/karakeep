@@ -428,6 +428,34 @@ export class User {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
+    const hostExpr = sql<string>`CASE
+            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 9)
+              END
+            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 8)
+              END
+            ELSE
+              CASE
+                WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
+                ELSE
+                  ${bookmarkLinks.url}
+              END
+          END`;
+    const topDomainExpr = sql<string>`CASE
+      WHEN ${hostExpr} LIKE 'www.%' THEN SUBSTR(${hostExpr}, 5)
+      ELSE ${hostExpr}
+    END`;
+
     const [
       [{ numBookmarks }],
       [{ numFavorites }],
@@ -489,62 +517,16 @@ export class User {
         .where(eq(bookmarks.userId, this.user.id))
         .groupBy(bookmarks.type),
 
-      // Top domains
+      // Top domains, with "www." folded into the bare host before the limit.
       this.ctx.db
         .select({
-          domain: sql<string>`CASE
-            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
-              CASE
-                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
-                  SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
-                ELSE
-                  SUBSTR(${bookmarkLinks.url}, 9)
-              END
-            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
-              CASE
-                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
-                  SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
-                ELSE
-                  SUBSTR(${bookmarkLinks.url}, 8)
-              END
-            ELSE
-              CASE
-                WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
-                  SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
-                ELSE
-                  ${bookmarkLinks.url}
-              END
-          END`,
+          domain: topDomainExpr,
           count: count(),
         })
         .from(bookmarkLinks)
         .innerJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
         .where(eq(bookmarks.userId, this.user.id))
-        .groupBy(
-          sql`CASE
-          WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
-            CASE
-              WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
-                SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
-              ELSE
-                SUBSTR(${bookmarkLinks.url}, 9)
-            END
-          WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
-            CASE
-              WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
-                SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
-              ELSE
-                SUBSTR(${bookmarkLinks.url}, 8)
-            END
-          ELSE
-            CASE
-              WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
-                SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
-              ELSE
-                ${bookmarkLinks.url}
-            END
-        END`,
-        )
+        .groupBy(topDomainExpr)
         .orderBy(desc(count()))
         .limit(10),
 

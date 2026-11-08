@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
@@ -40,7 +40,6 @@ export default function ReadingSettings() {
     serverSettings,
     localOverrides,
     hasLocalOverrides,
-    isSaving,
     clearServerDefaults,
     clearLocalOverrides,
     updateServerSetting,
@@ -57,37 +56,19 @@ export default function ReadingSettings() {
   const hint = (field: ReaderField) => (
     <SavedHint show={savedField === field} failed={failedField === field} />
   );
-  // The field and value being autosaved, to confirm once the save has landed.
-  const savingRef = useRef<{
-    field: ReaderField;
-    value: string | number;
-  } | null>(null);
   const saveField = <K extends ReaderField>(
     field: K,
     value: ZReaderSettings[K],
   ) => {
-    savingRef.current = { field, value };
-    updateServerSetting({ [field]: value });
+    updateServerSetting(
+      { [field]: value },
+      {
+        onSuccess: () => markSaved(field),
+        // A failed save rolls back, and shouldn't claim to be saved.
+        onError: () => markFailed(field),
+      },
+    );
   };
-
-  useEffect(() => {
-    const saving = savingRef.current;
-    if (isSaving || !saving) {
-      return;
-    }
-    savingRef.current = null;
-    // A failed save rolls back, and shouldn't claim to be saved.
-    const landed = serverSettings[saving.field];
-    const matches =
-      typeof landed === "number" && typeof saving.value === "number"
-        ? Math.abs(landed - saving.value) < 1e-6
-        : landed === saving.value;
-    if (matches) {
-      markSaved(saving.field);
-    } else {
-      markFailed(saving.field);
-    }
-  }, [isSaving, serverSettings, markSaved, markFailed]);
 
   const hasServerSettings =
     serverSettings.fontSize != null ||
