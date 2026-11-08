@@ -1197,7 +1197,47 @@
     "summary_bookmark_other": "{{count}} bookmarks",
     "items_count_one": "{{count}} bookmark",
     "items_count_other": "{{count}} bookmarks",
-    "list_name": "List name"
+    "list_name": "List name",
+    "advanced": "Advanced",
+    "builder": {
+      "age": "Age",
+      "any": "Any",
+      "archived": "Archived",
+      "favourited": "Favourited",
+      "no": "No",
+      "not": "Not",
+      "tags": "Tags",
+      "tags_placeholder": "Add a tag",
+      "use_tag": "Use \"{{name}}\"",
+      "yes": "Yes",
+      "age_options": {
+        "last_7_days": "Last 7 days",
+        "last_30_days": "Last 30 days",
+        "last_year": "Last year",
+        "over_30_days": "Over 30 days ago",
+        "over_a_year": "Over a year ago"
+      }
+    },
+    "choose_icon": "Choose an icon",
+    "clear_parent": "Clear parent list",
+    "create_list": "Create list",
+    "icon_label": "Icon",
+    "name_placeholder": "List name",
+    "preview": {
+      "checking": "Checking matches…",
+      "count_one": "{{count}} bookmark matches",
+      "count_other": "{{count}} bookmarks match",
+      "empty_query": "Pick a condition to see which bookmarks match.",
+      "failed": "Couldn't check matches",
+      "fix_query": "Fix the search query to see which bookmarks match.",
+      "no_matches": "No bookmarks match yet",
+      "no_matches_description": "You can still create it. Bookmarks join the list as soon as they match."
+    },
+    "query_invalid": "This query can't be parsed. Check near: {{text}}",
+    "query_plain_text": "Smart lists need qualifiers like tag: or is:. Plain words aren't allowed: {{text}}",
+    "query_required": "Pick at least one condition",
+    "search_query_placeholder": "e.g. is:fav tag:docs",
+    "smart_list_help": "Bookmarks matching this search join the list automatically."
   },
   "tags": {
     "all_tags": "All tags",
