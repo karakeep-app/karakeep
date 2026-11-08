@@ -44,9 +44,9 @@ Seed users (all share the password `test1234`):
 
 | Email | Role | Data |
 | --- | --- | --- |
-| `test1@example.com` | admin | 20 bookmarks, 3 tags, 2 manual + 2 smart lists |
-| `test2@example.com` | user | 4 bookmarks, 3 tags, 2 manual + 2 smart lists |
-| `test3@example.com` | user | empty |
+| `test1@example.com` | admin | 24 bookmarks (links, notes, an image, a PDF), highlights, rules, prompts, a feed, a webhook; shares "Reading Queue" |
+| `test2@example.com` | user | 7 bookmarks (incl. an import session), editor on test1's "Reading Queue" |
+| `test3@example.com` | user | empty, with a pending invite to "Reading Queue" |
 
 Login flow with any browser automation tool:
 

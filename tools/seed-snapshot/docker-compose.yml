@@ -1,5 +1,7 @@
 services:
   web:
+    # A released image (`--release`) or a local build of the working tree.
+    image: ${SEED_SNAPSHOT_IMAGE:-karakeep-seed-snapshot:local}
     build:
       dockerfile: docker/Dockerfile
       context: ../../
