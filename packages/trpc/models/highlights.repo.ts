@@ -155,7 +155,7 @@ export class HighlightsRepo {
         bookmark: {
           title:
             row.bookmarkTitle?.trim() ||
-            row.linkTitle ||
+            row.linkTitle?.trim() ||
             row.linkUrl ||
             row.assetFileName ||
             null,

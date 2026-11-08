@@ -87,6 +87,18 @@ describe("Asset Routes", () => {
       bookmarkUrl: null,
     });
 
+    // Every page by size, one asset at a time.
+    const bySizeIds: string[] = [];
+    for (let cursor: number | null | undefined = 1; cursor;) {
+      const res: Awaited<ReturnType<typeof api.list>> = await api.list({
+        limit: 1,
+        cursor,
+      });
+      bySizeIds.push(...res.assets.map((a) => a.id));
+      cursor = res.nextCursor;
+    }
+    expect(bySizeIds).toEqual(["big", "medium", "small", "tiny"]);
+
     const byNewest = await api.list({ limit: 10, sortBy: "newest" });
     expect(byNewest.assets.map((a) => a.id)).toEqual([
       "medium",

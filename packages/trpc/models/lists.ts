@@ -1085,7 +1085,7 @@ export class SmartList extends List {
         id: row.id,
         title:
           row.title?.trim() ||
-          row.linkTitle ||
+          row.linkTitle?.trim() ||
           row.url ||
           row.fileName ||
           (row.text ? getTextDisplayTitle(row.text) : null) ||

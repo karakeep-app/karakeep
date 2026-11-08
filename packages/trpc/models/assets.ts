@@ -16,6 +16,7 @@ import {
   bookmarkAssets,
   bookmarkLinks,
   bookmarks,
+  bookmarkTexts,
 } from "@karakeep/db/schema";
 import { deleteAsset } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
@@ -38,7 +39,9 @@ const listColumns = {
   bookmarkTitle: bookmarks.title,
   linkTitle: bookmarkLinks.title,
   linkUrl: bookmarkLinks.url,
+  textSourceUrl: bookmarkTexts.sourceUrl,
   assetFileName: bookmarkAssets.fileName,
+  assetSourceUrl: bookmarkAssets.sourceUrl,
 };
 
 export class Asset {
@@ -84,19 +87,7 @@ export class Asset {
     const [results, [totals]] = await Promise.all([
       input.sortBy === "newest"
         ? Asset.listNewest(ctx, input.limit, offset)
-        : ctx.db
-            .select(listColumns)
-            .from(assets)
-            .leftJoin(bookmarks, eq(assets.bookmarkId, bookmarks.id))
-            .leftJoin(bookmarkLinks, eq(assets.bookmarkId, bookmarkLinks.id))
-            .leftJoin(bookmarkAssets, eq(assets.bookmarkId, bookmarkAssets.id))
-            .where(eq(assets.userId, ctx.user.id))
-            // Walks assets_userId_size_idx backwards, so the order needs no
-            // sort, even among assets of the same size. The id keeps the order
-            // stable across pages.
-            .orderBy(desc(assets.size), desc(assets.id))
-            .limit(input.limit)
-            .offset(offset),
+        : Asset.listBySize(ctx, input.limit, offset),
       ctx.db
         .select({
           count: count(),
@@ -108,23 +99,64 @@ export class Asset {
 
     return {
       assets: results.map(
-        ({ bookmarkTitle, linkTitle, linkUrl, assetFileName, ...a }) => ({
+        ({
+          bookmarkTitle,
+          linkTitle,
+          linkUrl,
+          textSourceUrl,
+          assetFileName,
+          assetSourceUrl,
+          ...a
+        }) => ({
           ...a,
           assetType: mapDBAssetTypeToUserType(a.assetType),
-          // Follows getBookmarkTitle, like the highlights list.
+          // Follows getBookmarkTitle and getSourceUrl, like the highlights
+          // list.
           bookmarkTitle:
             bookmarkTitle?.trim() ||
-            linkTitle ||
+            linkTitle?.trim() ||
             linkUrl ||
             assetFileName ||
             null,
-          bookmarkUrl: linkUrl,
+          bookmarkUrl: linkUrl ?? textSourceUrl ?? assetSourceUrl ?? null,
         }),
       ),
       nextCursor: page * input.limit < totals.count ? page + 1 : null,
       totalCount: totals.count,
       totalSize: totals.size,
     };
+  }
+
+  /**
+   * Pages over assets_userId_size_idx alone, then joins the bookmark details
+   * for that page only. Joining in the same query would join every row the
+   * offset skips, which makes deep pages (e.g. the CLI's dump, which pages
+   * through everything) cost hundreds of ms each.
+   */
+  private static async listBySize(
+    ctx: AuthedContext,
+    limit: number,
+    offset: number,
+  ) {
+    // Walks the index backwards, so the order needs no sort, even among assets
+    // of the same size. The id keeps the order stable across pages.
+    const pageIds = ctx.db
+      .select({ id: assets.id })
+      .from(assets)
+      .where(eq(assets.userId, ctx.user.id))
+      .orderBy(desc(assets.size), desc(assets.id))
+      .limit(limit)
+      .offset(offset)
+      .as("page");
+    return await ctx.db
+      .select(listColumns)
+      .from(pageIds)
+      .innerJoin(assets, eq(assets.id, pageIds.id))
+      .leftJoin(bookmarks, eq(assets.bookmarkId, bookmarks.id))
+      .leftJoin(bookmarkLinks, eq(assets.bookmarkId, bookmarkLinks.id))
+      .leftJoin(bookmarkTexts, eq(assets.bookmarkId, bookmarkTexts.id))
+      .leftJoin(bookmarkAssets, eq(assets.bookmarkId, bookmarkAssets.id))
+      .orderBy(desc(assets.size), desc(assets.id));
   }
 
   /**
@@ -147,6 +179,7 @@ export class Asset {
       .from(bookmarks)
       .innerJoin(assets, eq(assets.bookmarkId, bookmarks.id))
       .leftJoin(bookmarkLinks, eq(bookmarkLinks.id, bookmarks.id))
+      .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, bookmarks.id))
       .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, bookmarks.id))
       .where(eq(bookmarks.userId, ctx.user.id))
       .orderBy(desc(bookmarks.createdAt), desc(bookmarks.id), asc(assets.id))
@@ -175,7 +208,9 @@ export class Asset {
         bookmarkTitle: sql<string | null>`null`,
         linkTitle: sql<string | null>`null`,
         linkUrl: sql<string | null>`null`,
+        textSourceUrl: sql<string | null>`null`,
         assetFileName: sql<string | null>`null`,
+        assetSourceUrl: sql<string | null>`null`,
       })
       .from(assets)
       .where(and(eq(assets.userId, ctx.user.id), isNull(assets.bookmarkId)))
