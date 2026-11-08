@@ -6,6 +6,7 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,7 +26,7 @@ import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { distance } from "fastest-levenshtein";
-import { Check, Combine, X } from "lucide-react";
+import { CircleCheck, Check, Combine, X } from "lucide-react";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -82,7 +83,7 @@ function ApplyAllButton({ suggestions }: { suggestions: Suggestion[] }) {
     await Promise.all(promises)
       .then(() => {
         toast({
-          description: "All suggestions has been applied!",
+          description: "All suggestions applied",
         });
       })
       .catch(() => ({}))
@@ -128,7 +129,7 @@ function SuggestionRow({
   const { mutate, isPending } = useMergeTag({
     onSuccess: () => {
       toast({
-        description: "Tags have been merged!",
+        description: "Tags merged",
       });
     },
     onError: (e) => {
@@ -150,15 +151,15 @@ function SuggestionRow({
                 className={cn(
                   badgeVariants({ variant: "outline" }),
                   "text-sm",
-                  selected
-                    ? "border border-blue-500 dark:border-blue-900"
-                    : null,
+                  selected ? "border border-foreground/60" : null,
                 )}
               >
                 {tag.name}
               </Link>
               <Button
                 size="none"
+                aria-label={`Keep ${tag.name}`}
+                title={`Keep ${tag.name}`}
                 className={cn(
                   "-translate-1/2 absolute -right-1.5 -top-1.5 rounded-full p-0.5",
                   selected ? null : "hidden group-hover:block",
@@ -246,18 +247,33 @@ export function TagDuplicationDetection() {
     return <LoadingSpinner />;
   }
 
+  if (suggestions.length === 0) {
+    return (
+      <EmptyState
+        compact
+        icon={CircleCheck}
+        title="No duplicate tags found"
+        description="Tags with nearly identical names show up here so you can merge them."
+      />
+    );
+  }
+
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
-      You have {suggestions.length} suggestions for tag merging.
-      {suggestions.length > 0 && (
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span>
+          {suggestions.length === 1
+            ? "You have 1 suggestion for tag merging."
+            : `You have ${suggestions.length} suggestions for tag merging.`}
+        </span>
         <CollapsibleTrigger asChild>
-          <Button variant="link" size="sm">
-            {expanded ? "Hide All" : "Show All"}
+          <Button variant="outline" size="sm">
+            {expanded ? "Hide all" : "Show all"}
           </Button>
         </CollapsibleTrigger>
-      )}
+      </div>
       <CollapsibleContent>
-        <p className="text-sm italic text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           For every suggestion, select the tag that you want to keep and other
           tags will be merged into it.
         </p>

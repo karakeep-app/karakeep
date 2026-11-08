@@ -745,9 +745,24 @@
     "delete_account": {
       "danger_zone": "Danger zone",
       "delete_account": "Delete account"
+    },
+    "saved": "Saved",
+    "save_failed": "Couldn't save",
+    "unsaved_changes": "Unsaved changes",
+    "discard": "Discard",
+    "groups": {
+      "account": "Account",
+      "preferences": "Preferences",
+      "data": "Data",
+      "automation": "Automation"
     }
   },
   "admin": {
+    "admins_only": {
+      "title": "Admins only",
+      "description": "You need an admin account to see this page.",
+      "back_home": "Back to home"
+    },
     "admin_settings": "Admin settings",
     "server_stats": {
       "server_stats": "Server stats",
@@ -1262,7 +1277,8 @@
     "duplicate_tags": {
       "title": "Duplicate tags",
       "merge_all_suggestions": "Merge all suggestions?"
-    }
+    },
+    "description": "Tidy up your library by merging tags that look like duplicates."
   },
   "bookmark_editor": {
     "title": "Edit details",
