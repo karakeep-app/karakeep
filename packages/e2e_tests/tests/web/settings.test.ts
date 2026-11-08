@@ -32,7 +32,9 @@ it("changes the password and signs back in with the new one", async ({
     page.getByRole("heading", { name: "Profile", exact: true }),
   ).toBeVisible();
   await expect(page.locator("#email")).toHaveValue(email);
-  await expect(page.locator("#name")).toHaveValue("Test User");
+  await expect(page.getByLabel("Name", { exact: true })).toHaveValue(
+    "Test User",
+  );
 
   await page.getByLabel("Current password", { exact: true }).fill("test1234");
   await page.getByLabel("New password", { exact: true }).fill("n3w-passw0rd");
@@ -42,9 +44,10 @@ it("changes the password and signs back in with the new one", async ({
   await page
     .getByRole("button", { name: "Change password", exact: true })
     .click();
-  await expect(page.getByText("Password changed successfully")).toBeVisible({
-    timeout: 30000,
-  });
+  // Confirmed inline next to the button, rather than with a toast.
+  await expect(
+    page.getByRole("status").filter({ hasText: "Saved" }),
+  ).toBeVisible({ timeout: 30000 });
   // The form is cleared after a successful change.
   await expect(
     page.getByLabel("Current password", { exact: true }),
@@ -121,12 +124,15 @@ it("hides archived bookmarks in tags once the archive option is changed", async 
   await expect(cards.filter({ hasText: "Already finished" })).toBeVisible();
   await expect(cards).toHaveCount(2);
 
-  await goto(page, "/settings/info");
+  // The archive option lives on the General page, and saves on change.
+  await goto(page, "/settings/preferences");
   const showOption = "Show in tags and lists";
   const hideOption = "Hide in tags and lists";
   await page.getByRole("combobox").filter({ hasText: showOption }).click();
   await page.getByRole("option", { name: hideOption, exact: true }).click();
-  await expect(page.getByText("Settings updated")).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Saved" }),
+  ).toBeVisible();
   await expect(
     page.getByRole("combobox").filter({ hasText: hideOption }),
   ).toBeVisible();

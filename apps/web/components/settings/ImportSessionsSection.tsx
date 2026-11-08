@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useListImportSessions } from "@/lib/hooks/useImportSessions";
 import { useTranslation } from "@/lib/i18n/client";
 import { Package } from "lucide-react";
@@ -30,13 +30,7 @@ export function ImportSessionsSection() {
         title={t("settings.import_sessions.title")}
         description={t("settings.import_sessions.description")}
       >
-        <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <p className="text-gray-600">
-              {t("settings.import_sessions.load_error")}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState compact title={t("settings.import_sessions.load_error")} />
       </SettingsSection>
     );
   }
@@ -53,17 +47,13 @@ export function ImportSessionsSection() {
           ))}
         </div>
       ) : (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Package className="mb-4 h-12 w-12 text-gray-400" />
-            <p className="mb-2 text-center text-gray-600">
-              {t("settings.import_sessions.no_sessions")}
-            </p>
-            <p className="text-center text-sm text-gray-500">
-              {t("settings.import_sessions.no_sessions_detail")}
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          compact
+          inCard
+          icon={Package}
+          title={t("settings.import_sessions.no_sessions")}
+          description={t("settings.import_sessions.no_sessions_detail")}
+        />
       )}
     </SettingsSection>
   );

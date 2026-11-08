@@ -1,32 +1,49 @@
 "use client";
 
-import type { ComponentProps, ReactNode } from "react";
+import type { ComponentProps } from "react";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { ListFilter } from "lucide-react";
 
 export function SelectionCheckbox({
   indeterminate,
+  insideLabel = false,
   className,
   ...props
-}: ComponentProps<"input"> & { indeterminate?: boolean }) {
+}: ComponentProps<"input"> & {
+  indeterminate?: boolean;
+  /** The surrounding label is already the hit area, and labels can't nest. */
+  insideLabel?: boolean;
+}) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (ref.current) ref.current.indeterminate = !!indeterminate;
   }, [indeterminate]);
-  return (
+  const input = (
     <input
       {...props}
       ref={ref}
       type="checkbox"
+      className="size-4 shrink-0 cursor-[inherit] accent-primary disabled:opacity-30"
+    />
+  );
+  if (insideLabel) {
+    return input;
+  }
+  return (
+    // The pseudo element is the hit area: 32px, or 44px at phone width.
+    <label
       className={cn(
-        "size-4 shrink-0 cursor-pointer accent-primary disabled:cursor-default disabled:opacity-30",
+        "relative flex size-4 shrink-0 after:absolute after:-inset-2 after:content-[''] max-sm:after:-inset-3.5",
+        props.disabled ? "cursor-default" : "cursor-pointer",
         className,
       )}
-    />
+    >
+      {input}
+    </label>
   );
 }
 
@@ -36,44 +53,14 @@ export function MaintenanceSearch(props: ComponentProps<typeof Input>) {
       <Input
         {...props}
         type="search"
+        variant="filled"
         startIcon={
-          <Search aria-hidden="true" className="size-4 text-muted-foreground" />
+          <ListFilter
+            aria-hidden="true"
+            className="size-4 text-muted-foreground"
+          />
         }
       />
-    </div>
-  );
-}
-
-export function MaintenanceEmpty({
-  icon,
-  title,
-  description,
-  onReset,
-}: {
-  icon: ReactNode;
-  title: string;
-  description?: string;
-  onReset?: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
-      <div className="rounded-full bg-muted p-4 text-muted-foreground">
-        {icon}
-      </div>
-      <div>
-        <p className="font-medium">{title}</p>
-        {description && (
-          <p className="mt-1 max-w-md text-sm text-muted-foreground">
-            {description}
-          </p>
-        )}
-      </div>
-      {onReset && (
-        <Button variant="outline" size="sm" onClick={onReset}>
-          {t("settings.maintenance.clear_filters")}
-        </Button>
-      )}
     </div>
   );
 }

@@ -27,7 +27,8 @@ export function SettingsPage({
   children,
 }: {
   title: string;
-  description?: React.ReactNode;
+  /** Required: one line, so every page's content starts at the same height. */
+  description: React.ReactNode;
   action?: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -56,8 +57,6 @@ export function SettingsSection({
   description?: React.ReactNode;
   action?: React.ReactNode;
   children?: React.ReactNode;
-  /** @deprecated No longer styled differently; removed once every page drops it. */
-  variant?: "default" | "danger";
 }) {
   return (
     <Card id={id}>

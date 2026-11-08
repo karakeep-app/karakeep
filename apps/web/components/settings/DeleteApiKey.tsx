@@ -3,10 +3,8 @@
 import { useRouter } from "next/navigation";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
-import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n/client";
 import { useMutation } from "@tanstack/react-query";
-import { Trash } from "lucide-react";
 import { toast } from "sonner";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -14,9 +12,13 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 export default function DeleteApiKey({
   name,
   id,
+  open,
+  setOpen,
 }: {
   name: string;
   id: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }) {
   const api = useTRPC();
   const { t } = useTranslation();
@@ -24,7 +26,7 @@ export default function DeleteApiKey({
   const mutator = useMutation(
     api.apiKeys.revoke.mutationOptions({
       onSuccess: () => {
-        toast.success("Key was successfully deleted");
+        toast.success(t("settings.api_keys.key_deleted"));
         router.refresh();
       },
     }),
@@ -32,13 +34,10 @@ export default function DeleteApiKey({
 
   return (
     <ActionConfirmingDialog
-      title={"Delete API Key"}
-      description={
-        <p>
-          Are you sure you want to delete the API key &quot;{name}&quot;? Any
-          service using this API key will lose access.
-        </p>
-      }
+      open={open}
+      setOpen={setOpen}
+      title={t("settings.api_keys.delete_title")}
+      description={t("settings.api_keys.delete_description", { name })}
       actionButton={(setDialogOpen) => (
         <ActionButton
           type="button"
@@ -51,10 +50,6 @@ export default function DeleteApiKey({
           {t("actions.delete")}
         </ActionButton>
       )}
-    >
-      <Button variant="ghost" title={t("actions.delete")}>
-        <Trash className="size-[18px]" size={18} />
-      </Button>
-    </ActionConfirmingDialog>
+    />
   );
 }

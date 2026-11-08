@@ -13,11 +13,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertTriangle, Eye, EyeOff, Trash2 } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -27,25 +27,31 @@ import {
 } from "@karakeep/shared-react/hooks/users";
 
 import { Button } from "../ui/button";
+import { destructiveTextClass } from "./RowActions";
 import { SettingsSection } from "./SettingsPage";
 
-const createDeleteAccountSchema = (isLocalUser: boolean) =>
+const createDeleteAccountSchema = (
+  isLocalUser: boolean,
+  passwordRequired: string,
+) =>
   z.object({
     password: isLocalUser
-      ? z.string().min(1, "Password is required")
+      ? z.string().min(1, passwordRequired)
       : z.string().optional(),
   });
 
 export function DeleteAccount() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const { data: user } = useWhoAmI();
 
   const isLocalUser = user?.localUser ?? false;
-  const deleteAccountSchema = createDeleteAccountSchema(isLocalUser);
+  const deleteAccountSchema = createDeleteAccountSchema(
+    isLocalUser,
+    t("settings.info.delete_account.password_required"),
+  );
 
   const form = useForm<z.infer<typeof deleteAccountSchema>>({
     resolver: zodResolver(deleteAccountSchema),
@@ -58,7 +64,7 @@ export function DeleteAccount() {
     onSuccess: () => {
       setServerError(null);
       toast({
-        description: "Your account has been successfully deleted.",
+        description: t("settings.info.delete_account.deleted"),
       });
       // Redirect to home page after successful deletion
       router.push("/");
@@ -68,7 +74,7 @@ export function DeleteAccount() {
       if (error.data?.code === "UNAUTHORIZED") {
         form.setError("password", {
           type: "server",
-          message: "Invalid password. Please try again.",
+          message: t("settings.info.delete_account.invalid_password"),
         });
         setServerError(null);
         return;
@@ -80,7 +86,7 @@ export function DeleteAccount() {
       }
 
       toast({
-        description: "Failed to delete account. Please try again.",
+        description: t("settings.info.delete_account.failed"),
         variant: "destructive",
       });
     },
@@ -102,106 +108,82 @@ export function DeleteAccount() {
 
   return (
     <SettingsSection
-      title={t("settings.delete_account.danger_zone")}
-      variant="danger"
-    >
-      <div className="space-y-2">
-        <h3 className="text-lg font-medium">
-          {t("settings.delete_account.delete_account")}
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Permanently delete your account and all associated data. This action
-          cannot be undone.
-        </p>
-      </div>
-
-      <ActionConfirmingDialog
-        open={isDialogOpen}
-        setOpen={handleDialogOpenChange}
-        title={t("settings.delete_account.delete_account")}
-        description={
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
-              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
-              <div className="space-y-2">
-                <p className="font-medium text-destructive">
-                  This action is irreversible
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  All your bookmarks, lists, tags, highlights, and other data
-                  will be permanently deleted. This cannot be undone.
-                </p>
+      title={t("settings.info.delete_account.title")}
+      description={t("settings.info.delete_account.description")}
+      action={
+        <ActionConfirmingDialog
+          open={isDialogOpen}
+          setOpen={handleDialogOpenChange}
+          title={t("settings.info.delete_account.dialog_title")}
+          description={
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                <div className="space-y-2">
+                  <p className="font-medium text-destructive">
+                    {t("settings.info.delete_account.irreversible")}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("settings.info.delete_account.irreversible_description")}
+                  </p>
+                </div>
               </div>
-            </div>
-            {serverError && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{serverError}</AlertDescription>
-              </Alert>
-            )}
+              {serverError && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="size-4" />
+                  <AlertDescription>{serverError}</AlertDescription>
+                </Alert>
+              )}
 
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                {isLocalUser && (
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Enter your password to confirm deletion
-                        </FormLabel>
-                        <div className="relative">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4 text-foreground"
+                >
+                  {isLocalUser && (
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            {t("settings.info.delete_account.confirm_password")}
+                          </FormLabel>
                           <FormControl>
-                            <Input
-                              type={showPassword ? "text" : "password"}
-                              placeholder="Enter your password"
-                              className="pr-10"
+                            <PasswordInput
+                              autoComplete="current-password"
+                              placeholder={t(
+                                "settings.info.delete_account.password_placeholder",
+                              )}
                               {...field}
                             />
                           </FormControl>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent has-[>svg]:px-3 dark:hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </form>
-            </Form>
-          </div>
-        }
-        actionButton={() => (
-          <ActionButton
-            variant="destructive"
-            loading={deleteAccountMutation.isPending}
-            onClick={form.handleSubmit(onSubmit)}
-          >
-            <Trash2 className="h-4 w-4" />
-            {t("settings.delete_account.delete_account")}
-          </ActionButton>
-        )}
-      >
-        <Button variant="destructiveOutline">
-          <Trash2 className="h-4 w-4" />
-          {t("settings.delete_account.delete_account")}
-        </Button>
-      </ActionConfirmingDialog>
-    </SettingsSection>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </form>
+              </Form>
+            </div>
+          }
+          actionButton={() => (
+            <ActionButton
+              variant="destructive"
+              loading={deleteAccountMutation.isPending}
+              onClick={form.handleSubmit(onSubmit)}
+            >
+              <Trash2 className="size-4" />
+              {t("settings.info.delete_account.title")}
+            </ActionButton>
+          )}
+        >
+          <Button variant="outline" className={destructiveTextClass}>
+            <Trash2 className="size-4" />
+            {t("settings.info.delete_account.title")}
+          </Button>
+        </ActionConfirmingDialog>
+      }
+    />
   );
 }

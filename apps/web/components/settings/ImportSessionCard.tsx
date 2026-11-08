@@ -63,21 +63,21 @@ function getStatusColor(status: string) {
 function getStatusIcon(status: string) {
   switch (status) {
     case "staging":
-      return <Upload className="h-4 w-4" />;
+      return <Upload className="size-4" />;
     case "pending":
-      return <Clock className="h-4 w-4" />;
+      return <Clock className="size-4" />;
     case "running":
-      return <Loader2 className="h-4 w-4 animate-spin" />;
+      return <Loader2 className="size-4 animate-spin" />;
     case "paused":
-      return <Pause className="h-4 w-4" />;
+      return <Pause className="size-4" />;
     case "completed":
-      return <CheckCircle2 className="h-4 w-4" />;
+      return <CheckCircle2 className="size-4" />;
     case "archived":
-      return <Archive className="h-4 w-4" />;
+      return <Archive className="size-4" />;
     case "failed":
-      return <AlertCircle className="h-4 w-4" />;
+      return <AlertCircle className="size-4" />;
     default:
-      return <Clock className="h-4 w-4" />;
+      return <Clock className="size-4" />;
   }
 }
 
@@ -121,12 +121,12 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
   const canResume = stats.status === "paused";
 
   return (
-    <Card className="transition-all hover:shadow-md">
+    <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h3 className="font-medium">{session.name}</h3>
-            <p className="mt-1 text-sm text-accent-foreground">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm font-medium">{session.name}</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
               {t("settings.import_sessions.created_at", {
                 time: formatDistanceToNow(session.createdAt, {
                   addSuffix: true,
@@ -226,13 +226,13 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
           {session.rootListId && (
             <div className="rounded-lg border bg-muted/50 p-3 dark:bg-muted/20">
               <div className="flex items-center gap-2 text-sm">
-                <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                <ClipboardList className="size-4 text-muted-foreground" />
                 <span className="font-medium text-muted-foreground">
                   {t("settings.import_sessions.imported_to")}
                 </span>
                 <Link
                   href={`/dashboard/lists/${session.rootListId}`}
-                  className="flex items-center gap-1 font-medium text-primary transition-colors hover:text-primary/80"
+                  className="flex items-center gap-1 font-medium underline underline-offset-4 transition-colors hover:text-muted-foreground"
                   target="_blank"
                 >
                   {t("settings.import_sessions.view_list")}
@@ -251,11 +251,11 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
 
           {/* Actions */}
           <div className="flex items-center justify-end pt-2">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               {stats.status !== "archived" && (
                 <Button variant="outline" size="sm" asChild>
                   <Link href={`/settings/import/${session.id}`}>
-                    <ExternalLink className="h-4 w-4" />
+                    <ExternalLink className="size-4" />
                     {t("settings.import_sessions.view_details")}
                   </Link>
                 </Button>
@@ -269,7 +269,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   }
                   disabled={pauseSession.isPending}
                 >
-                  <Pause className="h-4 w-4" />
+                  <Pause className="size-4" />
                   {t("settings.import_sessions.pause_session")}
                 </Button>
               )}
@@ -301,7 +301,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   )}
                 >
                   <Button size="sm" disabled={finalizeSession.isPending}>
-                    <Play className="h-4 w-4" />
+                    <Play className="size-4" />
                     {t("settings.import_sessions.finalize_staging")}
                   </Button>
                 </ActionConfirmingDialog>
@@ -315,7 +315,7 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   }
                   disabled={resumeSession.isPending}
                 >
-                  <Play className="h-4 w-4" />
+                  <Play className="size-4" />
                   {t("settings.import_sessions.resume_session")}
                 </Button>
               )}
@@ -345,11 +345,11 @@ export function ImportSessionCard({ session }: ImportSessionCardProps) {
                   )}
                 >
                   <Button
-                    variant="destructiveOutline"
+                    variant="ghostDestructive"
                     size="sm"
                     disabled={deleteSession.isPending}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="size-4" />
                     {t("actions.delete")}
                   </Button>
                 </ActionConfirmingDialog>

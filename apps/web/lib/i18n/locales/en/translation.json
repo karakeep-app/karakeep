@@ -20,6 +20,7 @@
       "admin": "Admin"
     },
     "something_went_wrong": "Something went wrong",
+    "untitled": "Untitled",
     "experimental": "Experimental",
     "search": "Search",
     "tags": "Tags",
@@ -44,6 +45,9 @@
     "quota": "Quota",
     "bookmarks": "Bookmarks",
     "storage": "Storage",
+    "actions_for": "Actions for {{name}}",
+    "delete_named": "Delete {{name}}?",
+    "optional_field": "{{label}} (optional)",
     "show_password": "Show password",
     "hide_password": "Hide password"
   },
@@ -136,7 +140,9 @@
       "newest_first": "Newest first",
       "oldest_first": "Oldest first"
     },
-    "load_more": "Load more"
+    "load_more": "Load more",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet."
@@ -146,6 +152,20 @@
     "user_settings": "Settings",
     "info": {
       "user_info": "Profile",
+      "page_description": "Your name, avatar, password and account",
+      "delete_account": {
+        "title": "Delete account",
+        "dialog_title": "Delete account?",
+        "description": "Permanently delete your account and all associated data.",
+        "irreversible": "This can't be undone",
+        "irreversible_description": "All your bookmarks, lists, tags, highlights and other data will be deleted.",
+        "confirm_password": "Enter your password to confirm deletion",
+        "password_placeholder": "Enter your password",
+        "password_required": "Enter your password to continue",
+        "invalid_password": "That password isn't right. Try again.",
+        "deleted": "Account deleted",
+        "failed": "Couldn't delete your account. Try again."
+      },
       "basic_details": "Basic details",
       "change_password": "Change password",
       "current_password": "Current password",
@@ -179,6 +199,10 @@
       },
       "reader_settings": {
         "title": "Reader settings",
+        "decrease_font_size": "Decrease font size",
+        "increase_font_size": "Increase font size",
+        "decrease_line_height": "Decrease line height",
+        "increase_line_height": "Increase line height",
         "description": "Choose how text looks in the reader view.",
         "font_family": "Font family",
         "font_size": "Font size",
@@ -207,29 +231,33 @@
         "save_hint": "Save settings for this device only or sync across all devices.",
         "adjust_hint": "Adjust settings above to preview changes",
         "clear_override_hint": "Clear device override to use global setting ({{value}}).",
-        "preview_inline": "(preview)"
-      }
+        "preview_inline": "(preview)",
+        "applies_everywhere": "Changes save automatically and apply on all your devices, except where a device has its own settings.",
+        "default_value": "Default ({{value}})"
+      },
+      "security": "Security",
+      "password_hint_one": "Use at least {{count}} character.",
+      "password_hint_other": "Use at least {{count}} characters.",
+      "email_locked": "To use a different email, <link>export your bookmarks</link> and import them into a new account.",
+      "details_locked_oauth": "Comes from your sign-in provider, so it can't be changed here.",
+      "name_description": "Shown to people you share lists with.",
+      "current_password_incorrect": "Your current password is incorrect"
     },
     "stats": {
       "usage_statistics": "Usage statistics",
       "insights_description": "Insights into your bookmarking habits and collection",
+      "empty_title": "No statistics yet",
+      "empty_description": "Save or import some bookmarks and your habits show up here.",
+      "empty_action": "Import bookmarks",
       "failed_to_load": "Failed to load statistics",
       "overview": {
         "total_bookmarks": "Total bookmarks",
-        "all_saved_items": "All saved items",
         "favorites": "Favourites",
-        "starred_bookmarks": "Starred bookmarks",
         "archived": "Archived",
-        "archived_items": "Archived items",
         "tags": "Tags",
-        "unique_tags_created": "Unique tags created",
         "lists": "Lists",
-        "bookmark_collections": "Bookmark collections",
         "highlights": "Highlights",
-        "text_highlights": "Text highlights",
         "storage_used": "Storage used",
-        "total_asset_storage": "Total attachment storage",
-        "this_month": "This month",
         "bookmarks_added": "Bookmarks added"
       },
       "bookmark_types": {
@@ -239,10 +267,9 @@
         "assets": "Media"
       },
       "recent_activity": {
-        "title": "Recent activity",
-        "this_week": "This week",
-        "this_month": "This month",
-        "this_year": "This year"
+        "period": "Period",
+        "days": "{{count}} days",
+        "days_short": "{{count}}d"
       },
       "top_domains": {
         "title": "Top domains",
@@ -253,20 +280,36 @@
         "no_tags_found": "No tags found"
       },
       "activity_patterns": {
+        "title": "Activity patterns",
         "activity_by_hour": "Activity by hour",
         "activity_by_day": "Activity by day",
-        "busiest_around": "Busiest around {{hour}}"
+        "busiest_around": "Busiest around {{hour}}",
+        "all_time": "All time",
+        "bar_one": "{{label}}: {{count}} bookmark",
+        "bar_other": "{{label}}: {{count}} bookmarks"
       },
       "storage_breakdown": {
         "title": "Storage breakdown"
       },
       "bookmark_sources": {
         "title": "Bookmark sources",
-        "empty": "No source data available"
+        "empty": "No source data available",
+        "names": {
+          "api": "API",
+          "web": "Web",
+          "extension": "Browser extension",
+          "cli": "CLI",
+          "mobile": "Mobile app",
+          "singlefile": "SingleFile",
+          "rss": "RSS feed",
+          "import": "Import"
+        }
       }
     },
     "ai": {
       "ai_settings": "AI settings",
+      "page_description": "Control how AI tags and summarises your bookmarks.",
+      "prompt_required": "Enter the prompt text",
       "auto_tagging": "Auto-tagging",
       "auto_tagging_description": "Automatically generate tags for your bookmarks using AI.",
       "auto_summarization": "Auto-summarisation",
@@ -274,6 +317,7 @@
       "tagging_rules": "Tagging rules",
       "tagging_rule_description": "Prompts that you add here will be included as rules to the model during tag generation. You can view the final prompts in the prompt preview section.",
       "prompt_preview": "Prompt preview",
+      "prompt_preview_description": "The prompts sent to the AI, based on your settings",
       "text_prompt": "Text prompt",
       "images_prompt": "Image prompt",
       "summarization_prompt": "Summarisation prompt",
@@ -296,39 +340,80 @@
       "curated_tags_description": "Optionally restrict AI tagging to only use tags from this list. When no tags are selected, the AI generates tags freely.",
       "curated_tags_updated": "Curated tags updated",
       "curated_tags_update_failed": "Failed to update curated tags",
-      "applies_to": "Applies to"
+      "preferences_title": "AI preferences",
+      "curated_tags_placeholder": "Select curated tags",
+      "applies_to": "Applies to",
+      "no_custom_prompts": "No custom prompts yet",
+      "no_custom_prompts_description": "Add one below to guide how AI tags your bookmarks.",
+      "add_custom_prompt": "Add a custom prompt",
+      "prompt_created": "Prompt created",
+      "prompt_deleted": "Prompt deleted"
     },
     "feeds": {
       "rss_subscriptions": "RSS subscriptions",
+      "page_description": "Save new articles from the feeds you follow as bookmarks.",
+      "name_error": "Enter a name for this feed",
+      "delete_description": "Delete \"{{name}}\"? This can't be undone.",
+      "url_error": "Enter a full URL, like https://example.com/feed.xml",
       "add_a_subscription": "New subscription",
       "feed_enabled": "RSS feed enabled",
       "feed_disabled": "RSS feed disabled",
-      "feed_name": "Feed name",
-      "import_tags": "Import tags",
-      "edit_feed": "Edit feed",
+      "no_feeds": "No RSS subscriptions yet",
+      "no_feeds_description": "Add your first feed by its URL. New articles show up on their own.",
+      "feed_created": "Feed created",
+      "feed_updated": "Feed updated",
+      "feed_deleted": "Feed deleted",
+      "fetch_enqueued": "Feed fetch enqueued",
       "last_fetch": "Last fetch",
-      "last_status": "Last status"
+      "last_status": "Last status",
+      "status_success": "Successful",
+      "status_failed": "Failed",
+      "status_pending": "Pending",
+      "feed_enabled_toggle": "Enable feed {{name}}",
+      "edit_feed": "Edit feed",
+      "name_placeholder": "Feed name",
+      "import_tags": "Import tags",
+      "import_tags_description": "Automatically import categories from the RSS feed as tags.",
+      "create_subscription": "Create subscription"
     },
     "webhooks": {
       "webhooks": "Webhooks",
       "description": "Send bookmark changes to your own services.",
+      "url_error": "Enter a full URL, like https://example.com/webhook",
       "events": {
         "title": "Events",
         "crawled": "Crawled",
         "created": "Created",
-        "edited": "Edited"
+        "edited": "Edited",
+        "select": "Select events",
+        "search": "Search events",
+        "none_found": "No events found",
+        "select_at_least_one": "Select at least one event"
       },
       "auth_token": "Auth token",
       "add_auth_token": "Add auth token",
       "edit_auth_token": "Edit auth token",
       "create_webhook": "New webhook",
       "delete_webhook": "Delete webhook",
+      "delete_webhook_title": "Delete webhook?",
       "delete_webhook_confirmation": "Delete this webhook? This can't be undone.",
       "edit_webhook": "Edit webhook",
-      "webhook_url": "Webhook URL"
+      "webhook_url": "Webhook URL",
+      "no_webhooks": "No webhooks yet",
+      "no_webhooks_description": "Add a URL and pick the events that should call it: created, edited or crawled.",
+      "webhook_created": "Webhook created",
+      "webhook_updated": "Webhook updated",
+      "webhook_deleted": "Webhook deleted",
+      "token_updated": "Webhook token updated",
+      "token_set": "Set",
+      "token_not_set": "Not set",
+      "create_webhook_submit": "Create webhook",
+      "auth_token_description": "If set, every request includes the header Authorization: Bearer <token>.",
+      "payload_example": "Example request body"
     },
     "import": {
       "import_export": "Import / export",
+      "page_description": "Bring in bookmarks from other services, or take a copy of yours.",
       "import_export_bookmarks": "Import / export bookmarks",
       "import_bookmarks_from_html_file": "Import bookmarks from HTML file",
       "import_bookmarks_from_pocket_export": "Import bookmarks from Pocket export",
@@ -343,11 +428,26 @@
       "import_bookmarks_from_onetab_export": "Import bookmarks from OneTab export",
       "export_links_and_notes": "JSON includes links, text notes, titles, tags and lists. HTML includes only links, titles and tags.",
       "imported_bookmarks": "Imported bookmarks",
-      "export_file": "Export file",
-      "html_file": "HTML file",
-      "import_quota_exceeded": "Import quota exceeded"
+      "export_title": "Export",
+      "export_format": "Format",
+      "export_format_json": "JSON (Karakeep format)",
+      "export_format_netscape": "HTML (Netscape format)",
+      "export_action": "Export bookmarks",
+      "import_title": "Import",
+      "import_description": "Pick where your bookmarks come from, then choose its export file.",
+      "import_from": "Import from {{name}}",
+      "browser_bookmarks_html": "Browser bookmarks (HTML)",
+      "search_placeholder": "Filter import sources",
+      "no_providers": "No import sources match your filter",
+      "invalid_file": "This file isn't a valid {{name}} export",
+      "invalid_file_expected": "Expected format: {{format}}",
+      "invalid_file_help": "See the import guide",
+      "quota_exceeded": "Import quota exceeded",
+      "progress": "Processed {{done}} of {{total}} bookmarks"
     },
     "api_keys": {
+      "delete_title": "Delete API key?",
+      "delete_description": "Delete \"{{name}}\"? Any service using this key loses access. This can't be undone.",
       "api_keys": "API keys",
       "new_api_key": "New API key",
       "new_api_key_desc": "Give your API key a unique name.",
@@ -361,7 +461,6 @@
       "scopes": {
         "scopes": "Scopes",
         "choose_at_least_one": "Choose at least one scope or select full access.",
-        "scope_details": "{{scope}} scope details",
         "access": {
           "none": "None",
           "read": "Read",
@@ -429,6 +528,12 @@
             "description": "Access import sessions."
           }
         },
+        "groups": {
+          "content": "Content",
+          "automation": "Automation",
+          "account": "Account",
+          "administration": "Administration"
+        },
         "admin_resources": {
           "bookmarks": {
             "label": "Admin: bookmarks",
@@ -451,7 +556,18 @@
             "description": "Access administrative user management."
           }
         }
-      }
+      },
+      "no_keys": "No API keys yet",
+      "page_description": "Let other apps and scripts use your account.",
+      "name_required": "Enter a name for this key",
+      "no_keys_description": "Create a key to connect the browser extension, mobile app or your own scripts.",
+      "key_deleted": "API key deleted",
+      "create_api_key": "Create API key",
+      "copy_your_key": "Copy your API key",
+      "copy_new_key": "Copy your new API key",
+      "key_shown_once": "You won't be able to see this key again.",
+      "copy_failed": "Couldn't copy the key. Browsers only allow copying from https pages, so select it and copy it yourself.",
+      "your_key": "Your API key"
     },
     "broken_links": {
       "broken_links": "Broken links",
@@ -504,27 +620,23 @@
     "manage_assets": {
       "manage_assets": "Storage",
       "no_assets": "No attachments yet",
+      "page_description": "See what takes up space and remove what you don't need.",
       "asset_type": "Attachment type",
       "bookmark_link": "Bookmark link",
       "asset_link": "Attachment link",
       "delete_asset": "Delete attachment",
+      "delete_asset_title": "Delete attachment?",
       "delete_asset_confirmation": "Delete this attachment? This can't be undone.",
-      "view_attachment": "View attachment",
+      "no_assets_description": "Screenshots, saved pages and files from your bookmarks appear here.",
+      "view_asset": "View attachment",
       "view_bookmark": "View bookmark",
-      "types": {
-        "screenshot": "Screenshot",
-        "pdf": "PDF",
-        "assetScreenshot": "Attachment screenshot",
-        "fullPageArchive": "Saved page",
-        "precrawledArchive": "Saved page (uploaded)",
-        "bannerImage": "Banner image",
-        "video": "Video",
-        "bookmarkAsset": "Bookmark file",
-        "linkHtmlContent": "HTML content",
-        "userUploaded": "Uploaded file",
-        "avatar": "Avatar",
-        "unknown": "Unknown"
-      }
+      "no_bookmark": "No bookmark",
+      "asset_deleted": "Attachment deleted",
+      "sort_label": "Sort attachments",
+      "sort_size": "Largest first",
+      "sort_newest": "Newest first",
+      "total_one": "{{count}} attachment · {{size}}",
+      "total_other": "{{count}} attachments · {{size}}"
     },
     "rules": {
       "rules": "Rules",
@@ -687,11 +799,11 @@
       "configuration": {
         "title": "Backup configuration",
         "enable_automatic_backups": "Enable automatic backups",
-        "enable_automatic_backups_description": "Automatically create backups of your bookmarks",
         "backup_frequency": "Backup frequency",
         "backup_frequency_description": "How often backups should be created",
         "retention_period": "Retention period (days)",
         "retention_period_description": "How many days to keep backups before deleting them",
+        "retention_period_error": "Enter a number of days from 1 to 365",
         "frequency": {
           "daily": "Daily",
           "weekly": "Weekly"
@@ -701,8 +813,9 @@
       },
       "list": {
         "title": "Your backups",
+        "description": "Each backup is a zip with one JSON file, stored on this server and counted towards your storage quota. To restore one, unzip it and import the JSON file as Karakeep from",
         "create_backup_now": "Create backup",
-        "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually.",
+        "includes": "Includes your links and text notes with their titles, tags, notes, archived state and lists. Doesn't include saved pages, screenshots, PDFs, uploaded files or highlights.",
         "table": {
           "created_at": "Created at",
           "bookmarks": "Bookmarks",
@@ -718,7 +831,8 @@
         "actions": {
           "download_backup": "Download backup",
           "delete_backup": "Delete backup"
-        }
+        },
+        "no_backups_title": "No backups yet"
       },
       "dialogs": {
         "delete_backup_title": "Delete backup",
@@ -755,6 +869,21 @@
       "preferences": "Preferences",
       "data": "Data",
       "automation": "Automation"
+    },
+    "preferences": {
+      "nav": "General",
+      "title": "General preferences",
+      "description": "Changes save automatically.",
+      "bookmark_click_description": "What happens when you click a bookmark's card",
+      "appearance": "Appearance",
+      "appearance_description": "Applies to this device only.",
+      "archived_description": "Whether tags and lists include archived bookmarks",
+      "language_description": "The language of this app on this device",
+      "timezone": "Timezone",
+      "timezone_description": "Used for dates and usage statistics."
+    },
+    "reading": {
+      "title": "Reading"
     }
   },
   "admin": {
@@ -1162,7 +1291,23 @@
     "saves_automatically": "Changes save automatically",
     "save_failed": "Couldn't save",
     "note_placeholder": "Add a note…",
-    "note_title_label": "Title (optional)"
+    "note_title_label": "Title (optional)",
+    "attachments": {
+      "types": {
+        "screenshot": "Screenshot",
+        "pdf": "Saved PDF",
+        "assetScreenshot": "Preview image",
+        "fullPageArchive": "Saved page",
+        "precrawledArchive": "Imported saved page",
+        "bannerImage": "Banner image",
+        "video": "Video",
+        "bookmarkAsset": "Original file",
+        "linkHtmlContent": "Saved page text",
+        "userUploaded": "Uploaded file",
+        "avatar": "Avatar",
+        "unknown": "Attachment"
+      }
+    }
   },
   "editor": {
     "multiple_urls_dialog_title": "Importing URLs as separate bookmarks?",
