@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
@@ -218,8 +218,12 @@ export function TagDuplicationDetection() {
   const { suggestions, updateMergeInto, setSuggestions, deleteSuggestion } =
     useSuggestions();
 
-  useEffect(() => {
-    const sortedTags = [...(allTags?.tags ?? [])].sort((a, b) =>
+  // Derive the suggestions during render, not in an effect, so the first
+  // render with data doesn't flash the empty state before they arrive.
+  const [derivedFrom, setDerivedFrom] = useState<typeof allTags>();
+  if (allTags && allTags !== derivedFrom) {
+    setDerivedFrom(allTags);
+    const sortedTags = [...allTags.tags].sort((a, b) =>
       normalizeTag(a.name).localeCompare(normalizeTag(b.name)),
     );
 
@@ -244,7 +248,7 @@ export function TagDuplicationDetection() {
       }
     }
     setSuggestions(initialSuggestions);
-  }, [allTags]);
+  }
 
   if (!allTags) {
     return <LoadingSpinner />;
