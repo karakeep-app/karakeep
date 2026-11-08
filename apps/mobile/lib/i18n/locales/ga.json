@@ -603,6 +603,7 @@
   },
   "subscription": {
     "plan": "Plean",
+    "bookmarks": "Leabharmharcanna",
     "plan_custom": "Saincheaptha",
     "billed_through": "Billeáilte trí",
     "billed_web": "Gréasán",

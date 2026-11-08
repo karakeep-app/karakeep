@@ -591,6 +591,7 @@
   },
   "subscription": {
     "plan": "Plano",
+    "bookmarks": "Marcadores",
     "plan_custom": "Personalizado",
     "billed_through": "Cobrado via",
     "billed_web": "Web",

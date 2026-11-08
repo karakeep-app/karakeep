@@ -579,6 +579,7 @@
   },
   "subscription": {
     "plan": "套餐",
+    "bookmarks": "书签",
     "plan_custom": "自定义",
     "billed_through": "付款渠道",
     "billed_web": "网页",

@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Abonnement",
+    "bookmarks": "Bladwijzers",
     "plan_custom": "Aangepast",
     "billed_through": "Gefactureerd via",
     "billed_web": "Web",

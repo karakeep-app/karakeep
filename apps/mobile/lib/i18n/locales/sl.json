@@ -597,6 +597,7 @@
   },
   "subscription": {
     "plan": "Paket",
+    "bookmarks": "Zaznamki",
     "plan_custom": "Po meri",
     "billed_through": "Zaračunano prek",
     "billed_web": "Splet",

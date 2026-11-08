@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Plan",
+    "bookmarks": "Bokmerker",
     "plan_custom": "Tilpasset",
     "billed_through": "Faktureres via",
     "billed_web": "Nett",

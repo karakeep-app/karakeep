@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Paketti",
+    "bookmarks": "Kirjanmerkit",
     "plan_custom": "Mukautettu",
     "billed_through": "Laskutus",
     "billed_web": "Verkko",

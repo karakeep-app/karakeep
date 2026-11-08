@@ -591,6 +591,7 @@
   },
   "subscription": {
     "plan": "Plan",
+    "bookmarks": "Semne de carte",
     "plan_custom": "Personalizat",
     "billed_through": "Facturat prin",
     "billed_web": "Web",

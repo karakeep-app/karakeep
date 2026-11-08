@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Abonnement",
+    "bookmarks": "Bogmærker",
     "plan_custom": "Tilpasset",
     "billed_through": "Faktureret via",
     "billed_web": "Web",

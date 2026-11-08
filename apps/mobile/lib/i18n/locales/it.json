@@ -591,6 +591,7 @@
   },
   "subscription": {
     "plan": "Piano",
+    "bookmarks": "Segnalibri",
     "plan_custom": "Personalizzato",
     "billed_through": "Fatturato tramite",
     "billed_web": "Web",

@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Πρόγραμμα",
+    "bookmarks": "Σελιδοδείκτες",
     "plan_custom": "Προσαρμοσμένο",
     "billed_through": "Χρέωση μέσω",
     "billed_web": "Web",

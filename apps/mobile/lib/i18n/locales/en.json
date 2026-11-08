@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Plan",
+    "bookmarks": "Bookmarks",
     "plan_custom": "Custom",
     "billed_through": "Billed through",
     "billed_web": "Web",

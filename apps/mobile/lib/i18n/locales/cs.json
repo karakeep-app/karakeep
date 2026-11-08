@@ -597,6 +597,7 @@
   },
   "subscription": {
     "plan": "Tarif",
+    "bookmarks": "Záložky",
     "plan_custom": "Individuální",
     "billed_through": "Účtováno přes",
     "billed_web": "Web",

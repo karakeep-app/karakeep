@@ -609,6 +609,7 @@
   },
   "subscription": {
     "plan": "الخطة",
+    "bookmarks": "الإشارات المرجعية",
     "plan_custom": "مخصصة",
     "billed_through": "تتم الفوترة عبر",
     "billed_web": "الويب",

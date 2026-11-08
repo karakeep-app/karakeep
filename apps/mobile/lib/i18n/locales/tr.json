@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Plan",
+    "bookmarks": "Yer İmleri",
     "plan_custom": "Özel",
     "billed_through": "Ödeme kanalı",
     "billed_web": "Web",

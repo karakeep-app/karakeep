@@ -579,6 +579,7 @@
   },
   "subscription": {
     "plan": "요금제",
+    "bookmarks": "북마크",
     "plan_custom": "맞춤형",
     "billed_through": "결제 경로",
     "billed_web": "웹",

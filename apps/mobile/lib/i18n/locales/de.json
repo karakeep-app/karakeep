@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Plan",
+    "bookmarks": "Lesezeichen",
     "plan_custom": "Individuell",
     "billed_through": "Abgerechnet über",
     "billed_web": "Web",

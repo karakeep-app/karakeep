@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Csomag",
+    "bookmarks": "Könyvjelzők",
     "plan_custom": "Egyedi",
     "billed_through": "Számlázás módja",
     "billed_web": "Web",

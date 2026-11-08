@@ -591,6 +591,7 @@
   },
   "subscription": {
     "plan": "Forfait",
+    "bookmarks": "Marque-pages",
     "plan_custom": "Personnalisé",
     "billed_through": "Facturé via",
     "billed_web": "Web",

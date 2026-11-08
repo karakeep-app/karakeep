@@ -597,6 +597,7 @@
   },
   "subscription": {
     "plan": "Тариф",
+    "bookmarks": "Закладки",
     "plan_custom": "Индивидуальный",
     "billed_through": "Оплата через",
     "billed_web": "Веб",

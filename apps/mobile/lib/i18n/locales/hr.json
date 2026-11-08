@@ -591,6 +591,7 @@
   },
   "subscription": {
     "plan": "Plan",
+    "bookmarks": "Knjižne oznake",
     "plan_custom": "Prilagođeni",
     "billed_through": "Naplata putem",
     "billed_web": "Web",

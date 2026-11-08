@@ -579,6 +579,7 @@
   },
   "subscription": {
     "plan": "方案",
+    "bookmarks": "書籤",
     "plan_custom": "自訂",
     "billed_through": "付款管道",
     "billed_web": "網頁",

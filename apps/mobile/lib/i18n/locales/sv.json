@@ -585,6 +585,7 @@
   },
   "subscription": {
     "plan": "Abonnemang",
+    "bookmarks": "Bokmärken",
     "plan_custom": "Anpassad",
     "billed_through": "Faktureras via",
     "billed_web": "Webb",

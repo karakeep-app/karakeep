@@ -10,11 +10,7 @@ import {
   SettingsValueRow,
 } from "@/components/settings/settings-list";
 import { useToast } from "@/components/ui/Toast";
-import {
-  useCommonStrings,
-  useSharedTranslation,
-  useTranslation,
-} from "@/lib/i18n/hooks";
+import { useSharedTranslation, useTranslation } from "@/lib/i18n/hooks";
 import type { MobileTFunction } from "@/lib/i18n/hooks";
 import { getIntlLocale } from "@/lib/i18n";
 import { useInAppPurchases } from "@/lib/purchases";
@@ -72,7 +68,6 @@ export default function SubscriptionSettings() {
   const { toast } = useToast();
   const { t } = useTranslation();
   const { t: tShared } = useSharedTranslation();
-  const { bookmarks: bookmarksLabel } = useCommonStrings();
   const { isAvailable: canPurchase } = useInAppPurchases();
   const intlLocale = getIntlLocale();
   const countFormatter = new Intl.NumberFormat(intlLocale);
@@ -227,7 +222,7 @@ export default function SubscriptionSettings() {
       {usage ? (
         <SettingsGroup header={t("subscription.usage")}>
           <SettingsValueRow
-            label={bookmarksLabel}
+            label={t("subscription.bookmarks")}
             value={formatUsage(
               usage.bookmarks.used,
               usage.bookmarks.quota,
