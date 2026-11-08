@@ -13,6 +13,7 @@ import {
   addLogFields,
   AssetPreprocessingQueue,
   EmbeddingsQueue,
+  enqueueSourceSummary,
   newAssetId,
   OpenAIQueue,
   QuotaService,
@@ -494,13 +495,11 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
         enqueueOpts,
       );
     }
-    await OpenAIQueue.enqueue(
-      {
-        bookmarkId,
-        type: "summarize",
-      },
-      enqueueOpts,
-    );
+    if (serverConfig.summary.provider === "notebooklm") {
+      await enqueueSourceSummary(db, bookmarkId, enqueueOpts);
+    } else {
+      await OpenAIQueue.enqueue({ bookmarkId, type: "summarize" }, enqueueOpts);
+    }
 
     // Update the search index
     await triggerSearchReindex(bookmarkId, enqueueOpts);

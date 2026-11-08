@@ -1254,5 +1254,46 @@
     "deselect_all": "Avmarkera alla",
     "show_help": "Visa tangentbordsgenvägar",
     "focus_search_alt": "Fokusera på sök"
+  },
+  "summary_processing": {
+    "title": "AI-sammanfattning",
+    "stage": {
+      "queued": "Väntar på att starta",
+      "notebooklm": "NotebookLM bearbetar den här källan",
+      "hermes": "Hermes skapar en sammanfattning från den sparade källtexten",
+      "retry_wait": "Väntar på ett automatiskt nytt försök",
+      "success": "Sammanfattning klar · {{provider}}",
+      "failure": "Det gick inte att skapa sammanfattningen",
+      "idle": "Ingen sammanfattning har genererats än"
+    },
+    "retries": "Automatiska nya försök: {{count}} / 2",
+    "next_retry": "Nästa försök: {{time}}",
+    "created": "Skapad: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Källan har ändrats. Generera en ny sammanfattning.",
+      "no_text": "Ingen fullständig text eller transkription är tillgänglig.",
+      "auth": "Auktoriseringen har löpt ut eller åtkomst nekades. Förnya leverantörens auktorisering på servern.",
+      "quota": "Leverantörens gräns har nåtts. Vänta tills den återställs.",
+      "timeout": "Bearbetningen tog för lång tid.",
+      "provider": "Tjänsten är tillfälligt otillgänglig eller returnerade ett oanvändbart svar.",
+      "cancelled": "Bearbetningen avbröts.",
+      "too_large": "Källan överskrider bearbetningsgränsen."
+    },
+    "retry": "Försök bearbeta igen",
+    "generate": "Skapa sammanfattning",
+    "regenerate": "Generera om sammanfattning",
+    "queued": "Bearbetning har lagts i kö",
+    "queue_failed": "Det gick inte att lägga bearbetningen i kö. Försök igen.",
+    "original": "Originalet är fortfarande tillgängligt under bearbetningen.",
+    "offline_hint": "Uppdatera offlinekopian på telefonen efter att sammanfattningen har genererats om.",
+    "status_unavailable": "Bearbetningsstatusen är inte tillgänglig. Försök läsa in den igen.",
+    "tags": {
+      "pending": "Hermes väljer taggar",
+      "success": "Taggar uppdaterade",
+      "failure": "Det gick inte att uppdatera taggarna",
+      "invalid_response": "Hermes returnerade en ogiltig lista med taggar."
+    }
   }
 }

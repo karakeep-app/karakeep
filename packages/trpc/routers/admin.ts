@@ -17,6 +17,7 @@ import {
   AssetPreprocessingQueue,
   buildCrawlIdempotencyKey,
   EmbeddingsQueue,
+  enqueueSourceSummary,
   FeedQueue,
   LinkCrawlerQueue,
   LowPriorityCrawlerQueue,
@@ -1057,16 +1058,17 @@ export const adminAppRouter = router({
         });
       }
 
-      await OpenAIQueue.enqueue(
-        {
-          bookmarkId: input.bookmarkId,
-          type: "summarize",
-        },
-        {
+      if (serverConfig.summary.provider === "notebooklm") {
+        await enqueueSourceSummary(ctx.db, input.bookmarkId, {
           priority: QueuePriority.Low,
           groupId: "admin",
-        },
-      );
+        });
+      } else {
+        await OpenAIQueue.enqueue(
+          { bookmarkId: input.bookmarkId, type: "summarize" },
+          { priority: QueuePriority.Low, groupId: "admin" },
+        );
+      }
     }),
   forceStripeSync: adminSystemProcedure
     .input(z.object({ userId: z.string() }))

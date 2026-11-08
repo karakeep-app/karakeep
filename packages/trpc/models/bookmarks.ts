@@ -247,11 +247,13 @@ export class Bookmark extends BareBookmark {
           a.attachedBy === "ai" ? 1 : b.attachedBy === "ai" ? -1 : 0,
         ),
       content,
-      assets: assets.map((a) => ({
-        id: a.id,
-        assetType: mapDBAssetTypeToUserType(a.assetType),
-        fileName: a.fileName,
-      })),
+      assets: assets
+        .filter((a) => a.assetType !== AssetTypes.SUMMARY_SOURCE)
+        .map((a) => ({
+          id: a.id,
+          assetType: mapDBAssetTypeToUserType(a.assetType),
+          fileName: a.fileName,
+        })),
       firstCreatedAt: bookmark.dbCreatedAt,
       ...rest,
     };
@@ -735,11 +737,13 @@ export class Bookmark extends BareBookmark {
               content.size = row.assets.size;
             }
           }
-          acc[bookmarkId].assets.push({
-            id: row.assets.id,
-            assetType: mapDBAssetTypeToUserType(row.assets.assetType),
-            fileName: row.assets.fileName,
-          });
+          if (row.assets.assetType !== AssetTypes.SUMMARY_SOURCE) {
+            acc[bookmarkId].assets.push({
+              id: row.assets.id,
+              assetType: mapDBAssetTypeToUserType(row.assets.assetType),
+              fileName: row.assets.fileName,
+            });
+          }
         }
 
         return acc;
@@ -1004,10 +1008,11 @@ export class Bookmark extends BareBookmark {
     return htmlToPlainText(content);
   }
 
-  private async cleanupAssets() {
-    const assetIds: Set<string> = new Set<string>(
-      this.bookmark.assets.map((a) => a.id),
-    );
+  private async cleanupAssets(internalIds: string[] = []) {
+    const assetIds: Set<string> = new Set<string>([
+      ...this.bookmark.assets.map((a) => a.id),
+      ...internalIds,
+    ]);
     // Todo: Remove when the bookmark asset is also in the assets table
     if (this.bookmark.content.type == BookmarkTypes.ASSET) {
       assetIds.add(this.bookmark.content.assetId);
@@ -1021,14 +1026,29 @@ export class Bookmark extends BareBookmark {
 
   async delete() {
     this.ensureOwnership();
-    const deleted = await this.ctx.db
-      .delete(bookmarks)
-      .where(
-        and(
-          eq(bookmarks.userId, this.ctx.user.id),
-          eq(bookmarks.id, this.bookmark.id),
-        ),
-      );
+    const { deleted, internalIds } = this.ctx.db.transaction((tx) => {
+      const internal = tx
+        .select({ id: assets.id })
+        .from(assets)
+        .where(
+          and(
+            eq(assets.bookmarkId, this.bookmark.id),
+            eq(assets.userId, this.ctx.user.id),
+            eq(assets.assetType, AssetTypes.SUMMARY_SOURCE),
+          ),
+        )
+        .all();
+      const deleted = tx
+        .delete(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.ctx.user.id),
+            eq(bookmarks.id, this.bookmark.id),
+          ),
+        )
+        .run();
+      return { deleted, internalIds: internal.map((a) => a.id) };
+    });
 
     await SearchIndexingQueue.enqueue(
       {
@@ -1059,7 +1079,7 @@ export class Bookmark extends BareBookmark {
       },
     );
     if (deleted.changes > 0) {
-      await this.cleanupAssets();
+      await this.cleanupAssets(internalIds);
     }
   }
 }

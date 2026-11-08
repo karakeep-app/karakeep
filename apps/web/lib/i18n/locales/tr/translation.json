@@ -1254,5 +1254,46 @@
     "deselect_all": "Seçimi kaldır",
     "show_help": "Klavye kısayollarını göster",
     "focus_search_alt": "Aramaya odaklan"
+  },
+  "summary_processing": {
+    "title": "Yapay Zeka Özeti",
+    "stage": {
+      "queued": "Başlaması bekleniyor",
+      "notebooklm": "NotebookLM bu kaynağı işliyor",
+      "hermes": "Hermes, kaydedilen kaynak metninden bir özet oluşturuyor",
+      "retry_wait": "Otomatik yeniden deneme bekleniyor",
+      "success": "Özet hazır · {{provider}}",
+      "failure": "Özet oluşturulamadı",
+      "idle": "Henüz bir özet oluşturulmadı"
+    },
+    "retries": "Otomatik yeniden denemeler: {{count}} / 2",
+    "next_retry": "Sonraki deneme: {{time}}",
+    "created": "Oluşturulma: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Kaynak değişti. Yeni bir özet oluşturun.",
+      "no_text": "Tam metin veya transkript mevcut değil.",
+      "auth": "Yetkilendirmenin süresi doldu veya erişim reddedildi. Sunucuda sağlayıcının yetkilendirmesini yenileyin.",
+      "quota": "Sağlayıcının sınırına ulaşıldı. Sıfırlanmasını bekleyin.",
+      "timeout": "İşlem çok uzun sürdü.",
+      "provider": "Hizmet geçici olarak kullanılamıyor veya kullanılamaz bir yanıt döndürdü.",
+      "cancelled": "İşlem kesintiye uğradı.",
+      "too_large": "Kaynak, işleme sınırını aşıyor."
+    },
+    "retry": "İşlemeyi yeniden dene",
+    "generate": "Özet oluştur",
+    "regenerate": "Özeti yeniden oluştur",
+    "queued": "İşlem sıraya alındı",
+    "queue_failed": "İşlem sıraya alınamadı. Tekrar deneyin.",
+    "original": "İşlem sırasında orijinal içeriğe erişilebilir.",
+    "offline_hint": "Yeniden oluşturduktan sonra telefonunuzdaki çevrimdışı kopyayı güncelleyin.",
+    "status_unavailable": "İşlem durumu mevcut değil. Yeniden yüklemeyi deneyin.",
+    "tags": {
+      "pending": "Hermes etiketleri seçiyor",
+      "success": "Etiketler güncellendi",
+      "failure": "Etiketler güncellenemedi",
+      "invalid_response": "Hermes geçersiz bir etiket listesi döndürdü."
+    }
   }
 }

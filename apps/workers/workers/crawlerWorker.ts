@@ -44,6 +44,7 @@ import {
   ASSET_TYPES,
   AssetPreprocessingQueue,
   EmbeddingsQueue,
+  enqueueSourceSummary,
   getAssetSize,
   getTracer,
   IMAGE_ASSET_TYPES,
@@ -313,6 +314,18 @@ export class CrawlerWorker {
                 )
                 .run();
             });
+            // NotebookLM imports the URL even when our browser could not crawl it.
+            if (
+              serverConfig.summary.provider === "notebooklm" &&
+              job.data?.runInference !== false
+            ) {
+              await enqueueSourceSummary(
+                db,
+                bookmarkId,
+                { groupId: "summary-after-crawl-failure" },
+                true,
+              );
+            }
           }
         },
       },
@@ -1795,13 +1808,11 @@ async function enqueuePostCrawlJobs(
         enqueueOpts,
       );
     }
-    await OpenAIQueue.enqueue(
-      {
-        bookmarkId,
-        type: "summarize",
-      },
-      enqueueOpts,
-    );
+    if (serverConfig.summary.provider === "notebooklm") {
+      await enqueueSourceSummary(db, bookmarkId, enqueueOpts);
+    } else {
+      await OpenAIQueue.enqueue({ bookmarkId, type: "summarize" }, enqueueOpts);
+    }
   }
 
   // Update the search index

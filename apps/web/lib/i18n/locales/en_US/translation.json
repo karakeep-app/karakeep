@@ -1254,5 +1254,46 @@
     "deselect_all": "Deselect all",
     "show_help": "Show keyboard shortcuts",
     "focus_search_alt": "Focus search"
+  },
+  "summary_processing": {
+    "title": "AI summary",
+    "stage": {
+      "queued": "Waiting to start",
+      "notebooklm": "NotebookLM is processing this source",
+      "hermes": "Hermes is creating a summary from the saved source text",
+      "retry_wait": "Waiting for an automatic retry",
+      "success": "Summary ready · {{provider}}",
+      "failure": "Summary could not be created",
+      "idle": "No summary has been generated yet"
+    },
+    "retries": "Automatic retries: {{count}} / 2",
+    "next_retry": "Next retry: {{time}}",
+    "created": "Created: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "The source changed. Generate a new summary.",
+      "no_text": "No full text or transcript is available.",
+      "auth": "Authorization expired or access was denied. Renew the provider's authorization on the server.",
+      "quota": "The provider's limit was reached. Wait for it to reset.",
+      "timeout": "Processing took too long.",
+      "provider": "The service is temporarily unavailable or returned an unusable response.",
+      "cancelled": "Processing was interrupted.",
+      "too_large": "The source exceeds the processing limit."
+    },
+    "retry": "Retry processing",
+    "generate": "Create summary",
+    "regenerate": "Regenerate summary",
+    "queued": "Processing queued",
+    "queue_failed": "Could not queue processing. Try again.",
+    "original": "The original remains available while processing.",
+    "offline_hint": "After regenerating, update the offline copy on your phone.",
+    "status_unavailable": "Processing status is unavailable. Retry loading it.",
+    "tags": {
+      "pending": "Hermes is selecting tags",
+      "success": "Tags updated",
+      "failure": "Tags could not be updated",
+      "invalid_response": "Hermes returned an invalid list of tags."
+    }
   }
 }

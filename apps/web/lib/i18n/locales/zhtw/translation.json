@@ -1250,5 +1250,46 @@
     "deselect_all": "取消全選",
     "show_help": "顯示鍵盤快捷鍵",
     "focus_search_alt": "聚焦搜尋"
+  },
+  "summary_processing": {
+    "title": "AI 摘要",
+    "stage": {
+      "queued": "等待開始",
+      "notebooklm": "NotebookLM 正在處理此來源",
+      "hermes": "Hermes 正在根據已儲存的來源文字產生摘要",
+      "retry_wait": "等待自動重試",
+      "success": "摘要已就緒 · {{provider}}",
+      "failure": "無法產生摘要",
+      "idle": "尚未產生摘要"
+    },
+    "retries": "自動重試次數: {{count}} / 2",
+    "next_retry": "下次重試: {{time}}",
+    "created": "建立時間: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "來源已變更。請產生新的摘要。",
+      "no_text": "沒有可用的全文或逐字稿。",
+      "auth": "授權已過期或存取遭拒。請在伺服器上更新服務供應商的授權。",
+      "quota": "已達服務供應商的限額。請等待限額重設。",
+      "timeout": "處理時間過長。",
+      "provider": "服務暫時無法使用，或傳回了無法使用的回應。",
+      "cancelled": "處理已中斷。",
+      "too_large": "來源超出處理限制。"
+    },
+    "retry": "重試處理",
+    "generate": "建立摘要",
+    "regenerate": "重新產生摘要",
+    "queued": "處理工作已排入佇列",
+    "queue_failed": "無法將處理工作排入佇列。請重試。",
+    "original": "處理期間仍可檢視原始內容。",
+    "offline_hint": "重新產生後，請更新手機上的離線副本。",
+    "status_unavailable": "無法取得處理狀態。請重新載入。",
+    "tags": {
+      "pending": "Hermes 正在選擇標籤",
+      "success": "標籤已更新",
+      "failure": "無法更新標籤",
+      "invalid_response": "Hermes 傳回了無效的標籤清單。"
+    }
   }
 }

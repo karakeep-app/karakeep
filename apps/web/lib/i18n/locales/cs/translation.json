@@ -1268,5 +1268,46 @@
     "deselect_all": "Odznačit vše",
     "show_help": "Zobrazit klávesové zkratky",
     "focus_search_alt": "Zaměřit vyhledávání"
+  },
+  "summary_processing": {
+    "title": "Shrnutí pomocí AI",
+    "stage": {
+      "queued": "Čeká na spuštění",
+      "notebooklm": "NotebookLM zpracovává tento zdroj",
+      "hermes": "Hermes vytváří shrnutí z uloženého textu zdroje",
+      "retry_wait": "Čeká na automatický opakovaný pokus",
+      "success": "Shrnutí je připraveno · {{provider}}",
+      "failure": "Shrnutí se nepodařilo vytvořit",
+      "idle": "Zatím nebylo vygenerováno žádné shrnutí"
+    },
+    "retries": "Automatické opakované pokusy: {{count}} / 2",
+    "next_retry": "Další pokus: {{time}}",
+    "created": "Vytvořeno: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Zdroj se změnil. Vygeneruj nové shrnutí.",
+      "no_text": "Není k dispozici úplný text ani přepis.",
+      "auth": "Platnost autorizace vypršela nebo byl odepřen přístup. Obnov autorizaci poskytovatele na serveru.",
+      "quota": "Byl dosažen limit poskytovatele. Počkej na jeho obnovení.",
+      "timeout": "Zpracování trvalo příliš dlouho.",
+      "provider": "Služba je dočasně nedostupná nebo vrátila nepoužitelnou odpověď.",
+      "cancelled": "Zpracování bylo přerušeno.",
+      "too_large": "Zdroj překračuje limit zpracování."
+    },
+    "retry": "Zkusit zpracování znovu",
+    "generate": "Vytvořit shrnutí",
+    "regenerate": "Znovu vygenerovat shrnutí",
+    "queued": "Zpracování zařazeno do fronty",
+    "queue_failed": "Zpracování se nepodařilo zařadit do fronty. Zkus to znovu.",
+    "original": "Originál zůstává během zpracování dostupný.",
+    "offline_hint": "Po opětovném vygenerování aktualizuj offline kopii v telefonu.",
+    "status_unavailable": "Stav zpracování není dostupný. Zkus ho načíst znovu.",
+    "tags": {
+      "pending": "Hermes vybírá štítky",
+      "success": "Štítky aktualizovány",
+      "failure": "Štítky se nepodařilo aktualizovat",
+      "invalid_response": "Hermes vrátil neplatný seznam štítků."
+    }
   }
 }

@@ -1,3 +1,5 @@
+import * as summarySourceModule from "../../shared-server/src/services/sourceSummary";
+import * as summaryAssetModule from "../../shared-server/src/assetdb";
 import { eq } from "drizzle-orm";
 import {
   afterEach,
@@ -10,6 +12,8 @@ import {
 } from "vitest";
 
 import {
+  assets,
+  AssetTypes,
   bookmarkLinks,
   bookmarks,
   rssFeedImportsTable,
@@ -53,6 +57,23 @@ vi.mock("@karakeep/shared-server", async (original) => {
       enqueue: vi.fn(),
     },
     triggerSearchReindex: vi.fn(),
+  };
+});
+
+vi.mock("../../shared-server/src/services/sourceSummary", async (original) => {
+  const mod =
+    await original<
+      typeof import("../../shared-server/src/services/sourceSummary")
+    >();
+  return { ...mod, executeSourceSummary: vi.fn(mod.executeSourceSummary) };
+});
+vi.mock("../../shared-server/src/assetdb", async (original) => {
+  const mod =
+    await original<typeof import("../../shared-server/src/assetdb")>();
+  return {
+    ...mod,
+    readAsset: vi.fn(mod.readAsset),
+    deleteAsset: vi.fn(mod.deleteAsset),
   };
 });
 
@@ -1978,5 +1999,313 @@ describe("Bookmark Routes", () => {
       });
       expect(result.bookmarkId).toBeNull();
     });
+  });
+});
+
+describe("summary reader projection", () => {
+  const saved = {
+    reader: serverConfig.summary.readerEnabled,
+    provider: serverConfig.summary.provider,
+    wait: serverConfig.summary.manualWaitSec,
+  };
+  beforeEach(() => {
+    serverConfig.summary.readerEnabled = true;
+  });
+  afterEach(() => {
+    serverConfig.summary.readerEnabled = saved.reader;
+    serverConfig.summary.provider = saved.provider;
+    serverConfig.summary.manualWaitSec = saved.wait;
+    vi.mocked(summarySourceModule.executeSourceSummary).mockReset();
+    vi.mocked(summaryAssetModule.readAsset).mockReset();
+    vi.mocked(summaryAssetModule.deleteAsset).mockReset();
+    vi.restoreAllMocks();
+  });
+  async function article(context: CustomTestContext) {
+    const bookmark = await context.apiCallers[0].bookmarks.createBookmark({
+      type: BookmarkTypes.LINK,
+      url: "https://example.com/reader-summary",
+    });
+    await context.db
+      .update(bookmarkLinks)
+      .set({
+        htmlContent: "<p>Original article body</p>",
+        crawlStatus: "success",
+        crawledAt: new Date(),
+        readerViewStatus: "not_readable",
+      })
+      .where(eq(bookmarkLinks.id, bookmark.id));
+    return bookmark;
+  }
+  function publish(context: CustomTestContext, id: string) {
+    const userId = context.db
+      .select()
+      .from(bookmarks)
+      .where(eq(bookmarks.id, id))
+      .get()!.userId;
+    const attempt = sharedServer.beginSummaryAttempt(
+      context.db,
+      id,
+      userId,
+      "article",
+    );
+    expect(
+      sharedServer.publishSummary(context.db, attempt, {
+        markdown: "# Главное\n\n- Тезис\n\n**Вывод**",
+        provider: "notebooklm",
+      }),
+    ).toBe(true);
+    return attempt;
+  }
+  test<CustomTestContext>("returns summary HTML in reader and keeps metadata/body storage separate", async (context) => {
+    const b = await article(context);
+    publish(context, b.id);
+    const api = context.apiCallers[0].bookmarks;
+    const res = await api.getBookmark({
+      bookmarkId: b.id,
+      includeContent: true,
+    });
+    assert(res.content.type === BookmarkTypes.LINK);
+    expect(res.content.htmlContent).toContain("<h1>Главное</h1>");
+    expect(res.content.htmlContent).toContain("<li>Тезис</li>");
+    expect(res.content.url).toBe("https://example.com/reader-summary");
+    const metadata = await api.getBookmark({
+      bookmarkId: b.id,
+      includeContent: false,
+    });
+    assert(metadata.content.type === BookmarkTypes.LINK);
+    expect(metadata.content.htmlContent).toBeNull();
+    expect(metadata.content.readerViewStatus).toBe("readable");
+    expect(
+      context.db
+        .select()
+        .from(bookmarkLinks)
+        .where(eq(bookmarkLinks.id, b.id))
+        .get()!.htmlContent,
+    ).toBe("<p>Original article body</p>");
+    const readable = await api.getBookmarkReadableContent({
+      bookmarkId: b.id,
+      format: "text",
+    });
+    expect(readable.content).toContain("Original article body");
+    expect(readable.content).not.toContain("Главное");
+    const list = await api.getBookmarks({ includeContent: true });
+    const row = list.bookmarks.find((r) => r.id === b.id)!;
+    assert(row.content.type === BookmarkTypes.LINK);
+    expect(row.content.htmlContent).toBe("<p>Original article body</p>");
+  });
+  test<CustomTestContext>("returns the original after disabling the flag", async (context) => {
+    const b = await article(context);
+    publish(context, b.id);
+    serverConfig.summary.readerEnabled = false;
+    const res = await context.apiCallers[0].bookmarks.getBookmark({
+      bookmarkId: b.id,
+      includeContent: true,
+    });
+    assert(res.content.type === BookmarkTypes.LINK);
+    expect(res.content.htmlContent).toBe("<p>Original article body</p>");
+  });
+  test<CustomTestContext>("returns the original while pending and after failure, retaining stored Markdown", async (context) => {
+    const b = await article(context);
+    const first = publish(context, b.id);
+    const next = sharedServer.beginSummaryAttempt(
+      context.db,
+      b.id,
+      first.userId,
+      "article",
+    );
+    for (const phase of ["pending", "failure"]) {
+      if (phase === "failure")
+        sharedServer.failSummaryAttempt(context.db, next, "provider");
+      const res = await context.apiCallers[0].bookmarks.getBookmark({
+        bookmarkId: b.id,
+        includeContent: true,
+      });
+      assert(res.content.type === BookmarkTypes.LINK);
+      expect(res.content.htmlContent).toBe("<p>Original article body</p>");
+      expect(res.summary).toContain("Главное");
+    }
+  });
+  test<CustomTestContext>("rejects stale provenance and legacy summaries", async (context) => {
+    const b = await article(context);
+    await context.db
+      .update(bookmarks)
+      .set({ summary: "Legacy summary", summarizationStatus: "success" })
+      .where(eq(bookmarks.id, b.id));
+    let res = await context.apiCallers[0].bookmarks.getBookmark({
+      bookmarkId: b.id,
+      includeContent: true,
+    });
+    assert(res.content.type === BookmarkTypes.LINK);
+    expect(res.content.htmlContent).toContain("Original article");
+    publish(context, b.id);
+    await context.db
+      .update(bookmarkLinks)
+      .set({ htmlContent: "<p>Changed source</p>" })
+      .where(eq(bookmarkLinks.id, b.id));
+    res = await context.apiCallers[0].bookmarks.getBookmark({
+      bookmarkId: b.id,
+      includeContent: true,
+    });
+    assert(res.content.type === BookmarkTypes.LINK);
+    expect(res.content.htmlContent).toBe("<p>Changed source</p>");
+  });
+  test<CustomTestContext>("permits reader for a failed YouTube page without fabricating crawl success", async (context) => {
+    const b = await article(context);
+    await context.db
+      .update(bookmarkLinks)
+      .set({
+        url: "https://youtu.be/abcdefghijk",
+        htmlContent: null,
+        crawlStatus: "failure",
+        crawledAt: null,
+        readerViewStatus: "unavailable",
+      })
+      .where(eq(bookmarkLinks.id, b.id));
+    publish(context, b.id);
+    const res = await context.apiCallers[0].bookmarks.getBookmark({
+      bookmarkId: b.id,
+      includeContent: true,
+    });
+    assert(res.content.type === BookmarkTypes.LINK);
+    expect(res.content.htmlContent).toContain("<h1>Главное</h1>");
+    expect(res.content.readerViewStatus).toBe("readable");
+    expect(res.content.preferredPreview).toBe("reader_view");
+    expect(res.content.crawlStatus).toBe("failure");
+    expect(res.content.crawledAt).toBeNull();
+  });
+  test<CustomTestContext>("preserves original asset content for readable export and generation", async (context) => {
+    const b = await article(context);
+    await context.db
+      .update(bookmarkLinks)
+      .set({ htmlContent: null, contentAssetId: "original-asset" })
+      .where(eq(bookmarkLinks.id, b.id));
+    const read = vi.mocked(summaryAssetModule.readAsset).mockResolvedValue({
+      asset: Buffer.from("<p>Original asset body</p>"),
+      metadata: { contentType: "text/html" },
+    });
+    publish(context, b.id);
+    const res = await context.apiCallers[0].bookmarks.getBookmark({
+      bookmarkId: b.id,
+      includeContent: true,
+    });
+    assert(res.content.type === BookmarkTypes.LINK);
+    expect(res.content.htmlContent).toContain("Главное");
+    const original =
+      await context.apiCallers[0].bookmarks.getBookmarkReadableContent({
+        bookmarkId: b.id,
+        format: "text",
+      });
+    expect(original.content).toContain("Original asset body");
+    expect(read).toHaveBeenCalled();
+    expect(
+      context.db
+        .select()
+        .from(bookmarkLinks)
+        .where(eq(bookmarkLinks.id, b.id))
+        .get()!.contentAssetId,
+    ).toBe("original-asset");
+  });
+  test<CustomTestContext>("does not expose another owner's summary", async (context) => {
+    const b = await article(context);
+    publish(context, b.id);
+    await expect(
+      context.apiCallers[1].bookmarks.getBookmark({
+        bookmarkId: b.id,
+        includeContent: true,
+      }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+  test<CustomTestContext>("keeps manual response schema and does not require the legacy inference client", async (context) => {
+    const b = await article(context);
+    serverConfig.summary.provider = "notebooklm";
+    const execute = vi
+      .mocked(summarySourceModule.executeSourceSummary)
+      .mockResolvedValue({ summary: "# Manual", published: true });
+    const legacy = vi
+      .spyOn(InferenceClientFactory, "build")
+      .mockReturnValue(null);
+    expect(
+      await context.apiCallers[0].bookmarks.summarizeBookmark({
+        bookmarkId: b.id,
+      }),
+    ).toEqual({ summary: "# Manual" });
+    expect(execute).toHaveBeenCalled();
+    expect(legacy).not.toHaveBeenCalled();
+    execute.mockClear();
+    await expect(
+      context.apiCallers[1].bookmarks.summarizeBookmark({ bookmarkId: b.id }),
+    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(execute).not.toHaveBeenCalled();
+  });
+  test<CustomTestContext>("returns a bounded timeout for slow manual work", async (context) => {
+    const b = await article(context);
+    serverConfig.summary.provider = "notebooklm";
+    serverConfig.summary.manualWaitSec = 0.005;
+    vi.mocked(summarySourceModule.executeSourceSummary).mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () => resolve({ summary: "# Later", published: true }),
+            30,
+          ),
+        ),
+    );
+    await expect(
+      context.apiCallers[0].bookmarks.summarizeBookmark({ bookmarkId: b.id }),
+    ).rejects.toMatchObject({ code: "TIMEOUT" });
+  });
+  test<CustomTestContext>("preserves pending crawl until its real completion", async (context) => {
+    const b = await article(context);
+    await context.db
+      .update(bookmarkLinks)
+      .set({ crawlStatus: "pending", crawledAt: null })
+      .where(eq(bookmarkLinks.id, b.id));
+    publish(context, b.id);
+    const pending = await context.apiCallers[0].bookmarks.getBookmark({
+      bookmarkId: b.id,
+    });
+    assert(pending.content.type === BookmarkTypes.LINK);
+    expect(pending.content.crawlStatus).toBe("pending");
+    expect(pending.content.crawledAt).toBeNull();
+    const completedAt = new Date(Math.floor(Date.now() / 1000) * 1000);
+    await context.db
+      .update(bookmarkLinks)
+      .set({ crawlStatus: "success", crawledAt: completedAt })
+      .where(eq(bookmarkLinks.id, b.id));
+    const ready = await context.apiCallers[0].bookmarks.getBookmark({
+      bookmarkId: b.id,
+    });
+    assert(ready.content.type === BookmarkTypes.LINK);
+    expect(ready.content.crawlStatus).toBe("success");
+    expect(ready.content.crawledAt).toEqual(completedAt);
+    expect(ready.content.readerViewStatus).toBe("readable");
+  });
+  test<CustomTestContext>("hides internal source assets and cleans them on deletion", async (context) => {
+    const b = await article(context);
+    const attempt = publish(context, b.id);
+    await context.db.insert(assets).values({
+      id: "internal-transcript",
+      bookmarkId: b.id,
+      userId: attempt.userId,
+      assetType: AssetTypes.SUMMARY_SOURCE,
+      contentType: "text/plain",
+      fileName: "summary-source.txt",
+      size: 100,
+    });
+    const api = context.apiCallers[0].bookmarks;
+    expect((await api.getBookmark({ bookmarkId: b.id })).assets).toEqual([]);
+    expect(
+      (await api.getBookmarks({})).bookmarks.find((row) => row.id === b.id)!
+        .assets,
+    ).toEqual([]);
+    const remove = vi
+      .mocked(summaryAssetModule.deleteAsset)
+      .mockResolvedValue(undefined);
+    await api.deleteBookmark({ bookmarkId: b.id });
+    expect(remove).toHaveBeenCalledWith({
+      userId: attempt.userId,
+      assetId: "internal-transcript",
+    });
+    expect(context.db.select().from(assets).all()).toEqual([]);
   });
 });

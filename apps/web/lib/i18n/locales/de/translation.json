@@ -1254,5 +1254,46 @@
     "deselect_all": "Auswahl aufheben",
     "show_help": "Tastenkombinationen anzeigen",
     "focus_search_alt": "Suche fokussieren"
+  },
+  "summary_processing": {
+    "title": "KI-Zusammenfassung",
+    "stage": {
+      "queued": "Wartet auf den Start",
+      "notebooklm": "NotebookLM verarbeitet diese Quelle",
+      "hermes": "Hermes erstellt eine Zusammenfassung aus dem gespeicherten Quelltext",
+      "retry_wait": "Wartet auf einen automatischen Wiederholungsversuch",
+      "success": "Zusammenfassung bereit · {{provider}}",
+      "failure": "Zusammenfassung konnte nicht erstellt werden",
+      "idle": "Es wurde noch keine Zusammenfassung erstellt"
+    },
+    "retries": "Automatische Wiederholungsversuche: {{count}} / 2",
+    "next_retry": "Nächster Versuch: {{time}}",
+    "created": "Erstellt: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Die Quelle hat sich geändert. Erstelle eine neue Zusammenfassung.",
+      "no_text": "Es ist kein Volltext oder Transkript verfügbar.",
+      "auth": "Die Autorisierung ist abgelaufen oder der Zugriff wurde verweigert. Erneuere die Autorisierung des Anbieters auf dem Server.",
+      "quota": "Das Limit des Anbieters wurde erreicht. Warte, bis es zurückgesetzt wird.",
+      "timeout": "Die Verarbeitung hat zu lange gedauert.",
+      "provider": "Der Dienst ist vorübergehend nicht verfügbar oder hat eine unbrauchbare Antwort zurückgegeben.",
+      "cancelled": "Die Verarbeitung wurde unterbrochen.",
+      "too_large": "Die Quelle überschreitet das Verarbeitungslimit."
+    },
+    "retry": "Verarbeitung erneut versuchen",
+    "generate": "Zusammenfassung erstellen",
+    "regenerate": "Zusammenfassung neu erstellen",
+    "queued": "Verarbeitung in die Warteschlange gestellt",
+    "queue_failed": "Verarbeitung konnte nicht in die Warteschlange gestellt werden. Versuche es erneut.",
+    "original": "Das Original bleibt während der Verarbeitung verfügbar.",
+    "offline_hint": "Aktualisiere nach der Neuerstellung die Offline-Kopie auf deinem Handy.",
+    "status_unavailable": "Der Verarbeitungsstatus ist nicht verfügbar. Versuche erneut, ihn zu laden.",
+    "tags": {
+      "pending": "Hermes wählt Tags aus",
+      "success": "Tags aktualisiert",
+      "failure": "Tags konnten nicht aktualisiert werden",
+      "invalid_response": "Hermes hat eine ungültige Liste von Tags zurückgegeben."
+    }
   }
 }

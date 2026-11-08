@@ -7,6 +7,8 @@ import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { ChevronUp, RefreshCw, Sparkles, Trash2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import {
   useSummarizeBookmark,
@@ -18,11 +20,15 @@ function AISummary({
   bookmarkId,
   summary,
   readOnly = false,
+  backgroundSummary = false,
 }: {
   bookmarkId: string;
   summary: string;
   readOnly?: boolean;
+  backgroundSummary?: boolean;
 }) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
   const [isExpanded, setIsExpanded] = React.useState(false);
   const { mutate: resummarize, isPending: isResummarizing } =
     useSummarizeBookmark({
@@ -35,6 +41,11 @@ function AISummary({
     });
   const { mutate: updateBookmark, isPending: isUpdatingBookmark } =
     useUpdateBookmark({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({
+          queryKey: api.bookmarks.getSummaryProcessing.queryKey({ bookmarkId }),
+        });
+      },
       onError: () => {
         toast({
           description: "Something went wrong",
@@ -59,17 +70,19 @@ function AISummary({
             <span className="flex justify-end gap-2 pt-2">
               {!readOnly && (
                 <>
-                  <ActionButton
-                    variant="none"
-                    size="none"
-                    spinner={<LoadingSpinner className="size-4" />}
-                    className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-muted dark:text-muted-foreground"
-                    aria-label={isExpanded ? "Collapse" : "Expand"}
-                    loading={isResummarizing}
-                    onClick={() => resummarize({ bookmarkId })}
-                  >
-                    <RefreshCw size={16} />
-                  </ActionButton>
+                  {!backgroundSummary && (
+                    <ActionButton
+                      variant="none"
+                      size="none"
+                      spinner={<LoadingSpinner className="size-4" />}
+                      className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-muted dark:text-muted-foreground"
+                      aria-label={isExpanded ? "Collapse" : "Expand"}
+                      loading={isResummarizing}
+                      onClick={() => resummarize({ bookmarkId })}
+                    >
+                      <RefreshCw size={16} />
+                    </ActionButton>
+                  )}
                   <ActionButton
                     size="none"
                     variant="none"
@@ -118,6 +131,13 @@ export default function SummarizeBookmarkArea({
   });
 
   const clientConfig = useClientConfig();
+  const api = useTRPC();
+  const { data: pipeline } = useQuery(
+    api.bookmarks.getSummaryProcessing.queryOptions(
+      { bookmarkId: bookmark.id },
+      { enabled: !readOnly && bookmark.content.type === BookmarkTypes.LINK },
+    ),
+  );
   if (bookmark.content.type !== BookmarkTypes.LINK) {
     return null;
   }
@@ -128,9 +148,14 @@ export default function SummarizeBookmarkArea({
         bookmarkId={bookmark.id}
         summary={bookmark.summary}
         readOnly={readOnly}
+        backgroundSummary={pipeline?.enabled}
       />
     );
-  } else if (!clientConfig.inference.isConfigured || readOnly) {
+  } else if (
+    !clientConfig.inference.isConfigured ||
+    readOnly ||
+    pipeline?.enabled
+  ) {
     return null;
   } else {
     return (

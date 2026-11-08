@@ -1250,5 +1250,46 @@
     "deselect_all": "取消全选",
     "show_help": "显示键盘快捷键",
     "focus_search_alt": "聚焦搜索"
+  },
+  "summary_processing": {
+    "title": "AI 摘要",
+    "stage": {
+      "queued": "等待开始",
+      "notebooklm": "NotebookLM 正在处理此来源",
+      "hermes": "Hermes 正在根据已保存的来源文本生成摘要",
+      "retry_wait": "等待自动重试",
+      "success": "摘要已就绪 · {{provider}}",
+      "failure": "无法生成摘要",
+      "idle": "尚未生成摘要"
+    },
+    "retries": "自动重试次数: {{count}} / 2",
+    "next_retry": "下次重试: {{time}}",
+    "created": "创建时间: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "来源已更改。请生成新的摘要。",
+      "no_text": "没有可用的全文或转录文本。",
+      "auth": "授权已过期或访问被拒绝。请在服务器上更新服务提供商的授权。",
+      "quota": "已达到服务提供商的限额。请等待限额重置。",
+      "timeout": "处理耗时过长。",
+      "provider": "服务暂时不可用，或返回了无法使用的响应。",
+      "cancelled": "处理已中断。",
+      "too_large": "来源超出处理限制。"
+    },
+    "retry": "重试处理",
+    "generate": "创建摘要",
+    "regenerate": "重新生成摘要",
+    "queued": "处理任务已加入队列",
+    "queue_failed": "无法将处理任务加入队列。请重试。",
+    "original": "处理期间仍可查看原始内容。",
+    "offline_hint": "重新生成后，请更新手机上的离线副本。",
+    "status_unavailable": "无法获取处理状态。请重新加载。",
+    "tags": {
+      "pending": "Hermes 正在选择标签",
+      "success": "标签已更新",
+      "failure": "无法更新标签",
+      "invalid_response": "Hermes 返回了无效的标签列表。"
+    }
   }
 }

@@ -1250,5 +1250,46 @@
     "deselect_all": "Bỏ chọn tất cả",
     "show_help": "Hiển thị phím tắt",
     "focus_search_alt": "Tiêu điểm tìm kiếm"
+  },
+  "summary_processing": {
+    "title": "Tóm tắt AI",
+    "stage": {
+      "queued": "Đang chờ bắt đầu",
+      "notebooklm": "NotebookLM đang xử lý nguồn này",
+      "hermes": "Hermes đang tạo bản tóm tắt từ văn bản nguồn đã lưu",
+      "retry_wait": "Đang chờ tự động thử lại",
+      "success": "Bản tóm tắt đã sẵn sàng · {{provider}}",
+      "failure": "Không thể tạo bản tóm tắt",
+      "idle": "Chưa có bản tóm tắt nào được tạo"
+    },
+    "retries": "Số lần tự động thử lại: {{count}} / 2",
+    "next_retry": "Lần thử lại tiếp theo: {{time}}",
+    "created": "Đã tạo: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Nguồn đã thay đổi. Hãy tạo bản tóm tắt mới.",
+      "no_text": "Không có toàn văn hoặc bản chép lời.",
+      "auth": "Quyền truy cập đã hết hạn hoặc bị từ chối. Hãy gia hạn quyền truy cập của nhà cung cấp trên máy chủ.",
+      "quota": "Đã đạt giới hạn của nhà cung cấp. Hãy đợi đến khi giới hạn được đặt lại.",
+      "timeout": "Quá trình xử lý mất quá nhiều thời gian.",
+      "provider": "Dịch vụ tạm thời không khả dụng hoặc đã trả về phản hồi không sử dụng được.",
+      "cancelled": "Quá trình xử lý đã bị gián đoạn.",
+      "too_large": "Nguồn vượt quá giới hạn xử lý."
+    },
+    "retry": "Thử xử lý lại",
+    "generate": "Tạo bản tóm tắt",
+    "regenerate": "Tạo lại bản tóm tắt",
+    "queued": "Đã đưa quá trình xử lý vào hàng đợi",
+    "queue_failed": "Không thể đưa quá trình xử lý vào hàng đợi. Hãy thử lại.",
+    "original": "Bản gốc vẫn khả dụng trong khi xử lý.",
+    "offline_hint": "Sau khi tạo lại, hãy cập nhật bản sao ngoại tuyến trên điện thoại.",
+    "status_unavailable": "Không có trạng thái xử lý. Hãy thử tải lại trạng thái.",
+    "tags": {
+      "pending": "Hermes đang chọn thẻ",
+      "success": "Đã cập nhật thẻ",
+      "failure": "Không thể cập nhật thẻ",
+      "invalid_response": "Hermes đã trả về danh sách thẻ không hợp lệ."
+    }
   }
 }

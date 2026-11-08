@@ -1254,5 +1254,46 @@
     "deselect_all": "Alles deselecteren",
     "show_help": "Sneltoetsen tonen",
     "focus_search_alt": "Focus op zoeken"
+  },
+  "summary_processing": {
+    "title": "AI-samenvatting",
+    "stage": {
+      "queued": "Wachten om te starten",
+      "notebooklm": "NotebookLM verwerkt deze bron",
+      "hermes": "Hermes maakt een samenvatting van de opgeslagen brontekst",
+      "retry_wait": "Wachten op een automatische nieuwe poging",
+      "success": "Samenvatting gereed · {{provider}}",
+      "failure": "Samenvatting kon niet worden gemaakt",
+      "idle": "Er is nog geen samenvatting gegenereerd"
+    },
+    "retries": "Automatische nieuwe pogingen: {{count}} / 2",
+    "next_retry": "Volgende poging: {{time}}",
+    "created": "Aangemaakt: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "De bron is gewijzigd. Genereer een nieuwe samenvatting.",
+      "no_text": "Er is geen volledige tekst of transcript beschikbaar.",
+      "auth": "De autorisatie is verlopen of de toegang is geweigerd. Vernieuw de autorisatie van de aanbieder op de server.",
+      "quota": "De limiet van de aanbieder is bereikt. Wacht tot deze wordt gereset.",
+      "timeout": "Het verwerken duurde te lang.",
+      "provider": "De dienst is tijdelijk niet beschikbaar of heeft een onbruikbaar antwoord teruggestuurd.",
+      "cancelled": "Het verwerken is onderbroken.",
+      "too_large": "De bron overschrijdt de verwerkingslimiet."
+    },
+    "retry": "Verwerken opnieuw proberen",
+    "generate": "Samenvatting maken",
+    "regenerate": "Samenvatting opnieuw genereren",
+    "queued": "Verwerking in de wachtrij geplaatst",
+    "queue_failed": "Verwerking kon niet in de wachtrij worden geplaatst. Probeer het opnieuw.",
+    "original": "Het origineel blijft beschikbaar tijdens het verwerken.",
+    "offline_hint": "Werk na het opnieuw genereren de offline kopie op je telefoon bij.",
+    "status_unavailable": "De verwerkingsstatus is niet beschikbaar. Probeer deze opnieuw te laden.",
+    "tags": {
+      "pending": "Hermes selecteert labels",
+      "success": "Labels bijgewerkt",
+      "failure": "Labels konden niet worden bijgewerkt",
+      "invalid_response": "Hermes heeft een ongeldige lijst met labels teruggestuurd."
+    }
   }
 }

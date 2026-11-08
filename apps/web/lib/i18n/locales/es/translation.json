@@ -1261,5 +1261,46 @@
     "deselect_all": "Deseleccionar todo",
     "show_help": "Mostrar atajos de teclado",
     "focus_search_alt": "Enfocar búsqueda"
+  },
+  "summary_processing": {
+    "title": "Resumen con IA",
+    "stage": {
+      "queued": "Esperando para empezar",
+      "notebooklm": "NotebookLM está procesando esta fuente",
+      "hermes": "Hermes está creando un resumen a partir del texto guardado de la fuente",
+      "retry_wait": "Esperando un reintento automático",
+      "success": "Resumen listo · {{provider}}",
+      "failure": "No se pudo crear el resumen",
+      "idle": "Aún no se ha generado ningún resumen"
+    },
+    "retries": "Reintentos automáticos: {{count}} / 2",
+    "next_retry": "Próximo reintento: {{time}}",
+    "created": "Creado: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "La fuente ha cambiado. Genera un nuevo resumen.",
+      "no_text": "No hay texto completo ni transcripción disponibles.",
+      "auth": "La autorización ha caducado o se ha denegado el acceso. Renueva la autorización del proveedor en el servidor.",
+      "quota": "Se ha alcanzado el límite del proveedor. Espera a que se restablezca.",
+      "timeout": "El procesamiento tardó demasiado.",
+      "provider": "El servicio no está disponible temporalmente o devolvió una respuesta inutilizable.",
+      "cancelled": "Se interrumpió el procesamiento.",
+      "too_large": "La fuente supera el límite de procesamiento."
+    },
+    "retry": "Reintentar procesamiento",
+    "generate": "Crear resumen",
+    "regenerate": "Regenerar resumen",
+    "queued": "Procesamiento en cola",
+    "queue_failed": "No se pudo poner el procesamiento en cola. Inténtalo de nuevo.",
+    "original": "El original sigue disponible durante el procesamiento.",
+    "offline_hint": "Después de regenerarlo, actualiza la copia sin conexión en tu teléfono.",
+    "status_unavailable": "El estado del procesamiento no está disponible. Intenta cargarlo de nuevo.",
+    "tags": {
+      "pending": "Hermes está seleccionando etiquetas",
+      "success": "Etiquetas actualizadas",
+      "failure": "No se pudieron actualizar las etiquetas",
+      "invalid_response": "Hermes devolvió una lista de etiquetas no válida."
+    }
   }
 }

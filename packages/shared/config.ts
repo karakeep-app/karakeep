@@ -107,6 +107,35 @@ const allEnv = z.object({
     .default("structured"),
   INFERENCE_ENABLE_AUTO_TAGGING: stringBool("true"),
   INFERENCE_ENABLE_AUTO_SUMMARIZATION: stringBool("false"),
+  SUMMARY_PROVIDER: z.enum(["legacy", "notebooklm"]).default("legacy"),
+  SUMMARY_READER_ENABLED: stringBool("false"),
+  SUMMARY_AUTO_TAGS_ENABLED: stringBool("false"),
+  SUMMARY_NOTEBOOKLM_URL: z.string().url().optional(),
+  SUMMARY_NOTEBOOKLM_TOKEN: z.string().min(1).optional(),
+  SUMMARY_NOTEBOOKLM_TIMEOUT_SEC: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(240),
+  SUMMARY_HERMES_URL: z.string().url().optional(),
+  SUMMARY_HERMES_API_KEY: z.string().min(1).optional(),
+  SUMMARY_HERMES_MODEL: z.string().min(1).optional(),
+  SUMMARY_HERMES_TIMEOUT_SEC: z.coerce.number().int().positive().default(120),
+  SUMMARY_HERMES_CONTEXT_LENGTH: z.coerce
+    .number()
+    .int()
+    .min(4096)
+    .default(16384),
+  SUMMARY_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().default(2048),
+  SUMMARY_JOB_TIMEOUT_SEC: z.coerce.number().int().positive().default(600),
+  SUMMARY_MANUAL_WAIT_SEC: z.coerce.number().int().positive().default(25),
+  SUMMARY_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(3).default(2),
+  SUMMARY_MAX_SOURCE_CHARS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .max(500000)
+    .default(500000),
   OCR_CACHE_DIR: z.string().optional(),
   OCR_LANGS: z
     .string()
@@ -318,7 +347,54 @@ const allEnv = z.object({
   OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: z.string().url().optional(),
 });
 
-const serverConfigSchema = allEnv.transform((val, ctx) => {
+export const serverConfigSchema = allEnv.transform((val, ctx) => {
+  if (val.SUMMARY_AUTO_TAGS_ENABLED && val.SUMMARY_PROVIDER !== "notebooklm")
+    ctx.addIssue({
+      code: "custom",
+      path: ["SUMMARY_AUTO_TAGS_ENABLED"],
+      message: "Requires the NotebookLM summary pipeline",
+    });
+  if (val.SUMMARY_PROVIDER === "notebooklm") {
+    for (const key of [
+      "SUMMARY_NOTEBOOKLM_URL",
+      "SUMMARY_NOTEBOOKLM_TOKEN",
+      "SUMMARY_HERMES_URL",
+      "SUMMARY_HERMES_API_KEY",
+      "SUMMARY_HERMES_MODEL",
+    ] as const) {
+      if (!val[key]) {
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: "Required for NotebookLM summaries",
+        });
+      }
+    }
+  }
+  if (val.SUMMARY_MAX_OUTPUT_TOKENS * 2 >= val.SUMMARY_HERMES_CONTEXT_LENGTH) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["SUMMARY_MAX_OUTPUT_TOKENS"],
+      message: "Must be less than half of the Hermes context length",
+    });
+  }
+  if (val.SUMMARY_MANUAL_WAIT_SEC >= val.SUMMARY_JOB_TIMEOUT_SEC) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["SUMMARY_MANUAL_WAIT_SEC"],
+      message: "Must be shorter than the summary job budget",
+    });
+  }
+  if (
+    val.SUMMARY_NOTEBOOKLM_TIMEOUT_SEC + val.SUMMARY_HERMES_TIMEOUT_SEC >=
+    val.SUMMARY_JOB_TIMEOUT_SEC
+  ) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["SUMMARY_JOB_TIMEOUT_SEC"],
+      message: "Must exceed the combined provider timeouts",
+    });
+  }
   const obj = {
     port: val.PORT,
     workers: {
@@ -411,6 +487,24 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           : val.INFERENCE_OUTPUT_SCHEMA,
       enableAutoTagging: val.INFERENCE_ENABLE_AUTO_TAGGING,
       enableAutoSummarization: val.INFERENCE_ENABLE_AUTO_SUMMARIZATION,
+    },
+    summary: {
+      provider: val.SUMMARY_PROVIDER,
+      readerEnabled: val.SUMMARY_READER_ENABLED,
+      autoTagsEnabled: val.SUMMARY_AUTO_TAGS_ENABLED,
+      notebooklmUrl: val.SUMMARY_NOTEBOOKLM_URL,
+      notebooklmToken: val.SUMMARY_NOTEBOOKLM_TOKEN,
+      notebooklmTimeoutSec: val.SUMMARY_NOTEBOOKLM_TIMEOUT_SEC,
+      hermesUrl: val.SUMMARY_HERMES_URL,
+      hermesApiKey: val.SUMMARY_HERMES_API_KEY,
+      hermesModel: val.SUMMARY_HERMES_MODEL,
+      hermesTimeoutSec: val.SUMMARY_HERMES_TIMEOUT_SEC,
+      hermesContextLength: val.SUMMARY_HERMES_CONTEXT_LENGTH,
+      maxOutputTokens: val.SUMMARY_MAX_OUTPUT_TOKENS,
+      jobTimeoutSec: val.SUMMARY_JOB_TIMEOUT_SEC,
+      manualWaitSec: val.SUMMARY_MANUAL_WAIT_SEC,
+      maxAttempts: val.SUMMARY_MAX_ATTEMPTS,
+      maxSourceChars: val.SUMMARY_MAX_SOURCE_CHARS,
     },
     chat: {
       enabled: val.CHAT_ENABLED,
@@ -678,9 +772,14 @@ export const clientConfig = {
         }
       : null,
   inference: {
-    isConfigured: serverConfig.inference.isConfigured,
+    isConfigured:
+      serverConfig.inference.isConfigured ||
+      serverConfig.summary.provider === "notebooklm",
     inferredTagLang: serverConfig.inference.inferredTagLang,
-    enableAutoTagging: serverConfig.inference.enableAutoTagging,
+    enableAutoTagging:
+      serverConfig.inference.enableAutoTagging ||
+      (serverConfig.summary.provider === "notebooklm" &&
+        serverConfig.summary.autoTagsEnabled),
     enableAutoSummarization: serverConfig.inference.enableAutoSummarization,
   },
   chat: {

@@ -1261,5 +1261,46 @@
     "deselect_all": "Deselectează tot",
     "show_help": "Afișează scurtăturile de tastatură",
     "focus_search_alt": "Focalizează căutarea"
+  },
+  "summary_processing": {
+    "title": "Rezumat AI",
+    "stage": {
+      "queued": "Se așteaptă începerea",
+      "notebooklm": "NotebookLM procesează această sursă",
+      "hermes": "Hermes creează un rezumat din textul sursă salvat",
+      "retry_wait": "Se așteaptă o reîncercare automată",
+      "success": "Rezumat gata · {{provider}}",
+      "failure": "Rezumatul nu a putut fi creat",
+      "idle": "Nu a fost generat încă niciun rezumat"
+    },
+    "retries": "Reîncercări automate: {{count}} / 2",
+    "next_retry": "Următoarea reîncercare: {{time}}",
+    "created": "Creat: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Sursa s-a modificat. Generează un rezumat nou.",
+      "no_text": "Nu este disponibil nici textul integral, nici o transcriere.",
+      "auth": "Autorizarea a expirat sau accesul a fost refuzat. Reînnoiește autorizarea furnizorului pe server.",
+      "quota": "A fost atinsă limita furnizorului. Așteaptă resetarea ei.",
+      "timeout": "Procesarea a durat prea mult.",
+      "provider": "Serviciul este temporar indisponibil sau a returnat un răspuns inutilizabil.",
+      "cancelled": "Procesarea a fost întreruptă.",
+      "too_large": "Sursa depășește limita de procesare."
+    },
+    "retry": "Reîncearcă procesarea",
+    "generate": "Creează un rezumat",
+    "regenerate": "Regenerează rezumatul",
+    "queued": "Procesare adăugată în coadă",
+    "queue_failed": "Procesarea nu a putut fi adăugată în coadă. Încearcă din nou.",
+    "original": "Originalul rămâne disponibil în timpul procesării.",
+    "offline_hint": "După regenerare, actualizează copia offline de pe telefon.",
+    "status_unavailable": "Starea procesării nu este disponibilă. Încearcă să o încarci din nou.",
+    "tags": {
+      "pending": "Hermes selectează etichetele",
+      "success": "Etichete actualizate",
+      "failure": "Etichetele nu au putut fi actualizate",
+      "invalid_response": "Hermes a returnat o listă de etichete nevalidă."
+    }
   }
 }

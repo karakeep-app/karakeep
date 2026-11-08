@@ -1268,5 +1268,46 @@
     "deselect_all": "Počisti vso izbiro",
     "show_help": "Prikaži bližnjice na tipkovnici",
     "focus_search_alt": "Fokus na iskanje"
+  },
+  "summary_processing": {
+    "title": "Povzetek AI",
+    "stage": {
+      "queued": "Čakanje na začetek",
+      "notebooklm": "NotebookLM obdeluje ta vir",
+      "hermes": "Hermes ustvarja povzetek iz shranjenega besedila vira",
+      "retry_wait": "Čakanje na samodejni ponovni poskus",
+      "success": "Povzetek je pripravljen · {{provider}}",
+      "failure": "Povzetka ni bilo mogoče ustvariti",
+      "idle": "Povzetek še ni bil ustvarjen"
+    },
+    "retries": "Samodejni ponovni poskusi: {{count}} / 2",
+    "next_retry": "Naslednji poskus: {{time}}",
+    "created": "Ustvarjeno: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Vir se je spremenil. Ustvarite nov povzetek.",
+      "no_text": "Niti celotno besedilo niti prepis nista na voljo.",
+      "auth": "Pooblastilo je poteklo ali pa je bil dostop zavrnjen. Obnovite pooblastilo ponudnika na strežniku.",
+      "quota": "Dosežena je bila omejitev ponudnika. Počakajte, da se ponastavi.",
+      "timeout": "Obdelava je trajala predolgo.",
+      "provider": "Storitev začasno ni na voljo ali pa je vrnila neuporaben odgovor.",
+      "cancelled": "Obdelava je bila prekinjena.",
+      "too_large": "Vir presega omejitev obdelave."
+    },
+    "retry": "Ponovi obdelavo",
+    "generate": "Ustvari povzetek",
+    "regenerate": "Znova ustvari povzetek",
+    "queued": "Obdelava je v čakalni vrsti",
+    "queue_failed": "Obdelave ni bilo mogoče dodati v čakalno vrsto. Poskusite znova.",
+    "original": "Izvirnik ostaja na voljo med obdelavo.",
+    "offline_hint": "Po ponovnem ustvarjanju posodobite kopijo brez povezave v telefonu.",
+    "status_unavailable": "Stanje obdelave ni na voljo. Poskusite ga znova naložiti.",
+    "tags": {
+      "pending": "Hermes izbira oznake",
+      "success": "Oznake so posodobljene",
+      "failure": "Oznak ni bilo mogoče posodobiti",
+      "invalid_response": "Hermes je vrnil neveljaven seznam oznak."
+    }
   }
 }

@@ -133,6 +133,31 @@ Either `OPENAI_API_KEY` or `OLLAMA_BASE_URL` need to be set for automatic taggin
 - You can use the placeholders `$tags`, `$aiTags`, `$userTags` in the prompt. These placeholders will be replaced with all tags, ai generated tags or human created tags when automatic tagging is performed (e.g. `[karakeep, computer, ai]`)
   :::
 
+## Source summary pipeline
+
+The NotebookLM/Hermes pipeline is opt-in. Set `SUMMARY_PROVIDER=notebooklm` to select it; automatic jobs still require `INFERENCE_ENABLE_AUTO_SUMMARIZATION=true` and the user's automatic summary preference. `legacy` preserves the existing inference provider. These settings are server-only and must be identical for web and workers. They do not change global OpenAI settings for tagging or embeddings.
+
+| Name | Default | Description |
+| --- | --- | --- |
+| SUMMARY_PROVIDER | legacy | `legacy` or `notebooklm`. The latter requires both providers' URL and credentials and a Hermes model. |
+| SUMMARY_READER_ENABLED | false | Opt-in summary HTML in the reader API; enable only after validating the installed mobile client. |
+| SUMMARY_AUTO_TAGS_ENABLED | false | After a successful current summary, use the isolated Hermes profile to select 3–5 owner-scoped tags. Requires `SUMMARY_PROVIDER=notebooklm`; respects the user's auto-tagging preference. Does not enable legacy page/image tagging. |
+| SUMMARY_NOTEBOOKLM_URL | Not set | Internal NotebookLM adapter service URL. |
+| SUMMARY_NOTEBOOKLM_TOKEN | Not set | Adapter authentication token; never expose to clients. |
+| SUMMARY_NOTEBOOKLM_TIMEOUT_SEC | 240 | Positive integer: per-attempt NotebookLM timeout. |
+| SUMMARY_HERMES_URL | Not set | Dedicated OpenAI-compatible Hermes base URL, including `/v1`. |
+| SUMMARY_HERMES_API_KEY | Not set | Dedicated Hermes credential. |
+| SUMMARY_HERMES_MODEL | Not set | Verified model/route alias for summary requests. |
+| SUMMARY_HERMES_TIMEOUT_SEC | 120 | Positive integer: per-attempt Hermes timeout. |
+| SUMMARY_HERMES_CONTEXT_LENGTH | 16384 | Model context tokens (integer, at least 4096); set to the verified limit. |
+| SUMMARY_MAX_OUTPUT_TOKENS | 2048 | Positive output token budget; must be less than half the context limit. |
+| SUMMARY_JOB_TIMEOUT_SEC | 600 | Overall summary job budget; must exceed the sum of the two provider timeouts. Retries share this budget. |
+| SUMMARY_MANUAL_WAIT_SEC | 25 | HTTP wait budget for manual generation; must be shorter than the job budget. |
+| SUMMARY_MAX_ATTEMPTS | 2 | Maximum attempts per provider, integer from 1 to 3, within the shared job budget. |
+| SUMMARY_MAX_SOURCE_CHARS | 500000 | Positive integer limit on source text characters, at most 500000; oversized sources must fail explicitly rather than silently truncate. |
+
+Materials are processed by Google when NotebookLM is used and by the model provider configured behind Hermes when fallback is needed. Authorize NotebookLM on the server; do not commit Google session data or service tokens. Keep the internal adapter private. Until the pipeline and App Store client pass acceptance, keep both the provider and reader opt-ins at their defaults.
+
 ## Crawler Configs
 
 | Name                                     | Required | Default   | Description                                                                                                                                                                                                                                                                                                                                                                   |

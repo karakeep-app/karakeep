@@ -20,6 +20,12 @@ import {
   AssetPreprocessingQueue,
   buildCrawlIdempotencyKey,
   EmbeddingsQueue,
+  executeSourceSummary,
+  getSummaryProcessingStatus,
+  requestSourceSummary,
+  projectSummaryForReader,
+  SummaryProviderError,
+  waitForSourceSummary,
   LinkCrawlerQueue,
   logEvent,
   LowPriorityCrawlerQueue,
@@ -62,6 +68,7 @@ import {
 } from "@karakeep/shared/types/bookmarks";
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
+import { zSummaryProcessingStatus } from "@karakeep/shared/types/sourceSummary";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
 import { getVectorStoreClient } from "@karakeep/shared/vectorStore";
 import type { VectorFilterQuery } from "@karakeep/shared/vectorStore";
@@ -964,6 +971,17 @@ export const bookmarksAppRouter = router({
     .output(zBookmarkSchema)
     .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
+      if (serverConfig.summary.readerEnabled) {
+        const metadata = (
+          await Bookmark.fromId(ctx, input.bookmarkId, false)
+        ).asZBookmark();
+        const projected = projectSummaryForReader(
+          ctx.db,
+          metadata,
+          input.includeContent,
+        );
+        if (!input.includeContent || projected !== metadata) return projected;
+      }
       return (
         await Bookmark.fromId(ctx, input.bookmarkId, input.includeContent)
       ).asZBookmark();
@@ -1537,6 +1555,43 @@ export const bookmarksAppRouter = router({
         })),
       };
     }),
+  getSummaryProcessing: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .use(ensureBookmarkOwnership)
+    .output(zSummaryProcessingStatus)
+    .query(({ input, ctx }) =>
+      getSummaryProcessingStatus(ctx.db, input.bookmarkId, ctx.user.id),
+    ),
+
+  retrySummary: bookmarksProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.retrySummary",
+        windowMs: 30 * 60 * 1000,
+        maxRequests: 100,
+      }),
+    )
+    .input(z.object({ bookmarkId: z.string() }))
+    .use(ensureBookmarkOwnership)
+    .output(z.object({ queued: z.boolean() }))
+    .mutation(async ({ input, ctx }) => {
+      if (serverConfig.summary.provider !== "notebooklm")
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Source summarization is disabled",
+        });
+      const link = await ctx.db.query.bookmarkLinks.findFirst({
+        where: eq(bookmarkLinks.id, input.bookmarkId),
+        columns: { id: true },
+      });
+      if (!link)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Only link bookmarks can be summarized",
+        });
+      return requestSourceSummary(ctx.db, input.bookmarkId, ctx.user.id);
+    }),
+
   summarizeBookmark: bookmarksProcedure
     .use(
       createRateLimitMiddleware({
@@ -1561,6 +1616,28 @@ export const bookmarksAppRouter = router({
       addLogFields<"bookmark.summarize">({
         "bookmark.id": input.bookmarkId,
       });
+
+      if (serverConfig.summary.provider === "notebooklm") {
+        try {
+          const result = await waitForSourceSummary(
+            executeSourceSummary(ctx.db, input.bookmarkId, ctx.user.id),
+            serverConfig.summary.manualWaitSec,
+          );
+          if (!result.summary) throw new SummaryProviderError("no_text");
+          return { summary: result.summary };
+        } catch (error) {
+          throw new TRPCError({
+            code:
+              error instanceof SummaryProviderError && error.code === "timeout"
+                ? "TIMEOUT"
+                : "INTERNAL_SERVER_ERROR",
+            message:
+              error instanceof SummaryProviderError
+                ? error.message
+                : "Summary generation failed",
+          });
+        }
+      }
 
       const inferenceClient = InferenceClientFactory.build();
       if (!inferenceClient) {

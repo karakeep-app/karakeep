@@ -1261,5 +1261,46 @@
     "deselect_all": "Deseleziona tutto",
     "show_help": "Mostra scorciatoie da tastiera",
     "focus_search_alt": "Sposta focus sulla ricerca"
+  },
+  "summary_processing": {
+    "title": "Riepilogo AI",
+    "stage": {
+      "queued": "In attesa di avvio",
+      "notebooklm": "NotebookLM sta elaborando questa fonte",
+      "hermes": "Hermes sta creando un riepilogo dal testo salvato della fonte",
+      "retry_wait": "In attesa di un nuovo tentativo automatico",
+      "success": "Riepilogo pronto · {{provider}}",
+      "failure": "Impossibile creare il riepilogo",
+      "idle": "Non è ancora stato generato alcun riepilogo"
+    },
+    "retries": "Tentativi automatici: {{count}} / 2",
+    "next_retry": "Prossimo tentativo: {{time}}",
+    "created": "Creato: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "La fonte è cambiata. Genera un nuovo riepilogo.",
+      "no_text": "Non sono disponibili il testo completo o la trascrizione.",
+      "auth": "L’autorizzazione è scaduta o l’accesso è stato negato. Rinnova l’autorizzazione del fornitore sul server.",
+      "quota": "È stato raggiunto il limite del fornitore. Attendi che venga ripristinato.",
+      "timeout": "L’elaborazione ha richiesto troppo tempo.",
+      "provider": "Il servizio è temporaneamente non disponibile o ha restituito una risposta inutilizzabile.",
+      "cancelled": "L’elaborazione è stata interrotta.",
+      "too_large": "La fonte supera il limite di elaborazione."
+    },
+    "retry": "Riprova l’elaborazione",
+    "generate": "Crea riepilogo",
+    "regenerate": "Rigenera riepilogo",
+    "queued": "Elaborazione accodata",
+    "queue_failed": "Impossibile accodare l’elaborazione. Riprova.",
+    "original": "L’originale rimane disponibile durante l’elaborazione.",
+    "offline_hint": "Dopo la rigenerazione, aggiorna la copia offline sul telefono.",
+    "status_unavailable": "Lo stato dell’elaborazione non è disponibile. Prova a caricarlo di nuovo.",
+    "tags": {
+      "pending": "Hermes sta selezionando i tag",
+      "success": "Tag aggiornati",
+      "failure": "Impossibile aggiornare i tag",
+      "invalid_response": "Hermes ha restituito un elenco di tag non valido."
+    }
   }
 }

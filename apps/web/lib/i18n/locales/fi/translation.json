@@ -1254,5 +1254,46 @@
     "deselect_all": "Poista kaikki valinnat",
     "show_help": "Näytä pikanäppäimet",
     "focus_search_alt": "Kohdista hakuun"
+  },
+  "summary_processing": {
+    "title": "Tekoälyllä luotu yhteenveto",
+    "stage": {
+      "queued": "Odottaa aloitusta",
+      "notebooklm": "NotebookLM käsittelee tätä lähdettä",
+      "hermes": "Hermes luo yhteenvetoa tallennetusta lähdetekstistä",
+      "retry_wait": "Odottaa automaattista uudelleenyritystä",
+      "success": "Yhteenveto valmis · {{provider}}",
+      "failure": "Yhteenvetoa ei voitu luoda",
+      "idle": "Yhteenvetoa ei ole vielä luotu"
+    },
+    "retries": "Automaattiset uudelleenyritykset: {{count}} / 2",
+    "next_retry": "Seuraava yritys: {{time}}",
+    "created": "Luotu: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Lähde on muuttunut. Luo uusi yhteenveto.",
+      "no_text": "Koko tekstiä tai litterointia ei ole saatavilla.",
+      "auth": "Valtuutus on vanhentunut tai pääsy on estetty. Uusi palveluntarjoajan valtuutus palvelimella.",
+      "quota": "Palveluntarjoajan raja on saavutettu. Odota sen nollautumista.",
+      "timeout": "Käsittely kesti liian kauan.",
+      "provider": "Palvelu on tilapäisesti poissa käytöstä tai palautti käyttökelvottoman vastauksen.",
+      "cancelled": "Käsittely keskeytyi.",
+      "too_large": "Lähde ylittää käsittelyrajan."
+    },
+    "retry": "Yritä käsittelyä uudelleen",
+    "generate": "Luo yhteenveto",
+    "regenerate": "Luo yhteenveto uudelleen",
+    "queued": "Käsittely lisätty jonoon",
+    "queue_failed": "Käsittelyä ei voitu lisätä jonoon. Yritä uudelleen.",
+    "original": "Alkuperäinen säilyy saatavilla käsittelyn aikana.",
+    "offline_hint": "Päivitä puhelimen offline-kopio uudelleenluonnin jälkeen.",
+    "status_unavailable": "Käsittelyn tila ei ole saatavilla. Yritä ladata se uudelleen.",
+    "tags": {
+      "pending": "Hermes valitsee tunnisteita",
+      "success": "Tunnisteet päivitetty",
+      "failure": "Tunnisteita ei voitu päivittää",
+      "invalid_response": "Hermes palautti virheellisen tunnisteluettelon."
+    }
   }
 }

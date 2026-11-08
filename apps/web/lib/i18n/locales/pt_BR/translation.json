@@ -1261,5 +1261,46 @@
     "deselect_all": "Desmarcar tudo",
     "show_help": "Mostrar atalhos de teclado",
     "focus_search_alt": "Focar na busca"
+  },
+  "summary_processing": {
+    "title": "Resumo de IA",
+    "stage": {
+      "queued": "Aguardando para iniciar",
+      "notebooklm": "O NotebookLM está processando esta fonte",
+      "hermes": "O Hermes está criando um resumo a partir do texto da fonte salvo",
+      "retry_wait": "Aguardando uma nova tentativa automática",
+      "success": "Resumo pronto · {{provider}}",
+      "failure": "Não foi possível criar o resumo",
+      "idle": "Nenhum resumo foi gerado ainda"
+    },
+    "retries": "Novas tentativas automáticas: {{count}} / 2",
+    "next_retry": "Próxima tentativa: {{time}}",
+    "created": "Criado: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "A fonte foi alterada. Gere um novo resumo.",
+      "no_text": "Não há texto completo nem transcrição disponíveis.",
+      "auth": "A autorização expirou ou o acesso foi negado. Renove a autorização do provedor no servidor.",
+      "quota": "O limite do provedor foi atingido. Aguarde até que seja redefinido.",
+      "timeout": "O processamento demorou demais.",
+      "provider": "O serviço está temporariamente indisponível ou retornou uma resposta inutilizável.",
+      "cancelled": "O processamento foi interrompido.",
+      "too_large": "A fonte excede o limite de processamento."
+    },
+    "retry": "Tentar processar novamente",
+    "generate": "Criar resumo",
+    "regenerate": "Regenerar resumo",
+    "queued": "Processamento adicionado à fila",
+    "queue_failed": "Não foi possível adicionar o processamento à fila. Tente novamente.",
+    "original": "O original permanece disponível durante o processamento.",
+    "offline_hint": "Após regenerar, atualize a cópia offline no seu celular.",
+    "status_unavailable": "O status do processamento está indisponível. Tente carregá-lo novamente.",
+    "tags": {
+      "pending": "O Hermes está selecionando tags",
+      "success": "Tags atualizadas",
+      "failure": "Não foi possível atualizar as tags",
+      "invalid_response": "O Hermes retornou uma lista de tags inválida."
+    }
   }
 }

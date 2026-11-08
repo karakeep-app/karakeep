@@ -1261,5 +1261,46 @@
     "deselect_all": "Poništi odabir",
     "show_help": "Prikaži prečice na tipkovnici",
     "focus_search_alt": "Fokusiraj pretraživanje"
+  },
+  "summary_processing": {
+    "title": "AI sažetak",
+    "stage": {
+      "queued": "Čeka se početak",
+      "notebooklm": "NotebookLM obrađuje ovaj izvor",
+      "hermes": "Hermes izrađuje sažetak iz spremljenog teksta izvora",
+      "retry_wait": "Čeka se automatski ponovni pokušaj",
+      "success": "Sažetak je spreman · {{provider}}",
+      "failure": "Sažetak nije moguće izraditi",
+      "idle": "Još nije generiran sažetak"
+    },
+    "retries": "Automatski ponovni pokušaji: {{count}} / 2",
+    "next_retry": "Sljedeći pokušaj: {{time}}",
+    "created": "Izrađeno: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Izvor je promijenjen. Generiraj novi sažetak.",
+      "no_text": "Nije dostupan cijeli tekst ni transkript.",
+      "auth": "Autorizacija je istekla ili je pristup odbijen. Obnovi autorizaciju pružatelja usluge na poslužitelju.",
+      "quota": "Dosegnuto je ograničenje pružatelja usluge. Pričekaj da se poništi.",
+      "timeout": "Obrada je trajala predugo.",
+      "provider": "Usluga je privremeno nedostupna ili je vratila neupotrebljiv odgovor.",
+      "cancelled": "Obrada je prekinuta.",
+      "too_large": "Izvor premašuje ograničenje obrade."
+    },
+    "retry": "Ponovno pokušaj obradu",
+    "generate": "Izradi sažetak",
+    "regenerate": "Ponovno generiraj sažetak",
+    "queued": "Obrada je u redu čekanja",
+    "queue_failed": "Obradu nije moguće staviti u red čekanja. Pokušaj ponovno.",
+    "original": "Izvornik ostaje dostupan tijekom obrade.",
+    "offline_hint": "Nakon ponovnog generiranja ažuriraj izvanmrežnu kopiju na telefonu.",
+    "status_unavailable": "Status obrade nije dostupan. Pokušaj ga ponovno učitati.",
+    "tags": {
+      "pending": "Hermes odabire oznake",
+      "success": "Oznake su ažurirane",
+      "failure": "Oznake nije moguće ažurirati",
+      "invalid_response": "Hermes je vratio nevažeći popis oznaka."
+    }
   }
 }

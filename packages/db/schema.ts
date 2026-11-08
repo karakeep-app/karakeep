@@ -309,6 +309,55 @@ export const bookmarks = sqliteTable(
   ],
 );
 
+// Summary attempt state is separate from both the original content and the
+// published Markdown. A generation token fences late provider/queue responses.
+export const summaryProcessing = sqliteTable("summaryProcessing", {
+  bookmarkId: text("bookmarkId")
+    .primaryKey()
+    .references(() => bookmarks.id, { onDelete: "cascade" }),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  generation: text("generation").notNull(),
+  sourceUrl: text("sourceUrl").notNull(),
+  sourceVersion: text("sourceVersion").notNull(),
+  sourceType: text("sourceType", { enum: ["article", "youtube"] }).notNull(),
+  status: text("status", { enum: ["pending", "success", "failure"] }).notNull(),
+  provider: text("provider", { enum: ["notebooklm", "hermes"] }),
+  publishedGeneration: text("publishedGeneration"),
+  publishedSourceVersion: text("publishedSourceVersion"),
+  summaryHash: text("summaryHash"),
+  generatedAt: integer("generatedAt", { mode: "timestamp_ms" }),
+  transcriptAssetId: text("transcriptAssetId").references(() => assets.id, {
+    onDelete: "set null",
+  }),
+  notebookId: text("notebookId"),
+  errorCode: text("errorCode"),
+  stage: text("stage", {
+    enum: [
+      "queued",
+      "notebooklm",
+      "hermes",
+      "retry_wait",
+      "success",
+      "failure",
+    ],
+  })
+    .notNull()
+    .default("queued"),
+  notebookErrorCode: text("notebookErrorCode"),
+  hermesErrorCode: text("hermesErrorCode"),
+  retryCount: integer("retryCount").notNull().default(0),
+  nextRetryAt: integer("nextRetryAt", { mode: "timestamp_ms" }),
+  startedAt: integer("startedAt", { mode: "timestamp_ms" }),
+  taggingStatus: text("taggingStatus", {
+    enum: ["pending", "success", "failure"],
+  }),
+  taggingErrorCode: text("taggingErrorCode"),
+  taggedSummaryHash: text("taggedSummaryHash"),
+  updatedAt: integer("updatedAt", { mode: "timestamp_ms" }).notNull(),
+});
+
 export const bookmarkLinks = sqliteTable(
   "bookmarkLinks",
   {
@@ -363,6 +412,7 @@ export const enum AssetTypes {
   USER_UPLOADED = "userUploaded",
   AVATAR = "avatar",
   BACKUP = "backup",
+  SUMMARY_SOURCE = "summarySource",
   UNKNOWN = "unknown",
 }
 
@@ -385,6 +435,7 @@ export const assets = sqliteTable(
         AssetTypes.USER_UPLOADED,
         AssetTypes.AVATAR,
         AssetTypes.BACKUP,
+        AssetTypes.SUMMARY_SOURCE,
         AssetTypes.UNKNOWN,
       ],
     }).notNull(),

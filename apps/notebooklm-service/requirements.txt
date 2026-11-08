@@ -1,0 +1,3 @@
+notebooklm-py==0.8.6
+fastapi==0.121.2
+uvicorn==0.38.0

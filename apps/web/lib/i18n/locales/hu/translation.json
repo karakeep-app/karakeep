@@ -1254,5 +1254,46 @@
     "deselect_all": "Kijelölés megszüntetése",
     "show_help": "Billentyűkombinációk megjelenítése",
     "focus_search_alt": "Keresés fókuszálása"
+  },
+  "summary_processing": {
+    "title": "MI-összegzés",
+    "stage": {
+      "queued": "Indításra vár",
+      "notebooklm": "A NotebookLM feldolgozza ezt a forrást",
+      "hermes": "A Hermes összegzést készít a forrás mentett szövegéből",
+      "retry_wait": "Automatikus újrapróbálkozásra vár",
+      "success": "Az összegzés elkészült · {{provider}}",
+      "failure": "Nem sikerült létrehozni az összegzést",
+      "idle": "Még nem készült összegzés"
+    },
+    "retries": "Automatikus újrapróbálkozások: {{count}} / 2",
+    "next_retry": "Következő próbálkozás: {{time}}",
+    "created": "Létrehozva: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "A forrás megváltozott. Készíts új összegzést.",
+      "no_text": "Nem érhető el teljes szöveg vagy átirat.",
+      "auth": "Az engedélyezés lejárt, vagy a hozzáférést megtagadták. Újítsd meg a szolgáltató engedélyezését a kiszolgálón.",
+      "quota": "Elérted a szolgáltató korlátját. Várj, amíg a keret visszaáll.",
+      "timeout": "A feldolgozás túl sokáig tartott.",
+      "provider": "A szolgáltatás átmenetileg nem érhető el, vagy használhatatlan választ adott.",
+      "cancelled": "A feldolgozás megszakadt.",
+      "too_large": "A forrás túllépi a feldolgozási korlátot."
+    },
+    "retry": "Feldolgozás újrapróbálása",
+    "generate": "Összegzés létrehozása",
+    "regenerate": "Összegzés újragenerálása",
+    "queued": "A feldolgozás várólistára került",
+    "queue_failed": "Nem sikerült várólistára tenni a feldolgozást. Próbáld újra.",
+    "original": "Az eredeti a feldolgozás alatt is elérhető marad.",
+    "offline_hint": "Az újragenerálás után frissítsd az offline másolatot a telefonodon.",
+    "status_unavailable": "A feldolgozás állapota nem érhető el. Próbáld újra betölteni.",
+    "tags": {
+      "pending": "A Hermes címkéket választ",
+      "success": "A címkék frissültek",
+      "failure": "Nem sikerült frissíteni a címkéket",
+      "invalid_response": "A Hermes érvénytelen címkelistát adott vissza."
+    }
   }
 }

@@ -1250,5 +1250,46 @@
     "deselect_all": "選択解除",
     "show_help": "キーボードショートカットを表示",
     "focus_search_alt": "検索にフォーカス"
+  },
+  "summary_processing": {
+    "title": "AI要約",
+    "stage": {
+      "queued": "開始待ち",
+      "notebooklm": "NotebookLMがこのソースを処理しています",
+      "hermes": "Hermesが保存済みのソーステキストから要約を作成しています",
+      "retry_wait": "自動再試行待ち",
+      "success": "要約ができました · {{provider}}",
+      "failure": "要約を作成できませんでした",
+      "idle": "まだ要約は生成されていません"
+    },
+    "retries": "自動再試行: {{count}} / 2",
+    "next_retry": "次の再試行: {{time}}",
+    "created": "作成日時: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "ソースが変更されました。新しい要約を生成してください。",
+      "no_text": "全文または文字起こしがありません。",
+      "auth": "認可の有効期限が切れたか、アクセスが拒否されました。サーバー上でプロバイダーの認可を更新してください。",
+      "quota": "プロバイダーの上限に達しました。リセットされるまでお待ちください。",
+      "timeout": "処理に時間がかかりすぎました。",
+      "provider": "サービスが一時的に利用できないか、使用できない応答が返されました。",
+      "cancelled": "処理が中断されました。",
+      "too_large": "ソースが処理の上限を超えています。"
+    },
+    "retry": "処理を再試行",
+    "generate": "要約を作成",
+    "regenerate": "要約を再生成",
+    "queued": "処理をキューに追加しました",
+    "queue_failed": "処理をキューに追加できませんでした。もう一度お試しください。",
+    "original": "処理中も元のコンテンツを利用できます。",
+    "offline_hint": "再生成後、スマートフォンのオフラインコピーを更新してください。",
+    "status_unavailable": "処理状況を取得できません。読み込みを再試行してください。",
+    "tags": {
+      "pending": "Hermesがタグを選択しています",
+      "success": "タグを更新しました",
+      "failure": "タグを更新できませんでした",
+      "invalid_response": "Hermesから無効なタグ一覧が返されました。"
+    }
   }
 }

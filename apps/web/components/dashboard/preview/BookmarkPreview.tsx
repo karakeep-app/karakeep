@@ -43,6 +43,7 @@ import HighlightsBox from "./HighlightsBox";
 import LinkContentSection from "./LinkContentSection";
 import { NoteEditor } from "./NoteEditor";
 import { TextContentSection } from "./TextContentSection";
+import SummaryProcessingPanel from "./SummaryProcessingPanel";
 
 function ContentLoading() {
   const { t } = useTranslation();
@@ -183,10 +184,13 @@ export default function BookmarkPreview({
   const title = getBookmarkTitle(bookmark);
 
   // Common content for both layouts
-  const contentSection = isBookmarkStillCrawling(bookmark) ? (
-    <ContentLoading />
-  ) : (
-    content
+  const contentSection = (
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      {isOwner && <SummaryProcessingPanel bookmark={bookmark} />}
+      <div className="min-h-0 flex-1">
+        {isBookmarkStillCrawling(bookmark) ? <ContentLoading /> : content}
+      </div>
+    </div>
   );
 
   const detailsSection = (

@@ -1275,5 +1275,46 @@
     "deselect_all": "Díroghnaigh uile",
     "show_help": "Taispeáin aicearraí méarchláir",
     "focus_search_alt": "Fócas ar an gcuardach"
+  },
+  "summary_processing": {
+    "title": "Achoimre AI",
+    "stage": {
+      "queued": "Ag fanacht le tosú",
+      "notebooklm": "Tá NotebookLM ag próiseáil na foinse seo",
+      "hermes": "Tá Hermes ag cruthú achoimre ó théacs sábháilte na foinse",
+      "retry_wait": "Ag fanacht le hatriail uathoibríoch",
+      "success": "Achoimre réidh · {{provider}}",
+      "failure": "Níorbh fhéidir an achoimre a chruthú",
+      "idle": "Níor gineadh achoimre fós"
+    },
+    "retries": "Atrialacha uathoibríocha: {{count}} / 2",
+    "next_retry": "An chéad atriail eile: {{time}}",
+    "created": "Cruthaithe: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Tá an fhoinse athraithe. Gin achoimre nua.",
+      "no_text": "Níl téacs iomlán ná tras-scríbhinn ar fáil.",
+      "auth": "Tá an t-údarú imithe in éag nó diúltaíodh rochtain. Athnuaigh údarú an tsoláthraí ar an bhfreastalaí.",
+      "quota": "Tá teorainn an tsoláthraí sroichte. Fan go n-athshocrófar í.",
+      "timeout": "Thóg an phróiseáil rófhada.",
+      "provider": "Níl an tseirbhís ar fáil go sealadach nó sheol sí freagra nach féidir a úsáid ar ais.",
+      "cancelled": "Cuireadh isteach ar an bpróiseáil.",
+      "too_large": "Sáraíonn an fhoinse an teorainn phróiseála."
+    },
+    "retry": "Bain triail eile as an bpróiseáil",
+    "generate": "Cruthaigh achoimre",
+    "regenerate": "Athghin an achoimre",
+    "queued": "Cuireadh an phróiseáil sa scuaine",
+    "queue_failed": "Níorbh fhéidir an phróiseáil a chur sa scuaine. Bain triail eile as.",
+    "original": "Tá an bunleagan fós ar fáil le linn na próiseála.",
+    "offline_hint": "Tar éis athghiniúna, nuashonraigh an chóip as líne ar do ghuthán.",
+    "status_unavailable": "Níl stádas na próiseála ar fáil. Bain triail eile as é a lódáil.",
+    "tags": {
+      "pending": "Tá Hermes ag roghnú clibeanna",
+      "success": "Clibeanna nuashonraithe",
+      "failure": "Níorbh fhéidir na clibeanna a nuashonrú",
+      "invalid_response": "Sheol Hermes liosta neamhbhailí clibeanna ar ais."
+    }
   }
 }

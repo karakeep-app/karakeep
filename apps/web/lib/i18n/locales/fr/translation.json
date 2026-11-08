@@ -1261,5 +1261,46 @@
     "deselect_all": "Tout désélectionner",
     "show_help": "Afficher les raccourcis clavier",
     "focus_search_alt": "Placer le focus sur la recherche"
+  },
+  "summary_processing": {
+    "title": "Résumé par IA",
+    "stage": {
+      "queued": "En attente de démarrage",
+      "notebooklm": "NotebookLM traite cette source",
+      "hermes": "Hermes crée un résumé à partir du texte enregistré de la source",
+      "retry_wait": "En attente d’une nouvelle tentative automatique",
+      "success": "Résumé prêt · {{provider}}",
+      "failure": "Le résumé n’a pas pu être créé",
+      "idle": "Aucun résumé n’a encore été généré"
+    },
+    "retries": "Nouvelles tentatives automatiques : {{count}} / 2",
+    "next_retry": "Prochaine tentative : {{time}}",
+    "created": "Créé : {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "La source a changé. Générez un nouveau résumé.",
+      "no_text": "Aucun texte intégral ni transcription n’est disponible.",
+      "auth": "L’autorisation a expiré ou l’accès a été refusé. Renouvelez l’autorisation du fournisseur sur le serveur.",
+      "quota": "La limite du fournisseur a été atteinte. Attendez sa réinitialisation.",
+      "timeout": "Le traitement a pris trop de temps.",
+      "provider": "Le service est temporairement indisponible ou a renvoyé une réponse inutilisable.",
+      "cancelled": "Le traitement a été interrompu.",
+      "too_large": "La source dépasse la limite de traitement."
+    },
+    "retry": "Relancer le traitement",
+    "generate": "Créer un résumé",
+    "regenerate": "Régénérer le résumé",
+    "queued": "Traitement mis en file d’attente",
+    "queue_failed": "Impossible de mettre le traitement en file d’attente. Réessayez.",
+    "original": "L’original reste disponible pendant le traitement.",
+    "offline_hint": "Après la régénération, mettez à jour la copie hors ligne sur votre téléphone.",
+    "status_unavailable": "L’état du traitement est indisponible. Essayez de le charger à nouveau.",
+    "tags": {
+      "pending": "Hermes sélectionne les tags",
+      "success": "Tags mis à jour",
+      "failure": "Les tags n’ont pas pu être mis à jour",
+      "invalid_response": "Hermes a renvoyé une liste de tags invalide."
+    }
   }
 }

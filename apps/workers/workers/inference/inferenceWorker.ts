@@ -7,6 +7,7 @@ import {
   addLogFields,
   OpenAIQueue,
   zOpenAIRequestSchema,
+  tagPublishedSummary,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { InferenceClientFactory } from "@karakeep/shared/inference";
@@ -27,6 +28,13 @@ async function attemptMarkStatus(
   }
   try {
     const request = zOpenAIRequestSchema.parse(jobData);
+    // New summaries publish their own status with a generation fence.
+    if (
+      request.type === "summary_tags" ||
+      (request.type === "summarize" &&
+        serverConfig.summary.provider === "notebooklm")
+    )
+      return;
     await db
       .update(bookmarks)
       .set({
@@ -72,7 +80,13 @@ export class OpenAiWorker {
       {
         concurrency: serverConfig.inference.numWorkers,
         pollIntervalMs: 1000,
-        timeoutSecs: serverConfig.inference.jobTimeoutSec,
+        timeoutSecs:
+          serverConfig.summary.provider === "notebooklm"
+            ? Math.max(
+                serverConfig.inference.jobTimeoutSec,
+                serverConfig.summary.jobTimeoutSec + 15,
+              )
+            : serverConfig.inference.jobTimeoutSec,
       },
     );
 
@@ -82,14 +96,6 @@ export class OpenAiWorker {
 
 async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
   const jobId = job.id;
-
-  const inferenceClient = InferenceClientFactory.build();
-  if (!inferenceClient) {
-    logger.debug(
-      `[inference][${jobId}] No inference client configured, nothing to do now`,
-    );
-    return;
-  }
 
   const request = zOpenAIRequestSchema.safeParse(job.data);
   if (!request.success) {
@@ -111,12 +117,38 @@ async function runOpenAI(job: DequeuedJob<ZOpenAIRequest>) {
     "inference.type": request.data.type,
     ...(bookmark ? { "user.id": bookmark.userId } : {}),
   });
+  if (request.data.type === "summary_tags") {
+    if (!request.data.summaryGeneration)
+      throw new Error("Summary tags require a generation");
+    if (bookmark)
+      await tagPublishedSummary(
+        db,
+        bookmarkId,
+        bookmark.userId,
+        request.data.summaryGeneration,
+        job.abortSignal,
+      );
+    return;
+  }
+  const inferenceClient = InferenceClientFactory.build();
+  if (
+    !inferenceClient &&
+    !(
+      serverConfig.summary.provider === "notebooklm" &&
+      request.data.type === "summarize"
+    )
+  ) {
+    logger.debug(
+      `[inference][${jobId}] No inference client configured, nothing to do now`,
+    );
+    return;
+  }
   switch (request.data.type) {
     case "summarize":
       await runSummarization(bookmarkId, job, inferenceClient);
       break;
     case "tag":
-      await runTagging(bookmarkId, job, inferenceClient);
+      if (inferenceClient) await runTagging(bookmarkId, job, inferenceClient);
       break;
     default:
       throw new Error(`Unknown inference type: ${request.data.type}`);

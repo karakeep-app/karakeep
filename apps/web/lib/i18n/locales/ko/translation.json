@@ -1250,5 +1250,46 @@
     "deselect_all": "모두 선택 해제",
     "show_help": "키보드 단축키 표시",
     "focus_search_alt": "검색창 포커스"
+  },
+  "summary_processing": {
+    "title": "AI 요약",
+    "stage": {
+      "queued": "시작 대기 중",
+      "notebooklm": "NotebookLM이 이 소스를 처리하고 있습니다",
+      "hermes": "Hermes가 저장된 소스 텍스트로 요약을 생성하고 있습니다",
+      "retry_wait": "자동 재시도 대기 중",
+      "success": "요약 준비 완료 · {{provider}}",
+      "failure": "요약을 생성할 수 없습니다",
+      "idle": "아직 생성된 요약이 없습니다"
+    },
+    "retries": "자동 재시도: {{count}} / 2",
+    "next_retry": "다음 재시도: {{time}}",
+    "created": "생성 시간: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "소스가 변경되었습니다. 새 요약을 생성하세요.",
+      "no_text": "전체 텍스트나 대본이 없습니다.",
+      "auth": "인증이 만료되었거나 접근이 거부되었습니다. 서버에서 제공업체 인증을 갱신하세요.",
+      "quota": "제공업체의 한도에 도달했습니다. 한도가 초기화될 때까지 기다리세요.",
+      "timeout": "처리 시간이 너무 오래 걸렸습니다.",
+      "provider": "서비스를 일시적으로 사용할 수 없거나 사용할 수 없는 응답이 반환되었습니다.",
+      "cancelled": "처리가 중단되었습니다.",
+      "too_large": "소스가 처리 한도를 초과합니다."
+    },
+    "retry": "처리 다시 시도",
+    "generate": "요약 생성",
+    "regenerate": "요약 다시 생성",
+    "queued": "처리 작업이 대기열에 추가됨",
+    "queue_failed": "처리 작업을 대기열에 추가할 수 없습니다. 다시 시도하세요.",
+    "original": "처리 중에도 원본을 사용할 수 있습니다.",
+    "offline_hint": "다시 생성한 후 휴대폰의 오프라인 사본을 업데이트하세요.",
+    "status_unavailable": "처리 상태를 확인할 수 없습니다. 다시 불러오세요.",
+    "tags": {
+      "pending": "Hermes가 태그를 선택하고 있습니다",
+      "success": "태그 업데이트됨",
+      "failure": "태그를 업데이트할 수 없습니다",
+      "invalid_response": "Hermes가 유효하지 않은 태그 목록을 반환했습니다."
+    }
   }
 }

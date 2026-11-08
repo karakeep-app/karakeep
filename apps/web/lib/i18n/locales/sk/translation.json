@@ -1268,5 +1268,46 @@
     "deselect_all": "Zrušiť výber všetkého",
     "show_help": "Zobraziť klávesové skratky",
     "focus_search_alt": "Zamerať vyhľadávanie"
+  },
+  "summary_processing": {
+    "title": "Zhrnutie AI",
+    "stage": {
+      "queued": "Čaká sa na spustenie",
+      "notebooklm": "NotebookLM spracováva tento zdroj",
+      "hermes": "Hermes vytvára zhrnutie z uloženého zdrojového textu",
+      "retry_wait": "Čaká sa na automatické opakovanie",
+      "success": "Zhrnutie je pripravené · {{provider}}",
+      "failure": "Zhrnutie sa nepodarilo vytvoriť",
+      "idle": "Zatiaľ nebolo vygenerované žiadne zhrnutie"
+    },
+    "retries": "Automatické opakovania: {{count}} / 2",
+    "next_retry": "Ďalší pokus: {{time}}",
+    "created": "Vytvorené: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Zdroj sa zmenil. Vygenerujte nové zhrnutie.",
+      "no_text": "Nie je k dispozícii úplný text ani prepis.",
+      "auth": "Platnosť autorizácie vypršala alebo bol prístup zamietnutý. Obnovte autorizáciu poskytovateľa na serveri.",
+      "quota": "Bol dosiahnutý limit poskytovateľa. Počkajte, kým sa obnoví.",
+      "timeout": "Spracovanie trvalo príliš dlho.",
+      "provider": "Služba je dočasne nedostupná alebo vrátila nepoužiteľnú odpoveď.",
+      "cancelled": "Spracovanie bolo prerušené.",
+      "too_large": "Zdroj prekračuje limit spracovania."
+    },
+    "retry": "Zopakovať spracovanie",
+    "generate": "Vytvoriť zhrnutie",
+    "regenerate": "Znovu vygenerovať zhrnutie",
+    "queued": "Spracovanie bolo zaradené do frontu",
+    "queue_failed": "Spracovanie sa nepodarilo zaradiť do frontu. Skúste to znova.",
+    "original": "Originál zostáva dostupný počas spracovania.",
+    "offline_hint": "Po opätovnom vygenerovaní aktualizujte offline kópiu v telefóne.",
+    "status_unavailable": "Stav spracovania nie je dostupný. Skúste ho načítať znova.",
+    "tags": {
+      "pending": "Hermes vyberá značky",
+      "success": "Značky boli aktualizované",
+      "failure": "Značky sa nepodarilo aktualizovať",
+      "invalid_response": "Hermes vrátil neplatný zoznam značiek."
+    }
   }
 }

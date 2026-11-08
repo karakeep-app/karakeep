@@ -1254,5 +1254,46 @@
     "deselect_all": "Fravælg alle",
     "show_help": "Vis tastaturgenveje",
     "focus_search_alt": "Fokusér på søgning"
+  },
+  "summary_processing": {
+    "title": "AI-opsummering",
+    "stage": {
+      "queued": "Venter på at starte",
+      "notebooklm": "NotebookLM behandler denne kilde",
+      "hermes": "Hermes opretter en opsummering ud fra den gemte kildetekst",
+      "retry_wait": "Venter på et automatisk nyt forsøg",
+      "success": "Opsummering klar · {{provider}}",
+      "failure": "Opsummeringen kunne ikke oprettes",
+      "idle": "Der er endnu ikke genereret en opsummering"
+    },
+    "retries": "Automatiske nye forsøg: {{count}} / 2",
+    "next_retry": "Næste forsøg: {{time}}",
+    "created": "Oprettet: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Kilden er ændret. Generér en ny opsummering.",
+      "no_text": "Ingen fuld tekst eller transskription er tilgængelig.",
+      "auth": "Godkendelsen er udløbet, eller adgang blev nægtet. Forny udbyderens godkendelse på serveren.",
+      "quota": "Udbyderens grænse er nået. Vent på, at den nulstilles.",
+      "timeout": "Behandlingen tog for lang tid.",
+      "provider": "Tjenesten er midlertidigt utilgængelig eller returnerede et ubrugeligt svar.",
+      "cancelled": "Behandlingen blev afbrudt.",
+      "too_large": "Kilden overskrider behandlingsgrænsen."
+    },
+    "retry": "Prøv behandlingen igen",
+    "generate": "Opret opsummering",
+    "regenerate": "Generér opsummering igen",
+    "queued": "Behandling sat i kø",
+    "queue_failed": "Kunne ikke sætte behandlingen i kø. Prøv igen.",
+    "original": "Originalen er fortsat tilgængelig under behandlingen.",
+    "offline_hint": "Opdater offlinekopien på din telefon efter genoprettelsen.",
+    "status_unavailable": "Behandlingsstatus er utilgængelig. Prøv at indlæse den igen.",
+    "tags": {
+      "pending": "Hermes vælger tags",
+      "success": "Tags opdateret",
+      "failure": "Tags kunne ikke opdateres",
+      "invalid_response": "Hermes returnerede en ugyldig liste over tags."
+    }
   }
 }

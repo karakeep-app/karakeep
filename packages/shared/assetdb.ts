@@ -8,6 +8,7 @@ export const enum ASSET_TYPES {
   APPLICATION_PDF = "application/pdf",
   APPLICATION_ZIP = "application/zip",
   TEXT_HTML = "text/html",
+  TEXT_PLAIN = "text/plain",
 
   VIDEO_MP4 = "video/mp4",
   VIDEO_WEBM = "video/webm",
@@ -44,6 +45,7 @@ export const SUPPORTED_BOOKMARK_ASSET_TYPES: Set<string> = new Set<string>([
 // The assets that we support saving in the asset db
 export const SUPPORTED_ASSET_TYPES: Set<string> = new Set<string>([
   ...SUPPORTED_UPLOAD_ASSET_TYPES,
+  ASSET_TYPES.TEXT_PLAIN,
   ASSET_TYPES.TEXT_HTML,
   ASSET_TYPES.VIDEO_MP4,
   ASSET_TYPES.APPLICATION_ZIP,

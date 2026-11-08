@@ -1268,5 +1268,46 @@
     "deselect_all": "Odznacz wszystko",
     "show_help": "Pokaż skróty klawiszowe",
     "focus_search_alt": "Ustaw fokus na wyszukiwanie"
+  },
+  "summary_processing": {
+    "title": "Podsumowanie AI",
+    "stage": {
+      "queued": "Oczekiwanie na rozpoczęcie",
+      "notebooklm": "NotebookLM przetwarza to źródło",
+      "hermes": "Hermes tworzy podsumowanie z zapisanego tekstu źródłowego",
+      "retry_wait": "Oczekiwanie na automatyczne ponowienie",
+      "success": "Podsumowanie gotowe · {{provider}}",
+      "failure": "Nie udało się utworzyć podsumowania",
+      "idle": "Nie wygenerowano jeszcze podsumowania"
+    },
+    "retries": "Automatyczne ponowienia: {{count}} / 2",
+    "next_retry": "Następna próba: {{time}}",
+    "created": "Utworzono: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Źródło się zmieniło. Wygeneruj nowe podsumowanie.",
+      "no_text": "Pełny tekst ani transkrypcja nie są dostępne.",
+      "auth": "Autoryzacja wygasła lub odmówiono dostępu. Odnów autoryzację dostawcy na serwerze.",
+      "quota": "Osiągnięto limit dostawcy. Poczekaj na jego zresetowanie.",
+      "timeout": "Przetwarzanie trwało zbyt długo.",
+      "provider": "Usługa jest tymczasowo niedostępna lub zwróciła odpowiedź, której nie można użyć.",
+      "cancelled": "Przetwarzanie zostało przerwane.",
+      "too_large": "Źródło przekracza limit przetwarzania."
+    },
+    "retry": "Ponów przetwarzanie",
+    "generate": "Utwórz podsumowanie",
+    "regenerate": "Wygeneruj podsumowanie ponownie",
+    "queued": "Przetwarzanie dodano do kolejki",
+    "queue_failed": "Nie udało się dodać przetwarzania do kolejki. Spróbuj ponownie.",
+    "original": "Oryginał pozostaje dostępny podczas przetwarzania.",
+    "offline_hint": "Po ponownym wygenerowaniu zaktualizuj kopię offline na telefonie.",
+    "status_unavailable": "Stan przetwarzania jest niedostępny. Spróbuj wczytać go ponownie.",
+    "tags": {
+      "pending": "Hermes wybiera tagi",
+      "success": "Tagi zaktualizowano",
+      "failure": "Nie udało się zaktualizować tagów",
+      "invalid_response": "Hermes zwrócił nieprawidłową listę tagów."
+    }
   }
 }

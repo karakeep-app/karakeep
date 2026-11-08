@@ -119,7 +119,10 @@ export function buildCrawlIdempotencyKey(payload: ZCrawlLinkRequest): string {
 // Inference Worker
 export const zOpenAIRequestSchema = z.object({
   bookmarkId: z.string(),
-  type: z.enum(["summarize", "tag"]).default("tag"),
+  type: z.enum(["summarize", "tag", "summary_tags"]).default("tag"),
+  // Registered before enqueueing so late jobs cannot overwrite newer requests.
+  summaryGeneration: z.string().uuid().optional(),
+  summaryManual: z.boolean().optional(),
   // Precomputed embedding so tagging can find similar bookmarks via
   // search({vector}) without waiting for the vector to be indexed. Only set on
   // the embed -> tag path.

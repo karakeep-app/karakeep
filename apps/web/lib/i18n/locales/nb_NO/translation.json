@@ -1254,5 +1254,46 @@
     "deselect_all": "Avmarker alle",
     "show_help": "Vis tastatursnarveier",
     "focus_search_alt": "Fokuser på søk"
+  },
+  "summary_processing": {
+    "title": "AI-sammendrag",
+    "stage": {
+      "queued": "Venter på å starte",
+      "notebooklm": "NotebookLM behandler denne kilden",
+      "hermes": "Hermes lager et sammendrag fra den lagrede kildeteksten",
+      "retry_wait": "Venter på et automatisk nytt forsøk",
+      "success": "Sammendrag klart · {{provider}}",
+      "failure": "Kunne ikke opprette sammendrag",
+      "idle": "Ingen sammendrag er generert ennå"
+    },
+    "retries": "Automatiske nye forsøk: {{count}} / 2",
+    "next_retry": "Neste forsøk: {{time}}",
+    "created": "Opprettet: {{time}}",
+    "notebook_error": "NotebookLM: {{reason}}",
+    "hermes_error": "Hermes: {{reason}}",
+    "errors": {
+      "source_changed": "Kilden er endret. Generer et nytt sammendrag.",
+      "no_text": "Ingen fulltekst eller transkripsjon er tilgjengelig.",
+      "auth": "Autorisasjonen er utløpt eller tilgang ble nektet. Forny leverandørens autorisasjon på serveren.",
+      "quota": "Leverandørens grense er nådd. Vent til den tilbakestilles.",
+      "timeout": "Behandlingen tok for lang tid.",
+      "provider": "Tjenesten er midlertidig utilgjengelig eller returnerte et svar som ikke kunne brukes.",
+      "cancelled": "Behandlingen ble avbrutt.",
+      "too_large": "Kilden overskrider behandlingsgrensen."
+    },
+    "retry": "Prøv behandlingen på nytt",
+    "generate": "Opprett sammendrag",
+    "regenerate": "Generer sammendrag på nytt",
+    "queued": "Behandling satt i kø",
+    "queue_failed": "Kunne ikke sette behandlingen i kø. Prøv igjen.",
+    "original": "Originalen er fortsatt tilgjengelig under behandlingen.",
+    "offline_hint": "Etter at sammendraget er generert på nytt, oppdater den frakoblede kopien på telefonen.",
+    "status_unavailable": "Behandlingsstatusen er utilgjengelig. Prøv å laste den inn på nytt.",
+    "tags": {
+      "pending": "Hermes velger tagger",
+      "success": "Tagger oppdatert",
+      "failure": "Kunne ikke oppdatere tagger",
+      "invalid_response": "Hermes returnerte en ugyldig liste over tagger."
+    }
   }
 }

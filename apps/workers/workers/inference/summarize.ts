@@ -4,6 +4,7 @@ import { db } from "@karakeep/db";
 import { bookmarks, customPrompts, users } from "@karakeep/db/schema";
 import {
   addLogFields,
+  executeSourceSummary,
   setSpanAttributes,
   triggerSearchReindex,
   ZOpenAIRequest,
@@ -48,14 +49,27 @@ async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
 export async function runSummarization(
   bookmarkId: string,
   job: DequeuedJob<ZOpenAIRequest>,
-  inferenceClient: InferenceClient,
+  inferenceClient: InferenceClient | null,
 ) {
+  if (serverConfig.summary.provider === "notebooklm") {
+    const bookmark = await db.query.bookmarks.findFirst({
+      where: eq(bookmarks.id, bookmarkId),
+    });
+    if (bookmark)
+      await executeSourceSummary(db, bookmarkId, bookmark.userId, {
+        automatic: !job.data.summaryManual,
+        generation: job.data.summaryGeneration,
+        signal: job.abortSignal,
+      });
+    return;
+  }
   if (!serverConfig.inference.enableAutoSummarization) {
     logger.debug(
       `[inference][${job.id}] Skipping summarization job for bookmark with id "${bookmarkId}" because it's disabled in the config.`,
     );
     return;
   }
+  if (!inferenceClient) return;
   const jobId = job.id;
 
   logger.info(
