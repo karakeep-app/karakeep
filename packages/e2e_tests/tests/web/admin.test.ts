@@ -121,7 +121,7 @@ it("creates a user from the users page and the user can sign in", async ({
 
   const email = uniqueEmail("admin-e2e-created");
   // The create button is the only button in the users card header.
-  const dialog = page.getByRole("dialog", { name: "Add User" });
+  const dialog = page.getByRole("dialog", { name: "New user" });
   await openWith(cardHeaderButton(page, "Users"), dialog);
   await dialog.getByLabel("Name", { exact: true }).fill("Casey Created");
   await dialog.getByLabel("Email", { exact: true }).fill(email);
@@ -156,13 +156,13 @@ it("updates a user's role and quotas", async ({ page }) => {
   await signIn(page, admin.email);
   await goto(page, "/admin/users");
 
-  const dialog = page.getByRole("dialog", { name: "Edit User" });
+  const dialog = page.getByRole("dialog", { name: "Edit user" });
   await openWith(userRowAction(page, target.email, "edit"), dialog);
   await dialog.getByRole("combobox").click();
   await page.getByRole("option", { name: "Admin", exact: true }).click();
-  await dialog.getByLabel("Bookmark Quota", { exact: true }).fill("25");
+  await dialog.getByLabel("Bookmark quota", { exact: true }).fill("25");
   await dialog
-    .getByLabel("Storage Quota (bytes)", { exact: true })
+    .getByLabel("Storage quota (bytes)", { exact: true })
     .fill("1048576");
   await dialog.getByRole("button", { name: "Update", exact: true }).click();
   await expect(page.getByText("User updated successfully")).toBeVisible();
@@ -181,10 +181,10 @@ it("updates a user's role and quotas", async ({ page }) => {
   // The dialog is prefilled with the saved values, and clearing a quota
   // makes it unlimited again.
   await openWith(userRowAction(page, target.email, "edit"), dialog);
-  const bookmarkQuota = dialog.getByLabel("Bookmark Quota", { exact: true });
+  const bookmarkQuota = dialog.getByLabel("Bookmark quota", { exact: true });
   await expect(bookmarkQuota).toHaveValue("25");
   await expect(
-    dialog.getByLabel("Storage Quota (bytes)", { exact: true }),
+    dialog.getByLabel("Storage quota (bytes)", { exact: true }),
   ).toHaveValue("1048576");
   await expect(dialog.getByRole("combobox")).toHaveText("Admin");
   await bookmarkQuota.clear();
@@ -258,11 +258,11 @@ it("sends and revokes an invite", async ({ page }) => {
   await goto(page, "/admin/users");
 
   const email = uniqueEmail("admin-e2e-invite");
-  const dialog = page.getByRole("dialog", { name: "Send User Invitation" });
-  await openWith(cardHeaderButton(page, /^User Invitations \(\d+\)$/), dialog);
-  await dialog.getByLabel("Email Address", { exact: true }).fill(email);
+  const dialog = page.getByRole("dialog", { name: "Send user invitation" });
+  await openWith(cardHeaderButton(page, /^User invitations \(\d+\)$/), dialog);
+  await dialog.getByLabel("Email address", { exact: true }).fill(email);
   await dialog
-    .getByRole("button", { name: "Send Invitation", exact: true })
+    .getByRole("button", { name: "Send invitation", exact: true })
     .click();
   await expect(dialog).not.toBeVisible();
 
@@ -272,14 +272,14 @@ it("sends and revokes an invite", async ({ page }) => {
   await expect(row).toContainText("Ada Admin");
 
   // Actions are resend, then revoke.
-  const confirm = page.getByRole("dialog", { name: "Revoke Invite" });
+  const confirm = page.getByRole("dialog", { name: "Revoke invite" });
   await openWith(row.getByRole("button").nth(1), confirm);
   await expect(confirm).toContainText(email);
   await confirm.getByRole("button", { name: "Revoke", exact: true }).click();
   await expect(confirm).not.toBeVisible();
   await expect(row).toHaveCount(0);
   await reload(page);
-  await expect(page.getByText(/^User Invitations \(\d+\)$/)).toBeVisible();
+  await expect(page.getByText(/^User invitations \(\d+\)$/)).toBeVisible();
   await expect(row).toHaveCount(0);
 });
 

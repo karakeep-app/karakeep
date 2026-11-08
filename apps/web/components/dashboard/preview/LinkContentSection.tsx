@@ -45,11 +45,12 @@ import ReaderView from "./ReaderView";
 import SavedPageOverview from "./SavedPageOverview";
 
 function CustomRendererErrorFallback({ error }: { error: Error }) {
+  const { t } = useTranslation();
   return (
     <div className="flex h-full w-full items-center justify-center p-4">
       <Alert variant="destructive" className="max-w-md">
         <AlertTriangle className="h-4 w-4" />
-        <AlertTitle>Renderer Error</AlertTitle>
+        <AlertTitle>{t("preview.renderer_error")}</AlertTitle>
         <AlertDescription>
           Failed to load custom content renderer.{" "}
           <details className="mt-2">

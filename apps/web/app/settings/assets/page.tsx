@@ -27,10 +27,7 @@ import { ExternalLink, Trash2 } from "lucide-react";
 import { useDetachBookmarkAsset } from "@karakeep/shared-react/hooks/assets";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
-import {
-  humanFriendlyNameForAssertType,
-  isAllowedToDetachAsset,
-} from "@karakeep/trpc/lib/attachments";
+import { isAllowedToDetachAsset } from "@karakeep/trpc/lib/attachments";
 
 export default function AssetsSettingsPage() {
   const api = useTRPC();
@@ -99,7 +96,7 @@ export default function AssetsSettingsPage() {
                   <TableCell className="flex items-center gap-2">
                     {ASSET_TYPE_TO_ICON[asset.assetType]}
                     <span>
-                      {humanFriendlyNameForAssertType(asset.assetType)}
+                      {t(`settings.manage_assets.types.${asset.assetType}`)}
                     </span>
                   </TableCell>
                   <TableCell>{formatBytes(asset.size)}</TableCell>
@@ -112,7 +109,7 @@ export default function AssetsSettingsPage() {
                       prefetch={false}
                     >
                       <ExternalLink className="size-4" />
-                      <span>View Asset</span>
+                      <span>{t("settings.manage_assets.view_attachment")}</span>
                     </Link>
                   </TableCell>
                   <TableCell>
@@ -123,7 +120,7 @@ export default function AssetsSettingsPage() {
                         prefetch={false}
                       >
                         <ExternalLink className="size-4" />
-                        <span>View Bookmark</span>
+                        <span>{t("settings.manage_assets.view_bookmark")}</span>
                       </Link>
                     ) : (
                       <span className="text-muted-foreground">No bookmark</span>
@@ -179,7 +176,7 @@ export default function AssetsSettingsPage() {
               loading={isFetchingNextPage}
               ignoreDemoMode={true}
             >
-              Load More
+              {t("actions.load_more")}
             </ActionButton>
           </div>
         )}

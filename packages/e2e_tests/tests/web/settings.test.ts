@@ -28,7 +28,9 @@ it("changes the password and signs back in with the new one", async ({
   await signIn(page, email);
 
   await goto(page, "/settings/info");
-  await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Profile", exact: true }),
+  ).toBeVisible();
   await expect(page.locator("#email")).toHaveValue(email);
   await expect(page.locator("#name")).toHaveValue("Test User");
 

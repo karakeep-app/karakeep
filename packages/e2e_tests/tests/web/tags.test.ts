@@ -256,7 +256,7 @@ it("merges a tag into another from its tag page", async ({ page }) => {
 
   await openTagOptions(page, "js");
   await page.getByRole("menuitem", { name: "Merge", exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: "Merge Tag" });
+  const dialog = page.getByRole("dialog", { name: "Merge tag" });
   await retryIfPopoverIsDismissed(async () => {
     if ((await page.getByRole("listbox").count()) === 0) {
       await dialog.getByRole("combobox").click();

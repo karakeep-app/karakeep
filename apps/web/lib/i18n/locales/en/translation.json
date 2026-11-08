@@ -112,7 +112,7 @@
     "edit": "Edit",
     "rename": "Rename",
     "confirm": "Confirm",
-    "open_editor": "Open Editor",
+    "open_editor": "Open editor",
     "create": "Create",
     "fetch_now": "Fetch now",
     "summarize_with_ai": "Summarise with AI",
@@ -226,8 +226,8 @@
         "highlights": "Highlights",
         "text_highlights": "Text highlights",
         "storage_used": "Storage used",
-        "total_asset_storage": "Total asset storage",
-        "this_month": "This Month",
+        "total_asset_storage": "Total attachment storage",
+        "this_month": "This month",
         "bookmarks_added": "Bookmarks added"
       },
       "bookmark_types": {
@@ -237,10 +237,10 @@
         "assets": "Media"
       },
       "recent_activity": {
-        "title": "Recent Activity",
-        "this_week": "This Week",
-        "this_month": "This Month",
-        "this_year": "This Year"
+        "title": "Recent activity",
+        "this_week": "This week",
+        "this_month": "This month",
+        "this_year": "This year"
       },
       "top_domains": {
         "title": "Top domains",
@@ -293,13 +293,19 @@
       "curated_tags": "Curated tags",
       "curated_tags_description": "Optionally restrict AI tagging to only use tags from this list. When no tags are selected, the AI generates tags freely.",
       "curated_tags_updated": "Curated tags updated",
-      "curated_tags_update_failed": "Failed to update curated tags"
+      "curated_tags_update_failed": "Failed to update curated tags",
+      "applies_to": "Applies to"
     },
     "feeds": {
       "rss_subscriptions": "RSS subscriptions",
       "add_a_subscription": "New subscription",
       "feed_enabled": "RSS feed enabled",
-      "feed_disabled": "RSS feed disabled"
+      "feed_disabled": "RSS feed disabled",
+      "feed_name": "Feed name",
+      "import_tags": "Import tags",
+      "edit_feed": "Edit feed",
+      "last_fetch": "Last fetch",
+      "last_status": "Last status"
     },
     "webhooks": {
       "webhooks": "Webhooks",
@@ -334,7 +340,10 @@
       "import_bookmarks_from_readwise_reader_export": "Import bookmarks from Readwise Reader export",
       "import_bookmarks_from_onetab_export": "Import bookmarks from OneTab export",
       "export_links_and_notes": "Includes links, text notes, titles, tags and lists.",
-      "imported_bookmarks": "Imported bookmarks"
+      "imported_bookmarks": "Imported bookmarks",
+      "export_file": "Export file",
+      "html_file": "HTML file",
+      "import_quota_exceeded": "Import quota exceeded"
     },
     "api_keys": {
       "api_keys": "API keys",
@@ -497,7 +506,23 @@
       "bookmark_link": "Bookmark link",
       "asset_link": "Attachment link",
       "delete_asset": "Delete attachment",
-      "delete_asset_confirmation": "Delete this attachment? This can't be undone."
+      "delete_asset_confirmation": "Delete this attachment? This can't be undone.",
+      "view_attachment": "View attachment",
+      "view_bookmark": "View bookmark",
+      "types": {
+        "screenshot": "Screenshot",
+        "pdf": "PDF",
+        "assetScreenshot": "Attachment screenshot",
+        "fullPageArchive": "Saved page",
+        "precrawledArchive": "Saved page (uploaded)",
+        "bannerImage": "Banner image",
+        "video": "Video",
+        "bookmarkAsset": "Bookmark file",
+        "linkHtmlContent": "HTML content",
+        "userUploaded": "Uploaded file",
+        "avatar": "Avatar",
+        "unknown": "Unknown"
+      }
     },
     "rules": {
       "rules": "Rules",
@@ -549,7 +574,10 @@
         "removed_from_list": "A bookmark is removed from this list",
         "favourited": "A bookmark is favourited",
         "archived": "A bookmark is archived"
-      }
+      },
+      "default_rule_name": "New rule",
+      "add_action": "Add action",
+      "add_condition": "Add condition"
     },
     "subscription": {
       "subscription": "Subscription",
@@ -616,9 +644,9 @@
       },
       "imported_to": "Imported to:",
       "view_list": "View list",
-      "delete_dialog_title": "Delete import session?",
+      "delete_dialog_title": "Delete import session",
       "delete_dialog_description": "Delete \"{{name}}\"? The bookmarks stay, but this can't be undone.",
-      "finalize_dialog_title": "Finalise import session?",
+      "finalize_dialog_title": "Finalise import session",
       "finalize_dialog_description": "Queue \"{{name}}\" for background processing? Staged bookmarks will start importing.",
       "delete_session": "Delete session",
       "finalize_staging": "Finalise",
@@ -652,7 +680,7 @@
     },
     "backups": {
       "backups": "Backups",
-      "page_title": "Metadata backups",
+      "page_title": "Backups",
       "page_description": "Automatic copies of your bookmark metadata that you can download and import again.",
       "configuration": {
         "title": "Backup configuration",
@@ -671,7 +699,7 @@
       },
       "list": {
         "title": "Your backups",
-        "create_backup_now": "Create metadata backup",
+        "create_backup_now": "Create backup",
         "no_backups": "You don't have any backups yet. Enable automatic backups or create one manually.",
         "table": {
           "created_at": "Created at",
@@ -691,7 +719,7 @@
         }
       },
       "dialogs": {
-        "delete_backup_title": "Delete backup?",
+        "delete_backup_title": "Delete backup",
         "delete_backup_description": "Delete this backup? This can't be undone."
       },
       "toasts": {
@@ -711,6 +739,10 @@
       "selected": "{{count}} selected",
       "showing": "Showing {{shown}} of {{total}}",
       "load_more": "Load more"
+    },
+    "delete_account": {
+      "danger_zone": "Danger zone",
+      "delete_account": "Delete account"
     }
   },
   "admin": {
@@ -796,7 +828,7 @@
         "recrawl_pending_links_only": "Recrawl pending links",
         "recrawl_failed_links_only": "Recrawl failed links",
         "recrawl_all_links": "Recrawl all links",
-        "without_inference": "Without Inference",
+        "without_inference": "without inference",
         "regenerate_ai_tags_for_pending_bookmarks_only": "Regenerate AI tags for pending bookmarks",
         "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerate AI tags for failed bookmarks",
         "regenerate_ai_tags_for_all_bookmarks": "Regenerate AI tags for all bookmarks",
@@ -810,7 +842,9 @@
         "clean_assets": "Clean dangling attachments & re-sync metadata",
         "migrate_large_link_html_content": "Move large inline HTML content to attachments",
         "reprocess_assets_fix_mode": "Reprocess unprocessed attachments"
-      }
+      },
+      "confirm_action": "Confirm action",
+      "confirm_action_description": "{{action}}?"
     },
     "users_list": {
       "users_list": "Users",
@@ -823,7 +857,10 @@
       "asset_sizes": "Storage",
       "local_user": "Local user",
       "confirm_password": "Confirm password",
-      "unlimited": "Unlimited"
+      "unlimited": "Unlimited",
+      "edit_user": "Edit user",
+      "bookmark_quota": "Bookmark quota",
+      "storage_quota_bytes": "Storage quota (bytes)"
     },
     "admin_tools": {
       "admin_tools": "Admin tools",
@@ -863,6 +900,18 @@
       "resummarize_queued": "Re-summarise queued",
       "view": "View",
       "fetch_error": "Error fetching bookmark"
+    },
+    "invites": {
+      "title": "User invitations ({{count}})",
+      "no_invites": "No invites",
+      "invited_by": "Invited by",
+      "resend_invite": "Resend invite",
+      "revoke_invite": "Revoke invite",
+      "send_invite": "Send invite",
+      "send_user_invitation": "Send user invitation",
+      "email_address": "Email address",
+      "send_invitation": "Send invitation",
+      "revoke_confirmation": "Revoke the invite for {{email}}? This can't be undone."
     }
   },
   "options": {
@@ -905,7 +954,8 @@
       "title": "Delete list",
       "description": "Deleting a list doesn't delete any bookmarks in that list.",
       "delete_children": "Also delete nested lists",
-      "delete_children_description": "Otherwise, nested lists move to the top level."
+      "delete_children_description": "Otherwise, nested lists move to the top level.",
+      "confirm": "Delete {{icon}} {{name}}?"
     },
     "rss": {
       "title": "RSS feed",
@@ -970,7 +1020,8 @@
     "summary_bookmark_one": "{{count}} bookmark",
     "summary_bookmark_other": "{{count}} bookmarks",
     "items_count_one": "{{count}} bookmark",
-    "items_count_other": "{{count}} bookmarks"
+    "items_count_other": "{{count}} bookmarks",
+    "list_name": "List name"
   },
   "tags": {
     "all_tags": "All tags",
@@ -1000,7 +1051,9 @@
     "no_ai_tags": "No AI tags yet",
     "no_unused_tags": "You don't have any unused tags",
     "no_unused_tags_match_your_search": "No unused tags match your search",
-    "no_tags_match_your_search": "No tags match your search"
+    "no_tags_match_your_search": "No tags match your search",
+    "delete_tags": "Delete tags",
+    "merge_tag": "Merge tag"
   },
   "search": {
     "is_favorited": "Is favourited",
@@ -1083,7 +1136,9 @@
     "tabs": {
       "content": "Content",
       "details": "Details"
-    }
+    },
+    "renderer_error": "Renderer error",
+    "upload_file": "Upload file"
   },
   "editor": {
     "multiple_urls_dialog_title": "Importing URLs as separate bookmarks?",
@@ -1142,13 +1197,16 @@
           "example": "``` + space"
         }
       }
-    }
+    },
+    "drop_files": "Drop your image, PDF or Markdown file"
   },
   "dialogs": {
     "bookmarks": {
-      "delete_confirmation_title": "Delete bookmark?",
+      "delete_confirmation_title": "Delete bookmark",
       "delete_confirmation_description": "Delete this bookmark? This can't be undone.",
-      "bulk_delete_confirmation_description": "Are you sure you want to delete {{count}} bookmarks?"
+      "bulk_delete_confirmation_description": "Delete {{count}} bookmarks? This can't be undone.",
+      "bulk_delete_title": "Delete bookmarks",
+      "bulk_edit_tags_title": "Edit tags of {{count}} bookmarks"
     }
   },
   "toasts": {
@@ -1311,5 +1369,11 @@
       "failed": "Couldn't send the report. Try again later.",
       "sent": "Report sent"
     }
+  },
+  "errors": {
+    "page_not_found": "Page not found",
+    "go_back": "Go back",
+    "go_home": "Go home",
+    "try_again": "Try again"
   }
 }

@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
@@ -55,6 +56,7 @@ export default function UpdateUserDialog({
   setOpen: onOpenChange,
   onCloseAutoFocus,
 }: UpdateUserDialogProps) {
+  const { t } = useTranslation();
   const api = useTRPC();
   const queryClient = useQueryClient();
   const defaultValues = {
@@ -102,7 +104,7 @@ export default function UpdateUserDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
+          <DialogTitle>{t("admin.users_list.edit_user")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((val) => mutate(val))}>
@@ -136,7 +138,9 @@ export default function UpdateUserDialog({
                 name="bookmarkQuota"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bookmark Quota</FormLabel>
+                    <FormLabel>
+                      {t("admin.users_list.bookmark_quota")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -159,7 +163,9 @@ export default function UpdateUserDialog({
                 name="storageQuota"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Storage Quota (bytes)</FormLabel>
+                    <FormLabel>
+                      {t("admin.users_list.storage_quota_bytes")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="number"

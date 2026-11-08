@@ -1,6 +1,7 @@
 import { toast } from "@/components/ui/sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { useClientConfig } from "@/lib/clientConfig";
+import { useTranslation } from "@/lib/i18n/client";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
@@ -12,12 +13,13 @@ export function NoteEditor({
   bookmark: ZBookmark;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const demoMode = !!useClientConfig().demoMode;
 
   const updateBookmarkMutator = useUpdateBookmark({
     onSuccess: () => {
       toast({
-        description: "The bookmark has been updated!",
+        description: t("toasts.bookmarks.updated"),
       });
     },
     onError: () => {

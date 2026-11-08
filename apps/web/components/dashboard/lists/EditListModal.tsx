@@ -272,7 +272,7 @@ export function EditListModal({
                         <Input
                           type="text"
                           className="w-full"
-                          placeholder="List Name"
+                          placeholder={t("lists.list_name")}
                           {...field}
                         />
                       </FormControl>

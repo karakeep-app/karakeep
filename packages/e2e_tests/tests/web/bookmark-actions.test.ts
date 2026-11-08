@@ -200,7 +200,7 @@ it("selects all bookmarks and deletes them in bulk", async ({ page }) => {
   }
   await clickBulkAction(page, "Delete");
   await page
-    .getByRole("dialog", { name: "Delete Bookmarks" })
+    .getByRole("dialog", { name: "Delete bookmarks" })
     .getByRole("button", { name: "Delete", exact: true })
     .click();
   await expect(bookmarkCards(page)).toHaveCount(0);
@@ -256,7 +256,7 @@ it(
     await clickBulkAction(page, "Edit tags");
 
     const dialog = page.getByRole("dialog", {
-      name: "Edit Tags of 2 Bookmarks",
+      name: "Edit tags of 2 bookmarks",
     });
     const tagInput = dialog.getByPlaceholder("Search or create tags...");
     await tagInput.click();

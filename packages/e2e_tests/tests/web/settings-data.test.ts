@@ -102,7 +102,7 @@ it(
 
     const htmlCard = page
       .locator("div")
-      .filter({ has: page.getByRole("heading", { name: "HTML File" }) })
+      .filter({ has: page.getByRole("heading", { name: "HTML file" }) })
       .filter({ has: page.locator('input[type="file"]') })
       .last();
     await htmlCard.locator('input[type="file"]').setInputFiles({

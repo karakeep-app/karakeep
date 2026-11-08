@@ -33,13 +33,13 @@ export default function ErrorFallback() {
         <div className="space-y-3">
           <Button className="w-full" onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4" />
-            Try Again
+            {t("errors.try_again")}
           </Button>
 
           <Link href="/" className="block">
             <Button variant="outline" className="w-full">
               <Home className="h-4 w-4" />
-              Go Home
+              {t("errors.go_home")}
             </Button>
           </Link>
 

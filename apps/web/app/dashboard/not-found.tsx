@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n/client";
 import { ArrowLeft, FileQuestion, Home } from "lucide-react";
 
 export default function NotFound() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:border dark:bg-card dark:shadow-none">
       <div className="w-full max-w-md space-y-8 text-center">
@@ -18,7 +20,7 @@ export default function NotFound() {
         {/* Main Content */}
         <div className="space-y-4">
           <h1 className="text-balance text-2xl font-semibold text-foreground">
-            Page Not Found
+            {t("errors.page_not_found")}
           </h1>
           <p className="text-pretty leading-relaxed text-muted-foreground">
             We couldn&apos;t find the page you&apos;re looking for. It may have
@@ -30,13 +32,13 @@ export default function NotFound() {
         <div className="space-y-3">
           <Button className="w-full" onClick={() => window.history.back()}>
             <ArrowLeft className="h-4 w-4" />
-            Go Back
+            {t("errors.go_back")}
           </Button>
 
           <Link href="/" className="block">
             <Button variant="outline" className="w-full">
               <Home className="h-4 w-4" />
-              Go Home
+              {t("errors.go_home")}
             </Button>
           </Link>
         </div>

@@ -518,7 +518,7 @@ export function PromptEditor() {
                     defaultValue={field.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Applies To" />
+                      <SelectValue placeholder={t("settings.ai.applies_to")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -644,7 +644,7 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
                     defaultValue={field.value}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Applies To" />
+                      <SelectValue placeholder={t("settings.ai.applies_to")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>

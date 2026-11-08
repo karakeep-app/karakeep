@@ -102,7 +102,7 @@ it("deletes a bookmark after confirmation", async ({ page }) => {
   await bookmark.locator('button[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Delete", exact: true }).click();
   await page
-    .getByRole("dialog", { name: "Delete bookmark?" })
+    .getByRole("dialog", { name: "Delete bookmark" })
     .getByRole("button", { name: "Delete", exact: true })
     .click();
   await expect(bookmark).toHaveCount(0);

@@ -90,7 +90,7 @@ it("creates a list from the sidebar and shows it on All Lists", async ({
 
   await sidebarOf(page).getByRole("button", { name: "New list" }).click();
   const dialog = page.getByRole("dialog", { name: "New list" });
-  await dialog.getByPlaceholder("List Name").fill("Recipes to try");
+  await dialog.getByPlaceholder("List name").fill("Recipes to try");
   await dialog.getByPlaceholder("Description").fill("Dinner ideas");
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
   await expect(dialog).not.toBeVisible();
@@ -134,7 +134,7 @@ it("creates a nested list under a parent list", async ({ page }) => {
 
   await sidebarOf(page).getByRole("button", { name: "New list" }).click();
   const dialog = page.getByRole("dialog", { name: "New list" });
-  await dialog.getByPlaceholder("List Name").fill("Japan trip");
+  await dialog.getByPlaceholder("List name").fill("Japan trip");
   await dialog.getByRole("combobox").filter({ hasText: "No parent" }).click();
   await page.getByRole("option", { name: /Travel/ }).click();
   await expect(
@@ -239,7 +239,7 @@ it("creates a smart list that shows only matching bookmarks", async ({
 
   await sidebarOf(page).getByRole("button", { name: "New list" }).click();
   const dialog = page.getByRole("dialog", { name: "New list" });
-  await dialog.getByPlaceholder("List Name").fill("Weekend plans");
+  await dialog.getByPlaceholder("List name").fill("Weekend plans");
   await dialog.getByRole("combobox").filter({ hasText: "Manual list" }).click();
   await page.getByRole("option", { name: "Smart list", exact: true }).click();
   await dialog.getByPlaceholder("Search query").fill("#weekend");
@@ -286,10 +286,10 @@ it("renames and then deletes a list from its options menu", async ({
   await listHeaderOptions(page, "Old ideas").click();
   await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
   const editDialog = page.getByRole("dialog", { name: "Edit list" });
-  await expect(editDialog.getByPlaceholder("List Name")).toHaveValue(
+  await expect(editDialog.getByPlaceholder("List name")).toHaveValue(
     "Old ideas",
   );
-  await editDialog.getByPlaceholder("List Name").fill("Fresh ideas");
+  await editDialog.getByPlaceholder("List name").fill("Fresh ideas");
   await editDialog.getByRole("button", { name: "Save", exact: true }).click();
   await expect(editDialog).not.toBeVisible();
   await expect(
@@ -305,9 +305,7 @@ it("renames and then deletes a list from its options menu", async ({
   await listHeaderOptions(page, "Fresh ideas").click();
   await page.getByRole("menuitem", { name: "Delete", exact: true }).click();
   const deleteDialog = page.getByRole("dialog", { name: "Delete list" });
-  await expect(deleteDialog).toContainText(
-    "Are you sure you want to delete 💡 Fresh ideas?",
-  );
+  await expect(deleteDialog).toContainText("Delete 💡 Fresh ideas?");
   await deleteDialog
     .getByRole("button", { name: "Delete", exact: true })
     .click();
