@@ -37,8 +37,10 @@ const AGE_LABEL_KEYS = {
 } as const;
 
 // Quotes a value unless the query parser reads it as one bare word.
+// A value starting like a qualifier, such as "is:fav", would be read as one.
 const quoteIfNeeded = (value: string) =>
-  /^[^\s()"#!-][^\s()"]*$/.test(value)
+  /^[^\s()"#!-][^\s()"]*$/.test(value) &&
+  !/^(is|has|url|list|after|before|age|feed|title|tag|source):/.test(value)
     ? value
     : `"${value.replaceAll('"', "")}"`;
 
@@ -68,6 +70,12 @@ export function SmartListQueryBuilder({
   const { t } = useTranslation();
   const { data: lists } = useBookmarkLists();
   const tokens = tokenize(query);
+  // The controls rewrite single terms, which would break "or", "and" or
+  // brackets around them, so such a query is only edited as text.
+  const isGrouped = tokens.some(
+    (tok) =>
+      /^(or|and)$/i.test(tok) || /[()]/.test(tok.replace(/"[^"]*"/g, "")),
+  );
 
   const replaceTokens = (
     shouldRemove: (token: string) => boolean,
@@ -158,7 +166,15 @@ export function SmartListQueryBuilder({
   const chips = [...tags, ...pickedLists];
 
   return (
-    <div className="grid grid-cols-2 gap-3 rounded-lg border p-3">
+    <fieldset
+      disabled={isGrouped}
+      className="grid min-w-0 grid-cols-2 gap-3 rounded-lg border p-3"
+    >
+      {isGrouped && (
+        <p className="col-span-2 text-sm text-muted-foreground">
+          {t("lists.builder.grouped_query")}
+        </p>
+      )}
       <div className="space-y-1.5 max-sm:col-span-2">
         <Label htmlFor="smart-list-tags">{t("lists.builder.tags")}</Label>
         <TagNamePicker
@@ -229,6 +245,8 @@ export function SmartListQueryBuilder({
           {t("lists.builder.favourited")}
         </Label>
         <Select
+          // Radix opens on pointerdown, which a disabled fieldset doesn't stop
+          disabled={isGrouped}
           value={qualifierState(tokens, "is:fav")}
           onValueChange={(value) => setQualifier("is:fav", value)}
         >
@@ -243,6 +261,7 @@ export function SmartListQueryBuilder({
           {t("lists.builder.archived")}
         </Label>
         <Select
+          disabled={isGrouped}
           value={qualifierState(tokens, "is:archived")}
           onValueChange={(value) => setQualifier("is:archived", value)}
         >
@@ -255,6 +274,7 @@ export function SmartListQueryBuilder({
       <div className="space-y-1.5 max-sm:col-span-2">
         <Label htmlFor="smart-list-age">{t("lists.builder.age")}</Label>
         <Select
+          disabled={isGrouped}
           value={age}
           onValueChange={(value) =>
             replaceTokens(
@@ -277,6 +297,6 @@ export function SmartListQueryBuilder({
           </SelectContent>
         </Select>
       </div>
-    </div>
+    </fieldset>
   );
 }

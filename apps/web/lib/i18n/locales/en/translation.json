@@ -1222,6 +1222,7 @@
       "any": "Any",
       "archived": "Archived",
       "favourited": "Favourited",
+      "grouped_query": "This search uses \"or\", \"and\" or brackets, so it can only be changed in the search query below.",
       "lists": "Lists",
       "lists_none_found": "No lists found",
       "lists_placeholder": "Add a list",
