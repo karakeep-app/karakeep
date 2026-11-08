@@ -60,8 +60,15 @@ if (typeof document !== "undefined") {
       }
       lastInputMovedFocus =
         FOCUS_MOVING_KEYS.has(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey;
-      if (lastInputMovedFocus) {
+      // Moving to a trigger, or pressing it, from the keyboard means focus
+      // coming back to it later should show the ring, even if it was clicked once
+      const pressesTrigger =
+        (e.key === "Enter" || e.key === " ") &&
+        e.target instanceof Element &&
+        e.target.matches("button, a");
+      if (lastInputMovedFocus || pressesTrigger) {
         isNavigatingByPointer = false;
+        lastPressedElement = null;
       }
     },
     true,

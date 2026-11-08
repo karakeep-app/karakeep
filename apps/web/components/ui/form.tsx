@@ -169,7 +169,9 @@ FormMessage.displayName = "FormMessage";
  * have >=1 items"). The shared schemas stay as they are for the API, and forms
  * pass this to `zodResolver` to say how to recover instead. `fieldMessages` gives
  * a field its own message, for when "Select at least one" isn't specific enough.
- * Messages set on the schema itself still win over all of this.
+ * A string that's too long keeps "Use at most N characters", as a field's own
+ * message is usually about leaving it empty. Messages set on the schema itself
+ * still win over all of this.
  */
 function useFormErrors(fieldMessages?: Record<string, string>): {
   error: z.core.$ZodErrorMap;
