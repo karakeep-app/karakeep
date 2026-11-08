@@ -1,6 +1,7 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { assets, AssetTypes } from "@karakeep/db/schema";
+import { assets, AssetTypes, bookmarks } from "@karakeep/db/schema";
 import { BookmarkTypes, ZAssetType } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
@@ -9,6 +10,104 @@ import { defaultBeforeEach } from "../testUtils";
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
 
 describe("Asset Routes", () => {
+  test<CustomTestContext>("list assets", async ({ apiCallers, db }) => {
+    const api = apiCallers[0].assets;
+    const userId = await apiCallers[0].users.whoami().then((u) => u.id);
+    const otherUserId = await apiCallers[1].users.whoami().then((u) => u.id);
+
+    const older = await apiCallers[0].bookmarks.createBookmark({
+      url: "https://older.example.com/article",
+      title: "Older bookmark",
+      type: BookmarkTypes.LINK,
+    });
+    const newer = await apiCallers[0].bookmarks.createBookmark({
+      text: "Some note",
+      type: BookmarkTypes.TEXT,
+    });
+    await db
+      .update(bookmarks)
+      .set({ createdAt: new Date("2020-01-01") })
+      .where(eq(bookmarks.id, older.id));
+    await db
+      .update(bookmarks)
+      .set({ createdAt: new Date("2024-01-01") })
+      .where(eq(bookmarks.id, newer.id));
+    await db.insert(assets).values([
+      {
+        id: "big",
+        assetType: AssetTypes.LINK_SCREENSHOT,
+        bookmarkId: older.id,
+        size: 300,
+        userId,
+      },
+      {
+        id: "medium",
+        assetType: AssetTypes.ASSET_SCREENSHOT,
+        bookmarkId: newer.id,
+        size: 200,
+        userId,
+      },
+      {
+        id: "small",
+        assetType: AssetTypes.AVATAR,
+        bookmarkId: null,
+        size: 100,
+        userId,
+      },
+      {
+        id: "someone-elses",
+        assetType: AssetTypes.UNKNOWN,
+        bookmarkId: null,
+        size: 1000,
+        userId: otherUserId,
+      },
+    ]);
+
+    const bySize = await api.list({ limit: 2 });
+    expect(bySize.assets.map((a) => a.id)).toEqual(["big", "medium"]);
+    expect(bySize.totalCount).toEqual(3);
+    expect(bySize.totalSize).toEqual(600);
+    expect(bySize.nextCursor).toEqual(2);
+    expect(bySize.assets[0]).toMatchObject({
+      bookmarkId: older.id,
+      bookmarkTitle: "Older bookmark",
+      bookmarkUrl: "https://older.example.com/article",
+    });
+    expect(bySize.assets[1]).toMatchObject({
+      bookmarkId: newer.id,
+      bookmarkTitle: null,
+      bookmarkUrl: null,
+    });
+
+    const byNewest = await api.list({ limit: 10, sortBy: "newest" });
+    expect(byNewest.assets.map((a) => a.id)).toEqual([
+      "medium",
+      "big",
+      "small",
+    ]);
+    expect(byNewest.assets[2]).toMatchObject({
+      bookmarkId: null,
+      bookmarkTitle: null,
+      bookmarkUrl: null,
+    });
+
+    // Pages that cross from assets with a bookmark to ones without.
+    for (const limit of [1, 2]) {
+      const ids: string[] = [];
+      let cursor: number | null | undefined = undefined;
+      do {
+        const res: Awaited<ReturnType<typeof api.list>> = await api.list({
+          limit,
+          cursor,
+          sortBy: "newest",
+        });
+        ids.push(...res.assets.map((a) => a.id));
+        cursor = res.nextCursor;
+      } while (cursor);
+      expect(ids).toEqual(["medium", "big", "small"]);
+    }
+  });
+
   test<CustomTestContext>("mutate assets", async ({ apiCallers, db }) => {
     const api = apiCallers[0].assets;
     const userId = await apiCallers[0].users.whoami().then((u) => u.id);

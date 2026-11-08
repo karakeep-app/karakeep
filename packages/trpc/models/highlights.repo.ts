@@ -1,8 +1,19 @@
+import type { SQL } from "drizzle-orm";
 import { and, desc, eq, like, lt, lte, or } from "drizzle-orm";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
-import { highlights } from "@karakeep/db/schema";
+import {
+  bookmarkAssets,
+  bookmarkLinks,
+  bookmarks,
+  bookmarkTexts,
+  highlights,
+} from "@karakeep/db/schema";
+import type {
+  ZHighlightColor,
+  ZHighlightWithBookmark,
+} from "@karakeep/shared/types/highlights";
 import {
   zHighlightSchema,
   zNewHighlightSchema,
@@ -11,6 +22,10 @@ import {
 import { zCursorV2 } from "@karakeep/shared/types/pagination";
 
 type Highlight = z.infer<typeof zHighlightSchema>;
+interface HighlightsPage {
+  highlights: ZHighlightWithBookmark[];
+  nextCursor: z.infer<typeof zCursorV2> | null;
+}
 
 export class HighlightsRepo {
   constructor(private db: DB) {}
@@ -55,37 +70,16 @@ export class HighlightsRepo {
     userId: string,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
-  ): Promise<{
-    highlights: Highlight[];
-    nextCursor: z.infer<typeof zCursorV2> | null;
-  }> {
-    const results = await this.db.query.highlights.findMany({
-      where: and(
+    color?: ZHighlightColor,
+  ): Promise<HighlightsPage> {
+    return await this.findPage(
+      and(
         eq(highlights.userId, userId),
-        cursor
-          ? or(
-              lt(highlights.createdAt, cursor.createdAt),
-              and(
-                eq(highlights.createdAt, cursor.createdAt),
-                lte(highlights.id, cursor.id),
-              ),
-            )
-          : undefined,
+        color ? eq(highlights.color, color) : undefined,
       ),
-      limit: limit + 1,
-      orderBy: [desc(highlights.createdAt), desc(highlights.id)],
-    });
-
-    let nextCursor: z.infer<typeof zCursorV2> | null = null;
-    if (results.length > limit) {
-      const nextItem = results.pop()!;
-      nextCursor = {
-        id: nextItem.id,
-        createdAt: nextItem.createdAt,
-      };
-    }
-
-    return { highlights: results, nextCursor };
+      cursor,
+      limit,
+    );
   }
 
   async search(
@@ -93,42 +87,85 @@ export class HighlightsRepo {
     searchText: string,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
-  ): Promise<{
-    highlights: Highlight[];
-    nextCursor: z.infer<typeof zCursorV2> | null;
-  }> {
+    color?: ZHighlightColor,
+  ): Promise<HighlightsPage> {
     const searchPattern = `%${searchText}%`;
-    const results = await this.db.query.highlights.findMany({
-      where: and(
+    return await this.findPage(
+      and(
         eq(highlights.userId, userId),
+        color ? eq(highlights.color, color) : undefined,
         or(
           like(highlights.text, searchPattern),
           like(highlights.note, searchPattern),
         ),
-        cursor
-          ? or(
-              lt(highlights.createdAt, cursor.createdAt),
-              and(
-                eq(highlights.createdAt, cursor.createdAt),
-                lte(highlights.id, cursor.id),
-              ),
-            )
-          : undefined,
       ),
-      limit: limit + 1,
-      orderBy: [desc(highlights.createdAt), desc(highlights.id)],
-    });
+      cursor,
+      limit,
+    );
+  }
+
+  private async findPage(
+    where: SQL | undefined,
+    cursor: z.infer<typeof zCursorV2> | null | undefined,
+    limit: number,
+  ): Promise<HighlightsPage> {
+    const results = await this.db
+      .select({
+        highlight: highlights,
+        bookmarkTitle: bookmarks.title,
+        linkTitle: bookmarkLinks.title,
+        linkUrl: bookmarkLinks.url,
+        textSourceUrl: bookmarkTexts.sourceUrl,
+        assetFileName: bookmarkAssets.fileName,
+        assetSourceUrl: bookmarkAssets.sourceUrl,
+      })
+      .from(highlights)
+      .innerJoin(bookmarks, eq(highlights.bookmarkId, bookmarks.id))
+      .leftJoin(bookmarkLinks, eq(bookmarkLinks.id, bookmarks.id))
+      .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, bookmarks.id))
+      .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, bookmarks.id))
+      .where(
+        and(
+          where,
+          cursor
+            ? or(
+                lt(highlights.createdAt, cursor.createdAt),
+                and(
+                  eq(highlights.createdAt, cursor.createdAt),
+                  lte(highlights.id, cursor.id),
+                ),
+              )
+            : undefined,
+        ),
+      )
+      .orderBy(desc(highlights.createdAt), desc(highlights.id))
+      .limit(limit + 1);
 
     let nextCursor: z.infer<typeof zCursorV2> | null = null;
     if (results.length > limit) {
       const nextItem = results.pop()!;
       nextCursor = {
-        id: nextItem.id,
-        createdAt: nextItem.createdAt,
+        id: nextItem.highlight.id,
+        createdAt: nextItem.highlight.createdAt,
       };
     }
 
-    return { highlights: results, nextCursor };
+    return {
+      // These follow getBookmarkTitle and getSourceUrl from bookmarkUtils.
+      highlights: results.map((row) => ({
+        ...row.highlight,
+        bookmark: {
+          title:
+            row.bookmarkTitle ||
+            row.linkTitle ||
+            row.linkUrl ||
+            row.assetFileName ||
+            null,
+          url: row.linkUrl ?? row.textSourceUrl ?? row.assetSourceUrl ?? null,
+        },
+      })),
+      nextCursor,
+    };
   }
 
   async delete(id: string): Promise<Highlight | null> {

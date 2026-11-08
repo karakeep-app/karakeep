@@ -98,6 +98,7 @@ describe("User Routes", () => {
       where: eq(users.id, user.id),
     });
     expect(dbUser?.emailVerified).toBe(false);
+    expect(dbUser?.bookmarkClickAction).toBe("expand_bookmark_preview");
 
     // The password lives in a credential account, hashed
     const userAccounts = await db
@@ -253,7 +254,7 @@ describe("User Routes", () => {
     const settings = await caller.users.settings();
     // The default settings
     expect(settings).toEqual({
-      bookmarkClickAction: "open_original_link",
+      bookmarkClickAction: "expand_bookmark_preview",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
       backupsEnabled: false,
@@ -319,6 +320,27 @@ describe("User Routes", () => {
     await expect(() => caller.users.updateSettings({})).rejects.toThrow(
       /No settings provided/,
     );
+  });
+
+  test<CustomTestContext>("update profile name", async ({ db }) => {
+    const user = await createTestUser(db, {
+      name: "Test User",
+      email: "testprofile@test.com",
+      password: "pass1234",
+    });
+    const caller = getApiCaller(db, user.id);
+
+    await caller.users.updateProfile({ name: "  New Name  " });
+    const whoami = await caller.users.whoami();
+    expect(whoami.name).toEqual("New Name");
+    expect(whoami.email).toEqual("testprofile@test.com");
+
+    await expect(() =>
+      caller.users.updateProfile({ name: "   " }),
+    ).rejects.toThrow(/Name can't be empty/);
+    await expect(() =>
+      caller.users.updateProfile({ name: "<script>hi</script>" }),
+    ).rejects.toThrow(/invalid characters/);
   });
 
   test<CustomTestContext>("user stats - empty user", async ({ db }) => {

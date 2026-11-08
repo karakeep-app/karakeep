@@ -126,6 +126,9 @@ describe("better-auth configuration", () => {
     expect(firstUser?.bookmarkQuota).toBe(42);
     expect(firstUser?.emailVerified).toBe(false);
     expect(secondUser?.role).toBe("user");
+    // New accounts open the preview, while the column default is for existing
+    // accounts that predate this.
+    expect(firstUser?.bookmarkClickAction).toBe("expand_bookmark_preview");
 
     const credential = await db.query.accounts.findFirst({
       where: eq(accounts.userId, firstUser?.id ?? ""),

@@ -402,7 +402,9 @@ export const assets = sqliteTable(
   (tb) => [
     index("assets_bookmarkId_idx").on(tb.bookmarkId),
     index("assets_assetType_idx").on(tb.assetType),
-    index("assets_userId_idx").on(tb.userId),
+    // Serves the storage list sorted by size and the per-user size total, and
+    // anything that filters by userId alone.
+    index("assets_userId_size_idx").on(tb.userId, tb.size),
   ],
 );
 
@@ -436,7 +438,13 @@ export const highlights = sqliteTable(
   },
   (tb) => [
     index("highlights_bookmarkId_idx").on(tb.bookmarkId),
-    index("highlights_userId_idx").on(tb.userId),
+    // Lets the paginated highlights list walk the index in order and stop at
+    // the page size, instead of sorting every highlight the user has.
+    index("highlights_userId_createdAt_id_idx").on(
+      tb.userId,
+      tb.createdAt,
+      tb.id,
+    ),
   ],
 );
 
