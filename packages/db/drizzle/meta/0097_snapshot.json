@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "45560587-a004-41a7-82ed-de0e3c2638a4",
+  "id": "d02183f9-dc53-4bc5-be51-e42153495c3a",
   "prevId": "c31d84ca-0026-4898-b6a7-0409258d0aa4",
   "tables": {
     "account": {
@@ -304,7 +304,10 @@
           "name": "assets_userId_size_idx",
           "columns": [
             "userId",
-            "size"
+            "size",
+            "id",
+            "assetType",
+            "bookmarkId"
           ],
           "isUnique": false
         }

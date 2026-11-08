@@ -48,6 +48,14 @@ describe("Asset Routes", () => {
         userId,
       },
       {
+        // A second asset on the same bookmark, ordered after "big" by id.
+        id: "tiny",
+        assetType: AssetTypes.LINK_BANNER_IMAGE,
+        bookmarkId: older.id,
+        size: 50,
+        userId,
+      },
+      {
         id: "small",
         assetType: AssetTypes.AVATAR,
         bookmarkId: null,
@@ -65,8 +73,8 @@ describe("Asset Routes", () => {
 
     const bySize = await api.list({ limit: 2 });
     expect(bySize.assets.map((a) => a.id)).toEqual(["big", "medium"]);
-    expect(bySize.totalCount).toEqual(3);
-    expect(bySize.totalSize).toEqual(600);
+    expect(bySize.totalCount).toEqual(4);
+    expect(bySize.totalSize).toEqual(650);
     expect(bySize.nextCursor).toEqual(2);
     expect(bySize.assets[0]).toMatchObject({
       bookmarkId: older.id,
@@ -83,16 +91,19 @@ describe("Asset Routes", () => {
     expect(byNewest.assets.map((a) => a.id)).toEqual([
       "medium",
       "big",
+      "tiny",
       "small",
     ]);
-    expect(byNewest.assets[2]).toMatchObject({
+    expect(byNewest.assets[3]).toMatchObject({
       bookmarkId: null,
       bookmarkTitle: null,
       bookmarkUrl: null,
     });
 
-    // Pages that cross from assets with a bookmark to ones without.
-    for (const limit of [1, 2]) {
+    // Pages that cross from assets with a bookmark to ones without: with a
+    // limit of 2, page 2 holds the last bookmarked asset and the first one
+    // without; with 3, page 2 holds only assets without one.
+    for (const limit of [1, 2, 3]) {
       const ids: string[] = [];
       let cursor: number | null | undefined = undefined;
       do {
@@ -104,7 +115,7 @@ describe("Asset Routes", () => {
         ids.push(...res.assets.map((a) => a.id));
         cursor = res.nextCursor;
       } while (cursor);
-      expect(ids).toEqual(["medium", "big", "small"]);
+      expect(ids).toEqual(["medium", "big", "tiny", "small"]);
     }
   });
 

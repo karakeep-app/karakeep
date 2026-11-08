@@ -402,9 +402,17 @@ export const assets = sqliteTable(
   (tb) => [
     index("assets_bookmarkId_idx").on(tb.bookmarkId),
     index("assets_assetType_idx").on(tb.assetType),
-    // Serves the storage list sorted by size and the per-user size total, and
-    // anything that filters by userId alone.
-    index("assets_userId_size_idx").on(tb.userId, tb.size),
+    // Serves the storage list sorted by size (with id as the tie-break) and
+    // anything that filters by userId alone. assetType and bookmarkId make the
+    // per-user totals, the per-type stats and the "no bookmark" filter covering
+    // scans, so they don't look up every asset in size order.
+    index("assets_userId_size_idx").on(
+      tb.userId,
+      tb.size,
+      tb.id,
+      tb.assetType,
+      tb.bookmarkId,
+    ),
   ],
 );
 

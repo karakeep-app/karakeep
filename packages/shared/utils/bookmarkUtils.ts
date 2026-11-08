@@ -161,7 +161,11 @@ export function getTextDisplayTitle(
  * for anything that's saved or edited.
  */
 export function getBookmarkDisplayTitle(bookmark: ZBookmark) {
-  const title = getBookmarkTitle(bookmark)?.trim();
+  // A blank title counts as none, so the link title, URL or file name is used.
+  const title = getBookmarkTitle({
+    ...bookmark,
+    title: bookmark.title?.trim() || null,
+  })?.trim();
   if (title) {
     return title;
   }

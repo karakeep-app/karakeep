@@ -82,6 +82,14 @@ describe("getBookmarkDisplayTitle", () => {
         withContent({ type: BookmarkTypes.TEXT, text: "First line" }, "   "),
       ),
     ).toBe("First line");
+    expect(
+      getBookmarkDisplayTitle(
+        withContent(
+          { type: BookmarkTypes.LINK, url: "https://example.com" },
+          "   ",
+        ),
+      ),
+    ).toBe("https://example.com");
   });
 
   it("is null for a note with no text in it", () => {

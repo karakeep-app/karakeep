@@ -11,7 +11,12 @@ import {
 } from "drizzle-orm";
 import { z } from "zod";
 
-import { assets, bookmarkLinks, bookmarks } from "@karakeep/db/schema";
+import {
+  assets,
+  bookmarkAssets,
+  bookmarkLinks,
+  bookmarks,
+} from "@karakeep/db/schema";
 import { deleteAsset } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { createSignedToken } from "@karakeep/shared/signedTokens";
@@ -33,6 +38,7 @@ const listColumns = {
   bookmarkTitle: bookmarks.title,
   linkTitle: bookmarkLinks.title,
   linkUrl: bookmarkLinks.url,
+  assetFileName: bookmarkAssets.fileName,
 };
 
 export class Asset {
@@ -83,10 +89,12 @@ export class Asset {
             .from(assets)
             .leftJoin(bookmarks, eq(assets.bookmarkId, bookmarks.id))
             .leftJoin(bookmarkLinks, eq(assets.bookmarkId, bookmarkLinks.id))
+            .leftJoin(bookmarkAssets, eq(assets.bookmarkId, bookmarkAssets.id))
             .where(eq(assets.userId, ctx.user.id))
-            // Walks assets_userId_size_idx. The id keeps the order stable
-            // across pages.
-            .orderBy(desc(assets.size), asc(assets.id))
+            // Walks assets_userId_size_idx backwards, so the order needs no
+            // sort, even among assets of the same size. The id keeps the order
+            // stable across pages.
+            .orderBy(desc(assets.size), desc(assets.id))
             .limit(input.limit)
             .offset(offset),
       ctx.db
@@ -99,12 +107,20 @@ export class Asset {
     ]);
 
     return {
-      assets: results.map(({ bookmarkTitle, linkTitle, linkUrl, ...a }) => ({
-        ...a,
-        assetType: mapDBAssetTypeToUserType(a.assetType),
-        bookmarkTitle: bookmarkTitle ?? linkTitle,
-        bookmarkUrl: linkUrl,
-      })),
+      assets: results.map(
+        ({ bookmarkTitle, linkTitle, linkUrl, assetFileName, ...a }) => ({
+          ...a,
+          assetType: mapDBAssetTypeToUserType(a.assetType),
+          // Follows getBookmarkTitle, like the highlights list.
+          bookmarkTitle:
+            bookmarkTitle?.trim() ||
+            linkTitle ||
+            linkUrl ||
+            assetFileName ||
+            null,
+          bookmarkUrl: linkUrl,
+        }),
+      ),
       nextCursor: page * input.limit < totals.count ? page + 1 : null,
       totalCount: totals.count,
       totalSize: totals.size,
@@ -131,6 +147,7 @@ export class Asset {
       .from(bookmarks)
       .innerJoin(assets, eq(assets.bookmarkId, bookmarks.id))
       .leftJoin(bookmarkLinks, eq(bookmarkLinks.id, bookmarks.id))
+      .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, bookmarks.id))
       .where(eq(bookmarks.userId, ctx.user.id))
       .orderBy(desc(bookmarks.createdAt), desc(bookmarks.id), asc(assets.id))
       .limit(limit)
@@ -158,6 +175,7 @@ export class Asset {
         bookmarkTitle: sql<string | null>`null`,
         linkTitle: sql<string | null>`null`,
         linkUrl: sql<string | null>`null`,
+        assetFileName: sql<string | null>`null`,
       })
       .from(assets)
       .where(and(eq(assets.userId, ctx.user.id), isNull(assets.bookmarkId)))

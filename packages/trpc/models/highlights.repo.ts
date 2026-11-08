@@ -1,5 +1,5 @@
 import type { SQL } from "drizzle-orm";
-import { and, desc, eq, like, lt, lte, or } from "drizzle-orm";
+import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
@@ -127,14 +127,12 @@ export class HighlightsRepo {
       .where(
         and(
           where,
+          // A row value rather than "createdAt < ? OR (createdAt = ? AND
+          // id <= ?)": with ANALYZE stats, SQLite turns the OR into two index
+          // scans and sorts everything past the cursor. The row value is a
+          // single range scan on highlights_userId_createdAt_id_idx.
           cursor
-            ? or(
-                lt(highlights.createdAt, cursor.createdAt),
-                and(
-                  eq(highlights.createdAt, cursor.createdAt),
-                  lte(highlights.id, cursor.id),
-                ),
-              )
+            ? sql`(${highlights.createdAt}, ${highlights.id}) <= (${sql.param(cursor.createdAt, highlights.createdAt)}, ${cursor.id})`
             : undefined,
         ),
       )
@@ -156,7 +154,7 @@ export class HighlightsRepo {
         ...row.highlight,
         bookmark: {
           title:
-            row.bookmarkTitle ||
+            row.bookmarkTitle?.trim() ||
             row.linkTitle ||
             row.linkUrl ||
             row.assetFileName ||

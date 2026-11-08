@@ -1075,7 +1075,7 @@ export class SmartList extends List {
         .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, bookmarks.id))
         .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, bookmarks.id))
         .where(condition)
-        .orderBy(desc(bookmarks.createdAt))
+        .orderBy(desc(bookmarks.createdAt), desc(bookmarks.id))
         .limit(SmartList.PREVIEW_SAMPLE_SIZE),
     ]);
 
@@ -1084,7 +1084,7 @@ export class SmartList extends List {
       sample: sample.map((row) => ({
         id: row.id,
         title:
-          row.title ||
+          row.title?.trim() ||
           row.linkTitle ||
           row.url ||
           row.fileName ||
