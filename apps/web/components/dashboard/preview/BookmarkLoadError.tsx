@@ -11,7 +11,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { useTranslation } from "@/lib/i18n/client";
-import { cn } from "@/lib/utils";
+import { canGoBackInApp, cn } from "@/lib/utils";
 import { AlertTriangle, ArrowLeft, FileQuestion, Home } from "lucide-react";
 
 interface LoadError {
@@ -43,7 +43,7 @@ export default function BookmarkLoadError({
 
   // A deep link opened in a new tab has nothing to go back to.
   const goBack = () => {
-    if (window.history.length > 1) {
+    if (canGoBackInApp()) {
       router.back();
     } else {
       router.push("/dashboard/bookmarks");

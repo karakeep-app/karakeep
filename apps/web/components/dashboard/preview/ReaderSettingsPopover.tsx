@@ -240,10 +240,11 @@ export default function ReaderSettingsPopover({
               </div>
               <Select
                 value={
-                  sessionOverrides.fontFamily ??
-                  localOverrides.fontFamily ??
-                  serverSettings.fontFamily ??
-                  "not-set"
+                  serverSettings.fontFamily == null &&
+                  !sessionOverrides.fontFamily &&
+                  !localOverrides.fontFamily
+                    ? "not-set"
+                    : settings.fontFamily
                 }
                 onValueChange={(value) =>
                   updateSession({

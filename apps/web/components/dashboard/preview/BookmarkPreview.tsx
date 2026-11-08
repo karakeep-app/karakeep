@@ -22,7 +22,7 @@ import { useSession } from "@/lib/auth/client";
 import { formatLocalDate } from "@/lib/date-format";
 import useRelativeTime from "@/lib/hooks/relative-time";
 import { useTranslation } from "@/lib/i18n/client";
-import { cn } from "@/lib/utils";
+import { canGoBackInApp, cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -342,18 +342,6 @@ function CloseButton({
       </Button>
     </IconTooltip>
   );
-}
-
-/**
- * A tab opened on a shared link has nothing of ours to go back to. The Navigation
- * API only counts this site's entries, where the history's length also counts the
- * new tab page that came before.
- */
-function canGoBackInApp() {
-  const { navigation } = window as Window & {
-    navigation?: { canGoBack: boolean };
-  };
-  return navigation ? navigation.canGoBack : window.history.length > 1;
 }
 
 export default function BookmarkPreview({
