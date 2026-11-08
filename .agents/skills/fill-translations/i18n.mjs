@@ -123,6 +123,8 @@ const valueAt = (tl, key, ts) => {
 
 function bcp47(locale) {
   if (locale === "zhtw") return "zh-TW";
+  // Bare "pt" has Brazilian plural rules; the pt locales are European.
+  if (locale === "pt") return "pt-PT";
   return locale.replace("_", "-");
 }
 

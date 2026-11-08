@@ -113,7 +113,7 @@
     "search_tags": "Buscar tags…",
     "bookmarks_one": "{{count}} marcador",
     "bookmarks_other": "{{count}} marcadores",
-    "bookmarks_many": "{{count}} de marcadores",
+    "bookmarks_many": "{{count}} marcadores",
     "loading_more": "Carregando mais…",
     "no_tags_title": "Nenhuma tag",
     "no_tags_subtitle": "As tags aparecerão conforme você organizar seus marcadores",
@@ -394,7 +394,7 @@
     "offline_lists_selected_one": "{{count}} selecionada",
     "offline_lists_selected_other": "{{count}} selecionadas",
     "offline_lists_selected_many": "{{count}} selecionadas",
-    "offline_recent_limit_many": "{{count}} de artigos",
+    "offline_recent_limit_many": "{{count}} artigos",
     "offline_lists_none": "Nenhuma",
     "offline_storage_network": "Armazenamento e rede",
     "offline_storage_network_footer": "Quando o espaço acaba, as listas têm prioridade sobre os artigos recentes. Artigos que você mesmo salva nunca são removidos automaticamente.",
@@ -415,7 +415,7 @@
     "offline_note_error": "Os artigos que já foram baixados continuam disponíveis.",
     "offline_note_failed_one": "{{count}} artigo ainda não pôde ser baixado. Ele pode ainda estar sendo processado no servidor.",
     "offline_note_failed_other": "{{count}} artigos ainda não puderam ser baixados. Alguns podem ainda estar sendo processados no servidor.",
-    "offline_note_failed_many": "{{count}} de artigos ainda não puderam ser baixados. Alguns podem ainda estar sendo processados no servidor.",
+    "offline_note_failed_many": "{{count}} artigos ainda não puderam ser baixados. Alguns podem ainda estar sendo processados no servidor.",
     "offline_note_budget": "Aumente o limite de armazenamento ou mantenha menos artigos para baixar o restante.",
     "offline_download_now": "Baixar agora",
     "offline_storage_used": "{{used}} de {{budget}} usados",
@@ -474,7 +474,7 @@
     "source_unknown": "Desconhecida",
     "item_one": "item",
     "item_other": "itens",
-    "item_many": "de itens",
+    "item_many": "itens",
     "tags_empty": "As tags aparecerão conforme você organizar seus marcadores."
   },
   "sharing": {
@@ -519,7 +519,7 @@
     "category_flags": "Bandeiras",
     "results_one": "{{count}} resultado",
     "results_other": "{{count}} resultados",
-    "results_many": "{{count}} de resultados"
+    "results_many": "{{count}} resultados"
   },
   "headers_modal": {
     "title": "Cabeçalhos personalizados",

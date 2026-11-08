@@ -113,7 +113,7 @@
     "search_tags": "Cerca tag…",
     "bookmarks_one": "{{count}} segnalibro",
     "bookmarks_other": "{{count}} segnalibri",
-    "bookmarks_many": "{{count}} di segnalibri",
+    "bookmarks_many": "{{count}} segnalibri",
     "loading_more": "Caricamento…",
     "no_tags_title": "Nessun tag",
     "no_tags_subtitle": "I tag appariranno man mano che organizzi i tuoi segnalibri",
@@ -394,7 +394,7 @@
     "offline_lists_selected_one": "{{count}} selezionata",
     "offline_lists_selected_other": "{{count}} selezionate",
     "offline_lists_selected_many": "{{count}} selezionate",
-    "offline_recent_limit_many": "{{count}} di articoli",
+    "offline_recent_limit_many": "{{count}} articoli",
     "offline_lists_none": "Nessuna",
     "offline_storage_network": "Spazio e rete",
     "offline_storage_network_footer": "Quando lo spazio si esaurisce, le liste hanno la priorità sugli articoli recenti. Gli articoli salvati da te non vengono mai rimossi automaticamente.",
@@ -415,7 +415,7 @@
     "offline_note_error": "Gli articoli già scaricati sono ancora disponibili.",
     "offline_note_failed_one": "{{count}} articolo non è ancora stato scaricato. Potrebbe essere ancora in elaborazione sul server.",
     "offline_note_failed_other": "{{count}} articoli non sono ancora stati scaricati. Alcuni potrebbero essere ancora in elaborazione sul server.",
-    "offline_note_failed_many": "{{count}} di articoli non sono ancora stati scaricati. Alcuni potrebbero essere ancora in elaborazione sul server.",
+    "offline_note_failed_many": "{{count}} articoli non sono ancora stati scaricati. Alcuni potrebbero essere ancora in elaborazione sul server.",
     "offline_note_budget": "Aumenta il limite di spazio o conserva meno articoli per scaricare il resto.",
     "offline_download_now": "Scarica ora",
     "offline_storage_used": "{{used}} di {{budget}} utilizzati",
@@ -474,7 +474,7 @@
     "source_unknown": "Sconosciuta",
     "item_one": "elemento",
     "item_other": "elementi",
-    "item_many": "di elementi",
+    "item_many": "elementi",
     "tags_empty": "I tag appariranno man mano che organizzi i tuoi segnalibri."
   },
   "sharing": {
@@ -519,7 +519,7 @@
     "category_flags": "Bandiere",
     "results_one": "{{count}} risultato",
     "results_other": "{{count}} risultati",
-    "results_many": "{{count}} di risultati"
+    "results_many": "{{count}} risultati"
   },
   "headers_modal": {
     "title": "Intestazioni personalizzate",

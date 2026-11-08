@@ -261,7 +261,9 @@ const LANGUAGES = {
     dateFns: plDateFns,
   },
   pt: {
-    tag: "pt",
+    // Bare "pt" gets Brazilian plural rules (0 is singular); `pt` is the
+    // European Portuguese translation.
+    tag: "pt-PT",
     mobile: ptMobile,
     translation: ptWeb,
     dateFns: ptDateFns,
@@ -450,7 +452,12 @@ export const i18n = i18next.createInstance();
 void i18n.use(initReactI18next).init({
   resources,
   lng: getLanguageTag(getSystemLanguage()),
-  fallbackLng: FALLBACK_LANGUAGE,
+  fallbackLng: {
+    // Shared web strings missing in Brazilian Portuguese read better in
+    // European Portuguese than in English.
+    "pt-BR": ["pt-PT", FALLBACK_LANGUAGE],
+    default: [FALLBACK_LANGUAGE],
+  },
   // `mobile` first so short keys resolve to mobile strings; shared web
   // concepts are addressed explicitly as `translation:<path>`.
   ns: ["mobile", "translation"],

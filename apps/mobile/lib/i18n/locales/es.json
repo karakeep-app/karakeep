@@ -113,7 +113,7 @@
     "search_tags": "Buscar etiquetas…",
     "bookmarks_one": "{{count}} marcador",
     "bookmarks_other": "{{count}} marcadores",
-    "bookmarks_many": "{{count}} de marcadores",
+    "bookmarks_many": "{{count}} marcadores",
     "loading_more": "Cargando más…",
     "no_tags_title": "No hay etiquetas",
     "no_tags_subtitle": "Las etiquetas aparecerán a medida que organices tus marcadores",
@@ -394,7 +394,7 @@
     "offline_lists_selected_one": "{{count}} seleccionada",
     "offline_lists_selected_other": "{{count}} seleccionadas",
     "offline_lists_selected_many": "{{count}} seleccionadas",
-    "offline_recent_limit_many": "{{count}} de artículos",
+    "offline_recent_limit_many": "{{count}} artículos",
     "offline_lists_none": "Ninguna",
     "offline_storage_network": "Almacenamiento y red",
     "offline_storage_network_footer": "Las listas tienen prioridad sobre los artículos recientes cuando falta espacio. Los artículos que guardas tú nunca se eliminan automáticamente.",
@@ -415,7 +415,7 @@
     "offline_note_error": "Los artículos ya descargados siguen disponibles.",
     "offline_note_failed_one": "Aún no se ha podido descargar {{count}} artículo. Puede que el servidor todavía lo esté procesando.",
     "offline_note_failed_other": "Aún no se han podido descargar {{count}} artículos. Puede que el servidor todavía esté procesando algunos.",
-    "offline_note_failed_many": "Aún no se han podido descargar {{count}} de artículos. Puede que el servidor todavía esté procesando algunos.",
+    "offline_note_failed_many": "Aún no se han podido descargar {{count}} artículos. Puede que el servidor todavía esté procesando algunos.",
     "offline_note_budget": "Aumenta el límite de almacenamiento o conserva menos artículos para descargar el resto.",
     "offline_download_now": "Descargar ahora",
     "offline_storage_used": "{{used}} de {{budget}} usados",
@@ -519,7 +519,7 @@
     "category_flags": "Banderas",
     "results_one": "{{count}} resultado",
     "results_other": "{{count}} resultados",
-    "results_many": "{{count}} de resultados"
+    "results_many": "{{count}} resultados"
   },
   "headers_modal": {
     "title": "Cabeceras personalizadas",

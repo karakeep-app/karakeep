@@ -113,7 +113,7 @@
     "search_tags": "Rechercher des tags…",
     "bookmarks_one": "{{count}} marque-page",
     "bookmarks_other": "{{count}} marque-pages",
-    "bookmarks_many": "{{count}} de marque-pages",
+    "bookmarks_many": "{{count}} marque-pages",
     "loading_more": "Chargement…",
     "no_tags_title": "Aucun tag",
     "no_tags_subtitle": "Les tags apparaîtront au fur et à mesure que vous organiserez vos marque-pages",
@@ -394,7 +394,7 @@
     "offline_lists_selected_one": "{{count}} sélectionnée",
     "offline_lists_selected_other": "{{count}} sélectionnées",
     "offline_lists_selected_many": "{{count}} sélectionnées",
-    "offline_recent_limit_many": "{{count}} d’articles",
+    "offline_recent_limit_many": "{{count}} articles",
     "offline_lists_none": "Aucune",
     "offline_storage_network": "Stockage et réseau",
     "offline_storage_network_footer": "Les listes sont prioritaires sur les articles récents quand l’espace manque. Les articles que vous enregistrez vous-même ne sont jamais supprimés automatiquement.",
@@ -415,7 +415,7 @@
     "offline_note_error": "Les articles déjà téléchargés restent disponibles.",
     "offline_note_failed_one": "{{count}} article n’a pas encore pu être téléchargé. Il est peut-être encore en cours de traitement sur le serveur.",
     "offline_note_failed_other": "{{count}} articles n’ont pas encore pu être téléchargés. Certains sont peut-être encore en cours de traitement sur le serveur.",
-    "offline_note_failed_many": "{{count}} d’articles n’ont pas encore pu être téléchargés. Certains sont peut-être encore en cours de traitement sur le serveur.",
+    "offline_note_failed_many": "{{count}} articles n’ont pas encore pu être téléchargés. Certains sont peut-être encore en cours de traitement sur le serveur.",
     "offline_note_budget": "Augmentez la limite de stockage ou conservez moins d’articles pour télécharger le reste.",
     "offline_download_now": "Télécharger maintenant",
     "offline_storage_used": "{{used}} utilisés sur {{budget}}",
@@ -519,7 +519,7 @@
     "category_flags": "Drapeaux",
     "results_one": "{{count}} résultat",
     "results_other": "{{count}} résultats",
-    "results_many": "{{count}} de résultats"
+    "results_many": "{{count}} résultats"
   },
   "headers_modal": {
     "title": "En-têtes personnalisés",

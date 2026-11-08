@@ -54,10 +54,17 @@ in `index.ts`, so adding one is a small, mechanical task.
 Language codes are the web app's (`@karakeep/shared/langs`), and some of
 them aren't valid BCP-47 (`zhtw`, `pt_BR`, `nb_NO`). `Intl.PluralRules`
 throws on those, which would make i18next drop plural forms, so every
-`LANGUAGES` entry also has a `tag` (`zh-Hant`, `pt-BR`, `nb-NO`). i18next
+`LANGUAGES` entry also has a `tag` (`zh-Hant`, `pt-BR`, `nb-NO`, and
+`pt-PT` because bare `pt` gets Brazilian plural rules). i18next
 runs on the tags (so `i18n.language` is a tag), while settings and
 `SUPPORTED_LANGUAGES` use the codes. Use `getIntlLocale()` for `Intl.*`, not
 `i18n.language` directly.
+
+Hermes has no `Intl.PluralRules`, so `index.ts` loads the `intl-pluralrules`
+polyfill before i18next initializes. Without it every plural key renders as
+its raw key on a device, even though the Node tests pass;
+`__tests__/plural-polyfill.test.ts` removes the native one to cover this.
+Avoid other newer built-ins Hermes lacks, such as `Array.prototype.toSorted`.
 
 English is shipped once, as `en` (US English). The web app's `en_US` isn't
 offered on mobile.

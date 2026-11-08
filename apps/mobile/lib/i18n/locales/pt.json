@@ -113,7 +113,7 @@
     "search_tags": "Pesquisar etiquetas…",
     "bookmarks_one": "{{count}} marcador",
     "bookmarks_other": "{{count}} marcadores",
-    "bookmarks_many": "{{count}} de marcadores",
+    "bookmarks_many": "{{count}} marcadores",
     "loading_more": "A carregar mais…",
     "no_tags_title": "Sem etiquetas",
     "no_tags_subtitle": "As etiquetas aparecerão à medida que organizar os seus marcadores",
@@ -394,7 +394,7 @@
     "offline_lists_selected_one": "{{count}} selecionada",
     "offline_lists_selected_other": "{{count}} selecionadas",
     "offline_lists_selected_many": "{{count}} selecionadas",
-    "offline_recent_limit_many": "{{count}} de artigos",
+    "offline_recent_limit_many": "{{count}} artigos",
     "offline_lists_none": "Nenhuma",
     "offline_storage_network": "Armazenamento e rede",
     "offline_storage_network_footer": "Quando o espaço se esgota, as listas têm prioridade sobre os artigos recentes. Os artigos que guardar manualmente nunca são removidos automaticamente.",
@@ -415,7 +415,7 @@
     "offline_note_error": "Os artigos já transferidos continuam disponíveis.",
     "offline_note_failed_one": "Ainda não foi possível transferir {{count}} artigo. Pode ainda estar a ser processado no servidor.",
     "offline_note_failed_other": "Ainda não foi possível transferir {{count}} artigos. Alguns podem ainda estar a ser processados no servidor.",
-    "offline_note_failed_many": "Ainda não foi possível transferir {{count}} de artigos. Alguns podem ainda estar a ser processados no servidor.",
+    "offline_note_failed_many": "Ainda não foi possível transferir {{count}} artigos. Alguns podem ainda estar a ser processados no servidor.",
     "offline_note_budget": "Aumente o limite de armazenamento ou mantenha menos artigos para transferir os restantes.",
     "offline_download_now": "Transferir agora",
     "offline_storage_used": "{{used}} de {{budget}} utilizados",
@@ -474,7 +474,7 @@
     "source_unknown": "Desconhecida",
     "item_one": "item",
     "item_other": "itens",
-    "item_many": "de itens",
+    "item_many": "itens",
     "tags_empty": "As etiquetas aparecerão à medida que organizar os seus marcadores."
   },
   "sharing": {
@@ -519,7 +519,7 @@
     "category_flags": "Bandeiras",
     "results_one": "{{count}} resultado",
     "results_other": "{{count}} resultados",
-    "results_many": "{{count}} de resultados"
+    "results_many": "{{count}} resultados"
   },
   "headers_modal": {
     "title": "Cabeçalhos personalizados",
