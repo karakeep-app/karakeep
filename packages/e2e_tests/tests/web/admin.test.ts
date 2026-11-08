@@ -86,16 +86,16 @@ it("shows the admin area only to admins", async ({ page }) => {
     page.getByRole("menu"),
   );
   await expect(
-    page.getByRole("menuitem", { name: "User Settings", exact: true }),
+    page.getByRole("menuitem", { name: "Settings", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("menuitem", { name: "Admin Settings" }),
+    page.getByRole("menuitem", { name: "Admin settings" }),
   ).toHaveCount(0);
   await page.keyboard.press("Escape");
 
   await goto(page, "/admin/users");
   await expect(page).toHaveURL(/\/dashboard\/bookmarks$/);
-  await expect(page.getByText("Users List", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Users", { exact: true })).toHaveCount(0);
 
   await page.context().clearCookies();
   const admin = await createUser("admin", "Ada Admin");
@@ -104,10 +104,10 @@ it("shows the admin area only to admins", async ({ page }) => {
     page.getByRole("button", { name: "A", exact: true }),
     page.getByRole("menu"),
   );
-  await page.getByRole("menuitem", { name: "Admin Settings" }).click();
+  await page.getByRole("menuitem", { name: "Admin settings" }).click();
   await expect(page).toHaveURL(/\/admin\/overview$/);
   await expect(
-    page.getByRole("main").getByText("Server Stats", { exact: true }),
+    page.getByRole("main").getByText("Server stats", { exact: true }),
   ).toBeVisible();
 });
 
@@ -122,11 +122,11 @@ it("creates a user from the users page and the user can sign in", async ({
   const email = uniqueEmail("admin-e2e-created");
   // The create button is the only button in the users card header.
   const dialog = page.getByRole("dialog", { name: "Add User" });
-  await openWith(cardHeaderButton(page, "Users List"), dialog);
+  await openWith(cardHeaderButton(page, "Users"), dialog);
   await dialog.getByLabel("Name", { exact: true }).fill("Casey Created");
   await dialog.getByLabel("Email", { exact: true }).fill(email);
   await dialog.getByLabel("Password", { exact: true }).fill(PASSWORD);
-  await dialog.getByLabel("Confirm Password", { exact: true }).fill(PASSWORD);
+  await dialog.getByLabel("Confirm password", { exact: true }).fill(PASSWORD);
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
   // The dialog closes once the password is hashed, which is slow while other
   // tests are hashing passwords too.
@@ -211,11 +211,11 @@ it("resets a user's password so they sign in with the new one", async ({
   await goto(page, "/admin/users");
 
   const newPassword = `new-${randomUUID()}`;
-  const dialog = page.getByRole("dialog", { name: "Reset Password" });
+  const dialog = page.getByRole("dialog", { name: "Reset password" });
   await openWith(userRowAction(page, target.email, "resetPassword"), dialog);
-  await dialog.getByLabel("New Password", { exact: true }).fill(newPassword);
+  await dialog.getByLabel("New password", { exact: true }).fill(newPassword);
   await dialog
-    .getByLabel("Confirm New Password", { exact: true })
+    .getByLabel("Confirm new password", { exact: true })
     .fill(newPassword);
   await dialog.getByRole("button", { name: "Reset", exact: true }).click();
   // See the create test: the dialog closes once the password is hashed.
@@ -238,7 +238,7 @@ it("deletes a user from the users page", async ({ page }) => {
   await signIn(page, admin.email);
   await goto(page, "/admin/users");
 
-  const dialog = page.getByRole("dialog", { name: "Delete User" });
+  const dialog = page.getByRole("dialog", { name: "Delete user" });
   await openWith(userRowAction(page, target.email, "delete"), dialog);
   await expect(dialog).toContainText("Dana Deleted");
   await dialog.getByRole("button", { name: "Delete", exact: true }).click();
@@ -290,17 +290,17 @@ it("renders the overview and background jobs pages", async ({ page }) => {
   await expect(page).toHaveURL(/\/admin\/overview$/);
 
   const main = page.getByRole("main");
-  await expect(main.getByText("Server Stats", { exact: true })).toBeVisible();
-  await expect(main.getByText("Total Users", { exact: true })).toBeVisible();
+  await expect(main.getByText("Server stats", { exact: true })).toBeVisible();
+  await expect(main.getByText("Total users", { exact: true })).toBeVisible();
   await expect(
-    main.getByText("Total Bookmarks", { exact: true }),
+    main.getByText("Total bookmarks", { exact: true }),
   ).toBeVisible();
-  await expect(main.getByText("Server Version", { exact: true })).toBeVisible();
+  await expect(main.getByText("Server version", { exact: true })).toBeVisible();
 
   await expect(
-    main.getByText("Service Connections", { exact: true }),
+    main.getByText("Service connections", { exact: true }),
   ).toBeVisible();
-  for (const service of ["Search Engine", "Browser", "Queue System"]) {
+  for (const service of ["Search engine", "Browser", "Queue system"]) {
     const card = page
       .locator("div.rounded-lg")
       .filter({ has: page.getByText(service, { exact: true }) });
@@ -308,24 +308,24 @@ it("renders the overview and background jobs pages", async ({ page }) => {
   }
 
   await page
-    .getByRole("link", { name: "Background Jobs", exact: true })
+    .getByRole("link", { name: "Background jobs", exact: true })
     .click();
   await expect(page).toHaveURL(/\/admin\/background_jobs$/);
   await expect(
-    page.getByRole("heading", { name: "Background Jobs", exact: true }),
+    page.getByRole("heading", { name: "Background jobs", exact: true }),
   ).toBeVisible();
   for (const job of [
-    "Crawler Jobs",
-    "Inference Jobs",
-    "Indexing Jobs",
-    "Webhook Jobs",
-    "RSS Feed Jobs",
+    "Crawler jobs",
+    "Inference jobs",
+    "Indexing jobs",
+    "Webhook jobs",
+    "RSS feed jobs",
   ]) {
     await expect(
       page.getByRole("heading", { name: job, exact: true }),
     ).toBeVisible();
   }
   await expect(
-    page.getByRole("button", { name: "Reindex All Bookmarks" }),
+    page.getByRole("button", { name: "Reindex all bookmarks" }),
   ).toBeVisible();
 });

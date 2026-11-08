@@ -55,7 +55,7 @@ it("exports bookmarks as Karakeep JSON and Netscape HTML", async ({ page }) => {
 
   await goto(page, "/settings/import");
   await expect(
-    page.getByRole("heading", { name: "Import / Export", exact: true }),
+    page.getByRole("heading", { name: "Import / export", exact: true }),
   ).toBeVisible();
 
   const json = JSON.parse(await exportBookmarks(page)) as {
@@ -139,9 +139,9 @@ it(
       "web",
     ]);
 
-    // The folder structure is recreated under an "Imported Bookmarks" list.
+    // The folder structure is recreated under an "Imported bookmarks" list.
     const { lists } = await trpc.lists.list.query();
-    const root = lists.find((l) => l.name === "Imported Bookmarks");
+    const root = lists.find((l) => l.name === "Imported bookmarks");
     const folder = lists.find((l) => l.name === "Research");
     expect(root).toBeDefined();
     expect(folder?.parentId).toBe(root?.id);
@@ -169,7 +169,7 @@ it(
       page.getByText("You don't have any RSS subscriptions yet."),
     ).toBeVisible();
     await page
-      .getByRole("button", { name: "Add a Subscription", exact: true })
+      .getByRole("button", { name: "New subscription", exact: true })
       .click();
     const dialog = page.getByRole("dialog", {
       name: "Subscribe to a new Feed",
@@ -190,7 +190,7 @@ it(
     // The fetch button is icon-only; its tooltip identifies it.
     const fetchButton = row.getByRole("button").nth(1);
     await fetchButton.hover();
-    await expect(page.getByRole("tooltip")).toHaveText("Fetch Now");
+    await expect(page.getByRole("tooltip")).toHaveText("Fetch now");
     await fetchButton.click();
     await expect(page.getByText("Feed fetch has been enqueued!")).toBeVisible();
     await expect
@@ -213,7 +213,7 @@ it(
 
     await goto(page, "/settings/feeds");
     await row.getByRole("switch").click();
-    await expect(page.getByText("RSS Feed disabled")).toBeVisible();
+    await expect(page.getByText("RSS feed disabled")).toBeVisible();
     await expect(row.getByRole("switch")).not.toBeChecked();
     expect((await trpc.feeds.get.query({ feedId: feed.id })).enabled).toBe(
       false,

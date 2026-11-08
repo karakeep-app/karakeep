@@ -28,30 +28,30 @@ it("changes the password and signs back in with the new one", async ({
   await signIn(page, email);
 
   await goto(page, "/settings/info");
-  await expect(page.getByRole("heading", { name: "User Info" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Profile" })).toBeVisible();
   await expect(page.locator("#email")).toHaveValue(email);
   await expect(page.locator("#name")).toHaveValue("Test User");
 
-  await page.getByLabel("Current Password", { exact: true }).fill("test1234");
-  await page.getByLabel("New Password", { exact: true }).fill("n3w-passw0rd");
+  await page.getByLabel("Current password", { exact: true }).fill("test1234");
+  await page.getByLabel("New password", { exact: true }).fill("n3w-passw0rd");
   await page
-    .getByLabel("Confirm New Password", { exact: true })
+    .getByLabel("Confirm new password", { exact: true })
     .fill("n3w-passw0rd");
   await page
-    .getByRole("button", { name: "Change Password", exact: true })
+    .getByRole("button", { name: "Change password", exact: true })
     .click();
   await expect(page.getByText("Password changed successfully")).toBeVisible({
     timeout: 30000,
   });
   // The form is cleared after a successful change.
   await expect(
-    page.getByLabel("Current Password", { exact: true }),
+    page.getByLabel("Current password", { exact: true }),
   ).toHaveValue("");
 
   await goto(page, "/dashboard/bookmarks");
   // The profile menu trigger is the avatar, named after the user's initial.
   await page.getByRole("button", { name: "T", exact: true }).click();
-  await page.getByRole("menuitem", { name: "Sign Out", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/signin/, { timeout: 30000 });
 
   await submitSignInForm(page, email, "test1234");
@@ -70,13 +70,13 @@ it("rejects a password change with a wrong current password", async ({
   await signIn(page, email);
 
   await goto(page, "/settings/info");
-  await page.getByLabel("Current Password", { exact: true }).fill("wrong-pass");
-  await page.getByLabel("New Password", { exact: true }).fill("n3w-passw0rd");
+  await page.getByLabel("Current password", { exact: true }).fill("wrong-pass");
+  await page.getByLabel("New password", { exact: true }).fill("n3w-passw0rd");
   await page
-    .getByLabel("Confirm New Password", { exact: true })
+    .getByLabel("Confirm new password", { exact: true })
     .fill("n3w-passw0rd");
   await page
-    .getByRole("button", { name: "Change Password", exact: true })
+    .getByRole("button", { name: "Change password", exact: true })
     .click();
   await expect(
     page.getByText("Your current password is incorrect"),
@@ -120,13 +120,11 @@ it("hides archived bookmarks in tags once the archive option is changed", async 
   await expect(cards).toHaveCount(2);
 
   await goto(page, "/settings/info");
-  const showOption = "Show archived bookmarks in tags and lists";
-  const hideOption = "Hide archived bookmarks in tags and lists";
+  const showOption = "Show in tags and lists";
+  const hideOption = "Hide in tags and lists";
   await page.getByRole("combobox").filter({ hasText: showOption }).click();
   await page.getByRole("option", { name: hideOption, exact: true }).click();
-  await expect(
-    page.getByText("User settings have been updated!"),
-  ).toBeVisible();
+  await expect(page.getByText("Settings updated")).toBeVisible();
   await expect(
     page.getByRole("combobox").filter({ hasText: hideOption }),
   ).toBeVisible();
@@ -149,8 +147,8 @@ it("creates an API key that works until it is deleted", async ({ page }) => {
   await signIn(page, email);
 
   await goto(page, "/settings/api-keys");
-  await page.getByRole("button", { name: "New API Key", exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: "New API Key" });
+  await page.getByRole("button", { name: "New API key", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New API key" });
   await dialog.getByLabel("Name", { exact: true }).fill("My script");
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
 
@@ -202,10 +200,8 @@ it("creates, edits and deletes a webhook", async ({ page }) => {
     page.getByText("You don't have any webhooks configured yet."),
   ).toBeVisible();
 
-  await page
-    .getByRole("button", { name: "Create Webhook", exact: true })
-    .click();
-  const createDialog = page.getByRole("dialog", { name: "Create Webhook" });
+  await page.getByRole("button", { name: "New webhook", exact: true }).click();
+  const createDialog = page.getByRole("dialog", { name: "New webhook" });
   await createDialog
     .getByLabel("URL", { exact: true })
     .fill("http://nginx/hooks/first");
@@ -221,7 +217,7 @@ it("creates, edits and deletes a webhook", async ({ page }) => {
   await expect(row).toContainText("created");
 
   await row.getByRole("button", { name: "Edit", exact: true }).click();
-  const editDialog = page.getByRole("dialog", { name: "Edit Webhook" });
+  const editDialog = page.getByRole("dialog", { name: "Edit webhook" });
   await editDialog
     .getByLabel("URL", { exact: true })
     .fill("http://nginx/hooks/second");
@@ -242,7 +238,7 @@ it("creates, edits and deletes a webhook", async ({ page }) => {
   expect(webhooks[0].events).toEqual(["created", "edited"]);
 
   await row.getByRole("button", { name: "Delete", exact: true }).click();
-  const confirm = page.getByRole("dialog", { name: "Delete Webhook" });
+  const confirm = page.getByRole("dialog", { name: "Delete webhook" });
   await confirm.getByRole("button", { name: "Delete", exact: true }).click();
   await expect(row).not.toBeVisible();
   await expect(
@@ -261,15 +257,13 @@ it(
 
     await goto(page, "/settings/rules");
     await expect(page.getByText("No rules created yet")).toBeVisible();
-    await page
-      .getByRole("button", { name: "Create Rule", exact: true })
-      .click();
+    await page.getByRole("button", { name: "New rule", exact: true }).click();
 
-    await page.getByLabel("Rule Name", { exact: true }).fill("Tag everything");
+    await page.getByLabel("Rule name", { exact: true }).fill("Tag everything");
     await page
       .getByLabel("Description", { exact: true })
       .fill("Adds the inbox tag to new bookmarks");
-    // The new rule defaults to "A bookmark is added" -> "Add Tag".
+    // The new rule defaults to "A bookmark is added" -> "Add tag".
     await expect(
       page.getByRole("combobox").filter({ hasText: "A bookmark is added" }),
     ).toBeVisible();
@@ -281,12 +275,12 @@ it(
     await expect(
       page.getByRole("combobox").filter({ hasText: "inbox" }),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Save Rule", exact: true }).click();
-    await expect(page.getByText("Rule has been created!")).toBeVisible();
+    await page.getByRole("button", { name: "Save rule", exact: true }).click();
+    await expect(page.getByText("Rule created")).toBeVisible();
 
     // Saving closes the editor and lists the rule.
     await expect(
-      page.getByRole("button", { name: "Save Rule", exact: true }),
+      page.getByRole("button", { name: "Save rule", exact: true }),
     ).not.toBeVisible();
     const ruleCard = page
       .locator("div")
@@ -318,16 +312,16 @@ it(
       .toContain("inbox");
 
     await ruleCard.getByRole("switch").click();
-    await expect(page.getByText("Rule has been updated!")).toBeVisible();
+    await expect(page.getByText("Rule updated")).toBeVisible();
     await expect(ruleCard.getByRole("switch")).not.toBeChecked();
     await reload(page);
     await expect(ruleCard.getByRole("switch")).not.toBeChecked();
     expect((await trpc.rules.list.query()).rules[0].enabled).toBe(false);
 
     await ruleCard.getByRole("button").last().click();
-    const confirm = page.getByRole("dialog", { name: "Delete Rule" });
+    const confirm = page.getByRole("dialog", { name: "Delete rule" });
     await confirm.getByRole("button", { name: "Delete", exact: true }).click();
-    await expect(page.getByText("Rule has been deleted!")).toBeVisible();
+    await expect(page.getByText("Rule deleted")).toBeVisible();
     await expect(page.getByText("No rules created yet")).toBeVisible();
     expect((await trpc.rules.list.query()).rules).toHaveLength(0);
   },

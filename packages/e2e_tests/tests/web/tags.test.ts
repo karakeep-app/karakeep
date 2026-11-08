@@ -80,7 +80,7 @@ it(
     await expect(card).toHaveCount(1);
     await card.locator('button[aria-haspopup="menu"]').click();
     await page.getByRole("menuitem", { name: "Edit", exact: true }).click();
-    const dialog = page.getByRole("dialog", { name: "Edit Bookmark" });
+    const dialog = page.getByRole("dialog", { name: "Edit details" });
 
     await dialog.getByRole("button", { name: "Remove obsolete" }).click();
     await expect(
@@ -167,9 +167,9 @@ it("creates a tag from the tags page", async ({ page }) => {
   await page.getByRole("link", { name: "Tags", exact: true }).click();
   await expect(page).toHaveURL(/\/dashboard\/tags$/);
 
-  await page.getByRole("button", { name: "Create Tag", exact: true }).click();
-  const dialog = page.getByRole("dialog", { name: "Create Tag" });
-  await dialog.getByLabel("Tag Name").fill("someday");
+  await page.getByRole("button", { name: "New tag", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "New tag" });
+  await dialog.getByLabel("Tag name").fill("someday");
   await dialog.getByRole("button", { name: "Create", exact: true }).click();
   await expect(dialog).not.toBeVisible();
 
@@ -220,9 +220,9 @@ it(
 
     await openTagOptions(page, "draft");
     await page.getByRole("menuitem", { name: "Rename", exact: true }).click();
-    const dialog = page.getByRole("dialog", { name: "Rename Tag" });
-    await expect(dialog.getByLabel("Tag Name")).toHaveValue("draft");
-    await dialog.getByLabel("Tag Name").fill("published");
+    const dialog = page.getByRole("dialog", { name: "Rename tag" });
+    await expect(dialog.getByLabel("Tag name")).toHaveValue("draft");
+    await dialog.getByLabel("Tag name").fill("published");
     await dialog.getByRole("button", { name: "Save", exact: true }).click();
     await expect(dialog).not.toBeVisible();
 
