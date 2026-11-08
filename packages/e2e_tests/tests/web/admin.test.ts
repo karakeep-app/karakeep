@@ -93,8 +93,10 @@ it("shows the admin area only to admins", async ({ page }) => {
   ).toHaveCount(0);
   await page.keyboard.press("Escape");
 
+  // Non-admins get an explanation instead of a redirect.
   await goto(page, "/admin/users");
-  await expect(page).toHaveURL(/\/dashboard\/bookmarks$/);
+  await expect(page).toHaveURL(/\/admin\/users$/);
+  await expect(page.getByText("Admins only", { exact: true })).toBeVisible();
   await expect(page.getByText("Users", { exact: true })).toHaveCount(0);
 
   await page.context().clearCookies();

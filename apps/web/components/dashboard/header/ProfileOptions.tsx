@@ -154,7 +154,7 @@ export default function SidebarProfileOptions() {
           )}
           <Separator className="my-2" />
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/cleanups">
+            <Link href="/settings/cleanups">
               <Paintbrush className="size-4" />
               {t("cleanups.cleanups")}
             </Link>

@@ -745,9 +745,24 @@
     "delete_account": {
       "danger_zone": "Danger zone",
       "delete_account": "Delete account"
+    },
+    "saved": "Saved",
+    "save_failed": "Couldn't save",
+    "unsaved_changes": "Unsaved changes",
+    "discard": "Discard",
+    "groups": {
+      "account": "Account",
+      "preferences": "Preferences",
+      "data": "Data",
+      "automation": "Automation"
     }
   },
   "admin": {
+    "admins_only": {
+      "title": "Admins only",
+      "description": "You need an admin account to see this page.",
+      "back_home": "Back to home"
+    },
     "admin_settings": "Admin settings",
     "server_stats": {
       "server_stats": "Server stats",
@@ -1261,8 +1276,19 @@
     "cleanups": "Cleanups",
     "duplicate_tags": {
       "title": "Duplicate tags",
-      "merge_all_suggestions": "Merge all suggestions?"
-    }
+      "merge_all_suggestions": "Merge all suggestions?",
+      "empty_title": "No duplicate tags found",
+      "empty_description": "Tags with nearly identical names show up here so you can merge them.",
+      "suggestion_count_one": "You have {{count}} suggestion for tag merging.",
+      "suggestion_count_other": "You have {{count}} suggestions for tag merging.",
+      "show_all": "Show all",
+      "hide_all": "Hide all",
+      "instructions": "For every suggestion, select the tag that you want to keep and other tags will be merged into it.",
+      "keep": "Keep {{tag}}",
+      "merged": "Tags merged",
+      "all_applied": "All suggestions applied"
+    },
+    "description": "Tidy up your library by merging tags that look like duplicates."
   },
   "bookmark_editor": {
     "title": "Edit details",
