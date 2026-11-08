@@ -22,8 +22,14 @@ import { Check, Loader2, Plus, Sparkles, X } from "lucide-react";
 
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import { IconTooltip } from "../preview/IconControl";
+
+/** A tag created here that the server hasn't saved yet. */
+function isUnsaved(tagId: string) {
+  return tagId.startsWith("temp-");
+}
 
 export function TagsEditor({
   tags: _tags,
@@ -68,12 +74,8 @@ export function TagsEditor({
   // Tags this editor attached or detached, by name, until the server agrees.
   // Another editor on the same bookmark (such as the preview's other layout)
   // has none of these, so it takes the server's tags as they are.
-  // "detach-once-saved" is a new tag removed before it had an id to detach by.
   const pendingChangesRef = React.useRef(
-    new Map<string, "attach" | "detach" | "detach-once-saved">(),
-  );
-  const detachSavedTag = React.useEffectEvent(
-    (tag: { tagName: string; tagId: string }) => onDetach(tag),
+    new Map<string, "attach" | "detach">(),
   );
 
   const generateTempId = React.useCallback(() => {
@@ -104,20 +106,10 @@ export function TagsEditor({
     const serverTags = new Map(_tags.map((tag) => [tag.name, tag]));
     const pending = pendingChangesRef.current;
     for (const [name, change] of pending) {
-      const serverTag = serverTags.get(name);
-      if (change === "detach-once-saved") {
-        if (serverTag) {
-          pending.set(name, "detach");
-          detachSavedTag({ tagId: serverTag.id, tagName: name });
-        }
-      } else if ((change === "attach") === !!serverTag) {
+      if ((change === "attach") === serverTags.has(name)) {
         pending.delete(name);
       }
     }
-    const isDetaching = (name: string) => {
-      const change = pending.get(name);
-      return change === "detach" || change === "detach-once-saved";
-    };
 
     setOptimisticTags((prev) => {
       // Keep the chips where they are, so a saved tag doesn't jump.
@@ -130,7 +122,7 @@ export function TagsEditor({
       });
       for (const tag of _tags) {
         if (
-          !isDetaching(tag.name) &&
+          pending.get(tag.name) !== "detach" &&
           !results.some((t) => t.name === tag.name)
         ) {
           results.push(tag);
@@ -242,34 +234,35 @@ export function TagsEditor({
   ) => {
     switch (actionMeta.action) {
       case "remove-value": {
-        // A temporary id means nothing to the server, so a new tag is
-        // detached once the server shows it with its real one.
-        const isSaved = !actionMeta.id.startsWith("temp-");
-        pendingChangesRef.current.set(
-          actionMeta.name,
-          isSaved ? "detach" : "detach-once-saved",
-        );
-        setOptimisticTags((prev) => prev.filter((t) => t.id != actionMeta.id));
-        if (isSaved) {
-          onDetach({
-            tagId: actionMeta.id,
-            tagName: actionMeta.name,
-          });
+        // A new tag can't be detached until the server gives it an id.
+        if (isUnsaved(actionMeta.id)) {
+          break;
         }
+        pendingChangesRef.current.set(actionMeta.name, "detach");
+        setOptimisticTags((prev) => prev.filter((t) => t.id != actionMeta.id));
+        onDetach({
+          tagId: actionMeta.id,
+          tagName: actionMeta.name,
+        });
         break;
       }
       case "create-option": {
+        // The name the server will save, so the chip can be matched to it.
+        const name = normalizeTagName(actionMeta.name);
+        if (!name) {
+          break;
+        }
         const tempId = generateTempId();
-        pendingChangesRef.current.set(actionMeta.name, "attach");
+        pendingChangesRef.current.set(name, "attach");
         setOptimisticTags((prev) => [
           ...prev,
           {
             id: tempId,
-            name: actionMeta.name,
+            name,
             attachedBy: "human" as const,
           },
         ]);
-        onAttach({ tagName: actionMeta.name });
+        onAttach({ tagName: name });
         break;
       }
       case "select-option": {
@@ -382,7 +375,8 @@ export function TagsEditor({
               aria-label={t("tags.remove_named", {
                 name: tag.name,
               })}
-              className={removeClassName}
+              className={cn(removeClassName, "disabled:opacity-50")}
+              disabled={isUnsaved(tag.id)}
               onClick={(e) => {
                 e.stopPropagation();
                 onChange({
