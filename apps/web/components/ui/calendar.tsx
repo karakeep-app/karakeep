@@ -10,9 +10,10 @@ import {
 } from "lucide-react";
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
 
-// The year dropdown only offers what's in this range
+// The year dropdown only offers what's in this range. 1900 is the earliest date
+// the bookmark editor accepts.
 const THIS_YEAR = new Date().getFullYear();
-const DEFAULT_START_MONTH = new Date(THIS_YEAR - 100, 0);
+const DEFAULT_START_MONTH = new Date(1900, 0);
 const DEFAULT_END_MONTH = new Date(THIS_YEAR + 10, 11);
 
 function Calendar({

@@ -81,6 +81,11 @@ if (typeof document !== "undefined") {
       setFocusRingMuted(e.target, false);
     }
   });
+  // Keys pressed in an iframe or another window never reach this document, so
+  // tabbing back in from one mustn't count as pointer navigation.
+  window.addEventListener("blur", () => {
+    isNavigatingByPointer = false;
+  });
 }
 
 /**

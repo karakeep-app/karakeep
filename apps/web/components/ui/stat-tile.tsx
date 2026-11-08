@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils";
  * the whole tile a link to the page it counts, or `onClick` to make it a toggle
  * button, `pressed` marks it as the active one. Without either it's static, and
  * doesn't react to the pointer. `action` is a control of its own in the corner,
- * such as a period selector, and takes the place of the icon.
+ * such as a period selector, and takes the place of the icon. It's only for a
+ * static tile, as a control can't sit inside a link or a button.
  */
 export function StatTile({
   label,
@@ -26,14 +27,19 @@ export function StatTile({
   label: React.ReactNode;
   value: React.ReactNode;
   icon?: LucideIcon;
-  action?: React.ReactNode;
   helper?: React.ReactNode;
   loading?: boolean;
-  href?: string;
-  onClick?: () => void;
-  pressed?: boolean;
   className?: string;
-}) {
+} & (
+  | {
+      action?: React.ReactNode;
+      href?: undefined;
+      onClick?: undefined;
+      pressed?: undefined;
+    }
+  | { href: string; action?: never; onClick?: undefined; pressed?: undefined }
+  | { onClick: () => void; pressed?: boolean; action?: never; href?: undefined }
+)) {
   const content = (
     <>
       <div className="flex flex-wrap items-start justify-between gap-2 text-sm text-muted-foreground">

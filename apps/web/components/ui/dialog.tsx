@@ -20,7 +20,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 dark:bg-black/60",
+      "fixed inset-0 z-50 bg-black/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -29,14 +29,35 @@ const DialogOverlay = React.forwardRef<
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 /**
+ * Where focus goes back to when a dialog closes. A dialog opened from a menu
+ * item gets the menu's trigger, as the item is gone by then.
+ */
+function focusReturnTarget() {
+  let element = document.activeElement;
+  let menu = element?.closest('[role="menu"]');
+  while (menu?.id) {
+    element = document.querySelector(
+      `[aria-controls="${CSS.escape(menu.id)}"]`,
+    );
+    menu = element?.closest('[role="menu"]');
+  }
+  // Safari doesn't focus a pressed button, which leaves the body, and then
+  // Radix's own return to a DialogTrigger is the better choice.
+  return element instanceof HTMLElement && element !== document.body
+    ? element
+    : null;
+}
+
+/**
  * Never taller than the viewport. A dialog that can grow wraps its fields in
  * `DialogBody`, so the title and actions stay in view while the fields scroll,
  * and with one of those the shell itself never scrolls. A form spanning all three
  * uses `className="contents"` to stay out of the layout. `sheetOnPhone` fills the
  * screen at phone width, for an editor that needs all of it. There are two widths:
  * `sm`, 480px, for confirmations and short forms, and `lg`, 640px, for complex ones.
- * On closing, focus goes back to whatever had it on opening. Radix only does that
- * for a `DialogTrigger`, and a dialog opened from a row's menu doesn't have one.
+ * On closing, focus goes back to whatever had it on opening, or the trigger of
+ * the menu it was opened from. Radix only does that for a `DialogTrigger`, and a
+ * dialog opened from a row's menu doesn't have one.
  */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
@@ -55,6 +76,7 @@ const DialogContent = React.forwardRef<
       size = "sm",
       onOpenAutoFocus,
       onCloseAutoFocus,
+      onInteractOutside,
       ...props
     },
     ref,
@@ -66,17 +88,24 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Content
           ref={ref}
           onOpenAutoFocus={(event) => {
-            openedFrom.current =
-              document.activeElement instanceof HTMLElement
-                ? document.activeElement
-                : null;
+            openedFrom.current = focusReturnTarget();
             onOpenAutoFocus?.(event);
           }}
           onCloseAutoFocus={(event) => {
             onCloseAutoFocus?.(event);
             if (!event.defaultPrevented && openedFrom.current?.isConnected) {
               event.preventDefault();
-              openedFrom.current.focus();
+              openedFrom.current.focus({ preventScroll: true });
+            }
+          }}
+          onInteractOutside={(event) => {
+            onInteractOutside?.(event);
+            // A toast's action, like Undo, is outside the dialog but shouldn't close it
+            if (
+              event.target instanceof Element &&
+              event.target.closest("[data-sonner-toaster]")
+            ) {
+              event.preventDefault();
             }
           }}
           className={cn(

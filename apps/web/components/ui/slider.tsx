@@ -62,7 +62,8 @@ function StepperSlider({
 }) {
   const stepBy = (delta: number) => {
     // Steps such as 0.1 would otherwise drift, 1.5 + 0.1 isn't 1.6 in floats.
-    const next = Math.round((value + delta) / step) * step;
+    // Counted from min, so the buttons land on the same values as dragging.
+    const next = min + Math.round((value + delta - min) / step) * step;
     onValueCommit(Math.min(max, Math.max(min, Number(next.toFixed(4)))));
   };
   const stepperClass = "shrink-0 text-muted-foreground max-sm:size-11";

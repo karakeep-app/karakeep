@@ -108,6 +108,7 @@ export default function BulkBookmarksAction() {
     if (!isClipboardAvailable()) {
       toast({
         description: `Copying is only available over https`,
+        variant: "destructive",
       });
       return;
     }
