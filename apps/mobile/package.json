@@ -65,6 +65,7 @@
     "expo-system-ui": "~57.0.4",
     "expo-web-browser": "~57.0.3",
     "i18next": "^23.16.5",
+    "intl-pluralrules": "^2.0.1",
     "lucide-react-native": "^0.513.0",
     "nativewind": "^4.2.6",
     "react": "19.2.3",
