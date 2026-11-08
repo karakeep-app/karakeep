@@ -83,7 +83,7 @@ function ApplyAllButton({ suggestions }: { suggestions: Suggestion[] }) {
     await Promise.all(promises)
       .then(() => {
         toast({
-          description: "All suggestions applied",
+          description: t("cleanups.duplicate_tags.all_applied"),
         });
       })
       .catch(() => ({}))
@@ -129,7 +129,7 @@ function SuggestionRow({
   const { mutate, isPending } = useMergeTag({
     onSuccess: () => {
       toast({
-        description: "Tags merged",
+        description: t("cleanups.duplicate_tags.merged"),
       });
     },
     onError: (e) => {
@@ -158,8 +158,10 @@ function SuggestionRow({
               </Link>
               <Button
                 size="none"
-                aria-label={`Keep ${tag.name}`}
-                title={`Keep ${tag.name}`}
+                aria-label={t("cleanups.duplicate_tags.keep", {
+                  tag: tag.name,
+                })}
+                title={t("cleanups.duplicate_tags.keep", { tag: tag.name })}
                 className={cn(
                   "-translate-1/2 absolute -right-1.5 -top-1.5 rounded-full p-0.5",
                   selected ? null : "hidden group-hover:block",
@@ -201,6 +203,7 @@ function SuggestionRow({
 }
 
 export function TagDuplicationDetection() {
+  const { t } = useTranslation();
   const api = useTRPC();
   const [expanded, setExpanded] = useState(false);
   const { data: allTags } = useQuery(
@@ -252,8 +255,8 @@ export function TagDuplicationDetection() {
       <EmptyState
         compact
         icon={CircleCheck}
-        title="No duplicate tags found"
-        description="Tags with nearly identical names show up here so you can merge them."
+        title={t("cleanups.duplicate_tags.empty_title")}
+        description={t("cleanups.duplicate_tags.empty_description")}
       />
     );
   }
@@ -262,26 +265,27 @@ export function TagDuplicationDetection() {
     <Collapsible open={expanded} onOpenChange={setExpanded}>
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
         <span>
-          {suggestions.length === 1
-            ? "You have 1 suggestion for tag merging."
-            : `You have ${suggestions.length} suggestions for tag merging.`}
+          {t("cleanups.duplicate_tags.suggestion_count", {
+            count: suggestions.length,
+          })}
         </span>
         <CollapsibleTrigger asChild>
           <Button variant="outline" size="sm">
-            {expanded ? "Hide all" : "Show all"}
+            {expanded
+              ? t("cleanups.duplicate_tags.hide_all")
+              : t("cleanups.duplicate_tags.show_all")}
           </Button>
         </CollapsibleTrigger>
       </div>
       <CollapsibleContent>
         <p className="mt-2 text-sm text-muted-foreground">
-          For every suggestion, select the tag that you want to keep and other
-          tags will be merged into it.
+          {t("cleanups.duplicate_tags.instructions")}
         </p>
         {suggestions.length > 0 && (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tags</TableHead>
+                <TableHead>{t("common.tags")}</TableHead>
                 <TableHead className="text-center">
                   <ApplyAllButton suggestions={suggestions} />
                 </TableHead>

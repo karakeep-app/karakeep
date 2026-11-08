@@ -23,7 +23,7 @@ import type { SectionNavGroup } from "./SectionNav";
 export const SETTINGS_HOME = "/settings/info";
 
 export function settingsNavGroups(t: TFunction): SectionNavGroup[] {
-  return [
+  const groups: SectionNavGroup[] = [
     {
       label: t("settings.groups.account"),
       items: [
@@ -119,4 +119,7 @@ export function settingsNavGroups(t: TFunction): SectionNavGroup[] {
       ],
     },
   ];
+  // A group can be empty when the server has a feature off, such as AI
+  // settings without inference configured.
+  return groups.filter((group) => group.items.length > 0);
 }

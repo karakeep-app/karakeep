@@ -83,9 +83,17 @@ export function SectionIndex({
   const router = useRouter();
 
   useEffect(() => {
-    if (window.matchMedia("(min-width: 640px)").matches) {
-      router.replace(desktopPath);
-    }
+    // Also on crossing the breakpoint, such as rotating a phone to landscape:
+    // the index hides itself there and would leave an empty panel.
+    const query = window.matchMedia("(min-width: 640px)");
+    const goToDesktopPage = () => {
+      if (query.matches) {
+        router.replace(desktopPath);
+      }
+    };
+    goToDesktopPage();
+    query.addEventListener("change", goToDesktopPage);
+    return () => query.removeEventListener("change", goToDesktopPage);
   }, [router, desktopPath]);
 
   return (

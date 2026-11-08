@@ -1276,7 +1276,17 @@
     "cleanups": "Cleanups",
     "duplicate_tags": {
       "title": "Duplicate tags",
-      "merge_all_suggestions": "Merge all suggestions?"
+      "merge_all_suggestions": "Merge all suggestions?",
+      "empty_title": "No duplicate tags found",
+      "empty_description": "Tags with nearly identical names show up here so you can merge them.",
+      "suggestion_count_one": "You have {{count}} suggestion for tag merging.",
+      "suggestion_count_other": "You have {{count}} suggestions for tag merging.",
+      "show_all": "Show all",
+      "hide_all": "Hide all",
+      "instructions": "For every suggestion, select the tag that you want to keep and other tags will be merged into it.",
+      "keep": "Keep {{tag}}",
+      "merged": "Tags merged",
+      "all_applied": "All suggestions applied"
     },
     "description": "Tidy up your library by merging tags that look like duplicates."
   },
