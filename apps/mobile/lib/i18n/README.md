@@ -17,11 +17,12 @@ so that adding another language is a small, mechanical task.
     community-maintained Polish translations.
   - `mobile` — strings that only exist in the mobile app
     (`apps/mobile/lib/i18n/locales/{en,pl}.json`).
-- **Why a sync script instead of importing web JSON directly?** Metro must
-  statically resolve every bundled file. It cannot reliably bundle JSON from
-  outside the mobile project root, and the web's
-  `i18next-resources-to-backend` dynamic `import()` pattern does not work
-  under Metro either. All resources are therefore statically imported in
+- **Shared files, static imports.** The `translation` namespace is imported
+  directly from `apps/web/lib/i18n/locales/<lang>/translation.json`, so web
+  and Weblate updates reach mobile with no copy step. Metro can bundle it
+  because `metro.config.js` adds the workspace root to `watchFolders`. The
+  web's `i18next-resources-to-backend` dynamic `import()` pattern does not
+  work under Metro, so every resource is statically imported in
   `apps/mobile/lib/i18n/index.ts`.
 
 ## Key files
@@ -34,8 +35,7 @@ so that adding another language is a small, mechanical task.
 | `apps/mobile/lib/i18n/types.d.ts`                | Typed `t()` keys for both namespaces (from the `en` files) |
 | `apps/mobile/lib/i18n/locales/en.json`           | English source strings (`mobile` namespace)                 |
 | `apps/mobile/lib/i18n/locales/pl.json`           | Polish translations (`mobile` namespace)                    |
-| `apps/mobile/lib/i18n/web-translations/*.json`   | Synced copies of the web `translation` namespace            |
-| `tools/mobile-i18n-sync.mjs`                     | Syncs web locales into mobile                               |
+| `apps/web/lib/i18n/locales/*/translation.json`   | Shared `translation` namespace (owned by the web app)       |
 | `apps/mobile/app/dashboard/settings/language.tsx`| In-app language picker (System / English / Polish)         |
 
 ## Language resolution
@@ -89,27 +89,16 @@ Rules:
 
 1. Make sure the web locale exists:
    `apps/web/lib/i18n/locales/<lang>/translation.json`.
-2. Sync it into mobile:
-   `node tools/mobile-i18n-sync.mjs --lang <lang>`.
-3. Create `apps/mobile/lib/i18n/locales/<lang>.json` with the same keys as
+2. Create `apps/mobile/lib/i18n/locales/<lang>.json` with the same keys as
    `en.json`, translated.
-4. Register `<lang>` in `SUPPORTED_LANGUAGES`
-   (`apps/mobile/lib/i18n/index.ts`). The settings screen and
+3. In `apps/mobile/lib/i18n/index.ts`, import both files into `resources`
+   and register `<lang>` in `SUPPORTED_LANGUAGES`. The settings screen and
    `getSystemLanguage()` pick it up automatically.
-5. Run `node tools/mobile-i18n-sync.mjs --check` and the locale parity check
-   (see below) to verify.
+4. Add the `<lang>` file to the parity test in
+   `__tests__/language.test.ts` and run `pnpm test` in `apps/mobile`.
 
 ## Checks
 
-```bash
-# Web `translation` copies are up to date:
-node tools/mobile-i18n-sync.mjs --check
-
-# en/pl `mobile` namespaces have identical keys:
-node -e "
-const f = (l) => Object.keys(require('./apps/mobile/lib/i18n/locales/' + l + '.json'));
-"
-```
-
-Both checks should run in CI for every PR touching `apps/mobile/lib/i18n`
-or `apps/web/lib/i18n/locales`.
+`apps/mobile/lib/i18n/__tests__/language.test.ts` checks that every
+`mobile` locale has the same keys as `en.json`. It runs with the other
+mobile unit tests in CI (`pnpm test` in `apps/mobile`).

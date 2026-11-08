@@ -1,11 +1,11 @@
 // Shared i18n singleton for the Karakeep mobile app.
 //
 // Design notes:
-// - We reuse the web app's `translation` namespace verbatim (synced via
-//   `node tools/mobile-i18n-sync.mjs` into `./web-translations/`) so shared
-//   concepts (actions.*, common.*, dialogs.*, toasts.*, ...) are translated
-//   identically on web and mobile -- including the existing Polish Weblate
-//   translations -- instead of maintaining a second, incompatible copy.
+// - We import the web app's `translation` namespace straight from
+//   `apps/web/lib/i18n/locales/` so shared concepts (actions.*, common.*,
+//   dialogs.*, toasts.*, ...) are translated identically on web and mobile
+//   -- including the Polish Weblate translations -- without a second copy.
+//   Metro can bundle it because the workspace root is in `watchFolders`.
 // - Mobile-only strings live in the `mobile` namespace (`./locales/*.json`).
 // - Metro bundles `resourcesToBackend`-style dynamic `import()` of JSON
 //   poorly (the bundler must statically know every file), so all resources
@@ -25,16 +25,16 @@ import { initReactI18next } from "react-i18next";
 
 import enMobile from "./locales/en.json";
 import plMobile from "./locales/pl.json";
-import enWeb from "./web-translations/en.json";
-import plWeb from "./web-translations/pl.json";
+import enWeb from "../../../web/lib/i18n/locales/en/translation.json";
+import plWeb from "../../../web/lib/i18n/locales/pl/translation.json";
 
 export const FALLBACK_LANGUAGE = "en";
 
 /**
  * Languages with full mobile translations, in the order preferred when
- * matching a device locale. Add a new code here once both
- * `web-translations/<lang>.json` (via the sync script) and
- * `locales/<lang>.json` exist.
+ * matching a device locale. Add a new code here once
+ * `locales/<lang>.json` exists, and import the web app's
+ * `<lang>/translation.json` into `resources` below.
  */
 export const SUPPORTED_LANGUAGES = ["en", "pl"] as const;
 
