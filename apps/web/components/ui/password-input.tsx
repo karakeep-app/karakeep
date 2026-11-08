@@ -13,11 +13,14 @@ const PasswordInput = React.forwardRef<
   HTMLInputElement,
   Omit<InputProps, "type" | "endIcon">
 >(({ className, id, disabled, ...props }, ref) => {
-  const { t } = useTranslation();
+  // Don't suspend: the auth pages don't otherwise load translations on the
+  // client, and waiting for them would delay hydrating the whole form, so text
+  // typed in the meantime is lost. Fall back to English until they load.
+  const { t } = useTranslation(undefined, { useSuspense: false });
   const [isVisible, setIsVisible] = React.useState(false);
   const label = isVisible
-    ? t("common.hide_password")
-    : t("common.show_password");
+    ? t("common.hide_password", "Hide password")
+    : t("common.show_password", "Show password");
 
   return (
     <div className="relative w-full">
