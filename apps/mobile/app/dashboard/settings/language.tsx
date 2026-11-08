@@ -25,10 +25,11 @@ export default function LanguagePage() {
         language: langNameMappings[systemLanguage] ?? systemLanguage,
       }),
     },
+    // Hermes has no `toSorted`; `sort` is fine on the fresh array.
     ...SUPPORTED_LANGUAGES.map((lang) => ({
       value: lang,
       label: langNameMappings[lang] ?? lang,
-    })),
+    })).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   return (

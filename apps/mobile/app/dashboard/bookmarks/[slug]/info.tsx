@@ -425,7 +425,7 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
             <View className="flex-1 flex-row items-center gap-3">
               <Highlighter size={20} color={actionIconColor} />
               <Text className="flex-1" numberOfLines={1}>
-                {strings.highlights}
+                {t("headers.highlights")}
               </Text>
             </View>
             <ChevronRight size={16} />
