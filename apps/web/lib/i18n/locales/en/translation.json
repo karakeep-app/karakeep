@@ -43,7 +43,9 @@
     },
     "quota": "Quota",
     "bookmarks": "Bookmarks",
-    "storage": "Storage"
+    "storage": "Storage",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "layouts": {
     "masonry": "Masonry",

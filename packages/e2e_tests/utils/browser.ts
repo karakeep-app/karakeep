@@ -76,7 +76,7 @@ export async function submitSignInForm(
   await goto(page, "/signin");
   await page.getByLabel("Email", { exact: true }).fill(email);
   await page.getByLabel("Password", { exact: true }).fill(password);
-  await page.getByRole("button", { name: "Sign In", exact: true }).click();
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
 }
 
 export async function signIn(page: Page, email: string, password = "test1234") {

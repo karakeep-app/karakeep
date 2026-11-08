@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { signIn } from "@/lib/auth/client";
 import { useClientConfig } from "@/lib/clientConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,9 +22,11 @@ import { AlertCircle, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { humanAuthErrors } from "./authFormErrors";
+
 const signInSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  password: z.string().min(1, "Enter your password"),
 });
 
 const SIGNIN_FAILED = "Incorrect email or password";
@@ -41,7 +44,7 @@ export default function CredentialsForm() {
   }
 
   const form = useForm<z.infer<typeof signInSchema>>({
-    resolver: zodResolver(signInSchema),
+    resolver: zodResolver(signInSchema, humanAuthErrors),
     defaultValues: {
       email: "",
       password: "",
@@ -53,12 +56,12 @@ export default function CredentialsForm() {
       <div className="space-y-4">
         {signinError && (
           <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
+            <AlertCircle className="size-4" />
             <AlertTitle>{signinError}</AlertTitle>
           </Alert>
         )}
         <Alert>
-          <Lock className="h-4 w-4" />
+          <Lock className="size-4" />
           <AlertTitle>
             Password authentication is currently disabled.
           </AlertTitle>
@@ -71,6 +74,7 @@ export default function CredentialsForm() {
     <div className="space-y-6">
       <Form {...form}>
         <form
+          noValidate
           // POST so a submit before hydration doesn't put the password in the URL.
           method="post"
           onSubmit={form.handleSubmit(async (value) => {
@@ -94,13 +98,6 @@ export default function CredentialsForm() {
           })}
           className="space-y-4"
         >
-          {signinError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{signinError}</AlertTitle>
-            </Alert>
-          )}
-
           <FormField
             control={form.control}
             name="email"
@@ -128,8 +125,7 @@ export default function CredentialsForm() {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     autoComplete="current-password"
                     placeholder="Enter your password"
                     {...field}
@@ -140,19 +136,29 @@ export default function CredentialsForm() {
             )}
           />
 
+          {signinError && (
+            <p
+              role="alert"
+              className="flex items-start gap-2 text-sm font-medium text-destructive"
+            >
+              <AlertCircle className="mt-0.5 size-4 shrink-0" />
+              {signinError}
+            </p>
+          )}
+
           <ActionButton
             ignoreDemoMode
             type="submit"
             loading={form.formState.isSubmitting}
             className="w-full"
           >
-            Sign In
+            Sign in
           </ActionButton>
 
           <div className="text-center">
             <Link
               href="/forgot-password"
-              className="text-sm text-muted-foreground underline hover:text-primary"
+              className="text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               Forgot your password?
             </Link>
@@ -161,11 +167,11 @@ export default function CredentialsForm() {
       </Form>
 
       <div className="text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground"
           >
             Sign up
           </Link>
