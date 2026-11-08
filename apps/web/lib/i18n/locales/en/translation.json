@@ -1198,16 +1198,23 @@
     "items_count_one": "{{count}} bookmark",
     "items_count_other": "{{count}} bookmarks",
     "list_name": "List name",
-    "advanced": "Advanced",
     "builder": {
       "age": "Age",
       "any": "Any",
       "archived": "Archived",
       "favourited": "Favourited",
+      "lists": "Lists",
+      "lists_none_found": "No lists found",
+      "lists_placeholder": "Add a list",
+      "lists_search_placeholder": "Search lists...",
       "no": "No",
       "not": "Not",
       "tags": "Tags",
       "tags_placeholder": "Add a tag",
+      "title": "Title contains",
+      "title_placeholder": "e.g. release notes",
+      "url": "URL contains",
+      "url_placeholder": "e.g. github.com",
       "use_tag": "Use \"{{name}}\"",
       "yes": "Yes",
       "age_options": {
@@ -1237,6 +1244,7 @@
     "query_plain_text": "Smart lists need qualifiers like tag: or is:. Plain words aren't allowed: {{text}}",
     "query_required": "Pick at least one condition",
     "search_query_placeholder": "e.g. is:fav tag:docs",
+    "search_query_toggle": "Or write a search query for more filters",
     "smart_list_help": "Bookmarks matching this search join the list automatically."
   },
   "tags": {

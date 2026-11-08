@@ -10,13 +10,18 @@ describe("isQueryRepresentableInBuilder", () => {
     "is:fav -is:archived tag:docs",
     '-tag:"two words" tag:docs age:<30d',
     "age:<2w",
+    'list:"Reading Queue" -list:Archive',
+    'url:example.com title:"release notes"',
   ])("accepts %s", (query) => {
     expect(isQueryRepresentableInBuilder(query)).toBe(true);
   });
 
   it.each([
     "free text",
-    "url:example.com",
+    "has:notes",
+    "-url:example.com",
+    "title:a title:b",
+    "list:",
     "is:fav or is:archived",
     "(is:fav)",
     "is:fav -is:fav",

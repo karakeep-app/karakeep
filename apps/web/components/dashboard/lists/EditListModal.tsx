@@ -405,6 +405,7 @@ export function EditListModal({
                           </p>
                         )}
                         <SmartListQueryBuilder
+                          listId={list?.id}
                           query={field.value ?? ""}
                           onChange={(next) =>
                             form.setValue("query", next, {
@@ -434,7 +435,7 @@ export function EditListModal({
                               className="group -ms-3 text-muted-foreground"
                             >
                               <ChevronRight className="size-4 transition-transform group-data-[state=open]:rotate-90" />
-                              {t("lists.advanced")}
+                              {t("lists.search_query_toggle")}
                             </Button>
                           </CollapsibleTrigger>
                           <CollapsibleContent className="space-y-2">
