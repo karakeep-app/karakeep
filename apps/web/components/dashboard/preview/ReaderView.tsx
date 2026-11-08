@@ -1,9 +1,11 @@
+import { useEffect, useRef } from "react";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
+import { useQueryState } from "nuqs";
 
 import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkHtmlHighlighter";
 import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
@@ -13,10 +15,13 @@ import {
 } from "@karakeep/shared-react/hooks/highlights";
 import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import type { ReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
+import { getReadingPosition } from "@karakeep/shared/utils/reading-progress-dom";
 
 import { useDeleteHighlightWithUndo } from "../highlights/useDeleteHighlightWithUndo";
 import BookmarkLoadError, { retryBookmarkQuery } from "./BookmarkLoadError";
+import { flashHighlight } from "./highlights";
 import ReadingProgressBanner from "./ReadingProgressBanner";
 
 export default function ReaderView({
@@ -79,6 +84,60 @@ export default function ReaderView({
     bookmarkId,
   });
 
+  // The highlights page links to a passage with ?highlight=<id>. Once it's drawn,
+  // scroll to it and flash it, once per id.
+  const [focusHighlightId] = useQueryState("highlight");
+  const focusedIdRef = useRef<string | null>(null);
+  const trackerRef = useRef<HTMLDivElement>(null);
+  // Where the jump landed, which isn't where they've read up to. Reading on
+  // from there saves as usual.
+  const jumpOffsetRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!focusHighlightId || focusedIdRef.current === focusHighlightId) {
+      return;
+    }
+    // Waits for the highlighter to settle, as every redraw replaces the spans.
+    const frame = requestAnimationFrame(() => {
+      const selector = `[data-highlight-id="${CSS.escape(focusHighlightId)}"]`;
+      const span = Array.from(
+        document.querySelectorAll<HTMLElement>(selector),
+      ).find((el) => el.offsetParent !== null);
+      if (!span) {
+        return;
+      }
+      focusedIdRef.current = focusHighlightId;
+      span.scrollIntoView({ block: "center" });
+      if (trackerRef.current) {
+        jumpOffsetRef.current =
+          getReadingPosition(trackerRef.current)?.offset ?? null;
+      }
+      flashHighlight(focusHighlightId);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusHighlightId, highlights, cachedContent]);
+
+  // They came for one passage, so don't offer to take them elsewhere (as on mobile).
+  useEffect(() => {
+    if (focusHighlightId) {
+      onDismiss();
+    }
+  }, [focusHighlightId, onDismiss]);
+
+  const onSaveReadingPosition = (position: ReadingPosition) => {
+    if (position.offset === jumpOffsetRef.current) {
+      return;
+    }
+    onSavePosition(position);
+  };
+
+  // Once they've scrolled off the jumped-to paragraph, coming back to it counts.
+  const onReadingPositionChange = (position: ReadingPosition) => {
+    if (position.offset !== jumpOffsetRef.current) {
+      jumpOffsetRef.current = null;
+    }
+    onScrollPositionChange(position);
+  };
+
   const onHighlightError = () => {
     toast({
       variant: "destructive",
@@ -136,8 +195,9 @@ export default function ReaderView({
   } else {
     content = (
       <ScrollProgressTracker
-        onSavePosition={onSavePosition}
-        onScrollPositionChange={onScrollPositionChange}
+        ref={trackerRef}
+        onSavePosition={onSaveReadingPosition}
+        onScrollPositionChange={onReadingPositionChange}
         restorePosition={restorePosition}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}

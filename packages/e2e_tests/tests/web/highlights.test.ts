@@ -164,7 +164,8 @@ it(
     await expect(page).toHaveURL(/\/dashboard\/highlights$/);
     const card = highlightCard(page, "World");
     await expect(card).toContainText("The classic greeting");
-    await page.getByRole("link", { name: "Source", exact: true }).click();
+    // Highlights are grouped under their article, whose title links to it
+    await page.locator(`a[href="/dashboard/preview/${bookmarkId}"]`).click();
     await expect(page).toHaveURL(
       new RegExp(`/dashboard/preview/${bookmarkId}`),
     );

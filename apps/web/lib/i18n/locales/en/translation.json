@@ -165,7 +165,20 @@
   "highlights": {
     "no_highlights": "You don't have any highlights yet.",
     "empty_title": "No highlights yet",
-    "empty_description": "Select text in a bookmark's reader view and pick a colour to save it here."
+    "empty_description": "Select text in a bookmark's reader view and pick a colour to save it here.",
+    "clear_filter": "Clear filter",
+    "color": "Colour",
+    "delete": "Delete highlight",
+    "filter_by_color": "Filter by colour",
+    "filter_label": "Filter highlights",
+    "filter_placeholder": "Filter highlights…",
+    "no_matches": "No highlights match this filter",
+    "color_names": {
+      "yellow": "Yellow",
+      "red": "Red",
+      "green": "Green",
+      "blue": "Blue"
+    }
   },
   "settings": {
     "back_to_app": "Back to app",
