@@ -265,7 +265,9 @@ it(
     await tagInput.click();
     await tagInput.fill("baking");
     // The tag doesn't exist yet, so the only option is the one creating it.
-    await page.getByRole("option", { name: "baking", exact: true }).click();
+    await page
+      .getByRole("option", { name: 'Create "baking"', exact: true })
+      .click();
     await expect(
       page.getByText('Tag "baking" has been added to 2 bookmarks!'),
     ).toBeVisible();
