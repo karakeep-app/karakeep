@@ -206,7 +206,7 @@ export default function SubscriptionSettings() {
           <>
             <SettingsSeparator />
             <SettingsValueRow
-              label={t("subscription.billed_through")}
+              label={t("subscription.billed_through_label")}
               value={billingSource}
             />
           </>

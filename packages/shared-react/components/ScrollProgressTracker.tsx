@@ -198,6 +198,7 @@ const ScrollProgressTracker = forwardRef<
     <div ref={containerRef}>
       {showProgressBar && (
         <div
+          data-reading-progress
           style={{
             position: "sticky",
             top: 0,

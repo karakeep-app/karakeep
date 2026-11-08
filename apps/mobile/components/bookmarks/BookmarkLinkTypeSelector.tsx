@@ -1,6 +1,8 @@
-import { Platform } from "react-native";
+import { Platform, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
+import { Text } from "@/components/ui/Text";
 import { useTranslation } from "@/lib/i18n/hooks";
+import { useColorScheme } from "@/lib/useColorScheme";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { ChevronDown } from "lucide-react-native";
@@ -55,11 +57,19 @@ export default function BookmarkLinkTypeSelector({
   const availableTypes = getAvailableViewTypes(bookmark);
   const { t } = useTranslation();
   const { menuIconColor } = useMenuIconColors();
+  const { colors } = useColorScheme();
+  const viewLabels: Record<BookmarkLinkType, string> = {
+    browser: t("bookmarks.view_browser"),
+    reader: t("bookmarks.view_reader_short"),
+    screenshot: t("bookmarks.view_screenshot"),
+    archive: t("bookmarks.view_archive"),
+    pdf: t("bookmarks.view_pdf"),
+  };
 
   const viewActions = [
     {
       id: "reader" as const,
-      title: t("bookmarks.view_reader"),
+      title: t("bookmarks.view_reader_short"),
       state: type === "reader" ? ("on" as const) : undefined,
       image: Platform.select({
         ios: "doc.text",
@@ -127,7 +137,20 @@ export default function BookmarkLinkTypeSelector({
       actions={availableViewActions}
       shouldOpenOnLongPress={false}
     >
-      <ChevronDown onPress={() => Haptics.selectionAsync()} color="gray" />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t("bookmarks.view_selector_label", {
+          view: viewLabels[type],
+        })}
+        className="flex-row items-center gap-0.5"
+        hitSlop={8}
+        onPress={() => void Haptics.selectionAsync()}
+      >
+        <Text variant="subhead" className="font-medium">
+          {viewLabels[type]}
+        </Text>
+        <ChevronDown size={16} color={colors.grey} strokeWidth={2.4} />
+      </Pressable>
     </MenuView>
   );
 }

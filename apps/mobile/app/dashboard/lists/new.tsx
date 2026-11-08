@@ -1,20 +1,22 @@
 import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { router, useLocalSearchParams } from "expo-router";
-import { ListParentField } from "@/components/lists/list-parent-field";
-import { Button } from "@/components/ui/Button";
-import { EmojiPicker } from "@/components/ui/emoji-picker";
-import { Input } from "@/components/ui/Input";
+import {
+  getSmartQueryErrorMessage,
+  isSmartQueryIncomplete,
+  ListFormFields,
+} from "@/components/lists/ListFormFields";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { SheetHeader } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
-import {
-  useCommonActions,
-  useCommonStrings,
-  useTranslation,
-} from "@/lib/i18n/hooks";
+import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
 
-import { useCreateBookmarkList } from "@karakeep/shared-react/hooks/lists";
+import {
+  useBookmarkLists,
+  useCreateBookmarkList,
+} from "@karakeep/shared-react/hooks/lists";
 
 type ListType = "manual" | "smart";
 
@@ -27,12 +29,16 @@ const NewListPage = () => {
   };
   const { toast } = useToast();
   const { t } = useTranslation();
-  const actions = useCommonActions();
   const strings = useCommonStrings();
+  const listTypeOptions: { label: string; value: ListType }[] = [
+    { label: t("lists.type_manual"), value: "manual" },
+    { label: t("lists.type_smart"), value: "smart" },
+  ];
   const [text, setText] = useState("");
   const [icon, setIcon] = useState("📁");
   const [listType, setListType] = useState<ListType>("manual");
   const [query, setQuery] = useState("");
+  const [queryError, setQueryError] = useState<string | undefined>();
   const [parentId, setParentId] = useState<string | null>(null);
 
   React.useEffect(() => {
@@ -41,12 +47,22 @@ const NewListPage = () => {
     router.setParams({ selectedParentId: undefined });
   }, [selectedParentId]);
 
+  const { data: lists } = useBookmarkLists();
   const { mutate, isPending } = useCreateBookmarkList({
     onSuccess: () => {
+      const parentName = parentId
+        ? lists?.getPathById(parentId)?.at(-1)?.name
+        : undefined;
+      toast({
+        message: parentName
+          ? t("lists.saved_in", { name: parentName })
+          : t("lists.created"),
+        variant: "success",
+        showProgress: false,
+      });
       dismiss();
     },
     onError: (error) => {
-      // Extract error message from the error object
       let errorMessage = strings.somethingWentWrong;
       if (error.data?.zodError) {
         errorMessage = Object.values(error.data.zodError.fieldErrors)
@@ -55,78 +71,62 @@ const NewListPage = () => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      toast({
-        message: errorMessage,
-        variant: "destructive",
-      });
+      if (listType === "smart") {
+        setQueryError(getSmartQueryErrorMessage(errorMessage, query));
+      } else {
+        toast({ message: errorMessage, variant: "destructive" });
+      }
     },
   });
 
-  const onSubmit = () => {
-    // Validate smart list has a query
-    if (listType === "smart" && !query.trim()) {
-      toast({
-        message: t("lists.smart_needs_query"),
-        variant: "destructive",
-      });
-      return;
-    }
+  const name = text.trim();
+  const canSave =
+    name.length > 0 &&
+    (listType !== "smart" ||
+      (query.trim().length > 0 && !isSmartQueryIncomplete(query)));
 
+  const onSubmit = () => {
+    setQueryError(undefined);
     mutate({
-      name: text,
+      name,
       icon,
       type: listType,
-      query: listType === "smart" ? query : undefined,
+      query: listType === "smart" ? query.trim() : undefined,
       parentId,
     });
   };
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
+      bottomOffset={160}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
-      contentContainerClassName="gap-4 px-4 pb-8"
+      contentContainerClassName="gap-4 px-4 pt-2 pb-8"
     >
-      {/* List Type Selector */}
-      <View className="gap-2">
-        <Text className="text-sm text-muted-foreground">
-          {t("lists.type_label")}
-        </Text>
-        <View className="flex flex-row gap-2">
-          <View className="flex-1">
-            <Button
-              variant={listType === "manual" ? "primary" : "secondary"}
-              onPress={() => setListType("manual")}
-            >
-              <Text>{t("lists.type_manual")}</Text>
-            </Button>
-          </View>
-          <View className="flex-1">
-            <Button
-              variant={listType === "smart" ? "primary" : "secondary"}
-              onPress={() => setListType("smart")}
-            >
-              <Text>{t("lists.type_smart")}</Text>
-            </Button>
-          </View>
-        </View>
-      </View>
-
-      <EmojiPicker value={icon} onChange={setIcon} />
-
-      <Input
-        className="bg-card"
-        label={t("lists.name_label")}
-        labelClasses="text-sm text-muted-foreground"
-        onChangeText={setText}
-        placeholder={t("lists.name_placeholder")}
-        autoFocus
-        autoCapitalize="sentences"
+      <SheetHeader
+        onSave={onSubmit}
+        saveDisabled={!canSave}
+        isDirty={name.length > 0 || query.trim().length > 0}
+        isSaving={isPending}
       />
+      <SegmentedControl
+        options={listTypeOptions}
+        value={listType}
+        onChange={setListType}
+      />
+      <Text variant="footnote" color="tertiary" className="-mt-2 px-4">
+        {listType === "manual"
+          ? t("lists.type_manual_description")
+          : t("lists.type_smart_description")}
+      </Text>
 
-      <ListParentField
-        value={parentId}
-        onPress={() =>
+      <ListFormFields
+        name={text}
+        onNameChange={setText}
+        icon={icon}
+        onIconChange={setIcon}
+        parentId={parentId}
+        onPressParent={() =>
           router.push({
             pathname: "/dashboard/lists/select-parent",
             params: {
@@ -135,31 +135,16 @@ const NewListPage = () => {
             },
           })
         }
+        isSmart={listType === "smart"}
+        query={query}
+        onQueryChange={(value) => {
+          setQuery(value);
+          setQueryError(undefined);
+        }}
+        queryError={queryError}
+        autoFocus
       />
-
-      {/* Smart List Query Input */}
-      {listType === "smart" && (
-        <View className="gap-2">
-          <Text className="text-sm text-muted-foreground">
-            {t("lists.search_query_label")}
-          </Text>
-          <Input
-            className="bg-card"
-            onChangeText={setQuery}
-            value={query}
-            placeholder={t("lists.search_query_placeholder")}
-            autoCapitalize={"none"}
-          />
-          <Text className="text-xs italic text-muted-foreground">
-            {t("lists.smart_hint")}
-          </Text>
-        </View>
-      )}
-
-      <Button disabled={isPending} onPress={onSubmit}>
-        <Text>{actions.save}</Text>
-      </Button>
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 };
 

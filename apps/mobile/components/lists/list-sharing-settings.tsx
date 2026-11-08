@@ -359,13 +359,14 @@ export function ListSharingSettings({ list }: { list: ZBookmarkList }) {
           </View>
         </GroupedSection>
       )}
-      {isOwner && list.type === "smart" && (
-        <Text variant="footnote" color="tertiary" className="px-4">
-          {t("list_sharing.manual_only")}
-        </Text>
-      )}
-
-      <GroupedSection header={t("list_sharing.people_with_access")}>
+      <GroupedSection
+        header={t("list_sharing.people_with_access")}
+        footer={
+          isOwner && list.type === "smart"
+            ? t("list_sharing.manual_only")
+            : undefined
+        }
+      >
         {collaboratorsQuery.isPending ? (
           <ActivityIndicator className="p-4" />
         ) : collaboratorsQuery.error ? (

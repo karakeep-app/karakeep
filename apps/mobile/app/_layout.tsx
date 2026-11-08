@@ -37,7 +37,7 @@ export default Sentry.wrap(function RootLayout() {
   const router = useRouter();
   const { hasShareIntent } = useShareIntent();
   const { colorScheme, colors } = useColorScheme();
-  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
+  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.sheet);
   // RootLayout sits above <Providers>/<I18nProvider>, so the translation
   // hook is bound to the shared singleton explicitly. Language changes still
   // re-render this component via the hook subscription.
@@ -138,7 +138,7 @@ export default Sentry.wrap(function RootLayout() {
               name="test-connection"
               options={{
                 ...formSheetSurfaceOptions,
-                title: t("headers.test_connection"),
+                title: t("headers.server_connection"),
                 headerShown: true,
                 headerTransparent: false,
                 headerLargeTitle: false,

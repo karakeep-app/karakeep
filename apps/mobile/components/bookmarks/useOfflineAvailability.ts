@@ -66,7 +66,7 @@ export function useOfflineAvailability(bookmarkId: string) {
       toast({
         message: isAvailableOffline
           ? t("bookmark_actions.offline_saved_updated")
-          : t("bookmark_actions.offline_saved_new"),
+          : t("bookmark_actions.offline_downloaded"),
         variant: "success",
       });
     } catch (error) {
@@ -84,7 +84,7 @@ export function useOfflineAvailability(bookmarkId: string) {
 
   const confirmRemove = () => {
     Alert.alert(
-      t("bookmark_actions.offline_remove_title"),
+      t("bookmark_actions.remove_download_title"),
       t("bookmark_actions.offline_remove_message"),
       [
         { text: actions.cancel, style: "cancel" },

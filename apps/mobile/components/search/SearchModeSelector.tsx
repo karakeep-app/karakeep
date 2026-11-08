@@ -41,7 +41,7 @@ const SEARCH_MODES = [
 ] as const;
 
 export type SearchModePlaceholderKey =
-  | "search.placeholder_keyword"
+  | "search.search_bookmarks"
   | "search.placeholder_hybrid"
   | "search.placeholder_semantic";
 
@@ -49,14 +49,14 @@ export const SEARCH_MODE_PLACEHOLDER_KEYS: Record<
   ZBookmarkSearchMode,
   SearchModePlaceholderKey
 > = {
-  fts: "search.placeholder_keyword",
+  fts: "search.search_bookmarks",
   hybrid: "search.placeholder_hybrid",
   semantic: "search.placeholder_semantic",
 };
 
 /** @deprecated Use SEARCH_MODE_PLACEHOLDER_KEYS with t() instead. */
 export const SEARCH_MODE_PLACEHOLDERS: Record<ZBookmarkSearchMode, string> = {
-  fts: "Search bookmarks...",
+  fts: "Search bookmarks",
   hybrid: "Search by words or meaning...",
   semantic: "Describe what you remember...",
 };

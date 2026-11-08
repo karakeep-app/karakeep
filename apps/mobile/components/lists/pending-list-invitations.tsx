@@ -99,16 +99,9 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
 export function PendingListInvitations() {
   const api = useTRPC();
   const { t } = useTranslation();
-  const { data, error, refetch } = useQuery(
-    api.lists.getPendingInvitations.queryOptions(),
-  );
-  if (error) {
-    return (
-      <Button variant="plain" onPress={() => void refetch()}>
-        <Text>{t("list_sharing.retry_invitations")}</Text>
-      </Button>
-    );
-  }
+  // A failed background check isn't worth an error or shifting the list; pull
+  // to refresh tries again.
+  const { data } = useQuery(api.lists.getPendingInvitations.queryOptions());
   if (!data?.length) return null;
   return (
     <View className="mb-4 gap-2">

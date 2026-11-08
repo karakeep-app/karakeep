@@ -18,12 +18,12 @@ export default function ReaderViewSettings() {
     <SettingsScreen>
       <SettingsGroup header={t("settings.reader_group")}>
         <SettingsNavigationRow
-          label={t("settings.reader_text_layout")}
+          label={t("headers.text_and_layout")}
           onPress={() => router.push("/dashboard/settings/reader-settings")}
         />
         <SettingsSeparator />
         <SettingsNavigationRow
-          label={t("settings.reader_toolbar")}
+          label={t("headers.reader_toolbar")}
           onPress={() => router.push("/dashboard/settings/toolbar-settings")}
         />
       </SettingsGroup>
@@ -31,7 +31,7 @@ export default function ReaderViewSettings() {
       <SettingsGroup header={t("settings.behavior_group")}>
         <SettingsToggleRow
           disabled={isLoading}
-          label={t("settings.keep_screen_awake")}
+          label={t("settings.keep_screen_awake_label")}
           onValueChange={(keepScreenOnWhileReading) =>
             setSettings({ ...settings, keepScreenOnWhileReading })
           }

@@ -85,8 +85,10 @@ export default function OfflineArticles() {
       ListEmptyComponent={
         <EmptyState
           icon={BookOpen}
-          title={t("settings.offline_empty_title")}
-          subtitle={t("settings.offline_empty_subtitle")}
+          title={t("settings.offline_articles_empty_title")}
+          subtitle={t("settings.offline_articles_empty_subtitle")}
+          actionLabel={t("settings.offline_set_up_downloads")}
+          onAction={() => router.back()}
         />
       }
       renderItem={({ item }) => (

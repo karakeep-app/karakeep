@@ -115,20 +115,20 @@ const SearchInput = React.forwardRef<
         <Animated.View
           style={BORDER_CURVE}
           className={cn(
-            "flex-1 flex-row rounded-lg bg-card",
+            "flex-1 flex-row rounded-full bg-muted/20",
             containerClassName,
           )}
         >
           <View
             className={cn(
-              "absolute bottom-0 left-0 top-0 z-50 justify-center pl-1.5",
+              "absolute bottom-0 left-0 top-0 z-50 justify-center pl-3",
               iconContainerClassName,
             )}
           >
             <TailwindResolver
-              className="text-muted"
+              className="text-muted-foreground"
               comp={(styles) => (
-                <SearchIcon color={styles?.color?.toString()} size={20} />
+                <SearchIcon color={styles?.color?.toString()} size={18} />
               )}
             />
           </View>
@@ -137,7 +137,7 @@ const SearchInput = React.forwardRef<
             placeholder={placeholder}
             className={cn(
               !showCancel && "active:bg-muted/5 dark:active:bg-muted/20",
-              "flex-1 rounded-lg py-2 pl-8 pr-1 text-[17px] text-foreground",
+              "flex-1 rounded-full py-2 pl-9 pr-1 text-[17px] text-foreground placeholder:text-muted-foreground",
               className,
             )}
             value={value}

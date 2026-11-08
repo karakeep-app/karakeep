@@ -1,6 +1,7 @@
-import { Alert, Platform, View } from "react-native";
+import { Alert, Platform, View, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { useBookmarkListLayoutMenu } from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import QueryPageState from "@/components/QueryPageState";
@@ -9,6 +10,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { useArchiveFilter } from "@/lib/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { inlineMenuGroup } from "@/lib/menuGroups";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { useQuery } from "@tanstack/react-query";
@@ -115,6 +117,7 @@ function TagActionsMenu({
           image: Platform.select({ ios: "square.and.pencil" }),
           imageColor: Platform.select({ ios: menuIconColor }),
         },
+        ...inlineMenuGroup("view-group", layoutActions),
         {
           id: "delete_tag",
           title: t("tags.delete_title"),
@@ -122,7 +125,6 @@ function TagActionsMenu({
           image: Platform.select({ ios: "trash" }),
           imageColor: Platform.select({ ios: destructiveMenuIconColor }),
         },
-        ...layoutActions,
       ]}
       onPressAction={({ nativeEvent }) => {
         if (handleLayoutAction(nativeEvent.event)) {
@@ -138,10 +140,14 @@ function TagActionsMenu({
       shouldOpenOnLongPress={false}
     >
       <View className="my-auto">
-        <Ellipsis
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("tags.tag_actions")}
+          hitSlop={8}
           onPress={() => void Haptics.selectionAsync()}
-          color={colors.foreground}
-        />
+        >
+          <AppIcon icon={Ellipsis} size={21} color={colors.foreground} />
+        </Pressable>
       </View>
     </MenuView>
   );

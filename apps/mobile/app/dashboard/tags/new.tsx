@@ -1,24 +1,19 @@
 import { useState } from "react";
 import { ScrollView } from "react-native";
 import { router } from "expo-router";
-import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { SheetHeader } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
-import {
-  useCommonActions,
-  useCommonStrings,
-  useTranslation,
-} from "@/lib/i18n/hooks";
+import { useTranslation } from "@/lib/i18n/hooks";
 
 import { useCreateTag } from "@karakeep/shared-react/hooks/tags";
 
 export default function NewTagPage() {
   const [name, setName] = useState("");
+  const [error, setError] = useState<string | undefined>();
   const { toast } = useToast();
   const { t } = useTranslation();
-  const actions = useCommonActions();
-  const strings = useCommonStrings();
   const { mutate: createTag, isPending } = useCreateTag({
     onSuccess: () => {
       toast({ message: t("tags.created"), variant: "success" });
@@ -28,45 +23,52 @@ export default function NewTagPage() {
       const message = error.data?.zodError
         ? Object.values(error.data.zodError.fieldErrors).flat().join("\n")
         : error.message;
-      toast({
-        message: message || strings.somethingWentWrong,
-        variant: "destructive",
-      });
+      setError(
+        message?.toLowerCase().includes("already exists")
+          ? t("tags.already_exists", { name: name.trim() })
+          : message || t("tags.something_went_wrong_try_again"),
+      );
     },
   });
 
-  const onSubmit = () => {
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      toast({ message: t("tags.name_empty"), variant: "destructive" });
-      return;
-    }
+  const trimmedName = name.trim();
 
-    createTag({ name: trimmedName });
+  const onSubmit = () => {
+    if (trimmedName) {
+      createTag({ name: trimmedName });
+    }
   };
 
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
-      contentContainerClassName="gap-4 px-4 pb-8"
+      contentContainerClassName="gap-4 px-4 pt-2 pb-8"
     >
+      <SheetHeader
+        onSave={onSubmit}
+        saveDisabled={!trimmedName}
+        isDirty={!!trimmedName}
+        isSaving={isPending}
+      />
       <Input
-        label={t("tags.name_label")}
-        labelClasses="text-sm text-muted-foreground"
-        inputClasses="bg-card"
-        onChangeText={setName}
+        accessibilityLabel={t("tags.name_field")}
+        onChangeText={(value) => {
+          setName(value);
+          setError(undefined);
+        }}
         onSubmitEditing={onSubmit}
         value={name}
-        placeholder={t("tags.name_placeholder")}
+        placeholder={t("tags.name_field")}
         autoFocus
-        autoCapitalize="sentences"
+        autoCapitalize="none"
         returnKeyType="done"
       />
-
-      <Button disabled={isPending} onPress={onSubmit}>
-        <Text>{actions.save}</Text>
-      </Button>
+      {error ? (
+        <Text variant="footnote" className="-mt-2 px-4 text-destructive">
+          {error}
+        </Text>
+      ) : null}
     </ScrollView>
   );
 }

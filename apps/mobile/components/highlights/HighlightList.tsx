@@ -1,18 +1,16 @@
-import { useRef } from "react";
 import { ActivityIndicator, Keyboard, View } from "react-native";
-import Animated, { LinearTransition } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import EmptyState from "@/components/ui/EmptyState";
 import { getGridColumns, useContainerWidth } from "@/lib/responsive";
-import { useScrollToTop } from "expo-router";
 import { useTranslation } from "@/lib/i18n/hooks";
-import { Highlighter } from "lucide-react-native";
+import { PenLine } from "lucide-react-native";
 
 import type { ZHighlight } from "@karakeep/shared/types/highlights";
 
 import HighlightCard from "./HighlightCard";
 
-const HORIZONTAL_MARGIN = 15;
-const GAP = 15;
+const HORIZONTAL_MARGIN = 16;
+const GAP = 10;
 
 export default function HighlightList({
   highlights,
@@ -29,9 +27,9 @@ export default function HighlightList({
   header?: React.ReactElement;
   isFetchingNextPage?: boolean;
 }) {
-  const flatListRef = useRef(null);
   const { t } = useTranslation();
-  useScrollToTop(flatListRef);
+  // No useScrollToTop: native tabs already scroll to the inset-adjusted top on
+  // re-tap, while the hook scrolls to 0 and hides the first card under the header.
   const { width: containerWidth, onLayout } = useContainerWidth();
   const { numColumns, columnWidth } = getGridColumns({
     containerWidth,
@@ -43,19 +41,16 @@ export default function HighlightList({
   return (
     <View className="flex-1" onLayout={onLayout}>
       <Animated.FlatList
-        ref={flatListRef}
         // FlatList doesn't support changing numColumns on the fly.
         key={numColumns}
         numColumns={numColumns}
         columnWrapperStyle={numColumns > 1 ? { gap: GAP } : undefined}
-        // Reanimated only supports item layout animations in single-column lists.
-        itemLayoutAnimation={numColumns > 1 ? undefined : LinearTransition}
         contentInsetAdjustmentBehavior="automatic"
         ListHeaderComponent={header}
         contentContainerStyle={{
           gap: GAP,
           marginHorizontal: HORIZONTAL_MARGIN,
-          marginBottom: 15,
+          paddingBottom: 24,
         }}
         renderItem={(h) =>
           numColumns > 1 ? (
@@ -68,9 +63,9 @@ export default function HighlightList({
         }
         ListEmptyComponent={
           <EmptyState
-            icon={Highlighter}
-            title={t("highlights.empty_title")}
-            subtitle={t("highlights.empty_subtitle")}
+            icon={PenLine}
+            title={t("highlights.empty_title_yet")}
+            subtitle={t("highlights.empty_subtitle_reader")}
           />
         }
         data={highlights}
