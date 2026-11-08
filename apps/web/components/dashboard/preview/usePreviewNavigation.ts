@@ -151,7 +151,7 @@ export function usePreviewNavigation({
   // Whether closing hands focus to the grid's current card (see above), in place
   // of the dialog returning it to the card that opened it.
   const restoresFocusOnClose = useCallback(
-    () => openedWithKeyboard || movedRef.current,
+    () => lastIndexRef.current >= 0 && (openedWithKeyboard || movedRef.current),
     [openedWithKeyboard],
   );
 
