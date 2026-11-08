@@ -116,9 +116,7 @@
     "loading_more": "Loading more...",
     "no_tags_title": "No Tags",
     "no_tags_subtitle": "Tags will appear as you organize your bookmarks",
-    "create_tag": "Create tag",
-    "bookmarks_few": "{{count}} bookmarks",
-    "bookmarks_many": "{{count}} bookmarks"
+    "create_tag": "Create tag"
   },
   "search": {
     "recent_searches": "Recent Searches",
@@ -391,12 +389,8 @@
     "offline_recent_articles": "Recent articles",
     "offline_keep": "Keep",
     "offline_recent_limit_one": "{{count}} article",
-    "offline_recent_limit_few": "{{count}} articles",
-    "offline_recent_limit_many": "{{count}} articles",
     "offline_recent_limit_other": "{{count}} articles",
     "offline_lists_selected_one": "{{count}} selected",
-    "offline_lists_selected_few": "{{count}} selected",
-    "offline_lists_selected_many": "{{count}} selected",
     "offline_lists_selected_other": "{{count}} selected",
     "offline_lists_none": "None",
     "offline_storage_network": "Storage & network",
@@ -417,8 +411,6 @@
     "offline_status_notchecked": "Not checked yet",
     "offline_note_error": "Articles that were already downloaded are still available.",
     "offline_note_failed_one": "{{count}} article couldn't be downloaded yet. Some may still be processing on the server.",
-    "offline_note_failed_few": "{{count}} articles couldn't be downloaded yet. Some may still be processing on the server.",
-    "offline_note_failed_many": "{{count}} articles couldn't be downloaded yet. Some may still be processing on the server.",
     "offline_note_failed_other": "{{count}} articles couldn't be downloaded yet. Some may still be processing on the server.",
     "offline_note_budget": "Raise the storage limit or keep fewer articles to download the rest.",
     "offline_download_now": "Download now",
@@ -478,9 +470,7 @@
     "source_unknown": "Unknown",
     "item_one": "item",
     "item_other": "items",
-    "tags_empty": "Tags will appear as you organize your bookmarks.",
-    "item_few": "items",
-    "item_many": "items"
+    "tags_empty": "Tags will appear as you organize your bookmarks."
   },
   "sharing": {
     "still_saving": "Still saving...",
@@ -523,8 +513,6 @@
     "category_symbols": "Symbols",
     "category_flags": "Flags",
     "results_one": "{{count}} result",
-    "results_few": "{{count}} results",
-    "results_many": "{{count}} results",
     "results_other": "{{count}} results"
   },
   "headers_modal": {

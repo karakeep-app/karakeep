@@ -4,7 +4,7 @@
 // - We import the web app's `translation` namespace straight from
 //   `apps/web/lib/i18n/locales/` so shared concepts (actions.*, common.*,
 //   dialogs.*, toasts.*, ...) are translated identically on web and mobile
-//   -- including the Polish Weblate translations -- without a second copy.
+//   -- including the community Weblate translations -- without a copy.
 //   Metro can bundle it because the workspace root is in `watchFolders`.
 // - Mobile-only strings live in the `mobile` namespace (`./locales/*.json`).
 // - Metro bundles `resourcesToBackend`-style dynamic `import()` of JSON
@@ -19,7 +19,7 @@
 //   complete `mobile`-namespace translations for.
 import i18next from "i18next";
 import type { Locale } from "date-fns";
-import { enUS, pl } from "date-fns/locale";
+import { enUS, pl as plDateFns } from "date-fns/locale";
 import * as Localization from "expo-localization";
 import { initReactI18next } from "react-i18next";
 
@@ -28,43 +28,54 @@ import plMobile from "./locales/pl.json";
 import enWeb from "../../../web/lib/i18n/locales/en/translation.json";
 import plWeb from "../../../web/lib/i18n/locales/pl/translation.json";
 
-export const FALLBACK_LANGUAGE = "en";
-
-/**
- * Languages with full mobile translations, in the order preferred when
- * matching a device locale. Add a new code here once
- * `locales/<lang>.json` exists, and import the web app's
- * `<lang>/translation.json` into `resources` below.
- */
-export const SUPPORTED_LANGUAGES = ["en", "pl"] as const;
-
-export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
-
-export const DEFAULT_NAMESPACE = "mobile";
-
-const resources = {
-  en: {
-    mobile: enMobile,
-    translation: enWeb,
-  },
-  pl: {
-    mobile: plMobile,
-    translation: plWeb,
-  },
-} as const;
-
-function isSupportedLanguage(lang: string): lang is SupportedLanguage {
-  return (SUPPORTED_LANGUAGES as readonly string[]).includes(lang);
+interface LanguageResources {
+  mobile: Record<string, unknown>;
+  translation: Record<string, unknown>;
+  dateFns: Locale;
 }
 
 /**
- * Best-match a list of BCP-47 device locales (e.g. "pl-PL", "en-US")
+ * Every language the app ships. English is the source language and the
+ * fallback for missing keys; any other language is just an entry here.
+ *
+ * To add one: create `./locales/<lang>.json` with the keys of `en.json`
+ * translated, then add an entry pointing at it, the web app's
+ * `<lang>/translation.json` and the matching date-fns locale.
+ */
+const LANGUAGES = {
+  en: { mobile: enMobile, translation: enWeb, dateFns: enUS },
+  pl: { mobile: plMobile, translation: plWeb, dateFns: plDateFns },
+} satisfies Record<string, LanguageResources>;
+
+export type SupportedLanguage = keyof typeof LANGUAGES;
+
+export const FALLBACK_LANGUAGE = "en" satisfies SupportedLanguage;
+
+export const SUPPORTED_LANGUAGES = Object.keys(
+  LANGUAGES,
+) as SupportedLanguage[];
+
+export const DEFAULT_NAMESPACE = "mobile";
+
+const resources = Object.fromEntries(
+  Object.entries(LANGUAGES).map(([lng, { mobile, translation }]) => [
+    lng,
+    { mobile, translation },
+  ]),
+);
+
+function isSupportedLanguage(lang: string): lang is SupportedLanguage {
+  return Object.hasOwn(LANGUAGES, lang);
+}
+
+/**
+ * Best-match a list of BCP-47 device locales (e.g. "en-US", "pt-BR")
  * against the languages mobile ships translations for.
  *
  * Matching order per candidate locale:
  *   1. exact match ("pt-BR" if we ever ship it),
- *   2. bare language code ("pl" from "pl-PL"),
- *   3. `SUPPORTED_LANGUAGES` order fallback is applied by the caller.
+ *   2. bare language code ("en" from "en-GB"),
+ * falling back to English when no locale matches.
  */
 export function matchSupportedLanguage(
   deviceLocales: readonly { languageTag: string }[],
@@ -139,15 +150,10 @@ export async function setAppLanguage(lng: SupportedLanguage): Promise<void> {
   }
 }
 
-const DATE_FNS_LOCALES: Record<SupportedLanguage, Locale> = {
-  en: enUS,
-  pl,
-};
-
 /** date-fns locale matching the currently active app language. */
 export function getDateFnsLocale(): Locale {
   const lng = i18n.language;
-  return isSupportedLanguage(lng) ? DATE_FNS_LOCALES[lng] : enUS;
+  return LANGUAGES[isSupportedLanguage(lng) ? lng : FALLBACK_LANGUAGE].dateFns;
 }
 
 /**
