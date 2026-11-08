@@ -173,7 +173,11 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
 
   // Save current effective settings as server default (syncs across devices)
   const saveAsDefault = useCallback(
-    (settingsToSave?: ReaderSettingsPartial) => {
+    (
+      settingsToSave?: ReaderSettingsPartial,
+      // Reported by the save itself, as the refetch after it can fail on its own.
+      callbacks?: { onSuccess?: () => void; onError?: () => void },
+    ) => {
       const toSave: ReaderSettings = {
         fontSize: settingsToSave?.fontSize ?? settings.fontSize,
         lineHeight: settingsToSave?.lineHeight ?? settings.lineHeight,
@@ -181,11 +185,14 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
       };
       // Set pending state to prevent flicker while server syncs
       setPendingServerSave(toSave);
-      saveServerSettings({
-        readerFontSize: toSave.fontSize,
-        readerLineHeight: toSave.lineHeight,
-        readerFontFamily: toSave.fontFamily,
-      });
+      saveServerSettings(
+        {
+          readerFontSize: toSave.fontSize,
+          readerLineHeight: toSave.lineHeight,
+          readerFontFamily: toSave.fontFamily,
+        },
+        callbacks,
+      );
     },
     [settings, saveServerSettings],
   );

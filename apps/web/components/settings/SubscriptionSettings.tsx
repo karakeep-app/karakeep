@@ -101,9 +101,7 @@ export default function SubscriptionSettings() {
     switch (status) {
       case "paid":
         return (
-          <Badge variant="default" className="bg-green-500">
-            {t("settings.subscription.paid")}
-          </Badge>
+          <Badge variant="secondary">{t("settings.subscription.paid")}</Badge>
         );
       case "custom":
         return (
@@ -124,10 +122,7 @@ export default function SubscriptionSettings() {
   };
 
   return (
-    <SettingsSection
-      title={t("settings.subscription.subscription")}
-      description={t("settings.subscription.manage_subscription")}
-    >
+    <SettingsSection title={t("settings.subscription.current_plan")}>
       {isQueryLoading ? (
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-2">
@@ -215,7 +210,7 @@ export default function SubscriptionSettings() {
                         ] as const
                       ).map((key) => (
                         <li key={key} className="flex items-center text-sm">
-                          <Check className="mr-2 h-4 w-4 shrink-0 text-green-500" />
+                          <Check className="mr-2 size-4 shrink-0 text-green-500" />
                           {t(`settings.subscription.${key}`)}
                         </li>
                       ))}
@@ -248,7 +243,7 @@ export default function SubscriptionSettings() {
                               {t("settings.subscription.yearly")}
                               {subscriptionPrice?.monthly?.amount &&
                                 subscriptionPrice?.yearly?.amount && (
-                                  <span className="ml-1.5 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                                  <span className="ml-1.5 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
                                     {t("settings.subscription.yearly_savings", {
                                       percent: Math.round(
                                         (1 -
@@ -265,7 +260,7 @@ export default function SubscriptionSettings() {
                         )}
                         {currentPrice && currentPrice.amount ? (
                           <span className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold">
+                            <span className="text-2xl font-semibold">
                               {formatPrice(
                                 currentPrice.amount,
                                 currentPrice.currency,
@@ -294,7 +289,7 @@ export default function SubscriptionSettings() {
                         className="shadow-md transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
                       >
                         {isLoading && (
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="size-4 animate-spin" />
                         )}
                         {t("settings.subscription.subscribe_now")}
                       </Button>
@@ -306,7 +301,7 @@ export default function SubscriptionSettings() {
               <div className="space-y-4">
                 {subscriptionStatus.paymentFailed && (
                   <Alert variant="destructive">
-                    <TriangleAlert className="h-4 w-4" />
+                    <TriangleAlert className="size-4" />
                     <AlertTitle>
                       {t("settings.subscription.payment_failed_title")}
                     </AlertTitle>
@@ -337,9 +332,7 @@ export default function SubscriptionSettings() {
                         subscriptionStatus.paymentFailed ? "default" : "outline"
                       }
                     >
-                      {isLoading && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      )}
+                      {isLoading && <Loader2 className="size-4 animate-spin" />}
                       {subscriptionStatus.paymentFailed
                         ? t("settings.subscription.update_payment_method")
                         : t("settings.subscription.manage_billing")}

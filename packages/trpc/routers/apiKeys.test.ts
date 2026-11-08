@@ -32,6 +32,23 @@ beforeEach<CustomTestContext>(defaultBeforeEach(false));
 
 describe("API Keys Routes", () => {
   describe("create", () => {
+    test<CustomTestContext>("rejects a duplicate key name as a bad request", async ({
+      db,
+    }) => {
+      const user = await createTestUser(db, {
+        name: "Test User",
+        email: "test@test.com",
+        password: "password123",
+      });
+      const api = getApiCaller(db, user.id, user.email).apiKeys;
+
+      await api.create({ name: "Test Key" });
+
+      await expect(api.create({ name: "Test Key" })).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+      });
+    });
+
     test<CustomTestContext>("creates API key successfully", async ({ db }) => {
       const user = await createTestUser(db, {
         name: "Test User",

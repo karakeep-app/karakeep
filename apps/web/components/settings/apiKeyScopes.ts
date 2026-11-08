@@ -15,8 +15,33 @@ import {
 
 export type ScopeAccessChoice = "none" | ZApiKeyScopeAccess;
 
+export const SCOPE_GROUPS = [
+  "content",
+  "automation",
+  "account",
+  "administration",
+] as const;
+export type ScopeGroup = (typeof SCOPE_GROUPS)[number];
+
+const RESOURCE_GROUPS: Record<ZApiKeyScopeResource, ScopeGroup> = {
+  bookmarks: "content",
+  lists: "content",
+  tags: "content",
+  highlights: "content",
+  assets: "content",
+  feeds: "automation",
+  rules: "automation",
+  webhooks: "automation",
+  prompts: "automation",
+  users: "account",
+  backups: "account",
+  importSessions: "account",
+  subscriptions: "account",
+};
+
 export interface ScopeOption {
   id: ZApiKeyScopeResource | `admin:${ZApiKeyAdminScopeResource}`;
+  group: ScopeGroup;
   labelKey: ApiKeyScopeTranslationKey;
   descriptionKey: ApiKeyScopeTranslationKey;
   readScope: ZApiKeyScope;
@@ -151,6 +176,7 @@ export const FULL_ACCESS_SCOPE_OPTION = {
 export const API_KEY_SCOPE_OPTIONS: ScopeOption[] = API_KEY_SCOPE_RESOURCES.map(
   (resource) => ({
     id: resource,
+    group: RESOURCE_GROUPS[resource],
     labelKey: RESOURCE_TRANSLATION_KEYS[resource].labelKey,
     descriptionKey: RESOURCE_TRANSLATION_KEYS[resource].descriptionKey,
     readScope: getApiKeyScope(resource, "read"),
@@ -162,6 +188,7 @@ export const API_KEY_SCOPE_OPTIONS: ScopeOption[] = API_KEY_SCOPE_RESOURCES.map(
 export const API_KEY_ADMIN_SCOPE_OPTIONS: ScopeOption[] =
   API_KEY_ADMIN_SCOPE_RESOURCES.map((resource) => ({
     id: `admin:${resource}`,
+    group: "administration",
     labelKey: ADMIN_RESOURCE_TRANSLATION_KEYS[resource].labelKey,
     descriptionKey: ADMIN_RESOURCE_TRANSLATION_KEYS[resource].descriptionKey,
     readScope: getAdminApiKeyScope(resource, "read"),

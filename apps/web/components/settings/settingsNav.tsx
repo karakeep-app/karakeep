@@ -2,6 +2,7 @@ import type { TFunction } from "i18next";
 import {
   ArrowDownUp,
   BarChart3,
+  BookOpen,
   CreditCard,
   DatabaseBackup,
   HardDrive,
@@ -9,6 +10,7 @@ import {
   Link2Off,
   Paintbrush,
   Rss,
+  SlidersHorizontal,
   Sparkles,
   User,
   Webhook,
@@ -52,6 +54,16 @@ export function settingsNavGroups(t: TFunction): SectionNavGroup[] {
     {
       label: t("settings.groups.preferences"),
       items: [
+        {
+          name: t("settings.preferences.nav"),
+          icon: <SlidersHorizontal className="size-4" />,
+          path: "/settings/preferences",
+        },
+        {
+          name: t("settings.reading.title"),
+          icon: <BookOpen className="size-4" />,
+          path: "/settings/reading",
+        },
         ...(serverConfig.inference.isConfigured
           ? [
               {

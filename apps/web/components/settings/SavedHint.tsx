@@ -68,7 +68,17 @@ export function useAutosavedSettings<T extends string>() {
     mutate(value, {
       onSuccess: () => savedField.markSaved(field),
       onError: () => {
-        queryClient.setQueryData(queryKey, previous);
+        // Undo only this save's own fields, and only where no later save has
+        // changed them since, so an overlapping save that worked stays shown.
+        const current = queryClient.getQueryData(queryKey);
+        if (previous && current) {
+          const rollback = Object.fromEntries(
+            (Object.keys(value) as (keyof ZUserSettings)[])
+              .filter((key) => current[key] === value[key])
+              .map((key) => [key, previous[key]]),
+          );
+          queryClient.setQueryData(queryKey, { ...current, ...rollback });
+        }
         savedField.markFailed(field);
       },
     });
