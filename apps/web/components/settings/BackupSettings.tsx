@@ -466,21 +466,23 @@ function BackupsList() {
     </ActionButton>
   );
   const isEmpty = backups?.backups.length === 0;
+  const [restoreBefore, restoreLink, restoreAfter] = t(
+    "settings.backups.list.description",
+  ).split(/<\/?link>/);
 
   return (
     <SettingsSection
       title={t("settings.backups.list.title")}
       description={
         <>
-          {t("settings.backups.list.includes")}{" "}
-          {t("settings.backups.list.description")}{" "}
+          {restoreBefore}
           <Link
             href="/settings/import"
             className="font-medium text-foreground underline underline-offset-4"
           >
-            {t("settings.import.import_export")}
+            {restoreLink}
           </Link>
-          .
+          {restoreAfter}
         </>
       }
       action={isEmpty ? undefined : createBackupButton}

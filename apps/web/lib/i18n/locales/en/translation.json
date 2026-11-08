@@ -238,7 +238,6 @@
       "security": "Security",
       "password_hint_one": "Use at least {{count}} character.",
       "password_hint_other": "Use at least {{count}} characters.",
-      "email_locked": "To use a different email, <link>export your bookmarks</link> and import them into a new account.",
       "details_locked_oauth": "Comes from your sign-in provider, so it can't be changed here.",
       "name_description": "Shown to people you share lists with.",
       "current_password_incorrect": "Your current password is incorrect"
@@ -828,9 +827,8 @@
       },
       "list": {
         "title": "Your backups",
-        "description": "Each backup is a zip with one JSON file, stored on this server and counted towards your storage quota. To restore one, unzip it and import the JSON file as Karakeep from",
+        "description": "A zipped JSON copy of your bookmarks, tags, notes and lists. To restore one, unzip it and import it in <link>Import / export</link>.",
         "create_backup_now": "Create backup",
-        "includes": "Includes your links and text notes with their titles, tags, notes, archived state and lists. Doesn't include saved pages, screenshots, PDFs, uploaded files or highlights.",
         "table": {
           "created_at": "Created at",
           "bookmarks": "Bookmarks",
