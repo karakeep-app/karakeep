@@ -211,7 +211,19 @@ describe.each(SUPPORTED_LANGUAGES)("%s plural forms", (lang) => {
 });
 
 describe.each(TRANSLATIONS)("%s translation", (lang) => {
+  const source = splitPlurals(Object.keys(mobileStrings(FALLBACK_LANGUAGE)));
   const strings = mobileStrings(lang);
+  const translated = splitPlurals(Object.keys(strings));
+
+  it("has the same keys as English", () => {
+    const missing = [...source.plain, ...source.plurals.keys()].filter(
+      (key) => !translated.plain.has(key) && !translated.plurals.has(key),
+    );
+    const extra = [...translated.plain, ...translated.plurals.keys()].filter(
+      (key) => !source.plain.has(key) && !source.plurals.has(key),
+    );
+    expect({ missing, extra }).toEqual({ missing: [], extra: [] });
+  });
 
   it("has no empty strings", () => {
     const empty = Object.entries(strings)
