@@ -77,8 +77,8 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
   );
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div className="flex-1">
+    <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="font-medium">{invitation.list.name}</span>
           <span className="text-xs text-muted-foreground">
@@ -99,7 +99,7 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
           <span className="capitalize">{invitation.role}</span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2">
         <Button
           size="sm"
           variant="outline"

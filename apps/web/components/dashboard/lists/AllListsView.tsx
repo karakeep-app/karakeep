@@ -89,8 +89,9 @@ function ListItem({
               </ButtonWithTooltip>
             </CollapsibleTrigger>
           ) : (
-            // Lines up with the rows that have a chevron, where there's room to.
-            <span className="size-4 shrink-0 max-sm:hidden" />
+            // Lines up with the rows that have a chevron, and keeps nested
+            // rows indented past their parent.
+            <span className="size-4 shrink-0" />
           )}
         </div>
         <Link href={path} className="flex min-w-0 items-center gap-3">
