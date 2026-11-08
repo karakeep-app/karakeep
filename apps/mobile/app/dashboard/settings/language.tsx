@@ -28,7 +28,7 @@ export default function LanguagePage() {
     ...SUPPORTED_LANGUAGES.map((lang) => ({
       value: lang,
       label: langNameMappings[lang] ?? lang,
-    })),
+    })).toSorted((a, b) => a.label.localeCompare(b.label)),
   ];
 
   return (

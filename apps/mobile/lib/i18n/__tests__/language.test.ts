@@ -16,17 +16,23 @@ import {
   FALLBACK_LANGUAGE,
   getDateFnsLocale,
   getIntlLocale,
+  getLanguageTag,
   getSystemLanguage,
   i18n,
   matchSupportedLanguage,
   resolveAppLanguage,
+  setAppLanguage,
   SUPPORTED_LANGUAGES,
 } from "../index";
+import type { SupportedLanguage } from "../index";
 
 // Every shipped language except English, the source and fallback language.
 const TRANSLATIONS = SUPPORTED_LANGUAGES.filter(
   (lang) => lang !== FALLBACK_LANGUAGE,
 );
+
+// date-fns has no locale for these; they format dates in English.
+const ENGLISH_DATES = new Set(["ga"]);
 
 const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
 
@@ -43,8 +49,8 @@ function flatten(obj: object, prefix = ""): Record<string, unknown> {
   return out;
 }
 
-function mobileStrings(lang: string) {
-  return flatten(i18n.getResourceBundle(lang, "mobile"));
+function mobileStrings(lang: SupportedLanguage) {
+  return flatten(i18n.getResourceBundle(getLanguageTag(lang), "mobile"));
 }
 
 /**
@@ -96,6 +102,28 @@ describe("matchSupportedLanguage", () => {
         ]),
       ).toBe(lang);
     }
+  });
+
+  it.each([
+    ["zh-Hans-CN", "zh"],
+    ["zh-CN", "zh"],
+    ["zh-SG", "zh"],
+    ["zh-Hans-HK", "zh"],
+    ["zh-Hant-TW", "zhtw"],
+    ["zh-TW", "zhtw"],
+    ["zh-HK", "zhtw"],
+    ["zh-Hant", "zhtw"],
+    ["pt-BR", "pt_BR"],
+    ["pt-PT", "pt"],
+    ["nb-NO", "nb_NO"],
+    ["nb", "nb_NO"],
+    ["no", "nb_NO"],
+    ["nn-NO", "nb_NO"],
+    ["en-GB", "en"],
+    ["de-AT", "de"],
+    ["sr-Latn-RS", "en"],
+  ])("matches the OS locale %s to %s", (tag, lang) => {
+    expect(matchSupportedLanguage([{ languageTag: tag }])).toBe(lang);
   });
 
   it("falls back to English for unsupported locales", () => {
@@ -152,7 +180,7 @@ describe("English source strings", () => {
 describe.each(SUPPORTED_LANGUAGES)("%s plural forms", (lang) => {
   it("define exactly the categories the language uses", () => {
     const { plurals } = splitPlurals(Object.keys(mobileStrings(lang)));
-    const expected = new Intl.PluralRules(lang)
+    const expected = new Intl.PluralRules(getLanguageTag(lang))
       .resolvedOptions()
       .pluralCategories.toSorted();
     expect(plurals.size).toBeGreaterThan(0);
@@ -186,28 +214,54 @@ describe.each(TRANSLATIONS)("%s translation", (lang) => {
 
   it("is applied at runtime and switches back", async () => {
     const expected = strings["settings.theme"];
-    await i18n.changeLanguage(lang);
+    await setAppLanguage(lang);
     expect(i18n.getFixedT(null, "mobile")("settings.theme")).toBe(expected);
-    await i18n.changeLanguage(FALLBACK_LANGUAGE);
+    await setAppLanguage(FALLBACK_LANGUAGE);
     expect(i18n.getFixedT(null, "mobile")("settings.theme")).toBe("Theme");
   });
 
+  it("uses its own plural forms at runtime", async () => {
+    await setAppLanguage(lang);
+    const t = i18n.getFixedT(null, "mobile");
+    const rules = new Intl.PluralRules(getLanguageTag(lang));
+    for (const count of [0, 1, 2, 3, 5, 11, 21, 100]) {
+      expect(t("tags_tab.bookmarks", { count }), String(count)).toBe(
+        String(strings[`tags_tab.bookmarks_${rules.select(count)}`]).replace(
+          "{{count}}",
+          String(count),
+        ),
+      );
+    }
+  });
+
   it("loads the web app's shared strings", () => {
-    const web = i18n.getResourceBundle(lang, "translation");
-    expect(i18n.getFixedT(lang, "translation")("actions.save")).toBe(
+    const tag = getLanguageTag(lang);
+    const web = i18n.getResourceBundle(tag, "translation");
+    expect(i18n.getFixedT(tag, "translation")("actions.save")).toBe(
       web.actions.save,
     );
   });
 
   it("returns the key for unknown keys instead of crashing", () => {
-    const t = i18n.getFixedT(lang, "mobile");
+    const t = i18n.getFixedT(getLanguageTag(lang), "mobile");
     expect(t("does.not.exist" as never)).toBe("does.not.exist");
   });
 
   it("formats dates and numbers in the language", async () => {
-    await i18n.changeLanguage(lang);
-    expect(getIntlLocale()).toBe(lang);
-    expect(getDateFnsLocale().code.split("-")[0]).toBe(lang);
+    await setAppLanguage(lang);
+    const tag = getLanguageTag(lang);
+    expect(getIntlLocale()).toBe(tag);
+    // ICU may drop the region (nb-NO → nb), but must not fall back.
+    expect(
+      new Intl.NumberFormat(getIntlLocale())
+        .resolvedOptions()
+        .locale.split("-")[0],
+    ).toBe(tag.split("-")[0]);
+    if (ENGLISH_DATES.has(lang)) {
+      expect(getDateFnsLocale().code.split("-")[0]).toBe("en");
+      return;
+    }
+    expect(getDateFnsLocale().code.split("-")[0]).toBe(tag.split("-")[0]);
     expect(
       formatDistanceToNow(Date.now() - 3 * 3600 * 1000, {
         addSuffix: true,

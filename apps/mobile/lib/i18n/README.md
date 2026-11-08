@@ -44,10 +44,23 @@ in `index.ts`, so adding one is a small, mechanical task.
    in `apps/mobile/lib/settings.ts`): `"system"` (default) or a language
    code from `LANGUAGES`.
 2. `"system"` follows the OS preferred locales via
-   `expo-localization`'s `getLocales()`, best-matched against
-   `SUPPORTED_LANGUAGES` (exact tag → base language → English fallback).
+   `expo-localization`'s `getLocales()`, best-matched against each
+   language's code, `tag` and `aliases` (full tag → language + script →
+   language + region → bare language → English fallback). So `zh-Hant-HK`
+   picks `zhtw`, `pt-BR` picks `pt_BR` and `no` picks `nb_NO`.
 3. `I18nProvider` (mounted in `apps/mobile/lib/providers.tsx`) applies the
    resolved language at startup and on every override change.
+
+Language codes are the web app's (`@karakeep/shared/langs`), and some of
+them aren't valid BCP-47 (`zhtw`, `pt_BR`, `nb_NO`). `Intl.PluralRules`
+throws on those, which would make i18next drop plural forms, so every
+`LANGUAGES` entry also has a `tag` (`zh-Hant`, `pt-BR`, `nb-NO`). i18next
+runs on the tags (so `i18n.language` is a tag), while settings and
+`SUPPORTED_LANGUAGES` use the codes. Use `getIntlLocale()` for `Intl.*`, not
+`i18n.language` directly.
+
+English is shipped once, as `en` (US English). The web app's `en_US` isn't
+offered on mobile.
 
 ## Usage in components
 
@@ -93,10 +106,13 @@ Rules:
 1. Make sure the web locale exists:
    `apps/web/lib/i18n/locales/<lang>/translation.json`.
 2. Create `apps/mobile/lib/i18n/locales/<lang>.json` with the same keys as
-   `en.json`, translated.
+   `en.json`, translated. The `fill-translations` skill
+   (`.agents/skills/fill-translations`) does this with `--app mobile`, and
+   also finds keys that are missing or outdated after `en.json` changes.
 3. In `apps/mobile/lib/i18n/index.ts`, import that file, the web
-   `translation.json` and the date-fns locale, and add a `LANGUAGES` entry.
-   The settings screen, OS-locale matching and the tests pick it up.
+   `translation.json` and the date-fns locale, and add a `LANGUAGES` entry
+   with its BCP-47 `tag` (plus `aliases` for other OS tags that should pick
+   it). The settings screen, OS-locale matching and the tests pick it up.
 4. Run `pnpm test` in `apps/mobile`.
 
 ## Checks

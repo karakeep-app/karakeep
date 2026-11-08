@@ -60,7 +60,7 @@ function getCountFormatter() {
 
 /**
  * Narrow weekday names starting Sunday, localized via Intl for the active
- * app language (i18n.language is e.g. "pl" or "en").
+ * app language.
  */
 function getDayNames(locale: string): string[] {
   // 2024-01-07 was a Sunday; step through one week.
@@ -307,8 +307,8 @@ function formatHourTick(hour: number, locale: string) {
 
 function ActivityCharts({ stats }: { stats: UserStats }) {
   const { colors } = useColorScheme();
-  const { t, i18n } = useTranslation();
-  const locale = i18n.language;
+  const { t } = useTranslation();
+  const locale = getIntlLocale();
   const dayNames = getDayNames(locale);
   const activityByDay = Array.from({ length: 7 }, (_, day) => {
     return (
