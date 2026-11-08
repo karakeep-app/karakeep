@@ -20,7 +20,10 @@
       "admin": "Admin"
     },
     "something_went_wrong": "Something went wrong",
+    "page_not_found": "Page not found",
+    "page_not_found_description": "This page may have moved, or it doesn't exist.",
     "untitled": "Untitled",
+    "lists": "Lists",
     "experimental": "Experimental",
     "search": "Search",
     "tags": "Tags",
@@ -84,10 +87,18 @@
     "image_fit_contain": "Contain (fit)"
   },
   "actions": {
+    "undo": "Undo",
     "retry": "Retry",
+    "dismiss": "Dismiss",
+    "resummarize": "Summarise again",
+    "delete_summary": "Delete summary",
+    "collapse": "Collapse",
+    "go_back": "Go back",
+    "go_home": "Go home",
     "change_layout": "Change layout",
     "archive": "Archive",
     "unarchive": "Restore",
+    "unarchive_hint": "Return to Home",
     "favorite": "Favourite",
     "unfavorite": "Unfavourite",
     "delete": "Delete",
@@ -115,6 +126,7 @@
     "add": "Add",
     "remove": "Remove",
     "edit": "Edit",
+    "edit_details": "Edit details",
     "edit_note": "Edit note",
     "rename": "Rename",
     "confirm": "Confirm",
@@ -145,7 +157,9 @@
     "copied": "Copied"
   },
   "highlights": {
-    "no_highlights": "You don't have any highlights yet."
+    "no_highlights": "You don't have any highlights yet.",
+    "empty_title": "No highlights yet",
+    "empty_description": "Select text in a bookmark's reader view and pick a colour to save it here."
   },
   "settings": {
     "back_to_app": "Back to app",
@@ -199,6 +213,7 @@
       },
       "reader_settings": {
         "title": "Reader settings",
+        "clear_override_label": "Clear device override",
         "decrease_font_size": "Decrease font size",
         "increase_font_size": "Increase font size",
         "decrease_line_height": "Decrease line height",
@@ -229,6 +244,8 @@
         "save_to_device": "This device",
         "save_to_all_devices": "All devices",
         "save_hint": "Save settings for this device only or sync across all devices.",
+        "saved_everywhere_hint": "Saved to all your devices",
+        "saved_with_device_hint": "Some settings apply to this device only.",
         "adjust_hint": "Adjust settings above to preview changes",
         "clear_override_hint": "Clear device override to use global setting ({{value}}).",
         "preview_inline": "(preview)",
@@ -1204,8 +1221,12 @@
     "create_tag_description": "Create a new tag without attaching it to any bookmark.",
     "tag_name": "Tag name",
     "enter_tag_name": "Enter tag name",
+    "create_named": "Create \"{{name}}\"",
+    "remove_named": "Remove {{name}}",
+    "none_found": "No tags found",
     "search_placeholder": "Search tags...",
     "search_or_create_placeholder": "Search or create tags...",
+    "add_tag": "+ Add tag",
     "no_custom_tags": "No custom tags yet",
     "no_ai_tags": "No AI tags yet",
     "no_unused_tags": "You don't have any unused tags",
@@ -1215,6 +1236,8 @@
     "merge_tag": "Merge tag"
   },
   "search": {
+    "no_results_title": "No matches",
+    "no_results_description": "Try different words, or remove a filter.",
     "is_favorited": "Is favourited",
     "is_not_favorited": "Is not favourited",
     "is_archived": "Is archived",
@@ -1274,12 +1297,20 @@
     "mode_hybrid_description": "Blend exact matches with related ideas for the best balance. Slower than keyword search.",
     "mode_semantic": "Semantic",
     "mode_semantic_description": "Find conceptually similar bookmarks, even without shared words. Slower than keyword search.",
+    "short_placeholder": "Search…",
+    "query_language_help": "Search query language help",
+    "not_configured_title": "Search isn't configured on this server",
+    "not_configured_description": "Full-text search needs Meilisearch. Set MEILI_ADDR in the server configuration to turn it on.",
+    "not_configured_docs": "Read the configuration docs",
+    "unavailable_title": "Search isn't available on this server. Ask your admin.",
+    "unavailable_browse": "You can still browse your tags and lists.",
     "keyword_placeholder": "Search titles, text, URLs, and tags…",
     "hybrid_placeholder": "Search by words or meaning…",
     "semantic_placeholder": "Describe what you remember…"
   },
   "preview": {
     "view_original": "View original",
+    "open_on_host": "Open on {{host}}",
     "cached_content": "Cached content",
     "reader_view": "Reader view",
     "page_overview": "Page overview",
@@ -1296,6 +1327,39 @@
       "content": "Content",
       "details": "Details"
     },
+    "close": "Close preview",
+    "previous_bookmark": "Previous bookmark (K)",
+    "next_bookmark": "Next bookmark (J)",
+    "show_details": "Show details",
+    "hide_details": "Hide details",
+    "change_view": "Change view",
+    "view_options": "View options",
+    "reading_settings": "Reading settings",
+    "short_views": {
+      "reader": "Reader",
+      "overview": "Overview"
+    },
+    "archived_status": "Archived",
+    "restore_archived": "Restore",
+    "open_fullscreen": "Open full screen",
+    "archive_info_label": "About saved pages",
+    "reading_time": "{{minutes}} min read",
+    "toggle_highlights": "Toggle highlights",
+    "close_highlights": "Close highlights",
+    "print": "Print",
+    "highlights_saved_count": "{{count}} saved",
+    "unavailable_view": {
+      "no_screenshot": "No screenshot saved"
+    },
+    "saved_copies": {
+      "no_pdf": "No PDF yet — Save one",
+      "no_archive": "No saved page yet — Save one",
+      "no_video": "No video yet — Save one"
+    },
+    "reader_options": "Reader options",
+    "lists_add": "Add to list",
+    "lists_search": "Search lists…",
+    "lists_none_found": "No lists found",
     "renderer_error": "Renderer error",
     "upload_file": "Upload file",
     "saved": "Saved",
@@ -1303,9 +1367,26 @@
     "note_save_failed": "Couldn't save your note",
     "saves_automatically": "Changes save automatically",
     "save_failed": "Couldn't save",
+    "load_failed_title": "Couldn't load this bookmark",
+    "load_failed_description": "Check your connection and try again.",
+    "tags_add": "Add tag",
+    "finish_and_archive": "Finish and archive",
+    "saved_on": "Saved {{date}}",
+    "published_on": "Published {{date}}",
+    "by_author": "By {{author}}",
     "note_placeholder": "Add a note…",
+    "edit_note": "Edit note",
     "note_title_label": "Title (optional)",
+    "collapse_section": "Collapse",
+    "expand_section": "Expand",
     "attachments": {
+      "add_banner": "Add banner image",
+      "upload_file": "Upload file",
+      "replace": "Replace",
+      "delete_title": "Delete attachment?",
+      "delete_description": "This permanently removes the attachment from this bookmark.",
+      "none": "No attachments",
+      "none_yet": "No attachments yet",
       "types": {
         "screenshot": "Screenshot",
         "pdf": "Saved PDF",
@@ -1398,6 +1479,16 @@
     }
   },
   "toasts": {
+    "highlights": {
+      "updated": "Highlight updated",
+      "deleted": "Highlight deleted",
+      "restored": "Highlight restored"
+    },
+    "attachments": {
+      "attached": "Attachment added",
+      "replaced": "Attachment replaced",
+      "deleted": "Attachment deleted"
+    },
     "bookmarks": {
       "updated": "Bookmark updated",
       "deleted": "Bookmark deleted",
@@ -1407,6 +1498,8 @@
       "preserve_video": "Video download queued",
       "delete_from_list": "Bookmark removed from list",
       "clipboard_copied": "Link copied",
+      "archived": "Bookmark archived",
+      "restored": "Bookmark restored",
       "note_updated": "Note updated",
       "update_banner": "Banner updated",
       "uploading_banner": "Uploading banner..."

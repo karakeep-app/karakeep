@@ -1,48 +1,22 @@
 "use client";
 
-import { use, useState } from "react";
-import { useRouter } from "next/navigation";
+import { use } from "react";
 import BookmarkPreview from "@/components/dashboard/preview/BookmarkPreview";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { usePreviewDialog } from "@/components/dashboard/preview/PreviewDialogContext";
 
 export default function BookmarkPreviewPage(props: {
   params: Promise<{ bookmarkId: string }>;
 }) {
-  const params = use(props.params);
-  const router = useRouter();
-
-  const [open, setOpen] = useState(true);
-
-  const setOpenWithRouter = (value: boolean) => {
-    setOpen(value);
-    if (!value) {
-      router.back();
-    }
-  };
+  const { bookmarkId } = use(props.params);
+  const { placeholder, navigation, view, close } = usePreviewDialog();
 
   return (
-    <Dialog open={open} onOpenChange={setOpenWithRouter}>
-      <VisuallyHidden>
-        <DialogHeader>
-          <DialogTitle>Preview</DialogTitle>
-        </DialogHeader>
-      </VisuallyHidden>
-      <DialogContent
-        className="h-[90%] max-w-[90%] overflow-hidden rounded-xl p-0"
-        hideCloseBtn={true}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-      >
-        <BookmarkPreview
-          bookmarkId={params.bookmarkId}
-          onClose={() => setOpenWithRouter(false)}
-        />
-      </DialogContent>
-    </Dialog>
+    <BookmarkPreview
+      bookmarkId={bookmarkId}
+      placeholderData={placeholder}
+      navigation={navigation}
+      view={view}
+      onClose={close}
+    />
   );
 }

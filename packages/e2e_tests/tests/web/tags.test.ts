@@ -97,7 +97,10 @@ it(
       await tagInput.fill("conference-2026");
       // The tag doesn't exist yet, so the only option is the one creating it.
       await page
-        .getByRole("option", { name: "conference-2026", exact: true })
+        .getByRole("option", {
+          name: 'Create "conference-2026"',
+          exact: true,
+        })
         .click({ timeout: 2000 });
     });
     await expect(

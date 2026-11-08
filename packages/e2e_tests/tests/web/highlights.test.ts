@@ -66,12 +66,15 @@ async function seedHighlight(
   });
 }
 
-// Opens the bookmark's preview page and switches it to the reader view (the
-// test page has a screenshot, which is the default preview).
+// Opens the bookmark's preview page and switches it to the reader view through
+// the view menu in the top bar (the test page has a screenshot, which is the
+// default preview).
 async function openReaderView(page: Page, bookmarkId: string) {
   await goto(page, `/dashboard/preview/${bookmarkId}`);
-  await page.getByRole("combobox").filter({ hasText: "Screenshot" }).click();
-  await page.getByRole("option", { name: "Reader view" }).click();
+  await page
+    .getByRole("button", { name: "View options: Screenshot", exact: true })
+    .click();
+  await page.getByRole("menuitemradio", { name: "Reader view" }).click();
   await expect(page).toHaveURL(/section=cached/);
   const heading = page.getByRole("heading", { name: READER_TEXT });
   await expect(heading).toBeVisible();
@@ -134,7 +137,6 @@ it(
       .fill("The classic greeting");
     await form.getByRole("button", { name: "Save", exact: true }).click();
     await expect(form).toHaveCount(0);
-    await expect(page.getByText("Highlight has been created!")).toBeVisible();
 
     const mark = heading.locator("span[data-highlight]");
     await expect(mark).toHaveText("World");
@@ -193,7 +195,7 @@ it(
     await note.fill("Updated note");
     await form.getByRole("button", { name: "Save", exact: true }).click();
     await expect(form).toHaveCount(0);
-    await expect(page.getByText("Highlight has been updated!")).toBeVisible();
+    await expect(page.getByText("Highlight updated")).toBeVisible();
     await expect(highlightCard(page, "Hello")).toContainText("Updated note");
     await expect
       .poll(
@@ -210,7 +212,14 @@ it(
     await expect(note).toHaveValue("Updated note");
     await form.getByRole("button", { name: "Delete highlight" }).click();
     await expect(form).toHaveCount(0);
-    await expect(page.getByText("Highlight has been deleted!")).toBeVisible();
+    // Deleting from the reader offers Undo instead of asking first.
+    const deletedToast = page
+      .locator("[data-sonner-toast]")
+      .filter({ hasText: "Highlight deleted" });
+    await expect(deletedToast).toBeVisible();
+    await expect(
+      deletedToast.getByRole("button", { name: "Undo" }),
+    ).toBeVisible();
     await expect(mark).toHaveCount(0);
     await expect(page.locator("blockquote", { hasText: "Hello" })).toHaveCount(
       0,
@@ -243,7 +252,7 @@ it(
 
     // The delete button is the only button in a card on this page.
     await drop.getByRole("button").click();
-    await expect(page.getByText("Highlight has been deleted!")).toBeVisible();
+    await expect(page.getByText("Highlight deleted")).toBeVisible();
     await expect(drop).toHaveCount(0);
     await expect(keep).toBeVisible();
 
