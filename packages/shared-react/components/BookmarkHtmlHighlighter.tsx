@@ -96,11 +96,11 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
                 variant="none"
                 className={cn(
                   `size-8 rounded-full hover:border focus-visible:ring-0`,
-                  HIGHLIGHT_COLOR_MAP.bg[color],
+                  HIGHLIGHT_COLOR_MAP.swatch[color],
                 )}
               >
                 {selectedColor === color && (
-                  <Check className="size-5 text-gray-600" />
+                  <Check className="size-5 text-gray-900" />
                 )}
               </Button>
             ))}
@@ -437,8 +437,7 @@ const BookmarkHTMLHighlighter = forwardRef<
       }
 
       const span = document.createElement("span");
-      span.classList.add(HIGHLIGHT_COLOR_MAP.bg[highlight.color]);
-      span.classList.add("text-gray-600");
+      span.classList.add(...HIGHLIGHT_COLOR_MAP.bg[highlight.color].split(" "));
       span.dataset.highlight = "true";
       span.dataset.highlightId = highlight.id;
       node.parentNode?.insertBefore(span, node);

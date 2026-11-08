@@ -182,7 +182,7 @@ export default function ViewOptions() {
         <DropdownMenuLabel className="text-xs text-muted-foreground">
           {t("view_options.display_options")}
         </DropdownMenuLabel>
-        <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="flex items-center justify-between px-2 py-1.5 max-sm:min-h-11">
           <Label
             htmlFor="show-notes"
             className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
@@ -196,7 +196,7 @@ export default function ViewOptions() {
             onCheckedChange={handleShowNotesChange}
           />
         </div>
-        <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="flex items-center justify-between px-2 py-1.5 max-sm:min-h-11">
           <Label
             htmlFor="show-tags"
             className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
@@ -210,7 +210,7 @@ export default function ViewOptions() {
             onCheckedChange={handleShowTagsChange}
           />
         </div>
-        <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="flex items-center justify-between px-2 py-1.5 max-sm:min-h-11">
           <Label
             htmlFor="show-title"
             className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
