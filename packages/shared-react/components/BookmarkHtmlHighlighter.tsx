@@ -312,7 +312,7 @@ const HighlightDock: React.FC<
             onSaveNote?.(noteText || null);
           }
         }}
-        className="min-h-9 resize-none rounded-xl border-0 bg-background text-sm shadow-none"
+        className="min-h-9 resize-none rounded-xl border-0 bg-background text-sm shadow-none dark:bg-background"
       />
     </div>
   );
