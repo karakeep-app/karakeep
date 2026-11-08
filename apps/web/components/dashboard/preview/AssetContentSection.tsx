@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -14,10 +15,20 @@ import { useTranslation } from "@/lib/i18n/client";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 
+import { IconTooltip } from "./IconControl";
+import { CONTAINED_IMAGE_CLASS } from "./SavedPageOverview";
+import UnavailableViewOption from "./UnavailableViewOption";
+
 // 20 MB
 const BIG_FILE_SIZE = 20 * 1024 * 1024;
 
-function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
+function PDFContentSection({
+  bookmark,
+  toolbarSlot,
+}: {
+  bookmark: ZBookmark;
+  toolbarSlot?: HTMLElement | null;
+}) {
   if (bookmark.content.type != BookmarkTypes.ASSET) {
     throw new Error("Invalid content type");
   }
@@ -64,23 +75,42 @@ function PDFContentSection({ bookmark }: { bookmark: ZBookmark }) {
       />
     );
 
+  const viewSelect = (
+    <Select onValueChange={setSection} value={section}>
+      <IconTooltip label={t("preview.change_view")} side="bottom">
+        <SelectTrigger
+          aria-label={t("preview.change_view")}
+          className="h-8 w-fit max-sm:h-11 [&_[data-view-reason]]:hidden [@media(pointer:coarse)]:h-11"
+        >
+          <SelectValue />
+        </SelectTrigger>
+      </IconTooltip>
+      <SelectContent>
+        <SelectGroup>
+          {screenshot ? (
+            <SelectItem value="screenshot">{t("common.screenshot")}</SelectItem>
+          ) : (
+            <UnavailableViewOption
+              value="screenshot"
+              label={t("common.screenshot")}
+              reason={t("preview.unavailable_view.no_screenshot")}
+            />
+          )}
+          <SelectItem value="pdf">PDF</SelectItem>
+        </SelectGroup>
+      </SelectContent>
+    </Select>
+  );
+
   return (
     <div className="flex h-full flex-col items-center gap-2">
-      <div className="flex w-full items-center justify-center gap-4">
-        <Select onValueChange={setSection} value={section}>
-          <SelectTrigger className="w-fit">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value="screenshot" disabled={!screenshot}>
-                {t("common.screenshot")}
-              </SelectItem>
-              <SelectItem value="pdf">PDF</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      {toolbarSlot ? (
+        createPortal(viewSelect, toolbarSlot)
+      ) : (
+        <div className="flex w-full items-center justify-center gap-4">
+          {viewSelect}
+        </div>
+      )}
       {content}
     </div>
   );
@@ -92,12 +122,17 @@ function ImageContentSection({ bookmark }: { bookmark: ZBookmark }) {
   }
   return (
     <div className="relative h-full min-w-full">
-      <Link href={getAssetUrl(bookmark.content.assetId)} target="_blank">
+      <Link
+        href={getAssetUrl(bookmark.content.assetId)}
+        target="_blank"
+        className="absolute inset-0"
+      >
         <Image
           alt="asset"
-          fill={true}
+          width={0}
+          height={0}
           unoptimized
-          className="object-contain"
+          className={CONTAINED_IMAGE_CLASS}
           src={getAssetUrl(bookmark.content.assetId)}
         />
       </Link>
@@ -105,7 +140,14 @@ function ImageContentSection({ bookmark }: { bookmark: ZBookmark }) {
   );
 }
 
-export function AssetContentSection({ bookmark }: { bookmark: ZBookmark }) {
+export function AssetContentSection({
+  bookmark,
+  toolbarSlot,
+}: {
+  bookmark: ZBookmark;
+  /** Where the view controls go. Without one, they take a row of their own. */
+  toolbarSlot?: HTMLElement | null;
+}) {
   if (bookmark.content.type != BookmarkTypes.ASSET) {
     throw new Error("Invalid content type");
   }
@@ -113,7 +155,9 @@ export function AssetContentSection({ bookmark }: { bookmark: ZBookmark }) {
     case "image":
       return <ImageContentSection bookmark={bookmark} />;
     case "pdf":
-      return <PDFContentSection bookmark={bookmark} />;
+      return (
+        <PDFContentSection bookmark={bookmark} toolbarSlot={toolbarSlot} />
+      );
     default:
       return <div>Unsupported asset type</div>;
   }

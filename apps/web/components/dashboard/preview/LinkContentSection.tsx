@@ -1,15 +1,9 @@
+import { useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { buttonVariants } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -18,17 +12,7 @@ import {
 import { useSession } from "@/lib/auth/client";
 import { Trans, useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
-import {
-  AlertTriangle,
-  Archive,
-  BookOpen,
-  Camera,
-  ExpandIcon,
-  FileText,
-  Info,
-  LayoutPanelTop,
-  Video,
-} from "lucide-react";
+import { AlertTriangle, Info } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { ErrorBoundary } from "react-error-boundary";
 
@@ -38,9 +22,13 @@ import {
   ZBookmarkedLink,
 } from "@karakeep/shared/types/bookmarks";
 import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
+import { getBookmarkDisplayTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
+import ArticleTitleBlock, { useTitleScrolledAway } from "./ArticleTitleBlock";
 import { contentRendererRegistry } from "./content-renderers";
-import ReaderSettingsPopover from "./ReaderSettingsPopover";
+import { ICON_CONTROL_CLASS } from "./IconControl";
+import LinkViewMenu from "./LinkViewMenu";
+import { readerColumnWidth } from "./readerColumn";
 import ReaderView from "./ReaderView";
 import SavedPageOverview from "./SavedPageOverview";
 
@@ -118,13 +106,8 @@ function PDFSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
-export default function LinkContentSection({
-  bookmark,
-}: {
-  bookmark: ZBookmark;
-}) {
-  const { t } = useTranslation();
-  const { settings } = useReaderSettings();
+/** Which view of a link is showing. Also read by the details panel beside it. */
+export function useLinkSection(bookmark: ZBookmark) {
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   let defaultSection = availableRenderers[0]?.id ?? "cached";
   if (
@@ -140,6 +123,42 @@ export default function LinkContentSection({
   const [section, setSection] = useQueryState("section", {
     defaultValue: defaultSection,
   });
+  return { section, setSection, availableRenderers };
+}
+
+/** The views that show the page's title themselves. */
+export const SECTIONS_WITH_TITLE = ["cached", "overview"];
+
+export default function LinkContentSection({
+  bookmark,
+  toolbarSlot,
+  compactToolbar,
+  titleSlot,
+  originalUrl,
+  onShowContent,
+}: {
+  bookmark: ZBookmark;
+  /** Where the view controls go, which is in the bar above the preview. */
+  toolbarSlot?: HTMLElement | null;
+  /** Uses short names for the views, for a bar that has little room. */
+  compactToolbar?: boolean;
+  /** Where the title goes once it has scrolled out of the article. */
+  titleSlot?: HTMLElement | null;
+  /** The source page, offered by the view controls at phone width. */
+  originalUrl?: string | null;
+  /** Brings this section back into view, if it's behind another tab. */
+  onShowContent?: () => void;
+}) {
+  const { t } = useTranslation();
+  const { settings } = useReaderSettings();
+  const { section, setSection, availableRenderers } = useLinkSection(bookmark);
+  const readingAreaRef = useRef<HTMLDivElement>(null);
+  const columnRef = useRef<HTMLDivElement>(null);
+  const chromeBottom = useCallback(
+    () => readingAreaRef.current?.getBoundingClientRect().top ?? 0,
+    [],
+  );
+  const { titleRef, isTitleAway } = useTitleScrolledAway();
   const { data: session } = useSession();
   const isOwner = session?.user?.id === bookmark.userId;
 
@@ -159,17 +178,36 @@ export default function LinkContentSection({
       </ErrorBoundary>
     );
   } else if (section === "cached") {
+    // Shared with the title, as these size the column in ch.
+    const column = {
+      fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
+      fontSize: `${settings.fontSize}px`,
+      maxWidth: readerColumnWidth(settings.fontFamily),
+    };
     content = (
-      <div className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-6">
+      <div
+        ref={readingAreaRef}
+        className="h-full w-full overflow-y-auto overflow-x-hidden px-3 sm:px-6"
+      >
+        <div
+          ref={columnRef}
+          className="mx-auto pt-6 max-sm:pt-4"
+          style={column}
+        >
+          <ArticleTitleBlock
+            bookmark={bookmark}
+            compactOnPhone
+            titleRef={titleRef}
+          />
+        </div>
         <ReaderView
-          className="mx-auto max-w-3xl"
-          style={{
-            fontFamily: READER_FONT_FAMILIES[settings.fontFamily],
-            fontSize: `${settings.fontSize}px`,
-            lineHeight: settings.lineHeight,
-          }}
+          style={{ ...column, lineHeight: settings.lineHeight }}
           bookmarkId={bookmark.id}
           readOnly={!isOwner}
+          progressBarStyle={{ height: 2 }}
+          // Reaches past the reading area's padding, to both of its edges.
+          progressBarClassName="-mx-3 sm:-mx-6"
+          progressBarAlwaysVisible
         />
       </div>
     );
@@ -187,130 +225,68 @@ export default function LinkContentSection({
     );
   }
 
+  const controls = (
+    <>
+      <LinkViewMenu
+        bookmark={bookmark}
+        link={bookmark.content}
+        section={section}
+        availableRenderers={availableRenderers}
+        compact={compactToolbar}
+        columnRef={columnRef}
+        anchorBottom={chromeBottom}
+        originalUrl={originalUrl}
+        onSelectSection={setSection}
+        onShowContent={onShowContent}
+      />
+      {section === "archive" && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="none"
+              aria-label={t("preview.archive_info_label")}
+              className={ICON_CONTROL_CLASS}
+            >
+              <Info className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-sm">
+            <p className="text-sm">
+              <Trans
+                i18nKey="preview.archive_info"
+                components={{
+                  1: (
+                    <Link
+                      prefetch={false}
+                      href={`/api/assets/${bookmark.content.fullPageArchiveAssetId ?? bookmark.content.precrawledArchiveAssetId}`}
+                      download
+                      className="font-medium underline"
+                    >
+                      link
+                    </Link>
+                  ),
+                }}
+              />
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </>
+  );
+
   return (
     <div className="flex h-full w-full min-w-0 flex-col items-center overflow-hidden">
-      <div className="flex w-full items-center justify-center gap-2 border-b px-3 py-1.5">
-        <Select onValueChange={setSection} value={section}>
-          <SelectTrigger className="w-fit">
-            <span className="mr-2">
-              <SelectValue />
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {/* Custom renderers first */}
-              {availableRenderers.map((renderer) => {
-                const IconComponent = renderer.icon;
-                return (
-                  <SelectItem key={renderer.id} value={renderer.id}>
-                    <div className="flex items-center">
-                      <IconComponent className="mr-2 h-4 w-4" />
-                      {renderer.name}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-
-              {/* Default renderers */}
-              <SelectItem value="overview">
-                <div className="flex items-center">
-                  <LayoutPanelTop className="mr-2 h-4 w-4" />
-                  {t("preview.page_overview")}
-                </div>
-              </SelectItem>
-              <SelectItem
-                value="cached"
-                disabled={bookmark.content.readerViewStatus === "unavailable"}
-              >
-                <div className="flex items-center">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  {t("preview.reader_view")}
-                </div>
-              </SelectItem>
-              <SelectItem
-                value="screenshot"
-                disabled={!bookmark.content.screenshotAssetId}
-              >
-                <div className="flex items-center">
-                  <Camera className="mr-2 h-4 w-4" />
-                  {t("common.screenshot")}
-                </div>
-              </SelectItem>
-              <SelectItem value="pdf" disabled={!bookmark.content.pdfAssetId}>
-                <div className="flex items-center">
-                  <FileText className="mr-2 h-4 w-4" />
-                  {t("common.pdf")}
-                </div>
-              </SelectItem>
-              <SelectItem
-                value="archive"
-                disabled={
-                  !bookmark.content.fullPageArchiveAssetId &&
-                  !bookmark.content.precrawledArchiveAssetId
-                }
-              >
-                <div className="flex items-center">
-                  <Archive className="mr-2 h-4 w-4" />
-                  {t("preview.archived_page")}
-                </div>
-              </SelectItem>
-              <SelectItem
-                value="video"
-                disabled={!bookmark.content.videoAssetId}
-              >
-                <div className="flex items-center">
-                  <Video className="mr-2 h-4 w-4" />
-                  {t("common.video")}
-                </div>
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-        {section === "cached" && (
-          <>
-            <ReaderSettingsPopover />
-            <Tooltip>
-              <TooltipTrigger>
-                <Link
-                  href={`/reader/${bookmark.id}`}
-                  className={buttonVariants({ variant: "outline" })}
-                >
-                  <ExpandIcon className="h-4 w-4" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">FullScreen</TooltipContent>
-            </Tooltip>
-          </>
+      {toolbarSlot && createPortal(controls, toolbarSlot)}
+      {titleSlot &&
+        section === "cached" &&
+        isTitleAway &&
+        createPortal(
+          <p className="truncate text-sm font-medium">
+            {getBookmarkDisplayTitle(bookmark)}
+          </p>,
+          titleSlot,
         )}
-        {section === "archive" && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex h-10 items-center gap-1 rounded-md border border-blue-500/50 bg-blue-50 px-3 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-                <Info className="h-4 w-4" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="max-w-sm">
-              <p className="text-sm">
-                <Trans
-                  i18nKey="preview.archive_info"
-                  components={{
-                    1: (
-                      <Link
-                        prefetch={false}
-                        href={`/api/assets/${bookmark.content.fullPageArchiveAssetId ?? bookmark.content.precrawledArchiveAssetId}`}
-                        download
-                        className="font-medium underline"
-                      >
-                        link
-                      </Link>
-                    ),
-                  }}
-                />
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        )}
-      </div>
       <div className="min-h-0 w-full min-w-0 flex-1">{content}</div>
     </div>
   );

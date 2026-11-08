@@ -1,6 +1,7 @@
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { FileX } from "lucide-react";
 
@@ -8,13 +9,14 @@ import BookmarkHTMLHighlighter from "@karakeep/shared-react/components/BookmarkH
 import ScrollProgressTracker from "@karakeep/shared-react/components/ScrollProgressTracker";
 import {
   useCreateHighlight,
-  useDeleteHighlight,
   useUpdateHighlight,
 } from "@karakeep/shared-react/hooks/highlights";
 import { useReadingProgress } from "@karakeep/shared-react/hooks/reading-progress";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import { useDeleteHighlightWithUndo } from "../highlights/useDeleteHighlightWithUndo";
+import BookmarkLoadError, { retryBookmarkQuery } from "./BookmarkLoadError";
 import ReadingProgressBanner from "./ReadingProgressBanner";
 
 export default function ReaderView({
@@ -23,12 +25,16 @@ export default function ReaderView({
   style,
   readOnly,
   progressBarStyle,
+  progressBarClassName,
+  progressBarAlwaysVisible,
 }: {
   bookmarkId: string;
   className?: string;
   style?: React.CSSProperties;
   readOnly: boolean;
   progressBarStyle?: React.CSSProperties;
+  progressBarClassName?: string;
+  progressBarAlwaysVisible?: boolean;
 }) {
   const { t } = useTranslation();
   const api = useTRPC();
@@ -37,13 +43,20 @@ export default function ReaderView({
       bookmarkId,
     }),
   );
-  const { data: cachedContent, isPending: isCachedContentLoading } = useQuery(
+  const {
+    data: cachedContent,
+    isPending: isCachedContentLoading,
+    error: cachedContentError,
+    isFetching: isFetchingCachedContent,
+    refetch: refetchCachedContent,
+  } = useQuery(
     api.bookmarks.getBookmark.queryOptions(
       {
         bookmarkId,
         includeContent: true,
       },
       {
+        retry: retryBookmarkQuery,
         select: (data) =>
           data.content.type == BookmarkTypes.LINK
             ? data.content.htmlContent
@@ -66,54 +79,43 @@ export default function ReaderView({
     bookmarkId,
   });
 
+  const onHighlightError = () => {
+    toast({
+      variant: "destructive",
+      description: t("common.something_went_wrong"),
+    });
+  };
+
+  // The highlight appearing in the text says it worked.
   const { mutate: createHighlight } = useCreateHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been created!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
+    onError: onHighlightError,
   });
 
   const { mutate: updateHighlight } = useUpdateHighlight({
     onSuccess: () => {
-      toast({
-        description: "Highlight has been updated!",
-      });
+      toast({ description: t("toasts.highlights.updated") });
     },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
+    onError: onHighlightError,
   });
 
-  const { mutate: deleteHighlight } = useDeleteHighlight({
-    onSuccess: () => {
-      toast({
-        description: "Highlight has been deleted!",
-      });
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong",
-      });
-    },
-  });
+  const { mutate: deleteHighlight } = useDeleteHighlightWithUndo();
 
   let content;
   if (isCachedContentLoading) {
     content = <FullPageSpinner />;
+  } else if (cachedContentError && cachedContent === undefined) {
+    content = (
+      <div className="p-4 font-sans">
+        <BookmarkLoadError
+          error={cachedContentError}
+          onRetry={() => refetchCachedContent()}
+          isRetrying={isFetchingCachedContent}
+        />
+      </div>
+    );
   } else if (!cachedContent) {
     content = (
-      <div className="flex h-full w-full items-center justify-center p-4">
+      <div className="flex h-full w-full items-center justify-center p-4 font-sans">
         <div className="max-w-sm space-y-4 text-center">
           <div className="flex justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
@@ -141,6 +143,9 @@ export default function ReaderView({
         readingProgressAnchor={readingProgressAnchor}
         showProgressBar
         progressBarStyle={progressBarStyle}
+        progressBarClassName={cn("print:hidden", progressBarClassName)}
+        progressBarFillClassName="bg-foreground/50"
+        progressBarAlwaysVisible={progressBarAlwaysVisible}
       >
         {showBanner && (
           <ReadingProgressBanner

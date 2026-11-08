@@ -33,6 +33,12 @@ interface ScrollProgressTrackerProps {
   showProgressBar?: boolean;
   /** Custom styles for the progress bar container (e.g. positioning overrides) */
   progressBarStyle?: React.CSSProperties;
+  /** Classes for the progress bar container */
+  progressBarClassName?: string;
+  /** Classes for the bar's fill, in place of its default colour */
+  progressBarFillClassName?: string;
+  /** Keep the bar on screen, instead of fading it out when scrolling stops */
+  progressBarAlwaysVisible?: boolean;
   children: React.ReactNode;
 }
 
@@ -53,6 +59,9 @@ const ScrollProgressTracker = forwardRef<
     readingProgressAnchor,
     showProgressBar,
     progressBarStyle,
+    progressBarClassName,
+    progressBarFillClassName,
+    progressBarAlwaysVisible,
     children,
   },
   ref,
@@ -199,6 +208,7 @@ const ScrollProgressTracker = forwardRef<
       {showProgressBar && (
         <div
           data-reading-progress
+          className={progressBarClassName}
           style={{
             position: "sticky",
             top: 0,
@@ -207,16 +217,19 @@ const ScrollProgressTracker = forwardRef<
             height: 3,
             zIndex: 50,
             backgroundColor: "transparent",
-            opacity: progressBarVisible ? 1 : 0,
+            opacity: progressBarAlwaysVisible || progressBarVisible ? 1 : 0,
             transition: "opacity 300ms ease-out",
             ...progressBarStyle,
           }}
         >
           <div
+            className={progressBarFillClassName}
             style={{
               height: "100%",
               width: `${scrollPercent}%`,
-              backgroundColor: "rgb(249, 115, 22)",
+              backgroundColor: progressBarFillClassName
+                ? undefined
+                : "rgb(249, 115, 22)",
               transition: "width 150ms ease-out",
             }}
           />

@@ -15,12 +15,15 @@ import {
 import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
+import { PopoverAnchor } from "@radix-ui/react-popover";
 import { isServer, keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Command as CommandPrimitive } from "cmdk";
 import { Check, Loader2, Plus, Sparkles, X } from "lucide-react";
 
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+
+import { IconTooltip } from "../preview/IconControl";
 
 export function TagsEditor({
   tags: _tags,
@@ -29,6 +32,8 @@ export function TagsEditor({
   disabled,
   allowCreation = true,
   placeholder,
+  variant = "field",
+  addOnly = false,
 }: {
   tags: ZBookmarkTags[];
   onAttach: (tag: { tagName: string; tagId?: string }) => void;
@@ -36,6 +41,17 @@ export function TagsEditor({
   disabled?: boolean;
   allowCreation?: boolean;
   placeholder?: string;
+  /**
+   * "inline" drops the input's box for a borderless "+ Add tag" control in line
+   * with the chips, where the control itself is the input, so typing works from
+   * the first keystroke.
+   */
+  variant?: "field" | "inline";
+  /**
+   * Only for adding, for when what's attached is shown elsewhere: no chips, and
+   * picking a tag always adds it.
+   */
+  addOnly?: boolean;
 }) {
   const api = useTRPC();
   const { t } = useTranslation();
@@ -45,7 +61,8 @@ export function TagsEditor({
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
-  const [optimisticTags, setOptimisticTags] = useState<ZBookmarkTags[]>(_tags);
+  const [attachedTags, setOptimisticTags] = useState<ZBookmarkTags[]>(_tags);
+  const optimisticTags = addOnly ? [] : attachedTags;
   const tempIdCounter = React.useRef(0);
   const hasInitializedRef = React.useRef(_tags.length > 0);
 
@@ -150,25 +167,37 @@ export function TagsEditor({
       return baseOptions;
     }
 
-    const exactMatch = baseOptions.some(
-      (opt) => opt.name.toLowerCase() === trimmedInputValue.toLowerCase(),
-    );
+    const query = trimmedInputValue.toLowerCase();
+    const rank = (name: string) => {
+      const lowerName = name.toLowerCase();
+      if (lowerName === query) return 0;
+      if (lowerName.startsWith(query)) return 1;
+      return 2;
+    };
+    // The list shows the previous query's results while the new ones load.
+    // Drop what no longer matches: the top row gets pre-selected, so Enter
+    // would otherwise attach an unrelated tag.
+    const matches = baseOptions
+      .filter((opt) => opt.name.toLowerCase().includes(query))
+      .sort((a, b) => rank(a.name) - rank(b.name));
+
+    const exactMatch = matches.some((opt) => rank(opt.name) === 0);
 
     if (!exactMatch && allowCreation) {
       return [
+        ...matches,
         {
           id: "create-new",
           name: trimmedInputValue,
-          label: `Create "${trimmedInputValue}"`,
+          label: t("tags.create_named", { name: trimmedInputValue }),
           attachedBy: "human" as const,
           isCreateOption: true,
         },
-        ...baseOptions,
       ];
     }
 
-    return baseOptions;
-  }, [filteredOptions, trimmedInputValue, allowCreation]);
+    return matches;
+  }, [filteredOptions, trimmedInputValue, allowCreation, t]);
 
   const onChange = (
     actionMeta:
@@ -288,6 +317,174 @@ export function TagsEditor({
     }
   };
 
+  const renderChip = (
+    tag: ZBookmarkTags,
+    chipClassName: string,
+    removeClassName: string,
+  ) => (
+    <div key={tag.id} className={chipClassName}>
+      <div className="m-auto flex min-w-0 items-center gap-1">
+        {tag.attachedBy === "ai" && (
+          <Sparkles
+            className={cn(
+              "size-4 shrink-0",
+              variant === "inline" && "text-muted-foreground",
+            )}
+          />
+        )}
+        <span className="min-w-0 truncate">{tag.name}</span>
+        {!isDisabled && (
+          <IconTooltip label={t("tags.remove_named", { name: tag.name })}>
+            <button
+              type="button"
+              aria-label={t("tags.remove_named", {
+                name: tag.name,
+              })}
+              className={removeClassName}
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange({
+                  action: "remove-value",
+                  id: tag.id,
+                  name: tag.name,
+                });
+              }}
+            >
+              <X className="size-4" />
+            </button>
+          </IconTooltip>
+        )}
+      </div>
+    </div>
+  );
+
+  const optionsList = (
+    <CommandList className="max-h-64">
+      {displayedOptions.length === 0 ? (
+        <CommandEmpty>
+          {trimmedInputValue && allowCreation ? (
+            <div className="flex items-center justify-between px-2 py-1.5">
+              <span>{t("tags.create_named", { name: trimmedInputValue })}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={createTag}
+                className="h-auto p-1 has-[>svg]:px-1"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            t("tags.none_found")
+          )}
+        </CommandEmpty>
+      ) : (
+        <CommandGroup>
+          {displayedOptions.map((option) => {
+            const isSelected = selectedValues.includes(option.id);
+            return (
+              <CommandItem
+                key={
+                  option.isCreateOption ? `create-${option.name}` : option.id
+                }
+                value={option.label}
+                className={cn(
+                  variant === "inline" &&
+                    "cursor-pointer max-sm:min-h-11 [@media(pointer:coarse)]:min-h-11",
+                )}
+                onSelect={() => handleSelect(option)}
+              >
+                <div className="flex w-full items-center gap-2">
+                  {option.isCreateOption ? (
+                    <Plus className="h-4 w-4" />
+                  ) : (
+                    <Check
+                      className={cn(
+                        "h-4 w-4",
+                        isSelected ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                  )}
+                  <span>{option.label}</span>
+                </div>
+              </CommandItem>
+            );
+          })}
+        </CommandGroup>
+      )}
+    </CommandList>
+  );
+
+  if (variant === "inline") {
+    const addLabel = t("preview.tags_add");
+    const addWidth = Math.max(inputValue.length, addLabel.length, 1);
+    return (
+      <div ref={containerRef} className="w-full">
+        <Popover open={open && !isDisabled} onOpenChange={setOpen}>
+          <Command
+            label={t("common.tags")}
+            shouldFilter={false}
+            className="overflow-visible bg-transparent"
+          >
+            <PopoverAnchor asChild>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {optimisticTags.map((tag) =>
+                  renderChip(
+                    tag,
+                    cn(
+                      "inline-flex h-8 min-w-0 max-w-full items-center rounded bg-accent pl-2 text-sm text-foreground max-sm:h-11 [@media(pointer:coarse)]:h-11",
+                      isDisabled && "pr-2",
+                    ),
+                    "flex size-8 shrink-0 items-center justify-center rounded text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:size-11 [@media(pointer:coarse)]:size-11",
+                  ),
+                )}
+                {!isDisabled && (
+                  <label className="inline-flex h-8 cursor-pointer items-center gap-1 rounded px-2 text-sm text-muted-foreground transition-colors focus-within:bg-accent focus-within:text-foreground focus-within:ring-[3px] focus-within:ring-ring/50 hover:bg-accent hover:text-foreground max-sm:h-11 [@media(pointer:coarse)]:h-11">
+                    <Plus className="size-4 shrink-0" />
+                    <CommandPrimitive.Input
+                      ref={inputRef}
+                      value={inputValue}
+                      aria-label={addLabel}
+                      placeholder={addLabel}
+                      className="cursor-pointer bg-transparent text-foreground outline-none placeholder:text-current focus:cursor-text focus:placeholder:text-muted-foreground"
+                      style={{ width: `${addWidth}ch` }}
+                      onKeyDown={handleKeyDown}
+                      onValueChange={(v) => {
+                        setInputValue(v);
+                        setOpen(true);
+                      }}
+                      onFocus={() => setOpen(true)}
+                      onClick={() => setOpen(true)}
+                    />
+                  </label>
+                )}
+              </div>
+            </PopoverAnchor>
+            <PopoverContent
+              className="w-[--radix-popover-trigger-width] min-w-56 p-0"
+              align="start"
+              collisionPadding={8}
+              onWheel={(e) => e.stopPropagation()}
+              // Typing continues in the input, which sits outside this popover.
+              onOpenAutoFocus={(e) => e.preventDefault()}
+              onCloseAutoFocus={(e) => e.preventDefault()}
+              onInteractOutside={(e) => {
+                if (
+                  e.target instanceof Node &&
+                  containerRef.current?.contains(e.target)
+                ) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              {optionsList}
+            </PopoverContent>
+          </Command>
+        </Popover>
+      </div>
+    );
+  }
+
   const inputPlaceholder =
     placeholder ??
     (allowCreation
@@ -297,8 +494,10 @@ export function TagsEditor({
       : t("tags.search_placeholder", {
           defaultValue: "Search tags...",
         }));
-  const visiblePlaceholder =
-    optimisticTags.length === 0 ? inputPlaceholder : undefined;
+  let visiblePlaceholder: string | undefined = inputPlaceholder;
+  if (optimisticTags.length > 0) {
+    visiblePlaceholder = isDisabled ? undefined : t("tags.add_tag");
+  }
   const inputWidth = Math.max(
     inputValue.length > 0
       ? inputValue.length
@@ -309,58 +508,37 @@ export function TagsEditor({
   return (
     <div ref={containerRef} className="w-full">
       <Popover open={open && !isDisabled} onOpenChange={handleOpenChange}>
-        <Command shouldFilter={false}>
+        <Command label={t("common.tags")} shouldFilter={false}>
           <PopoverTrigger asChild>
             <div
               className={cn(
-                "relative flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 dark:bg-input/30",
+                "relative flex min-h-10 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm transition-[color,box-shadow] focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50 dark:bg-accent/60",
                 isDisabled && "cursor-not-allowed opacity-50",
               )}
             >
-              {optimisticTags.length > 0 && (
-                <>
-                  {optimisticTags.map((tag) => (
-                    <div
-                      key={tag.id}
-                      className={cn(
-                        "flex min-h-8 space-x-1 rounded px-2",
-                        tag.attachedBy == "ai"
-                          ? "bg-purple-500 text-white"
-                          : "bg-accent dark:bg-input",
-                      )}
-                    >
-                      <div className="m-auto flex gap-2">
-                        {tag.attachedBy === "ai" && (
-                          <Sparkles className="m-auto size-4" />
-                        )}
-                        {tag.name}
-                        {!isDisabled && (
-                          <button
-                            type="button"
-                            className="rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onChange({
-                                action: "remove-value",
-                                id: tag.id,
-                                name: tag.name,
-                              });
-                            }}
-                          >
-                            <X className="h-3 w-3" />
-                            <span className="sr-only">Remove {tag.name}</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </>
+              {optimisticTags.map((tag) =>
+                renderChip(
+                  tag,
+                  cn(
+                    "flex min-h-8 rounded pl-2 pr-1 max-sm:min-h-11 [@media(pointer:coarse)]:min-h-11",
+                    tag.attachedBy == "ai"
+                      ? "bg-purple-500 text-white"
+                      : "bg-accent",
+                  ),
+                  "flex size-6 shrink-0 items-center justify-center rounded opacity-70 outline-none hover:opacity-100 focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:size-11 [@media(pointer:coarse)]:size-11",
+                ),
               )}
               <CommandPrimitive.Input
                 ref={inputRef}
                 value={inputValue}
                 onKeyDown={handleKeyDown}
-                onValueChange={(v) => setInputValue(v)}
+                onValueChange={(v) => {
+                  setInputValue(v);
+                  // Tabbing to the field and typing doesn't go through the trigger
+                  if (!open) {
+                    handleOpenChange(true);
+                  }
+                }}
                 placeholder={visiblePlaceholder}
                 className="bg-transparent outline-none placeholder:text-muted-foreground"
                 style={{ width: `${inputWidth}ch` }}
@@ -378,58 +556,7 @@ export function TagsEditor({
             align="start"
             onWheel={(e) => e.stopPropagation()}
           >
-            <CommandList className="max-h-64">
-              {displayedOptions.length === 0 ? (
-                <CommandEmpty>
-                  {trimmedInputValue && allowCreation ? (
-                    <div className="flex items-center justify-between px-2 py-1.5">
-                      <span>Create &quot;{trimmedInputValue}&quot;</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={createTag}
-                        className="h-auto p-1 has-[>svg]:px-1"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    "No tags found."
-                  )}
-                </CommandEmpty>
-              ) : (
-                <CommandGroup>
-                  {displayedOptions.map((option) => {
-                    const isSelected = selectedValues.includes(option.id);
-                    return (
-                      <CommandItem
-                        key={
-                          option.isCreateOption
-                            ? `create-${option.name}`
-                            : option.id
-                        }
-                        value={option.label}
-                        onSelect={() => handleSelect(option)}
-                      >
-                        <div className="flex w-full items-center gap-2">
-                          {option.isCreateOption ? (
-                            <Plus className="h-4 w-4" />
-                          ) : (
-                            <Check
-                              className={cn(
-                                "h-4 w-4",
-                                isSelected ? "opacity-100" : "opacity-0",
-                              )}
-                            />
-                          )}
-                          <span>{option.name}</span>
-                        </div>
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              )}
-            </CommandList>
+            {optionsList}
           </PopoverContent>
         </Command>
       </Popover>
