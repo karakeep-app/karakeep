@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { useTranslation } from "@/lib/i18n/server";
 import { ShieldAlert } from "lucide-react";
 
@@ -10,17 +17,22 @@ export default async function AdminsOnly() {
   const { t } = await useTranslation();
   return (
     <main className="flex min-h-dvh items-center justify-center bg-background p-4">
-      <EmptyState
-        className="w-full max-w-md"
-        icon={ShieldAlert}
-        title={t("admin.admins_only.title")}
-        description={t("admin.admins_only.description")}
-        action={
+      <Empty className="max-w-md border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <ShieldAlert />
+          </EmptyMedia>
+          <EmptyTitle>{t("admin.admins_only.title")}</EmptyTitle>
+          <EmptyDescription>
+            {t("admin.admins_only.description")}
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
           <Button asChild>
             <Link href="/">{t("admin.admins_only.back_home")}</Link>
           </Button>
-        }
-      />
+        </EmptyContent>
+      </Empty>
     </main>
   );
 }

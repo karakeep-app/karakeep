@@ -6,7 +6,13 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Collapsible,
   CollapsibleContent,
@@ -256,12 +262,19 @@ export function TagDuplicationDetection() {
 
   if (suggestions.length === 0) {
     return (
-      <EmptyState
-        compact
-        icon={CircleCheck}
-        title={t("cleanups.duplicate_tags.empty_title")}
-        description={t("cleanups.duplicate_tags.empty_description")}
-      />
+      <Empty className="p-4 md:p-6">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <CircleCheck />
+          </EmptyMedia>
+          <EmptyTitle className="text-base">
+            {t("cleanups.duplicate_tags.empty_title")}
+          </EmptyTitle>
+          <EmptyDescription>
+            {t("cleanups.duplicate_tags.empty_description")}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
