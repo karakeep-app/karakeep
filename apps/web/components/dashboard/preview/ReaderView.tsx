@@ -130,6 +130,14 @@ export default function ReaderView({
     onSavePosition(position);
   };
 
+  // Once they've scrolled off the jumped-to paragraph, coming back to it counts.
+  const onReadingPositionChange = (position: ReadingPosition) => {
+    if (position.offset !== jumpOffsetRef.current) {
+      jumpOffsetRef.current = null;
+    }
+    onScrollPositionChange(position);
+  };
+
   const onHighlightError = () => {
     toast({
       variant: "destructive",
@@ -189,7 +197,7 @@ export default function ReaderView({
       <ScrollProgressTracker
         ref={trackerRef}
         onSavePosition={onSaveReadingPosition}
-        onScrollPositionChange={onScrollPositionChange}
+        onScrollPositionChange={onReadingPositionChange}
         restorePosition={restorePosition}
         readingProgressOffset={readingProgressOffset}
         readingProgressAnchor={readingProgressAnchor}
