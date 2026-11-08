@@ -80,6 +80,7 @@
     "image_fit_contain": "Contain (fit)"
   },
   "actions": {
+    "retry": "Retry",
     "change_layout": "Change layout",
     "archive": "Archive",
     "unarchive": "Restore",
@@ -110,6 +111,7 @@
     "add": "Add",
     "remove": "Remove",
     "edit": "Edit",
+    "edit_note": "Edit note",
     "rename": "Rename",
     "confirm": "Confirm",
     "open_editor": "Open editor",
@@ -1138,7 +1140,14 @@
       "details": "Details"
     },
     "renderer_error": "Renderer error",
-    "upload_file": "Upload file"
+    "upload_file": "Upload file",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "note_save_failed": "Couldn't save your note",
+    "saves_automatically": "Changes save automatically",
+    "save_failed": "Couldn't save",
+    "note_placeholder": "Add a note…",
+    "note_title_label": "Title (optional)"
   },
   "editor": {
     "multiple_urls_dialog_title": "Importing URLs as separate bookmarks?",
@@ -1149,6 +1158,12 @@
     "placeholder_v2": "Paste a link, write a note or drop an image…",
     "new_item": "New bookmark",
     "disabled_submissions": "Submissions are disabled",
+    "unsaved_changes": {
+      "title": "Save your changes?",
+      "description": "Your edits to this note haven't been saved.",
+      "discard": "Discard",
+      "keep_editing": "Keep editing"
+    },
     "text_toolbar": {
       "undo": "Undo",
       "redo": "Redo",
@@ -1219,6 +1234,7 @@
       "preserve_video": "Video download queued",
       "delete_from_list": "Bookmark removed from list",
       "clipboard_copied": "Link copied",
+      "note_updated": "Note updated",
       "update_banner": "Banner updated",
       "uploading_banner": "Uploading banner..."
     },

@@ -217,12 +217,7 @@ export default function BookmarkPreview({
         <BookmarkTagsEditor bookmark={bookmark} disabled={!isOwner} />
       </div>
       <Separator />
-      <div className="flex flex-col gap-1.5">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {t("common.note")}
-        </p>
-        <NoteEditor bookmark={bookmark} disabled={!isOwner} />
-      </div>
+      <NoteEditor key={bookmark.id} bookmark={bookmark} disabled={!isOwner} />
       <Separator />
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
       <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
