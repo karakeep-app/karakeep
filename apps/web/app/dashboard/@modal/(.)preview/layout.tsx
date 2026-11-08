@@ -29,10 +29,11 @@ export default function BookmarkPreviewDialogLayout({
   const [activeTab, setActiveTab] = useState("content");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const { placeholder, navigation } = usePreviewNavigation({
-    bookmarkId,
-    containerRef: contentRef,
-  });
+  const { placeholder, navigation, restoresFocusOnClose } =
+    usePreviewNavigation({
+      bookmarkId,
+      containerRef: contentRef,
+    });
 
   const close = () => {
     setOpen(false);
@@ -61,6 +62,12 @@ export default function BookmarkPreviewDialogLayout({
         onOpenAutoFocus={(e) => {
           e.preventDefault();
           contentRef.current?.focus({ preventScroll: true });
+        }}
+        onCloseAutoFocus={(e) => {
+          // After j/k, the card that opened this isn't the one that was showing.
+          if (restoresFocusOnClose()) {
+            e.preventDefault();
+          }
         }}
         onInteractOutside={(e) => {
           // Clicking a toast, such as its Undo button, shouldn't close the preview.

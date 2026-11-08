@@ -447,7 +447,7 @@ export function TagsEditor({
                       value={inputValue}
                       aria-label={addLabel}
                       placeholder={addLabel}
-                      className="cursor-pointer bg-transparent text-foreground outline-none placeholder:text-current focus:cursor-text focus:placeholder:text-muted-foreground"
+                      className="cursor-pointer bg-transparent text-inherit outline-none placeholder:text-current focus:cursor-text focus:placeholder:text-muted-foreground"
                       style={{ width: `${addWidth}ch` }}
                       onKeyDown={handleKeyDown}
                       onValueChange={(v) => {
