@@ -11,6 +11,7 @@ import {
   reload,
   signIn,
   waitForTaggingToFinish,
+  waitForHydration,
   WORKER_TEST_TIMEOUT,
 } from "../../utils/browser";
 
@@ -285,3 +286,45 @@ it("merges a tag into another from its tag page", async ({ page }) => {
   expect(await getTagNamesOfBookmark(trpc, first.id)).toEqual(["javascript"]);
   expect(await getTagNamesOfBookmark(trpc, second.id)).toEqual(["javascript"]);
 });
+
+it(
+  "keeps a tag removed in the preview gone after resizing to its phone layout",
+  { timeout: WORKER_TEST_TIMEOUT },
+  async ({ page }) => {
+    const { trpc, email } = await createWebTestUser();
+    const bookmark = await createTaggedBookmark(trpc, "Packing list", [
+      "travel",
+      "todo",
+    ]);
+    await waitForTaggingToFinish(trpc, bookmark.id);
+    await signIn(page, email);
+
+    // The preview mounts its desktop and phone layouts together, each with
+    // its own tags editor. The phone one's Details tab stays mounted once
+    // it's been opened.
+    await page.setViewportSize({ width: 800, height: 900 });
+    await goto(page, `/dashboard/preview/${bookmark.id}`);
+    const detailsTab = page.getByRole("tab", { name: "Details", exact: true });
+    await waitForHydration(detailsTab);
+    await detailsTab.click();
+    await expect(
+      page.getByRole("button", { name: "Remove todo", exact: true }),
+    ).toBeVisible();
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page
+      .getByRole("button", { name: "Remove todo", exact: true })
+      .click();
+    await expect
+      .poll(() => getTagNamesOfBookmark(trpc, bookmark.id))
+      .not.toContain("todo");
+
+    await page.setViewportSize({ width: 800, height: 900 });
+    await expect(
+      page.getByRole("button", { name: "Remove travel", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Remove todo", exact: true }),
+    ).toHaveCount(0);
+  },
+);
