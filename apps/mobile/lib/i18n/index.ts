@@ -17,6 +17,11 @@
 // - `supportedLangs` from `@karakeep/shared/langs` is the source of truth
 //   for language codes; `SUPPORTED_LANGUAGES` below is the subset mobile has
 //   complete `mobile`-namespace translations for.
+
+// Hermes has no Intl.PluralRules, which i18next needs to pick _one/_other keys.
+// It must load before i18next initializes.
+import "intl-pluralrules";
+
 import i18next from "i18next";
 import type { Locale } from "date-fns";
 import { enUS, pl as plDateFns } from "date-fns/locale";
