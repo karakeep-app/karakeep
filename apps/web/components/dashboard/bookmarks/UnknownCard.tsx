@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/client";
 import { AlertCircle } from "lucide-react";
 
@@ -19,7 +20,14 @@ export default function UnknownCard({
   const { t } = useTranslation();
   return (
     <BookmarkLayoutAdaptingCard
-      title={bookmark.title}
+      title={
+        // A linked title, as the card relies on it to open the preview
+        bookmark.title ? (
+          <Link href={`/dashboard/preview/${bookmark.id}`}>
+            {bookmark.title}
+          </Link>
+        ) : undefined
+      }
       bookmark={bookmark}
       className={className}
       bookmarkIndex={bookmarkIndex}

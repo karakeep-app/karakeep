@@ -648,6 +648,7 @@ function GridView({
     ? "max-sm:h-14 max-sm:min-h-0 max-sm:flex-none"
     : "max-sm:h-40 max-sm:flex-none";
   const hasTitleLink = showTitle && !!title;
+  const hasNoteInFixedHeight = isFixedHeight && !!note;
 
   return (
     <div
@@ -692,10 +693,20 @@ function GridView({
           className={cn(
             "flex min-h-0 flex-auto flex-col gap-2 overflow-hidden",
             CARD_TAG_ROW_PARENT_CLASS,
+            // A note takes the title's second line and a little of the spacing,
+            // so a same-height card still fits its tags
+            hasNoteInFixedHeight && "sm:gap-1.5",
           )}
         >
           {showTitle && title && (
-            <div className={CARD_TITLE_CLASS}>{title}</div>
+            <div
+              className={cn(
+                CARD_TITLE_CLASS,
+                hasNoteInFixedHeight && "sm:line-clamp-1",
+              )}
+            >
+              {title}
+            </div>
           )}
           {content && (
             <div className="flex min-h-0 shrink flex-col overflow-hidden text-sm">
