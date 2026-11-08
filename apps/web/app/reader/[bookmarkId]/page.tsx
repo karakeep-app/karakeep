@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/lib/auth/client";
+import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
 import { useQuery } from "@tanstack/react-query";
 import { HighlighterIcon as Highlight, Printer, X } from "lucide-react";
@@ -19,6 +20,7 @@ import { READER_FONT_FAMILIES } from "@karakeep/shared/types/readers";
 import { getBookmarkTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
 export default function ReaderViewPage() {
+  const { t } = useTranslation();
   const api = useTRPC();
   const params = useParams<{ bookmarkId: string }>();
   const bookmarkId = params.bookmarkId;
@@ -60,7 +62,9 @@ export default function ReaderViewPage() {
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-muted-foreground">Reader View</span>
+            <span className="text-sm text-muted-foreground">
+              {t("preview.reader_view")}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">

@@ -296,7 +296,7 @@ export function ConditionBuilder({
               }}
             >
               <PlusCircle className="h-4 w-4" />
-              Add Condition
+              {t("settings.rules.add_condition")}
             </Button>
           </div>
         );

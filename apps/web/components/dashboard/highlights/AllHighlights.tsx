@@ -145,7 +145,7 @@ export default function AllHighlights({
               onClick={() => fetchNextPage()}
               variant="ghost"
             >
-              Load More
+              {t("actions.load_more")}
             </ActionButton>
           </div>
         )}

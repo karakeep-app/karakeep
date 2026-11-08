@@ -29,7 +29,6 @@ import {
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
 import {
-  humanFriendlyNameForAssertType,
   isAllowedToAttachAsset,
   isAllowedToDetachAsset,
 } from "@karakeep/trpc/lib/attachments";
@@ -137,7 +136,7 @@ export default function AttachmentBox({
                   </FilePickerButton>
                 )}
               <FilePickerButton
-                title="Upload File"
+                title={t("preview.upload_file")}
                 loading={isAttaching}
                 multiple={false}
                 variant="none"
@@ -181,7 +180,7 @@ export default function AttachmentBox({
               <p>
                 {asset.assetType === "userUploaded" && asset.fileName
                   ? asset.fileName
-                  : humanFriendlyNameForAssertType(asset.assetType)}
+                  : t(`settings.manage_assets.types.${asset.assetType}`)}
               </p>
             </Link>
             <div className="flex gap-1 text-muted-foreground">
@@ -193,7 +192,7 @@ export default function AttachmentBox({
                 download={
                   asset.assetType === "userUploaded" && asset.fileName
                     ? asset.fileName
-                    : humanFriendlyNameForAssertType(asset.assetType)
+                    : t(`settings.manage_assets.types.${asset.assetType}`)
                 }
                 prefetch={false}
               >
@@ -227,8 +226,10 @@ export default function AttachmentBox({
                 )}
               {!readOnly && isAllowedToDetachAsset(asset.assetType) && (
                 <ActionConfirmingDialog
-                  title="Delete Attachment?"
-                  description={`Are you sure you want to delete the attachment of the bookmark?`}
+                  title={t("settings.manage_assets.delete_asset")}
+                  description={t(
+                    "settings.manage_assets.delete_asset_confirmation",
+                  )}
                   actionButton={(setDialogOpen) => (
                     <ActionButton
                       loading={isDetaching}

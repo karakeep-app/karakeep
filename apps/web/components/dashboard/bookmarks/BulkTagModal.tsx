@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { useQueries } from "@tanstack/react-query";
 
 import { useUpdateBookmarkTags } from "@karakeep/shared-react/hooks/bookmarks";
@@ -27,6 +28,7 @@ export default function BulkTagModal({
   setOpen: (open: boolean) => void;
 }) {
   const api = useTRPC();
+  const { t } = useTranslation();
   const results = useQueries({
     queries: bookmarkIds.map((id) =>
       api.bookmarks.getBookmark.queryOptions({ bookmarkId: id }),
@@ -123,7 +125,11 @@ export default function BulkTagModal({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Tags of {bookmarks.length} Bookmarks</DialogTitle>
+          <DialogTitle>
+            {t("dialogs.bookmarks.bulk_edit_tags_title", {
+              count: bookmarks.length,
+            })}
+          </DialogTitle>
         </DialogHeader>
         <TagsEditor tags={tags} onAttach={onAttach} onDetach={onDetach} />
         <DialogFooter className="sm:justify-end">

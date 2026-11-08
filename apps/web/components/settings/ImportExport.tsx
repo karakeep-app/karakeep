@@ -100,7 +100,7 @@ function ExportButton() {
           <Upload className="h-5 w-5 text-primary" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium">Export File</h3>
+          <h3 className="font-medium">{t("settings.import.export_file")}</h3>
           <p>{t("settings.import.export_links_and_notes")}</p>
           <Select
             value={format}
@@ -141,13 +141,13 @@ export function ImportExportRow() {
       {quotaError && (
         <Alert variant="destructive" className="relative">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Import Quota Exceeded</AlertTitle>
+          <AlertTitle>{t("settings.import.import_quota_exceeded")}</AlertTitle>
           <AlertDescription>{quotaError}</AlertDescription>
         </Alert>
       )}
       <div className="grid gap-4 md:grid-cols-2">
         <ImportCard
-          text="HTML File"
+          text={t("settings.import.html_file")}
           description={t("settings.import.import_bookmarks_from_html_file")}
         >
           <FilePickerButton

@@ -71,7 +71,7 @@ async function seedHighlight(
 async function openReaderView(page: Page, bookmarkId: string) {
   await goto(page, `/dashboard/preview/${bookmarkId}`);
   await page.getByRole("combobox").filter({ hasText: "Screenshot" }).click();
-  await page.getByRole("option", { name: "Reader View" }).click();
+  await page.getByRole("option", { name: "Reader view" }).click();
   await expect(page).toHaveURL(/section=cached/);
   const heading = page.getByRole("heading", { name: READER_TEXT });
   await expect(heading).toBeVisible();

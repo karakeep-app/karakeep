@@ -323,7 +323,7 @@ export default function BulkBookmarksAction() {
       <ActionConfirmingDialog
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}
-        title={"Delete Bookmarks"}
+        title={t("dialogs.bookmarks.bulk_delete_title")}
         description={<p>Are you sure you want to delete these bookmarks?</p>}
         actionButton={() => (
           <ActionButton

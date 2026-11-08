@@ -277,7 +277,7 @@ export function EditBookmarkDialog({
                     <FormControl>
                       <Textarea
                         disabled={isAssetContentLoading}
-                        placeholder="Extracted Content"
+                        placeholder={t("bookmark_editor.extracted_content")}
                         {...field}
                         value={field.value ?? ""}
                       />

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Eye, EyeOff, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -36,6 +37,7 @@ const createDeleteAccountSchema = (isLocalUser: boolean) =>
   });
 
 export function DeleteAccount() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -99,9 +101,14 @@ export function DeleteAccount() {
   };
 
   return (
-    <SettingsSection title="Danger Zone" variant="danger">
+    <SettingsSection
+      title={t("settings.delete_account.danger_zone")}
+      variant="danger"
+    >
       <div className="space-y-2">
-        <h3 className="text-lg font-medium">Delete Account</h3>
+        <h3 className="text-lg font-medium">
+          {t("settings.delete_account.delete_account")}
+        </h3>
         <p className="text-sm text-muted-foreground">
           Permanently delete your account and all associated data. This action
           cannot be undone.
@@ -111,7 +118,7 @@ export function DeleteAccount() {
       <ActionConfirmingDialog
         open={isDialogOpen}
         setOpen={handleDialogOpenChange}
-        title="Delete Account"
+        title={t("settings.delete_account.delete_account")}
         description={
           <div className="space-y-4">
             <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
@@ -186,13 +193,13 @@ export function DeleteAccount() {
             onClick={form.handleSubmit(onSubmit)}
           >
             <Trash2 className="h-4 w-4" />
-            Delete Account
+            {t("settings.delete_account.delete_account")}
           </ActionButton>
         )}
       >
         <Button variant="destructiveOutline">
           <Trash2 className="h-4 w-4" />
-          Delete Account
+          {t("settings.delete_account.delete_account")}
         </Button>
       </ActionConfirmingDialog>
     </SettingsSection>

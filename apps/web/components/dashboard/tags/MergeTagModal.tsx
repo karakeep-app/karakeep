@@ -19,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,6 +40,7 @@ export function MergeTagModal({
   children?: React.ReactNode;
 }) {
   const currentPath = usePathname();
+  const { t } = useTranslation();
   const router = useRouter();
   const formSchema = z.object({
     intoTagId: z.string(),
@@ -104,7 +106,7 @@ export function MergeTagModal({
             })}
           >
             <DialogHeader>
-              <DialogTitle>Merge Tag</DialogTitle>
+              <DialogTitle>{t("tags.merge_tag")}</DialogTitle>
             </DialogHeader>
 
             <DialogDescription className="pt-4">

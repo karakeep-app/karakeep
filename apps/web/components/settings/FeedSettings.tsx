@@ -126,7 +126,11 @@ export function FeedsEditorDialog() {
                   <FormItem className="flex-1">
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Feed Name" type="text" {...field} />
+                      <Input
+                        placeholder={t("settings.feeds.feed_name")}
+                        type="text"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -155,7 +159,7 @@ export function FeedsEditorDialog() {
                 return (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>Import Tags</FormLabel>
+                      <FormLabel>{t("settings.feeds.import_tags")}</FormLabel>
                       <div className="text-sm text-muted-foreground">
                         Automatically import categories from RSS feed as tags
                       </div>
@@ -244,7 +248,7 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
       </Tooltip>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Feed</DialogTitle>
+          <DialogTitle>{t("settings.feeds.edit_feed")}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -305,7 +309,7 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
                 return (
                   <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                     <div className="space-y-0.5">
-                      <FormLabel>Import Tags</FormLabel>
+                      <FormLabel>{t("settings.feeds.import_tags")}</FormLabel>
                       <div className="text-sm text-muted-foreground">
                         Automatically import categories from RSS feed as tags
                       </div>
@@ -491,8 +495,8 @@ export default function FeedSettings() {
               <TableRow>
                 <TableHead>{t("common.name")}</TableHead>
                 <TableHead>{t("common.url")}</TableHead>
-                <TableHead>Last Fetch</TableHead>
-                <TableHead>Last Status</TableHead>
+                <TableHead>{t("settings.feeds.last_fetch")}</TableHead>
+                <TableHead>{t("settings.feeds.last_status")}</TableHead>
                 <TableHead>{t("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>

@@ -55,9 +55,8 @@ function ListItem({
     "bg-emerald-500",
     "bg-amber-500",
   ];
+  const { t } = useTranslation();
   const accentColor = accentColors[level % accentColors.length];
-  const formattedItemCount =
-    itemCount !== undefined ? itemCount.toLocaleString() : undefined;
 
   return (
     <li
@@ -123,9 +122,9 @@ function ListItem({
             </ListOptions>
           </>
         )}
-        {!list && formattedItemCount !== undefined && (
+        {!list && itemCount !== undefined && (
           <span className="hidden items-center gap-2 sm:flex">
-            {formattedItemCount} items
+            {t("lists.items_count", { count: itemCount })}
           </span>
         )}
       </div>

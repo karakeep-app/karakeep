@@ -210,7 +210,7 @@ export function ActionBuilder({ value, onChange }: ActionBuilderProps) {
         className="w-full"
       >
         <PlusCircle className="h-4 w-4" />
-        Add Action
+        {t("settings.rules.add_action")}
       </Button>
     </div>
   );
