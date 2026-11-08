@@ -4,11 +4,32 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import BookmarkFormattedCreatedAt from "@/components/dashboard/bookmarks/BookmarkFormattedCreatedAt";
 import { BookmarkMarkdownComponent } from "@/components/dashboard/bookmarks/BookmarkMarkdownComponent";
-import FooterLinkURL from "@/components/dashboard/bookmarks/FooterLinkURL";
+import CardImage from "@/components/dashboard/bookmarks/CardImage";
+import FooterLinkURL, {
+  getDisplayDomain,
+} from "@/components/dashboard/bookmarks/FooterLinkURL";
+import {
+  CARD_ICON_BUTTON_CLASS,
+  CARD_META_CLASS,
+  CARD_TAG_CLASS,
+  CARD_TITLE_CLASS,
+} from "@/components/dashboard/bookmarks/icons";
 import { ActionButton } from "@/components/ui/action-button";
 import { badgeVariants } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import tailwindConfig from "@/tailwind.config";
 import { useInfiniteQuery } from "@tanstack/react-query";
@@ -27,148 +48,161 @@ import { ZCursor } from "@karakeep/shared/types/pagination";
 function TagPill({ tag }: { tag: string }) {
   return (
     <div
-      className={cn(
-        badgeVariants({ variant: "secondary" }),
-        "text-nowrap font-light text-gray-700 hover:bg-foreground hover:text-secondary dark:text-gray-400",
-      )}
-      key={tag}
+      className={cn(badgeVariants({ variant: "secondary" }), CARD_TAG_CLASS)}
     >
       {tag}
     </div>
   );
 }
 
+function PublicCardImage({ href, src }: { href: string; src: string }) {
+  return (
+    <Link
+      href={href}
+      target="_blank"
+      // The title right below goes to the same place
+      tabIndex={-1}
+      aria-hidden
+      className="relative block h-40 w-full shrink-0 overflow-hidden"
+    >
+      <CardImage
+        src={src}
+        alt=""
+        className="size-full rounded-t-lg object-cover dark:brightness-90"
+      />
+    </Link>
+  );
+}
+
+function ExpandNote({
+  bookmark,
+  children,
+}: {
+  bookmark: ZPublicBookmark;
+  children: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  const label = t("public_lists.expand_note");
+  return (
+    <Dialog>
+      <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="none"
+              aria-label={label}
+              className={cn(
+                CARD_ICON_BUTTON_CLASS,
+                "absolute bottom-0 right-0 z-10 bg-card/90 opacity-0 focus-visible:opacity-100 group-hover:opacity-100 max-sm:opacity-100 [@media(pointer:coarse)]:opacity-100",
+              )}
+            >
+              <Expand className="size-4" />
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipPortal>
+          <TooltipContent>{label}</TooltipContent>
+        </TooltipPortal>
+      </Tooltip>
+      <DialogContent className="max-h-96 max-w-3xl overflow-auto">
+        <DialogTitle className="sr-only">{bookmark.title ?? label}</DialogTitle>
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// The same look as the app's cards, down to the dimmed images in the dark theme,
+// without what only the owner gets: the toolbar, the menu and the selection.
 function BookmarkCard({ bookmark }: { bookmark: ZPublicBookmark }) {
-  const renderContent = () => {
-    switch (bookmark.content.type) {
-      case BookmarkTypes.LINK:
-        return (
-          <div className="space-y-2">
-            {bookmark.bannerImageUrl && (
-              <div className="aspect-video w-full overflow-hidden rounded bg-gray-100 dark:bg-muted">
-                <Link href={bookmark.content.url} target="_blank">
-                  {/* oxlint-disable-next-line no-img-element */}
-                  <img
-                    src={bookmark.bannerImageUrl}
-                    alt={bookmark.title ?? "Link preview"}
-                    className="h-full w-full object-cover"
-                  />
-                </Link>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Link
-                href={bookmark.content.url}
-                target="_blank"
-                className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight"
-              >
-                {bookmark.title}
-              </Link>
-            </div>
-          </div>
-        );
+  const { t } = useTranslation();
+  const { content } = bookmark;
 
-      case BookmarkTypes.TEXT:
-        return (
-          <div className="space-y-2">
-            {bookmark.title && (
-              <h3 className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight">
-                {bookmark.title}
-              </h3>
-            )}
-            <div className="group relative max-h-64 overflow-hidden">
-              <BookmarkMarkdownComponent readOnly={true}>
-                {{
-                  id: bookmark.id,
-                  content: {
-                    text: bookmark.content.text,
-                  },
-                }}
-              </BookmarkMarkdownComponent>
-              <Dialog>
-                <DialogTrigger className="absolute bottom-2 right-2 z-50 h-4 w-4 opacity-0 group-hover:opacity-100">
-                  <Expand className="h-4 w-4" />
-                </DialogTrigger>
-                <DialogContent className="max-h-96 max-w-3xl overflow-auto">
-                  <BookmarkMarkdownComponent readOnly={true}>
-                    {{
-                      id: bookmark.id,
-                      content: {
-                        text: bookmark.content.text,
-                      },
-                    }}
-                  </BookmarkMarkdownComponent>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        );
-
-      case BookmarkTypes.ASSET:
-        return (
-          <div className="space-y-2">
-            {bookmark.bannerImageUrl ? (
-              <div className="aspect-video w-full overflow-hidden rounded bg-gray-100 dark:bg-muted">
-                <Link href={bookmark.content.assetUrl} target="_blank">
-                  {/* oxlint-disable-next-line no-img-element */}
-                  <img
-                    src={bookmark.bannerImageUrl}
-                    alt={bookmark.title ?? "Asset preview"}
-                    className="h-full w-full object-cover"
-                  />
-                </Link>
-              </div>
-            ) : (
-              <div className="flex aspect-video w-full items-center justify-center overflow-hidden rounded bg-gray-100 dark:bg-muted">
-                {bookmark.content.assetType === "image" ? (
-                  <ImageIcon className="h-8 w-8 text-gray-400" />
-                ) : (
-                  <FileIcon className="h-8 w-8 text-gray-400" />
-                )}
-              </div>
-            )}
-            <div className="space-y-1">
-              <Link
-                href={bookmark.content.assetUrl}
-                target="_blank"
-                className="line-clamp-2 text-ellipsis text-lg font-medium leading-tight"
-              >
-                {bookmark.title}
-              </Link>
-            </div>
-          </div>
-        );
-    }
-  };
+  const noteBody = content.type === BookmarkTypes.TEXT && (
+    <BookmarkMarkdownComponent readOnly={true}>
+      {{
+        id: bookmark.id,
+        content: {
+          text: content.text,
+        },
+      }}
+    </BookmarkMarkdownComponent>
+  );
 
   return (
-    <Card className="group mb-3 border-0 shadow-sm transition-all duration-200 hover:shadow-lg">
-      <CardContent className="p-3">
-        {renderContent()}
+    <div className="group mb-4 flex flex-col overflow-hidden rounded-lg border border-border bg-card hover:shadow-lg hover:transition-shadow">
+      {content.type === BookmarkTypes.LINK && bookmark.bannerImageUrl && (
+        <PublicCardImage href={content.url} src={bookmark.bannerImageUrl} />
+      )}
+      {content.type === BookmarkTypes.ASSET &&
+        (bookmark.bannerImageUrl ? (
+          <PublicCardImage
+            href={content.assetUrl}
+            src={bookmark.bannerImageUrl}
+          />
+        ) : (
+          <div className="flex h-14 w-full shrink-0 items-center justify-center bg-muted text-muted-foreground">
+            {content.assetType === "image" ? (
+              <ImageIcon aria-hidden className="size-4" />
+            ) : (
+              <FileIcon aria-hidden className="size-4" />
+            )}
+          </div>
+        ))}
+      <div className="flex flex-col gap-2 p-3 pb-1.5">
+        {content.type === BookmarkTypes.LINK && (
+          <Link href={content.url} target="_blank" className={CARD_TITLE_CLASS}>
+            {bookmark.title ?? getDisplayDomain(content.url)}
+          </Link>
+        )}
+        {content.type === BookmarkTypes.ASSET && (
+          <Link
+            href={content.assetUrl}
+            target="_blank"
+            className={CARD_TITLE_CLASS}
+          >
+            {bookmark.title ?? t("common.untitled")}
+          </Link>
+        )}
+        {content.type === BookmarkTypes.TEXT && (
+          <>
+            {bookmark.title && (
+              <h3 className={CARD_TITLE_CLASS}>{bookmark.title}</h3>
+            )}
+            <div className="relative max-h-64 overflow-hidden text-sm">
+              {noteBody}
+              <ExpandNote bookmark={bookmark}>{noteBody}</ExpandNote>
+            </div>
+          </>
+        )}
 
-        {/* Tags */}
         {bookmark.tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1">
             {bookmark.tags.map((tag, index) => (
               <TagPill key={index} tag={tag} />
             ))}
           </div>
         )}
 
-        {/* Footer */}
-        <div className="mt-3 flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            {bookmark.content.type === BookmarkTypes.LINK && (
-              <>
-                <FooterLinkURL url={bookmark.content.url} />
-                <span>•</span>
-              </>
-            )}
+        <div
+          className={cn(
+            "flex min-h-8 items-center gap-1.5 overflow-hidden whitespace-nowrap",
+            CARD_META_CLASS,
+          )}
+        >
+          {content.type === BookmarkTypes.LINK && (
+            <>
+              <FooterLinkURL url={content.url} />
+              <span aria-hidden>•</span>
+            </>
+          )}
+          <span suppressHydrationWarning className="shrink-0">
             <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
-          </div>
+          </span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
@@ -201,6 +235,7 @@ export default function PublicBookmarkGrid({
   nextCursor: ZCursor | null;
 }) {
   const api = useTRPC();
+  const { t } = useTranslation();
   const { ref: loadMoreRef, inView: loadMoreButtonInView } = useInView();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useInfiniteQuery(
@@ -249,7 +284,7 @@ export default function PublicBookmarkGrid({
             onClick={() => fetchNextPage()}
             variant="ghost"
           >
-            Load More
+            {t("actions.load_more")}
           </ActionButton>
         </div>
       )}

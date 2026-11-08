@@ -6,6 +6,38 @@ import { useTranslation } from "@/lib/i18n/client";
 
 import { useDeleteBookmark } from "@karakeep/shared-react/hooks//bookmarks";
 import { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { getBookmarkDisplayTitle } from "@karakeep/shared/utils/bookmarkUtils";
+
+const MAX_LISTED_TITLES = 3;
+
+/** The same warning as for a single bookmark, and which ones it's about. */
+export function BulkDeleteDescription({
+  bookmarks,
+}: {
+  bookmarks: ZBookmark[];
+}) {
+  const { t } = useTranslation();
+  const hidden = bookmarks.length - MAX_LISTED_TITLES;
+  return (
+    <div className="space-y-2 text-sm text-muted-foreground">
+      <p>
+        {t("dialogs.bookmarks.bulk_delete_named_description", {
+          count: bookmarks.length,
+        })}
+      </p>
+      <ul className="space-y-1">
+        {bookmarks.slice(0, MAX_LISTED_TITLES).map((bookmark) => (
+          <li key={bookmark.id} className="truncate text-foreground">
+            {getBookmarkDisplayTitle(bookmark) ?? t("common.untitled")}
+          </li>
+        ))}
+        {hidden > 0 && (
+          <li>{t("dialogs.bookmarks.bulk_delete_more", { count: hidden })}</li>
+        )}
+      </ul>
+    </div>
+  );
+}
 
 export default function DeleteBookmarkConfirmationDialog({
   bookmark,
@@ -35,17 +67,27 @@ export default function DeleteBookmarkConfirmationDialog({
     onError: () => {
       toast({
         variant: "destructive",
-        description: `Something went wrong`,
+        description: t("common.something_went_wrong"),
       });
     },
   });
+
+  const displayTitle = getBookmarkDisplayTitle(bookmark);
 
   return (
     <ActionConfirmingDialog
       open={open}
       setOpen={setOpen}
       title={t("dialogs.bookmarks.delete_confirmation_title")}
-      description={t("dialogs.bookmarks.delete_confirmation_description")}
+      description={
+        <p className="line-clamp-3 break-words text-sm text-muted-foreground">
+          {displayTitle
+            ? t("dialogs.bookmarks.delete_named_description", {
+                title: displayTitle,
+              })
+            : t("dialogs.bookmarks.delete_confirmation_description")}
+        </p>
+      }
       actionButton={() => (
         <ActionButton
           type="button"
@@ -53,7 +95,7 @@ export default function DeleteBookmarkConfirmationDialog({
           loading={isPending}
           onClick={() => deleteBoomark({ bookmarkId: bookmark.id })}
         >
-          Delete
+          {t("actions.delete")}
         </ActionButton>
       )}
     >

@@ -2,14 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslation } from "@/lib/i18n/client";
+import { useBookmarkDisplaySettings } from "@/lib/userLocalSettings/bookmarksLayout";
 import { cn } from "@/lib/utils";
 import { FileText } from "lucide-react";
 
 import type { ZBookmarkTypeAsset } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
-import { getSourceUrl } from "@karakeep/shared/utils/bookmarkUtils";
+import {
+  getBookmarkDisplayTitle,
+  getSourceUrl,
+} from "@karakeep/shared/utils/bookmarkUtils";
 
 import { BookmarkLayoutAdaptingCard } from "./BookmarkLayoutAdaptingCard";
+import CardImage from "./CardImage";
 import FooterLinkURL from "./FooterLinkURL";
 
 function AssetImage({
@@ -20,15 +26,19 @@ function AssetImage({
   className?: string;
 }) {
   const bookmarkedAsset = bookmark.content;
+  const { imageFit } = useBookmarkDisplaySettings();
   switch (bookmarkedAsset.assetType) {
     case "image": {
       return (
-        <Link href={`/dashboard/preview/${bookmark.id}`}>
-          <Image
+        // The title goes to the same place
+        <Link
+          href={`/dashboard/preview/${bookmark.id}`}
+          tabIndex={-1}
+          aria-hidden
+        >
+          <CardImage
             alt="asset"
             src={getAssetUrl(bookmarkedAsset.assetId)}
-            fill={true}
-            unoptimized
             className={className}
           />
         </Link>
@@ -41,21 +51,29 @@ function AssetImage({
       if (!screenshotAssetId) {
         return (
           <div
-            className={cn(className, "flex items-center justify-center")}
+            className={cn(
+              className,
+              "flex items-center justify-center bg-muted text-muted-foreground",
+            )}
             title="PDF screenshot not available. Run asset preprocessing job to generate one screenshot"
           >
-            <FileText size={80} />
+            <FileText aria-hidden className="size-8" />
           </div>
         );
       }
       return (
-        <Link href={`/dashboard/preview/${bookmark.id}`}>
+        <Link
+          href={`/dashboard/preview/${bookmark.id}`}
+          tabIndex={-1}
+          aria-hidden
+        >
           <Image
             alt="asset"
             src={getAssetUrl(screenshotAssetId)}
             fill={true}
             unoptimized
-            className={className}
+            // A screenshot of the first page, whose top says what it is
+            className={cn(className, imageFit === "cover" && "object-top")}
           />
         </Link>
       );
@@ -76,9 +94,14 @@ export default function AssetCard({
   className?: string;
   bookmarkIndex?: number;
 }) {
+  const { t } = useTranslation();
   return (
     <BookmarkLayoutAdaptingCard
-      title={bookmarkedAsset.title ?? bookmarkedAsset.content.fileName}
+      title={
+        <Link href={`/dashboard/preview/${bookmarkedAsset.id}`}>
+          {getBookmarkDisplayTitle(bookmarkedAsset) ?? t("common.untitled")}
+        </Link>
+      }
       footer={
         getSourceUrl(bookmarkedAsset) && (
           <FooterLinkURL url={getSourceUrl(bookmarkedAsset)} />

@@ -16,7 +16,7 @@ export default function BookmarkOwnerIcon({
 }: BookmarkOwnerIconProps) {
   return (
     <Tooltip>
-      <TooltipTrigger>
+      <TooltipTrigger tabIndex={-1}>
         <UserAvatar
           name={ownerName}
           image={ownerAvatar}
