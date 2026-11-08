@@ -65,6 +65,12 @@ export function TagsEditor({
   const optimisticTags = addOnly ? [] : attachedTags;
   const tempIdCounter = React.useRef(0);
   const hasInitializedRef = React.useRef(_tags.length > 0);
+  // Tags this editor attached or detached, by name, until the server agrees.
+  // Another editor on the same bookmark (such as the preview's other layout)
+  // has none of these, so it takes the server's tags as they are.
+  const pendingChangesRef = React.useRef(
+    new Map<string, "attach" | "detach">(),
+  );
 
   const generateTempId = React.useCallback(() => {
     tempIdCounter.current += 1;
@@ -89,26 +95,37 @@ export function TagsEditor({
       return;
     }
 
-    // For allowCreation mode, sync server state with optimistic state
-    setOptimisticTags((prev) => {
-      // Start with a copy to avoid mutating the previous state
-      const results = [...prev];
-      let changed = false;
+    // For allowCreation mode, follow the server's tags, except for this
+    // editor's own changes that the server doesn't show yet.
+    const serverTags = new Map(_tags.map((tag) => [tag.name, tag]));
+    const pending = pendingChangesRef.current;
+    for (const [name, change] of pending) {
+      if ((change === "attach") === serverTags.has(name)) {
+        pending.delete(name);
+      }
+    }
 
-      for (const tag of _tags) {
-        const idx = results.findIndex((t) => t.name === tag.name);
-        if (idx == -1) {
-          results.push(tag);
-          changed = true;
-          continue;
+    setOptimisticTags((prev) => {
+      // Keep the chips where they are, so a saved tag doesn't jump.
+      const results = prev.flatMap((tag) => {
+        const serverTag = serverTags.get(tag.name);
+        if (serverTag) {
+          return [serverTag];
         }
-        if (results[idx].id.startsWith("temp-")) {
-          results[idx] = tag;
-          changed = true;
-          continue;
+        return pending.get(tag.name) === "attach" ? [tag] : [];
+      });
+      for (const tag of _tags) {
+        if (
+          pending.get(tag.name) !== "detach" &&
+          !results.some((t) => t.name === tag.name)
+        ) {
+          results.push(tag);
         }
       }
 
+      const changed =
+        results.length !== prev.length ||
+        results.some((tag, i) => tag !== prev[i]);
       return changed ? results : prev;
     });
   }, [_tags, allowCreation]);
@@ -211,6 +228,7 @@ export function TagsEditor({
   ) => {
     switch (actionMeta.action) {
       case "remove-value": {
+        pendingChangesRef.current.set(actionMeta.name, "detach");
         setOptimisticTags((prev) => prev.filter((t) => t.id != actionMeta.id));
         onDetach({
           tagId: actionMeta.id,
@@ -220,6 +238,7 @@ export function TagsEditor({
       }
       case "create-option": {
         const tempId = generateTempId();
+        pendingChangesRef.current.set(actionMeta.name, "attach");
         setOptimisticTags((prev) => [
           ...prev,
           {
@@ -232,6 +251,7 @@ export function TagsEditor({
         break;
       }
       case "select-option": {
+        pendingChangesRef.current.set(actionMeta.name, "attach");
         setOptimisticTags((prev) => {
           if (prev.some((tag) => tag.id === actionMeta.id)) {
             return prev;
