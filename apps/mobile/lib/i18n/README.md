@@ -17,13 +17,16 @@ in `index.ts`, so adding one is a small, mechanical task.
     community translations from Weblate.
   - `mobile` — strings that only exist in the mobile app
     (`apps/mobile/lib/i18n/locales/<lang>.json`).
-- **Shared files, static imports.** The `translation` namespace is imported
+- **Shared files, loaded on demand.** The `translation` namespace is read
   directly from `apps/web/lib/i18n/locales/<lang>/translation.json`, so web
   and Weblate updates reach mobile with no copy step. Metro can bundle it
   because `metro.config.js` adds the workspace root to `watchFolders`. The
   web's `i18next-resources-to-backend` dynamic `import()` pattern does not
-  work under Metro, so every resource is statically imported in
-  `apps/mobile/lib/i18n/index.ts`.
+  work under Metro, so each language's `load()` in
+  `apps/mobile/lib/i18n/index.ts` uses literal `require()` paths: Metro
+  bundles them all, but only evaluates a language when it's used. i18next
+  starts with English and the system language, and `setAppLanguage` /
+  `loadLanguage` add others (with their `fallback`) when needed.
 
 ## Key files
 
@@ -117,10 +120,10 @@ Rules:
    `en.json`, translated. The `fill-translations` skill
    (`.agents/skills/fill-translations`) does this with `--app mobile`, and
    also finds keys that are missing or outdated after `en.json` changes.
-3. In `apps/mobile/lib/i18n/index.ts`, import that file, the web
-   `translation.json` and the date-fns locale, and add a `LANGUAGES` entry
-   with its BCP-47 `tag` (plus `aliases` for other OS tags that should pick
-   it). The settings screen, OS-locale matching and the tests pick it up.
+3. In `apps/mobile/lib/i18n/index.ts`, import the date-fns locale and add a
+   `LANGUAGES` entry with its BCP-47 `tag`, a `load()` that `require`s that
+   file and the web `translation.json`, and optionally `aliases` (other OS
+   tags that should pick it) and a `fallback` language. The settings screen, OS-locale matching and the tests pick it up.
 4. Run `pnpm test` in `apps/mobile`.
 
 ## Checks

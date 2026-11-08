@@ -19,12 +19,18 @@ import {
   getLanguageTag,
   getSystemLanguage,
   i18n,
+  loadLanguage,
   matchSupportedLanguage,
   resolveAppLanguage,
   setAppLanguage,
   SUPPORTED_LANGUAGES,
 } from "../index";
 import type { SupportedLanguage } from "../index";
+
+// Read before any test loads more languages.
+const LOADED_AT_STARTUP = SUPPORTED_LANGUAGES.filter((lang) =>
+  i18n.hasResourceBundle(getLanguageTag(lang), "mobile"),
+);
 
 // Every shipped language except English, the source and fallback language.
 const TRANSLATIONS = SUPPORTED_LANGUAGES.filter(
@@ -50,6 +56,7 @@ function flatten(obj: object, prefix = ""): Record<string, unknown> {
 }
 
 function mobileStrings(lang: SupportedLanguage) {
+  loadLanguage(lang);
   return flatten(i18n.getResourceBundle(getLanguageTag(lang), "mobile"));
 }
 
@@ -159,6 +166,19 @@ describe("getSystemLanguage", () => {
   });
 });
 
+describe("loading", () => {
+  it("starts with only English and the system language", () => {
+    expect(LOADED_AT_STARTUP).toEqual(["en"]);
+  });
+
+  it("loads a language with its fallbacks", async () => {
+    await setAppLanguage("pt_BR");
+    expect(i18n.hasResourceBundle("pt-BR", "mobile")).toBe(true);
+    expect(i18n.hasResourceBundle("pt-PT", "translation")).toBe(true);
+    expect(i18n.languages).toEqual(["pt-BR", "pt-PT", "en"]);
+  });
+});
+
 describe("English source strings", () => {
   const strings = mobileStrings(FALLBACK_LANGUAGE);
 
@@ -235,6 +255,7 @@ describe.each(TRANSLATIONS)("%s translation", (lang) => {
   });
 
   it("loads the web app's shared strings", () => {
+    loadLanguage(lang);
     const tag = getLanguageTag(lang);
     const web = i18n.getResourceBundle(tag, "translation");
     expect(i18n.getFixedT(tag, "translation")("actions.save")).toBe(
@@ -243,6 +264,7 @@ describe.each(TRANSLATIONS)("%s translation", (lang) => {
   });
 
   it("returns the key for unknown keys instead of crashing", () => {
+    loadLanguage(lang);
     const t = i18n.getFixedT(getLanguageTag(lang), "mobile");
     expect(t("does.not.exist" as never)).toBe("does.not.exist");
   });
