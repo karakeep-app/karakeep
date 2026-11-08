@@ -73,3 +73,6 @@ auth_failures.log
 .codex
 .claude/worktrees
 jean.json
+
+# Private deployment state and identity/provider credentials
+.deploy/

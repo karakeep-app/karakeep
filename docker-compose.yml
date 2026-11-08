@@ -1,0 +1,151 @@
+name: karakeep
+
+networks:
+  karakeep:
+    driver: bridge
+  proxy:
+    external: true
+
+volumes:
+  data:
+  search:
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "3"
+
+services:
+  web:
+    image: karakeep-onceup:${KARAKEEP_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: aio
+      args:
+        SERVER_VERSION: ${KARAKEEP_SERVER_VERSION:-onceup-summary}
+    restart: unless-stopped
+    init: false
+    stop_grace_period: 45s
+    environment:
+      DATA_DIR: /data
+      NEXTAUTH_URL: https://${APP_HOST:-karakeep.onceup.win}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?Generate NEXTAUTH_SECRET in .env}
+      AUTH_TRUSTED_ORIGINS: https://${APP_HOST:-karakeep.onceup.win}
+      DISABLE_SIGNUPS: ${DISABLE_SIGNUPS:-true}
+      DISABLE_PASSWORD_AUTH: ${DISABLE_PASSWORD_AUTH:-true}
+      OAUTH_WELLKNOWN_URL: ${OAUTH_WELLKNOWN_URL:-https://pocket-id.onceup.win/.well-known/openid-configuration}
+      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID:?Configure the Pocket ID client}
+      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET:?Configure the Pocket ID client secret}
+      OAUTH_PROVIDER_NAME: Pocket ID
+      OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING: "true"
+      MEILI_ADDR: http://search:7700
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Generate MEILI_MASTER_KEY in .env}
+      BROWSER_WEB_URL: http://chrome:9222
+      INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
+      INFERENCE_ENABLE_AUTO_TAGGING: "false"
+      EMBEDDING_ENABLE_AUTO_INDEXING: "false"
+      SEMANTIC_SEARCH_ENABLED: "false"
+      INFERENCE_LANG: russian
+      SUMMARY_PROVIDER: notebooklm
+      SUMMARY_READER_ENABLED: ${SUMMARY_READER_ENABLED:-true}
+      SUMMARY_AUTO_TAGS_ENABLED: ${SUMMARY_AUTO_TAGS_ENABLED:-true}
+      SUMMARY_NOTEBOOKLM_URL: http://notebooklm:8000
+      SUMMARY_NOTEBOOKLM_TOKEN: ${SUMMARY_NOTEBOOKLM_TOKEN:?Generate an adapter token}
+      SUMMARY_HERMES_URL: ${SUMMARY_HERMES_URL:-http://host.docker.internal:8642/p/karakeep-summary/v1}
+      SUMMARY_HERMES_API_KEY: ${SUMMARY_HERMES_API_KEY:?Generate a dedicated Hermes key}
+      SUMMARY_HERMES_MODEL: karakeep-summary
+      SUMMARY_HERMES_CONTEXT_LENGTH: "16384"
+      LOG_LEVEL: info
+    volumes:
+      - data:/data
+    networks:
+      - karakeep
+      - proxy
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      search:
+        condition: service_healthy
+      chrome:
+        condition: service_started
+      notebooklm:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+    labels:
+      - traefik.enable=${KARAKEEP_PUBLIC_ENABLED:-false}
+      - traefik.docker.network=proxy
+      - traefik.http.services.karakeep-web-svc.loadbalancer.server.port=3000
+      - traefik.http.routers.karakeep-web.rule=Host(`${APP_HOST:-karakeep.onceup.win}`)
+      - traefik.http.routers.karakeep-web.entrypoints=http
+      - traefik.http.routers.karakeep-web.middlewares=traefik-https-redirect
+      - traefik.http.routers.karakeep-web-secure.rule=Host(`${APP_HOST:-karakeep.onceup.win}`)
+      - traefik.http.routers.karakeep-web-secure.entrypoints=https
+      - traefik.http.routers.karakeep-web-secure.tls=true
+      - traefik.http.routers.karakeep-web-secure.tls.certresolver=cloudflare
+      - traefik.http.routers.karakeep-web-secure.service=karakeep-web-svc
+      - traefik.http.routers.karakeep-web-secure.middlewares=sslheader
+
+  search:
+    image: getmeili/meilisearch:v1.55.0
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: production
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?Generate MEILI_MASTER_KEY in .env}
+    volumes:
+      - search:/meili_data
+    networks:
+      - karakeep
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:7700/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+  chrome:
+    image: ghcr.io/karakeep-app/karakeep-chrome:release
+    restart: unless-stopped
+    init: true
+    shm_size: 1gb
+    command:
+      - --disable-gpu
+      - --disable-dev-shm-usage
+      - --hide-scrollbars
+      - --disable-blink-features=AutomationControlled
+      - --window-size=1440,900
+    networks:
+      - karakeep
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging
+
+  notebooklm:
+    image: karakeep-notebooklm:${KARAKEEP_IMAGE_TAG:-local}
+    build:
+      context: apps/notebooklm-service
+    user: "${DEPLOY_UID:-1001}:${DEPLOY_GID:-1001}"
+    restart: unless-stopped
+    environment:
+      HOME: /state/home
+      SUMMARY_NOTEBOOKLM_TOKEN: ${SUMMARY_NOTEBOOKLM_TOKEN:?Generate an adapter token}
+      NOTEBOOKLM_PROFILE: default
+    volumes:
+      - ./.deploy/notebooklm-auth:/auth
+      - ./.deploy/notebooklm-state:/state
+    networks:
+      - karakeep
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    logging: *logging

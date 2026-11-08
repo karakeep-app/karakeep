@@ -1,0 +1,30 @@
+# Merge with a Karakeep compose file; the adapter shares its private service network.
+# Paths here are relative to docker/, the directory of the first compose file.
+services:
+  notebooklm:
+    build:
+      context: ../apps/notebooklm-service
+    restart: unless-stopped
+    environment:
+      SUMMARY_NOTEBOOKLM_TOKEN: ${SUMMARY_NOTEBOOKLM_TOKEN:?Set a dedicated adapter token}
+      SUMMARY_NOTEBOOKLM_TIMEOUT_SEC: ${SUMMARY_NOTEBOOKLM_TIMEOUT_SEC:-240}
+      SUMMARY_MAX_SOURCE_CHARS: ${SUMMARY_MAX_SOURCE_CHARS:-500000}
+      NOTEBOOKLM_CONCURRENCY: ${NOTEBOOKLM_CONCURRENCY:-1}
+      NOTEBOOKLM_PROFILE: ${NOTEBOOKLM_PROFILE:-default}
+      HTTPS_PROXY: ${NOTEBOOKLM_HTTPS_PROXY:-}
+      HTTP_PROXY: ${NOTEBOOKLM_HTTP_PROXY:-}
+      NO_PROXY: ${NOTEBOOKLM_NO_PROXY:-localhost,127.0.0.1}
+    volumes:
+      - notebooklm-state:/state
+      - ${NOTEBOOKLM_AUTH_DIR:?Set a dedicated auth directory}:/auth
+    # No published host port: only Karakeep services on the compose network connect.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  notebooklm-state:

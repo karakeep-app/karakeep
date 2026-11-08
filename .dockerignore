@@ -31,3 +31,6 @@ snapshots
 .next/
 out/
 .claude/worktrees
+
+# Private deployment state and identity/provider credentials
+.deploy/
