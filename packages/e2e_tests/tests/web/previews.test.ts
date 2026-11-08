@@ -34,7 +34,7 @@ it("opens and closes a bookmark preview modal", async ({ page }) => {
       .filter({ visible: true }),
   ).toBeVisible();
   await expect(
-    dialog.getByPlaceholder("Write some notes ...").filter({ visible: true }),
+    dialog.getByPlaceholder("Add a note…").filter({ visible: true }),
   ).toHaveValue("Bring the paperback");
 
   await page.keyboard.press("Escape");
@@ -57,6 +57,6 @@ it("loads a bookmark preview directly as a full page", async ({ page }) => {
       .filter({ visible: true }),
   ).toBeVisible();
   await expect(
-    page.getByPlaceholder("Write some notes ...").filter({ visible: true }),
+    page.getByPlaceholder("Add a note…").filter({ visible: true }),
   ).toHaveValue("Bring the paperback");
 });
