@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useClientConfig } from "@/lib/clientConfig";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
+import { useSortOrder } from "@/lib/userLocalSettings/bookmarksLayout";
 import { keepPreviousData, useInfiniteQuery } from "@tanstack/react-query";
 
 import type { ZBookmarkSearchMode } from "@karakeep/shared/types/bookmarks";
@@ -136,7 +137,9 @@ export function useDoBookmarkSearch() {
 export function useBookmarkSearch() {
   const api = useTRPC();
   const { searchQuery, effectiveSearchMode } = useBookmarkSearchState();
-  const sortOrder = useSortOrderStore((state) => state.sortOrder);
+  const defaultSortOrder = useSortOrder();
+  const sortOrder =
+    useSortOrderStore((state) => state.sortOrder) ?? defaultSortOrder;
   const effectiveSortOrder =
     effectiveSearchMode === "fts" ? sortOrder : ("relevance" as const);
 

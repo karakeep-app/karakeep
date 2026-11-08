@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import UploadDropzone from "@/components/dashboard/UploadDropzone";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
+import { useSortOrder } from "@/lib/userLocalSettings/bookmarksLayout";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 import type {
@@ -19,17 +20,19 @@ export default function UpdatableBookmarksGrid({
   bookmarks: initialBookmarks,
   showEditorCard = false,
 }: {
-  query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is handled by the store
+  query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order comes from user local settings
   bookmarks: ZGetBookmarksResponse;
   showEditorCard?: boolean;
   itemsPerPage?: number;
 }) {
   const api = useTRPC();
-  let sortOrder = useSortOrderStore((state) => state.sortOrder);
-  if (sortOrder === "relevance") {
-    // Relevance is not supported in the `getBookmarks` endpoint.
-    sortOrder = "desc";
-  }
+  const defaultSortOrder = useSortOrder();
+  const overrideSortOrder = useSortOrderStore((state) => state.sortOrder);
+  const sortOrder =
+    overrideSortOrder === null || overrideSortOrder === "relevance"
+      ? // Relevance is not supported in the `getBookmarks` endpoint.
+        defaultSortOrder
+      : overrideSortOrder;
 
   const finalQuery = { ...query, sortOrder, includeContent: false };
 
