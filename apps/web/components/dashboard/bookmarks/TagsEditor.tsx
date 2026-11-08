@@ -22,8 +22,14 @@ import { Check, Loader2, Plus, Sparkles, X } from "lucide-react";
 
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 import { IconTooltip } from "../preview/IconControl";
+
+/** A tag created here that the server hasn't saved yet. */
+function isUnsaved(tagId: string) {
+  return tagId.startsWith("temp-");
+}
 
 export function TagsEditor({
   tags: _tags,
@@ -65,6 +71,12 @@ export function TagsEditor({
   const optimisticTags = addOnly ? [] : attachedTags;
   const tempIdCounter = React.useRef(0);
   const hasInitializedRef = React.useRef(_tags.length > 0);
+  // Tags this editor attached or detached, by name, until the server agrees.
+  // Another editor on the same bookmark (such as the preview's other layout)
+  // has none of these, so it takes the server's tags as they are.
+  const pendingChangesRef = React.useRef(
+    new Map<string, "attach" | "detach">(),
+  );
 
   const generateTempId = React.useCallback(() => {
     tempIdCounter.current += 1;
@@ -89,26 +101,37 @@ export function TagsEditor({
       return;
     }
 
-    // For allowCreation mode, sync server state with optimistic state
-    setOptimisticTags((prev) => {
-      // Start with a copy to avoid mutating the previous state
-      const results = [...prev];
-      let changed = false;
+    // For allowCreation mode, follow the server's tags, except for this
+    // editor's own changes that the server doesn't show yet.
+    const serverTags = new Map(_tags.map((tag) => [tag.name, tag]));
+    const pending = pendingChangesRef.current;
+    for (const [name, change] of pending) {
+      if ((change === "attach") === serverTags.has(name)) {
+        pending.delete(name);
+      }
+    }
 
-      for (const tag of _tags) {
-        const idx = results.findIndex((t) => t.name === tag.name);
-        if (idx == -1) {
-          results.push(tag);
-          changed = true;
-          continue;
+    setOptimisticTags((prev) => {
+      // Keep the chips where they are, so a saved tag doesn't jump.
+      const results = prev.flatMap((tag) => {
+        const serverTag = serverTags.get(tag.name);
+        if (serverTag) {
+          return [serverTag];
         }
-        if (results[idx].id.startsWith("temp-")) {
-          results[idx] = tag;
-          changed = true;
-          continue;
+        return pending.get(tag.name) === "attach" ? [tag] : [];
+      });
+      for (const tag of _tags) {
+        if (
+          pending.get(tag.name) !== "detach" &&
+          !results.some((t) => t.name === tag.name)
+        ) {
+          results.push(tag);
         }
       }
 
+      const changed =
+        results.length !== prev.length ||
+        results.some((tag, i) => tag !== prev[i]);
       return changed ? results : prev;
     });
   }, [_tags, allowCreation]);
@@ -211,6 +234,16 @@ export function TagsEditor({
   ) => {
     switch (actionMeta.action) {
       case "remove-value": {
+        // A new tag has no id to detach by yet, so only drop the chip. If
+        // its attach went through, the next refetch brings it back.
+        if (isUnsaved(actionMeta.id)) {
+          pendingChangesRef.current.delete(actionMeta.name);
+          setOptimisticTags((prev) =>
+            prev.filter((t) => t.id != actionMeta.id),
+          );
+          break;
+        }
+        pendingChangesRef.current.set(actionMeta.name, "detach");
         setOptimisticTags((prev) => prev.filter((t) => t.id != actionMeta.id));
         onDetach({
           tagId: actionMeta.id,
@@ -219,19 +252,26 @@ export function TagsEditor({
         break;
       }
       case "create-option": {
+        // The name the server will save, so the chip can be matched to it.
+        const name = normalizeTagName(actionMeta.name);
+        if (!name) {
+          break;
+        }
         const tempId = generateTempId();
+        pendingChangesRef.current.set(name, "attach");
         setOptimisticTags((prev) => [
           ...prev,
           {
             id: tempId,
-            name: actionMeta.name,
+            name,
             attachedBy: "human" as const,
           },
         ]);
-        onAttach({ tagName: actionMeta.name });
+        onAttach({ tagName: name });
         break;
       }
       case "select-option": {
+        pendingChangesRef.current.set(actionMeta.name, "attach");
         setOptimisticTags((prev) => {
           if (prev.some((tag) => tag.id === actionMeta.id)) {
             return prev;
