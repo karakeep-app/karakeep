@@ -774,14 +774,24 @@ function CompactView({
       {bookmark.content.type === BookmarkTypes.ASSET && (
         <ImageIcon className="size-4 shrink-0 text-muted-foreground" />
       )}
-      <div className="line-clamp-2 min-w-0 flex-1 break-words font-medium sm:line-clamp-none sm:truncate">
-        {showTitle &&
-          (title ?? (
+      {showTitle ? (
+        <div className="line-clamp-2 min-w-0 flex-1 break-words font-medium sm:line-clamp-none sm:truncate">
+          {title ?? (
             <Link href={`/dashboard/preview/${bookmark.id}`}>
               {getBookmarkDisplayTitle(bookmark) ?? t("common.untitled")}
             </Link>
-          ))}
-      </div>
+          )}
+        </div>
+      ) : (
+        // The title's empty space opens the preview, as there's no title to click.
+        // The keyboard has KeyboardPreviewLink.
+        <Link
+          href={`/dashboard/preview/${bookmark.id}`}
+          tabIndex={-1}
+          aria-hidden
+          className="min-w-0 flex-1 self-stretch"
+        />
+      )}
       <CompactRowActions bookmark={bookmark} />
       <div
         className={cn(

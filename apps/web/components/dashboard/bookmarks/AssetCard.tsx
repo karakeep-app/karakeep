@@ -50,7 +50,10 @@ function AssetImage({
       )?.id;
       if (!screenshotAssetId) {
         return (
-          <div
+          <Link
+            href={`/dashboard/preview/${bookmark.id}`}
+            tabIndex={-1}
+            aria-hidden
             className={cn(
               className,
               "flex items-center justify-center bg-muted text-muted-foreground",
@@ -58,7 +61,7 @@ function AssetImage({
             title="PDF screenshot not available. Run asset preprocessing job to generate one screenshot"
           >
             <FileText aria-hidden className="size-8" />
-          </div>
+          </Link>
         );
       }
       return (
