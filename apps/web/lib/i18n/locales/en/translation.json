@@ -159,7 +159,8 @@
     },
     "load_more": "Load more",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "expand": "Expand"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet.",
@@ -1202,7 +1203,16 @@
     "summary_bookmark_other": "{{count}} bookmarks",
     "items_count_one": "{{count}} bookmark",
     "items_count_other": "{{count}} bookmarks",
-    "list_name": "List name"
+    "list_name": "List name",
+    "archive_description": "Hidden from Home",
+    "favourites_description": "Bookmarks you've starred",
+    "new_manual_list": "New manual list",
+    "new_smart_list": "New smart list",
+    "no_lists_yet": "No lists yet",
+    "no_lists_yet_description": "Manual lists hold the bookmarks you add to them. Smart lists fill themselves from a search.",
+    "pinned": "Pinned",
+    "smart_badge": "Smart",
+    "your_lists": "Your lists"
   },
   "tags": {
     "all_tags": "All tags",

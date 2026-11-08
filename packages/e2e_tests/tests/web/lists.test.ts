@@ -165,8 +165,11 @@ it("creates a nested list under a parent list", async ({ page }) => {
     .filter({ has: page.getByRole("link", { name: /Travel/ }) });
   await expect(parentRow).toBeVisible();
   await expect(main.getByRole("link", { name: /Japan trip/ })).toHaveCount(0);
-  // The expand chevron is an svg acting as the collapsible trigger.
-  const expand = parentRow.locator("svg[aria-expanded]");
+  // The expand chevron is a button acting as the collapsible trigger. The ⋯
+  // menu trigger also has aria-expanded, but it's marked as a popup.
+  const expand = parentRow.locator(
+    "button[aria-expanded]:not([aria-haspopup])",
+  );
   await expect(expand).toHaveAttribute("aria-expanded", "false");
   await expand.click();
   await expect(expand).toHaveAttribute("aria-expanded", "true");
