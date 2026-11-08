@@ -37,14 +37,10 @@ it("adds a bookmark through the list dialog and finds it in the list", async ({
     .getByRole("menuitem", { name: "Manage lists", exact: true })
     .click();
   const dialog = page.getByRole("dialog", { name: "Manage lists" });
-  await dialog.getByRole("combobox").click();
-  await page.getByRole("option", { name: /Weekend reading/ }).click();
-  await expect(dialog.getByRole("listitem")).toContainText("Weekend reading");
-  // Both the footer button and the corner icon are named Close.
-  await dialog
-    .getByRole("button", { name: "Close", exact: true })
-    .first()
-    .click();
+  const option = dialog.getByRole("option", { name: /Weekend reading/ });
+  await option.click();
+  await expect(option).toHaveAttribute("aria-checked", "true");
+  await dialog.getByRole("button", { name: "Close", exact: true }).click();
   await expect(dialog).not.toBeVisible();
 
   await page.getByRole("link", { name: /Weekend reading/ }).click();
@@ -169,8 +165,11 @@ it("creates a nested list under a parent list", async ({ page }) => {
     .filter({ has: page.getByRole("link", { name: /Travel/ }) });
   await expect(parentRow).toBeVisible();
   await expect(main.getByRole("link", { name: /Japan trip/ })).toHaveCount(0);
-  // The expand chevron is an svg acting as the collapsible trigger.
-  const expand = parentRow.locator("svg[aria-expanded]");
+  // The expand chevron is a button acting as the collapsible trigger. The ⋯
+  // menu trigger also has aria-expanded, but it's marked as a popup.
+  const expand = parentRow.locator(
+    "button[aria-expanded]:not([aria-haspopup])",
+  );
   await expect(expand).toHaveAttribute("aria-expanded", "false");
   await expand.click();
   await expect(expand).toHaveAttribute("aria-expanded", "true");

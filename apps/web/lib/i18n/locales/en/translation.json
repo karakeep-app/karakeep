@@ -87,12 +87,17 @@
     "image_fit_contain": "Contain (fit)"
   },
   "actions": {
+    "open_original": "Open original",
+    "preview": "Preview",
+    "read_note": "Read note",
     "undo": "Undo",
     "retry": "Retry",
     "dismiss": "Dismiss",
     "resummarize": "Summarise again",
     "delete_summary": "Delete summary",
     "collapse": "Collapse",
+    "more_options": "More options",
+    "drag_to_list": "Drag to a list",
     "go_back": "Go back",
     "go_home": "Go home",
     "change_layout": "Change layout",
@@ -154,12 +159,26 @@
     },
     "load_more": "Load more",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "expand": "Expand"
   },
   "highlights": {
     "no_highlights": "You don't have any highlights yet.",
     "empty_title": "No highlights yet",
-    "empty_description": "Select text in a bookmark's reader view and pick a colour to save it here."
+    "empty_description": "Select text in a bookmark's reader view and pick a colour to save it here.",
+    "clear_filter": "Clear filter",
+    "color": "Colour",
+    "delete": "Delete highlight",
+    "filter_by_color": "Filter by colour",
+    "filter_label": "Filter highlights",
+    "filter_placeholder": "Filter highlights…",
+    "no_matches": "No highlights match this filter",
+    "color_names": {
+      "yellow": "Yellow",
+      "red": "Red",
+      "green": "Green",
+      "blue": "Blue"
+    }
   },
   "settings": {
     "back_to_app": "Back to app",
@@ -1245,7 +1264,16 @@
     "query_required": "Pick at least one condition",
     "search_query_placeholder": "e.g. is:fav tag:docs",
     "search_query_toggle": "Or write a search query for more filters",
-    "smart_list_help": "Bookmarks matching this search join the list automatically."
+    "smart_list_help": "Bookmarks matching this search join the list automatically.",
+    "archive_description": "Hidden from Home",
+    "favourites_description": "Bookmarks you've starred",
+    "new_manual_list": "New manual list",
+    "new_smart_list": "New smart list",
+    "no_lists_yet": "No lists yet",
+    "no_lists_yet_description": "Manual lists hold the bookmarks you add to them. Smart lists fill themselves from a search.",
+    "pinned": "Pinned",
+    "smart_badge": "Smart",
+    "your_lists": "Your lists"
   },
   "tags": {
     "all_tags": "All tags",
@@ -1368,6 +1396,7 @@
     "fetch_error_title": "Content unavailable",
     "fetch_error_description": "We couldn't fetch the content for this link. The page may be protected, require authentication, or be temporarily unavailable.",
     "crawling_in_progress": "Fetching page content…",
+    "crawl_failed": "Couldn't fetch this page",
     "continue_reading": "Continue where you left off",
     "continue_reading_percent": "Continue where you left off ({{percent}}%)",
     "continue_button": "Continue",
@@ -1521,8 +1550,17 @@
     "bookmarks": {
       "delete_confirmation_title": "Delete bookmark",
       "delete_confirmation_description": "Delete this bookmark? This can't be undone.",
+      "delete_named_description": "Delete \"{{title}}\"? This can't be undone.",
+      "bulk_add_to_list_title": "Add {{count}} bookmarks to list",
       "bulk_delete_confirmation_description": "Delete {{count}} bookmarks? This can't be undone.",
       "bulk_delete_title": "Delete bookmarks",
+      "bulk_delete_named_description_one": "Delete {{count}} bookmark? This can't be undone.",
+      "bulk_delete_named_description_other": "Delete {{count}} bookmarks? This can't be undone.",
+      "bulk_delete_more": "and {{count}} more",
+      "bulk_tags_of_selection": "Tags on the selection",
+      "bulk_tags_none": "None of these bookmarks have tags yet.",
+      "bulk_tag_count": "{{count}} of {{total}}",
+      "bulk_tag_add_to_all": "Add {{name}} to all",
       "bulk_edit_tags_title": "Edit tags of {{count}} bookmarks"
     }
   },
@@ -1546,9 +1584,16 @@
       "preserve_video": "Video download queued",
       "delete_from_list": "Bookmark removed from list",
       "clipboard_copied": "Link copied",
+      "clipboard_failed": "Couldn't copy the link",
       "archived": "Bookmark archived",
       "restored": "Bookmark restored",
       "note_updated": "Note updated",
+      "bulk_added_to_list_one": "{{count}} bookmark added to the list",
+      "bulk_added_to_list_other": "{{count}} bookmarks added to the list",
+      "bulk_tag_added_one": "Tag \"{{tag}}\" added to {{count}} bookmark",
+      "bulk_tag_added_other": "Tag \"{{tag}}\" added to {{count}} bookmarks",
+      "bulk_tag_removed_one": "Tag \"{{tag}}\" removed from {{count}} bookmark",
+      "bulk_tag_removed_other": "Tag \"{{tag}}\" removed from {{count}} bookmarks",
       "update_banner": "Banner updated",
       "uploading_banner": "Uploading banner..."
     },
@@ -1589,8 +1634,21 @@
     },
     "description": "Tidy up your library by merging tags that look like duplicates."
   },
+  "public_lists": {
+    "created_by": "Created by",
+    "bookmark_count_one": "{{count}} bookmark",
+    "bookmark_count_other": "{{count}} bookmarks",
+    "rss_feed": "RSS feed",
+    "expand_note": "Expand note",
+    "empty_title": "This list has no bookmarks yet",
+    "not_found_title": "List not found",
+    "not_found_description": "The list you're looking for doesn't exist or may have been removed."
+  },
   "bookmark_editor": {
     "title": "Edit details",
+    "note_help": "Your own notes on this bookmark, such as why you saved it.",
+    "description_help": "What the page says about itself, picked up when it was saved.",
+    "summary_help": "A short overview of the content, written by AI or by you.",
     "subtitle": "Update the details saved with this bookmark.",
     "author": "Author",
     "publisher": "Publisher",

@@ -3,8 +3,14 @@
 import type { BookmarksLayoutTypes } from "@/lib/userLocalSettings/types";
 import type { ReactNode } from "react";
 import { useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { ButtonWithTooltip } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSession } from "@/lib/auth/client";
 import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import useBulkActionsStore from "@/lib/bulkActions";
@@ -18,69 +24,164 @@ import {
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import {
-  Circle,
-  CircleCheck,
   GripVertical,
   Image as ImageIcon,
   NotebookPen,
+  Square,
 } from "lucide-react";
-import { useTheme } from "next-themes";
-import { toast } from "sonner";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
-import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
-  getBookmarkTitle,
+  getBookmarkDisplayTitle,
   isBookmarkStillTagging,
 } from "@karakeep/shared/utils/bookmarkUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
-import BookmarkActionBar from "./BookmarkActionBar";
+import BookmarkActionBar, { FavouriteButton } from "./BookmarkActionBar";
+import BookmarkFavicon from "./BookmarkFavicon";
 import BookmarkFormattedCreatedAt from "./BookmarkFormattedCreatedAt";
+import { getDisplayDomain } from "./FooterLinkURL";
 import BookmarkOwnerIcon from "./BookmarkOwnerIcon";
-import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
+import {
+  ArchivedActionIcon,
+  CARD_ICON_BUTTON_CLASS,
+  CARD_META_CLASS,
+  CARD_TITLE_CLASS,
+  SelectionCheckbox,
+} from "./icons";
 import { NotePreview } from "./NotePreview";
 import TagList from "./TagList";
+import { useArchiveBookmarkWithUndo } from "./useArchiveBookmarkWithUndo";
 
 interface Props {
   bookmark: ZBookmark;
   image: (layout: BookmarksLayoutTypes, className: string) => ReactNode;
+  // The image is a stand-in with nothing to show, so it can be kept small
+  imageIsPlaceholder?: boolean;
   title?: ReactNode;
   content?: ReactNode;
   footer?: ReactNode;
   className?: string;
-  fitHeight?: boolean;
   wrapTags: boolean;
   bookmarkIndex?: number;
 }
 
-function BottomRow({
-  footer,
-  bookmark,
-}: {
-  footer?: ReactNode;
-  bookmark: ZBookmark;
-}) {
+// On phones the tags stay on one line, fading out at the end, as only the sideways
+// overflow is clipped. It leaves room for their 44px tap areas, see TagList. The
+// fade is a layer on top: a mask would clip those tap areas too.
+const CARD_TAG_ROW_CLASS =
+  "relative max-sm:flex-nowrap max-sm:[overflow-x:clip] max-sm:[overflow-y:visible] max-sm:after:pointer-events-none max-sm:after:absolute max-sm:after:inset-y-0 max-sm:after:right-0 max-sm:after:w-6 max-sm:after:bg-gradient-to-l max-sm:after:from-card max-sm:after:content-['']";
+
+// The same for what's around the tags, keeping the tap areas in without moving
+// anything
+const CARD_TAG_ROW_PARENT_CLASS = "max-sm:-my-[11px] max-sm:py-[11px]";
+
+/**
+ * A card's tab stops are its title link and its menu. Without a visible title
+ * there's nothing else to tab to the preview with, so this stands in for it.
+ * Keyboard only: the mouse has the card's own links.
+ */
+function KeyboardPreviewLink({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
+  const title = getBookmarkDisplayTitle(bookmark) ?? t("common.untitled");
   return (
-    <div className="justify flex w-full shrink-0 justify-between text-gray-500">
-      <div className="flex items-center gap-2 overflow-hidden text-nowrap font-light">
-        {footer && <>{footer}•</>}
-        <Link
-          href={`/dashboard/preview/${bookmark.id}`}
-          suppressHydrationWarning
-        >
-          <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
-        </Link>
-      </div>
-      <BookmarkActionBar bookmark={bookmark} />
+    <Link
+      href={`/dashboard/preview/${bookmark.id}`}
+      aria-label={`${t("actions.preview")}: ${title}`}
+      className="pointer-events-none absolute inset-0 z-[1] rounded-[inherit] outline-none focus-visible:ring-[3px] focus-visible:ring-inset focus-visible:ring-ring/50"
+    />
+  );
+}
+
+/**
+ * Says what a card is for those with no image to tell by, and keeps the corner
+ * clear for the toolbar that goes there on every card, rather than covering text.
+ * Tall enough for the toolbar and its offset, see TOOLBAR_FLOATING_CLASS.
+ */
+function NoteTypeRow() {
+  const { t } = useTranslation();
+  return (
+    <div
+      className={cn("flex h-10 shrink-0 items-center px-3", CARD_META_CLASS)}
+    >
+      <span role="img" aria-label={t("common.note")} className="flex">
+        <NotebookPen aria-hidden className="size-4" />
+      </span>
     </div>
   );
 }
 
-function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
+function BottomRow({
+  footer,
+  tags,
+  toolbar,
+  hideFavourite,
+  bookmark,
+}: {
+  footer?: ReactNode;
+  // For layouts short on height, which have them next to the date from 640px up
+  tags?: ReactNode;
+  // For layouts where this row is the room the toolbar can have to itself
+  toolbar?: ReactNode;
+  // For layouts with the star in the card's corner at every width
+  hideFavourite?: boolean;
+  bookmark: ZBookmark;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex w-full shrink-0 items-center justify-between gap-2",
+        CARD_META_CLASS,
+      )}
+    >
+      {/* From 640px up it's a single line, with the domain giving way to the date.
+          On phones it can't give way enough, so the date takes a line of its own
+          when it doesn't fit. Starting a line puts its separator left of the row,
+          where it's clipped. */}
+      <div
+        className={cn(
+          "min-w-0 flex-1 overflow-hidden",
+          !!tags && "sm:max-w-[55%] sm:flex-initial",
+        )}
+      >
+        <div className="-ml-4 flex flex-wrap items-center whitespace-nowrap sm:flex-nowrap">
+          {footer && (
+            <div className="flex min-w-0 max-w-full pl-4">{footer}</div>
+          )}
+          <span
+            suppressHydrationWarning
+            className="relative block h-5 shrink-0 pl-4"
+          >
+            <span aria-hidden className="absolute left-[5px]">
+              •
+            </span>
+            <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
+          </span>
+        </div>
+      </div>
+      {tags && (
+        <div className="hidden min-w-0 flex-1 items-center gap-1 overflow-hidden [mask-image:linear-gradient(to_left,transparent,black_1.5rem)] sm:flex">
+          {tags}
+        </div>
+      )}
+      <div className="flex shrink-0 items-center">
+        {toolbar}
+        <BookmarkActionBar bookmark={bookmark} hideFavourite={hideFavourite} />
+      </div>
+    </div>
+  );
+}
+
+function OwnerIndicator({
+  bookmark,
+  className = "right-2 top-2",
+}: {
+  bookmark: ZBookmark;
+  className?: string;
+}) {
   const api = useTRPC();
   const listContext = useBookmarkListContext();
   const collaborators = useQuery(
@@ -111,11 +212,20 @@ function OwnerIndicator({ bookmark }: { bookmark: ZBookmark }) {
   if (!owner) return null;
 
   return (
-    <div className="absolute right-2 top-2 z-40 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+    <div
+      className={cn(
+        "absolute z-40 opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100",
+        className,
+      )}
+    >
       <BookmarkOwnerIcon ownerName={owner.name} ownerAvatar={owner.image} />
     </div>
   );
 }
+
+// A shadow rather than a ring utility, as those get muted on a focused button after
+// a click (see tooltip.tsx), which would leave the card just clicked unmarked
+const SELECTED_RING_CLASS = "shadow-[inset_0_0_0_2px_hsl(var(--foreground))]";
 
 function BulkEditSelectionOverlay({ bookmark }: { bookmark: ZBookmark }) {
   const isSelected = useBulkActionsStore((s) =>
@@ -123,7 +233,6 @@ function BulkEditSelectionOverlay({ bookmark }: { bookmark: ZBookmark }) {
   );
   const isBulkEditEnabled = useBulkActionsStore((s) => s.isBulkEditEnabled);
   const toggleBookmark = useBulkActionsStore((state) => state.toggleBookmark);
-  const { resolvedTheme } = useTheme();
   const { data: session } = useSession();
   const { t } = useTranslation();
 
@@ -131,21 +240,28 @@ function BulkEditSelectionOverlay({ bookmark }: { bookmark: ZBookmark }) {
   const isOwner = session?.user?.id === bookmark.userId;
   if (!isBulkEditEnabled || !isOwner) return null;
 
+  const title = getBookmarkDisplayTitle(bookmark);
+
   return (
     <button
       className={cn(
-        "absolute left-0 top-0 z-50 h-full w-full bg-opacity-0",
-        {
-          "bg-opacity-10": isSelected,
-        },
-        resolvedTheme === "dark" ? "bg-white" : "bg-black",
+        "absolute inset-0 z-50 rounded-[inherit] outline-none transition-colors hover:bg-foreground/5 focus-visible:ring-[3px] focus-visible:ring-inset focus-visible:ring-ring/50",
+        isSelected && cn("bg-foreground/5", SELECTED_RING_CLASS),
       )}
-      aria-label={t("actions.select")}
+      aria-label={
+        title ? `${t("actions.select")}: ${title}` : t("actions.select")
+      }
       aria-pressed={isSelected}
       onClick={() => toggleBookmark(bookmark.id)}
     ></button>
   );
 }
+
+// Rarely what a hover is after, so it takes a moment to show up. It grows out of
+// nothing, with the toolbar staying where it is. The starting style is for toolbars
+// that only just got drawn, which otherwise have nothing to transition from.
+const DRAG_HANDLE_REVEAL_CLASS =
+  "w-0 overflow-hidden opacity-0 transition-[width,opacity] duration-150 group-hover:w-8 group-hover:opacity-100 group-hover:delay-500 [@starting-style]:group-hover:w-0 [@starting-style]:group-hover:opacity-0";
 
 function DragHandle({
   bookmark,
@@ -154,7 +270,7 @@ function DragHandle({
   bookmark: ZBookmark;
   className?: string;
 }) {
-  const { isBulkEditEnabled } = useBulkActionsStore();
+  const { t } = useTranslation();
   const handleDragStart = useCallback(
     (e: React.DragEvent) => {
       e.stopPropagation();
@@ -163,7 +279,7 @@ function DragHandle({
 
       // Create a small pill element as the drag preview
       const pill = document.createElement("div");
-      const title = getBookmarkTitle(bookmark) ?? "Untitled";
+      const title = getBookmarkDisplayTitle(bookmark) ?? t("common.untitled");
       pill.textContent =
         title.length > 40 ? title.substring(0, 40) + "\u2026" : title;
       Object.assign(pill.style, {
@@ -187,125 +303,226 @@ function DragHandle({
       e.dataTransfer.setDragImage(pill, 0, 0);
       requestAnimationFrame(() => pill.remove());
     },
-    [bookmark],
+    [bookmark, t],
   );
 
-  if (isBulkEditEnabled) return null;
-
   return (
-    <div
-      draggable
-      onDragStart={handleDragStart}
-      className={cn(
-        "absolute z-40 hidden cursor-grab rounded bg-background/70 p-0.5 opacity-0 shadow-sm transition-opacity duration-200 group-hover:opacity-100 [@media(pointer:fine)]:block",
-        className,
-      )}
-    >
-      <GripVertical className="size-4 text-muted-foreground" />
-    </div>
+    <Tooltip delayDuration={300}>
+      <TooltipTrigger asChild>
+        <div
+          draggable
+          role="img"
+          aria-label={t("actions.drag_to_list")}
+          onDragStart={handleDragStart}
+          className={cn(
+            "flex h-8 w-8 shrink-0 cursor-grab items-center justify-center text-muted-foreground",
+            className,
+            DRAG_HANDLE_REVEAL_CLASS,
+          )}
+        >
+          <GripVertical className="size-4" />
+        </div>
+      </TooltipTrigger>
+      <TooltipPortal>
+        <TooltipContent>{t("actions.drag_to_list")}</TooltipContent>
+      </TooltipPortal>
+    </Tooltip>
   );
 }
 
-function HoverActionBar({
+// One place on every card. The card's type only decides what it floats over.
+const TOOLBAR_FLOATING_CLASS = "absolute right-1.5 top-1.5 z-[60] rounded-md";
+const TOOLBAR_TILE_CLASS = "border bg-background/90 shadow-sm backdrop-blur-sm";
+
+// The tile comes in with the buttons on it. Without them it's only the star, which
+// a tile would make much more of than it is.
+const TOOLBAR_TILE_ON_CARD_HOVER_CLASS =
+  "border border-transparent [@media(pointer:fine)]:sm:group-focus-within:border-border [@media(pointer:fine)]:sm:group-focus-within:bg-background/90 [@media(pointer:fine)]:sm:group-focus-within:shadow-sm [@media(pointer:fine)]:sm:group-focus-within:backdrop-blur-sm [@media(pointer:fine)]:sm:group-hover:border-border [@media(pointer:fine)]:sm:group-hover:bg-background/90 [@media(pointer:fine)]:sm:group-hover:shadow-sm [@media(pointer:fine)]:sm:group-hover:backdrop-blur-sm";
+
+// Enough to keep the star apart from a light image, without a tile behind it
+const STAR_SHADOW_CLASS =
+  "[&>svg]:[filter:drop-shadow(0_1px_2px_rgb(0_0_0/0.35))]";
+
+// Drawn while hovering or focusing the card, on screens that can hover. Phones
+// and touch screens get these from the card's menu, and there's nothing to drag
+// a card to on a phone.
+const SHOW_ON_CARD_HOVER =
+  "[@media(pointer:fine)]:sm:group-focus-within:inline-flex [@media(pointer:fine)]:sm:group-hover:inline-flex";
+
+// For toolbars in a row of their own: holds on to its space, so nothing shifts
+const FADE_IN_ON_CARD_HOVER =
+  "hidden opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 [@media(pointer:fine)]:sm:inline-flex";
+
+/**
+ * Dragging, selecting and archiving. Their buttons stay out of the tab order, as
+ * they're also in the card's menu or on a shortcut.
+ */
+function CardHoverActions({
   bookmark,
-  inline = false,
+  className,
 }: {
   bookmark: ZBookmark;
-  inline?: boolean;
+  className?: string;
 }) {
   const { t } = useTranslation();
   const enableBulkEditForBookmark = useBulkActionsStore(
     (state) => state.enableBulkEditForBookmark,
   );
+  const { data: session } = useSession();
+  const demoMode = !!useClientConfig().demoMode;
+  const { setArchived } = useArchiveBookmarkWithUndo();
+
+  const isOwner = session?.user?.id === bookmark.userId;
+  const archiveLabel = bookmark.archived
+    ? t("actions.unarchive")
+    : t("actions.archive");
+
+  return (
+    <>
+      <DragHandle bookmark={bookmark} className={className} />
+      {isOwner && (
+        <ButtonWithTooltip
+          tooltip={t("actions.select")}
+          delayDuration={300}
+          aria-label={t("actions.select")}
+          tabIndex={-1}
+          variant="ghost"
+          size="none"
+          className={cn(CARD_ICON_BUTTON_CLASS, className)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            enableBulkEditForBookmark(bookmark.id);
+          }}
+        >
+          <Square className="size-4" />
+        </ButtonWithTooltip>
+      )}
+      {isOwner && !demoMode && (
+        <ButtonWithTooltip
+          tooltip={archiveLabel}
+          delayDuration={300}
+          aria-label={archiveLabel}
+          tabIndex={-1}
+          variant="ghost"
+          size="none"
+          className={cn(CARD_ICON_BUTTON_CLASS, className)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setArchived(bookmark.id, !bookmark.archived);
+          }}
+        >
+          <ArchivedActionIcon className="size-4" archived={bookmark.archived} />
+        </ButtonWithTooltip>
+      )}
+    </>
+  );
+}
+
+/**
+ * A compact row's room for the above, between its title and its metadata. It's
+ * there whether they're showing or not, so nothing moves or gets covered, and to
+ * the eye it's just the space that's after a title anyway. Sized for three
+ * 32px buttons, and only for pointers that can hover.
+ */
+function CompactRowActions({ bookmark }: { bookmark: ZBookmark }) {
+  const isBulkEditEnabled = useBulkActionsStore(
+    (state) => state.isBulkEditEnabled,
+  );
+  return (
+    <div
+      className={cn(
+        "relative z-[60] hidden w-24 shrink-0 items-center justify-end opacity-0 transition-opacity duration-200 group-focus-within:opacity-100 group-hover:opacity-100 [@media(pointer:fine)]:sm:flex",
+        isBulkEditEnabled && "invisible",
+      )}
+    >
+      <CardHoverActions bookmark={bookmark} />
+    </div>
+  );
+}
+
+/**
+ * All of a card's hover actions in one place. It floats over the card's image,
+ * or sits inline for layouts that have room for it next to the text, which keeps
+ * it off the text either way.
+ */
+function CardToolbar({
+  bookmark,
+  inline = false,
+  starOnly = false,
+}: {
+  bookmark: ZBookmark;
+  inline?: boolean;
+  // For compact rows, which have the other actions in a place of their own
+  starOnly?: boolean;
+}) {
   const isBulkEditEnabled = useBulkActionsStore(
     (state) => state.isBulkEditEnabled,
   );
   const isSelected = useBulkActionsStore((state) =>
     state.isBookmarkSelected(bookmark.id),
   );
-  const toggleBookmark = useBulkActionsStore((state) => state.toggleBookmark);
   const { data: session } = useSession();
-  const demoMode = !!useClientConfig().demoMode;
-  const updateBookmarkMutator = useUpdateBookmark({
-    onSuccess: () => {
-      toast.success(t("toasts.bookmarks.updated"));
-    },
-    onError: () => {
-      toast.error(t("common.something_went_wrong"));
-    },
-  });
 
   const isOwner = session?.user?.id === bookmark.userId;
-  if (!isOwner) return null;
+
+  // Only states while selecting. Clicks go through to the selection overlay.
+  if (isBulkEditEnabled) {
+    if (!isOwner) {
+      return null;
+    }
+    return (
+      <div
+        className={cn(
+          "pointer-events-none flex items-center",
+          inline ? "shrink-0" : cn(TOOLBAR_FLOATING_CLASS, TOOLBAR_TILE_CLASS),
+        )}
+      >
+        <FavouriteButton
+          bookmark={bookmark}
+          className={
+            inline
+              ? "max-sm:hidden"
+              : "max-sm:size-8 [@media(pointer:coarse)]:size-8"
+          }
+        />
+        <span className="flex size-8 shrink-0 items-center justify-center">
+          <SelectionCheckbox checked={isSelected} />
+        </span>
+      </div>
+    );
+  }
+
+  const show = inline ? FADE_IN_ON_CARD_HOVER : `hidden ${SHOW_ON_CARD_HOVER}`;
 
   return (
     <div
       className={cn(
-        "z-[60] gap-1 rounded bg-white/50 p-1 backdrop-blur-sm transition-opacity duration-200 dark:bg-black/50",
-        inline ? "shrink-0" : "absolute right-2 top-2",
-        isBulkEditEnabled
-          ? "pointer-events-auto flex opacity-100"
-          : "pointer-events-none hidden opacity-0 group-hover:opacity-100 [@media(pointer:fine)]:pointer-events-auto [@media(pointer:fine)]:flex",
+        "items-center",
+        inline
+          ? "flex shrink-0 max-sm:hidden"
+          : cn(
+              TOOLBAR_FLOATING_CLASS,
+              TOOLBAR_TILE_ON_CARD_HOVER_CLASS,
+              // Filling the corner on phones, for the star's 44px tap area
+              "max-sm:right-0 max-sm:top-0",
+              // A favourite always shows its star, on phones too. The rest of
+              // the toolbar comes in around it, leaving it where it is.
+              bookmark.favourited
+                ? "inline-flex"
+                : `hidden ${SHOW_ON_CARD_HOVER}`,
+            ),
       )}
     >
-      <button
-        aria-label={t("actions.bulk_edit")}
-        title={t("actions.bulk_edit")}
-        className="rounded p-0.5 hover:bg-background/50"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (isBulkEditEnabled) {
-            toggleBookmark(bookmark.id);
-          } else {
-            enableBulkEditForBookmark(bookmark.id);
-          }
-        }}
-      >
-        {isSelected ? (
-          <CircleCheck className="size-4" />
-        ) : (
-          <Circle className="size-4" />
+      {!starOnly && <CardHoverActions bookmark={bookmark} className={show} />}
+      <FavouriteButton
+        bookmark={bookmark}
+        className={cn(
+          !bookmark.favourited && show,
+          !inline && bookmark.favourited && STAR_SHADOW_CLASS,
         )}
-      </button>
-      {!demoMode && (
-        <>
-          <button
-            title={
-              bookmark.favourited
-                ? t("actions.unfavorite")
-                : t("actions.favorite")
-            }
-            className="rounded p-0.5 hover:bg-background/50"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              updateBookmarkMutator.mutate({
-                bookmarkId: bookmark.id,
-                favourited: !bookmark.favourited,
-              });
-            }}
-          >
-            <FavouritedActionIcon favourited={bookmark.favourited} size={16} />
-          </button>
-          <button
-            title={
-              bookmark.archived ? t("actions.unarchive") : t("actions.archive")
-            }
-            className="rounded p-0.5 hover:bg-background/50"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              updateBookmarkMutator.mutate({
-                bookmarkId: bookmark.id,
-                archived: !bookmark.archived,
-              });
-            }}
-          >
-            <ArchivedActionIcon archived={bookmark.archived} size={16} />
-          </button>
-        </>
-      )}
+      />
     </div>
   );
 }
@@ -323,47 +540,77 @@ function ListView({
     useBookmarkDisplaySettings();
   const imgFitClass = switchCase(imageFit, {
     cover: "object-cover",
-    contain: "object-contain",
+    contain: "bg-muted object-contain",
   });
   const note = showNotes ? bookmark.note?.trim() : undefined;
+  const hasTitleLink = showTitle && !!title;
+  const excerpt =
+    bookmark.content.type === BookmarkTypes.LINK
+      ? bookmark.content.description?.trim()
+      : undefined;
+  const isTagging = isBookmarkStillTagging(bookmark);
+  const img = image("list", cn("size-full rounded-md", imgFitClass));
 
   return (
     <div
       className={cn(
-        "group relative flex max-h-96 gap-4 overflow-hidden rounded-lg p-2",
+        "group relative isolate flex max-h-80 gap-4 overflow-hidden rounded-lg p-3",
         className,
       )}
       data-bookmark-index={bookmarkIndex}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
-      <OwnerIndicator bookmark={bookmark} />
-      <DragHandle
-        bookmark={bookmark}
-        className="left-1 top-1/2 -translate-y-1/2"
-      />
-      <HoverActionBar bookmark={bookmark} />
-      <div className="flex size-32 items-center justify-center overflow-hidden">
-        {image("list", cn("size-32 rounded-lg", imgFitClass))}
-      </div>
-      <div className="flex h-full flex-1 flex-col justify-between gap-2 overflow-hidden">
-        <div className="flex flex-col gap-2 overflow-hidden">
+      <OwnerIndicator bookmark={bookmark} className="left-3 top-3" />
+      {!hasTitleLink && <KeyboardPreviewLink bookmark={bookmark} />}
+      {img && (
+        <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-md sm:size-24">
+          {img}
+        </div>
+      )}
+      <div className="flex min-w-0 flex-1 flex-col justify-between overflow-hidden">
+        <div
+          className={cn(
+            "flex min-h-0 flex-col gap-1.5 overflow-hidden sm:gap-1",
+            CARD_TAG_ROW_PARENT_CLASS,
+          )}
+        >
           {showTitle && title && (
-            <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
+            <div className={cn(CARD_TITLE_CLASS, "sm:line-clamp-2")}>
               {title}
             </div>
           )}
-          {content && <div className="shrink-1 overflow-hidden">{content}</div>}
+          {excerpt && (
+            <p className="truncate text-sm text-muted-foreground max-sm:hidden">
+              {excerpt}
+            </p>
+          )}
+          {content && (
+            <div className="flex min-h-0 shrink flex-col overflow-hidden text-sm">
+              {content}
+            </div>
+          )}
           {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
           {showTags && (
-            <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
-              <TagList
-                bookmark={bookmark}
-                loading={isBookmarkStillTagging(bookmark)}
-              />
+            <div
+              className={cn(
+                "flex max-h-[3.25rem] shrink-0 flex-wrap gap-1 overflow-hidden sm:hidden",
+                CARD_TAG_ROW_CLASS,
+              )}
+            >
+              <TagList bookmark={bookmark} loading={isTagging} />
             </div>
           )}
         </div>
-        <BottomRow footer={footer} bookmark={bookmark} />
+        <BottomRow
+          footer={footer}
+          tags={
+            showTags && !isTagging && bookmark.tags.length > 0 ? (
+              <TagList bookmark={bookmark} />
+            ) : undefined
+          }
+          toolbar={<CardToolbar bookmark={bookmark} inline />}
+          bookmark={bookmark}
+        />
       </div>
     </div>
   );
@@ -372,52 +619,111 @@ function ListView({
 function GridView({
   bookmark,
   image,
+  imageIsPlaceholder = false,
   title,
   content,
   footer,
   className,
   wrapTags,
   layout,
-  fitHeight = false,
   bookmarkIndex,
 }: Props & { layout: BookmarksLayoutTypes }) {
   const { showNotes, showTags, showTitle, imageFit } =
     useBookmarkDisplaySettings();
   const imgFitClass = switchCase(imageFit, {
     cover: "object-cover",
-    contain: "object-contain",
+    contain: "bg-muted object-contain",
   });
   const note = showNotes ? bookmark.note?.trim() : undefined;
-  const img = image(
-    "grid",
-    cn("h-56 min-h-56 w-full rounded-t-lg", imgFitClass),
-  );
+  // Masonry cards take the height of their content. Grid cards are all the same
+  // height so they line up, which also rules out a smaller placeholder there.
+  const isFixedHeight = layout === "grid";
+  const img = image(layout, cn("size-full rounded-t-lg", imgFitClass));
+  // Notes are the only cards with body text. In a same-height card a banner takes
+  // up whatever the text leaves free, so a short note leaves no blank area.
+  const imageFillsCard = isFixedHeight && !!content && !!img;
+  // Phones have a single column, so there's no row to line up with: cards take the
+  // height of their content there, leaving a stand-in image with no reason to be big
+  const phoneImageClass = imageIsPlaceholder
+    ? "max-sm:h-14 max-sm:min-h-0 max-sm:flex-none"
+    : "max-sm:h-40 max-sm:flex-none";
+  const hasTitleLink = showTitle && !!title;
+  const hasNoteInFixedHeight = isFixedHeight && !!note;
 
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg",
+        "group relative isolate flex flex-col overflow-hidden rounded-lg",
         className,
-        fitHeight && layout != "grid" ? "max-h-96" : "h-96",
+        // An image, a two line title, a row of tags and the footer, and no more
+        isFixedHeight && "h-[18.25rem] max-sm:h-auto",
       )}
       data-bookmark-index={bookmarkIndex}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
-      <OwnerIndicator bookmark={bookmark} />
-      <DragHandle bookmark={bookmark} className="left-2 top-2" />
-      <HoverActionBar bookmark={bookmark} />
-      {img && <div className="h-56 w-full shrink-0 overflow-hidden">{img}</div>}
-      <div className="flex h-full flex-col justify-between gap-2 overflow-hidden p-2">
-        <div className="grow-1 flex flex-col gap-2 overflow-hidden">
+      <OwnerIndicator bookmark={bookmark} className="left-2 top-2" />
+      {!hasTitleLink && <KeyboardPreviewLink bookmark={bookmark} />}
+      <CardToolbar bookmark={bookmark} />
+      {img ? (
+        <div
+          className={cn(
+            "w-full overflow-hidden",
+            imageFillsCard
+              ? "min-h-20 flex-1"
+              : cn(
+                  "shrink-0",
+                  !isFixedHeight && imageIsPlaceholder ? "h-14" : "h-40",
+                ),
+            phoneImageClass,
+          )}
+        >
+          {img}
+        </div>
+      ) : (
+        <NoteTypeRow />
+      )}
+      <div
+        className={cn(
+          "flex min-h-0 flex-col gap-1 p-3 pb-1.5",
+          !img && "pt-0",
+          imageFillsCard ? "flex-initial" : "flex-1",
+        )}
+      >
+        <div
+          className={cn(
+            "flex min-h-0 flex-auto flex-col gap-2 overflow-hidden",
+            CARD_TAG_ROW_PARENT_CLASS,
+            // A note takes the title's second line and a little of the spacing,
+            // so a same-height card still fits its tags
+            hasNoteInFixedHeight && "sm:gap-1.5",
+          )}
+        >
           {showTitle && title && (
-            <div className="line-clamp-2 flex-none shrink-0 overflow-hidden text-ellipsis break-words text-lg">
+            <div
+              className={cn(
+                CARD_TITLE_CLASS,
+                hasNoteInFixedHeight && "sm:line-clamp-1",
+              )}
+            >
               {title}
             </div>
           )}
-          {content && <div className="shrink-1 overflow-hidden">{content}</div>}
+          {content && (
+            <div className="flex min-h-0 shrink flex-col overflow-hidden text-sm">
+              {content}
+            </div>
+          )}
           {note && <NotePreview note={note} bookmarkId={bookmark.id} />}
           {showTags && (
-            <div className="flex shrink-0 flex-wrap gap-1 overflow-hidden">
+            <div
+              className={cn(
+                "flex shrink-0 flex-wrap gap-1 overflow-hidden",
+                // A shorter title leaves its room above the tags, not below them,
+                // which keeps a row of cards' tags and footers lined up
+                isFixedHeight ? "mt-auto max-h-6" : "max-h-[3.25rem]",
+                CARD_TAG_ROW_CLASS,
+              )}
+            >
               <TagList
                 className={wrapTags ? undefined : "h-full"}
                 bookmark={bookmark}
@@ -426,7 +732,7 @@ function GridView({
             </div>
           )}
         </div>
-        <BottomRow footer={footer} bookmark={bookmark} />
+        <BottomRow footer={footer} hideFavourite bookmark={bookmark} />
       </div>
     </div>
   );
@@ -439,66 +745,82 @@ function CompactView({
   className,
   bookmarkIndex,
 }: Props) {
+  const { t } = useTranslation();
   const { showTitle } = useBookmarkDisplaySettings();
   const isBulkEditEnabled = useBulkActionsStore(
     (state) => state.isBulkEditEnabled,
   );
+
   return (
     <div
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg",
+        "group relative isolate flex min-h-10 items-center gap-2 pl-3 pr-1 text-sm transition-colors focus-within:bg-accent/50 hover:bg-accent/50 max-sm:min-h-11 [@media(pointer:coarse)]:min-h-11",
         className,
-        "max-h-96",
       )}
       data-bookmark-index={bookmarkIndex}
     >
       <BulkEditSelectionOverlay bookmark={bookmark} />
       <OwnerIndicator bookmark={bookmark} />
-      <div className="flex h-full justify-between gap-2 overflow-hidden p-2">
-        <div className="flex items-center gap-2">
-          {bookmark.content.type === BookmarkTypes.LINK &&
-            bookmark.content.favicon && (
-              <Image
-                src={bookmark.content.favicon}
-                alt="favicon"
-                width={5}
-                unoptimized
-                height={5}
-                className="size-5"
-              />
-            )}
-          {bookmark.content.type === BookmarkTypes.TEXT && (
-            <NotebookPen className="size-5" />
+      {!showTitle && <KeyboardPreviewLink bookmark={bookmark} />}
+      {bookmark.content.type === BookmarkTypes.LINK && (
+        <BookmarkFavicon
+          src={bookmark.content.favicon}
+          domain={getDisplayDomain(bookmark.content.url)}
+        />
+      )}
+      {bookmark.content.type === BookmarkTypes.TEXT && (
+        <NotebookPen className="size-4 shrink-0 text-muted-foreground" />
+      )}
+      {bookmark.content.type === BookmarkTypes.ASSET && (
+        <ImageIcon className="size-4 shrink-0 text-muted-foreground" />
+      )}
+      {showTitle ? (
+        <div className="line-clamp-2 min-w-0 flex-1 break-words font-medium sm:line-clamp-none sm:truncate">
+          {title ?? (
+            <Link href={`/dashboard/preview/${bookmark.id}`}>
+              {getBookmarkDisplayTitle(bookmark) ?? t("common.untitled")}
+            </Link>
           )}
-          {bookmark.content.type === BookmarkTypes.ASSET && (
-            <ImageIcon className="size-5" />
-          )}
-          {showTitle && (
-            <div className="shrink-1 text-md line-clamp-1 overflow-hidden text-ellipsis break-words">
-              {title ?? "Untitled"}
-            </div>
-          )}
-          {footer && (
-            <p className="flex shrink-0 gap-2 text-gray-500">•{footer}</p>
-          )}
-          <p className="text-gray-500">•</p>
-          <Link
-            href={`/dashboard/preview/${bookmark.id}`}
-            suppressHydrationWarning
-            className="shrink-0 gap-2 text-gray-500"
-          >
-            <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
-          </Link>
         </div>
-        <div className="relative z-[60] flex shrink-0 items-center">
-          <HoverActionBar bookmark={bookmark} inline />
-          <BookmarkActionBar
-            bookmark={bookmark}
-            favouritedClassName={cn(
-              "group-hover:hidden",
-              isBulkEditEnabled && "hidden",
-            )}
-          />
+      ) : (
+        // The title's empty space opens the preview, as there's no title to click.
+        // The keyboard has KeyboardPreviewLink.
+        <Link
+          href={`/dashboard/preview/${bookmark.id}`}
+          tabIndex={-1}
+          aria-hidden
+          className="min-w-0 flex-1 self-stretch"
+        />
+      )}
+      <CompactRowActions bookmark={bookmark} />
+      <div
+        className={cn(
+          "hidden min-w-0 max-w-[20%] shrink-0 items-center gap-1.5 whitespace-nowrap sm:flex lg:max-w-[30%]",
+          CARD_META_CLASS,
+        )}
+      >
+        {footer}
+      </div>
+      {/* The widest it gets is "Sep 28, 2025". Fixed, so the rows' columns line up. */}
+      <span
+        suppressHydrationWarning
+        className={cn(
+          "hidden w-[5.5rem] shrink-0 text-right tabular-nums sm:block",
+          CARD_META_CLASS,
+        )}
+      >
+        <BookmarkFormattedCreatedAt createdAt={bookmark.createdAt} />
+      </span>
+      <div
+        className={cn(
+          "relative flex shrink-0 items-center",
+          !isBulkEditEnabled && "z-[60]",
+        )}
+      >
+        <CardToolbar bookmark={bookmark} inline starOnly />
+        {/* A phone row can't fit these next to the title while selecting */}
+        <div className={cn(isBulkEditEnabled && "max-sm:hidden")}>
+          <BookmarkActionBar bookmark={bookmark} compact />
         </div>
       </div>
     </div>
