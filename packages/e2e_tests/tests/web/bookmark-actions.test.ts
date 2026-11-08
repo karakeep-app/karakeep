@@ -105,16 +105,19 @@ it("adds and edits a note on the preview page", async ({ page }) => {
   await signInAndWaitForCards(page, user.email, user.ids.length);
   const [bookmarkId] = user.ids;
   await goto(page, `/dashboard/preview/${bookmarkId}`);
-  const note = page
-    .getByPlaceholder("Write some notes ...")
-    .filter({ visible: true });
+  const note = page.getByPlaceholder("Add a note…").filter({ visible: true });
   await waitForHydration(note);
   await expect(note).toHaveValue("");
 
-  // The note is saved when the textarea loses focus.
+  // The note is saved when the textarea loses focus, and shows "Saved".
   await note.fill("Use buttermilk");
   await note.blur();
-  await expect(page.getByText("Bookmark updated")).toBeVisible();
+  await expect(
+    page.getByRole("status").filter({ hasText: "Saved", visible: true }),
+  ).toBeVisible();
+  await expect
+    .poll(async () => (await getBookmarks(user, [bookmarkId]))[0].note)
+    .toBe("Use buttermilk");
   await reload(page);
   await waitForHydration(note);
   await expect(note).toHaveValue("Use buttermilk");
