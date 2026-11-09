@@ -518,14 +518,12 @@ const BookmarkHTMLHighlighter = forwardRef<
           setMenuPosition({ x: 0, y: 0 });
           return;
         }
-        const startOffset =
-          getTextNodeOffset(range.startContainer) + range.startOffset;
-        const endOffset =
-          getTextNodeOffset(range.endContainer) + range.endOffset;
+        const highlight = buildHighlightFromRange(range, "yellow");
         const current = pendingRef.current;
         if (
-          current?.startOffset === startOffset &&
-          current.endOffset === endOffset
+          !highlight ||
+          (current?.startOffset === highlight.startOffset &&
+            current.endOffset === highlight.endOffset)
         ) {
           return;
         }
@@ -540,13 +538,7 @@ const BookmarkHTMLHighlighter = forwardRef<
           }
         }
         setSelectedHighlight(null);
-        setPendingHighlight({
-          id: "NOT_SET",
-          startOffset,
-          endOffset,
-          color: "yellow",
-          text: range.toString(),
-        });
+        setPendingHighlight(highlight);
         setMenuPosition({ x: 0, y: 0 });
       }, SELECTION_SETTLE_MS);
     };
@@ -617,7 +609,11 @@ const BookmarkHTMLHighlighter = forwardRef<
     });
 
     // Store the highlight for later use
-    setPendingHighlight(createHighlightFromRange(range, "yellow"));
+    const highlight = buildHighlightFromRange(range, "yellow");
+    if (highlight) {
+      applyHighlightByOffset(highlight);
+    }
+    setPendingHighlight(highlight);
   };
 
   const handleSave = (color: ZHighlightColor, note: string | null) => {
@@ -706,7 +702,7 @@ const BookmarkHTMLHighlighter = forwardRef<
     return -1;
   };
 
-  const createHighlightFromRange = (
+  const buildHighlightFromRange = (
     range: Range,
     color: ZHighlightColor,
   ): Highlight | null => {
@@ -724,7 +720,7 @@ const BookmarkHTMLHighlighter = forwardRef<
       endOffset,
     );
 
-    const highlight: Highlight = {
+    return {
       id: "NOT_SET",
       startOffset,
       endOffset,
@@ -733,9 +729,6 @@ const BookmarkHTMLHighlighter = forwardRef<
       prefix,
       suffix,
     };
-
-    applyHighlightByOffset(highlight);
-    return highlight;
   };
 
   const getRangeFromHighlight = (highlight: Highlight) => {
