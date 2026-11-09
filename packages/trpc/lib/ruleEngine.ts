@@ -305,7 +305,7 @@ export class RuleEngine {
         const payload = {
           bookmarkId: this.bookmark.id,
           archiveFullPage: true,
-          runInference: false,
+          offlineCopiesOnly: true,
         };
         await LowPriorityCrawlerQueue.enqueue(payload, {
           groupId: this.bookmark.userId,

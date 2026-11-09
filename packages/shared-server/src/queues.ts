@@ -83,6 +83,10 @@ export const zCrawlLinkRequestSchema = z.object({
   runInference: z.boolean().optional(),
   archiveFullPage: z.boolean().optional().default(false),
   storePdf: z.boolean().optional().default(false),
+  // When set, only capture the requested offline copies (archiveFullPage /
+  // storePdf) and leave the rest of the bookmark (crawl status, metadata,
+  // content, screenshot, inference) untouched.
+  offlineCopiesOnly: z.boolean().optional().default(false),
 });
 export type ZCrawlLinkRequest = z.input<typeof zCrawlLinkRequestSchema>;
 
@@ -110,8 +114,9 @@ export const LowPriorityCrawlerQueue = createDeferredQueue<ZCrawlLinkRequest>(
 
 // Builds a stable, payload-derived idempotency key for crawler queue jobs.
 // Keys sort before serialization so `{a, b}` and `{b, a}` produce the same
-// key, and differing flags (archiveFullPage, runInference, storePdf) yield
-// distinct keys so non-equivalent crawls are not deduped together.
+// key, and differing flags (archiveFullPage, runInference, storePdf,
+// offlineCopiesOnly) yield distinct keys so non-equivalent crawls are not
+// deduped together.
 export function buildCrawlIdempotencyKey(payload: ZCrawlLinkRequest): string {
   return `crawl:${JSON.stringify(payload, Object.keys(payload).sort())}`;
 }

@@ -155,7 +155,7 @@ async function main() {
             browserCrawlingEnabled: true,
             log: crawlLogger(jobId),
           },
-          values.pdf,
+          { forceStorePdf: values.pdf },
         );
         const { blocked, marker } = scoreHtml(res.statusCode, res.htmlContent);
         if (screenshotDir && res.screenshot) {

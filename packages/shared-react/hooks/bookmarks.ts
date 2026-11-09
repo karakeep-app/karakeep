@@ -173,6 +173,15 @@ export function useRecrawlBookmark(
   );
 }
 
+export function usePreserveOfflineCopy(
+  opts?: Parameters<
+    TRPCApi["bookmarks"]["preserveOfflineCopy"]["mutationOptions"]
+  >[0],
+) {
+  const api = useTRPC();
+  return useMutation(api.bookmarks.preserveOfflineCopy.mutationOptions(opts));
+}
+
 export function usePreserveBookmarkVideo(
   opts?: Parameters<
     TRPCApi["bookmarks"]["preserveVideo"]["mutationOptions"]

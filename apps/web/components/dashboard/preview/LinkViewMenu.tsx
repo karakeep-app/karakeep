@@ -37,7 +37,7 @@ import type {
 } from "@karakeep/shared/types/bookmarks";
 import {
   usePreserveBookmarkVideo,
-  useRecrawlBookmark,
+  usePreserveOfflineCopy,
 } from "@karakeep/shared-react/hooks/bookmarks";
 
 import type { ContentRenderer } from "./content-renderers";
@@ -52,13 +52,13 @@ function useOfflineCopyActions(bookmarkId: string) {
   const onError = () => {
     toast.error(t("common.something_went_wrong"));
   };
-  const { mutate: archivePage } = useRecrawlBookmark({
+  const { mutate: archivePage } = usePreserveOfflineCopy({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.full_page_archive"));
     },
     onError,
   });
-  const { mutate: archivePdf } = useRecrawlBookmark({
+  const { mutate: archivePdf } = usePreserveOfflineCopy({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_pdf"));
     },
@@ -71,8 +71,8 @@ function useOfflineCopyActions(bookmarkId: string) {
     onError,
   });
   return {
-    archive: () => archivePage({ bookmarkId, archiveFullPage: true }),
-    pdf: () => archivePdf({ bookmarkId, storePdf: true }),
+    archive: () => archivePage({ bookmarkId, kind: "fullPageArchive" }),
+    pdf: () => archivePdf({ bookmarkId, kind: "pdf" }),
     video: () => downloadVideo({ bookmarkId }),
   };
 }

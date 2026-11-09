@@ -164,7 +164,8 @@ export class CrawlerWorker {
           const jobId = job.id;
           logger.info(`[Crawler][${jobId}] Completed successfully`);
           const bookmarkId = job.data.bookmarkId;
-          if (bookmarkId) {
+          // Offline copy captures don't touch the bookmark's crawl state.
+          if (bookmarkId && !job.data.offlineCopiesOnly) {
             await db
               .update(bookmarkLinks)
               .set({
@@ -183,7 +184,11 @@ export class CrawlerWorker {
             `[Crawler][${jobId}] Crawling job failed: ${job.error}\n${job.error.stack}`,
           );
           const bookmarkId = job.data?.bookmarkId;
-          if (bookmarkId && job.numRetriesLeft == 0) {
+          if (
+            bookmarkId &&
+            job.numRetriesLeft == 0 &&
+            !job.data?.offlineCopiesOnly
+          ) {
             await db.transaction((tx) => {
               tx.update(bookmarkLinks)
                 .set({
@@ -253,7 +258,8 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage, storePdf } = request.data;
+  const { bookmarkId, archiveFullPage, storePdf, offlineCopiesOnly } =
+    request.data;
   // Add the bookmark id before any database or network work so failed and
   // aborted crawler events remain discoverable by bookmark id.
   addLogFields<"crawlerWorker.run">({
@@ -305,6 +311,7 @@ async function runCrawler(
   });
   setSpanAttributes({
     "crawler.archiveFullPage": archiveFullPage,
+    "crawler.offlineCopiesOnly": offlineCopiesOnly,
     "bookmark.id": bookmarkId,
     "bookmark.url": url,
     "bookmark.domain": getBookmarkDomain(url),
@@ -316,6 +323,18 @@ async function runCrawler(
 
   log.info(`Will crawl "${truncateUrl(url)}" for link with id "${bookmarkId}"`);
   await checkDomainRateLimit(ctx);
+
+  if (offlineCopiesOnly) {
+    await storeOfflineCopies(ctx, {
+      archiveFullPage,
+      storePdf,
+      precrawledArchiveAssetId,
+      oldPdfAssetId,
+      oldFullPageArchiveAssetId,
+      numRetriesLeft,
+    });
+    return { status: "completed" };
+  }
 
   if (precrawledArchiveAssetId) {
     log.info(
@@ -955,6 +974,108 @@ async function storeFullPageArchive(
     await silentDeleteAsset(userId, oldAssetId);
   }
 }
+
+interface StoreOfflineCopiesArgs {
+  archiveFullPage: boolean;
+  storePdf: boolean;
+  precrawledArchiveAssetId: string | undefined;
+  /** Replaced (and deleted) when a new copy is stored. */
+  oldPdfAssetId: string | undefined;
+  oldFullPageArchiveAssetId: string | undefined;
+  numRetriesLeft: number;
+}
+
+/**
+ * Captures only the offline copies the user asked for (a PDF and/or a
+ * full-page archive) from a fresh fetch of the page. Unlike a recrawl, the
+ * bookmark's metadata, content, screenshot and crawl status are left as they
+ * are, and no post-crawl jobs (inference, reindexing, webhooks) are enqueued.
+ */
+const storeOfflineCopies = traced(
+  "storeOfflineCopies",
+  async (ctx: CrawlContext, args: StoreOfflineCopiesArgs): Promise<void> => {
+    const { bookmarkId, userId, jobId, abortSignal, runProxy, log } = ctx;
+    const storePdf = args.storePdf;
+    // A precrawled archive is already the bookmark's offline archive, and the
+    // regular crawl doesn't archive those bookmarks either.
+    const archiveFullPage =
+      args.archiveFullPage && !args.precrawledArchiveAssetId;
+    if (args.archiveFullPage && !archiveFullPage) {
+      log.info(
+        `Skipping the full page archive as the bookmark has a precrawled archive.`,
+      );
+    }
+    if (!storePdf && !archiveFullPage) {
+      return;
+    }
+
+    const page = await crawler.fetchPage(ctx, {
+      forceStorePdf: storePdf,
+      skipParseOnRetryableStatus: true,
+      skipScreenshot: true,
+      skipParse: true,
+    });
+    abortSignal.throwIfAborted();
+
+    crawlerStatusCodeCounter
+      .labels(
+        page.statusCode.toString(),
+        redactUrlCredentials(runProxy.httpsProxy ?? runProxy.httpProxy ?? ""),
+      )
+      .inc();
+    addLogFields<"crawlerWorker.run">({
+      "crawler.status_code": page.statusCode,
+    });
+
+    // Unlike a regular crawl, there's nothing worth keeping from a blocked
+    // page, and storing it would replace a good copy from an earlier capture.
+    if (
+      shouldRetryCrawlStatusCode(page.statusCode) ||
+      isLikelyChallengePage({ htmlContent: page.htmlContent })
+    ) {
+      throw new Error(
+        `[Crawler][${jobId}] The page looks blocked (status code ${page.statusCode}). Not storing offline copies.${args.numRetriesLeft > 0 ? ` Will retry. Retries left: ${args.numRetriesLeft}` : ""}`,
+      );
+    }
+
+    if (storePdf) {
+      const pdfAssetInfo = await raceWith(
+        storeCapturedAsset(ctx, "pdf", page.pdf),
+        abortRace(abortSignal),
+      );
+      abortSignal.throwIfAborted();
+      if (pdfAssetInfo) {
+        await db.transaction((txn) => {
+          updateAsset(
+            args.oldPdfAssetId,
+            {
+              id: pdfAssetInfo.assetId,
+              bookmarkId,
+              userId,
+              assetType: AssetTypes.LINK_PDF,
+              contentType: pdfAssetInfo.contentType,
+              size: pdfAssetInfo.size,
+              fileName: pdfAssetInfo.fileName,
+            },
+            txn,
+          );
+        });
+        if (args.oldPdfAssetId) {
+          await silentDeleteAsset(userId, args.oldPdfAssetId);
+        }
+      }
+    }
+
+    if (archiveFullPage) {
+      await storeFullPageArchive(
+        ctx,
+        page.htmlContent,
+        page.url,
+        args.oldFullPageArchiveAssetId,
+      );
+    }
+  },
+);
 
 // ---------------------------------------------------------------------------
 // 3. After crawling

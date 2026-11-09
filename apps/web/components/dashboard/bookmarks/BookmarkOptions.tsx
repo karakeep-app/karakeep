@@ -61,6 +61,7 @@ import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-gr
 import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import {
   usePreserveBookmarkVideo,
+  usePreserveOfflineCopy,
   useRecrawlBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
@@ -332,14 +333,14 @@ export default function BookmarkOptions({
     onError,
   });
 
-  const fullPageArchiveBookmarkMutator = useRecrawlBookmark({
+  const fullPageArchiveBookmarkMutator = usePreserveOfflineCopy({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.full_page_archive"));
     },
     onError,
   });
 
-  const preservePdfMutator = useRecrawlBookmark({
+  const preservePdfMutator = usePreserveOfflineCopy({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_pdf"));
     },
@@ -553,7 +554,7 @@ export default function BookmarkOptions({
             onClick: () => {
               fullPageArchiveBookmarkMutator.mutate({
                 bookmarkId: bookmark.id,
-                archiveFullPage: true,
+                kind: "fullPageArchive",
               });
             },
           },
@@ -566,7 +567,7 @@ export default function BookmarkOptions({
             onClick: () => {
               preservePdfMutator.mutate({
                 bookmarkId: bookmark.id,
-                storePdf: true,
+                kind: "pdf",
               });
             },
           },

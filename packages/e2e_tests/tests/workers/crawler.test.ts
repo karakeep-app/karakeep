@@ -182,6 +182,78 @@ describe.each([
     expect(html).toContain("data:image/png;base64,");
   });
 
+  it("should preserve offline copies without recrawling", async () => {
+    const created = await createLinkBookmark("http://nginx:80/article.html");
+    const crawled = await waitForBookmark(
+      created.id,
+      "Bookmark is crawled",
+      (b) =>
+        b.content.type === "link" &&
+        b.content.crawlStatus === "success" &&
+        b.assets.some((a) => a.assetType === "pdf"),
+    );
+    assert(crawled.content.type === "link");
+    const assetIdOf = (
+      b: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
+      assetType: string,
+    ) => b.assets.find((a) => a.assetType === assetType)?.id;
+    const screenshotId = assetIdOf(crawled, "screenshot");
+    const pdfId = assetIdOf(crawled, "pdf");
+    assert(screenshotId);
+    assert(pdfId);
+
+    // Only the requested copy changes; the crawl result stays as it was.
+    const expectUntouched = (
+      b: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
+    ) => {
+      assert(b.content.type === "link" && crawled.content.type === "link");
+      expect(b.content.crawlStatus).toBe("success");
+      expect(b.content.crawledAt).toEqual(crawled.content.crawledAt);
+      expect(b.content.htmlContent).toBe(crawled.content.htmlContent);
+      expect(assetIdOf(b, "screenshot")).toBe(screenshotId);
+    };
+
+    const trpc = getTrpcClient(apiKey, String(port));
+    await trpc.bookmarks.preserveOfflineCopy.mutate({
+      bookmarkId: created.id,
+      kind: "fullPageArchive",
+    });
+    const pending = await getBookmark(created.id);
+    assert(pending);
+    expectUntouched(pending);
+
+    const archived = await waitForBookmark(
+      created.id,
+      "Bookmark is archived",
+      (b) => b.assets.some((a) => a.assetType === "fullPageArchive"),
+    );
+    expectUntouched(archived);
+    expect(assetIdOf(archived, "pdf")).toBe(pdfId);
+    const archiveId = assetIdOf(archived, "fullPageArchive");
+    assert(archiveId);
+    const html = (await downloadAsset(archiveId)).toString("utf8");
+    expect(html).toContain("Article heading");
+
+    await trpc.bookmarks.preserveOfflineCopy.mutate({
+      bookmarkId: created.id,
+      kind: "pdf",
+    });
+    const withNewPdf = await waitForBookmark(
+      created.id,
+      "Bookmark has a new PDF",
+      (b) => {
+        const id = assetIdOf(b, "pdf");
+        return id !== undefined && id !== pdfId;
+      },
+    );
+    expectUntouched(withNewPdf);
+    expect(assetIdOf(withNewPdf, "fullPageArchive")).toBe(archiveId);
+    const newPdfId = assetIdOf(withNewPdf, "pdf");
+    assert(newPdfId);
+    const pdf = await downloadAsset(newPdfId);
+    expect(pdf.subarray(0, 5).toString("latin1")).toBe("%PDF-");
+  });
+
   it("should crawl a precrawled archive instead of the live page", async () => {
     const archiveHtml =
       "<!doctype html><html><head><meta charset='utf-8'>" +
