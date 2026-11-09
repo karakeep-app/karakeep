@@ -58,38 +58,36 @@ export default function BookmarkList({
   const { t } = useTranslation();
   useScrollToTop(flatListRef);
   const { settings } = useAppSettings();
-  // A bookmark saved from this device lands at the top, which may be out of
-  // sight, leaving people to wonder whether it saved. Follow their own saves
-  // rather than every change in the data, which also arrives from refetches.
+  // A bookmark saved from this device lands at the top (re-saving an existing
+  // link bumps it there too), which may be out of sight, leaving people to
+  // wonder whether it saved. Follow their own saves rather than every change
+  // in the data, which also arrives from refetches.
   const api = useTRPC();
-  const lastSaveId = Math.max(
-    0,
-    ...useMutationState({
-      filters: {
-        mutationKey: api.bookmarks.createBookmark.mutationKey(),
-        status: "success",
-        predicate: (m) =>
-          !(m.state.data as { alreadyExists: boolean }).alreadyExists,
-      },
-      select: (m) => m.mutationId,
-    }),
-  );
-  const handledSaveId = useRef(lastSaveId);
+  const saveIds = useMutationState({
+    filters: {
+      mutationKey: api.bookmarks.createBookmark.mutationKey(),
+      status: "success",
+    },
+    select: (m) => m.mutationId,
+  });
+  // Saves can finish out of order, so remember each one rather than the latest.
+  const handledSaveIds = useRef(new Set(saveIds));
   // The list scrolls under the transparent header, so its visible top is above
   // zero.
   const headerHeight = use(HeaderHeightContext) ?? 0;
   useEffect(() => {
-    if (lastSaveId <= handledSaveId.current) {
+    const newSaveIds = saveIds.filter((id) => !handledSaveIds.current.has(id));
+    if (newSaveIds.length === 0) {
       return;
     }
-    handledSaveId.current = lastSaveId;
+    newSaveIds.forEach((id) => handledSaveIds.current.add(id));
     if (scrollToTopOnSave && settings.bookmarkSortOrder === "desc") {
       flatListRef.current?.scrollToOffset({
         offset: -headerHeight,
         animated: true,
       });
     }
-  }, [lastSaveId]);
+  }, [saveIds]);
   const { width: containerWidth, onLayout } = useContainerWidth();
   const { numColumns, columnWidth } = getGridColumns({
     containerWidth,
