@@ -23,6 +23,7 @@ import { Check, ChevronDown, ChevronsUpDown, Plus, X } from "lucide-react";
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { normalizeTagName } from "@karakeep/shared/utils/tag";
 
 interface TagAutocompleteProps {
   tagId: string;
@@ -155,7 +156,9 @@ export function TagNamePicker({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const searchQueryDebounced = useDebounce(searchQuery, 200);
+  // Tags are saved without a leading "#", so "#docs" should find "docs".
+  const typedName = normalizeTagName(searchQuery);
+  const searchQueryDebounced = useDebounce(typedName, 200);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const { data: tags } = useTagAutocomplete({
@@ -164,7 +167,6 @@ export function TagNamePicker({
     enabled: open,
   });
 
-  const typedName = searchQuery.trim();
   const query = typedName.toLowerCase();
   // The list shows the previous search's results while the new ones load. The
   // top row gets pre-selected, so Enter shouldn't land on something unrelated.
