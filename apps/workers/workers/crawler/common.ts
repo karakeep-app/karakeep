@@ -111,6 +111,8 @@ export interface FetchPageOptions {
   skipParseOnRetryableStatus: boolean;
   /** Don't take a screenshot, even when screenshots are enabled. */
   skipScreenshot?: boolean;
+  /** Don't capture a PDF, even when PDFs are enabled (or forced). */
+  skipPdf?: boolean;
   /** Don't parse the page at all (parsed comes back null). */
   skipParse?: boolean;
 }

@@ -94,6 +94,7 @@ import {
   truncateUrl,
 } from "./utils/crawlerUtils";
 import {
+  extractHtmlTitle,
   isLikelyChallengePage,
   resolveMetadata,
 } from "./utils/metadataResolver";
@@ -1013,6 +1014,7 @@ const storeOfflineCopies = traced(
       forceStorePdf: storePdf,
       skipParseOnRetryableStatus: true,
       skipScreenshot: true,
+      skipPdf: !storePdf,
       skipParse: true,
     });
     abortSignal.throwIfAborted();
@@ -1031,7 +1033,11 @@ const storeOfflineCopies = traced(
     // page, and storing it would replace a good copy from an earlier capture.
     if (
       shouldRetryCrawlStatusCode(page.statusCode) ||
-      isLikelyChallengePage({ htmlContent: page.htmlContent })
+      isLikelyChallengePage({
+        // The page isn't parsed, so read the title straight from the html.
+        title: extractHtmlTitle(page.htmlContent),
+        htmlContent: page.htmlContent,
+      })
     ) {
       throw new Error(
         `[Crawler][${jobId}] The page looks blocked (status code ${page.statusCode}). Not storing offline copies.${args.numRetriesLeft > 0 ? ` Will retry. Retries left: ${args.numRetriesLeft}` : ""}`,

@@ -27,6 +27,7 @@ export type TracingAttributeKey =
   | "crawler.archiveFullPage"
   | "crawler.offlineCopiesOnly"
   | "crawler.skipScreenshot"
+  | "crawler.skipPdf"
   | "crawler.hasPrecrawledArchive"
   | "crawler.getContentType.statusCode"
   | "crawler.contentType"

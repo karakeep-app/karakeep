@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  extractHtmlTitle,
   isLikelyChallengePage,
   isWaitableChallenge,
   resolveMetadata,
@@ -141,6 +142,32 @@ describe("isLikelyChallengePage", () => {
     expect(isLikelyChallengePage({ title: null, htmlContent: null })).toBe(
       false,
     );
+  });
+});
+
+describe("extractHtmlTitle", () => {
+  it("reads the title, decoding entities and collapsing whitespace", () => {
+    expect(
+      extractHtmlTitle(
+        "<html><head><TITLE lang='en'>\n  Robot &amp;\n Check </TITLE></head></html>",
+      ),
+    ).toBe("Robot & Check");
+  });
+
+  it("returns null without a title", () => {
+    expect(extractHtmlTitle("<html><body>Hello</body></html>")).toBeNull();
+  });
+
+  it("lets title-only challenge pages be detected", () => {
+    const htmlContent =
+      "<html><head><title>Robot Check</title></head><body><p>Type the characters you see</p></body></html>";
+    expect(isLikelyChallengePage({ htmlContent })).toBe(false);
+    expect(
+      isLikelyChallengePage({
+        title: extractHtmlTitle(htmlContent),
+        htmlContent,
+      }),
+    ).toBe(true);
   });
 });
 

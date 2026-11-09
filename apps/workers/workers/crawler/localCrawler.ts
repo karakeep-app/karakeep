@@ -333,7 +333,7 @@ const getContentTypeAndMetadata = traced(
 
 type PageCaptureOptions = Pick<
   FetchPageOptions,
-  "forceStorePdf" | "skipScreenshot"
+  "forceStorePdf" | "skipScreenshot" | "skipPdf"
 >;
 
 // Exported for the adhoc crawl CLI (scripts/crawlAdhoc.ts).
@@ -347,6 +347,7 @@ export const crawlPage = traced(
     setSpanAttributes({
       "crawler.forceStorePdf": captureOpts.forceStorePdf,
       "crawler.skipScreenshot": captureOpts.skipScreenshot ?? false,
+      "crawler.skipPdf": captureOpts.skipPdf ?? false,
     });
 
     if (!ctx.browserCrawlingEnabled) {
@@ -740,7 +741,7 @@ const capturePageAssets = traced(
   async (
     ctx: CrawlContext,
     activePage: Page,
-    { forceStorePdf, skipScreenshot }: PageCaptureOptions,
+    { forceStorePdf, skipScreenshot, skipPdf }: PageCaptureOptions,
   ): Promise<[string, Buffer | undefined, Buffer | undefined]> => {
     const { abortSignal, log } = ctx;
     const htmlPromise = activePage.content().then((content) => {
@@ -755,7 +756,7 @@ const capturePageAssets = traced(
         : Promise.resolve(undefined);
 
     const pdfPromise =
-      serverConfig.crawler.storePdf || forceStorePdf
+      (serverConfig.crawler.storePdf || forceStorePdf) && !skipPdf
         ? captureAsset(ctx, "pdf", () =>
             activePage.pdf({ format: "A4", printBackground: true }),
           )
