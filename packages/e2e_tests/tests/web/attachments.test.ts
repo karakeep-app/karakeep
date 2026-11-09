@@ -47,11 +47,12 @@ it("attaches multiple generic files through the web picker and downloads identic
     },
   ];
   const picker = page
-    .getByTitle("Upload file", { exact: true })
+    .getByRole("button", { name: "Upload file", exact: true })
     .filter({ visible: true })
     .locator("..")
     .locator('input[type="file"]');
   await picker.setInputFiles(files);
+  await page.getByRole("button", { name: /^Attachments \d+$/ }).click();
   for (const file of files) {
     const link = page
       .getByRole("link", { name: file.name, exact: true })
