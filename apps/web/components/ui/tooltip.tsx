@@ -9,6 +9,9 @@ const TooltipPortal = TooltipPrimitive.Portal;
 
 const Tooltip = TooltipPrimitive.Root;
 
+const OPEN_OVERLAY_TRIGGER =
+  '[aria-expanded="true"]:is([aria-haspopup], [role="combobox"])';
+
 /**
  * Opens on focus only when the user moved focus here, from another element.
  * Radix opens it on any focus that doesn't come from pressing the trigger, which
@@ -16,18 +19,30 @@ const Tooltip = TooltipPrimitive.Root;
  * Those focus the trigger after their content has left the page, so focus comes
  * from nowhere. `:focus-visible` can't tell the two apart after a menu: its
  * trigger cancels the pointer press, so the browser never sees the mouse in use.
+ * It also stays shut while the trigger's own popover, menu or select is open,
+ * which it would cover: a non-modal one leaves the trigger hoverable.
+ * `aria-haspopup` tells these apart from a disclosure, which keeps its tooltip.
  */
 const TooltipTrigger = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
->(({ onFocus, ...props }, ref) => (
+>(({ onFocus, onPointerMove, ...props }, ref) => (
   <TooltipPrimitive.Trigger
     {...props}
     ref={ref}
+    // The primitive skips opening when these are prevented.
+    onPointerMove={(e) => {
+      onPointerMove?.(e);
+      if (e.currentTarget.matches(OPEN_OVERLAY_TRIGGER)) {
+        e.preventDefault();
+      }
+    }}
     onFocus={(e) => {
       onFocus?.(e);
-      if (e.relatedTarget === null) {
-        // The primitive skips opening on focus when this is prevented.
+      if (
+        e.relatedTarget === null ||
+        e.currentTarget.matches(OPEN_OVERLAY_TRIGGER)
+      ) {
         e.preventDefault();
       }
     }}
