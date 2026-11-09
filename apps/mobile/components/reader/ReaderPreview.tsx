@@ -1,13 +1,11 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { View } from "react-native";
 import WebView from "react-native-webview";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
-
-const PREVIEW_TEXT =
-  "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!";
 
 export interface ReaderPreviewRef {
   updateStyles: (
@@ -27,6 +25,11 @@ export const ReaderPreview = forwardRef<ReaderPreviewRef, ReaderPreviewProps>(
   ({ initialFontFamily, initialFontSize, initialLineHeight }, ref) => {
     const webViewRef = useRef<WebView>(null);
     const { isDarkColorScheme: isDark } = useColorScheme();
+    const { t } = useTranslation();
+    const previewText = t("settings.reader_preview_text")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
     const fontFamily = WEBVIEW_FONT_FAMILIES[initialFontFamily];
     const textColor = isDark ? "#e5e7eb" : "#374151";
@@ -90,13 +93,16 @@ export const ReaderPreview = forwardRef<ReaderPreviewRef, ReaderPreviewProps>(
           </script>
         </head>
         <body>
-          ${PREVIEW_TEXT}
+          ${previewText}
         </body>
       </html>
     `;
 
     return (
-      <View className="h-32 w-full overflow-hidden rounded-lg">
+      <View
+        className="h-40 w-full overflow-hidden rounded-xl"
+        style={{ borderCurve: "continuous" }}
+      >
         <WebView
           ref={webViewRef}
           originWhitelist={["*"]}

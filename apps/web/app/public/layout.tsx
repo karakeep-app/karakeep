@@ -5,7 +5,7 @@ export default function PublicLayout({
 }) {
   return (
     <div className="h-screen items-center justify-center overflow-y-auto bg-panel">
-      <main className="container mt-3">{children}</main>
+      <main className="container mt-3 p-4">{children}</main>
     </div>
   );
 }

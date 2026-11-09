@@ -518,8 +518,10 @@ export const subscriptionsRouter = router({
         }
       }
 
-      // @ts-expect-error managed_payments is a Stripe preview feature not yet in the SDK types
-      const session = await stripe.checkout.sessions.create({
+      // managed_payments is a Stripe preview feature not yet in the SDK types.
+      const sessionParams: Stripe.Checkout.SessionCreateParams & {
+        managed_payments: { enabled: boolean };
+      } = {
         customer: customerId,
         line_items: [
           {
@@ -540,7 +542,8 @@ export const subscriptionsRouter = router({
         managed_payments: {
           enabled: true,
         },
-      });
+      };
+      const session = await stripe.checkout.sessions.create(sessionParams);
 
       return {
         sessionId: session.id,

@@ -1,13 +1,19 @@
 "use client";
 
 import { useEffect, useTransition } from "react";
-import { ButtonWithTooltip } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useBookmarkSearchState } from "@/lib/hooks/bookmark-search";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
@@ -49,23 +55,28 @@ export default function SortOrderToggle() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <ButtonWithTooltip
-          tooltip={t("actions.sort.title")}
-          delayDuration={100}
-          variant="ghost"
-        >
-          {currentSort === "relevance" && (
-            <ListFilter className="size-[18px]" size={18} />
-          )}
-          {currentSort === "asc" && (
-            <SortAsc className="size-[18px]" size={18} />
-          )}
-          {currentSort === "desc" && (
-            <SortDesc className="size-[18px]" size={18} />
-          )}
-        </ButtonWithTooltip>
-      </DropdownMenuTrigger>
+      {/* The tooltip goes outside the menu's trigger, which cancels the pointer
+          press the tooltip closes on, so it sees the press first. */}
+      <Tooltip delayDuration={100}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" aria-label={t("actions.sort.title")}>
+              {currentSort === "relevance" && (
+                <ListFilter className="size-[18px]" size={18} />
+              )}
+              {currentSort === "asc" && (
+                <SortAsc className="size-[18px]" size={18} />
+              )}
+              {currentSort === "desc" && (
+                <SortDesc className="size-[18px]" size={18} />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipPortal>
+          <TooltipContent>{t("actions.sort.title")}</TooltipContent>
+        </TooltipPortal>
+      </Tooltip>
       <DropdownMenuContent className="w-fit">
         {isInSearchPage && (
           <DropdownMenuItem

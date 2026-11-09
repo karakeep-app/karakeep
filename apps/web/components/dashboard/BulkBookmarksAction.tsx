@@ -27,6 +27,7 @@ import {
 
 import BulkManageListsModal from "./bookmarks/BulkManageListsModal";
 import BulkTagModal from "./bookmarks/BulkTagModal";
+import { BulkDeleteDescription } from "./bookmarks/DeleteBookmarkConfirmationDialog";
 import { ArchivedActionIcon, FavouritedActionIcon } from "./bookmarks/icons";
 
 export default function BulkBookmarksAction() {
@@ -108,6 +109,7 @@ export default function BulkBookmarksAction() {
     if (!isClipboardAvailable()) {
       toast({
         description: `Copying is only available over https`,
+        variant: "destructive",
       });
       return;
     }
@@ -293,6 +295,7 @@ export default function BulkBookmarksAction() {
 
           return (
             <ActionButtonWithTooltip
+              aria-label={name}
               className={className}
               tooltip={name}
               disabled={disabled}
@@ -321,8 +324,8 @@ export default function BulkBookmarksAction() {
       <ActionConfirmingDialog
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}
-        title={"Delete Bookmarks"}
-        description={<p>Are you sure you want to delete these bookmarks?</p>}
+        title={t("dialogs.bookmarks.bulk_delete_title")}
+        description={<BulkDeleteDescription bookmarks={selectedBookmarks} />}
         actionButton={() => (
           <ActionButton
             type="button"

@@ -9,7 +9,7 @@ FROM docker.io/library/debian:trixie-slim@${DEBIAN_DIGEST}
 
 ARG TARGETARCH
 ARG DEBIAN_DIGEST
-ARG GOOGLE_CHROME_VERSION=156.0.8078.47
+ARG GOOGLE_CHROME_VERSION=157.0.8103.38
 ARG BUILD_REVISION=unknown
 ARG BUILD_CREATED=unknown
 
@@ -46,6 +46,10 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --chmod=755 docker/chrome/entrypoint.sh /usr/local/bin/chrome-entrypoint.sh
+
+# Nothing here needs setuid/setgid binaries (Chrome runs as nobody and doesn't
+# use the setuid chrome-sandbox helper), so remove every path back to root.
+RUN find / -xdev -perm /6000 -type f -exec chmod a-s {} +
 
 ENV HOME=/tmp
 USER 65534:65534

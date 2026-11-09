@@ -81,6 +81,7 @@ const UserRow = memo(function UserRow({
       <TableCell className="flex gap-1 py-1">
         <ButtonWithTooltip
           tooltip={t("admin.users_list.delete_user")}
+          aria-label={t("admin.users_list.delete_user")}
           variant="outline"
           disabled={isSelf}
           aria-haspopup="dialog"
@@ -90,6 +91,7 @@ const UserRow = memo(function UserRow({
         </ButtonWithTooltip>
         <ButtonWithTooltip
           tooltip={t("admin.users_list.reset_password")}
+          aria-label={t("admin.users_list.reset_password")}
           variant="outline"
           disabled={isSelf}
           aria-haspopup="dialog"
@@ -98,7 +100,8 @@ const UserRow = memo(function UserRow({
           <KeyRound size={16} color="red" />
         </ButtonWithTooltip>
         <ButtonWithTooltip
-          tooltip="Edit User"
+          tooltip={t("admin.users_list.edit_user")}
+          aria-label={t("admin.users_list.edit_user")}
           variant="outline"
           disabled={isSelf}
           aria-haspopup="dialog"
@@ -179,7 +182,10 @@ export default function UsersSection() {
         <div className="mb-2 flex items-center justify-between text-xl font-medium">
           <span>{t("admin.users_list.users_list")}</span>
           <AddUserDialog>
-            <ButtonWithTooltip tooltip="Create User" variant="outline">
+            <ButtonWithTooltip
+              tooltip={t("admin.users_list.create_user")}
+              variant="outline"
+            >
               <UserPlus size={16} />
             </ButtonWithTooltip>
           </AddUserDialog>

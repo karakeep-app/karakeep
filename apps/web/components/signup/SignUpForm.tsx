@@ -17,12 +17,14 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { signUp } from "@/lib/auth/client";
 import { useClientConfig } from "@/lib/clientConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,8 +33,13 @@ import { AlertCircle, UserX } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { zSignUpSchema } from "@karakeep/shared/types/users";
+import {
+  PASSWORD_MIN_LENGTH,
+  zSignUpSchema,
+} from "@karakeep/shared/types/users";
 import { isMobileAppRedirect } from "@karakeep/shared/utils/redirectUrl";
+
+import { humanAuthErrors } from "../signin/authFormErrors";
 
 interface SignUpFormProps {
   redirectUrl: string;
@@ -40,7 +47,7 @@ interface SignUpFormProps {
 
 export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
   const form = useForm<z.infer<typeof zSignUpSchema>>({
-    resolver: zodResolver(zSignUpSchema),
+    resolver: zodResolver(zSignUpSchema, humanAuthErrors),
     defaultValues: {
       email: "",
       name: "",
@@ -62,8 +69,8 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
-            Sign Up Unavailable
+          <CardTitle className="text-xl font-semibold">
+            Sign-up unavailable
           </CardTitle>
           <CardDescription>
             Account registration is currently disabled
@@ -72,14 +79,14 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <Alert>
-              <UserX className="h-4 w-4" />
+              <UserX className="size-4" />
               <AlertDescription>
                 Signups are currently disabled. Please contact an administrator
                 for access.
               </AlertDescription>
             </Alert>
             <Button asChild className="w-full">
-              <Link href="/signin">Back to Sign In</Link>
+              <Link href="/signin">Back to sign in</Link>
             </Button>
           </div>
         </CardContent>
@@ -90,8 +97,8 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">
-          Create Your Account
+        <CardTitle className="text-xl font-semibold">
+          Create your account
         </CardTitle>
         <CardDescription>
           Join Karakeep to start organizing your bookmarks
@@ -100,6 +107,7 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
       <CardContent className="space-y-6">
         <Form {...form}>
           <form
+            noValidate
             // POST so a submit before hydration doesn't put the password in the URL.
             method="post"
             onSubmit={form.handleSubmit(async (value) => {
@@ -147,7 +155,7 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
           >
             {errorMessage && (
               <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircle className="size-4" />
                 <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             )}
@@ -157,10 +165,12 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Full name</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
+                      autoComplete="name"
+                      autoFocus
                       placeholder="Enter your full name"
                       {...field}
                     />
@@ -179,6 +189,8 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
                   <FormControl>
                     <Input
                       type="email"
+                      autoComplete="email"
+                      spellCheck={false}
                       placeholder="Enter your email"
                       {...field}
                     />
@@ -191,16 +203,21 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
+                      autoComplete="new-password"
                       placeholder="Create a password"
                       {...field}
                     />
                   </FormControl>
+                  {!fieldState.error && (
+                    <FormDescription>
+                      Use at least {PASSWORD_MIN_LENGTH} characters
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -211,10 +228,10 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>Confirm password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
+                      autoComplete="new-password"
                       placeholder="Confirm your password"
                       {...field}
                     />
@@ -276,7 +293,7 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
                     rel="noopener noreferrer"
                     className="underline hover:text-foreground"
                   >
-                    Terms of Service
+                    terms of service
                   </Link>
                 )}
                 {clientConfig.legal.termsOfServiceUrl &&
@@ -289,7 +306,7 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
                     rel="noopener noreferrer"
                     className="underline hover:text-foreground"
                   >
-                    Privacy Policy
+                    privacy policy
                   </Link>
                 )}
                 .
@@ -299,11 +316,11 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
         </Form>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Already have an account?{" "}
             <Link
               href="/signin"
-              className="font-medium text-blue-600 hover:text-blue-500"
+              className="font-medium text-foreground underline underline-offset-4 hover:text-muted-foreground"
             >
               Sign in
             </Link>

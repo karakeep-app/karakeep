@@ -15,6 +15,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -54,6 +55,9 @@ const formSchema = zUpdateBookmarksRequestSchema.extend({
   dateModified: z.date().nullish(),
 });
 type BookmarkFormValues = z.infer<typeof formSchema>;
+
+// As far back as these dates can be set
+const CALENDAR_START_MONTH = new Date(1900, 0);
 
 export function EditBookmarkDialog({
   open,
@@ -122,7 +126,7 @@ export function EditBookmarkDialog({
   const { mutate: updateBookmarkMutate, isPending: isUpdatingBookmark } =
     useUpdateBookmark({
       onSuccess: (updatedBookmark) => {
-        toast({ description: "Bookmark details updated successfully!" });
+        toast({ description: t("toasts.bookmarks.updated") });
         // Close the dialog after successful detail update
         setOpen(false);
         // Reset form with potentially updated data
@@ -164,206 +168,30 @@ export function EditBookmarkDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-xl">
+        <DialogHeader className="p-6 pb-4">
           <DialogTitle>{t("bookmark_editor.title")}</DialogTitle>
           <DialogDescription>{t("bookmark_editor.subtitle")}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("common.title")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Bookmark title"
-                      {...field}
-                      value={field.value ?? ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {isLink && (
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 pb-6 pt-1">
               <FormField
                 control={form.control}
-                name="url"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("common.url")}</FormLabel>
+                    <FormLabel>{t("common.title")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {
-              <FormField
-                control={form.control}
-                name="note"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("common.note")}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Bookmark notes"
+                      <Input
+                        placeholder="Bookmark title"
                         {...field}
                         value={field.value ?? ""}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            }
-
-            {isLink && (
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("common.description")}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Bookmark description"
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {isLink && (
-              <FormField
-                control={form.control}
-                name="summary"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("common.summary")}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Bookmark summary"
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {isAsset && (
-              <FormField
-                control={form.control}
-                name="assetContent"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {t("bookmark_editor.extracted_content")}
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea
-                        disabled={isAssetContentLoading}
-                        placeholder="Extracted Content"
-                        {...field}
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {isLink && (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="author"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("bookmark_editor.author")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Author name"
-                          {...field}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="publisher"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t("bookmark_editor.publisher")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Publisher name"
-                          {...field}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="createdAt"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>{t("common.created_at")}</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground",
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>{t("bookmark_editor.pick_a_date")}</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) =>
-                            date > new Date() || date < new Date("1900-01-01")
-                          }
-                        />
-                      </PopoverContent>
-                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -372,12 +200,166 @@ export function EditBookmarkDialog({
               {isLink && (
                 <FormField
                   control={form.control}
-                  name="datePublished"
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.url")}</FormLabel>
+                      <FormControl>
+                        <Input placeholder="https://example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Above the fold, so it's there without scrolling past the dates */}
+              <FormItem>
+                <FormLabel>{t("common.tags")}</FormLabel>
+                <FormControl>
+                  <BookmarkTagsEditor bookmark={bookmark} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+
+              {
+                <FormField
+                  control={form.control}
+                  name="note"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.note")}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t("preview.note_placeholder")}
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t("bookmark_editor.note_help")}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              }
+
+              {isLink && (
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.description")}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Bookmark description"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t("bookmark_editor.description_help")}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {isLink && (
+                <FormField
+                  control={form.control}
+                  name="summary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t("common.summary")}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Bookmark summary"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t("bookmark_editor.summary_help")}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {isAsset && (
+                <FormField
+                  control={form.control}
+                  name="assetContent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        {t("bookmark_editor.extracted_content")}
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          disabled={isAssetContentLoading}
+                          placeholder={t("bookmark_editor.extracted_content")}
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {isLink && (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="author"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("bookmark_editor.author")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Author name"
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="publisher"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t("bookmark_editor.publisher")}</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Publisher name"
+                            {...field}
+                            value={field.value ?? ""}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="createdAt"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
-                      <FormLabel>
-                        {t("bookmark_editor.date_published")}
-                      </FormLabel>
+                      <FormLabel>{t("common.created_at")}</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -400,8 +382,11 @@ export function EditBookmarkDialog({
                         <PopoverContent className="w-auto p-0" align="start">
                           <Calendar
                             mode="single"
-                            selected={field.value ?? undefined}
-                            onSelect={(date) => field.onChange(date ?? null)} // Handle undefined -> null
+                            selected={field.value}
+                            defaultMonth={field.value}
+                            startMonth={CALENDAR_START_MONTH}
+                            endMonth={new Date()}
+                            onSelect={field.onChange}
                             disabled={(date) =>
                               date > new Date() || date < new Date("1900-01-01")
                             }
@@ -412,18 +397,61 @@ export function EditBookmarkDialog({
                     </FormItem>
                   )}
                 />
-              )}
+
+                {isLink && (
+                  <FormField
+                    control={form.control}
+                    name="datePublished"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>
+                          {t("bookmark_editor.date_published")}
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground",
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>
+                                    {t("bookmark_editor.pick_a_date")}
+                                  </span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value ?? undefined}
+                              defaultMonth={field.value ?? undefined}
+                              startMonth={CALENDAR_START_MONTH}
+                              endMonth={new Date()}
+                              onSelect={(date) => field.onChange(date ?? null)} // Handle undefined -> null
+                              disabled={(date) =>
+                                date > new Date() ||
+                                date < new Date("1900-01-01")
+                              }
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
             </div>
 
-            <FormItem>
-              <FormLabel>{t("common.tags")}</FormLabel>
-              <FormControl>
-                <BookmarkTagsEditor bookmark={bookmark} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-
-            <DialogFooter>
+            <DialogFooter className="border-t px-6 py-4">
               <Button
                 type="button"
                 variant="outline"

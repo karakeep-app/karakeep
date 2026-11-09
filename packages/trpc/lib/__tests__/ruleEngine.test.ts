@@ -607,7 +607,7 @@ describe("RuleEngine", () => {
       const expectedPayload = {
         bookmarkId: bookmarkId,
         archiveFullPage: true,
-        runInference: false,
+        offlineCopiesOnly: true,
       };
       expect(LowPriorityCrawlerQueue.enqueue).toHaveBeenCalledWith(
         expectedPayload,

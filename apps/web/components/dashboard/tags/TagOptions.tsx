@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +28,13 @@ export function TagOptions({
   const [deleteTagDialogOpen, setDeleteTagDialogOpen] = useState(false);
   const [mergeTagDialogOpen, setMergeTagDialogOpen] = useState(false);
   const [renameTagDialogOpen, setRenameTagDialogOpen] = useState(false);
+  // A dialog opened from the menu opens as the menu hands focus back to its
+  // trigger, so the dialog returns focus there, rather than to the item that's
+  // gone by then.
+  const pendingDialog = useRef<(() => void) | null>(null);
+  const openAfterMenuCloses = (open: () => void) => () => {
+    pendingDialog.current = open;
+  };
 
   return (
     <DropdownMenu>
@@ -47,12 +54,23 @@ export function TagOptions({
         setOpen={setRenameTagDialogOpen}
       />
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => setRenameTagDialogOpen(true)}>
+      <DropdownMenuContent
+        onCloseAutoFocus={() => {
+          // The menu focuses its trigger right after this, before the dialog
+          // has rendered.
+          pendingDialog.current?.();
+          pendingDialog.current = null;
+        }}
+      >
+        <DropdownMenuItem
+          onSelect={openAfterMenuCloses(() => setRenameTagDialogOpen(true))}
+        >
           <Pencil className="size-4" />
           <span>{t("actions.rename")}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setMergeTagDialogOpen(true)}>
+        <DropdownMenuItem
+          onSelect={openAfterMenuCloses(() => setMergeTagDialogOpen(true))}
+        >
           <Combine className="size-4" />
           <span>{t("actions.merge")}</span>
         </DropdownMenuItem>
@@ -64,7 +82,9 @@ export function TagOptions({
           )}
           <span>{t("actions.toggle_show_archived")}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setDeleteTagDialogOpen(true)}>
+        <DropdownMenuItem
+          onSelect={openAfterMenuCloses(() => setDeleteTagDialogOpen(true))}
+        >
           <Trash2 className="size-4" />
           <span>{t("actions.delete")}</span>
         </DropdownMenuItem>

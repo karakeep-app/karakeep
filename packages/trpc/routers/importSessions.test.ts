@@ -447,6 +447,90 @@ describe("ImportSessions Routes", () => {
     ).rejects.toThrow("Import session not found");
   });
 
+  test<CustomTestContext>("cannot create session with another user's root list", async ({
+    apiCallers,
+  }) => {
+    const otherUsersListId = await createTestList(apiCallers[1]);
+
+    await expect(
+      apiCallers[0].importSessions.createImportSession({
+        name: "Sneaky Session",
+        rootListId: otherUsersListId,
+      }),
+    ).rejects.toThrow("List not found");
+  });
+
+  test<CustomTestContext>("cannot create session with a nonexistent root list", async ({
+    apiCallers,
+  }) => {
+    await expect(
+      apiCallers[0].importSessions.createImportSession({
+        name: "Missing List Session",
+        rootListId: "nonexistent-list-id",
+      }),
+    ).rejects.toThrow("List not found");
+
+    await expect(
+      apiCallers[0].importSessions.createImportSession({
+        name: "Empty List Id Session",
+        rootListId: "",
+      }),
+    ).rejects.toThrow("List not found");
+  });
+
+  test<CustomTestContext>("cannot create session with a smart root list", async ({
+    apiCallers,
+  }) => {
+    const smartList = await apiCallers[0].lists.create({
+      name: "Smart List",
+      icon: "🧠",
+      type: "smart",
+      query: "#tag",
+    });
+
+    await expect(
+      apiCallers[0].importSessions.createImportSession({
+        name: "Smart List Session",
+        rootListId: smartList.id,
+      }),
+    ).rejects.toThrow("Smart lists cannot be used as an import root list");
+  });
+
+  test<CustomTestContext>("root list collaborators need edit access", async ({
+    apiCallers,
+  }) => {
+    const ownerApi = apiCallers[0];
+    const collaboratorApi = apiCallers[1];
+    const listId = await createTestList(ownerApi);
+
+    const collaboratorUser = await collaboratorApi.users.whoami();
+    const { invitationId } = await ownerApi.lists.addCollaborator({
+      listId,
+      email: collaboratorUser.email!,
+      role: "viewer",
+    });
+    await collaboratorApi.lists.acceptInvitation({ invitationId });
+
+    await expect(
+      collaboratorApi.importSessions.createImportSession({
+        name: "Viewer Session",
+        rootListId: listId,
+      }),
+    ).rejects.toThrow("User is not allowed to edit this list");
+
+    await ownerApi.lists.updateCollaboratorRole({
+      listId,
+      userId: collaboratorUser.id,
+      role: "editor",
+    });
+
+    const session = await collaboratorApi.importSessions.createImportSession({
+      name: "Editor Session",
+      rootListId: listId,
+    });
+    expect(session.id).toEqual(expect.any(String));
+  });
+
   test<CustomTestContext>("cannot access other user's session", async ({
     apiCallers,
   }) => {

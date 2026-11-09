@@ -4,6 +4,7 @@ import { z } from "zod";
 import {
   DEFAULT_NUM_HIGHLIGHTS_PER_PAGE,
   zGetAllHighlightsResponseSchema,
+  zHighlightColorSchema,
   zHighlightSchema,
   zNewHighlightSchema,
   zUpdateHighlightSchema,
@@ -64,6 +65,7 @@ export const highlightsAppRouter = router({
     .use(ensureBookmarkAccess)
     .query(async ({ ctx }) => {
       const highlights = await ctx.highlightsService.getForBookmark(
+        ctx.actor,
         ctx.bookmark.id,
       );
       return { highlights };
@@ -85,6 +87,7 @@ export const highlightsAppRouter = router({
           .min(1)
           .optional()
           .default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
+        color: zHighlightColorSchema.optional(),
       }),
     )
     .output(zGetAllHighlightsResponseSchema)
@@ -93,6 +96,7 @@ export const highlightsAppRouter = router({
         ctx.actor,
         input.cursor,
         input.limit,
+        input.color,
       );
     }),
   search: highlightsProcedure
@@ -106,6 +110,7 @@ export const highlightsAppRouter = router({
           .min(1)
           .optional()
           .default(DEFAULT_NUM_HIGHLIGHTS_PER_PAGE),
+        color: zHighlightColorSchema.optional(),
       }),
     )
     .output(zGetAllHighlightsResponseSchema)
@@ -115,6 +120,7 @@ export const highlightsAppRouter = router({
         input.text,
         input.cursor,
         input.limit,
+        input.color,
       );
     }),
   delete: highlightsProcedure

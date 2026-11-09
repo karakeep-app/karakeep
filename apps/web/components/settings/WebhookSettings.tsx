@@ -5,26 +5,23 @@ import { ActionButton } from "@/components/ui/action-button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
+  setServerFormErrors,
+  useFormErrors,
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Edit,
-  KeyRound,
-  Plus,
-  PlusCircle,
-  Save,
-  Trash2,
-  X,
-} from "lucide-react";
+import { KeyRound, Pencil, Plus, Trash2, Webhook } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -38,7 +35,16 @@ import {
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
 import { Button } from "../ui/button";
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogFooter,
@@ -47,6 +53,8 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import {
+  StackedLabel,
+  stackedTable,
   Table,
   TableBody,
   TableCell,
@@ -54,8 +62,42 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import { RowActionsMenu } from "./RowActions";
 import { SettingsPage, SettingsSection } from "./SettingsPage";
 import { WebhookEventSelector } from "./WebhookEventSelector";
+
+// Mirrors the body apps/workers/workers/webhookWorker.ts sends.
+const WEBHOOK_PAYLOAD_EXAMPLE = `POST <your URL>
+{
+  "jobId": "123",
+  "bookmarkId": "abc",
+  "userId": "def",
+  "url": "https://example.com",
+  "type": "link",
+  "operation": "created"
+}`;
+
+function WebhookPayloadExample() {
+  const { t } = useTranslation();
+  return (
+    <details className="text-sm text-muted-foreground">
+      <summary className="cursor-pointer select-none hover:text-foreground">
+        {t("settings.webhooks.payload_example")}
+      </summary>
+      <pre className="mt-2 overflow-x-auto rounded-md border bg-muted p-3 font-mono text-xs text-foreground">
+        {WEBHOOK_PAYLOAD_EXAMPLE}
+      </pre>
+    </details>
+  );
+}
+
+function useWebhookFormErrors() {
+  const { t } = useTranslation();
+  return useFormErrors({
+    url: t("settings.webhooks.url_error"),
+    events: t("settings.webhooks.events.select_at_least_one"),
+  });
+}
 
 export function WebhooksEditorDialog() {
   const api = useTRPC();
@@ -64,7 +106,7 @@ export function WebhooksEditorDialog() {
   const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof zNewWebhookSchema>>({
-    resolver: zodResolver(zNewWebhookSchema),
+    resolver: zodResolver(zNewWebhookSchema, useWebhookFormErrors()),
     defaultValues: {
       url: "",
       events: [],
@@ -78,23 +120,32 @@ export function WebhooksEditorDialog() {
     }
   }, [open]);
 
-  const { mutateAsync: createWebhook, isPending: isCreating } = useMutation(
+  const { mutate: createWebhook, isPending: isCreating } = useMutation(
     api.webhooks.create.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Webhook has been created!",
+          description: t("settings.webhooks.webhook_created"),
         });
         queryClient.invalidateQueries(api.webhooks.list.pathFilter());
         setOpen(false);
       },
+      onError: (e) => {
+        if (!setServerFormErrors(form, e)) {
+          toast({ variant: "destructive", description: e.message });
+        }
+      },
     }),
+  );
+  const onSubmit = form.handleSubmit((value) =>
+    // A left-empty token field means no token, not an empty one.
+    createWebhook({ ...value, token: value.token || undefined }),
   );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <PlusCircle className="size-4" />
+          <Plus className="size-4" />
           {t("settings.webhooks.create_webhook")}
         </Button>
       </DialogTrigger>
@@ -102,79 +153,86 @@ export function WebhooksEditorDialog() {
         <DialogHeader>
           <DialogTitle>{t("settings.webhooks.create_webhook")}</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={form.handleSubmit(async (value) => {
-              await createWebhook(value);
-              form.resetField("url");
-              form.resetField("events");
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => {
-                return (
+        <DialogBody>
+          <Form {...form}>
+            <form
+              noValidate
+              className="flex flex-col gap-3"
+              onSubmit={onSubmit}
+            >
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex-1">
+                      <FormLabel>{t("common.url")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          autoFocus
+                          placeholder="https://example.com/webhook"
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="token"
+                render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel>URL</FormLabel>
+                    <FormLabel>
+                      {t("common.optional_field", {
+                        label: t("settings.webhooks.auth_token"),
+                      })}
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Webhook URL" type="text" {...field} />
+                      <PasswordInput autoComplete="off" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      {t("settings.webhooks.auth_token_description")}
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="token"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>{t("settings.webhooks.auth_token")}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Authentication token"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="events"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>Events</FormLabel>
-                  <WebhookEventSelector
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="events"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>{t("settings.webhooks.events.title")}</FormLabel>
+                    <FormControl>
+                      <WebhookEventSelector
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <WebhookPayloadExample />
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </DialogBody>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Close
+            <Button type="button" variant="outline">
+              {t("actions.cancel")}
             </Button>
           </DialogClose>
           <ActionButton
-            onClick={form.handleSubmit(async (value) => {
-              await createWebhook(value);
-            })}
+            onClick={onSubmit}
             loading={isCreating}
             variant="default"
             className="items-center"
           >
-            <Plus className="size-4" />
-            Add
+            {t("settings.webhooks.create_webhook_submit")}
           </ActionButton>
         </DialogFooter>
       </DialogContent>
@@ -182,11 +240,18 @@ export function WebhooksEditorDialog() {
   );
 }
 
-export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
+export function EditWebhookDialog({
+  webhook,
+  open,
+  setOpen,
+}: {
+  webhook: ZWebhook;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const api = useTRPC();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
       form.reset({
@@ -196,14 +261,19 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
       });
     }
   }, [open]);
-  const { mutateAsync: updateWebhook, isPending: isUpdating } = useMutation(
+  const { mutate: updateWebhook, isPending: isUpdating } = useMutation(
     api.webhooks.update.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Webhook has been updated!",
+          description: t("settings.webhooks.webhook_updated"),
         });
         setOpen(false);
         queryClient.invalidateQueries(api.webhooks.list.pathFilter());
+      },
+      onError: (e) => {
+        if (!setServerFormErrors(form, e)) {
+          toast({ variant: "destructive", description: e.message });
+        }
       },
     }),
   );
@@ -212,106 +282,115 @@ export function EditWebhookDialog({ webhook }: { webhook: ZWebhook }) {
     url: true,
   });
   const form = useForm<z.infer<typeof updateSchema>>({
-    resolver: zodResolver(updateSchema),
+    resolver: zodResolver(updateSchema, useWebhookFormErrors()),
     defaultValues: {
       webhookId: webhook.id,
       url: webhook.url,
       events: webhook.events,
     },
   });
+  const onSubmit = form.handleSubmit((value) => updateWebhook(value));
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary">
-          <Edit className="size-4" />
-          {t("actions.edit")}
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("settings.webhooks.edit_webhook")}</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={form.handleSubmit(async (value) => {
-              await updateWebhook(value);
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="webhookId"
-              render={({ field }) => {
-                return (
-                  <FormItem className="hidden">
-                    <FormControl>
-                      <Input type="hidden" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => {
-                return (
+        <DialogBody>
+          <Form {...form}>
+            <form
+              noValidate
+              className="flex flex-col gap-3"
+              onSubmit={onSubmit}
+            >
+              <FormField
+                control={form.control}
+                name="webhookId"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="hidden">
+                      <FormControl>
+                        <Input type="hidden" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex-1">
+                      <FormLabel>{t("common.url")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://example.com/webhook"
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="events"
+                render={({ field }) => (
                   <FormItem className="flex-1">
-                    <FormLabel>{t("common.url")}</FormLabel>
+                    <FormLabel>{t("settings.webhooks.events.title")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Webhook URL" type="text" {...field} />
+                      <WebhookEventSelector
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
                     </FormControl>
                     <FormMessage />
+                    <WebhookPayloadExample />
                   </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="events"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormLabel>{t("settings.webhooks.events.title")}</FormLabel>
-                  <WebhookEventSelector
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </form>
-        </Form>
+                )}
+              />
+            </form>
+          </Form>
+        </DialogBody>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              {t("actions.close")}
+            <Button type="button" variant="outline">
+              {t("actions.cancel")}
             </Button>
           </DialogClose>
-          <ActionButton
-            loading={isUpdating}
-            onClick={form.handleSubmit(async (value) => {
-              await updateWebhook(value);
-            })}
-            type="submit"
-            className="items-center"
-          >
-            <Save className="size-4" />
-            {t("actions.save")}
-          </ActionButton>
+          {form.formState.isDirty && (
+            <ActionButton
+              loading={isUpdating}
+              onClick={onSubmit}
+              type="submit"
+              className="items-center"
+            >
+              {t("actions.save")}
+            </ActionButton>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
-export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
+export function EditTokenDialog({
+  webhook,
+  open,
+  setOpen,
+}: {
+  webhook: ZWebhook;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const api = useTRPC();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
       form.reset({
@@ -331,45 +410,45 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
     });
 
   const form = useForm<z.infer<typeof updateSchema>>({
-    resolver: zodResolver(updateSchema),
+    resolver: zodResolver(updateSchema, useWebhookFormErrors()),
     defaultValues: {
       webhookId: webhook.id,
       token: "",
     },
   });
 
-  const { mutateAsync: updateWebhook, isPending: isUpdating } = useMutation(
+  const { mutate: updateWebhook, isPending: isUpdating } = useMutation(
     api.webhooks.update.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Webhook token has been updated!",
+          description: t("settings.webhooks.token_updated"),
         });
         setOpen(false);
         queryClient.invalidateQueries(api.webhooks.list.pathFilter());
+      },
+      onError: (e) => {
+        if (!setServerFormErrors(form, e)) {
+          toast({ variant: "destructive", description: e.message });
+        }
       },
     }),
   );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="secondary">
-          <KeyRound className="size-4" />
-          {webhook.hasToken
-            ? t("settings.webhooks.edit_auth_token")
-            : t("settings.webhooks.add_auth_token")}
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("settings.webhooks.edit_auth_token")}</DialogTitle>
+          <DialogTitle>
+            {webhook.hasToken
+              ? t("settings.webhooks.edit_auth_token")
+              : t("settings.webhooks.add_auth_token")}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
+            noValidate
             className="flex flex-col gap-3"
-            onSubmit={form.handleSubmit(async (value) => {
-              await updateWebhook(value);
-            })}
+            onSubmit={form.handleSubmit((value) => updateWebhook(value))}
           >
             <FormField
               control={form.control}
@@ -389,13 +468,15 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
                 <FormItem className="flex-1">
                   <FormLabel>{t("settings.webhooks.auth_token")}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Authentication token"
+                    <PasswordInput
+                      autoComplete="off"
                       {...field}
                       value={field.value ?? ""}
                     />
                   </FormControl>
+                  <FormDescription>
+                    {t("settings.webhooks.auth_token_description")}
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -404,35 +485,33 @@ export function EditTokenDialog({ webhook }: { webhook: ZWebhook }) {
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              {t("actions.close")}
+            <Button type="button" variant="outline">
+              {t("actions.cancel")}
             </Button>
           </DialogClose>
-          <ActionButton
-            variant="destructive"
-            loading={isUpdating}
-            onClick={form.handleSubmit(async (value) => {
-              await updateWebhook({
-                webhookId: value.webhookId,
-                token: null,
-              });
-            })}
-            className="items-center"
-          >
-            <Trash2 className="size-4" />
-            {t("actions.delete")}
-          </ActionButton>
-          <ActionButton
-            loading={isUpdating}
-            onClick={form.handleSubmit(async (value) => {
-              await updateWebhook(value);
-            })}
-            type="submit"
-            className="items-center"
-          >
-            <Save className="size-4" />
-            {t("actions.save")}
-          </ActionButton>
+          {webhook.hasToken && (
+            <ActionButton
+              variant="destructive"
+              loading={isUpdating}
+              onClick={() =>
+                updateWebhook({ webhookId: webhook.id, token: null })
+              }
+              className="items-center"
+            >
+              <Trash2 className="size-4" />
+              {t("actions.delete")}
+            </ActionButton>
+          )}
+          {form.formState.isDirty && (
+            <ActionButton
+              loading={isUpdating}
+              onClick={form.handleSubmit((value) => updateWebhook(value))}
+              type="submit"
+              className="items-center"
+            >
+              {t("actions.save")}
+            </ActionButton>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -443,46 +522,92 @@ export function WebhookRow({ webhook }: { webhook: ZWebhook }) {
   const api = useTRPC();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [tokenOpen, setTokenOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const { mutate: deleteWebhook, isPending: isDeleting } = useMutation(
     api.webhooks.delete.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Webhook has been deleted!",
+          description: t("settings.webhooks.webhook_deleted"),
         });
         queryClient.invalidateQueries(api.webhooks.list.pathFilter());
       },
     }),
   );
 
+  const tokenLabel = webhook.hasToken
+    ? t("settings.webhooks.edit_auth_token")
+    : t("settings.webhooks.add_auth_token");
+
   return (
-    <TableRow>
-      <TableCell>{webhook.url}</TableCell>
-      <TableCell>{webhook.events.join(", ")}</TableCell>
-      <TableCell>{webhook.hasToken ? "*******" : <X />}</TableCell>
-      <TableCell className="flex items-center gap-2">
-        <EditWebhookDialog webhook={webhook} />
-        <EditTokenDialog webhook={webhook} />
-        <ActionConfirmingDialog
-          title={t("settings.webhooks.delete_webhook")}
-          description={t("settings.webhooks.delete_webhook_confirmation")}
-          actionButton={() => (
-            <ActionButton
-              loading={isDeleting}
-              variant="destructive"
-              onClick={() => deleteWebhook({ webhookId: webhook.id })}
-              className="items-center"
-              type="button"
-            >
-              <Trash2 className="size-4" />
-              {t("actions.delete")}
-            </ActionButton>
-          )}
-        >
-          <Button variant="destructive" disabled={isDeleting}>
-            <Trash2 className="size-4" />
-            {t("actions.delete")}
-          </Button>
-        </ActionConfirmingDialog>
+    <TableRow className={stackedTable.row}>
+      <TableCell className={cn(stackedTable.primaryCell, "break-all")}>
+        {webhook.url}
+      </TableCell>
+      <TableCell className={stackedTable.cell}>
+        <StackedLabel>{t("settings.webhooks.events.title")}</StackedLabel>
+        {webhook.events.join(", ")}
+      </TableCell>
+      <TableCell className={stackedTable.cell}>
+        <StackedLabel>{t("settings.webhooks.auth_token")}</StackedLabel>
+        {webhook.hasToken
+          ? t("settings.webhooks.token_set")
+          : t("settings.webhooks.token_not_set")}
+      </TableCell>
+      <TableCell className={stackedTable.actionsCell}>
+        <div className="flex items-center gap-1">
+          <EditWebhookDialog
+            webhook={webhook}
+            open={editOpen}
+            setOpen={setEditOpen}
+          />
+          <EditTokenDialog
+            webhook={webhook}
+            open={tokenOpen}
+            setOpen={setTokenOpen}
+          />
+          <ActionConfirmingDialog
+            open={deleteOpen}
+            setOpen={setDeleteOpen}
+            title={t("settings.webhooks.delete_webhook_title")}
+            description={t("settings.webhooks.delete_webhook_confirmation")}
+            actionButton={() => (
+              <ActionButton
+                loading={isDeleting}
+                variant="destructive"
+                onClick={() => deleteWebhook({ webhookId: webhook.id })}
+                className="items-center"
+                type="button"
+              >
+                <Trash2 className="size-4" />
+                {t("actions.delete")}
+              </ActionButton>
+            )}
+          />
+          <RowActionsMenu
+            label={t("common.actions_for", { name: webhook.url })}
+            items={[
+              {
+                label: t("actions.edit"),
+                icon: <Pencil className="size-4" />,
+                onSelect: () => setEditOpen(true),
+              },
+              {
+                label: tokenLabel,
+                icon: <KeyRound className="size-4" />,
+                onSelect: () => setTokenOpen(true),
+              },
+              {
+                label: t("settings.webhooks.delete_webhook"),
+                icon: <Trash2 className="size-4" />,
+                destructive: true,
+                disabled: isDeleting,
+                onSelect: () => setDeleteOpen(true),
+              },
+            ]}
+          />
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -494,37 +619,49 @@ export default function WebhookSettings() {
   const { data: webhooks, isLoading } = useQuery(
     api.webhooks.list.queryOptions(),
   );
+  const isEmpty = webhooks?.webhooks.length === 0;
   return (
     <SettingsPage
       title={t("settings.webhooks.webhooks")}
       description={t("settings.webhooks.description")}
-      action={<WebhooksEditorDialog />}
+      action={isEmpty ? undefined : <WebhooksEditorDialog />}
     >
-      <SettingsSection>
-        {isLoading && <FullPageSpinner />}
-        {webhooks && webhooks.webhooks.length == 0 && (
-          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
-            You don&apos;t have any webhooks configured yet.
-          </p>
-        )}
-        {webhooks && webhooks.webhooks.length > 0 && (
-          <Table className="table-auto">
-            <TableHeader>
+      {isLoading && <FullPageSpinner />}
+      {isEmpty && (
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Webhook />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.webhooks.no_webhooks")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.webhooks.no_webhooks_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>{<WebhooksEditorDialog />}</EmptyContent>
+        </Empty>
+      )}
+      {webhooks && webhooks.webhooks.length > 0 && (
+        <SettingsSection>
+          <Table inCard className={cn(stackedTable.table, "sm:table-auto")}>
+            <TableHeader className={stackedTable.header}>
               <TableRow>
                 <TableHead>{t("common.url")}</TableHead>
                 <TableHead>{t("settings.webhooks.events.title")}</TableHead>
                 <TableHead>{t("settings.webhooks.auth_token")}</TableHead>
-                <TableHead>{t("common.actions")}</TableHead>
+                <TableHead>
+                  <span className="sr-only">{t("common.actions")}</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className={stackedTable.body}>
               {webhooks.webhooks.map((webhook) => (
                 <WebhookRow key={webhook.id} webhook={webhook} />
               ))}
             </TableBody>
           </Table>
-        )}
-      </SettingsSection>
+        </SettingsSection>
+      )}
     </SettingsPage>
   );
 }

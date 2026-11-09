@@ -5,7 +5,9 @@ import {
   ListPicker,
   listPathToPickerOption,
 } from "@/components/lists/list-picker";
+import { HeaderTextButton } from "@/components/ui/SheetHeader";
 import QueryPageState from "@/components/QueryPageState";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
 
 import { useBookmarkLists } from "@karakeep/shared-react/hooks/lists";
@@ -21,6 +23,8 @@ export default function SelectListParentPage() {
     selectedParentId?: string | string[];
     hideSubtreeOf?: string | string[];
   }>();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const [search, setSearch] = useState("");
   const { data, error, refetch } = useBookmarkLists();
   const returnTo = stringParam(params.returnTo);
@@ -77,7 +81,7 @@ export default function SelectListParentPage() {
       : [
           {
             id: NO_PARENT_VALUE,
-            label: "No parent",
+            label: t("lists.no_parent"),
             state: selectedId === null ? ("selected" as const) : undefined,
           },
         ]),
@@ -91,9 +95,15 @@ export default function SelectListParentPage() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: "Parent List",
+          headerTitle: t("headers.parent_list"),
+          headerLeft: () => (
+            <HeaderTextButton
+              label={actions.cancel}
+              onPress={() => router.back()}
+            />
+          ),
           headerSearchBarOptions: {
-            placeholder: "Search Lists",
+            placeholder: t("lists.search_lists_placeholder"),
             autoCapitalize: "none",
             hideWhenScrolling: false,
             onChangeText: (event) => setSearch(event.nativeEvent.text),
@@ -104,12 +114,13 @@ export default function SelectListParentPage() {
         contentInsetAdjustmentBehavior="automatic"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-        className="flex-1 bg-background"
+        className="flex-1"
       >
         <ListPicker
           options={options}
           onSelect={(id) => selectParent(id === NO_PARENT_VALUE ? null : id)}
-          emptyMessage="No lists found"
+          emptyMessage={t("lists.no_lists_found")}
+          singleChoice
         />
       </ScrollView>
     </>

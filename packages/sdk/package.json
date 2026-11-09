@@ -20,13 +20,14 @@
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
-    "openapi-typescript": "^7.6.1",
     "tsx": "^4.23.13",
     "vite": "^8.3.0",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-tsconfig-paths": "^6.1.1"
   },
+  "//": "`generate` runs openapi-typescript through pnpm dlx on TypeScript 6 because openapi-typescript doesn't support TypeScript 7 yet (https://github.com/openapi-ts/openapi-typescript/issues/2841). Once a release does, make it a devDependency again and run it directly.",
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.build.json && node -e \"require('node:fs').copyFileSync('src/karakeep-api.d.ts', 'dist/karakeep-api.d.ts')\"",
+    "generate": "pnpm dlx --package=typescript@6.0.3 --package=openapi-typescript@7.13.0 openapi-typescript ../open-api/karakeep-openapi-spec.json -o src/karakeep-api.d.ts && oxfmt src/karakeep-api.d.ts",
     "run": "node --import tsx src/index.ts",
     "lint": "oxlint --ignore-path=../../.gitignore .",
     "lint:fix": "oxlint --ignore-path=../../.gitignore . --fix",

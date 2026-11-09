@@ -1,7 +1,5 @@
 import "dotenv/config";
 
-import { buildServer } from "server";
-
 import {
   AdminMaintenanceQueue,
   AssetPreprocessingQueue,
@@ -27,6 +25,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 import { shutdownPromise } from "./exit";
+import { buildServer } from "./server";
 
 let backupSchedulingWorker:
   | typeof import("./workers/backupWorker").BackupSchedulingWorker
@@ -124,7 +123,50 @@ function isWorkerEnabled(name: WorkerName) {
   return true;
 }
 
+/**
+ * Runs the worker as a stateless remote crawler (CRAWLER_REMOTE_SERVER_ENABLED):
+ * no queues, database or asset store, just the crawler's HTTP API that other
+ * crawler workers (configured with CRAWLER_REMOTE_URL) talk to.
+ */
+async function runAsRemoteCrawler(token: string) {
+  const { localCrawler } = await import("./workers/crawler/localCrawler");
+  const { buildRemoteCrawlerRoutes } =
+    await import("./workers/crawler/remoteCrawlerServer");
+  const { REMOTE_CRAWLER_BASE_PATH } =
+    await import("./workers/crawler/protocol");
+
+  await initTracing("workers");
+  await initEventLogger("workers");
+  logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
+  logger.info("Starting as a stateless remote crawler ...");
+  await localCrawler.init();
+
+  const httpServer = buildServer({
+    [REMOTE_CRAWLER_BASE_PATH]: buildRemoteCrawlerRoutes(token),
+  });
+
+  let exitCode = 0;
+  await Promise.race([
+    httpServer.serve().catch((err: unknown) => {
+      exitCode = 1;
+      logger.error(`The remote crawler server failed, shutting down: ${err}`);
+    }),
+    shutdownPromise,
+  ]);
+
+  logger.info("Shutting down the remote crawler ...");
+  await httpServer.stop();
+  await shutdownEventLogger();
+  await shutdownTracing();
+  process.exit(exitCode);
+}
+
 async function main() {
+  const { serverEnabled, token } = serverConfig.crawler.remote;
+  if (serverEnabled && token) {
+    return runAsRemoteCrawler(token);
+  }
+
   await loadAllPlugins();
   await initTracing("workers");
   await initEventLogger("workers");

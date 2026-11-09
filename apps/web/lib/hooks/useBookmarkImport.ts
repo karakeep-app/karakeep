@@ -12,6 +12,7 @@ import {
   ImportSource,
   parseImportFile,
 } from "@karakeep/shared/import-export";
+import type { ParsedImportFile } from "@karakeep/shared/import-export";
 
 import { useCreateImportSession } from "./useImportSessions";
 
@@ -44,16 +45,18 @@ export function useBookmarkImport() {
     mutationFn: async ({
       file,
       source,
+      parsed,
     }: {
       file: File;
       source: ImportSource;
+      /** The file already parsed by the caller, so it isn't parsed twice. */
+      parsed?: ParsedImportFile;
     }) => {
       // Clear any previous quota error
       setQuotaError(null);
 
       // First, parse the file to count bookmarks
-      const textContent = await file.text();
-      const parsedImport = parseImportFile(source, textContent);
+      const parsedImport = parsed ?? parseImportFile(source, await file.text());
       const bookmarkCount = parsedImport.bookmarks.length;
 
       // Check quota before proceeding

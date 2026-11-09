@@ -29,19 +29,22 @@ export function NotePreview({ note, bookmarkId, className }: NotePreviewProps) {
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div
+        <button
+          type="button"
+          // A card's tab stops are its title and its menu
+          tabIndex={-1}
           className={cn(
-            "flex cursor-pointer items-center gap-1.5 text-sm font-light italic text-gray-500 dark:text-gray-400",
+            "flex w-full cursor-pointer items-center gap-1.5 rounded-sm text-left text-xs text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50",
             className,
           )}
         >
-          <NotepadText className="size-5 shrink-0" />
-          <div className="min-w-0 flex-1 truncate">{note}</div>
-        </div>
+          <NotepadText className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate">{note}</span>
+        </button>
       </PopoverTrigger>
       <PopoverContent className="w-96 max-w-[calc(100vw-2rem)]" align="start">
         <div className="space-y-3">
-          <div className="max-h-60 overflow-y-auto whitespace-pre-wrap break-words text-sm text-gray-700 dark:text-gray-300">
+          <div className="max-h-60 overflow-y-auto whitespace-pre-wrap break-words text-sm text-foreground">
             {note}
           </div>
           <div className="flex justify-end">

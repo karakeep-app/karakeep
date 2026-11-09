@@ -6,19 +6,32 @@ import { BlurView } from "expo-blur";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { TailwindResolver } from "@/components/TailwindResolver";
-import { useToast } from "@/components/ui/Toast";
+import { Text } from "@/components/ui/Text";
+import { showUndoToast, useToast } from "@/components/ui/Toast";
+import { useOfflineAvailability } from "@/components/bookmarks/useOfflineAvailability";
+import { getBookmarkDisplayTitle } from "@/lib/bookmarkDisplay";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
+import type { MobileTFunction } from "@/lib/i18n/hooks";
 import { shouldUseGlassPill } from "@/lib/ios";
 import useAppSettings from "@/lib/settings";
+import { inlineMenuGroup } from "@/lib/menuGroups";
 import { shareBookmark } from "@/lib/shareBookmark";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuAction, MenuView } from "@react-native-menu/menu";
 import {
   Archive,
-  ClipboardList,
+  ArchiveRestore,
+  ArrowDownToLine,
+  List as ListIcon,
   Ellipsis,
   Globe,
-  Info,
+  Pencil,
   ShareIcon,
   Star,
   Tag,
@@ -32,8 +45,38 @@ import {
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-const TOOLBAR_ICON_GAP = 28;
-const TOOLBAR_HIT_SLOP = { top: 13, bottom: 13, left: 13, right: 13 };
+const TOOLBAR_ICON_GAP = 2;
+const TOOLBAR_ITEM_WIDTH = 52;
+const TOOLBAR_HIT_SLOP = { top: 8, bottom: 8 };
+// Past this the row wouldn't fit a small phone with labels, so icons go alone.
+const MAX_LABELED_TOOLBAR_ITEMS = 6;
+
+function ToolbarItem({
+  icon,
+  label,
+  showLabel,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  showLabel: boolean;
+}) {
+  return (
+    <View
+      className="items-center gap-0.5"
+      style={{ width: showLabel ? TOOLBAR_ITEM_WIDTH : undefined }}
+    >
+      {icon}
+      {showLabel && (
+        <Text
+          className="text-[10px] leading-3 text-foreground"
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+      )}
+    </View>
+  );
+}
 
 function triggerHaptic() {
   Haptics.selectionAsync().catch(() => {
@@ -42,8 +85,6 @@ function triggerHaptic() {
 }
 
 interface ToolbarActionMeta {
-  label: string;
-  render: (b: ZBookmark) => string;
   Icon: LucideIcon;
   sfSymbol: string;
 }
@@ -52,50 +93,88 @@ export const TOOLBAR_ACTION_REGISTRY: Record<
   ToolbarActionId,
   ToolbarActionMeta
 > = {
-  lists: {
-    label: "Lists",
-    render: () => "Lists",
-    Icon: ClipboardList,
-    sfSymbol: "list.bullet",
-  },
-  tags: { label: "Tags", render: () => "Tags", Icon: Tag, sfSymbol: "tag" },
-  info: {
-    label: "Info",
-    render: () => "Info",
-    Icon: Info,
-    sfSymbol: "info.circle",
-  },
-  favourite: {
-    label: "Favourite",
-    render: (b) => (b.favourited ? "Unfavourite" : "Favourite"),
-    Icon: Star,
-    sfSymbol: "star",
-  },
-  archive: {
-    label: "Archive",
-    render: (b) => (b.archived ? "Un-archive" : "Archive"),
-    Icon: Archive,
-    sfSymbol: "archivebox",
-  },
-  browser: {
-    label: "Open in Browser",
-    render: () => "Open in Browser",
-    Icon: Globe,
-    sfSymbol: "safari",
-  },
-  share: {
-    label: "Share",
-    render: () => "Share",
-    Icon: ShareIcon,
-    sfSymbol: "square.and.arrow.up",
-  },
-  delete: {
-    label: "Delete",
-    render: () => "Delete",
-    Icon: Trash2,
-    sfSymbol: "trash",
-  },
+  lists: { Icon: ListIcon, sfSymbol: "list.bullet" },
+  tags: { Icon: Tag, sfSymbol: "tag" },
+  info: { Icon: Pencil, sfSymbol: "pencil" },
+  favourite: { Icon: Star, sfSymbol: "star" },
+  archive: { Icon: Archive, sfSymbol: "archivebox" },
+  offline: { Icon: ArrowDownToLine, sfSymbol: "arrow.down.circle" },
+  browser: { Icon: Globe, sfSymbol: "safari" },
+  share: { Icon: ShareIcon, sfSymbol: "square.and.arrow.up" },
+  delete: { Icon: Trash2, sfSymbol: "trash" },
 };
+
+/** Translated names of the reader toolbar actions, for the toolbar settings. */
+export function useToolbarActionLabels(): Record<ToolbarActionId, string> {
+  const { t } = useTranslation();
+  return {
+    lists: t("bookmark_actions.lists"),
+    tags: t("bookmark_actions.tags"),
+    info: t("bookmark_actions.edit_details"),
+    favourite: t("bookmark_actions.favourite"),
+    archive: t("bookmark_actions.archive"),
+    offline: t("bookmark_actions.download"),
+    browser: t("bookmark_actions.open_in_browser"),
+    share: t("bookmark_actions.share"),
+    delete: t("bookmark_actions.delete"),
+  };
+}
+
+/** Short enough to sit under the action's icon. */
+function toolbarShortLabel(t: MobileTFunction, id: ToolbarActionId): string {
+  switch (id) {
+    case "lists":
+      return t("bookmark_actions.lists");
+    case "tags":
+      return t("bookmark_actions.tags");
+    case "info":
+      return t("bookmark_actions.details_short");
+    case "favourite":
+      return t("bookmark_actions.favourite");
+    case "archive":
+      return t("bookmark_actions.archive");
+    case "offline":
+      return t("bookmark_actions.download");
+    case "browser":
+      return t("bookmark_actions.browser_short");
+    case "share":
+      return t("bookmark_actions.share");
+    case "delete":
+      return t("bookmark_actions.delete");
+  }
+}
+
+/** The action's name for this bookmark, as menus and screen readers say it. */
+export function translateToolbarRender(
+  t: MobileTFunction,
+  id: ToolbarActionId,
+  bookmark: ZBookmark,
+): string {
+  switch (id) {
+    case "favourite":
+      return bookmark.favourited
+        ? t("bookmark_actions.unfavourite")
+        : t("bookmark_actions.favourite");
+    case "archive":
+      return bookmark.archived
+        ? t("bookmark_actions.move_out_of_archive")
+        : t("bookmark_actions.archive");
+    case "lists":
+      return t("bookmark_actions.lists");
+    case "tags":
+      return t("bookmark_actions.tags");
+    case "info":
+      return t("bookmark_actions.edit_details");
+    case "offline":
+      return t("bookmark_actions.download");
+    case "browser":
+      return t("bookmark_actions.open_in_browser");
+    case "share":
+      return t("bookmark_actions.share");
+    case "delete":
+      return t("bookmark_actions.delete");
+  }
+}
 
 interface ToolbarAction {
   id: ToolbarActionId;
@@ -107,24 +186,28 @@ interface ToolbarAction {
 
 function useToolbarActions(bookmark: ZBookmark) {
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const router = useRouter();
   const { settings } = useAppSettings();
   const { data: currentUser } = useWhoAmI();
 
   const isOwner = currentUser?.id === bookmark.userId;
+  const offline = useOfflineAvailability(bookmark.id);
 
   const { mutate: deleteBookmark, isPending: isDeletionPending } =
     useDeleteBookmark({
       onSuccess: () => {
         router.back();
         toast({
-          message: "The bookmark has been deleted!",
+          message: t("bookmarks.bookmark_deleted_toast"),
           showProgress: false,
         });
       },
       onError: () => {
         toast({
-          message: "Something went wrong",
+          message: strings.somethingWentWrong,
           variant: "destructive",
           showProgress: false,
         });
@@ -135,25 +218,45 @@ function useToolbarActions(bookmark: ZBookmark) {
     useUpdateBookmark({
       onError: () => {
         toast({
-          message: "Something went wrong",
+          message: strings.somethingWentWrong,
           variant: "destructive",
           showProgress: false,
         });
       },
     });
 
+  // Undo only flips the flag back: no navigation and no second undo toast.
+  const { mutate: undoArchive } = useUpdateBookmark({
+    onError: () => {
+      toast({
+        message: strings.somethingWentWrong,
+        variant: "destructive",
+        showProgress: false,
+      });
+    },
+  });
+
   const { mutate: archiveBookmark, isPending: isArchivePending } =
     useUpdateBookmark({
       onSuccess: (resp) => {
-        router.back();
-        toast({
-          message: `The bookmark has been ${resp.archived ? "archived" : "un-archived"}!`,
-          showProgress: false,
-        });
+        // Taking something out of the archive means you want to keep reading.
+        if (resp.archived) {
+          router.back();
+        }
+        showUndoToast(
+          resp.archived
+            ? t("bookmarks.archived")
+            : t("bookmark_actions.moved_out_of_archive"),
+          () =>
+            undoArchive({
+              bookmarkId: bookmark.id,
+              archived: !resp.archived,
+            }),
+        );
       },
       onError: () => {
         toast({
-          message: "Something went wrong",
+          message: strings.somethingWentWrong,
           variant: "destructive",
           showProgress: false,
         });
@@ -162,12 +265,14 @@ function useToolbarActions(bookmark: ZBookmark) {
 
   const deleteBookmarkAlert = () =>
     Alert.alert(
-      "Delete bookmark?",
-      "Are you sure you want to delete this bookmark?",
+      t("bookmark_actions.delete_named_title", {
+        title: getBookmarkDisplayTitle(bookmark),
+      }),
+      t("bookmark_actions.delete_permanent_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
           style: "destructive",
         },
@@ -184,10 +289,11 @@ function useToolbarActions(bookmark: ZBookmark) {
     <TailwindResolver
       className="text-foreground"
       comp={(styles) => (
-        <IconComp
-          size={22}
-          color={overrideColor ?? styles?.color?.toString()}
-          {...(fill != null && { fill })}
+        <AppIcon
+          icon={IconComp}
+          size={21}
+          color={overrideColor ?? styles?.color?.toString() ?? "#000"}
+          filled={fill != null}
         />
       )}
     />
@@ -196,7 +302,7 @@ function useToolbarActions(bookmark: ZBookmark) {
   const allActions: Record<ToolbarActionId, ToolbarAction> = {
     lists: {
       id: "lists",
-      icon: makeIcon(ClipboardList),
+      icon: makeIcon(ListIcon),
       shouldRender: isOwner,
       onClick: () =>
         router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`),
@@ -212,7 +318,7 @@ function useToolbarActions(bookmark: ZBookmark) {
     },
     info: {
       id: "info",
-      icon: makeIcon(Info),
+      icon: makeIcon(Pencil),
       shouldRender: true,
       onClick: () => router.push(`/dashboard/bookmarks/${bookmark.id}/info`),
       disabled: false,
@@ -234,7 +340,11 @@ function useToolbarActions(bookmark: ZBookmark) {
     },
     archive: {
       id: "archive",
-      icon: makeIcon(Archive),
+      // iOS has a solid archive symbol. A filled Lucide outline is just a blob.
+      icon:
+        bookmark.archived && Platform.OS === "ios"
+          ? makeIcon(Archive, undefined, "filled")
+          : makeIcon(bookmark.archived ? ArchiveRestore : Archive),
       shouldRender: isOwner,
       onClick: () => {
         archiveBookmark({
@@ -244,6 +354,22 @@ function useToolbarActions(bookmark: ZBookmark) {
       },
       disabled: isArchivePending,
     },
+    offline: {
+      id: "offline",
+      icon: makeIcon(ArrowDownToLine),
+      shouldRender:
+        bookmark.content.type === BookmarkTypes.LINK ||
+        bookmark.content.type === BookmarkTypes.TEXT,
+      onClick: () => {
+        triggerHaptic();
+        if (offline.isAvailableOffline) {
+          offline.confirmRemove();
+        } else {
+          void offline.save();
+        }
+      },
+      disabled: offline.isSaving,
+    },
     browser: {
       id: "browser",
       icon: makeIcon(Globe),
@@ -252,7 +378,7 @@ function useToolbarActions(bookmark: ZBookmark) {
         if (bookmark.content.type !== BookmarkTypes.LINK) return;
         Linking.openURL(bookmark.content.url).catch(() => {
           toast({
-            message: "Failed to open link",
+            message: t("bookmarks.failed_open_link"),
             variant: "destructive",
             showProgress: false,
           });
@@ -287,7 +413,7 @@ function useToolbarActions(bookmark: ZBookmark) {
     .map((id) => allActions[id])
     .filter((a): a is ToolbarAction => a !== undefined);
 
-  return { barActions, overflowActions, allActions };
+  return { barActions, overflowActions, allActions, offline };
 }
 
 function ToolbarContainer({
@@ -321,8 +447,8 @@ function ToolbarContainer({
           marginHorizontal: 16,
           alignSelf: "center",
           marginBottom: bottomMargin,
-          paddingVertical: 10,
-          paddingHorizontal: 20,
+          paddingVertical: 8,
+          paddingHorizontal: 12,
         }}
       >
         {innerRow}
@@ -356,12 +482,18 @@ interface BottomActionsProps {
 }
 
 export default function BottomActions({ bookmark }: BottomActionsProps) {
-  const { barActions, overflowActions, allActions } =
+  const { barActions, overflowActions, allActions, offline } =
     useToolbarActions(bookmark);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { toast } = useToast();
+  const { t } = useTranslation();
+  const { more } = useCommonActions();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
 
+  const showLabels =
+    barActions.filter((a) => a.shouldRender).length + 1 <=
+    MAX_LABELED_TOOLBAR_ITEMS;
   const bottomMargin = shouldUseGlassPill ? Math.max(insets.bottom - 8, 4) : 8;
 
   // Build native menu actions for the overflow ellipsis
@@ -371,7 +503,10 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
       const meta = TOOLBAR_ACTION_REGISTRY[a.id];
       return {
         id: a.id,
-        title: meta.render(bookmark),
+        title:
+          a.id === "offline" && offline.isAvailableOffline
+            ? t("bookmark_actions.remove_download")
+            : translateToolbarRender(t, a.id, bookmark),
         image: Platform.select({ ios: meta.sfSymbol, default: undefined }),
         imageColor:
           a.id === "delete" ? destructiveMenuIconColor : menuIconColor,
@@ -383,27 +518,20 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
     });
 
   // Add separator + "Edit Toolbar..." at the bottom
+  const destructiveActions = menuActions.filter((a) => a.id === "delete");
+  const regularActions = menuActions.filter((a) => a.id !== "delete");
   const menuActionsWithEdit: MenuAction[] = [
-    ...(menuActions.length > 0
-      ? [
-          {
-            id: "overflow-group",
-            // DisplayInline doesn't seem to be working on android
-            title: Platform.OS === "ios" ? "" : "More Actions",
-            displayInline: true as const,
-            subactions: menuActions,
-          },
-        ]
-      : []),
+    ...inlineMenuGroup("overflow-group", regularActions),
     {
       id: "edit-toolbar",
-      title: "Edit Toolbar...",
+      title: t("bookmark_actions.edit_toolbar_menu"),
       image: Platform.select({
         ios: "slider.horizontal.3",
         default: undefined,
       }),
       imageColor: menuIconColor,
     },
+    ...destructiveActions,
   ];
 
   const handleMenuAction = (event: string) => {
@@ -429,10 +557,28 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
                 disabled={a.disabled}
                 key={a.id}
                 onPress={a.onClick}
+                // Icons have no room for labels, so press and hold names them.
+                onLongPress={() => {
+                  triggerHaptic();
+                  toast({
+                    message: translateToolbarRender(t, a.id, bookmark),
+                    showProgress: false,
+                  });
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={translateToolbarRender(t, a.id, bookmark)}
                 hitSlop={TOOLBAR_HIT_SLOP}
                 className="py-auto"
               >
-                {a.icon}
+                <ToolbarItem
+                  icon={a.icon}
+                  label={
+                    a.id === "archive" && bookmark.archived
+                      ? t("bookmark_actions.unarchive_short")
+                      : toolbarShortLabel(t, a.id)
+                  }
+                  showLabel={showLabels}
+                />
               </Pressable>
             ),
         )}
@@ -444,12 +590,27 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
           actions={menuActionsWithEdit}
           shouldOpenOnLongPress={false}
         >
-          <Pressable hitSlop={TOOLBAR_HIT_SLOP} onPress={() => triggerHaptic()}>
-            <TailwindResolver
-              className="text-foreground"
-              comp={(styles) => (
-                <Ellipsis size={22} color={styles?.color?.toString()} />
-              )}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("bookmark_actions.more_actions_label")}
+            hitSlop={TOOLBAR_HIT_SLOP}
+            onPress={() => triggerHaptic()}
+          >
+            <ToolbarItem
+              icon={
+                <TailwindResolver
+                  className="text-foreground"
+                  comp={(styles) => (
+                    <AppIcon
+                      icon={Ellipsis}
+                      size={21}
+                      color={styles?.color?.toString() ?? "#000"}
+                    />
+                  )}
+                />
+              }
+              label={more}
+              showLabel={showLabels}
             />
           </Pressable>
         </MenuView>

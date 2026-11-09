@@ -11,6 +11,7 @@ import {
   inArray,
   lt,
   lte,
+  ne,
   or,
   SQL,
 } from "drizzle-orm";
@@ -494,15 +495,42 @@ export class Bookmark extends BareBookmark {
       );
     };
 
+    // Filters on the caller's own archived/favourited state. Collaborative
+    // lists also contain other users' bookmarks, whose state is private to
+    // their owner and presented to the caller as not archived/favourited (see
+    // Bookmark.asZBookmark), so filter them on that presented value instead of
+    // the owner's column. Otherwise the filter would reveal the owner's state.
+    const buildStateFilter = (
+      column: typeof bookmarks.archived | typeof bookmarks.favourited,
+      value: boolean | undefined,
+      includesOthersBookmarks: boolean,
+    ): SQL | undefined => {
+      if (value === undefined) {
+        return undefined;
+      }
+      if (!includesOthersBookmarks) {
+        return eq(column, value);
+      }
+      return value
+        ? and(eq(bookmarks.userId, ctx.user.id), eq(column, true))
+        : or(ne(bookmarks.userId, ctx.user.id), eq(column, false));
+    };
+
     // Build common filter conditions (archived, favourited, ids, smart list)
-    const buildCommonFilters = (): (SQL | undefined)[] => [
+    const buildCommonFilters = (
+      includesOthersBookmarks = false,
+    ): (SQL | undefined)[] => [
       smartListCondition,
-      input.archived !== undefined
-        ? eq(bookmarks.archived, input.archived)
-        : undefined,
-      input.favourited !== undefined
-        ? eq(bookmarks.favourited, input.favourited)
-        : undefined,
+      buildStateFilter(
+        bookmarks.archived,
+        input.archived,
+        includesOthersBookmarks,
+      ),
+      buildStateFilter(
+        bookmarks.favourited,
+        input.favourited,
+        includesOthersBookmarks,
+      ),
       input.ids ? inArray(bookmarks.id, input.ids) : undefined,
     ];
 
@@ -530,7 +558,8 @@ export class Bookmark extends BareBookmark {
           .where(
             and(
               eq(bookmarksInLists.listId, input.listId),
-              ...buildCommonFilters(),
+              // Manual lists can be collaborative.
+              ...buildCommonFilters(/* includesOthersBookmarks */ true),
               buildCursorCondition(bookmarks.createdAt, bookmarks.id),
             ),
           )

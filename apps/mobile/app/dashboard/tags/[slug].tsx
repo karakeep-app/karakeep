@@ -1,13 +1,16 @@
-import { Alert, Platform, View } from "react-native";
+import { Alert, Platform, View, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { AppIcon } from "@/components/ui/AppIcon";
 import { useBookmarkListLayoutMenu } from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { useToast } from "@/components/ui/Toast";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { useArchiveFilter } from "@/lib/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { inlineMenuGroup } from "@/lib/menuGroups";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
 import { MenuView } from "@react-native-menu/menu";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +21,7 @@ import { useTRPC } from "@karakeep/shared-react/trpc";
 
 export default function TagView() {
   const { slug } = useLocalSearchParams();
+  const { t } = useTranslation();
   const api = useTRPC();
   if (typeof slug !== "string") {
     throw new Error("Unexpected param type");
@@ -35,7 +39,7 @@ export default function TagView() {
       <Stack.Screen
         options={{
           headerTitle: tag?.name ?? "",
-          headerBackTitle: "Back",
+          headerBackTitle: t("app.back"),
           headerRight: () =>
             tag ? <TagActionsMenu tagId={tag.id} tagName={tag.name} /> : null,
         }}
@@ -67,10 +71,15 @@ function TagActionsMenu({
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const { layoutActions, handleLayoutAction } = useBookmarkListLayoutMenu();
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { mutate: deleteTag } = useDeleteTag({
     onSuccess: () => {
       router.dismissTo("/dashboard/(tabs)/(tags)");
-      toast({ message: `Tag "${tagName}" deleted`, variant: "success" });
+      toast({
+        message: t("tags.deleted", { name: tagName }),
+        variant: "success",
+      });
     },
     onError: (error) => {
       toast({ message: error.message, variant: "destructive" });
@@ -79,12 +88,12 @@ function TagActionsMenu({
 
   const handleDelete = () => {
     Alert.alert(
-      "Delete Tag",
-      `Are you sure you want to delete the tag "${tagName}"?`,
+      t("tags.delete_title"),
+      t("tags.delete_message", { name: tagName }),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteTag({ tagId }),
           style: "destructive",
         },
@@ -104,18 +113,18 @@ function TagActionsMenu({
       actions={[
         {
           id: "edit",
-          title: "Edit Tag",
+          title: t("tags.edit_tag"),
           image: Platform.select({ ios: "square.and.pencil" }),
           imageColor: Platform.select({ ios: menuIconColor }),
         },
+        ...inlineMenuGroup("view-group", layoutActions),
         {
           id: "delete_tag",
-          title: "Delete Tag",
+          title: t("tags.delete_title"),
           attributes: { destructive: true },
           image: Platform.select({ ios: "trash" }),
           imageColor: Platform.select({ ios: destructiveMenuIconColor }),
         },
-        ...layoutActions,
       ]}
       onPressAction={({ nativeEvent }) => {
         if (handleLayoutAction(nativeEvent.event)) {
@@ -131,10 +140,14 @@ function TagActionsMenu({
       shouldOpenOnLongPress={false}
     >
       <View className="my-auto">
-        <Ellipsis
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t("tags.tag_actions")}
+          hitSlop={8}
           onPress={() => void Haptics.selectionAsync()}
-          color={colors.foreground}
-        />
+        >
+          <AppIcon icon={Ellipsis} size={21} color={colors.foreground} />
+        </Pressable>
       </View>
     </MenuView>
   );

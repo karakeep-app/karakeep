@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,12 +13,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useSession } from "@/lib/auth/client";
+import { useClientConfig } from "@/lib/clientConfig";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
 import { useKeyboardNavigationStore } from "@/lib/store/useKeyboardNavigationStore";
+import { useProblemReportStore } from "@/lib/store/useProblemReportStore";
 import { cn } from "@/lib/utils";
 import {
   BookOpen,
+  Bug,
   Keyboard,
   Laptop,
   LogOut,
@@ -36,6 +39,7 @@ import { useTheme } from "next-themes";
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 
 import { AdminNoticeBadge } from "../../admin/AdminNotices";
+import ReportProblemDialog from "../ReportProblemDialog";
 
 const THEME_OPTIONS = [
   { value: "light", icon: Sun, label: "options.light_mode" },
@@ -91,98 +95,142 @@ export default function SidebarProfileOptions() {
   const setShortcutsDialogOpen = useKeyboardNavigationStore(
     (state) => state.setShortcutsDialogOpen,
   );
+  const clientConfig = useClientConfig();
+  const setReportProblemOpen = useProblemReportStore((s) => s.setOpen);
+  // A dialog opened from the menu opens as the menu hands focus back to its
+  // trigger, so the dialog returns focus there, rather than to the item that's
+  // gone by then.
+  const pendingDialog = useRef<(() => void) | null>(null);
+  const openAfterMenuCloses = (open: () => void) => () => {
+    pendingDialog.current = open;
+  };
 
   const avatarImage = whoami?.image ?? null;
   const avatarUrl = useMemo(() => avatarImage ?? null, [avatarImage]);
 
-  if (!session) return redirect("/");
+  // The server layouts guard the page. Right after a client side sign in the
+  // session can still read as empty here, so render nothing until it lands.
+  if (!session) return null;
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="border-new-gray-200 shrink-0 rounded-full border-4 bg-black p-0 text-white"
-          variant="ghost"
-          size="icon"
-        >
-          <UserAvatar
-            image={avatarUrl}
-            name={session.user.name}
-            className="h-full w-full rounded-full"
-          />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="mr-2 min-w-64 p-2">
-        <div className="flex gap-2">
-          <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border-4 bg-black p-0 text-white">
+    <>
+      {clientConfig.problemReports.enabled && <ReportProblemDialog />}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            className="border-new-gray-200 shrink-0 rounded-full border-4 bg-black p-0 text-white"
+            variant="ghost"
+            size="icon"
+          >
             <UserAvatar
               image={avatarUrl}
               name={session.user.name}
-              className="h-full w-full"
+              className="h-full w-full rounded-full"
             />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="mr-2 min-w-64 p-2"
+          onCloseAutoFocus={() => {
+            // The menu focuses its trigger right after this, before the dialog
+            // has rendered.
+            pendingDialog.current?.();
+            pendingDialog.current = null;
+          }}
+        >
+          <div className="flex gap-2">
+            <div className="border-new-gray-200 flex aspect-square size-11 items-center justify-center overflow-hidden rounded-full border-4 bg-black p-0 text-white">
+              <UserAvatar
+                image={avatarUrl}
+                name={session.user.name}
+                className="h-full w-full"
+              />
+            </div>
+            <div className="flex flex-col">
+              <p>{session.user.name}</p>
+              <p className="text-sm text-gray-400">{session.user.email}</p>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <p>{session.user.name}</p>
-            <p className="text-sm text-gray-400">{session.user.email}</p>
-          </div>
-        </div>
-        <Separator className="my-2" />
-        <DropdownMenuItem asChild>
-          <Link href="/settings">
-            <Settings className="size-4" />
-            {t("settings.user_settings")}
-          </Link>
-        </DropdownMenuItem>
-        {session.user.role == "admin" && (
+          <Separator className="my-2" />
           <DropdownMenuItem asChild>
-            <Link href="/admin" className="flex justify-between">
-              <div className="items-cente flex gap-2">
-                <Shield className="size-4" />
-                {t("admin.admin_settings")}
-              </div>
-              <AdminNoticeBadge />
+            <Link href="/settings">
+              <Settings className="size-4" />
+              {t("settings.user_settings")}
             </Link>
           </DropdownMenuItem>
-        )}
-        <Separator className="my-2" />
-        <DropdownMenuItem asChild>
-          <Link href="/dashboard/cleanups">
-            <Paintbrush className="size-4" />
-            {t("cleanups.cleanups")}
-          </Link>
-        </DropdownMenuItem>
-        <ThemeSelector />
-        {inBookmarkGrid && (
-          <DropdownMenuItem onClick={() => setShortcutsDialogOpen(true)}>
-            <Keyboard className="size-4" />
-            {t("keyboard_shortcuts.title")}
+          {session.user.role == "admin" && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin" className="flex justify-between">
+                <div className="items-cente flex gap-2">
+                  <Shield className="size-4" />
+                  {t("admin.admin_settings")}
+                </div>
+                <AdminNoticeBadge />
+              </Link>
+            </DropdownMenuItem>
+          )}
+          <Separator className="my-2" />
+          <DropdownMenuItem asChild>
+            <Link href="/settings/cleanups">
+              <Paintbrush className="size-4" />
+              {t("cleanups.cleanups")}
+            </Link>
           </DropdownMenuItem>
-        )}
-        <Separator className="my-2" />
-        <DropdownMenuItem asChild>
-          <a href="https://karakeep.com/apps" target="_blank" rel="noreferrer">
-            <Puzzle className="size-4" />
-            {t("options.apps_extensions")}
-          </a>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href="https://docs.karakeep.com" target="_blank" rel="noreferrer">
-            <BookOpen className="size-4" />
-            {t("options.documentation")}
-          </a>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a href="https://x.com/karakeep_app" target="_blank" rel="noreferrer">
-            <Twitter className="size-4" />
-            {t("options.follow_us_on_x")}
-          </a>
-        </DropdownMenuItem>
-        <Separator className="my-2" />
-        <DropdownMenuItem onClick={() => router.push("/logout")}>
-          <LogOut className="size-4" />
-          <span>{t("actions.sign_out")}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <ThemeSelector />
+          {inBookmarkGrid && (
+            <DropdownMenuItem
+              onSelect={openAfterMenuCloses(() => setShortcutsDialogOpen(true))}
+            >
+              <Keyboard className="size-4" />
+              {t("keyboard_shortcuts.title")}
+            </DropdownMenuItem>
+          )}
+          <Separator className="my-2" />
+          <DropdownMenuItem asChild>
+            <a
+              href="https://karakeep.com/apps"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Puzzle className="size-4" />
+              {t("options.apps_extensions")}
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a
+              href="https://docs.karakeep.com"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <BookOpen className="size-4" />
+              {t("options.documentation")}
+            </a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a
+              href="https://x.com/karakeep_app"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Twitter className="size-4" />
+              {t("options.follow_us_on_x")}
+            </a>
+          </DropdownMenuItem>
+          {clientConfig.problemReports.enabled && (
+            <DropdownMenuItem
+              onSelect={openAfterMenuCloses(() => setReportProblemOpen(true))}
+            >
+              <Bug className="size-4" />
+              {t("options.report_a_problem")}
+            </DropdownMenuItem>
+          )}
+          <Separator className="my-2" />
+          <DropdownMenuItem onClick={() => router.push("/logout")}>
+            <LogOut className="size-4" />
+            <span>{t("actions.sign_out")}</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 }

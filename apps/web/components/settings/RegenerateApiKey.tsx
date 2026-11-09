@@ -12,12 +12,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import { useTranslation } from "@/lib/i18n/client";
 import { useMutation } from "@tanstack/react-query";
-import { RefreshCcw } from "lucide-react";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
@@ -26,16 +24,19 @@ import ApiKeySuccess from "./ApiKeySuccess";
 export default function RegenerateApiKey({
   id,
   name,
+  open: dialogOpen,
+  setOpen: setDialogOpen,
 }: {
   id: string;
   name: string;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }) {
   const api = useTRPC();
   const { t } = useTranslation();
   const router = useRouter();
 
   const [key, setKey] = useState<string | undefined>(undefined);
-  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
   const mutator = useMutation(
     api.apiKeys.regenerate.mutationOptions({
@@ -65,16 +66,11 @@ export default function RegenerateApiKey({
         setKey(undefined);
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" title="Regenerate">
-          <RefreshCcw className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
             {key
-              ? t("settings.api_keys.key_regenerated")
+              ? t("settings.api_keys.copy_new_key")
               : t("settings.api_keys.regenerate_api_key")}
           </DialogTitle>
           {!key && (
@@ -86,10 +82,10 @@ export default function RegenerateApiKey({
         {key ? (
           <ApiKeySuccess
             apiKey={key}
-            message={t("settings.api_keys.key_regenerated_please_copy")}
+            note={t("settings.api_keys.key_regenerated_please_copy")}
           />
         ) : (
-          <p className="text-sm">
+          <p className="text-sm text-muted-foreground">
             {t("settings.api_keys.regenerate_confirmation")}
           </p>
         )}

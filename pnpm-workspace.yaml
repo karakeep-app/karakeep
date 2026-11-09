@@ -7,6 +7,28 @@ packages:
 
 nodeLinker: hoisted
 
+# Refuse to install a version whose publish trust (trusted publisher or
+# provenance) is weaker than an earlier version of the same package, which is
+# what a takeover with a stolen publish token looks like.
+trustPolicy: no-downgrade
+# Exact versions only, so later releases of these packages are still checked.
+# Each was hand-published by the package's long-time maintainer (without CI
+# provenance) after other releases had started shipping with it. Review the
+# publisher and release history on npm before adding an entry here.
+trustPolicyExclude:
+  # paulmillr, after 3.6.0 shipped with provenance.
+  - chokidar@4.0.3
+  # lukastaegert, a 2.x backport after 4.x moved to trusted publishing.
+  - rollup@2.80.0
+  # lukekarrys (npm team), a 6.x backport after 7.5.1 shipped with provenance.
+  - semver@6.3.1
+  # faisalman (the author), 1.x maintenance after 2.0 prereleases had provenance.
+  - ua-parser-js@1.0.41
+# Only direct dependencies may come from git repos or tarball URLs. This is
+# already pnpm 11's default; it's set explicitly so a future default change
+# can't silently turn it off.
+blockExoticSubdeps: true
+
 allowBuilds:
   "@sentry/cli": true
   "@swc/core": true
@@ -40,8 +62,7 @@ patchedDependencies:
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
 
-minimumReleaseAgeExclude:
-  [
+minimumReleaseAgeExclude: [
     "@next/bundle-analyzer@16.4.1",
     "@next/env@16.4.1",
     "@next/swc-darwin-arm64@16.4.1",
@@ -55,6 +76,16 @@ minimumReleaseAgeExclude:
     next@16.4.1,
     liteque@0.10.0,
     "@astrojs/react@6.0.6",
+    # Better Auth's Nov 3, 2026 security release.
+    "@better-auth/core@1.7.16",
+    "@better-auth/drizzle-adapter@1.7.16",
+    "@better-auth/kysely-adapter@1.7.16",
+    "@better-auth/memory-adapter@1.7.16",
+    "@better-auth/mongo-adapter@1.7.16",
+    "@better-auth/prisma-adapter@1.7.16",
+    "@better-auth/telemetry@1.7.16",
+    better-auth@1.7.16,
+    better-call@1.4.5,
   ]
 
 overrides:

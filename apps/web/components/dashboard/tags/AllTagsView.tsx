@@ -46,9 +46,9 @@ import { TagPill } from "./TagPill";
 function DeleteAllUnusedTags({ numUnusedTags }: { numUnusedTags: number }) {
   const { t } = useTranslation();
   const { mutate, isPending } = useDeleteUnusedTags({
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast({
-        description: `Deleted all ${numUnusedTags} unused tags`,
+        description: `Deleted ${res.deletedTags} unused tags`,
       });
     },
     onError: () => {
@@ -61,7 +61,7 @@ function DeleteAllUnusedTags({ numUnusedTags }: { numUnusedTags: number }) {
   return (
     <ActionConfirmingDialog
       title={t("tags.delete_all_unused_tags")}
-      description={`Are you sure you want to delete the ${numUnusedTags} unused tags?`}
+      description="This deletes every unused tag in your account, including ones not shown by the current search. Are you sure?"
       actionButton={() => (
         <ActionButton
           variant="destructive"

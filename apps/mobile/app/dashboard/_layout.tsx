@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import { getFormSheetSurfaceOptions } from "@/lib/form-sheet-options";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { isIOS26 } from "@/lib/ios";
 import { useIsLoggedIn } from "@/lib/session";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -18,21 +19,9 @@ function onAppStateChange(status: AppStateStatus) {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useColorScheme();
-  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
-  // Settings sub-pages need an explicit formSheet presentation. Otherwise they
-  // default to "modal" (they follow a sheet), which ignores sheetGrabberVisible.
-  const settingsScreenOptions = {
-    ...formSheetSurfaceOptions,
-    headerLargeTitle: false,
-    headerTransparent: false,
-    presentation: Platform.select({
-      ios: "formSheet" as const,
-      default: "modal" as const,
-    }),
-    sheetGrabberVisible: true,
-  };
-
+  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.sheet);
   const isLoggedIn = useIsLoggedIn();
   useEffect(() => {
     if (isLoggedIn !== undefined && !isLoggedIn) {
@@ -64,17 +53,18 @@ export default function Dashboard() {
           },
         }),
         headerShadowVisible: false,
+        // iOS 27 can leave the automatic back control empty after sign-in.
+        headerBackButtonDisplayMode: "minimal",
       }}
     >
       <Stack.Screen
         name="(tabs)"
-        options={{ headerShown: false, title: "Home" }}
+        options={{ headerShown: false, title: t("headers.home") }}
       />
       <Stack.Screen
         name="favourites"
         options={{
-          headerTitle: "⭐️ Favourites",
-          headerBackTitle: "Back",
+          headerTitle: t("lists_tab.favourites"),
           headerRight: () => <BookmarkListHeader />,
         }}
       />
@@ -82,9 +72,6 @@ export default function Dashboard() {
         name="bookmarks/[slug]/index"
         options={{
           headerTitle: "",
-          headerBackTitle: "Back",
-          // iOS 27 can leave the automatic back control empty after sign-in.
-          headerBackButtonDisplayMode: "minimal",
           headerLargeTitle: false,
         }}
       />
@@ -92,8 +79,7 @@ export default function Dashboard() {
         name="bookmarks/new"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "New Bookmark",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.new_bookmark"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -101,14 +87,14 @@ export default function Dashboard() {
             default: "modal" as const,
           }),
           sheetGrabberVisible: true,
-          sheetAllowedDetents: [0.35, 0.7],
+          sheetAllowedDetents: [0.55],
         }}
       />
       <Stack.Screen
         name="bookmarks/[slug]/manage_tags"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Manage Tags",
+          headerTitle: t("headers.manage_tags"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -123,7 +109,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/manage_lists"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Manage Lists",
+          headerTitle: t("headers.manage_lists"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -138,7 +124,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/info"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Edit Bookmark",
+          headerTitle: t("headers.edit_details"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -152,7 +138,7 @@ export default function Dashboard() {
         name="bookmarks/[slug]/highlights"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Highlights",
+          headerTitle: t("headers.highlights"),
           headerTransparent: false,
           headerLargeTitle: false,
           presentation: Platform.select({
@@ -166,8 +152,7 @@ export default function Dashboard() {
         name="lists/new"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "New List",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.new_list"),
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -181,8 +166,21 @@ export default function Dashboard() {
         name="lists/[slug]/edit"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Edit List",
-          headerBackTitle: "Back",
+          headerTitle: t("headers.edit_list"),
+          headerLargeTitle: false,
+          headerTransparent: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
+        }}
+      />
+      <Stack.Screen
+        name="lists/[slug]/add"
+        options={{
+          ...formSheetSurfaceOptions,
+          headerTitle: t("headers.add_bookmarks"),
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -196,7 +194,7 @@ export default function Dashboard() {
         name="lists/[slug]/sharing"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Sharing & Access",
+          headerTitle: t("list_sharing.title"),
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -209,8 +207,8 @@ export default function Dashboard() {
       <Stack.Screen
         name="lists/select-parent"
         options={{
-          headerTitle: "Parent List",
-          headerBackTitle: "Back",
+          ...formSheetSurfaceOptions,
+          headerTitle: t("headers.parent_list"),
           headerLargeTitle: false,
           headerTransparent: false,
         }}
@@ -219,8 +217,8 @@ export default function Dashboard() {
         name="tags/new"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "New Tag",
-          headerBackTitle: "Back",
+          sheetAllowedDetents: [0.45],
+          headerTitle: t("headers.new_tag"),
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -234,8 +232,8 @@ export default function Dashboard() {
         name="tags/[slug]/edit"
         options={{
           ...formSheetSurfaceOptions,
-          headerTitle: "Edit Tag",
-          headerBackTitle: "Back",
+          sheetAllowedDetents: [0.45],
+          headerTitle: t("headers.edit_tag"),
           headerLargeTitle: false,
           headerTransparent: false,
           presentation: Platform.select({
@@ -248,116 +246,20 @@ export default function Dashboard() {
       <Stack.Screen
         name="archive"
         options={{
-          headerTitle: "🗄️ Archive",
-          headerBackTitle: "Back",
+          headerTitle: t("lists_tab.archive"),
           headerRight: () => <BookmarkListHeader />,
         }}
       />
       <Stack.Screen
-        name="settings/index"
+        name="settings"
         options={{
-          ...settingsScreenOptions,
-          headerTitle: "Settings",
-          title: "Settings",
-        }}
-      />
-      <Stack.Screen
-        name="settings/reading"
-        options={{
-          ...settingsScreenOptions,
-          headerBackTitle: "Settings",
-          headerTitle: "Reader View",
-          title: "Reader View",
-        }}
-      />
-      <Stack.Screen
-        name="settings/uploads"
-        options={{
-          ...settingsScreenOptions,
-          headerBackTitle: "Settings",
-          headerTitle: "Uploads",
-          title: "Uploads",
-        }}
-      />
-      <Stack.Screen
-        name="settings/theme"
-        options={{
-          ...settingsScreenOptions,
-          title: "Theme",
-          headerTitle: "Theme",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/bookmark-default-view"
-        options={{
-          ...settingsScreenOptions,
-          title: "Open Bookmarks In",
-          headerTitle: "Open Bookmarks In",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/reader-settings"
-        options={{
-          ...settingsScreenOptions,
-          title: "Text and Layout",
-          headerTitle: "Text and Layout",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/offline"
-        options={{
-          ...settingsScreenOptions,
-          title: "Downloads",
-          headerTitle: "Downloads",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/offline-lists"
-        options={{
-          ...settingsScreenOptions,
-          title: "Lists",
-          headerTitle: "Keep Lists Offline",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/offline-articles"
-        options={{
-          ...settingsScreenOptions,
-          title: "Downloaded Articles",
-          headerTitle: "Downloaded Articles",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/subscription"
-        options={{
-          ...settingsScreenOptions,
-          title: "Subscription",
-          headerTitle: "Subscription",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/usage"
-        options={{
-          ...settingsScreenOptions,
-          title: "Statistics",
-          headerTitle: "Statistics",
-          headerBackTitle: "Back",
-        }}
-      />
-      <Stack.Screen
-        name="settings/toolbar-settings"
-        options={{
-          ...settingsScreenOptions,
-          title: "Reader Toolbar",
-          headerTitle: "Reader Toolbar",
-          headerBackTitle: "Back",
+          ...formSheetSurfaceOptions,
+          headerShown: false,
+          presentation: Platform.select({
+            ios: "formSheet" as const,
+            default: "modal" as const,
+          }),
+          sheetGrabberVisible: true,
         }}
       />
     </Stack>

@@ -1,9 +1,13 @@
 #!/usr/bin/env node
-// Finds missing, outdated and obsolete translation keys in the web app's
-// locales (using `en` as the source of truth), and merges translations back.
+// Finds missing, outdated and obsolete translation keys in an app's locales
+// (using `en` as the source of truth), and merges translations back.
 //
-//   node .agents/skills/fill-translations/i18n.mjs report [--locales de,fr] [--json]
-//   node .agents/skills/fill-translations/i18n.mjs apply <locale> <file.json> [--prune]
+//   node .agents/skills/fill-translations/i18n.mjs report [--app mobile] [--locales de,fr] [--json]
+//   node .agents/skills/fill-translations/i18n.mjs apply [--app mobile] <locale> <file.json> [--prune]
+//
+// `--app` picks the locale files: `web` (default) for
+// apps/web/lib/i18n/locales/<locale>/translation.json, `mobile` for the
+// mobile-only strings in apps/mobile/lib/i18n/locales/<locale>.json.
 //
 // "Outdated" means the English value of a key changed (in git history, or in
 // the working tree) after the last time the locale's value for that key
@@ -16,13 +20,28 @@ import path from "node:path";
 const REPO = execFileSync("git", ["rev-parse", "--show-toplevel"], {
   encoding: "utf8",
 }).trim();
-const LOCALES_REL = "apps/web/lib/i18n/locales";
-const LOCALES_DIR = path.join(REPO, LOCALES_REL);
+// Locale files live at <dir>/<locale>/<file>, or at <dir>/<locale>.json when
+// there's no `file`.
+const APPS = {
+  web: { dir: "apps/web/lib/i18n/locales", file: "translation.json" },
+  mobile: { dir: "apps/mobile/lib/i18n/locales" },
+};
 const SOURCE = "en";
 const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
 const PLURAL_ORDER = ["zero", "one", "two", "few", "many", "other"];
 
-const fileRel = (locale) => `${LOCALES_REL}/${locale}/translation.json`;
+const argv = process.argv.slice(2);
+const appIdx = argv.indexOf("--app");
+const APP = appIdx >= 0 ? argv.splice(appIdx, 2)[1] : "web";
+if (!APPS[APP]) {
+  console.error(`unknown --app ${APP}; expected one of ${Object.keys(APPS)}`);
+  process.exit(1);
+}
+
+const fileRel = (locale) => {
+  const { dir, file } = APPS[APP];
+  return file ? `${dir}/${locale}/${file}` : `${dir}/${locale}.json`;
+};
 const fileAbs = (locale) => path.join(REPO, fileRel(locale));
 
 function flatten(obj, prefix = "", out = {}) {
@@ -104,6 +123,8 @@ const valueAt = (tl, key, ts) => {
 
 function bcp47(locale) {
   if (locale === "zhtw") return "zh-TW";
+  // Bare "pt" has Brazilian plural rules; the pt locales are European.
+  if (locale === "pt") return "pt-PT";
   return locale.replace("_", "-");
 }
 
@@ -117,13 +138,11 @@ function pluralCategories(locale) {
 }
 
 function listLocales() {
+  const { dir, file } = APPS[APP];
   return fs
-    .readdirSync(LOCALES_DIR)
-    .filter(
-      (d) =>
-        d !== SOURCE &&
-        fs.existsSync(path.join(LOCALES_DIR, d, "translation.json")),
-    )
+    .readdirSync(path.join(REPO, dir))
+    .map((name) => (file ? name : name.replace(/\.json$/, "")))
+    .filter((l) => l !== SOURCE && fs.existsSync(fileAbs(l)))
     .sort();
 }
 
@@ -299,7 +318,9 @@ function deletePath(obj, parts) {
 function apply(args) {
   const [locale, input] = args;
   if (!locale || !input) {
-    console.error("usage: apply <locale> <translations.json> [--prune]");
+    console.error(
+      "usage: apply [--app web|mobile] <locale> <translations.json> [--prune]",
+    );
     process.exit(1);
   }
   const enObj = JSON.parse(fs.readFileSync(fileAbs(SOURCE), "utf8"));
@@ -335,12 +356,12 @@ function apply(args) {
   );
 }
 
-const [cmd, ...rest] = process.argv.slice(2);
+const [cmd, ...rest] = argv;
 if (cmd === "report") report(rest);
 else if (cmd === "apply") apply(rest);
 else {
   console.error(
-    "usage:\n  i18n.mjs report [--locales de,fr] [--json]\n  i18n.mjs apply <locale> <translations.json> [--prune]",
+    "usage:\n  i18n.mjs report [--app web|mobile] [--locales de,fr] [--json]\n  i18n.mjs apply [--app web|mobile] <locale> <translations.json> [--prune]",
   );
   process.exit(1);
 }

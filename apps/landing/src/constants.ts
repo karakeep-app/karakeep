@@ -6,4 +6,4 @@ export const PLAY_STORE_LINK =
   "https://play.google.com/store/apps/details?id=app.hoarder.hoardermobile&pcampaignid=web_share";
 export const DOCS_LINK = "https://docs.karakeep.com";
 export const DEMO_LINK = "https://try.karakeep.com";
-export const CLOUD_SIGNUP_LINK = "https://cloud.karakeep.app/signup";
+export const CLOUD_SIGNUP_LINK = "https://cloud.karakeep.com/signup";

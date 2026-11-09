@@ -26,5 +26,4 @@
 | -------------------- | ----------------------- |
 | `tooling/typescript` | The shared tsconfigs    |
 | `tooling/eslint`     | ESlint configs          |
-| `tooling/prettier`   | Prettier configs        |
 | `tooling/tailwind`   | Shared tailwind configs |

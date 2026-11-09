@@ -2,14 +2,15 @@
 
 import React from "react";
 import { TagsEditor } from "@/components/dashboard/bookmarks/TagsEditor";
-import { ActionButton } from "@/components/ui/action-button";
+import {
+  ActionButton,
+  ActionButtonWithTooltip,
+} from "@/components/ui/action-button";
 import { Badge } from "@/components/ui/badge";
 import {
   Field,
   FieldContent,
-  FieldDescription,
   FieldError,
-  FieldGroup,
   FieldLabel,
   FieldTitle,
 } from "@/components/ui/field";
@@ -19,6 +20,7 @@ import {
   FormField,
   FormItem,
   FormMessage,
+  useFormErrors,
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
@@ -39,7 +41,7 @@ import { useUserSettings } from "@/lib/userSettings";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Info, Plus, Save, Trash2 } from "lucide-react";
+import { Plus, ScrollText, Trash2 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -59,32 +61,44 @@ import {
 } from "@karakeep/shared/types/prompts";
 import { zUpdateUserSettingsSchema } from "@karakeep/shared/types/users";
 
-import { SettingsPage, SettingsSection } from "./SettingsPage";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { SaveBar } from "./SaveBar";
+import { SavedHint, useAutosavedSettings, useSavedField } from "./SavedHint";
+import {
+  SettingsPage,
+  SettingsRow,
+  SettingsRows,
+  SettingsSection,
+} from "./SettingsPage";
 
 export function AIPreferences() {
   const { t } = useTranslation();
   const clientConfig = useClientConfig();
   const settings = useUserSettings();
+  const { savedField, failedField, markSaved, markFailed } =
+    useSavedField<"preferences">();
 
   const { mutate: updateSettings, isPending } = useUpdateUserSettings({
     onSuccess: () => {
-      toast({
-        description: "Settings updated successfully!",
-      });
+      markSaved("preferences");
     },
     onError: () => {
-      toast({
-        description: "Failed to update settings",
-        variant: "destructive",
-      });
+      markFailed("preferences");
     },
   });
 
   const form = useForm<z.infer<typeof zUpdateUserSettingsSchema>>({
-    resolver: zodResolver(zUpdateUserSettingsSchema),
+    resolver: zodResolver(zUpdateUserSettingsSchema, useFormErrors()),
     values: settings
       ? {
-          inferredTagLang: settings.inferredTagLang ?? "",
+          // Clearing the input sets null, which must not count as a change.
+          inferredTagLang: settings.inferredTagLang ?? null,
           autoTaggingEnabled: settings.autoTaggingEnabled,
           autoSummarizationEnabled: settings.autoSummarizationEnabled,
         }
@@ -95,29 +109,47 @@ export function AIPreferences() {
   const showAutoSummarization = clientConfig.inference.enableAutoSummarization;
 
   const onSubmit = (data: z.infer<typeof zUpdateUserSettingsSchema>) => {
-    updateSettings(data);
+    updateSettings(data, {
+      onSuccess: () => {
+        // The controls stay editable while saving, so keep any change made since.
+        const current = form.getValues();
+        form.reset(data);
+        for (const key of Object.keys(data) as (keyof typeof data)[]) {
+          if (current[key] !== data[key]) {
+            form.setValue(key, current[key], { shouldDirty: true });
+          }
+        }
+      },
+    });
   };
 
   return (
-    <SettingsSection title="AI preferences">
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <FieldGroup className="gap-3">
+    <SettingsSection
+      title={t("settings.ai.preferences_title")}
+      action={
+        <SavedHint
+          show={
+            savedField === "preferences" &&
+            Object.keys(form.formState.errors).length === 0
+          }
+          failed={failedField === "preferences"}
+        />
+      }
+    >
+      <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
+        <SettingsRows>
           <Controller
             name="inferredTagLang"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field
-                className="rounded-lg border p-3"
-                data-invalid={fieldState.invalid}
-              >
-                <FieldContent>
+              <SettingsRow
+                label={
                   <FieldLabel htmlFor="inferredTagLang">
                     {t("settings.ai.inference_language")}
                   </FieldLabel>
-                  <FieldDescription>
-                    {t("settings.ai.inference_language_description")}
-                  </FieldDescription>
-                </FieldContent>
+                }
+                description={t("settings.ai.inference_language_description")}
+              >
                 <Input
                   {...field}
                   id="inferredTagLang"
@@ -132,9 +164,9 @@ export function AIPreferences() {
                   type="text"
                 />
                 {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                  <FieldError className="mt-2" errors={[fieldState.error]} />
                 )}
-              </Field>
+              </SettingsRow>
             )}
           />
 
@@ -143,19 +175,15 @@ export function AIPreferences() {
               name="autoTaggingEnabled"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field
-                  orientation="horizontal"
-                  className="rounded-lg border p-3"
-                  data-invalid={fieldState.invalid}
-                >
-                  <FieldContent>
+                <SettingsRow
+                  inline
+                  label={
                     <FieldLabel htmlFor="autoTaggingEnabled">
                       {t("settings.ai.auto_tagging")}
                     </FieldLabel>
-                    <FieldDescription>
-                      {t("settings.ai.auto_tagging_description")}
-                    </FieldDescription>
-                  </FieldContent>
+                  }
+                  description={t("settings.ai.auto_tagging_description")}
+                >
                   <Switch
                     id="autoTaggingEnabled"
                     name={field.name}
@@ -163,10 +191,7 @@ export function AIPreferences() {
                     onCheckedChange={field.onChange}
                     aria-invalid={fieldState.invalid}
                   />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
+                </SettingsRow>
               )}
             />
           )}
@@ -176,19 +201,15 @@ export function AIPreferences() {
               name="autoSummarizationEnabled"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field
-                  orientation="horizontal"
-                  className="rounded-lg border p-3"
-                  data-invalid={fieldState.invalid}
-                >
-                  <FieldContent>
+                <SettingsRow
+                  inline
+                  label={
                     <FieldLabel htmlFor="autoSummarizationEnabled">
                       {t("settings.ai.auto_summarization")}
                     </FieldLabel>
-                    <FieldDescription>
-                      {t("settings.ai.auto_summarization_description")}
-                    </FieldDescription>
-                  </FieldContent>
+                  }
+                  description={t("settings.ai.auto_summarization_description")}
+                >
                   <Switch
                     id="autoSummarizationEnabled"
                     name={field.name}
@@ -196,21 +217,19 @@ export function AIPreferences() {
                     onCheckedChange={field.onChange}
                     aria-invalid={fieldState.invalid}
                   />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
+                </SettingsRow>
               )}
             />
           )}
+        </SettingsRows>
 
-          <div className="flex justify-end pt-4">
-            <ActionButton type="submit" loading={isPending} variant="default">
-              <Save className="size-4" />
-              {t("actions.save")}
-            </ActionButton>
-          </div>
-        </FieldGroup>
+        {form.formState.isDirty && (
+          <SaveBar
+            saving={isPending}
+            saveLabel={t("bookmark_editor.save_changes")}
+            onDiscard={() => form.reset()}
+          />
+        )}
       </form>
     </SettingsSection>
   );
@@ -220,20 +239,11 @@ export function TagStyleSelector() {
   const { t } = useTranslation();
   const settings = useUserSettings();
 
-  const { mutate: updateSettings, isPending: isUpdating } =
-    useUpdateUserSettings({
-      onSuccess: () => {
-        toast({
-          description: "Tag style updated successfully!",
-        });
-      },
-      onError: () => {
-        toast({
-          description: "Failed to update tag style",
-          variant: "destructive",
-        });
-      },
-    });
+  const {
+    savedField,
+    failedField,
+    save: saveTagStyle,
+  } = useAutosavedSettings<"tagStyle">();
 
   const tagStyleOptions = [
     {
@@ -279,13 +289,20 @@ export function TagStyleSelector() {
     <SettingsSection
       title={t("settings.ai.tag_style")}
       description={t("settings.ai.tag_style_description")}
+      action={
+        <SavedHint
+          show={savedField === "tagStyle"}
+          failed={failedField === "tagStyle"}
+        />
+      }
     >
       <RadioGroup
         value={selectedStyle}
         onValueChange={(value) => {
-          updateSettings({ tagStyle: value as typeof selectedStyle });
+          saveTagStyle("tagStyle", {
+            tagStyle: value as typeof selectedStyle,
+          });
         }}
-        disabled={isUpdating}
         className="grid gap-3 sm:grid-cols-2"
       >
         {tagStyleOptions.map((option) => (
@@ -302,14 +319,18 @@ export function TagStyleSelector() {
                     <Badge
                       key={example}
                       variant="secondary"
-                      className="text-xs font-light"
+                      className="text-xs font-normal"
                     >
                       {example}
                     </Badge>
                   ))}
                 </div>
               </FieldContent>
-              <RadioGroupItem value={option.value} id={option.value} />
+              <RadioGroupItem
+                value={option.value}
+                id={option.value}
+                aria-label={option.label}
+              />
             </Field>
           </FieldLabel>
         ))}
@@ -323,18 +344,15 @@ export function CuratedTagsSelector() {
   const { t } = useTranslation();
   const settings = useUserSettings();
 
+  const { savedField, failedField, markSaved, markFailed } =
+    useSavedField<"curatedTags">();
   const { mutate: updateSettings, isPending: isUpdatingCuratedTags } =
     useUpdateUserSettings({
       onSuccess: () => {
-        toast({
-          description: t("settings.ai.curated_tags_updated"),
-        });
+        markSaved("curatedTags");
       },
       onError: () => {
-        toast({
-          description: t("settings.ai.curated_tags_update_failed"),
-          variant: "destructive",
-        });
+        markFailed("curatedTags");
       },
     });
 
@@ -428,10 +446,16 @@ export function CuratedTagsSelector() {
     <SettingsSection
       title={t("settings.ai.curated_tags")}
       description={t("settings.ai.curated_tags_description")}
+      action={
+        <SavedHint
+          show={savedField === "curatedTags"}
+          failed={failedField === "curatedTags"}
+        />
+      }
     >
       <TagsEditor
         tags={selectedTags}
-        placeholder="Select curated tags..."
+        placeholder={t("settings.ai.curated_tags_placeholder")}
         onAttach={(tag) => {
           const tagId = tag.tagId;
           if (tagId) {
@@ -460,7 +484,10 @@ export function PromptEditor() {
   const queryClient = useQueryClient();
 
   const form = useForm<z.infer<typeof zNewPromptSchema>>({
-    resolver: zodResolver(zNewPromptSchema),
+    resolver: zodResolver(
+      zNewPromptSchema,
+      useFormErrors({ text: t("settings.ai.prompt_required") }),
+    ),
     defaultValues: {
       text: "",
       appliesTo: "all_tagging",
@@ -471,7 +498,7 @@ export function PromptEditor() {
     api.prompts.create.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Prompt has been created!",
+          description: t("settings.ai.prompt_created"),
         });
         queryClient.invalidateQueries(api.prompts.list.pathFilter());
       },
@@ -481,7 +508,7 @@ export function PromptEditor() {
   return (
     <Form {...form}>
       <form
-        className="flex gap-2"
+        className="flex flex-wrap gap-2 sm:flex-nowrap"
         onSubmit={form.handleSubmit(async (value) => {
           await createPrompt(value);
           form.resetField("text");
@@ -492,10 +519,10 @@ export function PromptEditor() {
           name="text"
           render={({ field }) => {
             return (
-              <FormItem className="flex-1">
+              <FormItem className="min-w-full flex-1 sm:min-w-0">
                 <FormControl>
                   <Input
-                    placeholder="Add a custom prompt"
+                    placeholder={t("settings.ai.add_custom_prompt")}
                     type="text"
                     {...field}
                   />
@@ -512,32 +539,32 @@ export function PromptEditor() {
           render={({ field }) => {
             return (
               <FormItem className="flex-0">
-                <FormControl>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Applies To" />
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger aria-label={t("settings.ai.applies_to")}>
+                      <SelectValue placeholder={t("settings.ai.applies_to")} />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="all_tagging">
-                          {t("settings.ai.all_tagging")}
-                        </SelectItem>
-                        <SelectItem value="text">
-                          {t("settings.ai.text_tagging")}
-                        </SelectItem>
-                        <SelectItem value="images">
-                          {t("settings.ai.image_tagging")}
-                        </SelectItem>
-                        <SelectItem value="summary">
-                          {t("settings.ai.summarization")}
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="all_tagging">
+                        {t("settings.ai.all_tagging")}
+                      </SelectItem>
+                      <SelectItem value="text">
+                        {t("settings.ai.text_tagging")}
+                      </SelectItem>
+                      <SelectItem value="images">
+                        {t("settings.ai.image_tagging")}
+                      </SelectItem>
+                      <SelectItem value="summary">
+                        {t("settings.ai.summarization")}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             );
@@ -561,12 +588,11 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
   const api = useTRPC();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const { savedField, markSaved } = useSavedField<"prompt">();
   const { mutateAsync: updatePrompt, isPending: isUpdating } = useMutation(
     api.prompts.update.mutationOptions({
       onSuccess: () => {
-        toast({
-          description: "Prompt has been updated!",
-        });
+        markSaved("prompt");
         queryClient.invalidateQueries(api.prompts.list.pathFilter());
       },
     }),
@@ -575,7 +601,7 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
     api.prompts.delete.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Prompt has been deleted!",
+          description: t("settings.ai.prompt_deleted"),
         });
         queryClient.invalidateQueries(api.prompts.list.pathFilter());
       },
@@ -583,7 +609,10 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
   );
 
   const form = useForm<z.infer<typeof zUpdatePromptSchema>>({
-    resolver: zodResolver(zUpdatePromptSchema),
+    resolver: zodResolver(
+      zUpdatePromptSchema,
+      useFormErrors({ text: t("settings.ai.prompt_required") }),
+    ),
     defaultValues: {
       promptId: prompt.id,
       text: prompt.text,
@@ -594,9 +623,20 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
   return (
     <Form {...form}>
       <form
-        className="flex gap-2"
+        className="flex flex-wrap gap-2 sm:flex-nowrap"
         onSubmit={form.handleSubmit(async (value) => {
           await updatePrompt(value);
+          // Keep any edit made while the save was in flight.
+          const current = form.getValues();
+          form.reset(value);
+          if (current.text !== value.text) {
+            form.setValue("text", current.text, { shouldDirty: true });
+          }
+          if (current.appliesTo !== value.appliesTo) {
+            form.setValue("appliesTo", current.appliesTo, {
+              shouldDirty: true,
+            });
+          }
         })}
       >
         <FormField
@@ -618,10 +658,10 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
           name="text"
           render={({ field }) => {
             return (
-              <FormItem className="flex-1">
+              <FormItem className="min-w-full flex-1 sm:min-w-0">
                 <FormControl>
                   <Input
-                    placeholder="Add a custom prompt"
+                    placeholder={t("settings.ai.add_custom_prompt")}
                     type="text"
                     {...field}
                   />
@@ -638,56 +678,66 @@ export function PromptRow({ prompt }: { prompt: ZPrompt }) {
           render={({ field }) => {
             return (
               <FormItem className="flex-0">
-                <FormControl>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Applies To" />
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger aria-label={t("settings.ai.applies_to")}>
+                      <SelectValue placeholder={t("settings.ai.applies_to")} />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="all_tagging">
-                          {t("settings.ai.all_tagging")}
-                        </SelectItem>
-                        <SelectItem value="text">
-                          {t("settings.ai.text_tagging")}
-                        </SelectItem>
-                        <SelectItem value="images">
-                          {t("settings.ai.image_tagging")}
-                        </SelectItem>
-                        <SelectItem value="summary">
-                          {t("settings.ai.summarization")}
-                        </SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="all_tagging">
+                        {t("settings.ai.all_tagging")}
+                      </SelectItem>
+                      <SelectItem value="text">
+                        {t("settings.ai.text_tagging")}
+                      </SelectItem>
+                      <SelectItem value="images">
+                        {t("settings.ai.image_tagging")}
+                      </SelectItem>
+                      <SelectItem value="summary">
+                        {t("settings.ai.summarization")}
+                      </SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             );
           }}
         />
-        <ActionButton
-          loading={isUpdating}
-          variant="secondary"
-          type="submit"
-          className="items-center"
-        >
-          <Save className="size-4" />
-          {t("actions.save")}
-        </ActionButton>
-        <ActionButton
+        <SavedHint
+          show={
+            savedField === "prompt" &&
+            !form.formState.isDirty &&
+            Object.keys(form.formState.errors).length === 0
+          }
+        />
+        {form.formState.isDirty && (
+          <ActionButton
+            loading={isUpdating}
+            variant="outline"
+            type="submit"
+            className="items-center"
+          >
+            {t("actions.save")}
+          </ActionButton>
+        )}
+        <ActionButtonWithTooltip
           loading={isDeleting}
-          variant="destructive"
+          variant="ghost"
+          size="icon"
+          aria-label={t("actions.delete")}
+          tooltip={t("actions.delete")}
           onClick={() => deletePrompt({ promptId: prompt.id })}
-          className="items-center"
+          className="shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive dark:hover:bg-destructive/20"
           type="button"
         >
           <Trash2 className="size-4" />
-          {t("actions.delete")}
-        </ActionButton>
+        </ActionButtonWithTooltip>
       </form>
     </Form>
   );
@@ -706,10 +756,19 @@ export function TaggingRules() {
       description={t("settings.ai.tagging_rule_description")}
     >
       {prompts && prompts.length == 0 && (
-        <div className="flex items-start gap-2 rounded-md bg-muted p-4 text-sm text-muted-foreground">
-          <Info className="size-4 flex-shrink-0" />
-          <p>You don&apos;t have any custom prompts yet.</p>
-        </div>
+        <Empty className="p-4 md:p-6">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ScrollText />
+            </EmptyMedia>
+            <EmptyTitle className="text-base">
+              {t("settings.ai.no_custom_prompts")}
+            </EmptyTitle>
+            <EmptyDescription>
+              {t("settings.ai.no_custom_prompts_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
       <div className="flex flex-col gap-2">
         {isLoading && <FullPageSpinner />}
@@ -807,7 +866,7 @@ export function PromptDemo() {
   return (
     <SettingsSection
       title={t("settings.ai.prompt_preview")}
-      description="Preview the actual prompts sent to AI based on your settings"
+      description={t("settings.ai.prompt_preview_description")}
     >
       <div className="space-y-4">
         <div>
@@ -875,7 +934,10 @@ export function PromptDemo() {
 export default function AISettings() {
   const { t } = useTranslation();
   return (
-    <SettingsPage title={t("settings.ai.ai_settings")}>
+    <SettingsPage
+      title={t("settings.ai.ai_settings")}
+      description={t("settings.ai.page_description")}
+    >
       <AIPreferences />
       <TagStyleSelector />
       <CuratedTagsSelector />

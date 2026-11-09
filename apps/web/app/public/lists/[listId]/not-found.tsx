@@ -1,18 +1,40 @@
+import Link from "next/link";
+import KarakeepLogo from "@/components/KarakeepIcon";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { useTranslation } from "@/lib/i18n/server";
 import { X } from "lucide-react";
 
-export default function PublicListPageNotFound() {
+export default async function PublicListPageNotFound() {
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
   return (
-    <div className="mx-auto flex max-w-md flex-1 flex-col items-center justify-center px-4 py-16 text-center">
-      <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-muted">
-        <X className="h-12 w-12 text-gray-300" strokeWidth={1.5} />
-      </div>
-      <h1 className="mb-3 text-2xl font-semibold text-gray-800">
-        List not found
-      </h1>
-      <p className="text-center text-gray-500">
-        The list you&apos;re looking for doesn&apos;t exist or may have been
-        removed.
-      </p>
+    <div className="mx-auto mt-16 flex max-w-md flex-col items-center gap-6">
+      <Link
+        href="/"
+        aria-label={t("actions.go_home")}
+        className="flex min-h-11 items-center rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
+        <KarakeepLogo height={38} />
+      </Link>
+      <Empty className="w-full border">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <X />
+          </EmptyMedia>
+          <EmptyTitle role="heading" aria-level={1}>
+            {t("public_lists.not_found_title")}
+          </EmptyTitle>
+          <EmptyDescription>
+            {t("public_lists.not_found_description")}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     </div>
   );
 }

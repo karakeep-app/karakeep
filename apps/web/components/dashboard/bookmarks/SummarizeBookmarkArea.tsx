@@ -1,5 +1,7 @@
 import React from "react";
+import SidebarSectionHeading from "@/components/shared/sidebar/SidebarSectionHeading";
 import { ActionButton } from "@/components/ui/action-button";
+import { Button } from "@/components/ui/button";
 import { MarkdownReadonly } from "@/components/ui/markdown/markdown-readonly";
 import { toast } from "@/components/ui/sonner";
 import LoadingSpinner from "@/components/ui/spinner";
@@ -14,6 +16,12 @@ import {
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
+import {
+  DESTRUCTIVE_ICON_CONTROL_CLASS,
+  ICON_CONTROL_CLASS,
+  IconTooltip,
+} from "../preview/IconControl";
+
 function AISummary({
   bookmarkId,
   summary,
@@ -23,12 +31,13 @@ function AISummary({
   summary: string;
   readOnly?: boolean;
 }) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = React.useState(false);
   const { mutate: resummarize, isPending: isResummarizing } =
     useSummarizeBookmark({
       onError: () => {
         toast({
-          description: "Something went wrong",
+          description: t("common.something_went_wrong"),
           variant: "destructive",
         });
       },
@@ -37,61 +46,76 @@ function AISummary({
     useUpdateBookmark({
       onError: () => {
         toast({
-          description: "Something went wrong",
+          description: t("common.something_went_wrong"),
           variant: "destructive",
         });
       },
     });
   return (
-    <div className="w-full p-1">
+    <div className="flex w-full flex-col gap-1.5">
+      <SidebarSectionHeading>{t("common.summary")}</SidebarSectionHeading>
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
-        className={`relative overflow-hidden rounded-lg p-4 transition-all duration-300 ease-in-out ${isExpanded ? "h-auto" : "cursor-pointer"} border border-muted-foreground/20 p-[2px]`}
+        className={cn(
+          "relative overflow-hidden rounded-md transition-all duration-300 ease-in-out [&_a]:inline-block [&_a]:max-w-full [&_a]:truncate [&_a]:align-bottom",
+          isExpanded ? "h-auto" : "cursor-pointer",
+        )}
         onClick={() => !isExpanded && setIsExpanded(true)}
       >
-        <div className="h-full rounded-lg bg-accent p-2">
+        <div className="h-full rounded-md bg-muted p-2">
           <MarkdownReadonly
             className={`text-sm ${!isExpanded && "line-clamp-3"}`}
           >
             {summary}
           </MarkdownReadonly>
           {isExpanded && (
-            <span className="flex justify-end gap-2 pt-2">
+            <span className="flex justify-end gap-0.5 pt-2">
               {!readOnly && (
                 <>
-                  <ActionButton
-                    variant="none"
-                    size="none"
-                    spinner={<LoadingSpinner className="size-4" />}
-                    className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-muted dark:text-muted-foreground"
-                    aria-label={isExpanded ? "Collapse" : "Expand"}
-                    loading={isResummarizing}
-                    onClick={() => resummarize({ bookmarkId })}
-                  >
-                    <RefreshCw size={16} />
-                  </ActionButton>
-                  <ActionButton
-                    size="none"
-                    variant="none"
-                    spinner={<LoadingSpinner className="size-4" />}
-                    className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-muted dark:text-muted-foreground"
-                    aria-label={isExpanded ? "Collapse" : "Expand"}
-                    loading={isUpdatingBookmark}
-                    onClick={() =>
-                      updateBookmark({ bookmarkId, summary: null })
-                    }
-                  >
-                    <Trash2 size={16} />
-                  </ActionButton>
+                  <IconTooltip label={t("actions.resummarize")}>
+                    <ActionButton
+                      variant="ghost"
+                      size="none"
+                      spinner={<LoadingSpinner className="size-4" />}
+                      className={ICON_CONTROL_CLASS}
+                      aria-label={t("actions.resummarize")}
+                      loading={isResummarizing}
+                      onClick={() => resummarize({ bookmarkId })}
+                    >
+                      <RefreshCw className="size-4" />
+                    </ActionButton>
+                  </IconTooltip>
+                  <IconTooltip label={t("actions.delete_summary")}>
+                    <ActionButton
+                      variant="ghost"
+                      size="none"
+                      spinner={<LoadingSpinner className="size-4" />}
+                      className={cn(
+                        ICON_CONTROL_CLASS,
+                        DESTRUCTIVE_ICON_CONTROL_CLASS,
+                      )}
+                      aria-label={t("actions.delete_summary")}
+                      loading={isUpdatingBookmark}
+                      onClick={() =>
+                        updateBookmark({ bookmarkId, summary: null })
+                      }
+                    >
+                      <Trash2 className="size-4" />
+                    </ActionButton>
+                  </IconTooltip>
                 </>
               )}
-              <button
-                className="rounded-full bg-gray-200 p-1 text-gray-600 dark:bg-muted dark:text-muted-foreground"
-                aria-label="Collapse"
-                onClick={() => setIsExpanded(false)}
-              >
-                <ChevronUp size={16} />
-              </button>
+              <IconTooltip label={t("actions.collapse")}>
+                <Button
+                  variant="ghost"
+                  size="none"
+                  className={ICON_CONTROL_CLASS}
+                  aria-label={t("actions.collapse")}
+                  onClick={() => setIsExpanded(false)}
+                >
+                  <ChevronUp className="size-4" />
+                </Button>
+              </IconTooltip>
             </span>
           )}
         </div>
@@ -111,7 +135,7 @@ export default function SummarizeBookmarkArea({
   const { mutate, isPending } = useSummarizeBookmark({
     onError: () => {
       toast({
-        description: "Something went wrong",
+        description: t("common.something_went_wrong"),
         variant: "destructive",
       });
     },

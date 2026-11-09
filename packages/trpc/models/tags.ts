@@ -128,7 +128,7 @@ export class Tag {
       .groupBy(bookmarkTags.id, bookmarkTags.name)
       .orderBy(
         ...switchCase(sortBy, {
-          name: [asc(bookmarkTags.name)],
+          name: [asc(sql`${bookmarkTags.name} COLLATE NOCASE`)],
           usage: [desc(sql`count`)],
           relevance: [
             desc(sql<number>`

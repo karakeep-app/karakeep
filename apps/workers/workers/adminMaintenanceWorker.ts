@@ -1,6 +1,3 @@
-import { workerStatsCounter } from "metrics";
-import { withWorkerTracing } from "workerTracing";
-
 import {
   AdminMaintenanceQueue,
   ZAdminMaintenanceMigrateLargeLinkHtmlTask,
@@ -11,6 +8,8 @@ import {
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
+import { workerStatsCounter } from "../metrics";
+import { withWorkerTracing } from "../workerTracing";
 import { runMigrateLargeLinkHtmlTask } from "./adminMaintenance/tasks/migrateLinkHtmlContent";
 import { runPurgeBookmarksOverQuotaTask } from "./adminMaintenance/tasks/purgeBookmarksOverQuota";
 import { runTidyAssetsTask } from "./adminMaintenance/tasks/tidyAssets";

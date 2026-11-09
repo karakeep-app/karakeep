@@ -1,5 +1,15 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { eq } from "drizzle-orm";
-import { assert, beforeEach, describe, expect, test, vi } from "vitest";
+import {
+  afterAll,
+  assert,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vitest";
 
 import {
   accounts,
@@ -9,6 +19,7 @@ import {
   subscriptions,
   users,
 } from "@karakeep/db/schema";
+import serverConfig from "@karakeep/shared/config";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { CustomTestContext } from "../testUtils";
@@ -22,10 +33,16 @@ import { createTestUser, defaultBeforeEach, getApiCaller } from "../testUtils";
 // Mock server config with email settings
 vi.mock("@karakeep/shared/config", async (original) => {
   const mod = (await original()) as typeof import("@karakeep/shared/config");
+  const fs = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
   return {
     ...mod,
     default: {
       ...mod.default,
+      assetsDir: fs.mkdtempSync(
+        path.join(os.tmpdir(), "karakeep-users-test-assets-"),
+      ),
       auth: {
         ...mod.default.auth,
         emailVerificationRequired: true,
@@ -45,6 +62,25 @@ vi.mock("@karakeep/shared/config", async (original) => {
 });
 
 beforeEach<CustomTestContext>(defaultBeforeEach(false));
+afterAll(async () => {
+  await fs.promises.rm(serverConfig.assetsDir, {
+    recursive: true,
+    force: true,
+  });
+});
+
+async function writeAssetFile(userId: string, assetId: string) {
+  const assetDir = path.join(serverConfig.assetsDir, userId, assetId);
+  await fs.promises.mkdir(assetDir, { recursive: true });
+  await fs.promises.writeFile(path.join(assetDir, "asset.bin"), "asset");
+}
+
+async function assetExists(userId: string, assetId: string) {
+  return fs.promises
+    .access(path.join(serverConfig.assetsDir, userId, assetId, "asset.bin"))
+    .then(() => true)
+    .catch(() => false);
+}
 
 describe("User Routes", () => {
   test<CustomTestContext>("create user", async ({ db }) => {
@@ -62,6 +98,7 @@ describe("User Routes", () => {
       where: eq(users.id, user.id),
     });
     expect(dbUser?.emailVerified).toBe(false);
+    expect(dbUser?.bookmarkClickAction).toBe("expand_bookmark_preview");
 
     // The password lives in a credential account, hashed
     const userAccounts = await db
@@ -217,7 +254,7 @@ describe("User Routes", () => {
     const settings = await caller.users.settings();
     // The default settings
     expect(settings).toEqual({
-      bookmarkClickAction: "open_original_link",
+      bookmarkClickAction: "expand_bookmark_preview",
       archiveDisplayBehaviour: "show",
       timezone: "UTC",
       backupsEnabled: false,
@@ -283,6 +320,27 @@ describe("User Routes", () => {
     await expect(() => caller.users.updateSettings({})).rejects.toThrow(
       /No settings provided/,
     );
+  });
+
+  test<CustomTestContext>("update profile name", async ({ db }) => {
+    const user = await createTestUser(db, {
+      name: "Test User",
+      email: "testprofile@test.com",
+      password: "pass1234",
+    });
+    const caller = getApiCaller(db, user.id);
+
+    await caller.users.updateProfile({ name: "  New Name  " });
+    const whoami = await caller.users.whoami();
+    expect(whoami.name).toEqual("New Name");
+    expect(whoami.email).toEqual("testprofile@test.com");
+
+    await expect(() =>
+      caller.users.updateProfile({ name: "   " }),
+    ).rejects.toThrow(/Name can't be empty/);
+    await expect(() =>
+      caller.users.updateProfile({ name: "<script>hi</script>" }),
+    ).rejects.toThrow(/invalid characters/);
   });
 
   test<CustomTestContext>("user stats - empty user", async ({ db }) => {
@@ -845,6 +903,7 @@ describe("User Routes", () => {
         fileName: "avatar.png",
         bookmarkId: null,
       });
+      await writeAssetFile(user.id, "avatar-asset-3");
 
       await caller.users.updateAvatar({ assetId: "avatar-asset-3" });
       await caller.users.updateAvatar({ assetId: null });
@@ -862,6 +921,45 @@ describe("User Routes", () => {
 
       expect(updatedUser?.image).toBeNull();
       expect(remainingAsset).toBeUndefined();
+      expect(await assetExists(user.id, "avatar-asset-3")).toBe(false);
+    });
+
+    test<CustomTestContext>("updateAvatar - does not delete files referenced by an untrusted image", async ({
+      db,
+    }) => {
+      const victim = await createTestUser(db, {
+        name: "Avatar Victim",
+        email: "avatar-victim@test.com",
+        password: "pass1234",
+      });
+      const attacker = await createTestUser(db, {
+        name: "Avatar Attacker",
+        email: "avatar-attacker@test.com",
+        password: "pass1234",
+      });
+      await writeAssetFile(victim.id, "victim-asset");
+      // e.g. set through a client-supplied `image` at sign up
+      await db
+        .update(users)
+        .set({ image: `../${victim.id}/victim-asset` })
+        .where(eq(users.id, attacker.id));
+      const caller = getApiCaller(
+        db,
+        attacker.id,
+        attacker.email,
+        attacker.role || "user",
+      );
+
+      await caller.users.updateAvatar({ assetId: null });
+
+      const updatedUser = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, attacker.id))
+        .then((rows) => rows[0]);
+
+      expect(updatedUser?.image).toBeNull();
+      expect(await assetExists(victim.id, "victim-asset")).toBe(true);
     });
   });
 
