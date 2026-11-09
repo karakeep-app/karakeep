@@ -2,7 +2,7 @@
 
 import { ChangeEvent, Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ButtonWithTooltip } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,12 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSession } from "@/lib/auth/client";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { useClientConfig } from "@/lib/clientConfig";
@@ -146,12 +152,12 @@ function SheetAction({
 function BookmarkOptionsSheet({
   bookmark,
   groups,
-  isAnyDialogOpen,
+  onCloseAutoFocus,
   trigger,
 }: {
   bookmark: ZBookmark;
   groups: ActionItemType[][];
-  isAnyDialogOpen: boolean;
+  onCloseAutoFocus: () => void;
   trigger: React.ReactNode;
 }) {
   const { t } = useTranslation();
@@ -168,12 +174,7 @@ function BookmarkOptionsSheet({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
         className={BOTTOM_SHEET_CLASS}
-        onCloseAutoFocus={(e) => {
-          // Stays with the dialog an action has opened
-          if (isAnyDialogOpen) {
-            e.preventDefault();
-          }
-        }}
+        onCloseAutoFocus={onCloseAutoFocus}
       >
         <DialogTitle className="truncate py-2 pl-2 pr-12 text-base">
           {getBookmarkDisplayTitle(bookmark) ?? t("common.untitled")}
@@ -225,13 +226,20 @@ export default function BookmarkOptions({
   hiddenActions,
   showPreviewAction = false,
   trigger,
+  triggerTooltip,
 }: {
   bookmark: ZBookmark;
   // Ids of top-level actions to leave out of the menu
   hiddenActions?: string[];
   // For when clicking the card goes somewhere other than the preview
   showPreviewAction?: boolean;
+  // A plain button: the menu puts the tooltip around it
   trigger?: React.ReactNode;
+  triggerTooltip?: {
+    label: string;
+    side?: React.ComponentProps<typeof TooltipContent>["side"];
+    delayDuration?: number;
+  };
 }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -259,28 +267,28 @@ export default function BookmarkOptions({
     );
   }, []);
 
-  const {
-    open: isManageListsModalOpen,
-    setOpen: setManageListsModalOpen,
-    content: manageListsModal,
-  } = useManageListsModal(bookmark.id);
+  const { setOpen: setManageListsModalOpen, content: manageListsModal } =
+    useManageListsModal(bookmark.id);
 
-  const {
-    open: isTagModalOpen,
-    setOpen: setTagModalOpen,
-    content: tagModal,
-  } = useTagModal(bookmark);
+  const { setOpen: setTagModalOpen, content: tagModal } = useTagModal(bookmark);
 
   const [deleteBookmarkDialogOpen, setDeleteBookmarkDialogOpen] =
     useState(false);
   const [isTextEditorOpen, setTextEditorOpen] = useState(false);
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
-  const isAnyDialogOpen =
-    isManageListsModalOpen ||
-    isTagModalOpen ||
-    deleteBookmarkDialogOpen ||
-    isTextEditorOpen ||
-    isEditBookmarkDialogOpen;
+  // A dialog opened from the menu opens as the menu hands focus back to its
+  // trigger, so the dialog returns focus there, rather than to the item that's
+  // gone by then.
+  const pendingDialog = useRef<(() => void) | null>(null);
+  const openAfterMenuCloses = (open: () => void) => () => {
+    pendingDialog.current = open;
+  };
+  // The menu focuses its trigger right after this, before the dialog has
+  // rendered.
+  const openPendingDialog = () => {
+    pendingDialog.current?.();
+    pendingDialog.current = null;
+  };
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -441,7 +449,7 @@ export default function BookmarkOptions({
         icon: <Pencil className="size-4" />,
         visible: isOwner,
         disabled: false,
-        onClick: () => setEditBookmarkDialogOpen(true),
+        onClick: openAfterMenuCloses(() => setEditBookmarkDialogOpen(true)),
       },
       {
         id: "edit-tags",
@@ -449,7 +457,7 @@ export default function BookmarkOptions({
         icon: <Tag className="size-4" />,
         visible: isOwner,
         disabled: demoMode,
-        onClick: () => setTagModalOpen(true),
+        onClick: openAfterMenuCloses(() => setTagModalOpen(true)),
       },
       {
         id: "open-editor",
@@ -457,7 +465,7 @@ export default function BookmarkOptions({
         icon: <SquarePen className="size-4" />,
         visible: isOwner && bookmark.content.type === BookmarkTypes.TEXT,
         disabled: false,
-        onClick: () => setTextEditorOpen(true),
+        onClick: openAfterMenuCloses(() => setTextEditorOpen(true)),
       },
       {
         id: "favorite",
@@ -515,7 +523,7 @@ export default function BookmarkOptions({
         icon: <List className="size-4" />,
         visible: isOwner,
         disabled: false,
-        onClick: () => setManageListsModalOpen(true),
+        onClick: openAfterMenuCloses(() => setManageListsModalOpen(true)),
       },
       {
         id: "remove-from-list",
@@ -647,7 +655,7 @@ export default function BookmarkOptions({
         visible: isOwner,
         disabled: demoMode,
         variant: "destructive",
-        onClick: () => setDeleteBookmarkDialogOpen(true),
+        onClick: openAfterMenuCloses(() => setDeleteBookmarkDialogOpen(true)),
       },
     ],
   ];
@@ -672,17 +680,19 @@ export default function BookmarkOptions({
   }
 
   const menuTrigger = trigger ?? (
-    <ButtonWithTooltip
-      tooltip={t("actions.more_options")}
-      delayDuration={300}
+    <Button
       aria-label={t("actions.more_options")}
       variant="ghost"
       size="none"
       className={CARD_ICON_BUTTON_CLASS}
     >
       <MoreHorizontal className="size-4" />
-    </ButtonWithTooltip>
+    </Button>
   );
+  const tooltip = triggerTooltip ?? {
+    label: t("actions.more_options"),
+    delayDuration: 300,
+  };
 
   return (
     <>
@@ -707,22 +717,26 @@ export default function BookmarkOptions({
         <BookmarkOptionsSheet
           bookmark={bookmark}
           groups={visibleGroups}
-          isAnyDialogOpen={isAnyDialogOpen}
+          onCloseAutoFocus={openPendingDialog}
           trigger={menuTrigger}
         />
       ) : (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>{menuTrigger}</DropdownMenuTrigger>
+          {/* The tooltip goes outside the menu's trigger, which cancels the
+              pointer press the tooltip closes on, so it sees the press first. */}
+          <Tooltip delayDuration={tooltip.delayDuration}>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>{menuTrigger}</DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipPortal>
+              <TooltipContent side={tooltip.side}>
+                {tooltip.label}
+              </TooltipContent>
+            </TooltipPortal>
+          </Tooltip>
           <DropdownMenuContent
             className="min-w-44"
-            onCloseAutoFocus={(e) => {
-              // The menu restores focus to its trigger once its close animation
-              // ends. If an item opened a dialog, that steals focus from the
-              // dialog and dismisses any popover opened inside it in the meantime.
-              if (isAnyDialogOpen) {
-                e.preventDefault();
-              }
-            }}
+            onCloseAutoFocus={openPendingDialog}
           >
             {visibleGroups.map((group, i) => (
               <Fragment key={i}>
@@ -762,14 +776,6 @@ export default function BookmarkOptions({
                       disabled={item.disabled}
                       variant={item.variant}
                       onClick={item.onClick}
-                      // An item takes the focus back to the menu when the pointer
-                      // leaves it, as it does for a dialog's overlay coming up under
-                      // it. That would take it away from the dialog.
-                      onPointerLeave={(e) => {
-                        if (isAnyDialogOpen) {
-                          e.preventDefault();
-                        }
-                      }}
                     >
                       {item.icon}
                       <span>{item.title}</span>

@@ -98,8 +98,11 @@ export interface RowMenuItem {
   description?: string;
   /** Starts a new group of items in the menu, under this heading. */
   heading?: React.ReactNode;
-  /** Receives the menu button, so dialogs can return focus to it on close. */
-  onSelect?: (trigger: HTMLElement) => void;
+  /**
+   * Runs once the menu has closed, so a dialog it opens returns focus to the
+   * menu's button.
+   */
+  onSelect?: () => void;
   href?: string;
   external?: boolean;
   download?: boolean;
@@ -124,9 +127,8 @@ export function RowActionsMenu({
   className?: string;
 }) {
   const { t } = useTranslation();
-  const triggerRef = React.useRef<HTMLButtonElement>(null);
-  // Runs once the menu has closed and focus is back on the button, so a dialog
-  // opened from the menu returns focus there too, rather than to the page.
+  // Runs as the menu hands focus back to its button, so a dialog opened from the
+  // menu returns focus there too, rather than to the item that's gone by then.
   const pendingAction = React.useRef<(() => void) | null>(null);
   const accessibleLabel = label ?? t("common.actions");
   if (disabledReason) {
@@ -146,24 +148,31 @@ export function RowActionsMenu({
   }
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <ButtonWithTooltip
-          ref={triggerRef}
-          tooltip={t("common.actions")}
-          variant="ghost"
-          size="icon-sm"
-          aria-label={accessibleLabel}
-          className={cn(iconClass, className)}
-        >
-          <MoreHorizontal className="size-4" />
-        </ButtonWithTooltip>
-      </DropdownMenuTrigger>
+      {/* The tooltip goes outside the menu's trigger, which cancels the pointer
+          press the tooltip closes on, so it sees the press first. */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={accessibleLabel}
+              className={cn(iconClass, className)}
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipPortal>
+          <TooltipContent>{t("common.actions")}</TooltipContent>
+        </TooltipPortal>
+      </Tooltip>
       <DropdownMenuContent
         align="end"
         className="max-w-80"
-        onCloseAutoFocus={(event) => {
-          event.preventDefault();
-          triggerRef.current?.focus();
+        onCloseAutoFocus={() => {
+          // The menu focuses its button right after this, before the dialog
+          // the action opens has rendered.
           pendingAction.current?.();
           pendingAction.current = null;
         }}
@@ -205,11 +214,7 @@ export function RowActionsMenu({
                 variant={variant}
                 className="max-sm:min-h-11"
                 onSelect={() => {
-                  pendingAction.current = () => {
-                    if (triggerRef.current) {
-                      item.onSelect?.(triggerRef.current);
-                    }
-                  };
+                  pendingAction.current = item.onSelect ?? null;
                 }}
               >
                 {item.icon}
