@@ -214,6 +214,7 @@ export default function Home() {
       <UpdatingBookmarkList
         header={<ConnectionBanner />}
         query={{ archived: false }}
+        scrollToTopOnSave
         emptyState={{
           title: t("home.empty_title"),
           subtitle: t("home.empty_subtitle"),
