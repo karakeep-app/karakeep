@@ -16,6 +16,7 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@mozilla/readability": "^0.6.0",
     "@paralleldrive/cuid2": "^2.2.2",
+    "@remix-run/multipart-parser": "^1.0.0",
     "@trpc/server": "^11.9.0",
     "@tsconfig/node22": "^22.0.0",
     "archiver": "^7.0.1",

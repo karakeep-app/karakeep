@@ -116,7 +116,7 @@ jobs:
         id: e2e-web-image
         background: true
         working-directory: packages/e2e_tests
-        run: docker compose build web
+        run: docker compose build web web-remote crawler
 
       # The chrome image is only built when its build inputs (docker/chrome,
       # .dockerignore and its compose build definition) changed in this

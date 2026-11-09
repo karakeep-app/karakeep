@@ -1,17 +1,23 @@
+# The web, web-remote and crawler services run the same aio image. BuildKit
+# reuses the layers, so building it for each of them is cheap.
+x-karakeep: &karakeep
+  build:
+    dockerfile: docker/Dockerfile
+    context: ../../
+    target: aio
+    # Reuse the layers (deps install, monolith, ...) that the docker workflow
+    # pushes from main. The checked-out source is still what gets built; only
+    # unchanged layers are reused. The cache is public so that it's readable
+    # without credentials (e.g. from fork PRs). If it's unavailable, buildkit
+    # just warns and builds from scratch.
+    cache_from:
+      - type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:aio-amd64
+  restart: unless-stopped
+
 services:
   web:
-    build:
-      dockerfile: docker/Dockerfile
-      context: ../../
-      target: aio
-      # Reuse the layers (deps install, monolith, ...) that the docker workflow
-      # pushes from main. The checked-out source is still what gets built; only
-      # unchanged layers are reused. The cache is public so that it's readable
-      # without credentials (e.g. from fork PRs). If it's unavailable, buildkit
-      # just warns and builds from scratch.
-      cache_from:
-        - type=registry,ref=ghcr.io/karakeep-app/karakeep-build-cache:aio-amd64
-    restart: unless-stopped
+    <<: *karakeep
+    networks: [default, sites]
     ports:
       - "${KARAKEEP_PORT:-3000}:3000"
     environment:
@@ -32,6 +38,50 @@ services:
       EMBEDDING_DIMENSIONS: 384
       EMBEDDING_ENABLE_AUTO_INDEXING: "true"
       INFERENCE_ENABLE_AUTO_SUMMARIZATION: "true"
+  # A second instance whose crawler worker sends all its crawls to the remote
+  # crawler below. It's only on the default network, so it can't reach the test
+  # site or chrome itself: anything it fetched locally would fail.
+  web-remote:
+    <<: *karakeep
+    ports:
+      - "${KARAKEEP_REMOTE_PORT:-3001}:3000"
+    environment:
+      DATA_DIR: /tmp
+      DB_WAL_MODE: "true"
+      NEXTAUTH_SECRET: secret
+      NEXTAUTH_URL: http://localhost:${KARAKEEP_REMOTE_PORT:-3001}
+      CRAWLER_NUM_WORKERS: 6
+      CRAWLER_REMOTE_URL: http://crawler:4000
+      CRAWLER_REMOTE_TOKEN: e2e-remote-crawler-token
+  # The remote crawler: just the workers process, in remote crawler mode. The
+  # settings for how pages are fetched and captured are read here.
+  crawler:
+    <<: *karakeep
+    user: node
+    working_dir: /app/apps/workers
+    entrypoint: ["node", "dist/index.js"]
+    networks: [default, sites]
+    environment:
+      CRAWLER_REMOTE_SERVER_ENABLED: "true"
+      CRAWLER_REMOTE_TOKEN: e2e-remote-crawler-token
+      WORKERS_HOST: 0.0.0.0
+      WORKERS_PORT: 4000
+      DATA_DIR: /tmp
+      BROWSER_WEB_URL: http://chrome:9222
+      CRAWLER_NUM_WORKERS: 6
+      CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
+      CRAWLER_STORE_PDF: "true"
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --no-verbose
+        - --tries=1
+        - --spider
+        - http://127.0.0.1:4000/health
+      interval: 2s
+      timeout: 5s
+      retries: 30
   meilisearch:
     image: getmeili/meilisearch:v1.55.0
     restart: unless-stopped
@@ -42,6 +92,7 @@ services:
       MEILI_MASTER_KEY: dummy
   chrome:
     image: ${KARAKEEP_CHROME_IMAGE:-karakeep-chrome:e2e}
+    networks: [sites]
     build:
       context: ../..
       dockerfile: docker/chrome/Dockerfile
@@ -55,9 +106,11 @@ services:
       - --window-size=1440,900
   nginx:
     image: nginx:alpine
+    networks: [sites]
     restart: unless-stopped
     volumes:
       - ./setup/html:/usr/share/nginx/html
+      - ./fixtures:/usr/share/nginx/fixtures:ro
       - ./setup/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
   garage:
     image: dxflrs/garage:v2.3.0
@@ -100,6 +153,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+networks:
+  default:
+  # The test site and chrome, reachable from the crawlers but not web-remote.
+  sites:
 
 volumes:
   garage_data:

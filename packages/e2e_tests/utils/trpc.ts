@@ -3,12 +3,15 @@ import superjson from "superjson";
 
 import type { AppRouter } from "@karakeep/trpc/routers/_app";
 
-export function getTrpcClient(apiKey?: string) {
+export function getTrpcClient(
+  apiKey?: string,
+  port = process.env.KARAKEEP_PORT,
+) {
   return createTRPCClient<AppRouter>({
     links: [
       httpBatchLink({
         transformer: superjson,
-        url: `http://localhost:${process.env.KARAKEEP_PORT}/api/trpc`,
+        url: `http://localhost:${port}/api/trpc`,
         headers() {
           return {
             authorization: apiKey ? `Bearer ${apiKey}` : undefined,
