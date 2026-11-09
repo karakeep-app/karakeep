@@ -140,16 +140,15 @@ function ListItem({
               <span aria-hidden>·</span>
               <ListItemCount className="text-muted-foreground" list={list} />
             </div>
-            <ListOptions list={list}>
-              <ButtonWithTooltip
-                tooltip={t("actions.more")}
+            <ListOptions list={list} tooltip={t("actions.more")}>
+              <Button
                 aria-label={t("actions.more")}
                 variant="ghost"
                 size="icon-sm"
                 className="text-muted-foreground max-sm:size-11"
               >
                 <MoreHorizontal className="size-4" />
-              </ButtonWithTooltip>
+              </Button>
             </ListOptions>
           </>
         )}

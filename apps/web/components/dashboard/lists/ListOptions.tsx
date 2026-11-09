@@ -1,10 +1,16 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useShowArchived } from "@/components/utils/useShowArchived";
 import { useTranslation } from "@/lib/i18n/client";
 import {
@@ -32,11 +38,16 @@ export function ListOptions({
   list,
   isOpen,
   onOpenChange,
+  tooltip,
   children,
 }: {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   list: ZBookmarkList;
+  // Shown on the trigger, which is a plain button: the menu puts the tooltip
+  // around it, outside the menu's trigger, which cancels the pointer press the
+  // tooltip closes on.
+  tooltip?: string;
   children?: React.ReactNode;
 }) {
   const { t } = useTranslation();
@@ -49,6 +60,14 @@ export function ListOptions({
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [collaboratorsModalOpen, setCollaboratorsModalOpen] = useState(false);
+
+  // A dialog opened from the menu opens as the menu hands focus back to its
+  // trigger, so the dialog returns focus there, rather than to the item that's
+  // gone by then.
+  const pendingDialog = useRef<(() => void) | null>(null);
+  const openAfterMenuCloses = (open: () => void) => () => {
+    pendingDialog.current = open;
+  };
 
   // Only owners can manage the list (edit, delete, manage collaborators, etc.)
   const isOwner = list.userRole === "owner";
@@ -64,7 +83,7 @@ export function ListOptions({
       icon: <Pencil className="size-4" />,
       visible: isOwner,
       disabled: false,
-      onClick: () => setEditModalOpen(true),
+      onClick: openAfterMenuCloses(() => setEditModalOpen(true)),
     },
     {
       id: "share",
@@ -72,7 +91,7 @@ export function ListOptions({
       icon: <Share className="size-4" />,
       visible: isOwner,
       disabled: false,
-      onClick: () => setShareModalOpen(true),
+      onClick: openAfterMenuCloses(() => setShareModalOpen(true)),
     },
     {
       id: "manage-collaborators",
@@ -82,7 +101,7 @@ export function ListOptions({
       icon: <Users className="size-4" />,
       visible: list.type === "manual",
       disabled: false,
-      onClick: () => setCollaboratorsModalOpen(true),
+      onClick: openAfterMenuCloses(() => setCollaboratorsModalOpen(true)),
     },
     {
       id: "new-nested-list",
@@ -90,7 +109,7 @@ export function ListOptions({
       icon: <Plus className="size-4" />,
       visible: isOwner,
       disabled: false,
-      onClick: () => setNewNestedListModalOpen(true),
+      onClick: openAfterMenuCloses(() => setNewNestedListModalOpen(true)),
     },
     {
       id: "merge-list",
@@ -98,7 +117,7 @@ export function ListOptions({
       icon: <FolderInput className="size-4" />,
       visible: isOwner,
       disabled: false,
-      onClick: () => setMergeListModalOpen(true),
+      onClick: openAfterMenuCloses(() => setMergeListModalOpen(true)),
     },
     {
       id: "toggle-archived",
@@ -119,7 +138,7 @@ export function ListOptions({
       visible: isCollaborator,
       disabled: false,
       variant: "destructive" as const,
-      onClick: () => setLeaveListDialogOpen(true),
+      onClick: openAfterMenuCloses(() => setLeaveListDialogOpen(true)),
     },
     {
       id: "delete",
@@ -128,7 +147,7 @@ export function ListOptions({
       visible: isOwner,
       disabled: false,
       variant: "destructive" as const,
-      onClick: () => setDeleteListDialogOpen(true),
+      onClick: openAfterMenuCloses(() => setDeleteListDialogOpen(true)),
     },
   ];
 
@@ -180,8 +199,26 @@ export function ListOptions({
         open={leaveListDialogOpen}
         setOpen={setLeaveListDialogOpen}
       />
-      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent>
+      {tooltip ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipPortal>
+            <TooltipContent>{tooltip}</TooltipContent>
+          </TooltipPortal>
+        </Tooltip>
+      ) : (
+        <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+      )}
+      <DropdownMenuContent
+        onCloseAutoFocus={() => {
+          // The menu focuses its trigger right after this, before the dialog
+          // has rendered.
+          pendingDialog.current?.();
+          pendingDialog.current = null;
+        }}
+      >
         {visibleItems.map((item) => (
           <DropdownMenuItem
             key={item.id}

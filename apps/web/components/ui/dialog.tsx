@@ -29,35 +29,17 @@ const DialogOverlay = React.forwardRef<
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 /**
- * Where focus goes back to when a dialog closes. A dialog opened from a menu
- * item gets the menu's trigger, as the item is gone by then.
- */
-function focusReturnTarget() {
-  let element = document.activeElement;
-  let menu = element?.closest('[role="menu"]');
-  while (menu?.id) {
-    element = document.querySelector(
-      `[aria-controls="${CSS.escape(menu.id)}"]`,
-    );
-    menu = element?.closest('[role="menu"]');
-  }
-  // Safari doesn't focus a pressed button, which leaves the body, and then
-  // Radix's own return to a DialogTrigger is the better choice.
-  return element instanceof HTMLElement && element !== document.body
-    ? element
-    : null;
-}
-
-/**
  * Never taller than the viewport. A dialog that can grow wraps its fields in
  * `DialogBody`, so the title and actions stay in view while the fields scroll,
  * and with one of those the shell itself never scrolls. A form spanning all three
  * uses `className="contents"` to stay out of the layout. `sheetOnPhone` fills the
  * screen at phone width, for an editor that needs all of it. There are two widths:
  * `sm`, 480px, for confirmations and short forms, and `lg`, 640px, for complex ones.
- * On closing, focus goes back to whatever had it on opening, or the trigger of
- * the menu it was opened from. Radix only does that for a `DialogTrigger`, and a
- * dialog opened from a row's menu doesn't have one.
+ * On closing, focus goes back to whatever had it on opening. Radix only does that
+ * for a `DialogTrigger`, and a dialog opened from a button's handler doesn't have
+ * one. A menu item that opens a dialog should do so from the menu's
+ * `onCloseAutoFocus`, once focus is back on the menu's trigger, since the item
+ * itself is gone by the time the dialog closes.
  */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
@@ -88,7 +70,13 @@ const DialogContent = React.forwardRef<
         <DialogPrimitive.Content
           ref={ref}
           onOpenAutoFocus={(event) => {
-            openedFrom.current = focusReturnTarget();
+            // Safari doesn't focus a pressed button, which leaves the body, and
+            // then Radix's own return to a DialogTrigger is the better choice.
+            const active = document.activeElement;
+            openedFrom.current =
+              active instanceof HTMLElement && active !== document.body
+                ? active
+                : null;
             onOpenAutoFocus?.(event);
           }}
           onCloseAutoFocus={(event) => {

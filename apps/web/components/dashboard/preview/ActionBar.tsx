@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { forwardRef, useState } from "react";
+import { useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
@@ -24,34 +24,6 @@ import { useArchiveBookmarkWithUndo } from "../bookmarks/useArchiveBookmarkWithU
 import { ICON_CONTROL_CLASS, RestoreTooltip } from "./IconControl";
 
 type TooltipSide = ComponentProps<typeof TooltipContent>["side"];
-
-/** A dropdown's trigger, so it passes on the ref and props that it's given. */
-const MoreButton = forwardRef<
-  HTMLButtonElement,
-  ComponentProps<typeof Button> & { tooltipSide?: TooltipSide }
->(({ tooltipSide, ...props }, ref) => {
-  const { t } = useTranslation();
-  return (
-    <Tooltip delayDuration={0}>
-      <TooltipTrigger asChild>
-        <Button
-          ref={ref}
-          variant="ghost"
-          size="none"
-          aria-label={t("actions.more")}
-          className={ICON_CONTROL_CLASS}
-          {...props}
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipPortal>
-        <TooltipContent side={tooltipSide}>{t("actions.more")}</TooltipContent>
-      </TooltipPortal>
-    </Tooltip>
-  );
-});
-MoreButton.displayName = "MoreButton";
 
 export default function ActionBar({
   bookmark,
@@ -175,7 +147,21 @@ export default function ActionBar({
         bookmark={bookmark}
         // Already available as buttons in this bar (or irrelevant outside the grid)
         hiddenActions={["select", "edit", "edit-tags", "favorite", "archive"]}
-        trigger={<MoreButton tooltipSide={tooltipSide} />}
+        trigger={
+          <Button
+            variant="ghost"
+            size="none"
+            aria-label={t("actions.more")}
+            className={ICON_CONTROL_CLASS}
+          >
+            <MoreHorizontal className="size-4" />
+          </Button>
+        }
+        triggerTooltip={{
+          label: t("actions.more"),
+          side: tooltipSide,
+          delayDuration: 0,
+        }}
       />
     </div>
   );
