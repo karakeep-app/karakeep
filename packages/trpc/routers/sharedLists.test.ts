@@ -762,6 +762,84 @@ describe("Shared Lists", () => {
       expect(collaboratorView.highlights[0].note).toBeNull();
     });
 
+    test<CustomTestContext>("should only filter on the caller's own archived/favourited state", async ({
+      apiCallers,
+    }) => {
+      const ownerApi = apiCallers[0];
+      const collaboratorApi = apiCallers[1];
+
+      const list = await ownerApi.lists.create({
+        name: "Shared List",
+        icon: "📚",
+        type: "manual",
+      });
+      await addAndAcceptCollaborator(
+        ownerApi,
+        collaboratorApi,
+        list.id,
+        "editor",
+      );
+
+      const ownerBookmark = await ownerApi.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Owner's archived favourite",
+      });
+      await ownerApi.bookmarks.updateBookmark({
+        bookmarkId: ownerBookmark.id,
+        archived: true,
+        favourited: true,
+      });
+      await ownerApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: ownerBookmark.id,
+      });
+
+      const collaboratorBookmark =
+        await collaboratorApi.bookmarks.createBookmark({
+          type: BookmarkTypes.TEXT,
+          text: "Collaborator's archived bookmark",
+        });
+      await collaboratorApi.bookmarks.updateBookmark({
+        bookmarkId: collaboratorBookmark.id,
+        archived: true,
+      });
+      await collaboratorApi.lists.addToList({
+        listId: list.id,
+        bookmarkId: collaboratorBookmark.id,
+      });
+
+      const ids = async (
+        api: APICallerType,
+        filter: { archived?: boolean; favourited?: boolean },
+      ) =>
+        (
+          await api.bookmarks.getBookmarks({ listId: list.id, ...filter })
+        ).bookmarks
+          .map((b) => b.id)
+          .sort();
+
+      // The collaborator sees the owner's bookmark as not archived and not
+      // favourited, so filtering must agree with that view.
+      expect(await ids(collaboratorApi, { favourited: true })).toEqual([]);
+      expect(await ids(collaboratorApi, { archived: true })).toEqual([
+        collaboratorBookmark.id,
+      ]);
+      expect(await ids(collaboratorApi, { archived: false })).toEqual([
+        ownerBookmark.id,
+      ]);
+
+      // And the same holds the other way around.
+      expect(await ids(ownerApi, { favourited: true })).toEqual([
+        ownerBookmark.id,
+      ]);
+      expect(await ids(ownerApi, { archived: true })).toEqual([
+        ownerBookmark.id,
+      ]);
+      expect(await ids(ownerApi, { archived: false })).toEqual([
+        collaboratorBookmark.id,
+      ]);
+    });
+
     // Note: Asset handling for shared bookmarks is tested via the REST API in e2e tests
     // This is because tRPC tests don't have easy access to file upload functionality
 
