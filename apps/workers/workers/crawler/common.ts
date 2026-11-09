@@ -109,10 +109,16 @@ export interface FetchPageOptions {
    * the caller is going to retry the crawl anyway.
    */
   skipParseOnRetryableStatus: boolean;
+  /** Don't take a screenshot, even when screenshots are enabled. */
+  skipScreenshot?: boolean;
+  /** Don't capture a PDF, even when PDFs are enabled (or forced). */
+  skipPdf?: boolean;
+  /** Don't parse the page at all (parsed comes back null). */
+  skipParse?: boolean;
 }
 
 export interface FetchedPage extends CrawlPageResult {
-  /** Null when the parse was skipped (see skipParseOnRetryableStatus). */
+  /** Null when the parse was skipped (see skipParse and skipParseOnRetryableStatus). */
   parsed: ParseSubprocessOutput | null;
 }
 

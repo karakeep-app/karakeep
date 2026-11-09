@@ -111,7 +111,7 @@ export async function loadPage(
       url,
     };
   } else {
-    page = await crawlPage(ctx, opts.forceStorePdf);
+    page = await crawlPage(ctx, opts);
   }
   abortSignal.throwIfAborted();
   return page;
@@ -125,8 +125,9 @@ export async function parsePage(
 ): Promise<FetchedPage["parsed"]> {
   const { jobId, abortSignal, runProxy } = ctx;
   if (
-    opts.skipParseOnRetryableStatus &&
-    shouldRetryCrawlStatusCode(page.statusCode)
+    opts.skipParse ||
+    (opts.skipParseOnRetryableStatus &&
+      shouldRetryCrawlStatusCode(page.statusCode))
   ) {
     return null;
   }
@@ -330,15 +331,24 @@ const getContentTypeAndMetadata = traced(
   },
 );
 
+type PageCaptureOptions = Pick<
+  FetchPageOptions,
+  "forceStorePdf" | "skipScreenshot" | "skipPdf"
+>;
+
 // Exported for the adhoc crawl CLI (scripts/crawlAdhoc.ts).
 export const crawlPage = traced(
   "crawlPage",
   async (
     ctx: CrawlContext,
-    forceStorePdf: boolean,
+    captureOpts: PageCaptureOptions,
   ): Promise<CrawlPageResult> => {
     const { url, jobId, abortSignal, runProxy, log } = ctx;
-    setSpanAttributes({ "crawler.forceStorePdf": forceStorePdf });
+    setSpanAttributes({
+      "crawler.forceStorePdf": captureOpts.forceStorePdf,
+      "crawler.skipScreenshot": captureOpts.skipScreenshot ?? false,
+      "crawler.skipPdf": captureOpts.skipPdf ?? false,
+    });
 
     if (!ctx.browserCrawlingEnabled) {
       return browserlessCrawlPage(ctx);
@@ -452,7 +462,7 @@ export const crawlPage = traced(
       const [htmlContent, screenshot, pdf] = await capturePageAssets(
         ctx,
         activePage,
-        forceStorePdf,
+        captureOpts,
       );
 
       return {
@@ -731,7 +741,7 @@ const capturePageAssets = traced(
   async (
     ctx: CrawlContext,
     activePage: Page,
-    forceStorePdf: boolean,
+    { forceStorePdf, skipScreenshot, skipPdf }: PageCaptureOptions,
   ): Promise<[string, Buffer | undefined, Buffer | undefined]> => {
     const { abortSignal, log } = ctx;
     const htmlPromise = activePage.content().then((content) => {
@@ -740,12 +750,13 @@ const capturePageAssets = traced(
       return content;
     });
 
-    const screenshotPromise = serverConfig.crawler.storeScreenshot
-      ? captureScreenshot(ctx, activePage)
-      : Promise.resolve(undefined);
+    const screenshotPromise =
+      serverConfig.crawler.storeScreenshot && !skipScreenshot
+        ? captureScreenshot(ctx, activePage)
+        : Promise.resolve(undefined);
 
     const pdfPromise =
-      serverConfig.crawler.storePdf || forceStorePdf
+      (serverConfig.crawler.storePdf || forceStorePdf) && !skipPdf
         ? captureAsset(ctx, "pdf", () =>
             activePage.pdf({ format: "A4", printBackground: true }),
           )

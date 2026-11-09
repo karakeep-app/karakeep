@@ -68,6 +68,9 @@ export const zFetchPageRequestSchema = z.object({
   forceStorePdf: z.boolean(),
   html: z.string().optional(),
   skipParseOnRetryableStatus: z.boolean(),
+  skipScreenshot: z.boolean().optional(),
+  skipPdf: z.boolean().optional(),
+  skipParse: z.boolean().optional(),
 });
 
 export const zFetchAssetRequestSchema = z.object({

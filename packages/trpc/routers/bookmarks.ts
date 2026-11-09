@@ -849,6 +849,46 @@ export const bookmarksAppRouter = router({
         .set({ crawlStatus: "pending" })
         .where(eq(bookmarkLinks.id, input.bookmarkId));
     }),
+  // Captures an offline copy (a PDF or a full-page archive) of a link without
+  // recrawling it: the bookmark's content, metadata and crawl status are kept.
+  preserveOfflineCopy: bookmarksProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.preserveOfflineCopy",
+        windowMs: 30 * 60 * 1000,
+        maxRequests: 200,
+      }),
+    )
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+        kind: z.enum(["fullPageArchive", "pdf"]),
+      }),
+    )
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      const link = await ctx.db.query.bookmarkLinks.findFirst({
+        where: eq(bookmarkLinks.id, input.bookmarkId),
+        columns: { id: true },
+      });
+      if (!link) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Offline copies can only be preserved for link bookmarks",
+        });
+      }
+      const payload = {
+        bookmarkId: input.bookmarkId,
+        archiveFullPage: input.kind === "fullPageArchive",
+        storePdf: input.kind === "pdf",
+        offlineCopiesOnly: true,
+      };
+      await LowPriorityCrawlerQueue.enqueue(payload, {
+        groupId: ctx.user.id,
+        priority: QueuePriority.Low,
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
+      });
+    }),
   preserveVideo: bookmarksProcedure
     .use(
       createRateLimitMiddleware({
