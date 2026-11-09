@@ -634,7 +634,8 @@ const BookmarkHTMLHighlighter = forwardRef<
       if (!content.contains(range.endContainer)) {
         range.setEnd(last, last.length);
       }
-      // Nothing is left when the drag started right after the last character.
+      // Nothing is left when the drag started at the article's very first or
+      // last character and went away from it.
       if (range.collapsed) {
         return;
       }
