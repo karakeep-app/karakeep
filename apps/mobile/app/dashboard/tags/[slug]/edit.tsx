@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { Input } from "@/components/ui/Input";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
@@ -35,6 +35,7 @@ export default function EditTagPage() {
   const { mutate: updateTag, isPending } = useUpdateTag({
     onSuccess: () => {
       toast({ message: t("tags.updated"), variant: "success" });
+      allowLeave();
       router.back();
     },
     onError: (mutationError) => {
@@ -49,6 +50,8 @@ export default function EditTagPage() {
       });
     },
   });
+
+  const allowLeave = useDiscardGuard(!!tag && name !== tag.name);
 
   useEffect(() => {
     if (tag) {
@@ -83,7 +86,6 @@ export default function EditTagPage() {
       <SheetHeader
         onSave={onSubmit}
         saveDisabled={!name.trim()}
-        isDirty={!!tag && name !== tag.name}
         isSaving={isPending}
       />
       <Input

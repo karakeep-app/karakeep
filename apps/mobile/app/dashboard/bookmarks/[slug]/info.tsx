@@ -26,6 +26,7 @@ import {
   NavigationRow,
   RowSeparator,
 } from "@/components/ui/GroupedList";
+import { useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
@@ -543,10 +544,12 @@ const ViewBookmarkPage = () => {
   }>({});
 
   const hasChanges = Object.keys(editedBookmark).length > 0;
+  const allowLeave = useDiscardGuard(hasChanges);
 
   const { mutate: editBookmark, isPending: isEditPending } = useUpdateBookmark({
     onSuccess: () => {
       toast({ message: t("bookmarks.saved_toast"), showProgress: false });
+      allowLeave();
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -564,6 +567,7 @@ const ViewBookmarkPage = () => {
   const { mutate: deleteBookmark, isPending: isDeletionPending } =
     useDeleteBookmark({
       onSuccess: () => {
+        allowLeave();
         router.replace("dashboard");
         toast({
           message: t("bookmarks.bookmark_deleted_toast"),

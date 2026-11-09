@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { Input } from "@/components/ui/Input";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { showOrganizeToast } from "@/components/ui/Toast";
 
@@ -43,7 +43,7 @@ const NoteEditorPage = () => {
           : t("bookmarks.saved_toast"),
         resp.id,
       );
-      setText("");
+      allowLeave();
       dismiss();
     },
     onError: (e) => {
@@ -58,6 +58,7 @@ const NoteEditorPage = () => {
   });
 
   const trimmed = text.trim();
+  const allowLeave = useDiscardGuard(!!trimmed);
   const parsedUrl = parseHttpUrl(trimmed);
   const isLink = parsedUrl !== null;
 
@@ -89,7 +90,6 @@ const NoteEditorPage = () => {
     >
       <SheetHeader
         onCancel={dismiss}
-        isDirty={!!trimmed}
         onSave={onSubmit}
         saveDisabled={!trimmed}
         isSaving={isPending}

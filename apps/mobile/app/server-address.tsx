@@ -4,7 +4,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Input } from "@/components/ui/Input";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
@@ -21,6 +21,9 @@ export default function ServerAddress() {
     settings.address ?? "https://cloud.karakeep.com",
   );
   const [error, setError] = useState<string | undefined>();
+  const allowLeave = useDiscardGuard(
+    address !== (settings.address ?? "https://cloud.karakeep.com"),
+  );
 
   // Custom headers state
   const [headers, setHeaders] = useState<{ key: string; value: string }[]>(
@@ -93,6 +96,7 @@ export default function ServerAddress() {
       address: cleanedAddress,
       customHeaders: headersObject,
     });
+    allowLeave();
     router.back();
   };
 
@@ -109,11 +113,7 @@ export default function ServerAddress() {
       keyboardDismissMode="interactive"
       contentInsetAdjustmentBehavior="automatic"
     >
-      <SheetHeader
-        onSave={handleSave}
-        saveDisabled={!address.trim()}
-        isDirty={address !== (settings.address ?? "https://cloud.karakeep.com")}
-      />
+      <SheetHeader onSave={handleSave} saveDisabled={!address.trim()} />
 
       <View className="gap-1.5">
         <GroupedSection header={t("headers.server_address")}>

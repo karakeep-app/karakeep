@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Stack } from "expo-router";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
-import { HeaderTextButton } from "@/components/ui/SheetHeader";
+import { HeaderTextButton, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
@@ -40,6 +40,7 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const initialText = bookmark.content.text;
   const [content, setContent] = useState(initialText);
+  useDiscardGuard(isEditing && content !== initialText);
 
   const { mutate, isPending } = useUpdateBookmark({
     onError: () => {

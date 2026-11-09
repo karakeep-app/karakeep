@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ScrollView } from "react-native";
 import { router } from "expo-router";
 import { Input } from "@/components/ui/Input";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useTranslation } from "@/lib/i18n/hooks";
@@ -17,6 +17,7 @@ export default function NewTagPage() {
   const { mutate: createTag, isPending } = useCreateTag({
     onSuccess: () => {
       toast({ message: t("tags.created"), variant: "success" });
+      allowLeave();
       router.back();
     },
     onError: (error) => {
@@ -32,6 +33,7 @@ export default function NewTagPage() {
   });
 
   const trimmedName = name.trim();
+  const allowLeave = useDiscardGuard(!!trimmedName);
 
   const onSubmit = () => {
     if (trimmedName) {
@@ -48,7 +50,6 @@ export default function NewTagPage() {
       <SheetHeader
         onSave={onSubmit}
         saveDisabled={!trimmedName}
-        isDirty={!!trimmedName}
         isSaving={isPending}
       />
       <Input

@@ -9,7 +9,7 @@ import {
 import QueryPageState from "@/components/QueryPageState";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { GroupedSection, NavigationRow } from "@/components/ui/GroupedList";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { useToast } from "@/components/ui/Toast";
 import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
@@ -34,6 +34,7 @@ const EditListPage = () => {
   const api = useTRPC();
   const { mutate, isPending: editIsPending } = useEditBookmarkList({
     onSuccess: () => {
+      allowLeave();
       dismiss();
     },
     onError: (error) => {
@@ -86,6 +87,14 @@ const EditListPage = () => {
     router.setParams({ selectedParentId: undefined });
   }, [selectedParentId]);
 
+  const allowLeave = useDiscardGuard(
+    !!list &&
+      (text !== (list.name ?? "") ||
+        icon !== (list.icon || "📁") ||
+        query !== (list.query ?? "") ||
+        parentId !== list.parentId),
+  );
+
   const canSave =
     text.trim().length > 0 &&
     (list?.type !== "smart" ||
@@ -111,13 +120,6 @@ const EditListPage = () => {
       <SheetHeader
         onSave={onSubmit}
         saveDisabled={!canSave}
-        isDirty={
-          !!list &&
-          (text !== (list.name ?? "") ||
-            icon !== (list.icon || "📁") ||
-            query !== (list.query ?? "") ||
-            parentId !== list.parentId)
-        }
         isSaving={editIsPending}
       />
       {editIsPending ? (

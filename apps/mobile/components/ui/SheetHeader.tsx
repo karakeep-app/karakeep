@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
-import { ActivityIndicator, Alert, BackHandler, Pressable } from "react-native";
-import { router, Stack, useIsFocused } from "expo-router";
+import { useRef } from "react";
+import { ActivityIndicator, Alert, Pressable } from "react-native";
+import { router, Stack } from "expo-router";
+import { useNavigation, usePreventRemove } from "expo-router/react-navigation";
 import { Text } from "@/components/ui/Text";
 import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 
@@ -40,32 +41,17 @@ function HeaderTextButton({
 }
 
 /**
- * Standard Cancel / Save header for form sheets, so the primary action never
- * ends up behind the keyboard.
+ * Asks before leaving the screen throws away unsaved input, whether by Cancel,
+ * swiping a sheet down on iOS or Android's back. Call the returned function
+ * right before navigating away after a successful save.
  */
-function SheetHeader({
-  title,
-  onCancel = () => router.back(),
-  onSave,
-  saveLabel,
-  saveDisabled = false,
-  isSaving = false,
-  isDirty = false,
-}: {
-  title?: string;
-  onCancel?: () => void;
-  onSave: () => void;
-  saveLabel?: string;
-  saveDisabled?: boolean;
-  isSaving?: boolean;
-  /** Asks before Cancel throws away what was typed. */
-  isDirty?: boolean;
-}) {
+function useDiscardGuard(isDirty: boolean) {
   const { t } = useTranslation();
-  const { save, cancel } = useCommonActions();
-  const handleCancel = () => {
-    if (!isDirty) {
-      onCancel();
+  const navigation = useNavigation();
+  const allowLeaveRef = useRef(false);
+  usePreventRemove(isDirty, ({ data }) => {
+    if (allowLeaveRef.current) {
+      navigation.dispatch(data.action);
       return;
     }
     Alert.alert(
@@ -76,38 +62,44 @@ function SheetHeader({
         {
           text: t("actions.discard"),
           style: "destructive",
-          onPress: onCancel,
+          onPress: () => navigation.dispatch(data.action),
         },
       ],
     );
+  });
+  return () => {
+    allowLeaveRef.current = true;
   };
+}
 
-  // Android's system back would otherwise skip the Cancel guard. The latest
-  // handler lives in a ref so re-renders while typing don't re-subscribe.
-  // Only while focused: a picker pushed on top handles its own back.
-  const handleCancelRef = useRef(handleCancel);
-  handleCancelRef.current = handleCancel;
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (!isDirty || !isFocused) {
-      return;
-    }
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      () => {
-        handleCancelRef.current();
-        return true;
-      },
-    );
-    return () => subscription.remove();
-  }, [isDirty, isFocused]);
+/**
+ * Standard Cancel / Save header for form sheets, so the primary action never
+ * ends up behind the keyboard. Pair it with useDiscardGuard so Cancel asks
+ * before throwing away what was typed.
+ */
+function SheetHeader({
+  title,
+  onCancel = () => router.back(),
+  onSave,
+  saveLabel,
+  saveDisabled = false,
+  isSaving = false,
+}: {
+  title?: string;
+  onCancel?: () => void;
+  onSave: () => void;
+  saveLabel?: string;
+  saveDisabled?: boolean;
+  isSaving?: boolean;
+}) {
+  const { save, cancel } = useCommonActions();
 
   return (
     <Stack.Screen
       options={{
         ...(title ? { headerTitle: title } : {}),
         headerLeft: () => (
-          <HeaderTextButton label={cancel} onPress={handleCancel} />
+          <HeaderTextButton label={cancel} onPress={onCancel} />
         ),
         headerRight: () =>
           isSaving ? (
@@ -125,4 +117,4 @@ function SheetHeader({
   );
 }
 
-export { HeaderTextButton, SheetHeader };
+export { HeaderTextButton, SheetHeader, useDiscardGuard };

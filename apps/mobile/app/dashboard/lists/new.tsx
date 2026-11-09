@@ -7,7 +7,7 @@ import {
   ListFormFields,
 } from "@/components/lists/ListFormFields";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { SheetHeader } from "@/components/ui/SheetHeader";
+import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
 import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
@@ -60,6 +60,7 @@ const NewListPage = () => {
         variant: "success",
         showProgress: false,
       });
+      allowLeave();
       dismiss();
     },
     onError: (error) => {
@@ -80,6 +81,9 @@ const NewListPage = () => {
   });
 
   const name = text.trim();
+  const allowLeave = useDiscardGuard(
+    name.length > 0 || query.trim().length > 0,
+  );
   const canSave =
     name.length > 0 &&
     (listType !== "smart" ||
@@ -106,7 +110,6 @@ const NewListPage = () => {
       <SheetHeader
         onSave={onSubmit}
         saveDisabled={!canSave}
-        isDirty={name.length > 0 || query.trim().length > 0}
         isSaving={isPending}
       />
       <SegmentedControl
