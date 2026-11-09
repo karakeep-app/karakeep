@@ -25,6 +25,7 @@ import {
 import { toast } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { useClientConfig } from "@/lib/clientConfig";
+import { formatLocalDate } from "@/lib/date-format";
 import { Trans, useTranslation } from "@/lib/i18n/client";
 import { useUserSettings } from "@/lib/userSettings";
 import { cn } from "@/lib/utils";
@@ -304,7 +305,7 @@ function BackupConfigurationForm() {
 
 function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
   const api = useTRPC();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
@@ -396,6 +397,9 @@ function BackupRow({ backup }: { backup: z.infer<typeof zBackupSchema> }) {
           )}
         />
         <RowActionsMenu
+          label={t("common.actions_for", {
+            name: formatLocalDate(backup.createdAt, "PP, p", i18n.language),
+          })}
           items={[
             ...(downloadUrl
               ? [

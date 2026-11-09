@@ -137,7 +137,11 @@ export default function UserOptions() {
   // Get all supported timezones and format them nicely
   useEffect(() => {
     try {
-      const browserTimezones = Intl.supportedValuesOf("timeZone");
+      const supportedTimezones = Intl.supportedValuesOf("timeZone");
+      // Browsers can leave UTC out of the list, though it's a valid setting.
+      const browserTimezones = supportedTimezones.includes("UTC")
+        ? supportedTimezones
+        : [...supportedTimezones, "UTC"];
       setTimezones(
         browserTimezones
           .map((tz) => {

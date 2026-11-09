@@ -438,7 +438,11 @@ export function EditTokenDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t("settings.webhooks.edit_auth_token")}</DialogTitle>
+          <DialogTitle>
+            {webhook.hasToken
+              ? t("settings.webhooks.edit_auth_token")
+              : t("settings.webhooks.add_auth_token")}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -485,17 +489,19 @@ export function EditTokenDialog({
               {t("actions.cancel")}
             </Button>
           </DialogClose>
-          <ActionButton
-            variant="destructive"
-            loading={isUpdating}
-            onClick={() =>
-              updateWebhook({ webhookId: webhook.id, token: null })
-            }
-            className="items-center"
-          >
-            <Trash2 className="size-4" />
-            {t("actions.delete")}
-          </ActionButton>
+          {webhook.hasToken && (
+            <ActionButton
+              variant="destructive"
+              loading={isUpdating}
+              onClick={() =>
+                updateWebhook({ webhookId: webhook.id, token: null })
+              }
+              className="items-center"
+            >
+              <Trash2 className="size-4" />
+              {t("actions.delete")}
+            </ActionButton>
+          )}
           {form.formState.isDirty && (
             <ActionButton
               loading={isUpdating}

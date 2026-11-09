@@ -39,6 +39,7 @@ export default async function SectionSidebar({
                 logo={item.icon}
                 name={item.name}
                 path={item.path}
+                matchSubPaths
               />
             ))}
           </ul>

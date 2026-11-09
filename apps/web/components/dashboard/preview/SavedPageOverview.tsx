@@ -53,9 +53,12 @@ function Favicon({ src }: { src: string }) {
 
 export default function SavedPageOverview({
   link,
+  title,
   onSelectSection,
 }: {
   link: ZBookmarkedLink;
+  // The user's title for the bookmark, if they renamed it
+  title?: string | null;
   onSelectSection: (section: string) => void;
 }) {
   const { t } = useTranslation();
@@ -90,7 +93,7 @@ export default function SavedPageOverview({
                 <span className="truncate">{hostname(link.url)}</span>
               </div>
               <h2 className="text-balance text-2xl font-semibold leading-tight text-foreground sm:text-3xl">
-                {link.title || hostname(link.url)}
+                {title || link.title || hostname(link.url)}
               </h2>
               {link.description ? (
                 <p className="max-w-2xl text-pretty text-sm leading-6 text-muted-foreground sm:text-base">

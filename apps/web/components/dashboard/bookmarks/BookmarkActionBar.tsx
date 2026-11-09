@@ -161,6 +161,16 @@ export default function BookmarkActionBar({
             </TooltipPortal>
           </Tooltip>
         )}
+        {/* Holds the button's place on compact rows without one, so the
+            rows' dates line up */}
+        {compact &&
+          !showPreviewButton &&
+          bookmarkClickAction === "open_original_link" && (
+            <span
+              aria-hidden
+              className="size-8 shrink-0 max-sm:hidden [@media(pointer:coarse)]:size-11"
+            />
+          )}
         <BookmarkOptions
           bookmark={bookmark}
           showPreviewAction={showPreviewButton}

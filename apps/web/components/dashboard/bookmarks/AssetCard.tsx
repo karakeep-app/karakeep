@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/client";
@@ -27,6 +28,10 @@ function AssetImage({
 }) {
   const bookmarkedAsset = bookmark.content;
   const { imageFit } = useBookmarkDisplaySettings();
+  // The screenshot that failed to load, so a newer one still gets a chance
+  const [failedScreenshotId, setFailedScreenshotId] = useState<string | null>(
+    null,
+  );
   switch (bookmarkedAsset.assetType) {
     case "image": {
       return (
@@ -35,6 +40,8 @@ function AssetImage({
           href={`/dashboard/preview/${bookmark.id}`}
           tabIndex={-1}
           aria-hidden
+          // The image fills this, so it needs a position of its own
+          className="absolute inset-0"
         >
           <CardImage
             alt="asset"
@@ -48,7 +55,7 @@ function AssetImage({
       const screenshotAssetId = bookmark.assets.find(
         (r) => r.assetType === "assetScreenshot",
       )?.id;
-      if (!screenshotAssetId) {
+      if (!screenshotAssetId || screenshotAssetId === failedScreenshotId) {
         return (
           <Link
             href={`/dashboard/preview/${bookmark.id}`}
@@ -69,12 +76,14 @@ function AssetImage({
           href={`/dashboard/preview/${bookmark.id}`}
           tabIndex={-1}
           aria-hidden
+          className="absolute inset-0"
         >
           <Image
             alt="asset"
             src={getAssetUrl(screenshotAssetId)}
             fill={true}
             unoptimized
+            onError={() => setFailedScreenshotId(screenshotAssetId)}
             // A screenshot of the first page, whose top says what it is
             className={cn(className, imageFit === "cover" && "object-top")}
           />

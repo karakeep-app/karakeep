@@ -95,13 +95,17 @@ export function SmartListQueryBuilder({
 
   const namedTerms = (prefix: string) =>
     tokens
-      .filter((tok) => withoutNegation(tok).startsWith(prefix))
-      .map((tok) => ({
-        token: tok,
-        prefix,
-        name: unquote(withoutNegation(tok).slice(prefix.length)),
-        negated: isNegated(tok),
-      }))
+      .map((tok) => {
+        const term = withoutNegation(tok);
+        // Search writes tags as "#name", which means the same as "tag:name".
+        const used = prefix === "tag:" && term.startsWith("#") ? "#" : prefix;
+        return {
+          token: tok,
+          prefix,
+          name: term.startsWith(used) ? unquote(term.slice(used.length)) : "",
+          negated: isNegated(tok),
+        };
+      })
       .filter((term) => term.name.length > 0);
   const tags = namedTerms("tag:");
   const pickedLists = namedTerms("list:");

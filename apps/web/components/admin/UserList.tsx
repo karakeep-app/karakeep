@@ -81,6 +81,7 @@ const UserRow = memo(function UserRow({
       <TableCell className="flex gap-1 py-1">
         <ButtonWithTooltip
           tooltip={t("admin.users_list.delete_user")}
+          aria-label={t("admin.users_list.delete_user")}
           variant="outline"
           disabled={isSelf}
           aria-haspopup="dialog"
@@ -90,6 +91,7 @@ const UserRow = memo(function UserRow({
         </ButtonWithTooltip>
         <ButtonWithTooltip
           tooltip={t("admin.users_list.reset_password")}
+          aria-label={t("admin.users_list.reset_password")}
           variant="outline"
           disabled={isSelf}
           aria-haspopup="dialog"
@@ -99,6 +101,7 @@ const UserRow = memo(function UserRow({
         </ButtonWithTooltip>
         <ButtonWithTooltip
           tooltip={t("admin.users_list.edit_user")}
+          aria-label={t("admin.users_list.edit_user")}
           variant="outline"
           disabled={isSelf}
           aria-haspopup="dialog"

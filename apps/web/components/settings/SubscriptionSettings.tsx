@@ -155,9 +155,6 @@ export default function SubscriptionSettings() {
         <>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium">
-                {t("settings.subscription.current_plan")}
-              </label>
               <div className="flex items-center gap-2">
                 {subscriptionStatus?.tier &&
                   getStatusBadge(subscriptionStatus.tier)}
@@ -216,8 +213,8 @@ export default function SubscriptionSettings() {
                       ))}
                     </ul>
 
-                    <div className="mt-4 flex items-end justify-between border-t pt-4">
-                      <div>
+                    <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t pt-4">
+                      <div className="min-w-0">
                         {hasYearlyPricing && (
                           <div className="mb-2 inline-flex items-center rounded-lg bg-muted p-1">
                             <button
@@ -259,8 +256,8 @@ export default function SubscriptionSettings() {
                           </div>
                         )}
                         {currentPrice && currentPrice.amount ? (
-                          <span className="flex items-baseline gap-2">
-                            <span className="text-2xl font-semibold">
+                          <span className="flex flex-wrap items-baseline gap-x-2">
+                            <span className="whitespace-nowrap text-2xl font-semibold">
                               {formatPrice(
                                 currentPrice.amount,
                                 currentPrice.currency,
@@ -272,7 +269,7 @@ export default function SubscriptionSettings() {
                                 ? t("settings.subscription.per_year")
                                 : t("settings.subscription.per_month")}
                             </span>
-                            <span className="text-xs italic text-muted-foreground">
+                            <span className="whitespace-nowrap text-xs italic text-muted-foreground">
                               ({t("settings.subscription.excl_vat")})
                             </span>
                           </span>
@@ -286,7 +283,7 @@ export default function SubscriptionSettings() {
                         }
                         disabled={isLoading}
                         size="lg"
-                        className="shadow-md transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+                        className="w-full shadow-md transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] sm:w-auto"
                       >
                         {isLoading && (
                           <Loader2 className="size-4 animate-spin" />

@@ -130,6 +130,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
                       <FormControl>
                         <PasswordInput
                           autoComplete="new-password"
+                          autoFocus
                           placeholder="Enter your new password"
                           {...field}
                         />

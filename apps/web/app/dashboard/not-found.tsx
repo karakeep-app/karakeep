@@ -8,7 +8,7 @@ import { ArrowLeft, FileQuestion, Home } from "lucide-react";
 export default function NotFound() {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-1 items-center justify-center rounded-lg bg-slate-50 p-8 shadow-sm dark:border dark:bg-card dark:shadow-none">
+    <div className="flex flex-1 items-center justify-center rounded-lg bg-muted/50 p-8 shadow-sm dark:border dark:bg-card dark:shadow-none">
       <div className="w-full max-w-md space-y-8 text-center">
         {/* Not Found Icon */}
         <div className="flex justify-center">
@@ -35,12 +35,12 @@ export default function NotFound() {
             {t("errors.go_back")}
           </Button>
 
-          <Link href="/" className="block">
-            <Button variant="outline" className="w-full">
+          <Button variant="outline" className="w-full" asChild>
+            <Link href="/">
               <Home className="h-4 w-4" />
               {t("errors.go_home")}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

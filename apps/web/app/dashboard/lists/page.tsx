@@ -1,9 +1,18 @@
+import type { Metadata } from "next";
 import AllListsView from "@/components/dashboard/lists/AllListsView";
 import { NewListButton } from "@/components/dashboard/lists/NewListButton";
 import { PendingInvitationsCard } from "@/components/dashboard/lists/PendingInvitationsCard";
 import { PageHeader } from "@/components/ui/page-header";
 import { useTranslation } from "@/lib/i18n/server";
 import { api } from "@/server/api/client";
+
+export async function generateMetadata(): Promise<Metadata> {
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
+  return {
+    title: `${t("lists.all_lists")} | Karakeep`,
+  };
+}
 
 export default async function ListsPage() {
   // oxlint-disable-next-line rules-of-hooks

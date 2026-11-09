@@ -120,7 +120,7 @@ function ListItem({
               {list ? (
                 <>
                   <ListItemCount list={list} />
-                  <span aria-hidden>·</span>
+                  {itemCount !== undefined && <span aria-hidden>·</span>}
                   <ListPrivacyLabel list={list} />
                 </>
               ) : (
@@ -137,7 +137,7 @@ function ListItem({
             <div className="hidden items-center gap-2 sm:flex">
               <ListCollaboratorsIcons className="mr-4" list={list} />
               <ListPrivacyLabel className="truncate" list={list} />
-              <span aria-hidden>·</span>
+              {itemCount !== undefined && <span aria-hidden>·</span>}
               <ListItemCount className="text-muted-foreground" list={list} />
             </div>
             <ListOptions list={list} tooltip={t("actions.more")}>

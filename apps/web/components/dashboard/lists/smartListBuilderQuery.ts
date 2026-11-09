@@ -11,8 +11,8 @@ export const withoutNegation = (token: string) => token.replace(/^[-!]/, "");
 
 export const unquote = (value: string) => value.replace(/^"|"$/g, "");
 
-// Qualifiers the builder shows as a list of picked names.
-const NAMED = ["tag:", "list:"];
+// Qualifiers the builder shows as a list of picked names. "#" is short for "tag:".
+const NAMED = ["tag:", "list:", "#"];
 // Qualifiers the builder shows as a single "contains" field.
 const TEXT = ["title:", "url:"];
 

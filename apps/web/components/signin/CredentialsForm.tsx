@@ -22,6 +22,8 @@ import { AlertCircle, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { isMobileAppRedirect } from "@karakeep/shared/utils/redirectUrl";
+
 import { humanAuthErrors } from "./authFormErrors";
 
 const signInSchema = z.object({
@@ -32,7 +34,11 @@ const signInSchema = z.object({
 const SIGNIN_FAILED = "Incorrect email or password";
 const OAUTH_FAILED = "OAuth login failed: ";
 
-export default function CredentialsForm() {
+export default function CredentialsForm({
+  redirectUrl,
+}: {
+  redirectUrl: string;
+}) {
   const [signinError, setSigninError] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -87,14 +93,18 @@ export default function CredentialsForm() {
                 setSigninError(SIGNIN_FAILED);
               } else if (resp.code === "EMAIL_NOT_VERIFIED") {
                 router.replace(
-                  `/check-email?email=${encodeURIComponent(value.email.trim())}`,
+                  `/check-email?email=${encodeURIComponent(value.email.trim())}&redirectUrl=${encodeURIComponent(redirectUrl)}`,
                 );
               } else {
                 setSigninError(resp.error ?? SIGNIN_FAILED);
               }
               return;
             }
-            router.replace("/");
+            if (isMobileAppRedirect(redirectUrl)) {
+              window.location.href = redirectUrl;
+            } else {
+              router.replace(redirectUrl);
+            }
           })}
           className="space-y-4"
         >
@@ -108,6 +118,7 @@ export default function CredentialsForm() {
                   <Input
                     type="email"
                     autoComplete="email"
+                    autoFocus
                     spellCheck={false}
                     placeholder="Enter your email"
                     {...field}

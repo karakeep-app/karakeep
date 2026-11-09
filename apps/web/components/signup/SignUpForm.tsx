@@ -169,6 +169,8 @@ export default function SignUpForm({ redirectUrl }: SignUpFormProps) {
                   <FormControl>
                     <Input
                       type="text"
+                      autoComplete="name"
+                      autoFocus
                       placeholder="Enter your full name"
                       {...field}
                     />

@@ -15,14 +15,21 @@ import CredentialsForm from "./CredentialsForm";
 import OAuthAutoRedirect from "./OAuthAutoRedirect";
 import SignInProviderButton from "./SignInProviderButton";
 
-export default async function SignInForm() {
+export default async function SignInForm({
+  redirectUrl,
+}: {
+  redirectUrl: string;
+}) {
   const providerValues = oauthProviders;
 
   return (
     <div className="w-full">
       {/* Auto-redirect to OAuth provider if configured */}
       {providerValues && providerValues.length > 0 && (
-        <OAuthAutoRedirect oauthProviderId={providerValues[0].id} />
+        <OAuthAutoRedirect
+          oauthProviderId={providerValues[0].id}
+          redirectUrl={redirectUrl}
+        />
       )}
       <Card className="w-full">
         <CardHeader className="text-center">
@@ -43,7 +50,7 @@ export default async function SignInForm() {
             </Alert>
           )}
 
-          <CredentialsForm />
+          <CredentialsForm redirectUrl={redirectUrl} />
 
           {providerValues && providerValues.length > 0 && (
             <>
@@ -57,6 +64,7 @@ export default async function SignInForm() {
                   <SignInProviderButton
                     key={provider.id}
                     provider={{ id: provider.id, name: provider.name }}
+                    redirectUrl={redirectUrl}
                   />
                 ))}
               </div>

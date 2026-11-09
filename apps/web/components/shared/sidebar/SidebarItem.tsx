@@ -15,6 +15,7 @@ export default function SidebarItem({
   collapseButton,
   right = null,
   dropHighlight = false,
+  matchSubPaths = false,
   onDrop,
   onDragOver,
   onDragEnter,
@@ -29,19 +30,22 @@ export default function SidebarItem({
   right?: React.ReactNode;
   collapseButton?: React.ReactNode;
   dropHighlight?: boolean;
+  /** Also active on the pages under `path`, such as an import's own page. */
+  matchSubPaths?: boolean;
   onDrop?: React.DragEventHandler;
   onDragOver?: React.DragEventHandler;
   onDragEnter?: React.DragEventHandler;
   onDragLeave?: React.DragEventHandler;
 }) {
   const currentPath = usePathname();
+  const isActive =
+    path == currentPath ||
+    (matchSubPaths && currentPath.startsWith(`${path}/`));
   return (
     <li
       className={cn(
         "relative flex justify-between rounded-lg text-sm transition-colors hover:bg-accent",
-        path == currentPath
-          ? "bg-accent/50 text-foreground"
-          : "text-muted-foreground",
+        isActive ? "bg-accent/50 text-foreground" : "text-muted-foreground",
         dropHighlight && "bg-accent ring-2 ring-primary",
         className,
       )}

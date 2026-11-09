@@ -108,6 +108,7 @@ export default function ForgotPasswordForm() {
                         <Input
                           type="email"
                           autoComplete="email"
+                          autoFocus
                           spellCheck={false}
                           placeholder="Enter your email address"
                           {...field}

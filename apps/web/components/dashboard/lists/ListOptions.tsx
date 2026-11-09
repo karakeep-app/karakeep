@@ -115,7 +115,7 @@ export function ListOptions({
       id: "merge-list",
       title: t("lists.merge_list"),
       icon: <FolderInput className="size-4" />,
-      visible: isOwner,
+      visible: isOwner && list.type === "manual",
       disabled: false,
       onClick: openAfterMenuCloses(() => setMergeListModalOpen(true)),
     },

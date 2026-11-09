@@ -82,6 +82,7 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
       <PopoverAnchor virtualRef={anchorRef} />
       <PopoverContent
         side={isMobile ? "bottom" : "top"}
+        collisionPadding={12}
         className="w-80 space-y-3 p-3"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
@@ -92,6 +93,9 @@ const HighlightForm: React.FC<HighlightFormProps> = ({
               <Button
                 size="none"
                 key={color}
+                // English like the rest of this popover
+                aria-label={color.charAt(0).toUpperCase() + color.slice(1)}
+                aria-pressed={selectedColor === color}
                 onClick={() => setSelectedColor(color)}
                 variant="none"
                 className={cn(

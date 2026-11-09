@@ -2,7 +2,7 @@
 
 import { useMemo, useRef } from "react";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -108,7 +108,9 @@ export default function SidebarProfileOptions() {
   const avatarImage = whoami?.image ?? null;
   const avatarUrl = useMemo(() => avatarImage ?? null, [avatarImage]);
 
-  if (!session) return redirect("/");
+  // The server layouts guard the page. Right after a client side sign in the
+  // session can still read as empty here, so render nothing until it lands.
+  if (!session) return null;
 
   return (
     <>

@@ -155,8 +155,8 @@ export default function VerifyEmailPage() {
                   {message}
                 </AlertDescription>
               </Alert>
-              {email && (
-                <div className="space-y-2">
+              <div className="space-y-2">
+                {email && (
                   <Button
                     onClick={handleResendEmail}
                     variant="outline"
@@ -172,15 +172,15 @@ export default function VerifyEmailPage() {
                       "Resend verification email"
                     )}
                   </Button>
-                  <Button
-                    onClick={handleSignIn}
-                    variant="ghost"
-                    className="w-full"
-                  >
-                    Back to sign in
-                  </Button>
-                </div>
-              )}
+                )}
+                <Button
+                  onClick={handleSignIn}
+                  variant="ghost"
+                  className="w-full"
+                >
+                  Back to sign in
+                </Button>
+              </div>
             </>
           )}
         </CardContent>

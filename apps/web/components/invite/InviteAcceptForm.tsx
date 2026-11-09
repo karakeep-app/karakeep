@@ -70,7 +70,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     isPending: loading,
     data: inviteData,
     error,
-  } = useQuery(api.invites.get.queryOptions({ token }));
+  } = useQuery(api.invites.get.queryOptions({ token }, { retry: false }));
 
   useEffect(() => {
     if (error) {

@@ -696,6 +696,7 @@
       "edit_rule": "Edit rule",
       "save_rule": "Save rule",
       "delete_rule": "Delete rule",
+      "rule_enabled_toggle": "Enable rule {{name}}",
       "delete_rule_confirmation": "Delete this rule? This can't be undone.",
       "whenever": "Whenever ...",
       "if": "If ...",
