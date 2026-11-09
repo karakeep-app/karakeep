@@ -549,7 +549,21 @@ const BookmarkHTMLHighlighter = forwardRef<
     };
   }, [dockFormAt, readOnly]);
 
-  const handlePointerUp = (e: React.PointerEvent) => {
+  // A drag that selects text often ends past it, in the margin or below the
+  // article, so the release is heard on the document.
+  const handlePointerDown = () => {
+    const release = new AbortController();
+    const onRelease = (e: PointerEvent) => {
+      release.abort();
+      if (e.type === "pointerup") {
+        handlePointerUp(e);
+      }
+    };
+    document.addEventListener("pointerup", onRelease, release);
+    document.addEventListener("pointercancel", onRelease, release);
+  };
+
+  const handlePointerUp = (e: PointerEvent | React.PointerEvent) => {
     if (readOnly) {
       return;
     }
@@ -594,11 +608,37 @@ const BookmarkHTMLHighlighter = forwardRef<
       return;
     }
 
-    const range = selection.getRangeAt(0);
-
-    // Only process selections within our component
-    if (!contentRef.current.contains(range.commonAncestorContainer)) {
+    // Only process selections within our component. One that runs past the
+    // article is trimmed to the part inside it.
+    const content = contentRef.current;
+    const range = selection.getRangeAt(0).cloneRange();
+    if (!range.intersectsNode(content)) {
       return;
+    }
+    if (
+      !content.contains(range.startContainer) ||
+      !content.contains(range.endContainer)
+    ) {
+      const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+      const first = walker.nextNode() as Text | null;
+      let last = first;
+      while (walker.nextNode()) {
+        last = walker.currentNode as Text;
+      }
+      if (!first || !last) {
+        return;
+      }
+      if (!content.contains(range.startContainer)) {
+        range.setStart(first, 0);
+      }
+      if (!content.contains(range.endContainer)) {
+        range.setEnd(last, last.length);
+      }
+      // Nothing is left when the drag started at the article's very first or
+      // last character and went away from it.
+      if (range.collapsed) {
+        return;
+      }
     }
 
     // Position the menu based on device type
@@ -796,7 +836,8 @@ const BookmarkHTMLHighlighter = forwardRef<
         dangerouslySetInnerHTML={
           dockFormAt !== undefined ? stableHtml : { __html: htmlContent }
         }
-        onPointerUp={handlePointerUp}
+        onPointerDown={dockFormAt === undefined ? handlePointerDown : undefined}
+        onPointerUp={dockFormAt !== undefined ? handlePointerUp : undefined}
         className={cn(
           "prose prose-neutral max-w-none break-words dark:prose-invert [&_code]:break-all [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto",
           className,
