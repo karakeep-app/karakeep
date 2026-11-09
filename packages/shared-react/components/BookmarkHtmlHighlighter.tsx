@@ -634,6 +634,10 @@ const BookmarkHTMLHighlighter = forwardRef<
       if (!content.contains(range.endContainer)) {
         range.setEnd(last, last.length);
       }
+      // Nothing is left when the drag started right after the last character.
+      if (range.collapsed) {
+        return;
+      }
     }
 
     // Position the menu based on device type
