@@ -46,13 +46,14 @@ async function waitForAimockHealthy(
 export default async function ({ provide }: TestProject) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const karakeepPort = await getRandomPort();
+  const karakeepRemotePort = await getRandomPort();
   const aimockPort = await getRandomPort();
   const meiliPort = await getRandomPort();
 
   const buildArg = process.env.E2E_TEST_NO_BUILD ? "" : "--build";
 
   console.log(
-    `Starting docker compose on ports karakeep=${karakeepPort} aimock=${aimockPort} meili=${meiliPort}...`,
+    `Starting docker compose on ports karakeep=${karakeepPort} karakeep-remote=${karakeepRemotePort} aimock=${aimockPort} meili=${meiliPort}...`,
   );
   execSync(`docker compose up ${buildArg} -d --wait --wait-timeout 60`, {
     cwd: __dirname,
@@ -60,6 +61,7 @@ export default async function ({ provide }: TestProject) {
     env: {
       ...process.env,
       KARAKEEP_PORT: karakeepPort.toString(),
+      KARAKEEP_REMOTE_PORT: karakeepRemotePort.toString(),
       AIMOCK_PORT: aimockPort.toString(),
       MEILI_PORT: meiliPort.toString(),
     },
@@ -68,6 +70,7 @@ export default async function ({ provide }: TestProject) {
   console.log("Waiting for services to become healthy...");
   await Promise.all([
     waitForHealthy(karakeepPort),
+    waitForHealthy(karakeepRemotePort),
     waitForAimockHealthy(aimockPort),
   ]);
 
@@ -75,6 +78,7 @@ export default async function ({ provide }: TestProject) {
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
   provide("karakeepPort", karakeepPort);
+  provide("karakeepRemotePort", karakeepRemotePort);
   provide("aimockPort", aimockPort);
   provide("meiliPort", meiliPort);
 
@@ -90,6 +94,8 @@ export default async function ({ provide }: TestProject) {
 
       const services = [
         "web",
+        "web-remote",
+        "crawler",
         "meilisearch",
         "chrome",
         "nginx",
@@ -125,6 +131,7 @@ export default async function ({ provide }: TestProject) {
 declare module "vitest" {
   export interface ProvidedContext {
     karakeepPort: number;
+    karakeepRemotePort: number;
     aimockPort: number;
     meiliPort: number;
   }
