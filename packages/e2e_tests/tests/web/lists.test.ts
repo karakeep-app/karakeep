@@ -269,7 +269,7 @@ it("creates a smart list that shows only matching bookmarks", async ({
   await expect(cards).toHaveCount(1);
   const { lists } = await trpc.lists.list.query();
   expect(lists).toHaveLength(1);
-  expect(lists[0]).toMatchObject({ type: "smart", query: "#weekend" });
+  expect(lists[0]).toMatchObject({ type: "smart", query: "tag:weekend" });
 });
 
 it("renames and then deletes a list from its options menu", async ({
