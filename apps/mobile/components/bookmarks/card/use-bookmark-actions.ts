@@ -75,6 +75,9 @@ export function useBookmarkActions(
     onError,
   });
 
+  // Undo only flips the flag back: no second undo toast.
+  const { mutate: undoArchive } = useUpdateBookmark({ onError });
+
   const { mutate: archiveBookmark, isPending: isArchivePending } =
     useUpdateBookmark({
       onSuccess: (response) => {
@@ -83,7 +86,7 @@ export function useBookmarkActions(
             ? t("bookmarks.archived")
             : t("bookmark_actions.moved_out_of_archive"),
           () =>
-            archiveBookmark({
+            undoArchive({
               bookmarkId: bookmark.id,
               archived: !response.archived,
             }),
