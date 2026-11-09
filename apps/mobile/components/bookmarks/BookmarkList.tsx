@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { use, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,11 +11,14 @@ import EmptyState from "@/components/ui/EmptyState";
 import { useTranslation } from "@/lib/i18n/hooks";
 import { getGridColumns, useContainerWidth } from "@/lib/responsive";
 import useAppSettings from "@/lib/settings";
+import { useMutationState } from "@tanstack/react-query";
 import { useScrollToTop } from "expo-router";
+import { HeaderHeightContext } from "expo-router/react-navigation";
 import type { LucideIcon } from "lucide-react-native";
 import { Bookmark } from "lucide-react-native";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import BookmarkCard from "./BookmarkCard";
 
@@ -40,6 +43,7 @@ export default function BookmarkList({
   isFetchingNextPage,
   isRefreshing,
   emptyState,
+  scrollToTopOnSave,
 }: {
   bookmarks: ZBookmark[];
   onRefresh: () => void;
@@ -48,32 +52,42 @@ export default function BookmarkList({
   header?: React.ReactElement;
   isFetchingNextPage?: boolean;
   emptyState?: BookmarkListEmptyState;
+  scrollToTopOnSave?: boolean;
 }) {
   const flatListRef = useRef<FlatList<ZBookmark>>(null);
   const { t } = useTranslation();
   useScrollToTop(flatListRef);
   const { settings } = useAppSettings();
-  // A new item at the top would otherwise land out of sight, leaving people to
-  // wonder whether it saved.
-  const firstBookmarkId = bookmarks[0]?.id;
-  const previousFirstBookmarkId = useRef(firstBookmarkId);
-  const previousCount = useRef(bookmarks.length);
-  const topInset = useRef(0);
+  // A bookmark saved from this device lands at the top (re-saving an existing
+  // link bumps it there too), which may be out of sight, leaving people to
+  // wonder whether it saved. Follow their own saves rather than every change
+  // in the data, which also arrives from refetches.
+  const api = useTRPC();
+  const saveIds = useMutationState({
+    filters: {
+      mutationKey: api.bookmarks.createBookmark.mutationKey(),
+      status: "success",
+    },
+    select: (m) => m.mutationId,
+  });
+  // Saves can finish out of order, so remember each one rather than the latest.
+  const handledSaveIds = useRef(new Set(saveIds));
+  // The list scrolls under the transparent header, so its visible top is above
+  // zero.
+  const headerHeight = use(HeaderHeightContext) ?? 0;
   useEffect(() => {
-    const addedAtTop =
-      previousFirstBookmarkId.current !== undefined &&
-      firstBookmarkId !== previousFirstBookmarkId.current &&
-      bookmarks.length > previousCount.current;
-    previousFirstBookmarkId.current = firstBookmarkId;
-    previousCount.current = bookmarks.length;
-    if (addedAtTop) {
-      // The list scrolls under the header, so its visible top is above zero.
+    const newSaveIds = saveIds.filter((id) => !handledSaveIds.current.has(id));
+    if (newSaveIds.length === 0) {
+      return;
+    }
+    newSaveIds.forEach((id) => handledSaveIds.current.add(id));
+    if (scrollToTopOnSave && settings.bookmarkSortOrder === "desc") {
       flatListRef.current?.scrollToOffset({
-        offset: -topInset.current,
+        offset: -headerHeight,
         animated: true,
       });
     }
-  }, [firstBookmarkId, bookmarks.length]);
+  }, [saveIds]);
   const { width: containerWidth, onLayout } = useContainerWidth();
   const { numColumns, columnWidth } = getGridColumns({
     containerWidth,
@@ -91,6 +105,8 @@ export default function BookmarkList({
         numColumns={numColumns}
         columnWrapperStyle={numColumns > 1 ? { gap: GAP } : undefined}
         contentInsetAdjustmentBehavior="automatic"
+        // Lets scrollToOffset reach the header-adjusted top.
+        scrollToOverflowEnabled
         ListHeaderComponent={header}
         contentContainerStyle={{
           gap: GAP,
@@ -118,10 +134,7 @@ export default function BookmarkList({
         data={bookmarks}
         refreshing={isRefreshing}
         onRefresh={onRefresh}
-        onScrollBeginDrag={(event) => {
-          Keyboard.dismiss();
-          topInset.current = event.nativeEvent.contentInset?.top ?? 0;
-        }}
+        onScrollBeginDrag={Keyboard.dismiss}
         keyExtractor={(b) => b.id}
         onEndReached={fetchNextPage}
         ListFooterComponent={

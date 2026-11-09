@@ -13,10 +13,12 @@ export default function UpdatingBookmarkList({
   query,
   header,
   emptyState,
+  scrollToTopOnSave,
 }: {
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is handled by mobile settings
   header?: React.ReactElement;
   emptyState?: BookmarkListEmptyState;
+  scrollToTopOnSave?: boolean;
 }) {
   const api = useTRPC();
   const queryClient = useQueryClient();
@@ -69,6 +71,7 @@ export default function UpdatingBookmarkList({
         .filter((b) => b.content.type != BookmarkTypes.UNKNOWN)}
       header={header}
       emptyState={emptyState}
+      scrollToTopOnSave={scrollToTopOnSave}
       onRefresh={onRefresh}
       fetchNextPage={onEndReached}
       isFetchingNextPage={isFetchingNextPage}
