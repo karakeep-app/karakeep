@@ -227,9 +227,10 @@ function useAssetCardContext({
 
 // Keeps the last lines of a card clear of the actions pinned to its corner.
 // Compact bar: two 18px icons + a 16px gap. Expanded: three 20px icons + two
-// 20px gaps. Each leaves an extra 8px of breathing room.
-const ACTIONS_CLEARANCE = 60;
-const EXPANDED_ACTIONS_CLEARANCE = 108;
+// 20px gaps. iOS drops the menu icon, since pressing and holding the card opens
+// the menu. Each leaves an extra 8px of breathing room.
+const ACTIONS_CLEARANCE = Platform.OS === "ios" ? 26 : 60;
+const EXPANDED_ACTIONS_CLEARANCE = Platform.OS === "ios" ? 68 : 108;
 
 function CardActions({
   actions,

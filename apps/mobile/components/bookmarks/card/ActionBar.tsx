@@ -5,7 +5,7 @@ import { useColorScheme } from "@/lib/useColorScheme";
 import { MenuView } from "@react-native-menu/menu";
 import * as Haptics from "expo-haptics";
 import { Ellipsis, ShareIcon, Star } from "lucide-react-native";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, View } from "react-native";
 
 const FAVOURITE_COLOR = "#ebb434";
 const HIT_SLOP = 10;
@@ -68,7 +68,8 @@ export default function ActionBar({
         </Pressable>
       )}
 
-      {actions.menuActions.length > 0 && (
+      {/* On iOS, pressing and holding the card opens the same menu. */}
+      {Platform.OS !== "ios" && actions.menuActions.length > 0 && (
         <MenuView
           onPressAction={({ nativeEvent }) => {
             void Haptics.selectionAsync();
