@@ -18,6 +18,16 @@ const ORGANIZATION_ID = `${BASE_URL}/#organization`;
       "@context": "https://schema.org",
       "@graph": [
         {
+          "@type": "WebSite",
+          "@id": `${BASE_URL}/#website`,
+          "name": "Karakeep",
+          "alternateName": ["Hoarder", "karakeep.com"],
+          "url": `${BASE_URL}/`,
+          "publisher": {
+            "@id": ORGANIZATION_ID
+          }
+        },
+        {
           "@type": "SoftwareApplication",
           "@id": `${BASE_URL}/#software-application`,
           "name": "Karakeep",

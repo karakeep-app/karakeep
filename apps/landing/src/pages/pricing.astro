@@ -1,12 +1,26 @@
 ---
 import PricingPage from "../Pricing";
 import Layout from "../layouts/Layout.astro";
-import { PRICING_META_DESCRIPTION } from "../pricing-data";
+import { PRICING_FAQS, PRICING_META_DESCRIPTION } from "../pricing-data";
 ---
 
 <Layout
   title="Pricing"
   description={PRICING_META_DESCRIPTION}
 >
+  <Fragment slot="head">
+    <script is:inline type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": PRICING_FAQS.map((faq) => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    })} />
+  </Fragment>
   <PricingPage client:load />
 </Layout>

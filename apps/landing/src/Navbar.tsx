@@ -13,7 +13,7 @@ export default function NavBar() {
     <nav className="sticky top-0 z-50 border-b border-neutral-200/50 bg-white/70 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-[1248px] items-center justify-between px-4 py-3">
         <a href="/">
-          <img src={Logo} alt="logo" className="w-36" />
+          <img src={Logo} alt="Karakeep" className="w-36" />
         </a>
 
         {/* Desktop navigation */}

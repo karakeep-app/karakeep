@@ -50,6 +50,11 @@ const config: Config = {
           docItemComponent: "@theme/ApiItem",
         },
         blog: false,
+        sitemap: {
+          // Old versions and the unreleased docs are blocked in robots.txt,
+          // so don't advertise them to crawlers either.
+          ignorePatterns: ["/v[0-9]*/**", "/next/**"],
+        },
         theme: {
           customCss: "./src/css/custom.css",
         },

@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   title: "Karakeep",
   applicationName: "Karakeep",
   description:
-    "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI.",
+    "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged with AI.",
   icons: {
     // No media queries: crawlers (e.g. Google's favicon fetcher) skip icons
     // that are conditional on one. favicon.svg adapts to dark mode itself.
