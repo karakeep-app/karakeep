@@ -111,20 +111,26 @@ function TagActionsMenu({
   return (
     <MenuView
       actions={[
-        {
-          id: "edit",
-          title: t("tags.edit_tag"),
-          image: Platform.select({ ios: "square.and.pencil" }),
-          imageColor: Platform.select({ ios: menuIconColor }),
-        },
-        ...inlineMenuGroup("view-group", layoutActions),
-        {
-          id: "delete_tag",
-          title: t("tags.delete_title"),
-          attributes: { destructive: true },
-          image: Platform.select({ ios: "trash" }),
-          imageColor: Platform.select({ ios: destructiveMenuIconColor }),
-        },
+        ...inlineMenuGroup("edit-group", [
+          {
+            id: "edit",
+            title: t("tags.edit_tag"),
+            image: Platform.select({ ios: "square.and.pencil" }),
+            imageColor: Platform.select({ ios: menuIconColor }),
+          },
+        ]),
+        // The menu library drops a third level of nesting, so these submenus
+        // can't sit in an inline group. Group their neighbours instead.
+        ...layoutActions,
+        ...inlineMenuGroup("danger-group", [
+          {
+            id: "delete_tag",
+            title: t("tags.delete_title"),
+            attributes: { destructive: true },
+            image: Platform.select({ ios: "trash" }),
+            imageColor: Platform.select({ ios: destructiveMenuIconColor }),
+          },
+        ]),
       ]}
       onPressAction={({ nativeEvent }) => {
         if (handleLayoutAction(nativeEvent.event)) {

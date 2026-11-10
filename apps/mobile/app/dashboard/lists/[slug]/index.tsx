@@ -250,35 +250,39 @@ function ListActionsMenu({
             imageColor: Platform.select({ ios: menuIconColor }),
           },
         ]),
-        ...inlineMenuGroup("view-group", layoutActions),
-        {
-          id: "delete_list",
-          title: t("lists.delete_list"),
-          attributes: {
-            destructive: true,
-            hidden: !isLoaded || role !== "owner",
+        // The menu library drops a third level of nesting, so these submenus
+        // can't sit in an inline group. Group their neighbours instead.
+        ...layoutActions,
+        ...inlineMenuGroup("danger-group", [
+          {
+            id: "delete_list",
+            title: t("lists.delete_list"),
+            attributes: {
+              destructive: true,
+              hidden: !isLoaded || role !== "owner",
+            },
+            image: Platform.select({
+              ios: "trash",
+            }),
+            imageColor: Platform.select({
+              ios: destructiveMenuIconColor,
+            }),
           },
-          image: Platform.select({
-            ios: "trash",
-          }),
-          imageColor: Platform.select({
-            ios: destructiveMenuIconColor,
-          }),
-        },
-        {
-          id: "leave",
-          title: t("lists.leave_list"),
-          attributes: {
-            destructive: true,
-            hidden: !isLoaded || role === "owner",
+          {
+            id: "leave",
+            title: t("lists.leave_list"),
+            attributes: {
+              destructive: true,
+              hidden: !isLoaded || role === "owner",
+            },
+            image: Platform.select({
+              ios: "arrowshape.turn.up.left",
+            }),
+            imageColor: Platform.select({
+              ios: destructiveMenuIconColor,
+            }),
           },
-          image: Platform.select({
-            ios: "arrowshape.turn.up.left",
-          }),
-          imageColor: Platform.select({
-            ios: destructiveMenuIconColor,
-          }),
-        },
+        ]),
       ]}
       onPressAction={({ nativeEvent }) => {
         if (handleLayoutAction(nativeEvent.event)) {
