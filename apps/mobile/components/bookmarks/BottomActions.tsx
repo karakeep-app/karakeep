@@ -1,6 +1,13 @@
 import type { ToolbarActionId } from "@/lib/settings";
 import type { LucideIcon } from "lucide-react-native";
-import { Alert, Linking, Platform, Pressable, View } from "react-native";
+import {
+  Alert,
+  Linking,
+  Platform,
+  Pressable,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { GlassView } from "expo-glass-effect";
@@ -45,30 +52,51 @@ import {
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
-const TOOLBAR_ICON_GAP = 2;
-const TOOLBAR_ITEM_WIDTH = 52;
 const TOOLBAR_HIT_SLOP = { top: 8, bottom: 8 };
 // Past this the row wouldn't fit a small phone with labels, so icons go alone.
 const MAX_LABELED_TOOLBAR_ITEMS = 6;
+// iPads (and wide split views) get a bigger toolbar, labeled whenever the row
+// fits the window.
+const LARGE_TOOLBAR_MIN_WINDOW_WIDTH = 600;
+// Pill padding plus its horizontal margins.
+const LARGE_TOOLBAR_CHROME_WIDTH = 64;
+
+const TOOLBAR_SIZES = {
+  regular: {
+    iconSize: 21,
+    itemWidth: 52,
+    gap: 2,
+    labelClassName: "text-[10px] leading-3",
+  },
+  large: {
+    iconSize: 26,
+    itemWidth: 72,
+    gap: 6,
+    labelClassName: "text-xs leading-4",
+  },
+};
+type ToolbarSize = (typeof TOOLBAR_SIZES)["regular"];
 
 function ToolbarItem({
   icon,
   label,
   showLabel,
+  size,
 }: {
   icon: React.ReactNode;
   label: string;
   showLabel: boolean;
+  size: ToolbarSize;
 }) {
   return (
     <View
       className="items-center gap-0.5"
-      style={{ width: showLabel ? TOOLBAR_ITEM_WIDTH : undefined }}
+      style={{ width: showLabel ? size.itemWidth : undefined }}
     >
       {icon}
       {showLabel && (
         <Text
-          className="text-[10px] leading-3 text-foreground"
+          className={`${size.labelClassName} text-foreground`}
           numberOfLines={1}
         >
           {label}
@@ -184,7 +212,7 @@ interface ToolbarAction {
   disabled: boolean;
 }
 
-function useToolbarActions(bookmark: ZBookmark) {
+function useToolbarActions(bookmark: ZBookmark, iconSize: number) {
   const { toast } = useToast();
   const { t } = useTranslation();
   const actions = useCommonActions();
@@ -291,7 +319,7 @@ function useToolbarActions(bookmark: ZBookmark) {
       comp={(styles) => (
         <AppIcon
           icon={IconComp}
-          size={21}
+          size={iconSize}
           color={overrideColor ?? styles?.color?.toString() ?? "#000"}
           filled={fill != null}
         />
@@ -420,10 +448,14 @@ function ToolbarContainer({
   children,
   bottomMargin,
   bottomInset,
+  size,
+  large,
 }: {
   children: React.ReactNode;
   bottomMargin: number;
   bottomInset: number;
+  size: ToolbarSize;
+  large: boolean;
 }) {
   const innerRow = (
     <View
@@ -431,7 +463,7 @@ function ToolbarContainer({
         alignSelf: "center",
         flexDirection: "row",
         alignItems: "center",
-        gap: TOOLBAR_ICON_GAP,
+        gap: size.gap,
       }}
     >
       {children}
@@ -443,12 +475,12 @@ function ToolbarContainer({
       <GlassView
         glassEffectStyle="regular"
         style={{
-          borderRadius: 22,
+          borderRadius: large ? 30 : 22,
           marginHorizontal: 16,
           alignSelf: "center",
           marginBottom: bottomMargin,
-          paddingVertical: 8,
-          paddingHorizontal: 12,
+          paddingVertical: large ? 10 : 8,
+          paddingHorizontal: large ? 16 : 12,
         }}
       >
         {innerRow}
@@ -482,8 +514,11 @@ interface BottomActionsProps {
 }
 
 export default function BottomActions({ bookmark }: BottomActionsProps) {
+  const { width: windowWidth } = useWindowDimensions();
+  const large = windowWidth >= LARGE_TOOLBAR_MIN_WINDOW_WIDTH;
+  const size = large ? TOOLBAR_SIZES.large : TOOLBAR_SIZES.regular;
   const { barActions, overflowActions, allActions, offline } =
-    useToolbarActions(bookmark);
+    useToolbarActions(bookmark, size.iconSize);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { toast } = useToast();
@@ -491,9 +526,11 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
   const { more } = useCommonActions();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
 
-  const showLabels =
-    barActions.filter((a) => a.shouldRender).length + 1 <=
-    MAX_LABELED_TOOLBAR_ITEMS;
+  const itemCount = barActions.filter((a) => a.shouldRender).length + 1;
+  const showLabels = large
+    ? itemCount * (size.itemWidth + size.gap) + LARGE_TOOLBAR_CHROME_WIDTH <=
+      windowWidth
+    : itemCount <= MAX_LABELED_TOOLBAR_ITEMS;
   const bottomMargin = shouldUseGlassPill ? Math.max(insets.bottom - 8, 4) : 8;
 
   // Build native menu actions for the overflow ellipsis
@@ -549,7 +586,12 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
 
   return (
     <View>
-      <ToolbarContainer bottomMargin={bottomMargin} bottomInset={insets.bottom}>
+      <ToolbarContainer
+        bottomMargin={bottomMargin}
+        bottomInset={insets.bottom}
+        size={size}
+        large={large}
+      >
         {barActions.map(
           (a) =>
             a.shouldRender && (
@@ -578,6 +620,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
                       : toolbarShortLabel(t, a.id)
                   }
                   showLabel={showLabels}
+                  size={size}
                 />
               </Pressable>
             ),
@@ -603,7 +646,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
                   comp={(styles) => (
                     <AppIcon
                       icon={Ellipsis}
-                      size={21}
+                      size={size.iconSize}
                       color={styles?.color?.toString() ?? "#000"}
                     />
                   )}
@@ -611,6 +654,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
               }
               label={more}
               showLabel={showLabels}
+              size={size}
             />
           </Pressable>
         </MenuView>
