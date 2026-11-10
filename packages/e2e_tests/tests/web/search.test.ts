@@ -95,7 +95,9 @@ async function search(page: Page, query: string) {
 async function expectResults(page: Page, expected: Marker[]) {
   const cards = bookmarkCards(page);
   if (expected.length === 0) {
-    await expect(page.getByText("No bookmarks yet")).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "No matches", exact: true }),
+    ).toBeVisible();
     await expect(cards).toHaveCount(0);
     return;
   }
