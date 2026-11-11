@@ -88,6 +88,23 @@
     "header_value": "Verdi for topptekst",
     "value": "Verdi"
   },
+  "client_certificate": {
+    "header": "Klientsertifikat (mTLS)",
+    "footer": "Bare nødvendig hvis serveren din eller proxyen dens krever et TLS-klientsertifikat. Sertifikatet lagres i nøkkelringen på denne enheten og sendes bare til serveren din.",
+    "import": "Importer sertifikat…",
+    "replace": "Erstatt sertifikat…",
+    "remove": "Fjern sertifikat",
+    "unnamed": "Sertifikat",
+    "import_confirm": "Importer",
+    "expires": "Utløper {{date}}",
+    "expired": "Utløp {{date}}",
+    "password_title": "Sertifikatpassord",
+    "password_message": "Skriv inn passordet som beskytter {{name}}.",
+    "wrong_password": "Passordet er feil.",
+    "invalid_file": "Denne filen er ikke et PKCS#12-sertifikat (.p12 eller .pfx) med en privat nøkkel.",
+    "import_failed": "Sertifikatet kunne ikke importeres.",
+    "http_warning": "Serveradressen din bruker http://, så sertifikatet vil ikke bli brukt."
+  },
   "connection_test": {
     "running": "Tester tilkoblingen…",
     "network_failed": "Nettverkstilkoblingen mislyktes: ",

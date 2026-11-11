@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
+import { ClientCertificateSection } from "@/components/ClientCertificateSection";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Input } from "@/components/ui/Input";
 import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
@@ -208,6 +209,8 @@ export default function ServerAddress() {
           <Text className="text-primary">{t("server_address.add_header")}</Text>
         </Pressable>
       </GroupedSection>
+
+      <ClientCertificateSection serverAddress={address} />
     </KeyboardAwareScrollView>
   );
 }

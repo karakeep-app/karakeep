@@ -88,6 +88,23 @@
     "header_value": "Vrednost glave",
     "value": "Vrednost"
   },
+  "client_certificate": {
+    "header": "Odjemalsko potrdilo (mTLS)",
+    "footer": "Potrebno le, če vaš strežnik ali njegov posredniški strežnik zahteva odjemalsko potrdilo TLS. Potrdilo je shranjeno v verigi ključev te naprave in se pošilja samo vašemu strežniku.",
+    "import": "Uvozi potrdilo…",
+    "replace": "Zamenjaj potrdilo…",
+    "remove": "Odstrani potrdilo",
+    "unnamed": "Potrdilo",
+    "import_confirm": "Uvozi",
+    "expires": "Poteče {{date}}",
+    "expired": "Poteklo {{date}}",
+    "password_title": "Geslo potrdila",
+    "password_message": "Vnesite geslo, ki ščiti {{name}}.",
+    "wrong_password": "To geslo ni pravilno.",
+    "invalid_file": "Ta datoteka ni potrdilo PKCS#12 (.p12 ali .pfx) z zasebnim ključem.",
+    "import_failed": "Potrdila ni bilo mogoče uvoziti.",
+    "http_warning": "Naslov vašega strežnika uporablja http://, zato potrdilo ne bo uporabljeno."
+  },
   "connection_test": {
     "running": "Preizkus povezave poteka …",
     "network_failed": "Omrežna povezava ni uspela: ",

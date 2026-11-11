@@ -88,6 +88,23 @@
     "header_value": "Headerværdi",
     "value": "Værdi"
   },
+  "client_certificate": {
+    "header": "Klientcertifikat (mTLS)",
+    "footer": "Kun nødvendigt, hvis din server eller dens proxy kræver et TLS-klientcertifikat. Certifikatet gemmes i denne enheds nøglering og sendes kun til din server.",
+    "import": "Importér certifikat…",
+    "replace": "Erstat certifikat…",
+    "remove": "Fjern certifikat",
+    "unnamed": "Certifikat",
+    "import_confirm": "Importér",
+    "expires": "Udløber {{date}}",
+    "expired": "Udløb {{date}}",
+    "password_title": "Adgangskode til certifikat",
+    "password_message": "Indtast adgangskoden, der beskytter {{name}}.",
+    "wrong_password": "Adgangskoden er forkert.",
+    "invalid_file": "Denne fil er ikke et PKCS#12-certifikat (.p12 eller .pfx) med en privat nøgle.",
+    "import_failed": "Certifikatet kunne ikke importeres.",
+    "http_warning": "Din serveradresse bruger http://, så certifikatet bliver ikke brugt."
+  },
   "connection_test": {
     "running": "Kører forbindelsestest…",
     "network_failed": "Netværksforbindelse mislykkedes: ",

@@ -88,6 +88,23 @@
     "header_value": "请求头的值",
     "value": "值"
   },
+  "client_certificate": {
+    "header": "客户端证书 (mTLS)",
+    "footer": "仅当你的服务器或其代理要求 TLS 客户端证书时才需要。证书存储在此设备的钥匙串中，并且只会发送到你的服务器。",
+    "import": "导入证书…",
+    "replace": "替换证书…",
+    "remove": "移除证书",
+    "unnamed": "证书",
+    "import_confirm": "导入",
+    "expires": "{{date}} 到期",
+    "expired": "已于 {{date}} 过期",
+    "password_title": "证书密码",
+    "password_message": "请输入保护 {{name}} 的密码。",
+    "wrong_password": "密码不正确。",
+    "invalid_file": "此文件不是包含私钥的 PKCS#12（.p12 或 .pfx）证书。",
+    "import_failed": "无法导入证书。",
+    "http_warning": "你的服务器地址使用 http://，因此不会使用证书。"
+  },
   "connection_test": {
     "running": "正在运行连接测试…",
     "network_failed": "网络连接失败：",

@@ -88,6 +88,23 @@
     "header_value": "Hodnota hlavičky",
     "value": "Hodnota"
   },
+  "client_certificate": {
+    "header": "Klientsky certifikát (mTLS)",
+    "footer": "Potrebné len vtedy, keď váš server alebo jeho proxy vyžaduje klientsky certifikát TLS. Certifikát je uložený v kľúčenke tohto zariadenia a odosiela sa iba na váš server.",
+    "import": "Importovať certifikát…",
+    "replace": "Nahradiť certifikát…",
+    "remove": "Odstrániť certifikát",
+    "unnamed": "Certifikát",
+    "import_confirm": "Importovať",
+    "expires": "Platnosť vyprší {{date}}",
+    "expired": "Platnosť vypršala {{date}}",
+    "password_title": "Heslo certifikátu",
+    "password_message": "Zadajte heslo, ktoré chráni {{name}}.",
+    "wrong_password": "Toto heslo nie je správne.",
+    "invalid_file": "Tento súbor nie je certifikát PKCS#12 (.p12 alebo .pfx) so súkromným kľúčom.",
+    "import_failed": "Certifikát sa nepodarilo importovať.",
+    "http_warning": "Adresa vášho servera používa http://, takže certifikát sa nepoužije."
+  },
   "connection_test": {
     "running": "Prebieha test pripojenia…",
     "network_failed": "Sieťové pripojenie zlyhalo: ",

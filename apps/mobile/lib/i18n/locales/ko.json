@@ -88,6 +88,23 @@
     "header_value": "헤더 값",
     "value": "값"
   },
+  "client_certificate": {
+    "header": "클라이언트 인증서 (mTLS)",
+    "footer": "서버 또는 프록시가 TLS 클라이언트 인증서를 요구하는 경우에만 필요합니다. 인증서는 이 기기의 키체인에 저장되며 사용자의 서버로만 전송됩니다.",
+    "import": "인증서 가져오기…",
+    "replace": "인증서 교체…",
+    "remove": "인증서 제거",
+    "unnamed": "인증서",
+    "import_confirm": "가져오기",
+    "expires": "만료일: {{date}}",
+    "expired": "만료됨: {{date}}",
+    "password_title": "인증서 비밀번호",
+    "password_message": "{{name}}을(를) 보호하는 비밀번호를 입력하세요.",
+    "wrong_password": "비밀번호가 올바르지 않습니다.",
+    "invalid_file": "이 파일은 개인 키가 포함된 PKCS#12(.p12 또는 .pfx) 인증서가 아닙니다.",
+    "import_failed": "인증서를 가져올 수 없습니다.",
+    "http_warning": "서버 주소가 http://를 사용하므로 인증서가 사용되지 않습니다."
+  },
   "connection_test": {
     "running": "연결 테스트 실행 중…",
     "network_failed": "네트워크 연결 실패: ",

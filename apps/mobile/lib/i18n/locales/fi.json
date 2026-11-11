@@ -88,6 +88,23 @@
     "header_value": "Otsikon arvo",
     "value": "Arvo"
   },
+  "client_certificate": {
+    "header": "Asiakasvarmenne (mTLS)",
+    "footer": "Tarvitaan vain, jos palvelimesi tai sen välityspalvelin vaatii TLS-asiakasvarmenteen. Varmenne tallennetaan tämän laitteen avainnippuun ja lähetetään vain palvelimellesi.",
+    "import": "Tuo varmenne…",
+    "replace": "Korvaa varmenne…",
+    "remove": "Poista varmenne",
+    "unnamed": "Varmenne",
+    "import_confirm": "Tuo",
+    "expires": "Vanhenee {{date}}",
+    "expired": "Vanhentunut {{date}}",
+    "password_title": "Varmenteen salasana",
+    "password_message": "Anna salasana, joka suojaa tiedostoa {{name}}.",
+    "wrong_password": "Salasana on virheellinen.",
+    "invalid_file": "Tämä tiedosto ei ole PKCS#12-varmenne (.p12 tai .pfx), jossa on yksityinen avain.",
+    "import_failed": "Varmennetta ei voitu tuoda.",
+    "http_warning": "Palvelimesi osoite käyttää http://-yhteyttä, joten varmennetta ei käytetä."
+  },
   "connection_test": {
     "running": "Testataan yhteyttä…",
     "network_failed": "Verkkoyhteys epäonnistui: ",
