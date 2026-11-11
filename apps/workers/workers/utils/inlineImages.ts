@@ -24,9 +24,10 @@ const PLACEHOLDER_LENGTH = 256;
 
 /**
  * Tells whether a data URI is an embedded resource (an attribute value inside
- * a tag, or a CSS `url()`) rather than text the reader sees, such as a data
- * URI shown in a code sample. Visible text is left alone so that content
- * extraction and the reader-view assessment see the page exactly as it is.
+ * a tag, or a CSS `url()` inside a `<style>` element) rather than text the
+ * reader sees, such as a data URI or CSS shown in a code sample. Visible text
+ * is left alone so that content extraction and the reader-view assessment see
+ * the page exactly as it is.
  *
  * Base64 never contains `<` or `>`, so the last one before the URI tells
  * whether it sits inside a tag. A `>` inside an earlier attribute value only
@@ -37,11 +38,18 @@ const PLACEHOLDER_LENGTH = 256;
 function embeddedResourceChecker(htmlContent: string) {
   let scanned = 0;
   let insideTag = false;
+  let insideStyle = false;
   return (offset: number): boolean => {
     for (; scanned < offset; scanned++) {
       const char = htmlContent.charCodeAt(scanned);
       if (char === 60 /* < */) {
         insideTag = true;
+        const tag = htmlContent.slice(scanned + 1, scanned + 8).toLowerCase();
+        if (/^style[\s>/]/.test(tag)) {
+          insideStyle = true;
+        } else if (/^\/style[\s>]/.test(tag)) {
+          insideStyle = false;
+        }
       } else if (char === 62 /* > */) {
         insideTag = false;
       }
@@ -49,8 +57,11 @@ function embeddedResourceChecker(htmlContent: string) {
     if (insideTag) {
       return true;
     }
-    return /url\(\s*["']?$/i.test(
-      htmlContent.slice(Math.max(0, offset - 16), offset),
+    return (
+      insideStyle &&
+      /url\(\s*["']?$/i.test(
+        htmlContent.slice(Math.max(0, offset - 16), offset),
+      )
     );
   };
 }

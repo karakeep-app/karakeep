@@ -78,6 +78,16 @@ describe("stashInlineImages", () => {
     expect(stash.htmlContent).toBe(html);
   });
 
+  it("leaves CSS shown as text alone", () => {
+    const shown = base64Image(4096);
+    const html = `<pre><code>.hero { background: url("${shown}") }</code></pre>`;
+
+    const stash = stashInlineImages(html, 1024);
+
+    expect(stash.count).toBe(0);
+    expect(stash.htmlContent).toBe(html);
+  });
+
   it("replaces images in CSS url() and style attributes", () => {
     const background = base64Image(4096);
     const inline = base64Image(4096, "jpeg");
