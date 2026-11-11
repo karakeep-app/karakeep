@@ -28,6 +28,7 @@ import logger from "@karakeep/shared/logger";
 import { buildImagePrompt } from "@karakeep/shared/prompts";
 import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
+import { filterToCuratedTags } from "@karakeep/shared/utils/tag";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
@@ -398,6 +399,18 @@ async function inferTags(
       }
       return tag.trim();
     });
+
+    // The prompt asks the model to stay on the curated list; enforce it, so
+    // an off-list tag is never created.
+    if (curatedTags && curatedTags.length > 0) {
+      const { kept, dropped } = filterToCuratedTags(tags, curatedTags);
+      if (dropped.length > 0) {
+        logger.info(
+          `[inference][${jobId}] Dropped tags not on the curated list for bookmark "${bookmark.id}": ${dropped}`,
+        );
+      }
+      tags = kept;
+    }
     addLogFields<"inferenceWorker.run">({
       "inference.tagging.num_generated_tags": tags.length,
       "inference.total_tokens": response.totalTokens,

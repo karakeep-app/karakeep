@@ -36,6 +36,39 @@ export function getCuratedTagsPrompt(curatedTags?: string[]): string {
   return "";
 }
 
+// Same rule as the generated `normalizedName` column on `bookmarkTags`, which
+// is what decides whether an inferred tag matches an existing one.
+function normalizeTagForMatching(tag: string): string {
+  return tag.toLowerCase().replace(/[ \-_]/g, "");
+}
+
+/**
+ * Keeps only the inferred tags that are on the curated list. The prompt asks
+ * the model to stay on the list, but models don't always comply, and anything
+ * off the list would otherwise be created as a new tag. Matching follows tag
+ * normalization (case, spaces, hyphens and underscores are ignored); kept tags
+ * take the curated spelling and are deduplicated.
+ */
+export function filterToCuratedTags(
+  inferredTags: string[],
+  curatedTags: string[],
+): { kept: string[]; dropped: string[] } {
+  const curatedByNormalized = new Map(
+    curatedTags.map((t) => [normalizeTagForMatching(t), t]),
+  );
+  const kept = new Set<string>();
+  const dropped: string[] = [];
+  for (const tag of inferredTags) {
+    const curated = curatedByNormalized.get(normalizeTagForMatching(tag));
+    if (curated === undefined) {
+      dropped.push(tag);
+    } else {
+      kept.add(curated);
+    }
+  }
+  return { kept: [...kept], dropped };
+}
+
 export function getPotentialRelevantTagsPrompt(
   potentialRelevantTags?: string[],
 ): string {
