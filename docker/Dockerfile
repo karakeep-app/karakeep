@@ -1,3 +1,8 @@
+# Pinned to an exact release so security fixes land deliberately instead of
+# depending on whether a floating tag was re-pulled. Bump on every Node.js
+# security release: https://nodejs.org/en/blog/vulnerability
+ARG NODE_VERSION=24.22.3
+
 ################# Monolith Builder ##############
 FROM rust:1-bookworm AS monolith_builder
 
@@ -13,7 +18,7 @@ RUN apt-get update \
     && cargo install monolith --version "${MONOLITH_VERSION}" --locked
 
 ################# Base Builder ##############
-FROM node:24-slim AS base
+FROM node:${NODE_VERSION}-slim AS base
 
 WORKDIR /app
 ENV PNPM_HOME="/pnpm"
@@ -107,7 +112,7 @@ FROM base AS mcp_builder
 RUN (cd apps/mcp && pnpm build)
 
 ################# The All-in-one builder ##############
-FROM node:24-slim AS aio_builder
+FROM node:${NODE_VERSION}-slim AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -257,7 +262,7 @@ RUN rm /etc/s6-overlay/s6-rc.d/svc-workers/dependencies.d/init-db-migration \
 ENV USING_LEGACY_SEPARATE_CONTAINERS=true
 
 ################# The cli ##############
-FROM node:24-slim AS cli
+FROM node:${NODE_VERSION}-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
@@ -271,7 +276,7 @@ ENV SERVER_VERSION=${SERVER_VERSION}
 ENTRYPOINT ["node", "index.mjs"]
 
 ################# MCP server ##############
-FROM node:24-slim AS mcp
+FROM node:${NODE_VERSION}-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
