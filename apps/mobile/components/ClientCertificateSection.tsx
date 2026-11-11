@@ -7,6 +7,7 @@ import {
   View,
 } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
 import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
@@ -78,29 +79,37 @@ export function ClientCertificateSection({
       return;
     }
     const file = picked.assets[0];
-    const password = await askPassword(
-      t("client_certificate.password_title"),
-      t("client_certificate.password_message", { name: file.name }),
-      { cancel: actions.cancel, ok: t("client_certificate.import_confirm") },
-    );
-    if (password === undefined) {
-      return;
-    }
+    try {
+      const password = await askPassword(
+        t("client_certificate.password_title"),
+        t("client_certificate.password_message", { name: file.name }),
+        { cancel: actions.cancel, ok: t("client_certificate.import_confirm") },
+      );
+      if (password === undefined) {
+        return;
+      }
 
-    setIsImporting(true);
-    const result = await importClientCertificate(file.uri, password);
-    setIsImporting(false);
-    if (result.ok) {
-      setCertificate(result.certificate);
-      return;
+      setIsImporting(true);
+      const result = await importClientCertificate(file.uri, password);
+      if (result.ok) {
+        setCertificate(result.certificate);
+        return;
+      }
+      setError(
+        result.error === "wrong_password"
+          ? t("client_certificate.wrong_password")
+          : result.error === "invalid_file"
+            ? t("client_certificate.invalid_file")
+            : t("client_certificate.import_failed"),
+      );
+    } finally {
+      setIsImporting(false);
+      // The picker copied the bundle (private key included) into the app's
+      // cache; don't leave it there once the keychain has it, or on failure.
+      await FileSystem.deleteAsync(file.uri, { idempotent: true }).catch(
+        () => undefined,
+      );
     }
-    setError(
-      result.error === "wrong_password"
-        ? t("client_certificate.wrong_password")
-        : result.error === "invalid_file"
-          ? t("client_certificate.invalid_file")
-          : t("client_certificate.import_failed"),
-    );
   };
 
   const handleRemove = () => {

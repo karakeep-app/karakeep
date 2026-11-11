@@ -18,16 +18,15 @@ struct ClientCertificateInfo {
  Holds the client identity used for mutual TLS, and the one host it may be
  presented to.
 
- The PKCS#12 bundle and its password are kept in the keychain and re-imported
- on launch. That keeps removal clean (one item to delete) and avoids the
- identity outliving the app's own record of it.
+ The PKCS#12 bundle and its password are kept together in one keychain item
+ and re-imported on launch. A single item means a replacement either fully
+ succeeds or leaves the previous certificate intact, and removal is one delete.
  */
 final class ClientIdentityStore: @unchecked Sendable {
   static let shared = ClientIdentityStore()
 
   private static let keychainService = "app.karakeep.client-certificate"
-  private static let bundleAccount = "pkcs12"
-  private static let passwordAccount = "password"
+  private static let identityAccount = "identity"
   private static let hostDefaultsKey = "KarakeepClientCertificateHost"
 
   private let lock = NSLock()
@@ -63,10 +62,9 @@ final class ClientIdentityStore: @unchecked Sendable {
   func load() {
     let savedHost = UserDefaults.standard.string(forKey: Self.hostDefaultsKey)
     var loaded: (URLCredential, ClientCertificateInfo)?
-    if let bundle = Self.readKeychain(account: Self.bundleAccount),
-      let passwordData = Self.readKeychain(account: Self.passwordAccount),
-      let password = String(data: passwordData, encoding: .utf8) {
-      loaded = try? Self.makeCredential(pkcs12: bundle, password: password)
+    if let data = Self.readKeychain(),
+      let saved = try? PropertyListDecoder().decode(SavedIdentity.self, from: data) {
+      loaded = try? Self.makeCredential(pkcs12: saved.pkcs12, password: saved.password)
     }
     lock.lock()
     host = savedHost
@@ -77,37 +75,38 @@ final class ClientIdentityStore: @unchecked Sendable {
 
   func setHost(_ newHost: String?) {
     let normalized = newHost?.lowercased()
-    if let normalized, !normalized.isEmpty {
-      UserDefaults.standard.set(normalized, forKey: Self.hostDefaultsKey)
+    let effective = (normalized?.isEmpty ?? true) ? nil : normalized
+    if let effective {
+      UserDefaults.standard.set(effective, forKey: Self.hostDefaultsKey)
     } else {
       UserDefaults.standard.removeObject(forKey: Self.hostDefaultsKey)
     }
     lock.lock()
-    host = (normalized?.isEmpty ?? true) ? nil : normalized
+    let changed = host != effective
+    host = effective
     lock.unlock()
+    if changed {
+      MutualTLSURLProtocol.resetConnections()
+    }
   }
 
   @discardableResult
   func importPKCS12(_ data: Data, password: String) throws -> ClientCertificateInfo {
     let (newCredential, newInfo) = try Self.makeCredential(pkcs12: data, password: password)
-    try Self.writeKeychain(account: Self.bundleAccount, data: data)
-    do {
-      try Self.writeKeychain(account: Self.passwordAccount, data: Data(password.utf8))
-    } catch {
-      Self.deleteKeychain(account: Self.bundleAccount)
-      throw error
-    }
+    let saved = try PropertyListEncoder().encode(SavedIdentity(pkcs12: data, password: password))
+    // If this fails, the previously saved certificate is untouched.
+    try Self.writeKeychain(saved)
     activate(credential: newCredential, info: newInfo)
     return newInfo
   }
 
   func remove() {
-    Self.deleteKeychain(account: Self.bundleAccount)
-    Self.deleteKeychain(account: Self.passwordAccount)
+    Self.deleteKeychain()
     lock.lock()
     credential = nil
     certificateInfo = nil
     lock.unlock()
+    MutualTLSURLProtocol.resetConnections()
   }
 
   func activate(credential newCredential: URLCredential, info newInfo: ClientCertificateInfo) {
@@ -115,6 +114,7 @@ final class ClientIdentityStore: @unchecked Sendable {
     credential = newCredential
     certificateInfo = newInfo
     lock.unlock()
+    MutualTLSURLProtocol.resetConnections()
   }
 
   // MARK: - PKCS#12
@@ -171,16 +171,21 @@ final class ClientIdentityStore: @unchecked Sendable {
 
   // MARK: - Keychain
 
-  private static func baseQuery(account: String) -> [String: Any] {
+  private struct SavedIdentity: Codable {
+    let pkcs12: Data
+    let password: String
+  }
+
+  private static var itemQuery: [String: Any] {
     [
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrService as String: keychainService,
-      kSecAttrAccount as String: account
+      kSecAttrAccount as String: identityAccount
     ]
   }
 
-  private static func readKeychain(account: String) -> Data? {
-    var query = baseQuery(account: account)
+  private static func readKeychain() -> Data? {
+    var query = itemQuery
     query[kSecReturnData as String] = true
     query[kSecMatchLimit as String] = kSecMatchLimitOne
     var result: CFTypeRef?
@@ -190,20 +195,26 @@ final class ClientIdentityStore: @unchecked Sendable {
     return result as? Data
   }
 
-  private static func writeKeychain(account: String, data: Data) throws {
-    deleteKeychain(account: account)
-    var query = baseQuery(account: account)
-    query[kSecValueData as String] = data
+  /// Replaces the saved item in place, so a failure never loses the item
+  /// that was there before.
+  private static func writeKeychain(_ data: Data) throws {
     // Readable while locked so background refreshes keep working, but never
     // synced or restored onto another device.
-    query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-    let status = SecItemAdd(query as CFDictionary, nil)
+    let attributes: [String: Any] = [
+      kSecValueData as String: data,
+      kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+    ]
+    var status = SecItemUpdate(itemQuery as CFDictionary, attributes as CFDictionary)
+    if status == errSecItemNotFound {
+      let item = itemQuery.merging(attributes) { _, new in new }
+      status = SecItemAdd(item as CFDictionary, nil)
+    }
     guard status == errSecSuccess else {
       throw ClientIdentityError.keychain(status)
     }
   }
 
-  private static func deleteKeychain(account: String) {
-    SecItemDelete(baseQuery(account: account) as CFDictionary)
+  private static func deleteKeychain() {
+    SecItemDelete(itemQuery as CFDictionary)
   }
 }

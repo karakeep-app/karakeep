@@ -64,6 +64,13 @@ final class MutualTLSURLProtocol: URLProtocol, @unchecked Sendable {
     method_setImplementation(method, imp_implementationWithBlock(replacement))
   }
 
+  /// Drops connections made with the current identity. Call whenever the
+  /// identity or the server it belongs to changes: an open TLS connection
+  /// would otherwise keep being reused without a new certificate challenge.
+  static func resetConnections() {
+    MutualTLSSession.shared.reset()
+  }
+
   // MARK: - URLProtocol
 
   override class func canInit(with request: URLRequest) -> Bool {
@@ -86,9 +93,8 @@ final class MutualTLSURLProtocol: URLProtocol, @unchecked Sendable {
     }
     URLProtocol.setProperty(true, forKey: Self.handledKey, in: mutableRequest)
 
-    let task = MutualTLSSession.shared.session.dataTask(with: mutableRequest as URLRequest)
+    let task = MutualTLSSession.shared.makeTask(for: mutableRequest as URLRequest, proto: self)
     innerTask = task
-    MutualTLSSession.shared.register(self, for: task)
     task.resume()
   }
 
@@ -140,38 +146,60 @@ final class MutualTLSURLProtocol: URLProtocol, @unchecked Sendable {
   }
 }
 
-/// The session that actually performs claimed requests, shared so connections
-/// to the server are reused across requests.
+/// Owns the session that actually performs claimed requests. The session is
+/// shared so connections to the server are reused across requests.
 private final class MutualTLSSession: NSObject, URLSessionDataDelegate, @unchecked Sendable {
   static let shared = MutualTLSSession()
 
   private let lock = NSLock()
-  private var protocols: [Int: MutualTLSURLProtocol] = [:]
+  private var session: URLSession?
+  // Keyed by the task itself: identifiers are only unique within one
+  // session, and a reset can leave an old session finishing its tasks.
+  private var protocols: [ObjectIdentifier: MutualTLSURLProtocol] = [:]
 
-  private(set) lazy var session: URLSession = {
+  /// Creates a task for `request` and routes its events to `proto`.
+  func makeTask(for request: URLRequest, proto: MutualTLSURLProtocol) -> URLSessionDataTask {
+    lock.lock()
+    defer { lock.unlock() }
+    let task = currentSession().dataTask(with: request)
+    protocols[ObjectIdentifier(task)] = proto
+    return task
+  }
+
+  /// Retires the session, and with it any connection already authenticated
+  /// with the previous identity. Requests in flight are allowed to finish.
+  func reset() {
+    lock.lock()
+    let retired = session
+    session = nil
+    lock.unlock()
+    retired?.finishTasksAndInvalidate()
+  }
+
+  // Must be called with `lock` held.
+  private func currentSession() -> URLSession {
+    if let session {
+      return session
+    }
     let configuration = URLSessionConfiguration.default
     configuration.protocolClasses = configuration.protocolClasses?.filter {
       $0 != MutualTLSURLProtocol.self
     }
-    return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
-  }()
-
-  func register(_ proto: MutualTLSURLProtocol, for task: URLSessionTask) {
-    lock.lock()
-    protocols[task.taskIdentifier] = proto
-    lock.unlock()
+    let created = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+    session = created
+    return created
   }
 
   func unregister(_ task: URLSessionTask) {
     lock.lock()
-    protocols[task.taskIdentifier] = nil
+    protocols[ObjectIdentifier(task)] = nil
     lock.unlock()
   }
 
   private func proto(for task: URLSessionTask) -> MutualTLSURLProtocol? {
     lock.lock()
     defer { lock.unlock() }
-    return protocols[task.taskIdentifier]
+    return protocols[ObjectIdentifier(task)]
   }
 
   func urlSession(
