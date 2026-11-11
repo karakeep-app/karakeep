@@ -16,8 +16,14 @@ final class MutualTLSURLProtocol: URLProtocol, @unchecked Sendable {
   private static let handledKey = "app.karakeep.mtls.handled"
   nonisolated(unsafe) private static var installed = false
 
+  // `startLoading`/`stopLoading` run on the loading system's thread while the
+  // forwarding methods run on the inner session's queue, so this state is
+  // only touched under `stateLock`.
+  private let stateLock = NSLock()
   private var innerTask: URLSessionDataTask?
-  private var stopped = false
+  /// Set once nothing more may be reported to the client: after it stopped
+  /// us, or after we handed it a redirect.
+  private var finished = false
 
   // MARK: - Installation
 
@@ -94,17 +100,34 @@ final class MutualTLSURLProtocol: URLProtocol, @unchecked Sendable {
     URLProtocol.setProperty(true, forKey: Self.handledKey, in: mutableRequest)
 
     let task = MutualTLSSession.shared.makeTask(for: mutableRequest as URLRequest, proto: self)
+    stateLock.lock()
     innerTask = task
+    stateLock.unlock()
     task.resume()
   }
 
   override func stopLoading() {
-    stopped = true
-    if let task = innerTask {
+    if let task = finish() {
       MutualTLSSession.shared.unregister(task)
       task.cancel()
     }
+  }
+
+  /// Marks the request as over and hands back the inner task, if this call
+  /// is the one that ended it.
+  private func finish() -> URLSessionDataTask? {
+    stateLock.lock()
+    defer { stateLock.unlock() }
+    finished = true
+    let task = innerTask
     innerTask = nil
+    return task
+  }
+
+  private var isFinished: Bool {
+    stateLock.lock()
+    defer { stateLock.unlock() }
+    return finished
   }
 
   // MARK: - Forwarding from the inner session
@@ -114,6 +137,15 @@ final class MutualTLSURLProtocol: URLProtocol, @unchecked Sendable {
     newRequest: URLRequest,
     completionHandler: @escaping (URLRequest?) -> Void
   ) {
+    // End this request before telling anyone: cancelling the inner task
+    // below reports a cancellation error, which must not reach the client
+    // after the redirect has.
+    guard !isFinished, let task = finish() else {
+      completionHandler(nil)
+      return
+    }
+    MutualTLSSession.shared.unregister(task)
+
     // Hand the redirect to the original session, which decides whether to
     // follow it and re-issues the request (through us again, if it still
     // targets the server).
@@ -122,20 +154,26 @@ final class MutualTLSURLProtocol: URLProtocol, @unchecked Sendable {
       client?.urlProtocol(self, wasRedirectedTo: redirected as URLRequest, redirectResponse: response)
     }
     completionHandler(nil)
-    innerTask?.cancel()
+    task.cancel()
   }
 
   fileprivate func didReceive(response: URLResponse) {
+    guard !isFinished else {
+      return
+    }
     // The inner session already caches; don't store the response twice.
     client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
   }
 
   fileprivate func didReceive(data: Data) {
+    guard !isFinished else {
+      return
+    }
     client?.urlProtocol(self, didLoad: data)
   }
 
   fileprivate func didComplete(error: Error?) {
-    guard !stopped else {
+    guard !isFinished else {
       return
     }
     if let error {

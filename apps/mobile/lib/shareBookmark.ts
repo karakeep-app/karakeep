@@ -60,6 +60,9 @@ export async function shareBookmark(
           fileUri,
           {
             headers: buildApiHeaders(settings.apiKey, settings.customHeaders),
+            // Foreground: a background session can't present the TLS client
+            // certificate, and this download is awaited on screen anyway.
+            sessionType: FileSystem.FileSystemSessionType.FOREGROUND,
           },
         );
         if (downloadResult.status !== 200) {
