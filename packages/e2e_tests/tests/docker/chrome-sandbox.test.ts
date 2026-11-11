@@ -12,7 +12,8 @@ const composeDir = path.resolve(
 // Prints "<user namespace> <process type>" for each Chrome process, with
 // "browser" for the one that has no --type. Matching on the start of the
 // command line keeps this script (whose own command line mentions --type)
-// out of the results.
+// out of the results. A process that exits between the two reads is
+// skipped rather than printed with an empty namespace.
 const inspectScript = `
 for d in /proc/[0-9]*; do
   c=$(tr "\\0" " " < "$d/cmdline" 2>/dev/null)
@@ -20,8 +21,9 @@ for d in /proc/[0-9]*; do
     /opt/google/*|/usr/lib/chromium/*) ;;
     *) continue ;;
   esac
+  n=$(readlink "$d/ns/user" 2>/dev/null) || continue
   t=$(echo "$c" | grep -oE -- "--type=[a-z-]+" | head -n 1)
-  echo "$(readlink "$d/ns/user") \${t#--type=}"
+  echo "$n \${t#--type=}"
 done
 `;
 
@@ -54,6 +56,10 @@ describe("Chrome sandbox", () => {
 
     expect(browser.length).toBeGreaterThan(0);
     expect(renderers.length).toBeGreaterThan(0);
+    // Only compare namespaces that were actually read.
+    for (const p of processes) {
+      expect(p.userns, p.type).toMatch(/^user:\[\d+\]$/);
+    }
     // With --no-sandbox, every renderer shares the browser's namespace.
     const browserNamespaces = new Set(browser.map((p) => p.userns));
     for (const r of renderers) {
