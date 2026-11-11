@@ -26,10 +26,12 @@ function AISummary({
   bookmarkId,
   summary,
   readOnly = false,
+  canResummarize = true,
 }: {
   bookmarkId: string;
   summary: string;
   readOnly?: boolean;
+  canResummarize?: boolean;
 }) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -72,19 +74,21 @@ function AISummary({
             <span className="flex justify-end gap-0.5 pt-2">
               {!readOnly && (
                 <>
-                  <IconTooltip label={t("actions.resummarize")}>
-                    <ActionButton
-                      variant="ghost"
-                      size="none"
-                      spinner={<LoadingSpinner className="size-4" />}
-                      className={ICON_CONTROL_CLASS}
-                      aria-label={t("actions.resummarize")}
-                      loading={isResummarizing}
-                      onClick={() => resummarize({ bookmarkId })}
-                    >
-                      <RefreshCw className="size-4" />
-                    </ActionButton>
-                  </IconTooltip>
+                  {canResummarize && (
+                    <IconTooltip label={t("actions.resummarize")}>
+                      <ActionButton
+                        variant="ghost"
+                        size="none"
+                        spinner={<LoadingSpinner className="size-4" />}
+                        className={ICON_CONTROL_CLASS}
+                        aria-label={t("actions.resummarize")}
+                        loading={isResummarizing}
+                        onClick={() => resummarize({ bookmarkId })}
+                      >
+                        <RefreshCw className="size-4" />
+                      </ActionButton>
+                    </IconTooltip>
+                  )}
                   <IconTooltip label={t("actions.delete_summary")}>
                     <ActionButton
                       variant="ghost"
@@ -142,19 +146,20 @@ export default function SummarizeBookmarkArea({
   });
 
   const clientConfig = useClientConfig();
-  if (bookmark.content.type !== BookmarkTypes.LINK) {
-    return null;
-  }
-
   if (bookmark.summary) {
     return (
       <AISummary
         bookmarkId={bookmark.id}
         summary={bookmark.summary}
         readOnly={readOnly}
+        canResummarize={bookmark.content.type === BookmarkTypes.LINK}
       />
     );
-  } else if (!clientConfig.inference.isConfigured || readOnly) {
+  } else if (
+    bookmark.content.type !== BookmarkTypes.LINK ||
+    !clientConfig.inference.isConfigured ||
+    readOnly
+  ) {
     return null;
   } else {
     return (
