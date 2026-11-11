@@ -1315,10 +1315,14 @@ const downloadAndStoreBanner = traced(
         serverConfig.crawler.bannerDownloadTimeoutSec,
       ),
     };
+    // Only a timeout during the download counts as one: the timer keeps
+    // running afterwards, and a later storage error must keep its own message.
+    let downloaded = false;
     try {
       const banner = url.startsWith("data:")
         ? decodeDataUriImage(ctx, url)
         : await fetchImage(bannerCtx, url);
+      downloaded = true;
       if (!banner) {
         return null;
       }
@@ -1341,7 +1345,11 @@ const downloadAndStoreBanner = traced(
         size: toStore.image.byteLength,
       };
     } catch (e) {
-      if (bannerCtx.abortSignal.aborted && !ctx.abortSignal.aborted) {
+      if (
+        !downloaded &&
+        bannerCtx.abortSignal.aborted &&
+        !ctx.abortSignal.aborted
+      ) {
         ctx.log.warn(
           `Skipping the banner image: the download didn't finish within ${serverConfig.crawler.bannerDownloadTimeoutSec}s`,
         );
