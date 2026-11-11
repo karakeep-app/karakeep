@@ -72,7 +72,7 @@ jobs:
   tests:
     # Pinned because ubuntu-latest now resolves to Ubuntu 26.04, where
     # `playwright install --with-deps` (Playwright 1.59) has no packages and fails.
-    # Move back to ubuntu-latest once the e2e Playwright is 1.61 or newer.
+    # Move back to ubuntu-latest once the e2e Playwright is 1.61 or newer (#3315).
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4.3.1
