@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import UploadDropzone from "@/components/dashboard/UploadDropzone";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
+import { useBookmarkDisplaySettings } from "@/lib/userLocalSettings/bookmarksLayout";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 import type {
@@ -13,11 +14,12 @@ import { BookmarkGridContextProvider } from "@karakeep/shared-react/hooks/bookma
 import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import BookmarksGrid from "./BookmarksGrid";
+import EditorCard from "./EditorCard";
 
 export default function UpdatableBookmarksGrid({
   query,
   bookmarks: initialBookmarks,
-  showEditorCard = false,
+  showEditorCard: canCreateBookmarks = false,
 }: {
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is handled by the store
   bookmarks: ZGetBookmarksResponse;
@@ -25,6 +27,9 @@ export default function UpdatableBookmarksGrid({
   itemsPerPage?: number;
 }) {
   const api = useTRPC();
+  const { showNewItemCard } = useBookmarkDisplaySettings();
+  const [editorDialogOpen, setEditorDialogOpen] = useState(false);
+  const showEditorDialog = canCreateBookmarks && !showNewItemCard;
   let sortOrder = useSortOrderStore((state) => state.sortOrder);
   if (sortOrder === "relevance") {
     // Relevance is not supported in the `getBookmarks` endpoint.
@@ -59,13 +64,28 @@ export default function UpdatableBookmarksGrid({
       hasNextPage={hasNextPage}
       fetchNextPage={fetchNextPage}
       isFetchingNextPage={isFetchingNextPage}
-      showEditorCard={showEditorCard}
+      showEditorCard={canCreateBookmarks && showNewItemCard}
+      keyboardNavigationDisabled={showEditorDialog && editorDialogOpen}
     />
   );
 
   return (
     <BookmarkGridContextProvider query={finalQuery}>
-      {showEditorCard ? <UploadDropzone>{grid}</UploadDropzone> : grid}
+      {canCreateBookmarks ? (
+        <UploadDropzone>
+          {grid}
+          {showEditorDialog && (
+            <EditorCard
+              dialog={{
+                open: editorDialogOpen,
+                onOpenChange: setEditorDialogOpen,
+              }}
+            />
+          )}
+        </UploadDropzone>
+      ) : (
+        grid
+      )}
     </BookmarkGridContextProvider>
   );
 }

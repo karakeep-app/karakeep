@@ -1,6 +1,12 @@
 import type { SubmitErrorHandler, SubmitHandler } from "react-hook-form";
-import React, { useImperativeHandle, useRef } from "react";
+import React, { useRef } from "react";
 import { ActionButton } from "@/components/ui/action-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Form, FormControl, FormItem } from "@/components/ui/form";
 import { Kbd } from "@/components/ui/kbd";
 import MultipleChoiceDialog from "@/components/ui/multiple-choice-dialog";
@@ -30,9 +36,16 @@ interface MultiUrlImportState {
   text: string;
 }
 
-export default function EditorCard({ className }: { className?: string }) {
+export default function EditorCard({
+  className,
+  dialog,
+}: {
+  className?: string;
+  dialog?: { open: boolean; onOpenChange: (open: boolean) => void };
+}) {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inDialog = dialog !== undefined;
 
   const [multiUrlImportState, setMultiUrlImportState] =
     React.useState<MultiUrlImportState | null>(null);
@@ -48,11 +61,18 @@ export default function EditorCard({ className }: { className?: string }) {
       text: "",
     },
   });
-  const { ref, ...textFieldProps } = form.register("text");
-  useImperativeHandle(ref, () => inputRef.current);
-  useHotkeys("mod+e", () => {
-    inputRef.current?.focus();
-  });
+  const { ref: registerText, ...textFieldProps } = form.register("text");
+  useHotkeys(
+    "mod+e",
+    () => {
+      if (dialog) {
+        dialog.onOpenChange(true);
+      } else {
+        inputRef.current?.focus();
+      }
+    },
+    { preventDefault: true },
+  );
 
   const { mutate, isPending } = useCreateBookmarkWithPostHook({
     onSuccess: (resp) => {
@@ -185,25 +205,33 @@ export default function EditorCard({ className }: { className?: string }) {
 
   const OS = getOS();
 
-  return (
+  const editor = (
     <Form {...form}>
       <form
         className={cn(
           className,
-          "relative flex flex-col gap-2 rounded-xl bg-card p-4",
-          cardHeight,
+          "relative flex flex-col gap-2",
+          inDialog ? "min-h-36" : "rounded-xl bg-card p-4",
+          !inDialog && cardHeight,
         )}
         onSubmit={form.handleSubmit(onSubmit, onError)}
       >
-        <div className="flex justify-between">
-          <p className="text-sm">{t("editor.new_item")}</p>
-          <Kbd>⌘ + E</Kbd>
-        </div>
-        <Separator />
+        {!inDialog && (
+          <>
+            <div className="flex justify-between">
+              <p className="text-sm">{t("editor.new_item")}</p>
+              <Kbd>⌘ + E</Kbd>
+            </div>
+            <Separator />
+          </>
+        )}
         <FormItem className="flex-1">
           <FormControl>
             <Textarea
-              ref={inputRef}
+              ref={(element) => {
+                inputRef.current = element;
+                registerText(element);
+              }}
               disabled={isPending}
               className={cn(
                 "h-full w-full border-none p-0 text-base font-light shadow-none focus-visible:ring-0 dark:bg-transparent md:text-base",
@@ -295,5 +323,20 @@ export default function EditorCard({ className }: { className?: string }) {
         )}
       </form>
     </Form>
+  );
+
+  if (!dialog) {
+    return editor;
+  }
+
+  return (
+    <Dialog open={dialog.open} onOpenChange={dialog.onOpenChange}>
+      <DialogContent aria-describedby={undefined}>
+        <DialogHeader>
+          <DialogTitle>{t("editor.new_item")}</DialogTitle>
+        </DialogHeader>
+        {editor}
+      </DialogContent>
+    </Dialog>
   );
 }
