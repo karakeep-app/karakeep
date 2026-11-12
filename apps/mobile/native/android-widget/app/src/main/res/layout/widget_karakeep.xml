@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
+    android:background="@drawable/widget_background" android:padding="12dp">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="8dp">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical"
+            android:layout_alignParentStart="true" android:layout_centerVertical="true" android:layout_toStartOf="@id/widget_refresh_btn">
+            <TextView android:id="@+id/widget_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Karakeep" android:textSize="16sp" android:textStyle="bold" android:textColor="@color/widget_text_primary" />
+            <TextView android:id="@+id/widget_subtitle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="-is:archived" android:textSize="11sp" android:textColor="@color/widget_text_secondary" android:maxLines="1" android:ellipsize="end" />
+        </LinearLayout>
+        <ImageView android:id="@+id/widget_refresh_btn" android:layout_width="28dp" android:layout_height="28dp" android:layout_alignParentEnd="true" android:layout_centerVertical="true" android:src="@android:drawable/ic_popup_sync" android:contentDescription="Refresh" android:padding="4dp" android:scaleType="centerInside" android:tint="@color/widget_text_secondary" />
+    </RelativeLayout>
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/widget_divider" />
+    <ListView android:id="@+id/widget_list_view" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp" android:divider="@android:color/transparent" android:dividerHeight="4dp" />
+    <TextView android:id="@+id/widget_empty_text" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="No bookmarks found" android:textSize="13sp" android:textColor="@color/widget_text_secondary" android:visibility="gone" />
+</LinearLayout>
