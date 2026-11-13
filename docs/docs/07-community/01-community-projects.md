@@ -140,3 +140,11 @@ This is a server-side implementation that targets the internal tRPC API used by 
 :::
 
 Get it [here](https://github.com/gowinder/karaclone) (AGPL-3.0).
+
+### Karakeep for StartOS
+
+_By [@Jolls](https://github.com/Jolls)_
+
+A package for running Karakeep on [StartOS](https://start9.com), the self-hosting server OS by Start9. It runs the web app, Meilisearch, and headless Chrome as one service, with StartOS handling installation, updates, and backups. Install it from the StartOS Community registry.
+
+Get it [here](https://github.com/Start9-Community/karakeep-startos).
