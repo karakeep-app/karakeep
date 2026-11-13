@@ -18,6 +18,11 @@ const { title, description = DEFAULT_DESCRIPTION } = Astro.props;
 const fullTitle = title ? `${title} | Karakeep` : DEFAULT_TITLE;
 const canonicalPath = `${Astro.url.pathname.replace(/\/+$/, "")}/`;
 const url = `${BASE_URL}${canonicalPath}`;
+
+const OG_IMAGE = `${BASE_URL}/og-image.jpg`;
+const OG_IMAGE_SQUARE = `${BASE_URL}/og-image-square.jpg`;
+const OG_IMAGE_ALT =
+  "Karakeep, the Bookmark Everything App, with bookmarks tagged by AI";
 ---
 
 <!doctype html>
@@ -37,29 +42,39 @@ const url = `${BASE_URL}${canonicalPath}`;
     <meta property="og:url" content={url} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta
-      property="og:image"
-      content="https://karakeep.com/opengraph-image.png"
-    />
-    <meta property="og:image:type" content="image/png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta
-      property="og:image:alt"
-      content="Karakeep bookmark manager app screenshot"
-    />
+    <meta property="og:image" content={OG_IMAGE} />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:alt" content={OG_IMAGE_ALT} />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />
-    <meta
-      name="twitter:image"
-      content="https://karakeep.com/twitter-image.png"
-    />
-    <meta
-      name="twitter:image:alt"
-      content="Karakeep bookmark manager app screenshot"
+    <meta name="twitter:image" content={OG_IMAGE} />
+    <meta name="twitter:image:alt" content={OG_IMAGE_ALT} />
+
+    <!-- Google's search thumbnail is a square crop, so point it at an image
+         made for that shape instead of letting it crop the wide one. -->
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "@id": `${url}#webpage`,
+        url,
+        name: fullTitle,
+        description,
+        primaryImageOfPage: {
+          "@type": "ImageObject",
+          url: OG_IMAGE_SQUARE,
+          width: 2400,
+          height: 2400,
+        },
+        image: [OG_IMAGE_SQUARE, OG_IMAGE],
+      })}
     />
 
     <!--
