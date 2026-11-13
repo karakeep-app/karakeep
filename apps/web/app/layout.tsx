@@ -6,11 +6,12 @@ import "@karakeep/tailwind-config/globals.css";
 
 import type { Viewport } from "next";
 import React from "react";
+import { Toaster } from "@/components/ui/sonner";
 import Providers from "@/lib/providers";
+import { THEME_COLORS } from "@/lib/themeColors";
 import { getUserLocalSettings } from "@/lib/userLocalSettings/userLocalSettings";
 import { getServerAuthSession } from "@/server/auth";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { Toaster } from "sonner";
 
 import { clientConfig } from "@karakeep/shared/config";
 
@@ -23,21 +24,13 @@ export const metadata: Metadata = {
   title: "Karakeep",
   applicationName: "Karakeep",
   description:
-    "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI.",
+    "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged with AI.",
   icons: {
+    // No media queries: crawlers (e.g. Google's favicon fetcher) skip icons
+    // that are conditional on one. favicon.svg adapts to dark mode itself.
     icon: [
-      {
-        url: "/icons/logo-icon.svg",
-        type: "image/svg+xml",
-        sizes: "any",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icons/logo-icon-dark.svg",
-        type: "image/svg+xml",
-        sizes: "any",
-        media: "(prefers-color-scheme: dark)",
-      },
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     apple: "/apple-icon.png",
   },
@@ -56,12 +49,11 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   // Values match the `--background` token in tooling/tailwind/globals.css.
-  // These follow the OS color scheme only. An in-app theme override via
-  // next-themes is not reflected here, so chrome can differ from the page
-  // when a user picks a theme opposite to their system preference.
+  // These cover the pre-hydration and no-JavaScript cases; once mounted,
+  // <ThemeColorSync /> updates them to follow an in-app theme override.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#020817" },
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
   ],
 };
 
@@ -88,8 +80,8 @@ export default async function RootLayout({
           >
             {children}
             <ReactQueryDevtools initialIsOpen={false} />
+            <Toaster />
           </Providers>
-          <Toaster />
         </NuqsAdapter>
       </body>
     </html>

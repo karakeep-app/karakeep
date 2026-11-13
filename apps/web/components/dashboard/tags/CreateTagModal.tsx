@@ -91,7 +91,7 @@ export function CreateTagModal() {
     >
       <DialogTrigger asChild>
         <Button variant="outline" className="bg-background">
-          <Plus className="mr-2 size-4" />
+          <Plus className="size-4" />
           {t("tags.create_tag")}
         </Button>
       </DialogTrigger>

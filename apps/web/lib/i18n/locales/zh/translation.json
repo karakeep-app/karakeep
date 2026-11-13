@@ -59,9 +59,9 @@
     "unfavorite": "取消收藏",
     "delete": "删除",
     "refresh": "刷新",
-    "download_full_page_archive": "下载完整页面归档",
     "edit_tags": "编辑标签",
     "add_to_list": "添加到列表",
+    "select": "选择",
     "select_all": "全选",
     "unselect_all": "取消全选",
     "copy_link": "复制链接",
@@ -96,6 +96,7 @@
     "load_more": "加载更多",
     "edit_notes": "编辑备注",
     "preserve_as_pdf": "另存为 PDF",
+    "preserve_video": "保存视频",
     "offline_copies": "离线副本",
     "preserve_offline_archive": "保留离线存档",
     "download_full_page_archive_file": "下载存档文件",
@@ -341,7 +342,45 @@
       "broken_links": "失效链接",
       "last_crawled_at": "最后抓取时间",
       "crawling_status": "抓取状态",
-      "crawling_failed": "抓取失败"
+      "crawling_failed": "抓取失败",
+      "description": "查看无法获取的链接，重试抓取或删除旧书签。",
+      "category_all": "需要处理",
+      "category_blocked": "访问被阻止",
+      "category_missing": "未找到",
+      "category_errors": "其他错误",
+      "category_all_hint": "待检查的链接",
+      "category_blocked_hint": "受限或被限流",
+      "category_missing_hint": "页面不存在或已被移除",
+      "category_errors_hint": "服务器错误或抓取失败",
+      "blocked_hint": "请求被阻止并不一定意味着链接已失效。有些网站会限制自动访问。删除前请先打开原始页面确认。",
+      "search": "按标题或 URL 搜索…",
+      "sort_recent": "最近检查",
+      "sort_oldest": "最早检查优先",
+      "sort_domain": "网站 A–Z",
+      "result_count_other": "{{count}} 个待检查的链接",
+      "retry_selected": "重试所选",
+      "empty": "未发现失效链接",
+      "empty_description": "你保存的链接目前都没有报告抓取错误。",
+      "select_visible": "选择所有可见链接",
+      "bookmark": "书签",
+      "issue": "问题",
+      "never_crawled": "无抓取日期",
+      "issue_blocked": "访问被阻止",
+      "issue_missing": "未找到",
+      "issue_server": "服务器错误",
+      "issue_http": "HTTP 错误",
+      "issue_failed": "抓取失败",
+      "issue_blocked_hint": "该网站限制了此请求",
+      "issue_missing_hint": "该页面可能已被移除",
+      "issue_server_hint": "该网站无法完成请求",
+      "issue_http_hint": "该网站返回了意外的响应",
+      "issue_failed_hint": "没有记录到成功的响应",
+      "queued": "已排队",
+      "queued_count_other": "已将 {{count}} 个链接加入重新抓取队列。",
+      "deleted_count_other": "已删除 {{count}} 个书签。",
+      "action_failed": "{{total}} 个中有 {{count}} 个失败。",
+      "delete_title_other": "删除 {{count}} 个书签？",
+      "delete_description": "这将永久删除所选书签及其保存的文件、高亮和笔记。此操作无法撤销。"
     },
     "webhooks": {
       "edit_webhook": "修改网络钩子",
@@ -466,7 +505,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "按小时统计的活动",
-        "activity_by_day": "每日活动"
+        "activity_by_day": "每日活动",
+        "busiest_around": "最活跃时段：{{hour}} 左右"
       },
       "storage_breakdown": {
         "title": "存储细分"
@@ -517,10 +557,8 @@
       "progress": "进度",
       "status": {
         "pending": "待定",
-        "in_progress": "正在进行",
         "completed": "已完成",
         "failed": "失败",
-        "processing": "正在处理",
         "staging": "正在暂存",
         "running": "正在运行",
         "paused": "已暂停",
@@ -616,6 +654,19 @@
         "backup_queued": "备份任务已加入队列！很快就会处理。",
         "backup_deleted": "备份已删除！"
       }
+    },
+    "maintenance": {
+      "clear_filters": "清除筛选",
+      "clear_selection": "清除选择",
+      "delete_selected": "删除所选",
+      "try_again": "重试",
+      "sort": "排序方式",
+      "no_matches": "未找到匹配项",
+      "adjust_filters": "请尝试其他搜索或清除筛选。",
+      "select_item": "选择 {{name}}",
+      "selected": "已选择 {{count}} 项",
+      "showing": "显示 {{shown}} / {{total}}",
+      "load_more": "加载更多"
     }
   },
   "admin": {
@@ -628,18 +679,6 @@
     },
     "background_jobs": {
       "background_jobs": "后台任务",
-      "crawler_jobs": "爬虫任务",
-      "indexing_jobs": "索引任务",
-      "inference_jobs": "推理任务",
-      "tidy_assets_jobs": "整理资产任务",
-      "job": "任务",
-      "queued": "已排队",
-      "pending": "待处理",
-      "failed": "失败",
-      "feed_jobs": "RSS 订阅作业",
-      "video_jobs": "视频下载作业",
-      "webhook_jobs": "Webhook 作业",
-      "asset_preprocessing_jobs": "资源预处理作业",
       "jobs": {
         "crawler": {
           "title": "爬虫任务",
@@ -656,10 +695,6 @@
         "asset_preprocessing": {
           "title": "资源预处理任务",
           "description": "图片和文档预处理（截图、文本提取等）"
-        },
-        "tidy_assets": {
-          "title": "整理资源任务",
-          "description": "资源清理和存储优化"
         },
         "video": {
           "title": "视频下载任务",
@@ -719,18 +754,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "仅为失败的书签重新生成嵌入",
         "regenerate_embeddings_for_all_bookmarks": "为所有书签重新生成嵌入"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "仅重新抓取失败链接",
-      "recrawl_all_links": "重新抓取所有链接",
-      "without_inference": "无推理",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "仅为失败书签重新生成AI标签",
-      "regenerate_ai_tags_for_all_bookmarks": "为所有书签重新生成AI标签",
-      "reindex_all_bookmarks": "重新索引所有书签",
-      "compact_assets": "压缩资产",
-      "reprocess_assets_fix_mode": "重新处理资产(固定模式)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "仅为失败的书签重新生成 AI 摘要",
-      "regenerate_ai_summaries_for_all_bookmarks": "为所有书签重新生成 AI 摘要"
     },
     "users_list": {
       "users_list": "用户列表",
@@ -799,8 +822,10 @@
     }
   },
   "options": {
+    "theme": "主题",
     "dark_mode": "暗模式",
     "light_mode": "亮模式",
+    "system_mode": "跟随系统",
     "apps_extensions": "应用与扩展",
     "documentation": "文档",
     "follow_us_on_x": "在 X 上关注我们"
@@ -936,6 +961,9 @@
     "view_original": "查看原文",
     "cached_content": "缓存内容",
     "reader_view": "阅读器视图",
+    "page_overview": "页面概览",
+    "try_reader_view": "试试阅读器视图",
+    "archived_page": "已归档页面",
     "tabs": {
       "content": "内容",
       "details": "详情"
@@ -949,7 +977,6 @@
     "continue_button": "继续"
   },
   "editor": {
-    "quickly_focus": "您可以按⌘ + E快速聚焦到此字段",
     "multiple_urls_dialog_title": "将URL导入为单独的书签？",
     "multiple_urls_dialog_desc": "输入包含多行上的多个URL。您要将它们作为单独的书签导入吗？",
     "import_as_text": "作为文本书签导入",
@@ -1016,6 +1043,7 @@
       "delete_from_list": "书签已从列表中删除",
       "clipboard_copied": "链接已添加到您的剪贴板！",
       "preserve_pdf": "已触发 PDF 保存",
+      "preserve_video": "已触发视频下载",
       "update_banner": "横幅已更新！",
       "uploading_banner": "正在上传横幅..."
     },
@@ -1046,6 +1074,10 @@
     "is_not_archived": "未存档",
     "has_any_tag": "有任何标签",
     "has_no_tags": "没有标签",
+    "has_notes": "有笔记",
+    "has_no_notes": "没有笔记",
+    "has_highlights": "有高亮",
+    "has_no_highlights": "没有高亮",
     "is_in_any_list": "在任何列表里",
     "is_not_in_any_list": "不在任何列表里",
     "created_on_or_after": "创建于或晚于",

@@ -21,6 +21,7 @@ export function useCreateBookmarkList(
       ...opts,
       onSuccess: (res, req, meta, context) => {
         queryClient.invalidateQueries(api.lists.list.pathFilter());
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -40,6 +41,7 @@ export function useEditBookmarkList(
         queryClient.invalidateQueries(
           api.lists.get.queryFilter({ listId: req.listId }),
         );
+        queryClient.invalidateQueries(api.lists.stats.pathFilter());
         if (res.type === "smart") {
           queryClient.invalidateQueries(
             api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),

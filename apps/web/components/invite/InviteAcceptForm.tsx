@@ -15,12 +15,14 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { signIn } from "@/lib/auth/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -30,14 +32,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { PASSWORD_MIN_LENGTH } from "@karakeep/shared/types/users";
+
+import { humanAuthErrors } from "../signin/authFormErrors";
 
 const inviteAcceptSchema = z
   .object({
     name: z.string().min(1, "Name is required"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters"),
+    password: z.string().min(PASSWORD_MIN_LENGTH),
+    confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -53,7 +56,12 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
   const router = useRouter();
 
   const form = useForm<z.infer<typeof inviteAcceptSchema>>({
-    resolver: zodResolver(inviteAcceptSchema),
+    resolver: zodResolver(inviteAcceptSchema, humanAuthErrors),
+    defaultValues: {
+      name: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -62,7 +70,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     isPending: loading,
     data: inviteData,
     error,
-  } = useQuery(api.invites.get.queryOptions({ token }));
+  } = useQuery(api.invites.get.queryOptions({ token }, { retry: false }));
 
   useEffect(() => {
     if (error) {
@@ -82,8 +90,8 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
-            Loading Invitation
+          <CardTitle className="text-xl font-semibold">
+            Loading invitation
           </CardTitle>
           <CardDescription>
             Please wait while we verify your invitation...
@@ -102,8 +110,8 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
-            Invalid Invitation
+          <CardTitle className="text-xl font-semibold">
+            Invalid invitation
           </CardTitle>
           <CardDescription>
             This invitation link is not valid or has been removed.
@@ -122,7 +130,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
           )}
 
           <Button onClick={handleBackToSignIn} className="w-full">
-            Back to Sign In
+            Back to sign in
           </Button>
         </CardContent>
       </Card>
@@ -133,8 +141,8 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
     return (
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
-            Invitation Expired
+          <CardTitle className="text-xl font-semibold">
+            Invitation expired
           </CardTitle>
           <CardDescription>
             This invitation link has expired and is no longer valid.
@@ -156,7 +164,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
             variant="outline"
             className="w-full"
           >
-            Back to Sign In
+            Back to sign in
           </Button>
         </CardContent>
       </Card>
@@ -166,8 +174,8 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">
-          Accept Your Invitation
+        <CardTitle className="text-xl font-semibold">
+          Accept your invitation
         </CardTitle>
         <CardDescription>
           Complete your account setup to join Karakeep
@@ -188,6 +196,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
 
         <Form {...form}>
           <form
+            noValidate
             // POST so a submit before hydration doesn't put the password in the URL.
             method="post"
             onSubmit={form.handleSubmit(async (value) => {
@@ -235,7 +244,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Full name</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
@@ -251,16 +260,21 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
+                      autoComplete="new-password"
                       placeholder="Create a password"
                       {...field}
                     />
                   </FormControl>
+                  {!fieldState.error && (
+                    <FormDescription>
+                      Use at least {PASSWORD_MIN_LENGTH} characters
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -271,10 +285,10 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>Confirm password</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
+                      autoComplete="new-password"
                       placeholder="Confirm your password"
                       {...field}
                     />
@@ -293,11 +307,11 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
             >
               {form.formState.isSubmitting || acceptInviteMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating account...
                 </>
               ) : (
-                "Create Account & Sign In"
+                "Create account and sign in"
               )}
             </ActionButton>
 
@@ -307,7 +321,7 @@ export default function InviteAcceptForm({ token }: InviteAcceptFormProps) {
               onClick={handleBackToSignIn}
               className="w-full"
             >
-              Back to Sign In
+              Back to sign in
             </Button>
           </form>
         </Form>

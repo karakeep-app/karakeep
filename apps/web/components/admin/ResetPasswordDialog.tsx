@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,7 +8,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
@@ -32,17 +32,21 @@ import { resetPasswordSchema } from "@karakeep/shared/types/admin";
 
 interface ResetPasswordDialogProps {
   userId: string;
-  children?: React.ReactNode;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onCloseAutoFocus?: (e: Event) => void;
 }
 
 type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPasswordDialog({
-  children,
   userId,
+  open: isOpen,
+  setOpen: onOpenChange,
+  onCloseAutoFocus,
 }: ResetPasswordDialogProps) {
+  const { t } = useTranslation();
   const api = useTRPC();
-  const [isOpen, onOpenChange] = useState(false);
   const form = useForm<ResetPasswordSchema>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
@@ -83,10 +87,9 @@ export default function ResetPasswordDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
-          <DialogTitle>Reset Password</DialogTitle>
+          <DialogTitle>{t("admin.users_list.reset_password")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((val) => mutate(val))}>
@@ -96,11 +99,11 @@ export default function ResetPasswordDialog({
                 name="newPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>New Password</FormLabel>
+                    <FormLabel>{t("settings.info.new_password")}</FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="New Password"
+                        placeholder={t("settings.info.new_password")}
                         {...field}
                         className="w-full rounded border p-2"
                       />
@@ -114,11 +117,13 @@ export default function ResetPasswordDialog({
                 name="newPasswordConfirm"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm New Password</FormLabel>
+                    <FormLabel>
+                      {t("settings.info.confirm_new_password")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Confirm New Password"
+                        placeholder={t("settings.info.confirm_new_password")}
                         {...field}
                         className="w-full rounded border p-2"
                       />

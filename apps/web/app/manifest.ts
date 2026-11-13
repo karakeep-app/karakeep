@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Karakeep",
     short_name: "Karakeep",
     description:
-      "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged AI.",
+      "The Bookmark Everything app. Hoard links, notes, and images and they will get automatically tagged with AI.",
     background_color: "#ffffff",
     theme_color: "#ffffff",
     start_url: "/",

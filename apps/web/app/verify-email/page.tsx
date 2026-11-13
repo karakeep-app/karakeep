@@ -113,8 +113,8 @@ export default function VerifyEmailPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">
-            Email Verification
+          <CardTitle className="text-xl font-semibold">
+            Email verification
           </CardTitle>
           <CardDescription>
             {status === "loading" && "Verifying your email address..."}
@@ -140,7 +140,7 @@ export default function VerifyEmailPage() {
                 </AlertDescription>
               </Alert>
               <Button onClick={handleSignIn} className="w-full">
-                {isMobileRedirect ? "Open App" : "Sign In"}
+                {isMobileRedirect ? "Open app" : "Sign in"}
               </Button>
             </>
           )}
@@ -155,8 +155,8 @@ export default function VerifyEmailPage() {
                   {message}
                 </AlertDescription>
               </Alert>
-              {email && (
-                <div className="space-y-2">
+              <div className="space-y-2">
+                {email && (
                   <Button
                     onClick={handleResendEmail}
                     variant="outline"
@@ -165,22 +165,22 @@ export default function VerifyEmailPage() {
                   >
                     {resendEmailMutation.isPending ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         Sending...
                       </>
                     ) : (
-                      "Resend Verification Email"
+                      "Resend verification email"
                     )}
                   </Button>
-                  <Button
-                    onClick={handleSignIn}
-                    variant="ghost"
-                    className="w-full"
-                  >
-                    Back to Sign In
-                  </Button>
-                </div>
-              )}
+                )}
+                <Button
+                  onClick={handleSignIn}
+                  variant="ghost"
+                  className="w-full"
+                >
+                  Back to sign in
+                </Button>
+              </div>
             </>
           )}
         </CardContent>

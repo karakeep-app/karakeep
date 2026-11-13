@@ -1,0 +1,71 @@
+---
+id: get-tag
+title: "Get a single tag"
+description: "Retrieve a single tag by its ID, including the number of bookmarks using it."
+sidebar_label: "Get a single tag"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVtuO2zYQ/ZUB85IYWntTpEighwJOc8E2eQgSL4pis4DH4lhiTJEKOdq1YwjoR/QL+yXFULLX63XTAu2TbM5weDhn5gy3yjcUkI13F1rlqiSeYakypSkWwTRiULn6SBwM3RAgRONKS8BYwmIDhiNcvMrAuMK22rgSuCJwbb2gAH4JC+9XNYZVhFY2guGxyhRjGVV+pWbyvc5UpKINhjcqv9qqBWGgMG25UvnVdXedqQYD1sQUYnKIRUU1qnyreNOQylXkYNxD0LOKoHXma0tgNDk2S9ODEoiMpSChNdaNlSCGjLbrTVnffnnx3K+//VitmX3xQuAaTi4zLC+06jIV6GtrAmmVc2gpUw5rsXOyZ8rI6Q1ypQR9oNh4FykK4h/Oz+XzEKiEpMikU2ZvDVfQRiwJIiObyKaIgrfwjsmxxMCmsaZI1E2+RAl0IjV+8YUKVplqghDNpodh9MP0dbt7nDK09csdkwcOPc/HDi83U2YsKtKz5PZPYNCcDFm1NboTlq67x8CVXGaAfgT0u7Cu7/E6hH12/vQhPZcOW658MN9Iw5+//5Hq52WqUmC/IgcmQm2iFLh0wg1aozPwAWjdCMgj4pjWPGksmtOU7av5rjYPEeyRPjtRSFiC8wxL37rjU/9LuRRen6iL436bQo1FZRydBUKNC0tAIfgAsn0slNYUpab/TajE/nGgYf9YHZdAAngX/4Db17Ix5Sydz5UfZE4uKS2aq4nI0WSburdTokbhZqc1bbAqV1vUOlCM3QQbM7l5qjJ1g8EIsr6Ce3NPyBJbyypXFXMT88mEw2a8woAromaMTXNSp4YIO3V6N/hDj0XwH8jkJ6GtP/lQLPdJlZPlHslN5YOTyoYfb3yoURD+8ussZdK4pZftcuse0tPx+fj8QPn2eKYfLh7g3xtNlPlAdnlW+ciJt53+i/aj0yCEnhk+s8gU0u1MQWOYVSZKbEBr/W2EjW+BPdToRAL3QyQDayLHTDQyZlCZsrKmrGQFY6T0dRoWWKzaJkITfBmwrpFNgdZuxp/dZ/foEUi6ZB703SCLU2uBnG68cRxhqCzA+13eyBkajEsUzadDS6Ygc6gINYUx/OZbKNBBSU4GKwG6dLMVbWAZfH2f31tawOUFtE5TgNHoEzEbV0b4Ke15R5s4Gu1gf8DSuD3k9ybyAebYNo0PDEUbog9nCxSozX4H3BiEeW+cpyTNrakNz+FrS2EDdyNWyJBx1A+tYbCTMDt3tOafhxBLQ7ZXQ0kLGAaMfV52h+xDCpNL4qLq3wa0ZgFGY5jC3LXWzuEGbUuw9OH+GcZp4YhSYOEjEDgPtQ8JYGs57nKzU3kQbY+yuNf9xMaCwDvq2ysQgXRKzD+7MxiNrHGr0SjdZQqXH9/v660fwz7VOVooAt5a0lATo0bGcb9d5Hy/Pck6yJIIMQ0uqTh3Pg7axnrUpGFpLMFjU0uR+wAfXr15knSy8ZGH4Tc8Ld4S33t7HTfh9k7q//fHWi8qB1Ory3pd3A4KetU/6DKV9y+g60yJAIhhu5VKvAy262Q5FZs86+4ENMmsNlF+a5Uv0Ub6zuUefxxk/wn8HbZhEd0m6bRt5Z/K1Io2+0dady0vjNSyCUBvmxYFNXyw68HQFBneT5G3r2cqU3hffI/ENkU/iWi77T1mIi5ddwdQ/gvArvsLHy8NAA==
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a single tag"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/tags/{tagId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve a single tag by its ID, including the number of bookmarks using it.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the tag.","example":"ieidlxygmwj87oxz5hxttoc8","title":"TagId"},"required":true,"name":"tagId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The requested tag with usage statistics.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"numBookmarks":{"type":"number"},"numBookmarksByAttachedType":{"type":"object","properties":{"ai":{"type":"number"},"human":{"type":"number"}}}},"required":["id","name","numBookmarks","numBookmarksByAttachedType"],"title":"Tag"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Tag not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

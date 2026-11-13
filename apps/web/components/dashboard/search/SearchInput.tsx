@@ -222,16 +222,20 @@ const SearchInput = React.forwardRef<
             {t("actions.save")}
           </Button>
         ) : null}
-        <Link
-          href="https://docs.karakeep.app/Guides/search-query-language"
-          target="_blank"
-          className="flex size-7 shrink-0 items-center justify-center rounded-md stroke-foreground transition-colors hover:bg-background/80"
-        >
-          <QueryExplainerTooltip
-            parsedSearchQuery={parsedValue}
-            className="text-muted-foreground"
-          />
-        </Link>
+        {/* The explainer shows nothing for an empty query, which would leave an
+            empty link that only shows up as a dark square on hover */}
+        {parsedValue.result !== "invalid" && (
+          <Link
+            href="https://docs.karakeep.com/Guides/search-query-language"
+            target="_blank"
+            className="flex size-7 shrink-0 items-center justify-center rounded-md stroke-foreground transition-colors hover:bg-background/80"
+          >
+            <QueryExplainerTooltip
+              parsedSearchQuery={parsedValue}
+              className="text-muted-foreground"
+            />
+          </Link>
+        )}
         {semanticSearchEnabled ? (
           <SearchModeSelector
             value={searchMode}
@@ -289,7 +293,7 @@ const SearchInput = React.forwardRef<
                           }}
                           className="cursor-pointer"
                         >
-                          <item.Icon className="mr-2 h-4 w-4" />
+                          <item.Icon className="h-4 w-4" />
                           <span>{item.label}</span>
                         </CommandItem>
                       );
@@ -302,7 +306,7 @@ const SearchInput = React.forwardRef<
                         onSelect={() => handleSuggestionSelect(item)}
                         className="cursor-pointer"
                       >
-                        <item.Icon className="mr-2 h-4 w-4" />
+                        <item.Icon className="h-4 w-4" />
                         <div className="flex flex-col">
                           <span>{item.label}</span>
                           {item.description && (

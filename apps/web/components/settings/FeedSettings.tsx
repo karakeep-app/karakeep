@@ -11,6 +11,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  setServerFormErrors,
+  useFormErrors,
 } from "@/components/ui/form";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Input } from "@/components/ui/input";
@@ -24,10 +26,9 @@ import {
   ArrowDownToLine,
   CheckCircle,
   CircleDashed,
-  CirclePlus,
-  Edit,
+  Pencil,
   Plus,
-  Save,
+  Rss,
   Trash2,
   XCircle,
 } from "lucide-react";
@@ -42,9 +43,18 @@ import {
 } from "@karakeep/shared/types/feeds";
 
 import ActionConfirmingDialog from "../ui/action-confirming-dialog";
-import { Button, buttonVariants } from "../ui/button";
+import { Button } from "../ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogFooter,
@@ -53,6 +63,8 @@ import {
   DialogTrigger,
 } from "../ui/dialog";
 import {
+  StackedLabel,
+  stackedTable,
   Table,
   TableBody,
   TableCell,
@@ -60,8 +72,16 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { RowActionsMenu } from "./RowActions";
 import { SettingsPage, SettingsSection } from "./SettingsPage";
+
+function useFeedFormErrors() {
+  const { t } = useTranslation();
+  return useFormErrors({
+    name: t("settings.feeds.name_error"),
+    url: t("settings.feeds.url_error"),
+  });
+}
 
 export function FeedsEditorDialog() {
   const api = useTRPC();
@@ -70,7 +90,7 @@ export function FeedsEditorDialog() {
   const queryClient = useQueryClient();
 
   const form = useForm({
-    resolver: zodResolver(zNewFeedSchema),
+    resolver: zodResolver(zNewFeedSchema, useFeedFormErrors()),
     defaultValues: {
       name: "",
       url: "",
@@ -85,109 +105,120 @@ export function FeedsEditorDialog() {
     }
   }, [open]);
 
-  const { mutateAsync: createFeed, isPending: isCreating } = useMutation(
+  const { mutate: createFeed, isPending: isCreating } = useMutation(
     api.feeds.create.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Feed has been created!",
+          description: t("settings.feeds.feed_created"),
         });
         queryClient.invalidateQueries(api.feeds.list.pathFilter());
         setOpen(false);
       },
+      onError: (e) => {
+        if (!setServerFormErrors(form, e)) {
+          toast({ variant: "destructive", description: e.message });
+        }
+      },
     }),
   );
+  const onSubmit = form.handleSubmit((value) => createFeed(value));
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <CirclePlus className="mr-2 size-4" />
+          <Plus className="size-4" />
           {t("settings.feeds.add_a_subscription")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Subscribe to a new Feed</DialogTitle>
+          <DialogTitle>{t("settings.feeds.add_a_subscription")}</DialogTitle>
         </DialogHeader>
-        <Form {...form}>
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={form.handleSubmit(async (value) => {
-              await createFeed(value);
-              form.resetField("name");
-              form.resetField("url");
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex-1">
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Feed Name" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex-1">
-                    <FormLabel>URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Feed URL" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="importTags"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Import Tags</FormLabel>
-                      <div className="text-sm text-muted-foreground">
-                        Automatically import categories from RSS feed as tags
+        <DialogBody>
+          <Form {...form}>
+            <form
+              noValidate
+              className="flex flex-col gap-3"
+              onSubmit={onSubmit}
+            >
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex-1">
+                      <FormLabel>{t("common.name")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          autoFocus
+                          placeholder={t("settings.feeds.name_placeholder")}
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex-1">
+                      <FormLabel>{t("common.url")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://example.com/feed.xml"
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="importTags"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex flex-row items-center justify-between gap-3 rounded-lg border p-3">
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <FormLabel>{t("settings.feeds.import_tags")}</FormLabel>
+                        <div className="text-[13px] leading-[18px] text-muted-foreground">
+                          {t("settings.feeds.import_tags_description")}
+                        </div>
                       </div>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value ?? false}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                );
-              }}
-            />
-          </form>
-        </Form>
+                      <FormControl>
+                        <Switch
+                          checked={field.value ?? false}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+            </form>
+          </Form>
+        </DialogBody>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Close
+            <Button type="button" variant="outline">
+              {t("actions.cancel")}
             </Button>
           </DialogClose>
           <ActionButton
-            onClick={form.handleSubmit(async (value) => {
-              await createFeed(value);
-            })}
+            onClick={onSubmit}
             loading={isCreating}
             variant="default"
             className="items-center"
           >
-            <Plus className="mr-2 size-4" />
-            Add
+            {t("settings.feeds.create_subscription")}
           </ActionButton>
         </DialogFooter>
       </DialogContent>
@@ -195,11 +226,18 @@ export function FeedsEditorDialog() {
   );
 }
 
-export function EditFeedDialog({ feed }: { feed: ZFeed }) {
+export function EditFeedDialog({
+  feed,
+  open,
+  setOpen,
+}: {
+  feed: ZFeed;
+  open: boolean;
+  setOpen: (open: boolean) => void;
+}) {
   const api = useTRPC();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [open, setOpen] = React.useState(false);
   React.useEffect(() => {
     if (open) {
       form.reset({
@@ -210,19 +248,24 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
       });
     }
   }, [open]);
-  const { mutateAsync: updateFeed, isPending: isUpdating } = useMutation(
+  const { mutate: updateFeed, isPending: isUpdating } = useMutation(
     api.feeds.update.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Feed has been updated!",
+          description: t("settings.feeds.feed_updated"),
         });
         setOpen(false);
         queryClient.invalidateQueries(api.feeds.list.pathFilter());
       },
+      onError: (e) => {
+        if (!setServerFormErrors(form, e)) {
+          toast({ variant: "destructive", description: e.message });
+        }
+      },
     }),
   );
   const form = useForm<z.infer<typeof zUpdateFeedSchema>>({
-    resolver: zodResolver(zUpdateFeedSchema),
+    resolver: zodResolver(zUpdateFeedSchema, useFeedFormErrors()),
     defaultValues: {
       feedId: feed.id,
       name: feed.name,
@@ -230,115 +273,114 @@ export function EditFeedDialog({ feed }: { feed: ZFeed }) {
       importTags: feed.importTags,
     },
   });
+  const onSubmit = form.handleSubmit((value) => updateFeed(value));
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button variant="ghost">
-              <Edit className="size-4" />
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>{t("actions.edit")}</TooltipContent>
-      </Tooltip>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit Feed</DialogTitle>
+          <DialogTitle>{t("settings.feeds.edit_feed")}</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form
-            className="flex flex-col gap-3"
-            onSubmit={form.handleSubmit(async (value) => {
-              await updateFeed(value);
-            })}
-          >
-            <FormField
-              control={form.control}
-              name="feedId"
-              render={({ field }) => {
-                return (
-                  <FormItem className="hidden">
-                    <FormControl>
-                      <Input type="hidden" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex-1">
-                    <FormLabel>{t("common.name")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Feed name" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="url"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex-1">
-                    <FormLabel>{t("common.url")}</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Feed url" type="text" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
-            <FormField
-              control={form.control}
-              name="importTags"
-              render={({ field }) => {
-                return (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Import Tags</FormLabel>
-                      <div className="text-sm text-muted-foreground">
-                        Automatically import categories from RSS feed as tags
+        <DialogBody>
+          <Form {...form}>
+            <form
+              noValidate
+              className="flex flex-col gap-3"
+              onSubmit={onSubmit}
+            >
+              <FormField
+                control={form.control}
+                name="feedId"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="hidden">
+                      <FormControl>
+                        <Input type="hidden" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex-1">
+                      <FormLabel>{t("common.name")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder={t("settings.feeds.name_placeholder")}
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="url"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex-1">
+                      <FormLabel>{t("common.url")}</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://example.com/feed.xml"
+                          type="text"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+              <FormField
+                control={form.control}
+                name="importTags"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="flex flex-row items-center justify-between gap-3 rounded-lg border p-3">
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <FormLabel>{t("settings.feeds.import_tags")}</FormLabel>
+                        <div className="text-[13px] leading-[18px] text-muted-foreground">
+                          {t("settings.feeds.import_tags_description")}
+                        </div>
                       </div>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
-                );
-              }}
-            />
-          </form>
-        </Form>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
+              />
+            </form>
+          </Form>
+        </DialogBody>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              {t("actions.close")}
+            <Button type="button" variant="outline">
+              {t("actions.cancel")}
             </Button>
           </DialogClose>
-          <ActionButton
-            loading={isUpdating}
-            onClick={form.handleSubmit(async (value) => {
-              await updateFeed(value);
-            })}
-            type="submit"
-            className="items-center"
-          >
-            <Save className="mr-2 size-4" />
-            {t("actions.save")}
-          </ActionButton>
+          {form.formState.isDirty && (
+            <ActionButton
+              loading={isUpdating}
+              onClick={onSubmit}
+              type="submit"
+              className="items-center"
+            >
+              {t("actions.save")}
+            </ActionButton>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -349,11 +391,13 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
   const api = useTRPC();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const { mutate: deleteFeed, isPending: isDeleting } = useMutation(
     api.feeds.delete.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Feed has been deleted!",
+          description: t("settings.feeds.feed_deleted"),
         });
         queryClient.invalidateQueries(api.feeds.list.pathFilter());
       },
@@ -364,7 +408,7 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
     api.feeds.fetchNow.mutationOptions({
       onSuccess: () => {
         toast({
-          description: "Feed fetch has been enqueued!",
+          description: t("settings.feeds.fetch_enqueued"),
         });
         queryClient.invalidateQueries(api.feeds.list.pathFilter());
       },
@@ -395,75 +439,98 @@ export function FeedRow({ feed }: { feed: ZFeed }) {
   };
 
   return (
-    <TableRow>
-      <TableCell>
+    <TableRow className={stackedTable.row}>
+      <TableCell className={stackedTable.primaryCell}>
         <Link
           href={`/dashboard/feeds/${feed.id}`}
-          className={cn(buttonVariants({ variant: "link" }))}
+          className="font-medium underline-offset-4 hover:underline"
         >
           {feed.name}
         </Link>
       </TableCell>
       <TableCell
-        className="max-w-64 overflow-clip text-ellipsis"
+        className={cn(stackedTable.cell, "max-w-full truncate lg:max-w-64")}
         title={feed.url}
       >
         {feed.url}
       </TableCell>
-      <TableCell>
-        <FormattedDate date={feed.lastFetchedAt} />
+      <TableCell className={stackedTable.cell}>
+        <StackedLabel>{t("settings.feeds.last_fetch")}</StackedLabel>
+        {feed.lastFetchedAt ? <FormattedDate date={feed.lastFetchedAt} /> : "—"}
       </TableCell>
-      <TableCell>
+      <TableCell className={stackedTable.cell}>
         {feed.lastFetchedStatus === "success" ? (
-          <span title="Successful">
-            <CheckCircle />
+          <span className="inline-flex items-center gap-1.5">
+            <CheckCircle className="size-4 text-green-500" />
+            {t("settings.feeds.status_success")}
           </span>
         ) : feed.lastFetchedStatus === "failure" ? (
-          <span title="Failed">
-            <XCircle />
+          <span className="inline-flex items-center gap-1.5">
+            <XCircle className="size-4 text-red-500" />
+            {t("settings.feeds.status_failed")}
           </span>
         ) : (
-          <span title="Pending">
-            <CircleDashed name="Pending" />
+          <span className="inline-flex items-center gap-1.5">
+            <CircleDashed className="size-4 text-muted-foreground" />
+            {t("settings.feeds.status_pending")}
           </span>
         )}
       </TableCell>
-      <TableCell className="flex items-center gap-2">
-        <Switch checked={feed.enabled} onCheckedChange={handleToggle} />
-        <EditFeedDialog feed={feed} />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ActionButton
-              loading={isFetching}
-              variant="ghost"
-              className="items-center"
-              onClick={() => fetchNow({ feedId: feed.id })}
-            >
-              <ArrowDownToLine className="size-4" />
-            </ActionButton>
-          </TooltipTrigger>
-          <TooltipContent>{t("actions.fetch_now")}</TooltipContent>
-        </Tooltip>
-        <ActionConfirmingDialog
-          title={`Delete Feed "${feed.name}"?`}
-          description={`Are you sure you want to delete the feed "${feed.name}"?`}
-          actionButton={() => (
-            <ActionButton
-              loading={isDeleting}
-              variant="destructive"
-              onClick={() => deleteFeed({ feedId: feed.id })}
-              className="items-center"
-              type="button"
-            >
-              <Trash2 className="mr-2 size-4" />
-              {t("actions.delete")}
-            </ActionButton>
-          )}
-        >
-          <Button variant="ghostDestructive" disabled={isDeleting}>
-            <Trash2 className="size-4" />
-          </Button>
-        </ActionConfirmingDialog>
+      <TableCell className={stackedTable.actionsCell}>
+        <div className="flex items-center gap-1">
+          <Switch
+            className="me-1"
+            checked={feed.enabled}
+            onCheckedChange={handleToggle}
+            aria-label={t("settings.feeds.feed_enabled_toggle", {
+              name: feed.name,
+            })}
+          />
+          <EditFeedDialog feed={feed} open={editOpen} setOpen={setEditOpen} />
+          <ActionConfirmingDialog
+            open={deleteOpen}
+            setOpen={setDeleteOpen}
+            title={t("common.delete_named", { name: feed.name })}
+            description={t("settings.feeds.delete_description", {
+              name: feed.name,
+            })}
+            actionButton={() => (
+              <ActionButton
+                loading={isDeleting}
+                variant="destructive"
+                onClick={() => deleteFeed({ feedId: feed.id })}
+                className="items-center"
+                type="button"
+              >
+                <Trash2 className="size-4" />
+                {t("actions.delete")}
+              </ActionButton>
+            )}
+          />
+          <RowActionsMenu
+            label={t("common.actions_for", { name: feed.name })}
+            items={[
+              {
+                label: t("actions.edit"),
+                icon: <Pencil className="size-4" />,
+                onSelect: () => setEditOpen(true),
+              },
+              {
+                label: t("actions.fetch_now"),
+                icon: <ArrowDownToLine className="size-4" />,
+                disabled: isFetching,
+                onSelect: () => fetchNow({ feedId: feed.id }),
+              },
+              {
+                label: t("actions.delete"),
+                icon: <Trash2 className="size-4" />,
+                destructive: true,
+                disabled: isDeleting,
+                onSelect: () => setDeleteOpen(true),
+              },
+            ]}
+          />
+        </div>
       </TableCell>
     </TableRow>
   );
@@ -473,37 +540,50 @@ export default function FeedSettings() {
   const api = useTRPC();
   const { t } = useTranslation();
   const { data: feeds, isLoading } = useQuery(api.feeds.list.queryOptions());
+  const isEmpty = feeds?.feeds.length === 0;
   return (
     <SettingsPage
       title={t("settings.feeds.rss_subscriptions")}
-      action={<FeedsEditorDialog />}
+      description={t("settings.feeds.page_description")}
+      action={isEmpty ? undefined : <FeedsEditorDialog />}
     >
-      <SettingsSection>
-        {isLoading && <FullPageSpinner />}
-        {feeds && feeds.feeds.length == 0 && (
-          <p className="rounded-md bg-muted p-3 text-center text-sm text-muted-foreground">
-            You don&apos;t have any RSS subscriptions yet.
-          </p>
-        )}
-        {feeds && feeds.feeds.length > 0 && (
-          <Table>
-            <TableHeader>
+      {isLoading && <FullPageSpinner />}
+      {isEmpty && (
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Rss />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.feeds.no_feeds")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.feeds.no_feeds_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>{<FeedsEditorDialog />}</EmptyContent>
+        </Empty>
+      )}
+      {feeds && feeds.feeds.length > 0 && (
+        <SettingsSection>
+          <Table inCard className={stackedTable.table}>
+            <TableHeader className={stackedTable.header}>
               <TableRow>
                 <TableHead>{t("common.name")}</TableHead>
                 <TableHead>{t("common.url")}</TableHead>
-                <TableHead>Last Fetch</TableHead>
-                <TableHead>Last Status</TableHead>
-                <TableHead>{t("common.actions")}</TableHead>
+                <TableHead>{t("settings.feeds.last_fetch")}</TableHead>
+                <TableHead>{t("settings.feeds.last_status")}</TableHead>
+                <TableHead>
+                  <span className="sr-only">{t("common.actions")}</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className={stackedTable.body}>
               {feeds.feeds.map((feed) => (
                 <FeedRow key={feed.id} feed={feed} />
               ))}
             </TableBody>
           </Table>
-        )}
-      </SettingsSection>
+        </SettingsSection>
+      )}
     </SettingsPage>
   );
 }

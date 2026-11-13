@@ -15,27 +15,34 @@ import CredentialsForm from "./CredentialsForm";
 import OAuthAutoRedirect from "./OAuthAutoRedirect";
 import SignInProviderButton from "./SignInProviderButton";
 
-export default async function SignInForm() {
+export default async function SignInForm({
+  redirectUrl,
+}: {
+  redirectUrl: string;
+}) {
   const providerValues = oauthProviders;
 
   return (
     <div className="w-full">
       {/* Auto-redirect to OAuth provider if configured */}
       {providerValues && providerValues.length > 0 && (
-        <OAuthAutoRedirect oauthProviderId={providerValues[0].id} />
+        <OAuthAutoRedirect
+          oauthProviderId={providerValues[0].id}
+          redirectUrl={redirectUrl}
+        />
       )}
       <Card className="w-full">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <CardTitle className="text-xl font-semibold">Welcome back</CardTitle>
           <CardDescription>Sign in to your Karakeep account</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {serverConfig.demoMode && (
             <Alert>
-              <Info className="h-4 w-4" />
+              <Info className="size-4" />
               <AlertDescription>
                 <div className="space-y-1">
-                  <p className="font-semibold">Demo Mode</p>
+                  <p className="font-semibold">Demo mode</p>
                   <p>Email: {serverConfig.demoMode.email}</p>
                   <p>Password: {serverConfig.demoMode.password}</p>
                 </div>
@@ -43,20 +50,21 @@ export default async function SignInForm() {
             </Alert>
           )}
 
-          <CredentialsForm />
+          <CredentialsForm redirectUrl={redirectUrl} />
 
           {providerValues && providerValues.length > 0 && (
             <>
               <div className="flex w-full items-center">
-                <div className="flex-1 grow border-t border-gray-200"></div>
-                <span className="bg-white px-3 text-sm text-gray-500">Or</span>
-                <div className="flex-1 grow border-t border-gray-200"></div>
+                <div className="flex-1 grow border-t"></div>
+                <span className="px-3 text-sm text-muted-foreground">Or</span>
+                <div className="flex-1 grow border-t"></div>
               </div>
               <div className="space-y-2">
                 {providerValues.map((provider) => (
                   <SignInProviderButton
                     key={provider.id}
                     provider={{ id: provider.id, name: provider.name }}
+                    redirectUrl={redirectUrl}
                   />
                 ))}
               </div>

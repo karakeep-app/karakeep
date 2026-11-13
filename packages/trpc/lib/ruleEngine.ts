@@ -1,4 +1,4 @@
-import deepEql from "deep-equal";
+import { isDeepStrictEqual } from "node:util";
 import { and, eq } from "drizzle-orm";
 
 import { db as globalDb, DB } from "@karakeep/db";
@@ -95,7 +95,7 @@ export class RuleEngine {
     ) {
       return ruleEvent.listIds.includes(event.listId);
     }
-    return deepEql(ruleEvent, event, { strict: true });
+    return isDeepStrictEqual(ruleEvent, event);
   }
 
   /**
@@ -305,7 +305,7 @@ export class RuleEngine {
         const payload = {
           bookmarkId: this.bookmark.id,
           archiveFullPage: true,
-          runInference: false,
+          offlineCopiesOnly: true,
         };
         await LowPriorityCrawlerQueue.enqueue(payload, {
           groupId: this.bookmark.userId,

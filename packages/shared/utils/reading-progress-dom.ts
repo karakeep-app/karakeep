@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 /**
  * Reading Progress Utilities
  *
@@ -185,6 +187,10 @@ function getReadingPositionWithViewport(
   let topParagraph: Element | null = null;
 
   for (const paragraph of paragraphs) {
+    // An empty paragraph has no text to take an offset from
+    if (!paragraph.textContent?.trim()) {
+      continue;
+    }
     const rect = paragraph.getBoundingClientRect();
 
     // If this paragraph's top is at or below the viewport top, it's our target

@@ -7,6 +7,7 @@ import {
   useBookmarkLayout,
   useGridColumns,
 } from "@/lib/userLocalSettings/bookmarksLayout";
+import { cn } from "@/lib/utils";
 import tailwindConfig from "@/tailwind.config";
 import Masonry from "react-masonry-css";
 import resolveConfig from "tailwindcss/resolveConfig";
@@ -28,17 +29,44 @@ function getBreakpointConfig(userColumns: number) {
   return breakpointColumnsObj;
 }
 
-function BookmarkCardSkeleton({ height }: { height: string }) {
+function GridCardSkeleton({ imageHeight }: { imageHeight: string }) {
   return (
-    <div className="mb-4 border border-border bg-card p-4">
-      <div className="space-y-3">
-        <Skeleton className={`w-full ${height}`} />
-        <div className="flex items-center space-x-2">
-          <Skeleton className="h-4 w-4 rounded-full" />
-          <Skeleton className="h-3 w-24" />
-        </div>
+    <div className="mb-4 overflow-hidden rounded-lg border border-border bg-card">
+      <Skeleton className={cn("w-full rounded-none", imageHeight)} />
+      <div className="space-y-3 p-3">
         <Skeleton className="h-4 w-3/4" />
+        <div className="flex gap-1">
+          <Skeleton className="h-5 w-12 rounded-full" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+        <Skeleton className="h-3 w-1/2" />
       </div>
+    </div>
+  );
+}
+
+function ListRowSkeleton() {
+  return (
+    <div className="mb-3 flex gap-4 rounded-lg border border-border bg-card p-3 sm:mb-2">
+      <Skeleton className="size-20 shrink-0 rounded-md sm:size-24" />
+      <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 py-1">
+        <Skeleton className="h-4 w-3/4" />
+        <div className="flex gap-1">
+          <Skeleton className="h-5 w-12 rounded-full" />
+          <Skeleton className="h-5 w-16 rounded-full" />
+        </div>
+        <Skeleton className="h-3 w-1/3" />
+      </div>
+    </div>
+  );
+}
+
+function CompactRowSkeleton() {
+  return (
+    <div className="flex h-10 items-center gap-2 px-3">
+      <Skeleton className="size-4 shrink-0 rounded-sm" />
+      <Skeleton className="h-3.5 flex-1" />
+      <Skeleton className="hidden h-3 w-24 sm:block" />
     </div>
   );
 }
@@ -54,18 +82,7 @@ export default function BookmarksGridSkeleton({
     () => getBreakpointConfig(gridColumns),
     [gridColumns],
   );
-
-  const children = Array.from({ length: count }, (_, i) => (
-    <BookmarkCardSkeleton
-      key={i}
-      height={bookmarkLayoutSwitch(layout, {
-        masonry: "h-48",
-        grid: "h-48",
-        list: "h-32",
-        compact: "h-4",
-      })}
-    />
-  ));
+  const items = Array.from({ length: count }, (_, i) => i);
 
   return bookmarkLayoutSwitch(layout, {
     masonry: (
@@ -74,7 +91,9 @@ export default function BookmarksGridSkeleton({
         columnClassName="pl-4"
         breakpointCols={breakpointConfig}
       >
-        {children}
+        {items.map((i) => (
+          <GridCardSkeleton key={i} imageHeight="h-40" />
+        ))}
       </Masonry>
     ),
     grid: (
@@ -83,10 +102,24 @@ export default function BookmarksGridSkeleton({
         columnClassName="pl-4"
         breakpointCols={breakpointConfig}
       >
-        {children}
+        {items.map((i) => (
+          <GridCardSkeleton key={i} imageHeight="h-40" />
+        ))}
       </Masonry>
     ),
-    list: <div className="grid grid-cols-1">{children}</div>,
-    compact: <div className="grid grid-cols-1">{children}</div>,
+    list: (
+      <div className="grid grid-cols-1">
+        {items.map((i) => (
+          <ListRowSkeleton key={i} />
+        ))}
+      </div>
+    ),
+    compact: (
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+        {items.map((i) => (
+          <CompactRowSkeleton key={i} />
+        ))}
+      </div>
+    ),
   });
 }

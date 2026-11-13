@@ -2,13 +2,6 @@ import fs from "fs";
 import * as os from "os";
 import path from "path";
 import { execa } from "execa";
-import { workerStatsCounter } from "metrics";
-import {
-  getProxyAgent,
-  resolveValidatedRedirectUrl,
-  selectRunProxies,
-} from "network";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
@@ -28,6 +21,13 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
+import { workerStatsCounter } from "../metrics";
+import {
+  getProxyAgent,
+  resolveValidatedRedirectUrl,
+  selectRunProxies,
+} from "../network";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 import { getBookmarkDetails, updateAsset } from "../workerUtils";
 
 const TMP_FOLDER = path.join(os.tmpdir(), "video_downloads");
@@ -100,7 +100,7 @@ function prepareYtDlpArguments(
 
 async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const jobId = job.id;
-  const { bookmarkId } = job.data;
+  const { bookmarkId, onDemand } = job.data;
   addLogFields<"videoWorker.run">({ "bookmark.id": bookmarkId });
 
   const {
@@ -109,7 +109,10 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     videoAssetId: oldVideoAssetId,
   } = await getBookmarkDetails(bookmarkId);
 
-  if (!serverConfig.crawler.downloadVideo) {
+  const downloadEnabled = onDemand
+    ? serverConfig.crawler.downloadVideoOnDemand
+    : serverConfig.crawler.downloadVideo;
+  if (!downloadEnabled) {
     logger.info(
       `[VideoCrawler][${jobId}] Skipping video download from "${url}", because it is disabled in the config.`,
     );

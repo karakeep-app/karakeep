@@ -1,0 +1,71 @@
+---
+id: delete-list
+title: "Delete a list"
+description: "Delete a list. This removes the list only — bookmarks within it are not deleted."
+sidebar_label: "Delete a list"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1VlFv2zYQ/isH9qU1FDsdOrTQwwBnSYGsxRC0CYYhNeCzeLZYUyRLUo5VQ8B+xH7hfslwlCzbadbtZU9xyOPdd9/dfaedsI48RmXNtRS5kKQp0nsVosiEpFB45fhS5OIyXQGCViGO4bZUATxVdkMBYknpGKzRDfz1x5+wsHZdoV8HeFCxVAZUBPQExkbogsixyETEVRD5veCIQcwyEaiovYqNyO93YkHoyU/rWIr8ftbOMuHQY0WRfEgGoSipQpHvRGwciVyE6JVZfYP9tiSojfpSEyhJJqqlIg92OQBnLLTFymn2okhJvW1W1cPnN6/t9uuP5TZGW7xhwComEwZ8LUWbCU9fauVJijz6mjJhsGID3RlkQjEAh7EUnICn4KwJFBj0D+ev+M8p1l8tFNZEMjEROVD7gGHPHIS6KCiEZa11M2YQr85ffuvpzmAdS+vVV5KDr4vEKUS7JgMqQKVCUGaVgTIb1EpmYD3Q1nFKzEqPJXFM2zhxGjmj73F/IPIYgWjbNiF9ImdmM7XG0tbmcVh0Tqsi9ejkc7BPB7eLz1Rw0zrPHR1Vx3BhJf17e0yhwqJUhs48ocSFJiDvrQd+nvitKARc/SdXZV2heeyofz8W7UnH3HcAD/5nhw674oeJtBQ/lvYwoJwnd1QuJtwbYbLr2q0VPEF+s5+P2muRix1K6SmEdoJOTTYvRSY26BXDSyT1111ZlljrKHJRxuhCPplE34zX6HFN5Mbo3JOz1XvYT9S73h46LJzE0Wh/5Np1kY8HfGCWI3MeyUzkvZHI+h9vra+QEf7y222iU5ml5eecdQfp5fh8fH40rAOe6c31N/iHSxUAIZBenpU2xFS8vYopswI0EriqZyqeaYzkU3aqoF4LpzfXgFrbhwCNrSFaqNDg6uAkZGmQQwasehmUalVqtSr5BEOg9NdIWGCxrl0A5+3KY1VhVAXyoH8yn8yzZ8B0sYZ1I8GHU62BjHRWmciinNoL8HTWHceQoEwq0XzaD2ZyMoeSUJIfw++2hgINrMjwXiBAkzJbUwNLb6vT+j7QAu6uoTaSPIxGHylGZVYBfkpv3lETRqM97BtcKTNAThN/wBxq56yPUNQ+WH+2QIbqhhewUQjz7nKeSJprVak4hy81+QYOa4GLQbBXWVCm0LUkruzc0Db+3LtYKtKdJjItaTl1W2wIMrjkSi4pFmW6ZycMjMYwhbmptZ7DBnVNsLT+NIYykmvUrUeuR1p/UFmfANY6hj03F32LwG3jKPDhxbA/uRoLAmuoGy9PBDwpIf9kzmA00sqsR6OUyxTuPrwf+i1tXrCpz1FD4fFBk4SKIkqMOO6es6gPz5O4Ax+xGlNvkppzb2OgdtqiJAlLpQmeq4qb3Hq4uXz7IomlsyFWmHS6X4Yn3w6PJ3B3EPv/6SOj05Wj9dVmnTTuehm9T+s6iEzk/d6eZYJVgK92O27HO6/blo9Tx/H3yEFFk9ZKFfi3FPkSdaDvJPn8Q78AXsA/oesP0TRJrHXN/4lMrKk5fFu0szYT3eAmBN3ltCjIxaNnx55nR6vk8ur91e2VyASe6u8jvU2un8Sz23UWt6wvbTvAS3rD6Nr2b2ZfomE=
+sidebar_class_name: "delete api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete a list"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/lists/{listId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Delete a list. This removes the list only — bookmarks within it are not deleted.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the list.","example":"ieidlxygmwj87oxz5hxttoc8","title":"ListId"},"required":true,"name":"listId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No content — the list was deleted successfully."},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"List not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

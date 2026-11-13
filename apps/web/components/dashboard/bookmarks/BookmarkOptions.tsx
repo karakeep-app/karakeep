@@ -1,7 +1,15 @@
 "use client";
 
 import { ChangeEvent, Fragment, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,25 +20,36 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSession } from "@/lib/auth/client";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { useClientConfig } from "@/lib/clientConfig";
 import useUpload from "@/lib/hooks/upload-file";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useTranslation } from "@/lib/i18n/client";
+import { cn } from "@/lib/utils";
 import {
-  HardDriveDownload,
-  Circle,
   Download,
   FileDown,
   FileText,
+  FileVideo,
+  HardDriveDownload,
   ImagePlus,
   Link,
   List,
   ListX,
+  Maximize2,
   MoreHorizontal,
   Pencil,
   RotateCw,
+  Square,
   SquarePen,
+  Tag,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -47,18 +66,28 @@ import {
 import { useBookmarkGridContext } from "@karakeep/shared-react/hooks/bookmark-grid-context";
 import { useBookmarkListContext } from "@karakeep/shared-react/hooks/bookmark-list-context";
 import {
+  usePreserveBookmarkVideo,
+  usePreserveOfflineCopy,
   useRecrawlBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
 import { useRemoveBookmarkFromList } from "@karakeep/shared-react/hooks/lists";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { getAssetUrl } from "@karakeep/shared/utils/assetUtils";
+import { getBookmarkDisplayTitle } from "@karakeep/shared/utils/bookmarkUtils";
 
+import { BOTTOM_SHEET_CLASS } from "../header/toolbarButton";
 import { BookmarkedTextEditor } from "./BookmarkedTextEditor";
 import DeleteBookmarkConfirmationDialog from "./DeleteBookmarkConfirmationDialog";
 import { EditBookmarkDialog } from "./EditBookmarkDialog";
-import { ArchivedActionIcon, FavouritedActionIcon } from "./icons";
+import {
+  ArchivedActionIcon,
+  CARD_ICON_BUTTON_CLASS,
+  FavouritedActionIcon,
+} from "./icons";
 import { useManageListsModal } from "./ManageListsModal";
+import { useTagModal } from "./TagModal";
+import { useArchiveBookmarkWithUndo } from "./useArchiveBookmarkWithUndo";
 
 interface ActionItem {
   id: string;
@@ -67,6 +96,7 @@ interface ActionItem {
   visible: boolean;
   disabled: boolean;
   variant?: "destructive";
+  // The key that does the same on the grid
   onClick: () => void;
 }
 
@@ -87,12 +117,138 @@ function isSubsectionItem(item: ActionItemType): item is SubsectionItem {
   return "items" in item;
 }
 
-export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
+function SheetAction({
+  item,
+  onSelect,
+}: {
+  item: ActionItem;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={item.disabled}
+      className={cn(
+        "flex min-h-11 w-full items-center gap-2 rounded-sm px-2 text-left text-sm outline-none transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-inset focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
+        item.variant === "destructive" &&
+          "text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20 [&_svg]:text-destructive",
+      )}
+      onClick={() => {
+        onSelect();
+        item.onClick();
+      }}
+    >
+      {item.icon}
+      <span className="min-w-0">{item.title}</span>
+    </button>
+  );
+}
+
+/**
+ * A phone's card menu, which doesn't fit on the screen as a dropdown: it's opened
+ * at the top of the screen, far from its button, with the end of it out of sight.
+ * This has every action in reach, with deleting in a fixed place at the end.
+ */
+function BookmarkOptionsSheet({
+  bookmark,
+  groups,
+  onCloseAutoFocus,
+  trigger,
+}: {
+  bookmark: ZBookmark;
+  groups: ActionItemType[][];
+  onCloseAutoFocus: () => void;
+  trigger: React.ReactNode;
+}) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+  const isPinned = (item: ActionItemType) => item.id === "delete";
+  const pinned = groups.flat().filter(isPinned) as ActionItem[];
+  const scrolling = groups
+    .map((group) => group.filter((item) => !isPinned(item)))
+    .filter((group) => group.length > 0);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent
+        className={BOTTOM_SHEET_CLASS}
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
+        <DialogTitle className="truncate py-2 pl-2 pr-12 text-base">
+          {getBookmarkDisplayTitle(bookmark) ?? t("common.untitled")}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {t("actions.more_options")}
+        </DialogDescription>
+        <div className="-mx-2 min-h-0 flex-1 overflow-y-auto overscroll-contain px-2">
+          {scrolling.map((group, i) => (
+            <Fragment key={i}>
+              {i > 0 && <div className="mx-2 my-1 border-t" />}
+              {group.map((item) =>
+                isSubsectionItem(item) ? (
+                  <Fragment key={item.id}>
+                    <h3 className="px-2 pb-1 pt-2 text-xs font-medium text-muted-foreground">
+                      {item.title}
+                    </h3>
+                    {item.items
+                      .filter((subItem) => subItem.visible)
+                      .map((subItem) => (
+                        <SheetAction
+                          key={subItem.id}
+                          item={subItem}
+                          onSelect={close}
+                        />
+                      ))}
+                  </Fragment>
+                ) : (
+                  <SheetAction key={item.id} item={item} onSelect={close} />
+                ),
+              )}
+            </Fragment>
+          ))}
+        </div>
+        {pinned.length > 0 && (
+          <div className="mt-1 shrink-0 border-t pt-1">
+            {pinned.map((item) => (
+              <SheetAction key={item.id} item={item} onSelect={close} />
+            ))}
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export default function BookmarkOptions({
+  bookmark,
+  hiddenActions,
+  showPreviewAction = false,
+  trigger,
+  triggerTooltip,
+}: {
+  bookmark: ZBookmark;
+  // Ids of top-level actions to leave out of the menu
+  hiddenActions?: string[];
+  // For when clicking the card goes somewhere other than the preview
+  showPreviewAction?: boolean;
+  // A plain button: the menu puts the tooltip around it
+  trigger?: React.ReactNode;
+  triggerTooltip?: {
+    label: string;
+    side?: React.ComponentProps<typeof TooltipContent>["side"];
+    delayDuration?: number;
+  };
+}) {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const isPhone = useMediaQuery("(max-width: 639px)");
   const linkId = bookmark.id;
   const { data: session } = useSession();
 
-  const demoMode = !!useClientConfig().demoMode;
+  const clientConfig = useClientConfig();
+  const demoMode = !!clientConfig.demoMode;
 
   // Check if the current user owns this bookmark
   const isOwner = session?.user?.id === bookmark.userId;
@@ -101,7 +257,6 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   );
 
   const [isClipboardAvailable, setIsClipboardAvailable] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
   useEffect(() => {
     // This code only runs in the browser
@@ -110,33 +265,30 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         window.navigator &&
         !!window.navigator.clipboard,
     );
-
-    const touchPointer = window.matchMedia("(any-pointer: coarse)");
-    const updateIsTouchDevice = () => setIsTouchDevice(touchPointer.matches);
-
-    updateIsTouchDevice();
-    touchPointer.addEventListener("change", updateIsTouchDevice);
-
-    return () => {
-      touchPointer.removeEventListener("change", updateIsTouchDevice);
-    };
   }, []);
 
-  const {
-    open: isManageListsModalOpen,
-    setOpen: setManageListsModalOpen,
-    content: manageListsModal,
-  } = useManageListsModal(bookmark.id);
+  const { setOpen: setManageListsModalOpen, content: manageListsModal } =
+    useManageListsModal(bookmark.id);
+
+  const { setOpen: setTagModalOpen, content: tagModal } = useTagModal(bookmark);
 
   const [deleteBookmarkDialogOpen, setDeleteBookmarkDialogOpen] =
     useState(false);
   const [isTextEditorOpen, setTextEditorOpen] = useState(false);
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
-  const isAnyDialogOpen =
-    isManageListsModalOpen ||
-    deleteBookmarkDialogOpen ||
-    isTextEditorOpen ||
-    isEditBookmarkDialogOpen;
+  // A dialog opened from the menu opens as the menu hands focus back to its
+  // trigger, so the dialog returns focus there, rather than to the item that's
+  // gone by then.
+  const pendingDialog = useRef<(() => void) | null>(null);
+  const openAfterMenuCloses = (open: () => void) => () => {
+    pendingDialog.current = open;
+  };
+  // The menu focuses its trigger right after this, before the dialog has
+  // rendered.
+  const openPendingDialog = () => {
+    pendingDialog.current?.();
+    pendingDialog.current = null;
+  };
 
   const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -177,12 +329,10 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     toast.error(t("common.something_went_wrong"));
   };
 
-  const updateBookmarkMutator = useUpdateBookmark({
-    onSuccess: () => {
-      toast.success(t("toasts.bookmarks.updated"));
-    },
-    onError,
-  });
+  // Only toggles the favourite, and the star itself shows the result
+  const updateBookmarkMutator = useUpdateBookmark({ onError });
+
+  const { setArchived } = useArchiveBookmarkWithUndo();
 
   const crawlBookmarkMutator = useRecrawlBookmark({
     onSuccess: () => {
@@ -191,16 +341,23 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     onError,
   });
 
-  const fullPageArchiveBookmarkMutator = useRecrawlBookmark({
+  const fullPageArchiveBookmarkMutator = usePreserveOfflineCopy({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.full_page_archive"));
     },
     onError,
   });
 
-  const preservePdfMutator = useRecrawlBookmark({
+  const preservePdfMutator = usePreserveOfflineCopy({
     onSuccess: () => {
       toast.success(t("toasts.bookmarks.preserve_pdf"));
+    },
+    onError,
+  });
+
+  const preserveVideoMutator = usePreserveBookmarkVideo({
+    onSuccess: () => {
+      toast.success(t("toasts.bookmarks.preserve_video"));
     },
     onError,
   });
@@ -252,32 +409,63 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     }
   };
 
+  const recrawlAction: ActionItem = {
+    id: "refresh",
+    title: t("actions.recrawl"),
+    icon: <RotateCw className="size-4" />,
+    visible: isOwner && bookmark.content.type === BookmarkTypes.LINK,
+    disabled: demoMode,
+    onClick: () => crawlBookmarkMutator.mutate({ bookmarkId: bookmark.id }),
+  };
+  // It's the first thing to try on a page that couldn't be fetched
+  const hasCrawlFailed =
+    bookmark.content.type === BookmarkTypes.LINK &&
+    bookmark.content.crawlStatus === "failure";
+
   // Define action items array
   const actionGroups: ActionItemType[][] = [
     [
+      ...(hasCrawlFailed ? [recrawlAction] : []),
+      {
+        id: "preview",
+        title: t("actions.preview"),
+        icon: <Maximize2 className="size-4" />,
+        visible: showPreviewAction,
+        disabled: false,
+        onClick: () => router.push(`/dashboard/preview/${bookmark.id}`),
+      },
       {
         id: "select",
         title: t("actions.select"),
-        icon: <Circle className="size-4" />,
-        visible: isOwner && isTouchDevice,
+        icon: <Square className="size-4" />,
+        // Phones and keyboards don't get the hover toolbar it's also on
+        visible: isOwner,
         disabled: false,
         onClick: () => enableBulkEditForBookmark(bookmark.id),
       },
       {
         id: "edit",
-        title: t("actions.edit"),
+        title: t("actions.edit_details"),
         icon: <Pencil className="size-4" />,
         visible: isOwner,
         disabled: false,
-        onClick: () => setEditBookmarkDialogOpen(true),
+        onClick: openAfterMenuCloses(() => setEditBookmarkDialogOpen(true)),
+      },
+      {
+        id: "edit-tags",
+        title: t("actions.edit_tags"),
+        icon: <Tag className="size-4" />,
+        visible: isOwner,
+        disabled: demoMode,
+        onClick: openAfterMenuCloses(() => setTagModalOpen(true)),
       },
       {
         id: "open-editor",
-        title: t("actions.open_editor"),
+        title: t("actions.edit_note"),
         icon: <SquarePen className="size-4" />,
         visible: isOwner && bookmark.content.type === BookmarkTypes.TEXT,
         disabled: false,
-        onClick: () => setTextEditorOpen(true),
+        onClick: openAfterMenuCloses(() => setTextEditorOpen(true)),
       },
       {
         id: "favorite",
@@ -308,11 +496,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         ),
         visible: isOwner,
         disabled: demoMode,
-        onClick: () =>
-          updateBookmarkMutator.mutate({
-            bookmarkId: linkId,
-            archived: !bookmark.archived,
-          }),
+        onClick: () => setArchived(linkId, !bookmark.archived),
       },
     ],
     [
@@ -322,11 +506,15 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         icon: <Link className="size-4" />,
         visible: bookmark.content.type === BookmarkTypes.LINK,
         disabled: !isClipboardAvailable,
-        onClick: () => {
-          navigator.clipboard.writeText(
-            (bookmark.content as ZBookmarkedLink).url,
-          );
-          toast.success(t("toasts.bookmarks.clipboard_copied"));
+        onClick: async () => {
+          try {
+            await navigator.clipboard.writeText(
+              (bookmark.content as ZBookmarkedLink).url,
+            );
+            toast.success(t("toasts.bookmarks.clipboard_copied"));
+          } catch {
+            toast.error(t("toasts.bookmarks.clipboard_failed"));
+          }
         },
       },
       {
@@ -335,7 +523,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         icon: <List className="size-4" />,
         visible: isOwner,
         disabled: false,
-        onClick: () => setManageListsModalOpen(true),
+        onClick: openAfterMenuCloses(() => setManageListsModalOpen(true)),
       },
       {
         id: "remove-from-list",
@@ -374,7 +562,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             onClick: () => {
               fullPageArchiveBookmarkMutator.mutate({
                 bookmarkId: bookmark.id,
-                archiveFullPage: true,
+                kind: "fullPageArchive",
               });
             },
           },
@@ -387,8 +575,18 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
             onClick: () => {
               preservePdfMutator.mutate({
                 bookmarkId: bookmark.id,
-                storePdf: true,
+                kind: "pdf",
               });
+            },
+          },
+          {
+            id: "preserve-video",
+            title: t("actions.preserve_video"),
+            icon: <FileVideo className="size-4" />,
+            visible: clientConfig.crawler.videoDownloadOnDemand,
+            disabled: demoMode,
+            onClick: () => {
+              preserveVideoMutator.mutate({ bookmarkId: bookmark.id });
             },
           },
           {
@@ -426,43 +624,27 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
           },
         ],
       },
+      ...(hasCrawlFailed ? [] : [recrawlAction]),
       {
-        id: "more",
-        title: t("actions.more"),
-        icon: <MoreHorizontal className="size-4" />,
+        id: "download-asset",
+        title: t("actions.download"),
+        icon: <Download className="size-4" />,
+        visible: isOwner && bookmark.content.type === BookmarkTypes.ASSET,
+        disabled: false,
+        onClick: () => {
+          const asset = bookmark.content as ZBookmarkedAsset;
+          window.open(getAssetUrl(asset.assetId), "_blank");
+        },
+      },
+      {
+        id: "replace-banner",
+        title: bookmark.assets.find((a) => a.assetType === "bannerImage")
+          ? t("actions.replace_banner")
+          : t("actions.add_banner"),
+        icon: <ImagePlus className="size-4" />,
         visible: isOwner,
-        items: [
-          {
-            id: "refresh",
-            title: t("actions.refresh"),
-            icon: <RotateCw className="size-4" />,
-            visible: bookmark.content.type === BookmarkTypes.LINK,
-            disabled: demoMode,
-            onClick: () =>
-              crawlBookmarkMutator.mutate({ bookmarkId: bookmark.id }),
-          },
-          {
-            id: "download-asset",
-            title: t("actions.download"),
-            icon: <Download className="size-4" />,
-            visible: bookmark.content.type === BookmarkTypes.ASSET,
-            disabled: false,
-            onClick: () => {
-              const asset = bookmark.content as ZBookmarkedAsset;
-              window.open(getAssetUrl(asset.assetId), "_blank");
-            },
-          },
-          {
-            id: "replace-banner",
-            title: bookmark.assets.find((a) => a.assetType === "bannerImage")
-              ? t("actions.replace_banner")
-              : t("actions.add_banner"),
-            icon: <ImagePlus className="size-4" />,
-            visible: true,
-            disabled: demoMode || isAttaching || isReplacing,
-            onClick: () => bannerFileInputRef.current?.click(),
-          },
-        ],
+        disabled: demoMode || isAttaching || isReplacing,
+        onClick: () => bannerFileInputRef.current?.click(),
       },
     ],
     [
@@ -473,7 +655,7 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         visible: isOwner,
         disabled: demoMode,
         variant: "destructive",
-        onClick: () => setDeleteBookmarkDialogOpen(true),
+        onClick: openAfterMenuCloses(() => setDeleteBookmarkDialogOpen(true)),
       },
     ],
   ];
@@ -481,6 +663,9 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
   const visibleGroups = actionGroups
     .map((group) =>
       group.filter((item) => {
+        if (hiddenActions?.includes(item.id)) {
+          return false;
+        }
         if (isSubsectionItem(item)) {
           return item.visible && item.items.some((subItem) => subItem.visible);
         }
@@ -494,9 +679,25 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
     return null;
   }
 
+  const menuTrigger = trigger ?? (
+    <Button
+      aria-label={t("actions.more_options")}
+      variant="ghost"
+      size="none"
+      className={CARD_ICON_BUTTON_CLASS}
+    >
+      <MoreHorizontal className="size-4" />
+    </Button>
+  );
+  const tooltip = triggerTooltip ?? {
+    label: t("actions.more_options"),
+    delayDuration: 300,
+  };
+
   return (
     <>
       {manageListsModal}
+      {tagModal}
       <EditBookmarkDialog
         bookmark={bookmark}
         open={isEditBookmarkDialogOpen}
@@ -512,71 +713,81 @@ export default function BookmarkOptions({ bookmark }: { bookmark: ZBookmark }) {
         open={isTextEditorOpen}
         setOpen={setTextEditorOpen}
       />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="px-1 focus-visible:ring-0">
-            <MoreHorizontal />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          className="min-w-44"
-          onCloseAutoFocus={(e) => {
-            // The menu restores focus to its trigger once its close animation
-            // ends. If an item opened a dialog, that steals focus from the
-            // dialog and dismisses any popover opened inside it in the meantime.
-            if (isAnyDialogOpen) {
-              e.preventDefault();
-            }
-          }}
-        >
-          {visibleGroups.map((group, i) => (
-            <Fragment key={i}>
-              {i > 0 && <DropdownMenuSeparator />}
-              {group.map((item) => {
-                if (isSubsectionItem(item)) {
-                  const visibleSubItems = item.items.filter(
-                    (subItem) => subItem.visible,
-                  );
-                  if (visibleSubItems.length === 0) {
-                    return null;
+      {isPhone ? (
+        <BookmarkOptionsSheet
+          bookmark={bookmark}
+          groups={visibleGroups}
+          onCloseAutoFocus={openPendingDialog}
+          trigger={menuTrigger}
+        />
+      ) : (
+        <DropdownMenu>
+          {/* The tooltip goes outside the menu's trigger, which cancels the
+              pointer press the tooltip closes on, so it sees the press first. */}
+          <Tooltip delayDuration={tooltip.delayDuration}>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>{menuTrigger}</DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipPortal>
+              <TooltipContent side={tooltip.side}>
+                {tooltip.label}
+              </TooltipContent>
+            </TooltipPortal>
+          </Tooltip>
+          <DropdownMenuContent
+            className="min-w-44"
+            onCloseAutoFocus={openPendingDialog}
+          >
+            {visibleGroups.map((group, i) => (
+              <Fragment key={i}>
+                {i > 0 && <DropdownMenuSeparator />}
+                {group.map((item) => {
+                  if (isSubsectionItem(item)) {
+                    const visibleSubItems = item.items.filter(
+                      (subItem) => subItem.visible,
+                    );
+                    if (visibleSubItems.length === 0) {
+                      return null;
+                    }
+                    return (
+                      <DropdownMenuSub key={item.id}>
+                        <DropdownMenuSubTrigger>
+                          {item.icon}
+                          <span>{item.title}</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          {visibleSubItems.map((subItem) => (
+                            <DropdownMenuItem
+                              key={subItem.id}
+                              disabled={subItem.disabled}
+                              onClick={subItem.onClick}
+                            >
+                              {subItem.icon}
+                              <span>{subItem.title}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    );
                   }
                   return (
-                    <DropdownMenuSub key={item.id}>
-                      <DropdownMenuSubTrigger>
-                        {item.icon}
-                        <span>{item.title}</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        {visibleSubItems.map((subItem) => (
-                          <DropdownMenuItem
-                            key={subItem.id}
-                            disabled={subItem.disabled}
-                            onClick={subItem.onClick}
-                          >
-                            {subItem.icon}
-                            <span>{subItem.title}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
+                    <DropdownMenuItem
+                      key={item.id}
+                      disabled={item.disabled}
+                      variant={item.variant}
+                      onClick={item.onClick}
+                    >
+                      {item.icon}
+                      <span>{item.title}</span>
+                      {/* A custom trigger's outside of the grid, like the preview's */}
+                    </DropdownMenuItem>
                   );
-                }
-                return (
-                  <DropdownMenuItem
-                    key={item.id}
-                    disabled={item.disabled}
-                    variant={item.variant}
-                    onClick={item.onClick}
-                  >
-                    {item.icon}
-                    <span>{item.title}</span>
-                  </DropdownMenuItem>
-                );
-              })}
-            </Fragment>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+                })}
+              </Fragment>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
       <input
         type="file"
         ref={bannerFileInputRef}

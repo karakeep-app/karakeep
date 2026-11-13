@@ -1,11 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,7 +32,7 @@ import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { distance } from "fastest-levenshtein";
-import { Check, Combine, X } from "lucide-react";
+import { CircleCheck, Check, Combine, X } from "lucide-react";
 
 import { useMergeTag } from "@karakeep/shared-react/hooks/tags";
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -82,7 +89,7 @@ function ApplyAllButton({ suggestions }: { suggestions: Suggestion[] }) {
     await Promise.all(promises)
       .then(() => {
         toast({
-          description: "All suggestions has been applied!",
+          description: t("cleanups.duplicate_tags.all_applied"),
         });
       })
       .catch(() => ({}))
@@ -102,13 +109,13 @@ function ApplyAllButton({ suggestions }: { suggestions: Suggestion[] }) {
           variant="destructive"
           onClick={() => applyAll(setDialogOpen)}
         >
-          <Check className="mr-2 size-4" />
+          <Check className="size-4" />
           {t("actions.apply_all")}
         </ActionButton>
       )}
     >
       <Button variant="destructive">
-        <Check className="mr-2 size-4" />
+        <Check className="size-4" />
         {t("actions.apply_all")}
       </Button>
     </ActionConfirmingDialog>
@@ -128,7 +135,7 @@ function SuggestionRow({
   const { mutate, isPending } = useMergeTag({
     onSuccess: () => {
       toast({
-        description: "Tags have been merged!",
+        description: t("cleanups.duplicate_tags.merged"),
       });
     },
     onError: (e) => {
@@ -150,15 +157,17 @@ function SuggestionRow({
                 className={cn(
                   badgeVariants({ variant: "outline" }),
                   "text-sm",
-                  selected
-                    ? "border border-blue-500 dark:border-blue-900"
-                    : null,
+                  selected ? "border border-foreground/60" : null,
                 )}
               >
                 {tag.name}
               </Link>
               <Button
                 size="none"
+                aria-label={t("cleanups.duplicate_tags.keep", {
+                  tag: tag.name,
+                })}
+                title={t("cleanups.duplicate_tags.keep", { tag: tag.name })}
                 className={cn(
                   "-translate-1/2 absolute -right-1.5 -top-1.5 rounded-full p-0.5",
                   selected ? null : "hidden group-hover:block",
@@ -183,7 +192,7 @@ function SuggestionRow({
             })
           }
         >
-          <Combine className="mr-2 size-4" />
+          <Combine className="size-4" />
           {t("actions.merge")}
         </ActionButton>
 
@@ -191,7 +200,7 @@ function SuggestionRow({
           variant={"secondary"}
           onClick={() => deleteSuggestion(suggestion)}
         >
-          <X className="mr-2 size-4" />
+          <X className="size-4" />
           {t("actions.ignore")}
         </Button>
       </TableCell>
@@ -200,6 +209,7 @@ function SuggestionRow({
 }
 
 export function TagDuplicationDetection() {
+  const { t } = useTranslation();
   const api = useTRPC();
   const [expanded, setExpanded] = useState(false);
   const { data: allTags } = useQuery(
@@ -214,8 +224,12 @@ export function TagDuplicationDetection() {
   const { suggestions, updateMergeInto, setSuggestions, deleteSuggestion } =
     useSuggestions();
 
-  useEffect(() => {
-    const sortedTags = [...(allTags?.tags ?? [])].sort((a, b) =>
+  // Derive the suggestions during render, not in an effect, so the first
+  // render with data doesn't flash the empty state before they arrive.
+  const [derivedFrom, setDerivedFrom] = useState<typeof allTags>();
+  if (allTags && allTags !== derivedFrom) {
+    setDerivedFrom(allTags);
+    const sortedTags = [...allTags.tags].sort((a, b) =>
       normalizeTag(a.name).localeCompare(normalizeTag(b.name)),
     );
 
@@ -240,32 +254,55 @@ export function TagDuplicationDetection() {
       }
     }
     setSuggestions(initialSuggestions);
-  }, [allTags]);
+  }
 
   if (!allTags) {
     return <LoadingSpinner />;
   }
 
+  if (suggestions.length === 0) {
+    return (
+      <Empty className="p-4 md:p-6">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <CircleCheck />
+          </EmptyMedia>
+          <EmptyTitle className="text-base">
+            {t("cleanups.duplicate_tags.empty_title")}
+          </EmptyTitle>
+          <EmptyDescription>
+            {t("cleanups.duplicate_tags.empty_description")}
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
   return (
     <Collapsible open={expanded} onOpenChange={setExpanded}>
-      You have {suggestions.length} suggestions for tag merging.
-      {suggestions.length > 0 && (
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+        <span>
+          {t("cleanups.duplicate_tags.suggestion_count", {
+            count: suggestions.length,
+          })}
+        </span>
         <CollapsibleTrigger asChild>
-          <Button variant="link" size="sm">
-            {expanded ? "Hide All" : "Show All"}
+          <Button variant="outline" size="sm">
+            {expanded
+              ? t("cleanups.duplicate_tags.hide_all")
+              : t("cleanups.duplicate_tags.show_all")}
           </Button>
         </CollapsibleTrigger>
-      )}
+      </div>
       <CollapsibleContent>
-        <p className="text-sm italic text-muted-foreground">
-          For every suggestion, select the tag that you want to keep and other
-          tags will be merged into it.
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t("cleanups.duplicate_tags.instructions")}
         </p>
         {suggestions.length > 0 && (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Tags</TableHead>
+                <TableHead>{t("common.tags")}</TableHead>
                 <TableHead className="text-center">
                   <ApplyAllButton suggestions={suggestions} />
                 </TableHead>

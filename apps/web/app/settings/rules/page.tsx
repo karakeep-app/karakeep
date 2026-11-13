@@ -33,7 +33,7 @@ export default function RulesSettingsPage() {
   const handleCreateRule = () => {
     const newRule = {
       id: null,
-      name: "New Rule",
+      name: t("settings.rules.default_rule_name"),
       description: "Description of the new rule",
       enabled: true,
       event: { type: "bookmarkAdded" as const },
@@ -56,7 +56,7 @@ export default function RulesSettingsPage() {
       description={t("settings.rules.description")}
       action={
         <Button onClick={handleCreateRule} variant="default">
-          <PlusCircle className="mr-2 h-4 w-4" />
+          <PlusCircle className="h-4 w-4" />
           {t("settings.rules.ceate_rule")}
         </Button>
       }

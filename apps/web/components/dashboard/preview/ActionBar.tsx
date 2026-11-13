@@ -1,56 +1,57 @@
+import type { ComponentProps } from "react";
 import { useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
+import LoadingSpinner from "@/components/ui/spinner";
 import {
   Tooltip,
   TooltipContent,
+  TooltipPortal,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
-import { Pencil, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { MoreHorizontal, Pencil } from "lucide-react";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
-import DeleteBookmarkConfirmationDialog from "../bookmarks/DeleteBookmarkConfirmationDialog";
+import BookmarkOptions from "../bookmarks/BookmarkOptions";
 import { EditBookmarkDialog } from "../bookmarks/EditBookmarkDialog";
 import { ArchivedActionIcon, FavouritedActionIcon } from "../bookmarks/icons";
+import { useArchiveBookmarkWithUndo } from "../bookmarks/useArchiveBookmarkWithUndo";
+import { ICON_CONTROL_CLASS, RestoreTooltip } from "./IconControl";
 
-export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
+type TooltipSide = ComponentProps<typeof TooltipContent>["side"];
+
+export default function ActionBar({
+  bookmark,
+  className,
+  tooltipSide,
+}: {
+  bookmark: ZBookmark;
+  className?: string;
+  tooltipSide?: TooltipSide;
+}) {
   const { t } = useTranslation();
-  const [deleteBookmarkDialogOpen, setDeleteBookmarkDialogOpen] =
-    useState(false);
-
   const [isEditBookmarkDialogOpen, setEditBookmarkDialogOpen] = useState(false);
 
   const onError = () => {
     toast({
       variant: "destructive",
-      title: "Something went wrong",
-      description: "There was a problem with your request.",
+      title: t("common.something_went_wrong"),
     });
   };
+  // No success toast, as the icon itself shows the new state.
   const { mutate: favBookmark, isPending: pendingFav } = useUpdateBookmark({
-    onSuccess: () => {
-      toast({
-        description: "The bookmark has been updated!",
-      });
-    },
     onError,
   });
-  const { mutate: archiveBookmark, isPending: pendingArchive } =
-    useUpdateBookmark({
-      onSuccess: (resp) => {
-        toast({
-          description: `The bookmark has been ${resp.archived ? "Archived" : "Un-archived"}!`,
-        });
-      },
-      onError,
-    });
+  const { setArchived, isPending: pendingArchive } =
+    useArchiveBookmarkWithUndo();
 
   return (
-    <div className="flex items-center justify-center gap-3 text-muted-foreground">
+    <div className={cn("flex items-center justify-center gap-2", className)}>
       <Tooltip delayDuration={0}>
         <EditBookmarkDialog
           bookmark={bookmark}
@@ -62,22 +63,37 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
           <Button
             variant="ghost"
             size="none"
-            className="size-8 rounded-md"
+            aria-label={t("actions.edit_details")}
+            className={ICON_CONTROL_CLASS}
             onClick={() => {
-              setEditBookmarkDialogOpen(true);
+              // A tap blurs the note field in this same task, saving it.
+              // The dialog takes the note from the bookmark as it opens, so it
+              // waits for that to reach this component.
+              window.setTimeout(() => setEditBookmarkDialogOpen(true));
             }}
           >
-            <Pencil size={18} strokeWidth={1.5} />
+            <Pencil className="size-4" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">{t("actions.edit")}</TooltipContent>
+        <TooltipPortal>
+          <TooltipContent side={tooltipSide}>
+            {t("actions.edit_details")}
+          </TooltipContent>
+        </TooltipPortal>
       </Tooltip>
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <ActionButton
             variant="ghost"
             size="none"
-            className="size-8 rounded-md"
+            aria-label={
+              bookmark.favourited
+                ? t("actions.unfavorite")
+                : t("actions.favorite")
+            }
+            aria-pressed={bookmark.favourited}
+            className={ICON_CONTROL_CLASS}
+            spinner={<LoadingSpinner className="size-4" />}
             loading={pendingFav}
             onClick={() => {
               favBookmark({
@@ -87,61 +103,66 @@ export default function ActionBar({ bookmark }: { bookmark: ZBookmark }) {
             }}
           >
             <FavouritedActionIcon
+              className="size-4"
               favourited={bookmark.favourited}
-              size={18}
-              strokeWidth={1.5}
             />
           </ActionButton>
         </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {bookmark.favourited
-            ? t("actions.unfavorite")
-            : t("actions.favorite")}
-        </TooltipContent>
+        <TooltipPortal>
+          <TooltipContent side={tooltipSide}>
+            {bookmark.favourited
+              ? t("actions.unfavorite")
+              : t("actions.favorite")}
+          </TooltipContent>
+        </TooltipPortal>
       </Tooltip>
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <ActionButton
             variant="ghost"
             size="none"
+            aria-label={
+              bookmark.archived ? t("actions.unarchive") : t("actions.archive")
+            }
+            spinner={<LoadingSpinner className="size-4" />}
             loading={pendingArchive}
-            className="size-8 rounded-md"
+            className={ICON_CONTROL_CLASS}
             onClick={() => {
-              archiveBookmark({
-                bookmarkId: bookmark.id,
-                archived: !bookmark.archived,
-              });
+              setArchived(bookmark.id, !bookmark.archived);
             }}
           >
             <ArchivedActionIcon
+              className="size-4"
               archived={bookmark.archived}
-              size={18}
-              strokeWidth={1.5}
             />
           </ActionButton>
         </TooltipTrigger>
-        <TooltipContent side="bottom">
-          {bookmark.archived ? t("actions.unarchive") : t("actions.archive")}
-        </TooltipContent>
+        <TooltipPortal>
+          <TooltipContent side={tooltipSide}>
+            {bookmark.archived ? <RestoreTooltip /> : t("actions.archive")}
+          </TooltipContent>
+        </TooltipPortal>
       </Tooltip>
-      <Tooltip delayDuration={0}>
-        <DeleteBookmarkConfirmationDialog
-          bookmark={bookmark}
-          open={deleteBookmarkDialogOpen}
-          setOpen={setDeleteBookmarkDialogOpen}
-        />
-        <TooltipTrigger asChild>
+      <BookmarkOptions
+        bookmark={bookmark}
+        // Already available as buttons in this bar (or irrelevant outside the grid)
+        hiddenActions={["select", "edit", "edit-tags", "favorite", "archive"]}
+        trigger={
           <Button
-            className="size-8 rounded-md"
             variant="ghost"
             size="none"
-            onClick={() => setDeleteBookmarkDialogOpen(true)}
+            aria-label={t("actions.more")}
+            className={ICON_CONTROL_CLASS}
           >
-            <Trash2 size={18} strokeWidth={1.5} />
+            <MoreHorizontal className="size-4" />
           </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">{t("actions.delete")}</TooltipContent>
-      </Tooltip>
+        }
+        triggerTooltip={{
+          label: t("actions.more"),
+          side: tooltipSide,
+          delayDuration: 0,
+        }}
+      />
     </div>
   );
 }

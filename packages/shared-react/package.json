@@ -16,7 +16,8 @@
     "clsx": "^2.1.0",
     "lucide-react": "^0.501.0",
     "superjson": "^2.2.1",
-    "tailwind-merge": "^2.2.1"
+    "tailwind-merge": "^2.2.1",
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0"

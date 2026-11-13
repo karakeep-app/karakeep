@@ -52,7 +52,7 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
     {},
   );
   const [pendingServerSave, setPendingServerSave] =
-    useState<ReaderSettings | null>(null);
+    useState<ReaderSettingsPartial | null>(null);
 
   const { data: serverSettings } = useQuery(api.users.settings.queryOptions());
   const queryClient = useQueryClient();
@@ -66,12 +66,16 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
   useEffect(() => {
     if (pendingServerSave && serverSettings) {
       const serverMatches =
-        serverSettings.readerFontSize === pendingServerSave.fontSize &&
+        (pendingServerSave.fontSize === undefined ||
+          serverSettings.readerFontSize === pendingServerSave.fontSize) &&
         // Tolerate minor float normalization differences for lineHeight
-        Math.abs(
-          (serverSettings.readerLineHeight ?? 0) - pendingServerSave.lineHeight,
-        ) < 1e-6 &&
-        serverSettings.readerFontFamily === pendingServerSave.fontFamily;
+        (pendingServerSave.lineHeight === undefined ||
+          Math.abs(
+            (serverSettings.readerLineHeight ?? 0) -
+              pendingServerSave.lineHeight,
+          ) < 1e-6) &&
+        (pendingServerSave.fontFamily === undefined ||
+          serverSettings.readerFontFamily === pendingServerSave.fontFamily);
       if (serverMatches) {
         setPendingServerSave(null);
       }
@@ -90,10 +94,17 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
   const { mutate: saveServerSettings, isPending: isSavingDefaults } =
     useMutation(
       api.users.updateSettings.mutationOptions({
-        onSuccess: () => {
-          // Clear local and session overrides after successful server save
-          setLocalOverrides({});
-          saveLocalOverrides({});
+        onSuccess: (_data, saved) => {
+          // Clear the local overrides of the saved fields, and session
+          // overrides, after a successful server save
+          setLocalOverrides((prev) => {
+            const rest = { ...prev };
+            if (saved.readerFontSize !== undefined) delete rest.fontSize;
+            if (saved.readerLineHeight !== undefined) delete rest.lineHeight;
+            if (saved.readerFontFamily !== undefined) delete rest.fontFamily;
+            saveLocalOverrides(rest);
+            return rest;
+          });
           onClearSessionOverrides?.();
         },
         onError: () => {
@@ -173,19 +184,24 @@ export function useReaderSettings(options: UseReaderSettingsOptions) {
 
   // Save current effective settings as server default (syncs across devices)
   const saveAsDefault = useCallback(
-    (settingsToSave?: ReaderSettingsPartial) => {
-      const toSave: ReaderSettings = {
-        fontSize: settingsToSave?.fontSize ?? settings.fontSize,
-        lineHeight: settingsToSave?.lineHeight ?? settings.lineHeight,
-        fontFamily: settingsToSave?.fontFamily ?? settings.fontFamily,
-      };
+    (
+      settingsToSave?: ReaderSettingsPartial,
+      // Reported by the save itself, as the refetch after it can fail on its own.
+      callbacks?: { onSuccess?: () => void; onError?: () => void },
+    ) => {
+      // Only the given fields, so the others stay unset, or all the current
+      // settings when none are given.
+      const toSave: ReaderSettingsPartial = settingsToSave ?? settings;
       // Set pending state to prevent flicker while server syncs
       setPendingServerSave(toSave);
-      saveServerSettings({
-        readerFontSize: toSave.fontSize,
-        readerLineHeight: toSave.lineHeight,
-        readerFontFamily: toSave.fontFamily,
-      });
+      saveServerSettings(
+        {
+          readerFontSize: toSave.fontSize,
+          readerLineHeight: toSave.lineHeight,
+          readerFontFamily: toSave.fontFamily,
+        },
+        callbacks,
+      );
     },
     [settings, saveServerSettings],
   );

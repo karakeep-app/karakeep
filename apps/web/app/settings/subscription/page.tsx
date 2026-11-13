@@ -16,7 +16,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SubscriptionPage() {
-  if (!serverConfig.stripe.isConfigured) {
+  if (
+    !serverConfig.stripe.isConfigured &&
+    !serverConfig.revenueCat.isConfigured
+  ) {
     redirect("/settings");
   }
 
@@ -24,7 +27,10 @@ export default async function SubscriptionPage() {
   const { t } = await useTranslation();
 
   return (
-    <SettingsPage title={t("settings.subscription.subscription")}>
+    <SettingsPage
+      title={t("settings.subscription.subscription")}
+      description={t("settings.subscription.manage_subscription")}
+    >
       <SubscriptionSettings />
       <QuotaProgress />
     </SettingsPage>

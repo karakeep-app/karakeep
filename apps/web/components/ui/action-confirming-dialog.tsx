@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -17,6 +18,7 @@ export default function ActionConfirmingDialog({
   description,
   actionButton,
   children,
+  onCloseAutoFocus,
   open: userIsOpen,
   setOpen: userSetOpen,
 }: {
@@ -26,6 +28,7 @@ export default function ActionConfirmingDialog({
   description: React.ReactNode;
   actionButton: (setDialogOpen: (open: boolean) => void) => React.ReactNode;
   children?: React.ReactNode;
+  onCloseAutoFocus?: (e: Event) => void;
 }) {
   const { t } = useTranslation();
   const [customIsOpen, setCustomIsOpen] = useState(false);
@@ -36,15 +39,18 @@ export default function ActionConfirmingDialog({
   return (
     <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      <DialogContent>
+      <DialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {description}
+        {/* A div, as some of these hold paragraphs or a control to go with them. */}
+        <DialogDescription asChild>
+          <div>{description}</div>
+        </DialogDescription>
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              {t("actions.close")}
+            <Button type="button" variant="outline">
+              {t("actions.cancel")}
             </Button>
           </DialogClose>
           {actionButton(setDialogOpen)}

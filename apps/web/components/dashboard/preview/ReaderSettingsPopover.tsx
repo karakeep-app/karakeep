@@ -1,5 +1,7 @@
 "use client";
 
+import type { RefObject } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -22,6 +24,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
 import { useReaderSettings } from "@/lib/readerSettings";
+import { cn } from "@/lib/utils";
+import { PopoverAnchor } from "@radix-ui/react-popover";
 import {
   Globe,
   Laptop,
@@ -40,18 +44,52 @@ import {
   READER_SETTING_CONSTRAINTS,
 } from "@karakeep/shared/types/readers";
 
+import { ICON_CONTROL_CLASS } from "./IconControl";
+
 interface ReaderSettingsPopoverProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   variant?: "outline" | "ghost";
+  /** The text these settings change, which the popover opens beside. */
+  columnRef?: RefObject<HTMLElement | null>;
+  /** For opening it from elsewhere, like a menu, by way of `open`. */
+  hideTrigger?: boolean;
+  /** How far down to open beside the column, without a trigger to go by. */
+  anchorBottom?: () => number;
+  /** Where the keyboard goes back to on Escape, without a trigger to go to. */
+  returnFocusTo?: RefObject<HTMLElement | null>;
 }
+
+const COLUMN_GAP_PX = 16;
 
 export default function ReaderSettingsPopover({
   open,
   onOpenChange,
   variant = "outline",
+  columnRef,
+  hideTrigger,
+  anchorBottom,
+  returnFocusTo,
 }: ReaderSettingsPopoverProps) {
   const { t } = useTranslation();
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closedWithEscape = useRef(false);
+  // Level with the trigger, past the column's edge. Where there's no room for that
+  // the popover slides back into view, and still only covers the top of the text.
+  const besideColumn = useRef({
+    // What the positioning watches: the column resizes with the font size.
+    get contextElement() {
+      return columnRef?.current ?? undefined;
+    },
+    getBoundingClientRect: () => {
+      const trigger = triggerRef.current?.getBoundingClientRect();
+      const column = columnRef?.current?.getBoundingClientRect();
+      return new DOMRect(
+        (column?.right ?? trigger?.right ?? 0) + COLUMN_GAP_PX,
+        anchorBottom?.() ?? trigger?.bottom ?? 0,
+      );
+    },
+  });
   const {
     settings,
     serverSettings,
@@ -91,28 +129,52 @@ export default function ReaderSettingsPopover({
     return t("settings.info.reader_settings.tooltip_default");
   };
 
+  // Reads the same as the setting does on the settings page.
+  const defaultFontLabel = t("settings.info.reader_settings.default_value", {
+    value: t(`settings.info.reader_settings.${READER_DEFAULTS.fontFamily}`),
+  });
+
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button variant={variant} size="icon" className="relative">
-              <Settings className="h-4 w-4" />
-              {(hasSessionChanges || hasLocalOverrides) && (
-                <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" />
-              )}
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p>{getSettingsTooltip()}</p>
-        </TooltipContent>
-      </Tooltip>
+      {columnRef && <PopoverAnchor virtualRef={besideColumn} />}
+      {!hideTrigger && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                ref={triggerRef}
+                variant={variant}
+                size="none"
+                aria-label={getSettingsTooltip()}
+                className={cn(ICON_CONTROL_CLASS, "relative")}
+              >
+                <Settings className="size-4" />
+                {(hasSessionChanges || hasLocalOverrides) && (
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary" />
+                )}
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>{getSettingsTooltip()}</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
       <PopoverContent
         side="bottom"
-        align="center"
+        align={columnRef ? "start" : "center"}
         collisionPadding={32}
         className="flex w-80 flex-col overflow-hidden p-0"
+        onEscapeKeyDown={() => {
+          closedWithEscape.current = true;
+        }}
+        onCloseAutoFocus={(e) => {
+          if (closedWithEscape.current && returnFocusTo?.current) {
+            e.preventDefault();
+            returnFocusTo.current.focus();
+          }
+          closedWithEscape.current = false;
+        }}
         style={{
           maxHeight: "var(--radix-popover-content-available-height)",
         }}
@@ -149,12 +211,15 @@ export default function ReaderSettingsPopover({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
+                            aria-label={t(
+                              "settings.info.reader_settings.clear_override_label",
+                            )}
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                            className="relative h-5 w-5 text-muted-foreground after:absolute after:-inset-1.5 hover:text-foreground max-sm:after:-inset-3"
                             onClick={() => clearLocalOverride("fontFamily")}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="size-3" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -174,7 +239,13 @@ export default function ReaderSettingsPopover({
                 </div>
               </div>
               <Select
-                value={settings.fontFamily}
+                value={
+                  serverSettings.fontFamily == null &&
+                  !sessionOverrides.fontFamily &&
+                  !localOverrides.fontFamily
+                    ? "not-set"
+                    : settings.fontFamily
+                }
                 onValueChange={(value) =>
                   updateSession({
                     fontFamily: value as "serif" | "sans" | "mono",
@@ -192,6 +263,11 @@ export default function ReaderSettingsPopover({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  {serverSettings.fontFamily == null && (
+                    <SelectItem value="not-set" disabled>
+                      {defaultFontLabel}
+                    </SelectItem>
+                  )}
                   <SelectItem value="serif">
                     {t("settings.info.reader_settings.serif")}
                   </SelectItem>
@@ -224,12 +300,15 @@ export default function ReaderSettingsPopover({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
+                            aria-label={t(
+                              "settings.info.reader_settings.clear_override_label",
+                            )}
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                            className="relative h-5 w-5 text-muted-foreground after:absolute after:-inset-1.5 hover:text-foreground max-sm:after:-inset-3"
                             onClick={() => clearLocalOverride("fontSize")}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="size-3" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -250,9 +329,12 @@ export default function ReaderSettingsPopover({
               </div>
               <div className="flex items-center gap-2">
                 <Button
+                  aria-label={t(
+                    "settings.info.reader_settings.decrease_font_size",
+                  )}
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="size-8 bg-transparent dark:bg-transparent max-sm:size-11"
                   onClick={() =>
                     updateSession({
                       fontSize: Math.max(
@@ -263,7 +345,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className="size-3" />
                 </Button>
                 <Slider
                   value={[settings.fontSize]}
@@ -281,9 +363,12 @@ export default function ReaderSettingsPopover({
                   }`}
                 />
                 <Button
+                  aria-label={t(
+                    "settings.info.reader_settings.increase_font_size",
+                  )}
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="size-8 bg-transparent dark:bg-transparent max-sm:size-11"
                   onClick={() =>
                     updateSession({
                       fontSize: Math.min(
@@ -294,7 +379,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="size-3" />
                 </Button>
               </div>
             </div>
@@ -318,12 +403,15 @@ export default function ReaderSettingsPopover({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
+                            aria-label={t(
+                              "settings.info.reader_settings.clear_override_label",
+                            )}
                             variant="ghost"
                             size="icon"
-                            className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                            className="relative h-5 w-5 text-muted-foreground after:absolute after:-inset-1.5 hover:text-foreground max-sm:after:-inset-3"
                             onClick={() => clearLocalOverride("lineHeight")}
                           >
-                            <X className="h-3 w-3" />
+                            <X className="size-3" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -344,9 +432,12 @@ export default function ReaderSettingsPopover({
               </div>
               <div className="flex items-center gap-2">
                 <Button
+                  aria-label={t(
+                    "settings.info.reader_settings.decrease_line_height",
+                  )}
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="size-8 bg-transparent dark:bg-transparent max-sm:size-11"
                   onClick={() =>
                     updateSession({
                       lineHeight: Math.max(
@@ -360,7 +451,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Minus className="h-3 w-3" />
+                  <Minus className="size-3" />
                 </Button>
                 <Slider
                   value={[settings.lineHeight]}
@@ -378,9 +469,12 @@ export default function ReaderSettingsPopover({
                   }`}
                 />
                 <Button
+                  aria-label={t(
+                    "settings.info.reader_settings.increase_line_height",
+                  )}
                   variant="outline"
                   size="icon"
-                  className="h-7 w-7 bg-transparent"
+                  className="size-8 bg-transparent dark:bg-transparent max-sm:size-11"
                   onClick={() =>
                     updateSession({
                       lineHeight: Math.min(
@@ -394,7 +488,7 @@ export default function ReaderSettingsPopover({
                     })
                   }
                 >
-                  <Plus className="h-3 w-3" />
+                  <Plus className="size-3" />
                 </Button>
               </div>
             </div>
@@ -410,7 +504,7 @@ export default function ReaderSettingsPopover({
                     className="w-full"
                     onClick={() => clearSession()}
                   >
-                    <RotateCcw className="mr-2 h-4 w-4" />
+                    <RotateCcw className="h-4 w-4" />
                     {t("settings.info.reader_settings.reset_preview")}
                   </Button>
 
@@ -422,7 +516,7 @@ export default function ReaderSettingsPopover({
                       disabled={isSaving}
                       onClick={() => saveToDevice()}
                     >
-                      <Laptop className="mr-2 h-4 w-4" />
+                      <Laptop className="h-4 w-4" />
                       {t("settings.info.reader_settings.save_to_device")}
                     </Button>
                     <Button
@@ -432,7 +526,7 @@ export default function ReaderSettingsPopover({
                       disabled={isSaving}
                       onClick={() => saveToServer()}
                     >
-                      <Globe className="mr-2 h-4 w-4" />
+                      <Globe className="h-4 w-4" />
                       {t("settings.info.reader_settings.save_to_all_devices")}
                     </Button>
                   </div>
@@ -446,7 +540,9 @@ export default function ReaderSettingsPopover({
 
             {!hasSessionChanges && (
               <p className="text-center text-xs text-muted-foreground">
-                {t("settings.info.reader_settings.adjust_hint")}
+                {hasLocalOverrides
+                  ? t("settings.info.reader_settings.saved_with_device_hint")
+                  : t("settings.info.reader_settings.saved_everywhere_hint")}
               </p>
             )}
           </div>

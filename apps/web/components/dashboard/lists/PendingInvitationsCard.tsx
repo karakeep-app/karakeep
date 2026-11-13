@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -76,8 +77,8 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
   );
 
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div className="flex-1">
+    <div className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="font-medium">{invitation.list.name}</span>
           <span className="text-xs text-muted-foreground">
@@ -98,7 +99,7 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
           <span className="capitalize">{invitation.role}</span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-end gap-2">
         <Button
           size="sm"
           variant="outline"
@@ -108,10 +109,10 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
           disabled={declineInvitation.isPending || acceptInvitation.isPending}
         >
           {declineInvitation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : (
             <>
-              <X className="mr-1 h-4 w-4" />
+              <X className="size-4" />
               {t("lists.invitations.decline")}
             </>
           )}
@@ -124,10 +125,10 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
           disabled={acceptInvitation.isPending || declineInvitation.isPending}
         >
           {acceptInvitation.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : (
             <>
-              <Check className="mr-1 h-4 w-4" />
+              <Check className="size-4" />
               {t("lists.invitations.accept")}
             </>
           )}
@@ -156,13 +157,11 @@ export function PendingInvitationsCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-normal">
-          <Mail className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Mail className="size-4 text-muted-foreground" />
           {t("lists.invitations.pending")}
 
-          <span className="rounded bg-secondary p-1 text-sm text-secondary-foreground">
-            {invitations.length}
-          </span>
+          <Badge variant="secondary">{invitations.length}</Badge>
         </CardTitle>
         <CardDescription>{t("lists.invitations.description")}</CardDescription>
       </CardHeader>

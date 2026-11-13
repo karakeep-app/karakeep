@@ -28,6 +28,7 @@ import {
   QuotaService,
   SUPPORTED_BOOKMARK_ASSET_TYPES,
   triggerSearchReindex,
+  VideoWorkerQueue,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import {
@@ -854,6 +855,93 @@ export const bookmarksAppRouter = router({
         priority: QueuePriority.Low,
         idempotencyKey: buildCrawlIdempotencyKey(payload),
       });
+      await ctx.db
+        .update(bookmarkLinks)
+        .set({ crawlStatus: "pending" })
+        .where(eq(bookmarkLinks.id, input.bookmarkId));
+    }),
+  // Captures an offline copy (a PDF or a full-page archive) of a link without
+  // recrawling it: the bookmark's content, metadata and crawl status are kept.
+  preserveOfflineCopy: bookmarksProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.preserveOfflineCopy",
+        windowMs: 30 * 60 * 1000,
+        maxRequests: 200,
+      }),
+    )
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+        kind: z.enum(["fullPageArchive", "pdf"]),
+      }),
+    )
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      const link = await ctx.db.query.bookmarkLinks.findFirst({
+        where: eq(bookmarkLinks.id, input.bookmarkId),
+        columns: { id: true },
+      });
+      if (!link) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Offline copies can only be preserved for link bookmarks",
+        });
+      }
+      const payload = {
+        bookmarkId: input.bookmarkId,
+        archiveFullPage: input.kind === "fullPageArchive",
+        storePdf: input.kind === "pdf",
+        offlineCopiesOnly: true,
+      };
+      await LowPriorityCrawlerQueue.enqueue(payload, {
+        groupId: ctx.user.id,
+        priority: QueuePriority.Low,
+        idempotencyKey: buildCrawlIdempotencyKey(payload),
+      });
+    }),
+  preserveVideo: bookmarksProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.preserveVideo",
+        windowMs: 30 * 60 * 1000,
+        maxRequests: 50,
+      }),
+    )
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+      }),
+    )
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      if (!serverConfig.crawler.downloadVideoOnDemand) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "On-demand video downloads are disabled on this server",
+        });
+      }
+      const link = await ctx.db.query.bookmarkLinks.findFirst({
+        where: eq(bookmarkLinks.id, input.bookmarkId),
+        columns: { url: true },
+      });
+      if (!link) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Videos can only be preserved for link bookmarks",
+        });
+      }
+      await VideoWorkerQueue.enqueue(
+        {
+          bookmarkId: input.bookmarkId,
+          url: link.url,
+          onDemand: true,
+        },
+        {
+          groupId: ctx.user.id,
+          idempotencyKey: `video:${input.bookmarkId}`,
+        },
+      );
     }),
   updateReadingProgress: bookmarksProcedure
     .input(
@@ -1453,6 +1541,8 @@ export const bookmarksAppRouter = router({
           z.object({
             id: z.string(),
             url: z.string(),
+            title: z.string().nullable(),
+            isCrawling: z.boolean(),
             statusCode: z.number().nullable(),
             isCrawlingFailure: z.boolean(),
             crawledAt: z.date().nullable(),
@@ -1466,6 +1556,8 @@ export const bookmarksAppRouter = router({
         .select({
           id: bookmarkLinks.id,
           url: bookmarkLinks.url,
+          userTitle: bookmarks.title,
+          linkTitle: bookmarkLinks.title,
           crawlStatusCode: bookmarkLinks.crawlStatusCode,
           crawlingStatus: bookmarkLinks.crawlStatus,
           crawledAt: bookmarkLinks.crawledAt,
@@ -1487,6 +1579,8 @@ export const bookmarksAppRouter = router({
         bookmarks: brokenLinkBookmarks.map((b) => ({
           id: b.id,
           url: b.url,
+          title: b.userTitle || b.linkTitle || null,
+          isCrawling: b.crawlingStatus === "pending",
           statusCode: b.crawlStatusCode,
           isCrawlingFailure: b.crawlingStatus === "failure",
           crawledAt: b.crawledAt,
@@ -1636,6 +1730,7 @@ export const bookmarksAppRouter = router({
         .update(bookmarks)
         .set({
           summary: summary.response,
+          summarizationStatus: "success",
         })
         .where(eq(bookmarks.id, input.bookmarkId));
       await Promise.all([

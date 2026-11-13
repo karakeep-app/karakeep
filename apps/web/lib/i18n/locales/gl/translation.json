@@ -56,8 +56,8 @@
     "copy_link": "Copiar ligazón",
     "unarchive": "Desarquivar",
     "recrawl": "Volver a facer un crawl",
-    "download_full_page_archive": "Descargar Arquivo da Páxina Completa",
     "add_to_list": "Agregar á lista",
+    "select": "Seleccionar",
     "save": "Gardar",
     "add": "Engadir",
     "edit": "Editar",
@@ -90,6 +90,7 @@
     "load_more": "Cargar máis",
     "edit_notes": "Editar notas",
     "preserve_as_pdf": "Gardar como PDF",
+    "preserve_video": "Conservar vídeo",
     "offline_copies": "Copias sen conexión",
     "preserve_offline_archive": "Conservar o arquivo sen conexión",
     "download_full_page_archive_file": "Descargar o arquivo",
@@ -140,6 +141,7 @@
       "delete_from_list": "O marcador borrouse da lista",
       "clipboard_copied": "A ligazón copiouse no teu portapapeis!",
       "preserve_pdf": "Activouse a preservación en PDF",
+      "preserve_video": "Activouse a descarga do vídeo",
       "update_banner": "Banner actualizado!",
       "uploading_banner": "Cargando o banner..."
     },
@@ -403,7 +405,49 @@
       "broken_links": "Ligazóns rotos",
       "last_crawled_at": "Indexado por ultima vez",
       "crawling_status": "Estado da indexación",
-      "crawling_failed": "Indexado errado"
+      "crawling_failed": "Indexado errado",
+      "description": "Revisa as ligazóns que non se puideron obter, volve tentalo ou elimina marcadores antigos.",
+      "category_all": "Requiren atención",
+      "category_blocked": "Acceso bloqueado",
+      "category_missing": "Non atopado",
+      "category_errors": "Outros erros",
+      "category_all_hint": "Ligazóns para revisar",
+      "category_blocked_hint": "Restrinxido ou con límite de solicitudes",
+      "category_missing_hint": "Páxina inexistente ou eliminada",
+      "category_errors_hint": "Erros do servidor ou de indexación",
+      "blocked_hint": "Unha solicitude bloqueada non sempre significa que a ligazón estea rota. Algúns sitios restrinxen o acceso automatizado. Abre a páxina orixinal para comprobalo antes de eliminala.",
+      "search": "Buscar por título ou URL…",
+      "sort_recent": "Comprobadas recentemente",
+      "sort_oldest": "Comprobación máis antiga primeiro",
+      "sort_domain": "Sitio web A–Z",
+      "result_count_one": "{{count}} ligazón para revisar",
+      "result_count_other": "{{count}} ligazóns para revisar",
+      "retry_selected": "Reintentar as seleccionadas",
+      "empty": "Non se atoparon ligazóns rotas",
+      "empty_description": "Ningunha das túas ligazóns gardadas ten actualmente un erro de indexación.",
+      "select_visible": "Seleccionar todas as ligazóns visibles",
+      "bookmark": "Marcador",
+      "issue": "Problema",
+      "never_crawled": "Sen data de indexación",
+      "issue_blocked": "Acceso bloqueado",
+      "issue_missing": "Non atopado",
+      "issue_server": "Erro do servidor",
+      "issue_http": "Erro HTTP",
+      "issue_failed": "Indexado errado",
+      "issue_blocked_hint": "O sitio restrinxiu esta solicitude",
+      "issue_missing_hint": "É posible que a páxina fose eliminada",
+      "issue_server_hint": "O sitio non puido completar a solicitude",
+      "issue_http_hint": "O sitio devolveu unha resposta inesperada",
+      "issue_failed_hint": "Non se rexistrou ningunha resposta correcta",
+      "queued": "En cola",
+      "queued_count_one": "{{count}} ligazón en cola para volver indexala.",
+      "queued_count_other": "{{count}} ligazóns en cola para volver indexalas.",
+      "deleted_count_one": "{{count}} marcador eliminado.",
+      "deleted_count_other": "{{count}} marcadores eliminados.",
+      "action_failed": "Fallaron {{count}} de {{total}}.",
+      "delete_title_one": "Eliminar {{count}} marcador?",
+      "delete_title_other": "Eliminar {{count}} marcadores?",
+      "delete_description": "Isto elimina permanentemente os marcadores seleccionados e os seus ficheiros gardados, destacados e notas. Esta acción non se pode desfacer."
     },
     "webhooks": {
       "delete_webhook": "Borrar o webhook",
@@ -528,7 +572,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Actividade por hora",
-        "activity_by_day": "Actividade por día"
+        "activity_by_day": "Actividade por día",
+        "busiest_around": "Maior actividade arredor das {{hour}}"
       },
       "storage_breakdown": {
         "title": "Distribución do almacenamento"
@@ -579,10 +624,8 @@
       "progress": "Progreso",
       "status": {
         "pending": "Pendente",
-        "in_progress": "En progreso",
         "completed": "Completado",
         "failed": "Fallou",
-        "processing": "Procesando",
         "staging": "Preparando",
         "running": "Executando",
         "paused": "En pausa",
@@ -678,6 +721,19 @@
         "backup_queued": "O traballo de copia de seguranza foi posto en cola! Será procesado en breve.",
         "backup_deleted": "Copia de seguranza borrada!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Borrar filtros",
+      "clear_selection": "Borrar selección",
+      "delete_selected": "Eliminar seleccionados",
+      "try_again": "Tentar de novo",
+      "sort": "Orde",
+      "no_matches": "Non se atoparon coincidencias",
+      "adjust_filters": "Proba outra busca ou borra os filtros.",
+      "select_item": "Seleccionar {{name}}",
+      "selected": "{{count}} seleccionados",
+      "showing": "Mostrando {{shown}} de {{total}}",
+      "load_more": "Cargar máis"
     }
   },
   "highlights": {
@@ -693,18 +749,6 @@
     },
     "background_jobs": {
       "background_jobs": "Operacións en segundo plano",
-      "crawler_jobs": "Traballos de crawling",
-      "indexing_jobs": "Traballos de indexación",
-      "inference_jobs": "Traballos de inferencia",
-      "tidy_assets_jobs": "Traballos de refinación",
-      "job": "Traballo",
-      "queued": "Na cola",
-      "pending": "Pendente",
-      "failed": "Erro",
-      "asset_preprocessing_jobs": "Traballos de preprocesamento de recursos",
-      "feed_jobs": "Traballos de fontes RSS",
-      "webhook_jobs": "Traballos de webhook",
-      "video_jobs": "Traballos de descarga de vídeo",
       "jobs": {
         "crawler": {
           "title": "Traballos do rastreador",
@@ -721,10 +765,6 @@
         "asset_preprocessing": {
           "title": "Traballos de preprocesamento de recursos",
           "description": "Preprocesamento de imaxes e documentos (capturas de pantalla, extracción de texto, etc.)"
-        },
-        "tidy_assets": {
-          "title": "Traballos de activos ordenados",
-          "description": "Limpeza de activos e optimización de almacenamento"
         },
         "video": {
           "title": "Traballos de descarga de vídeo",
@@ -784,18 +824,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Rexenerar incrustacións só para marcadores fallidos",
         "regenerate_embeddings_for_all_bookmarks": "Rexenerar incrustacións para todos os marcadores"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Recrawlear só ligazóns erradas",
-      "recrawl_all_links": "Recrawlear todas as ligazóns",
-      "without_inference": "Sen inferencia",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Rexenerar etiquetas IA so en marcadores errados",
-      "regenerate_ai_tags_for_all_bookmarks": "Rexenerar etiquetas IA para todos os marcadores",
-      "reindex_all_bookmarks": "Reindexar marcadores",
-      "compact_assets": "Optimizar multimedia",
-      "reprocess_assets_fix_mode": "Reprocesar assets (modo fixo)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Volver xerar os resumos da IA só para os marcadores fallidos",
-      "regenerate_ai_summaries_for_all_bookmarks": "Volver xerar os resumos da IA para todos os marcadores"
     },
     "users_list": {
       "users_list": "Listado de usuarios",
@@ -864,8 +892,10 @@
     }
   },
   "options": {
+    "theme": "Tema",
     "dark_mode": "Modo escuro",
     "light_mode": "Modo claro",
+    "system_mode": "Modo do sistema",
     "apps_extensions": "Aplicacións e extensións",
     "documentation": "Documentación",
     "follow_us_on_x": "Séguenos en X"
@@ -960,17 +990,20 @@
       "shared": "Compartido",
       "private": "Privado"
     },
-    "summary_list_one": "{{count}} Listas",
-    "summary_list_other": "{{count}} Listas",
-    "summary_bookmark_one": "{{count}} Marcadores",
-    "summary_bookmark_other": "{{count}} Marcadores",
-    "items_count_one": "{{count}} elementos",
+    "summary_list_one": "{{count}} lista",
+    "summary_list_other": "{{count}} listas",
+    "summary_bookmark_one": "{{count}} marcador",
+    "summary_bookmark_other": "{{count}} marcadores",
+    "items_count_one": "{{count}} elemento",
     "items_count_other": "{{count}} elementos"
   },
   "preview": {
     "view_original": "Ver orixinal",
     "cached_content": "Contendo cacheado",
     "reader_view": "Vista de lectura",
+    "page_overview": "Resumo da páxina",
+    "try_reader_view": "Probar a vista de lectura",
+    "archived_page": "Páxina arquivada",
     "tabs": {
       "content": "Contido",
       "details": "Detalles"
@@ -984,12 +1017,11 @@
     "continue_button": "Continúa"
   },
   "editor": {
-    "quickly_focus": "Podes enfocar este campo pulsando ⌘ + E",
     "multiple_urls_dialog_title": "¿Importar URLs como marcadores independentes?",
     "multiple_urls_dialog_desc": "A entrada contén varias URLs en liñas independentes. ¿Queres importalas como distintos marcadores?",
     "import_as_text": "Importar como marcador de texto",
     "import_as_separate_bookmarks": "Importar como distintos marcadores",
-    "placeholder": "Pega un enlace ou imaxe, escribe unha nota ou arrastra unha imaxe aquí…",
+    "placeholder": "Pega unha ligazón ou unha imaxe, escribe unha nota ou arrastra unha imaxe aquí…",
     "new_item": "NOVA ENTRADA",
     "disabled_submissions": "Entradas deshabilitadas",
     "text_toolbar": {
@@ -1048,6 +1080,10 @@
     "does_not_have_tag": "Non ten etiqueta",
     "full_text_search": "Busca de texto completo",
     "has_no_tags": "Non ten etiqueta",
+    "has_notes": "Ten notas",
+    "has_no_notes": "Non ten notas",
+    "has_highlights": "Ten destacados",
+    "has_no_highlights": "Non ten destacados",
     "created_on_or_before": "Creado en ou antes",
     "not_created_on_or_before": "Non creado en ou antes",
     "url_does_not_contain": "O URL non contén",

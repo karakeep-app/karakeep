@@ -58,8 +58,8 @@ export default function CheckEmailPage() {
       <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">
-              Invalid Request
+            <CardTitle className="text-xl font-semibold">
+              Invalid request
             </CardTitle>
             <CardDescription>
               No email address provided. Please try signing up again.
@@ -67,7 +67,7 @@ export default function CheckEmailPage() {
           </CardHeader>
           <CardContent>
             <Button onClick={handleBackToSignIn} className="w-full">
-              Back to Sign In
+              Back to sign in
             </Button>
           </CardContent>
         </Card>
@@ -79,7 +79,9 @@ export default function CheckEmailPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Check Your Email</CardTitle>
+          <CardTitle className="text-xl font-semibold">
+            Check your email
+          </CardTitle>
           <CardDescription>
             We&apos;ve sent a verification link to your email address
           </CardDescription>
@@ -117,11 +119,11 @@ export default function CheckEmailPage() {
             >
               {resendEmailMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Sending...
                 </>
               ) : (
-                "Resend Verification Email"
+                "Resend verification email"
               )}
             </Button>
             <Button
@@ -129,7 +131,7 @@ export default function CheckEmailPage() {
               variant="ghost"
               className="w-full"
             >
-              Back to Sign In
+              Back to sign in
             </Button>
           </div>
         </CardContent>

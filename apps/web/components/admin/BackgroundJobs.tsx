@@ -229,8 +229,13 @@ function JobCard({
               {actions.map((action, index) => (
                 <ActionConfirmingDialog
                   key={index}
-                  title="Confirm Action"
-                  description={`Are you sure you want to ${action.label.toLowerCase()}?`}
+                  title={t("admin.background_jobs.confirm_action")}
+                  description={t(
+                    "admin.background_jobs.confirm_action_description",
+                    {
+                      action: action.label,
+                    },
+                  )}
                   actionButton={(setDialogOpen) => (
                     <ActionButton
                       loading={action.loading}
@@ -244,7 +249,12 @@ function JobCard({
                     </ActionButton>
                   )}
                 >
-                  <Button variant="secondary">{action.label}</Button>
+                  <Button
+                    variant="secondary"
+                    className="h-auto min-h-10 whitespace-normal max-sm:h-auto max-sm:min-h-11"
+                  >
+                    {action.label}
+                  </Button>
                 </ActionConfirmingDialog>
               ))}
             </div>

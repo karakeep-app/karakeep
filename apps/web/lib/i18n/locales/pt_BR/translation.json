@@ -47,7 +47,6 @@
   },
   "actions": {
     "unarchive": "Desarquivar",
-    "download_full_page_archive": "Baixar Página Completa",
     "manage_lists": "Gerenciar Listas",
     "change_layout": "Mudar Layout",
     "archive": "Arquivo",
@@ -58,6 +57,7 @@
     "recrawl": "Recrawl",
     "edit_tags": "Editar Tags",
     "add_to_list": "Adicionar à Lista",
+    "select": "Selecionar",
     "select_all": "Selecionar Todos",
     "unselect_all": "Desmarcar Todos",
     "copy_link": "Copiar Link",
@@ -90,6 +90,7 @@
     "load_more": "Carregar mais",
     "edit_notes": "Editar notas",
     "preserve_as_pdf": "Preservar como PDF",
+    "preserve_video": "Preservar Vídeo",
     "offline_copies": "Cópias Offline",
     "preserve_offline_archive": "Preservar Arquivo Offline",
     "download_full_page_archive_file": "Baixar Arquivo do Arquivo",
@@ -353,7 +354,53 @@
       "broken_links": "Links Quebrados",
       "last_crawled_at": "Último Rastreamento em",
       "crawling_status": "Status de Rastreamento",
-      "crawling_failed": "Falha no Rastreamento"
+      "crawling_failed": "Falha no Rastreamento",
+      "description": "Revise os links que não puderam ser obtidos, tente novamente ou remova favoritos antigos.",
+      "category_all": "Requer atenção",
+      "category_blocked": "Acesso bloqueado",
+      "category_missing": "Não encontrado",
+      "category_errors": "Outros erros",
+      "category_all_hint": "Links para revisar",
+      "category_blocked_hint": "Restrito ou com limite de requisições",
+      "category_missing_hint": "Página ausente ou removida",
+      "category_errors_hint": "Falhas do servidor ou de rastreamento",
+      "blocked_hint": "Uma requisição bloqueada nem sempre significa um link quebrado. Alguns sites restringem o acesso automatizado. Abra a página original para verificar antes de excluir.",
+      "search": "Pesquisar por título ou URL…",
+      "sort_recent": "Verificados recentemente",
+      "sort_oldest": "Verificação mais antiga primeiro",
+      "sort_domain": "Site A–Z",
+      "result_count_one": "{{count}} link para revisar",
+      "result_count_other": "{{count}} links para revisar",
+      "result_count_many": "{{count}} links para revisar",
+      "retry_selected": "Tentar novamente os selecionados",
+      "empty": "Nenhum link quebrado encontrado",
+      "empty_description": "Nenhum dos seus links salvos tem atualmente um erro de rastreamento registrado.",
+      "select_visible": "Selecionar todos os links visíveis",
+      "bookmark": "Favorito",
+      "issue": "Problema",
+      "never_crawled": "Sem data de rastreamento",
+      "issue_blocked": "Acesso bloqueado",
+      "issue_missing": "Não encontrado",
+      "issue_server": "Erro do servidor",
+      "issue_http": "Erro HTTP",
+      "issue_failed": "Falha no rastreamento",
+      "issue_blocked_hint": "O site restringiu esta requisição",
+      "issue_missing_hint": "A página pode ter sido removida",
+      "issue_server_hint": "O site não conseguiu concluir a requisição",
+      "issue_http_hint": "O site retornou uma resposta inesperada",
+      "issue_failed_hint": "Nenhuma resposta bem-sucedida foi registrada",
+      "queued": "Na fila",
+      "queued_count_one": "{{count}} link enfileirado para um novo rastreamento.",
+      "queued_count_other": "{{count}} links enfileirados para um novo rastreamento.",
+      "deleted_count_one": "{{count}} favorito excluído.",
+      "deleted_count_other": "{{count}} favoritos excluídos.",
+      "deleted_count_many": "{{count}} favoritos excluídos.",
+      "queued_count_many": "{{count}} links enfileirados para um novo rastreamento.",
+      "action_failed": "{{count}} de {{total}} falharam.",
+      "delete_title_one": "Excluir {{count}} favorito?",
+      "delete_title_other": "Excluir {{count}} favoritos?",
+      "delete_title_many": "Excluir {{count}} favoritos?",
+      "delete_description": "Isso exclui permanentemente os favoritos selecionados e seus arquivos salvos, destaques e notas. Esta ação não pode ser desfeita."
     },
     "manage_assets": {
       "asset_type": "Tipo de recurso",
@@ -460,7 +507,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Atividade por hora",
-        "activity_by_day": "Atividade por dia"
+        "activity_by_day": "Atividade por dia",
+        "busiest_around": "Mais movimentado por volta de {{hour}}"
       },
       "storage_breakdown": {
         "title": "Detalhes do armazenamento"
@@ -511,10 +559,8 @@
       "progress": "Progresso",
       "status": {
         "pending": "Pendente",
-        "in_progress": "Em progresso",
         "completed": "Concluído",
         "failed": "Falhou",
-        "processing": "Processando",
         "staging": "Em Preparação",
         "running": "Executando",
         "paused": "Pausado",
@@ -610,10 +656,23 @@
         "backup_queued": "O trabalho de backup foi enfileirado! Ele será processado em breve.",
         "backup_deleted": "O backup foi excluído!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Limpar filtros",
+      "clear_selection": "Limpar seleção",
+      "delete_selected": "Excluir selecionados",
+      "try_again": "Tentar novamente",
+      "sort": "Ordenação",
+      "no_matches": "Nenhum resultado encontrado",
+      "adjust_filters": "Tente uma pesquisa diferente ou limpe os filtros.",
+      "select_item": "Selecionar {{name}}",
+      "selected": "{{count}} selecionado(s)",
+      "showing": "Mostrando {{shown}} de {{total}}",
+      "load_more": "Carregar mais"
     }
   },
   "layouts": {
-    "masonry": "Alvenaria",
+    "masonry": "Mosaico",
     "grid": "Grade",
     "list": "Lista",
     "compact": "Compacto"
@@ -631,18 +690,6 @@
     },
     "background_jobs": {
       "background_jobs": "Tarefas em Segundo Plano",
-      "crawler_jobs": "Tarefas de Rastreamento",
-      "indexing_jobs": "Tarefas de Indexação",
-      "inference_jobs": "Tarefas de Inferência",
-      "tidy_assets_jobs": "Tarefas de Organização de Recursos",
-      "job": "Tarefas",
-      "queued": "Na Fila",
-      "pending": "Pendentes",
-      "failed": "Falhou",
-      "video_jobs": "Tarefas de download de vídeo",
-      "feed_jobs": "Tarefas de feed RSS",
-      "webhook_jobs": "Tarefas de Webhook",
-      "asset_preprocessing_jobs": "Tarefas de pré-processamento de recursos",
       "jobs": {
         "crawler": {
           "title": "Tarefas de rastreador",
@@ -659,10 +706,6 @@
         "asset_preprocessing": {
           "title": "Tarefas de pré-processamento de ativos",
           "description": "Pré-processamento de imagem e documento (screenshots, extração de texto, etc.)"
-        },
-        "tidy_assets": {
-          "title": "Tarefas de ativos organizados",
-          "description": "Limpeza de ativos e otimização de armazenamento"
         },
         "video": {
           "title": "Tarefas de download de vídeo",
@@ -722,18 +765,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Regenerar incorporações apenas para favoritos que falharam",
         "regenerate_embeddings_for_all_bookmarks": "Regenerar incorporações para todos os favoritos"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Rastrear Novamente Somente os Links que Falharam",
-      "recrawl_all_links": "Rastrear Novamente Todos os Links",
-      "without_inference": "Sem Inferência",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Regenerar Tags de IA apenas para Favoritos que Falharam",
-      "regenerate_ai_tags_for_all_bookmarks": "Regenerar Tags de IA para Todos os Favoritos",
-      "reindex_all_bookmarks": "Reindexar Todos os Favoritos",
-      "compact_assets": "Compactar Ativos",
-      "reprocess_assets_fix_mode": "Reprocessar recursos (modo de correção)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Regenerar resumos de IA apenas para favoritos com falha",
-      "regenerate_ai_summaries_for_all_bookmarks": "Regenerar resumos de IA para todos os favoritos"
     },
     "users_list": {
       "users_list": "Lista de Usuários",
@@ -802,8 +833,10 @@
     }
   },
   "options": {
+    "theme": "Tema",
     "dark_mode": "Modo Escuro",
     "light_mode": "Modo Claro",
+    "system_mode": "Modo do Sistema",
     "apps_extensions": "Apps e extensões",
     "documentation": "Documentação",
     "follow_us_on_x": "Siga-nos no X"
@@ -898,11 +931,14 @@
       "shared": "Compartilhado",
       "private": "Privado"
     },
-    "summary_list_one": "{{count}} Listas",
-    "summary_list_other": "{{count}} Listas",
-    "summary_bookmark_one": "{{count}} Favoritos",
-    "summary_bookmark_other": "{{count}} Favoritos",
-    "items_count_one": "{{count}} itens",
+    "summary_list_one": "{{count}} lista",
+    "summary_list_many": "{{count}} listas",
+    "summary_list_other": "{{count}} listas",
+    "summary_bookmark_one": "{{count}} favorito",
+    "summary_bookmark_many": "{{count}} favoritos",
+    "summary_bookmark_other": "{{count}} favoritos",
+    "items_count_one": "{{count}} item",
+    "items_count_many": "{{count}} itens",
     "items_count_other": "{{count}} itens"
   },
   "tags": {
@@ -942,6 +978,10 @@
     "is_not_favorited": "Não Está Favoritado",
     "has_any_tag": "Possui Alguma Tag",
     "has_no_tags": "Não Possui Tag",
+    "has_notes": "Possui Notas",
+    "has_no_notes": "Não Possui Notas",
+    "has_highlights": "Possui Destaques",
+    "has_no_highlights": "Não Possui Destaques",
     "is_in_any_list": "Está em Alguma Lista",
     "is_not_in_any_list": "Não Está em Nehuma Lista",
     "created_on_or_after": "Criado em ou Após",
@@ -999,6 +1039,9 @@
     "view_original": "Ver Original",
     "cached_content": "Conteúdo em Cache",
     "reader_view": "Modo Leitura",
+    "page_overview": "Visão Geral da Página",
+    "try_reader_view": "Experimentar o Modo Leitura",
+    "archived_page": "Página Arquivada",
     "tabs": {
       "content": "Conteúdo",
       "details": "Detalhes"
@@ -1012,7 +1055,6 @@
     "continue_button": "Continuar"
   },
   "editor": {
-    "quickly_focus": "Você pode acessar rapidamente este campo pressionando ⌘ + E",
     "multiple_urls_dialog_title": "Importando URLs como favoritos separados?",
     "multiple_urls_dialog_desc": "A entrada contém vários URLs em linhas separadas. Deseja importá-los como favoritos separados?",
     "import_as_text": "Importar como favoritos de texto",
@@ -1086,6 +1128,7 @@
       "delete_from_list": "O favorito foi excluído da lista",
       "clipboard_copied": "O link foi adicionado à sua área de transferência!",
       "preserve_pdf": "A preservação em PDF foi acionada",
+      "preserve_video": "O download do vídeo foi acionado",
       "update_banner": "O banner foi atualizado!",
       "uploading_banner": "Enviando banner..."
     },

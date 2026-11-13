@@ -37,6 +37,7 @@ function SearchComp() {
           fetchNextPage={fetchNextPage}
           isFetchingNextPage={isFetchingNextPage}
           bookmarks={data.pages.flatMap((b) => b.bookmarks)}
+          isSearch
         />
       ) : (
         <BookmarksGridSkeleton />

@@ -15,10 +15,10 @@ metadata:
     requires:
       bins:
         - karakeep
-    homepage: https://karakeep.app
+    homepage: https://karakeep.com
     links:
       repository: https://github.com/karakeep-app/karakeep
-      documentation: https://docs.karakeep.app
+      documentation: https://docs.karakeep.com
     emoji: 📦
     cliHelp: karakeep --help
     install:
@@ -124,7 +124,7 @@ The CLI resolves credentials in this order:
 2. `KARAKEEP_API_KEY` and `KARAKEEP_SERVER_ADDR` environment variables.
 3. The persistent config file.
 
-The server address defaults to `https://cloud.karakeep.app`. The API key has no default. Use global options for a one-off command without changing saved config:
+The server address defaults to `https://cloud.karakeep.com`. The API key has no default. Use global options for a one-off command without changing saved config:
 
 ```bash
 karakeep --api-key <key> --server-addr <addr> whoami

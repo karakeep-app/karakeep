@@ -61,17 +61,14 @@ export function ReaderSettingsProvider({
     [sessionOverrides],
   );
 
-  // Memoize callbacks to prevent unnecessary re-renders
-  const getLocalOverrides = useCallback(getLocalOverridesFromStorage, []);
-  const saveLocalOverrides = useCallback(saveLocalOverridesToStorage, []);
   const onClearSessionOverrides = useCallback(() => {
     setSessionOverrides({});
   }, []);
 
   return (
     <BaseReaderSettingsProvider
-      getLocalOverrides={getLocalOverrides}
-      saveLocalOverrides={saveLocalOverrides}
+      getLocalOverrides={getLocalOverridesFromStorage}
+      saveLocalOverrides={saveLocalOverridesToStorage}
       sessionOverrides={sessionOverrides}
       onClearSessionOverrides={onClearSessionOverrides}
     >

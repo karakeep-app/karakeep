@@ -234,7 +234,7 @@ export default function BookmarkDebugger() {
             />
           </div>
           <Button onClick={handleLookup} disabled={!inputValue.trim()}>
-            <Search className="mr-2 h-4 w-4" />
+            <Search className="h-4 w-4" />
             {t("admin.admin_tools.lookup")}
           </Button>
         </div>
@@ -632,9 +632,9 @@ export default function BookmarkDebugger() {
                   variant="outline"
                 >
                   {recrawlMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <RefreshCw className="h-4 w-4" />
                   )}
                   {t("admin.admin_tools.recrawl")}
                 </Button>
@@ -645,9 +645,9 @@ export default function BookmarkDebugger() {
                   variant="outline"
                 >
                   {reindexMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Search className="mr-2 h-4 w-4" />
+                    <Search className="h-4 w-4" />
                   )}
                   {t("admin.admin_tools.reindex")}
                 </Button>
@@ -658,9 +658,9 @@ export default function BookmarkDebugger() {
                   variant="outline"
                 >
                   {regenerateEmbeddingMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Layers className="mr-2 h-4 w-4" />
+                    <Layers className="h-4 w-4" />
                   )}
                   {t("admin.admin_tools.regenerate_embedding")}
                 </Button>
@@ -671,9 +671,9 @@ export default function BookmarkDebugger() {
                   variant="outline"
                 >
                   {retagMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Tag className="mr-2 h-4 w-4" />
+                    <Tag className="h-4 w-4" />
                   )}
                   {t("admin.admin_tools.retag")}
                 </Button>
@@ -687,9 +687,9 @@ export default function BookmarkDebugger() {
                   variant="outline"
                 >
                   {resummarizeMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <Sparkles className="mr-2 h-4 w-4" />
+                    <Sparkles className="h-4 w-4" />
                   )}
                   {t("admin.admin_tools.resummarize")}
                 </Button>

@@ -1,0 +1,71 @@
+---
+id: update-list
+title: "Update a list"
+description: "Partially update a list. Only the fields provided in the request body will be updated."
+sidebar_label: "Update a list"
+hide_title: true
+hide_table_of_contents: true
+api: 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
+sidebar_class_name: "patch api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update a list"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/lists/{listId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Partially update a list. Only the fields provided in the request body will be updated.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the list.","example":"ieidlxygmwj87oxz5hxttoc8","title":"ListId"},"required":true,"name":"listId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The fields to update. Only the fields you want to change need to be provided.","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":100},"description":{"type":"string","nullable":true,"minLength":0,"maxLength":500},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"query":{"type":"string","minLength":1},"public":{"type":"boolean"}}}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The updated list.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"List not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

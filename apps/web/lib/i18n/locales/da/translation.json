@@ -6,9 +6,9 @@
     "unarchive": "Fjern arkivering",
     "favorite": "Stjernemarker",
     "change_layout": "Skift visning",
-    "download_full_page_archive": "Download hele siden til arkiv",
     "recrawl": "Gennemsøg igen",
     "add_to_list": "Tilføj til liste",
+    "select": "Vælg",
     "copy_link": "Kopiér link",
     "close_bulk_edit": "Luk masseredigering",
     "bulk_edit": "Masseredigering",
@@ -44,6 +44,7 @@
     "load_more": "Indlæs mere",
     "edit_notes": "Rediger noter",
     "preserve_as_pdf": "Bevar som PDF",
+    "preserve_video": "Gem video",
     "offline_copies": "Offline kopier",
     "preserve_offline_archive": "Gem offline-arkiv",
     "download_full_page_archive_file": "Download arkivfil",
@@ -182,7 +183,49 @@
       "crawling_status": "Gennemsøgningsstatus",
       "broken_links": "Ugyldige links",
       "last_crawled_at": "Sidst gennemsøgt",
-      "crawling_failed": "Gennemsøgning mislykkedes"
+      "crawling_failed": "Gennemsøgning mislykkedes",
+      "description": "Gennemgå links, der ikke kunne hentes, prøv dem igen, eller fjern gamle bogmærker.",
+      "category_all": "Kræver opmærksomhed",
+      "category_blocked": "Adgang blokeret",
+      "category_missing": "Ikke fundet",
+      "category_errors": "Andre fejl",
+      "category_all_hint": "Links til gennemgang",
+      "category_blocked_hint": "Begrænset eller hastighedsbegrænset",
+      "category_missing_hint": "Siden mangler eller er fjernet",
+      "category_errors_hint": "Server- eller gennemsøgningsfejl",
+      "blocked_hint": "En blokeret forespørgsel betyder ikke altid, at linket er ugyldigt. Nogle websteder begrænser automatiseret adgang. Åbn den oprindelige side for at tjekke, før du sletter.",
+      "search": "Søg efter titel eller URL…",
+      "sort_recent": "Senest tjekket",
+      "sort_oldest": "Ældste tjek først",
+      "sort_domain": "Websted A–Z",
+      "result_count_one": "{{count}} link til gennemgang",
+      "result_count_other": "{{count}} links til gennemgang",
+      "retry_selected": "Prøv valgte igen",
+      "empty": "Ingen ugyldige links fundet",
+      "empty_description": "Ingen af dine gemte links har i øjeblikket en rapporteret gennemsøgningsfejl.",
+      "select_visible": "Vælg alle synlige links",
+      "bookmark": "Bogmærke",
+      "issue": "Problem",
+      "never_crawled": "Ingen gennemsøgningsdato",
+      "issue_blocked": "Adgang blokeret",
+      "issue_missing": "Ikke fundet",
+      "issue_server": "Serverfejl",
+      "issue_http": "HTTP-fejl",
+      "issue_failed": "Gennemsøgning mislykkedes",
+      "issue_blocked_hint": "Webstedet begrænsede denne forespørgsel",
+      "issue_missing_hint": "Siden kan være blevet fjernet",
+      "issue_server_hint": "Webstedet kunne ikke fuldføre forespørgslen",
+      "issue_http_hint": "Webstedet returnerede et uventet svar",
+      "issue_failed_hint": "Der blev ikke registreret noget vellykket svar",
+      "queued": "I kø",
+      "queued_count_one": "{{count}} link sat i kø til en ny gennemsøgning.",
+      "queued_count_other": "{{count}} links sat i kø til en ny gennemsøgning.",
+      "deleted_count_one": "{{count}} bogmærke slettet.",
+      "deleted_count_other": "{{count}} bogmærker slettet.",
+      "action_failed": "{{count}} af {{total}} mislykkedes.",
+      "delete_title_one": "Slet {{count}} bogmærke?",
+      "delete_title_other": "Slet {{count}} bogmærker?",
+      "delete_description": "Dette sletter permanent de valgte bogmærker og deres gemte filer, fremhævninger og noter. Dette kan ikke fortrydes."
     },
     "api_keys": {
       "new_api_key_desc": "Giv din API-nøgle et unikt navn",
@@ -414,7 +457,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Aktivitet pr. time",
-        "activity_by_day": "Aktivitet efter dag"
+        "activity_by_day": "Aktivitet efter dag",
+        "busiest_around": "Travlest omkring {{hour}}"
       },
       "storage_breakdown": {
         "title": "Opdeling af lagerplads"
@@ -465,10 +509,8 @@
       "progress": "Fremdrift",
       "status": {
         "pending": "Afventer",
-        "in_progress": "I gang",
         "completed": "Fuldført",
         "failed": "Mislykkedes",
-        "processing": "Behandler",
         "staging": "Forberedelse",
         "running": "Kører",
         "paused": "Sat på pause",
@@ -564,35 +606,24 @@
         "backup_queued": "Sikkerhedskopieringsjobbet er blevet sat i kø! Det vil blive behandlet snarest.",
         "backup_deleted": "Sikkerhedskopien er blevet slettet!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Ryd filtre",
+      "clear_selection": "Ryd valg",
+      "delete_selected": "Slet valgte",
+      "try_again": "Prøv igen",
+      "sort": "Sortering",
+      "no_matches": "Ingen resultater fundet",
+      "adjust_filters": "Prøv en anden søgning, eller ryd dine filtre.",
+      "select_item": "Vælg {{name}}",
+      "selected": "{{count}} valgt",
+      "showing": "Viser {{shown}} af {{total}}",
+      "load_more": "Indlæs flere"
     }
   },
   "admin": {
-    "actions": {
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Genopret AI-tags kun for mislykkede bogmærker",
-      "recrawl_failed_links_only": "Gennemsøg kun mislykkede links igen",
-      "compact_assets": "Komprimér ressourcer",
-      "recrawl_all_links": "Gennemsøg alle links",
-      "without_inference": "Uden inferens",
-      "regenerate_ai_tags_for_all_bookmarks": "Genopret AI-tags for alle bogmærker",
-      "reindex_all_bookmarks": "Genindeksér alle bogmærker",
-      "reprocess_assets_fix_mode": "Genbehandling af aktiver (Fix Mode)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Gendan AI-opsummeringer kun for mislykkede bogmærker",
-      "regenerate_ai_summaries_for_all_bookmarks": "Gendan AI-opsummeringer for alle bogmærker"
-    },
     "background_jobs": {
-      "inference_jobs": "Inferensopgaver",
-      "failed": "Mislykket",
       "background_jobs": "Baggrundsjobs",
-      "crawler_jobs": "Gennemsøgningsopgaver",
-      "indexing_jobs": "Indekseringsopgaver",
-      "tidy_assets_jobs": "Oprydningsopgaver for ressourcer",
-      "job": "Opgave",
-      "queued": "I kø",
-      "pending": "Afventer",
-      "webhook_jobs": "Webhook-opgaver",
-      "video_jobs": "Videonedehentningsopgaver",
-      "feed_jobs": "RSS-feed-opgaver",
-      "asset_preprocessing_jobs": "Forbehandlingsopgaver for ressourcer",
       "jobs": {
         "crawler": {
           "title": "Crawler Jobs",
@@ -609,10 +640,6 @@
         "asset_preprocessing": {
           "title": "Asset Præprocesseringsjob",
           "description": "Billed- og dokumentpræprocessering (skærmbilleder, tekstudtrækning osv.)"
-        },
-        "tidy_assets": {
-          "title": "Ryddelige Asset Jobs",
-          "description": "Asset oprydning og lageroptimering"
         },
         "video": {
           "title": "Video Download Jobs",
@@ -777,14 +804,15 @@
     "attached_by_ai": "{{count}} af AI"
   },
   "options": {
+    "theme": "Tema",
     "light_mode": "Lys tilstand",
+    "system_mode": "Systemtilstand",
     "dark_mode": "Mørk tilstand",
     "apps_extensions": "Apps & udvidelser",
     "documentation": "Dokumentation",
     "follow_us_on_x": "Følg os på X"
   },
   "editor": {
-    "quickly_focus": "Du kan hurtigt fokusere på dette felt ved at bruge genvejen ⌘ + E",
     "multiple_urls_dialog_title": "Importer URL’er som separate bogmærker?",
     "multiple_urls_dialog_desc": "Indtastningen indeholder flere URL’er på separate linjer. Ønsker du at importere dem som individuelle bogmærker?",
     "import_as_text": "Importer som tekstbogmærke",
@@ -984,17 +1012,20 @@
       "shared": "Delt",
       "private": "Privat"
     },
-    "summary_list_one": "{{count}} Lister",
-    "summary_list_other": "{{count}} Lister",
-    "summary_bookmark_one": "{{count}} Bogmærker",
-    "summary_bookmark_other": "{{count}} Bogmærker",
-    "items_count_one": "{{count}} elementer",
+    "summary_list_one": "{{count}} liste",
+    "summary_list_other": "{{count}} lister",
+    "summary_bookmark_one": "{{count}} bogmærke",
+    "summary_bookmark_other": "{{count}} bogmærker",
+    "items_count_one": "{{count}} element",
     "items_count_other": "{{count}} elementer"
   },
   "preview": {
     "view_original": "Se original",
     "cached_content": "Cachelagret indhold",
     "reader_view": "Læsevisning",
+    "page_overview": "Sideoversigt",
+    "try_reader_view": "Prøv læsevisning",
+    "archived_page": "Arkiveret side",
     "tabs": {
       "content": "Indhold",
       "details": "Detaljer"
@@ -1016,6 +1047,7 @@
       "clipboard_copied": "Linket er kopieret til din udklipsholder!",
       "updated": "Bogmærket er blevet opdateret!",
       "preserve_pdf": "PDF-bevaring er blevet udløst",
+      "preserve_video": "Videodownload er blevet igangsat",
       "update_banner": "Banneret er blevet opdateret!",
       "uploading_banner": "Uploader banner..."
     },
@@ -1044,6 +1076,10 @@
   },
   "search": {
     "has_no_tags": "Har ingen tags",
+    "has_notes": "Har noter",
+    "has_no_notes": "Har ingen noter",
+    "has_highlights": "Har fremhævninger",
+    "has_no_highlights": "Har ingen fremhævninger",
     "url_contains": "URL indeholder",
     "is_not_in_any_list": "Er ikke i nogen liste",
     "type_is": "Typen er",

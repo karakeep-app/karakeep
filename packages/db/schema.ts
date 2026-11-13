@@ -69,8 +69,8 @@ export const users = sqliteTable("user", {
     mode: "boolean",
   }),
   // Admin-granted plan label (e.g. a collaborator name). While set, Stripe
-  // sync doesn't downgrade the user's entitlements; it's cleared when the
-  // user gets an active Stripe subscription.
+  // and in-app purchase syncs don't downgrade the user's entitlements; it's
+  // cleared when the user gets an active paid subscription.
   manualTierName: text("manualTierName"),
 
   // User Settings
@@ -402,7 +402,17 @@ export const assets = sqliteTable(
   (tb) => [
     index("assets_bookmarkId_idx").on(tb.bookmarkId),
     index("assets_assetType_idx").on(tb.assetType),
-    index("assets_userId_idx").on(tb.userId),
+    // Serves the storage list sorted by size (with id as the tie-break) and
+    // anything that filters by userId alone. assetType and bookmarkId make the
+    // per-user totals, the per-type stats and the "no bookmark" filter covering
+    // scans, so they don't look up every asset in size order.
+    index("assets_userId_size_idx").on(
+      tb.userId,
+      tb.size,
+      tb.id,
+      tb.assetType,
+      tb.bookmarkId,
+    ),
   ],
 );
 
@@ -429,12 +439,20 @@ export const highlights = sqliteTable(
       .default("yellow")
       .notNull(),
     text: text("text"),
+    prefix: text("prefix"),
+    suffix: text("suffix"),
     note: text("note"),
     createdAt: createdAtField(),
   },
   (tb) => [
     index("highlights_bookmarkId_idx").on(tb.bookmarkId),
-    index("highlights_userId_idx").on(tb.userId),
+    // Lets the paginated highlights list walk the index in order and stop at
+    // the page size, instead of sorting every highlight the user has.
+    index("highlights_userId_createdAt_id_idx").on(
+      tb.userId,
+      tb.createdAt,
+      tb.id,
+    ),
   ],
 );
 
@@ -959,6 +977,37 @@ export const subscriptions = sqliteTable(
   ],
 );
 
+// Subscriptions purchased through the mobile app stores (App Store / Google
+// Play). These are managed by RevenueCat, which is the source of truth; this
+// table mirrors the state of the configured RevenueCat entitlement.
+export const inAppSubscriptions = sqliteTable("inAppSubscriptions", {
+  id: text("id")
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => createId()),
+  userId: text("userId")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" })
+    .unique(),
+  // The RevenueCat store identifier (e.g. "app_store", "play_store").
+  store: text("store"),
+  productId: text("productId"),
+  status: text("status", {
+    enum: ["active", "expired"],
+  }).notNull(),
+  cancelAtPeriodEnd: integer("cancelAtPeriodEnd", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  billingIssue: integer("billingIssue", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  isSandbox: integer("isSandbox", { mode: "boolean" }).notNull().default(false),
+  startDate: integer("startDate", { mode: "timestamp" }),
+  endDate: integer("endDate", { mode: "timestamp" }),
+  createdAt: createdAtField(),
+  modifiedAt: modifiedAtField(),
+});
+
 export const importSessions = sqliteTable(
   "importSessions",
   {
@@ -1097,6 +1146,7 @@ export const userRelations = relations(users, ({ many, one }) => ({
   chatSessions: many(chatSessions),
   invites: many(invites),
   subscription: one(subscriptions),
+  inAppSubscription: one(inAppSubscriptions),
   importSessions: many(importSessions),
   listCollaborations: many(listCollaborators),
   backups: many(backupsTable),
@@ -1288,6 +1338,16 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const inAppSubscriptionsRelations = relations(
+  inAppSubscriptions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [inAppSubscriptions.userId],
+      references: [users.id],
+    }),
+  }),
+);
 
 export const chatSessionsRelations = relations(
   chatSessions,

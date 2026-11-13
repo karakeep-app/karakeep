@@ -59,9 +59,9 @@
     "unfavorite": "Favorit entfernen",
     "delete": "Löschen",
     "refresh": "Aktualisieren",
-    "download_full_page_archive": "Vollständiges Seitenarchiv herunterladen",
     "edit_tags": "Tags bearbeiten",
     "add_to_list": "Zur Liste hinzufügen",
+    "select": "Auswählen",
     "select_all": "Alle auswählen",
     "unselect_all": "Auswahl aufheben",
     "copy_link": "Link kopieren",
@@ -96,6 +96,7 @@
     "load_more": "Mehr laden",
     "edit_notes": "Notizen bearbeiten",
     "preserve_as_pdf": "Als PDF speichern",
+    "preserve_video": "Video sichern",
     "offline_copies": "Offline-Kopien",
     "preserve_offline_archive": "Offline-Archiv behalten",
     "download_full_page_archive_file": "Archivdatei herunterladen",
@@ -341,7 +342,49 @@
       "broken_links": "Defekte Links",
       "last_crawled_at": "Zuletzt abgerufen am",
       "crawling_status": "Crawling-Status",
-      "crawling_failed": "Abrufen fehlgeschlagen"
+      "crawling_failed": "Abrufen fehlgeschlagen",
+      "description": "Überprüfe Links, die nicht abgerufen werden konnten, versuche sie erneut oder entferne alte Lesezeichen.",
+      "category_all": "Erfordert Aufmerksamkeit",
+      "category_blocked": "Zugriff blockiert",
+      "category_missing": "Nicht gefunden",
+      "category_errors": "Andere Fehler",
+      "category_all_hint": "Zu überprüfende Links",
+      "category_blocked_hint": "Eingeschränkt oder Ratenlimit erreicht",
+      "category_missing_hint": "Seite fehlt oder wurde entfernt",
+      "category_errors_hint": "Server- oder Abruffehler",
+      "blocked_hint": "Eine blockierte Anfrage bedeutet nicht immer einen defekten Link. Manche Websites schränken den automatisierten Zugriff ein. Öffne die Originalseite zur Überprüfung, bevor du löschst.",
+      "search": "Nach Titel oder URL suchen…",
+      "sort_recent": "Zuletzt geprüft",
+      "sort_oldest": "Älteste Prüfung zuerst",
+      "sort_domain": "Website A–Z",
+      "result_count_one": "{{count}} Link zu überprüfen",
+      "result_count_other": "{{count}} Links zu überprüfen",
+      "retry_selected": "Auswahl erneut versuchen",
+      "empty": "Keine defekten Links gefunden",
+      "empty_description": "Für keinen deiner gespeicherten Links ist derzeit ein Abruffehler gemeldet.",
+      "select_visible": "Alle sichtbaren Links auswählen",
+      "bookmark": "Lesezeichen",
+      "issue": "Problem",
+      "never_crawled": "Kein Abrufdatum",
+      "issue_blocked": "Zugriff blockiert",
+      "issue_missing": "Nicht gefunden",
+      "issue_server": "Serverfehler",
+      "issue_http": "HTTP-Fehler",
+      "issue_failed": "Abrufen fehlgeschlagen",
+      "issue_blocked_hint": "Die Website hat diese Anfrage eingeschränkt",
+      "issue_missing_hint": "Die Seite wurde möglicherweise entfernt",
+      "issue_server_hint": "Die Website konnte die Anfrage nicht abschließen",
+      "issue_http_hint": "Die Website hat eine unerwartete Antwort zurückgegeben",
+      "issue_failed_hint": "Es wurde keine erfolgreiche Antwort aufgezeichnet",
+      "queued": "In der Warteschlange",
+      "queued_count_one": "{{count}} Link für einen erneuten Abruf eingereiht.",
+      "queued_count_other": "{{count}} Links für einen erneuten Abruf eingereiht.",
+      "deleted_count_one": "{{count}} Lesezeichen gelöscht.",
+      "deleted_count_other": "{{count}} Lesezeichen gelöscht.",
+      "action_failed": "{{count}} von {{total}} fehlgeschlagen.",
+      "delete_title_one": "{{count}} Lesezeichen löschen?",
+      "delete_title_other": "{{count}} Lesezeichen löschen?",
+      "delete_description": "Dadurch werden die ausgewählten Lesezeichen samt ihren gespeicherten Dateien, Textmarkierungen und Notizen dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden."
     },
     "webhooks": {
       "webhook_url": "Webhook URL",
@@ -466,7 +509,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Aktivität nach Stunde",
-        "activity_by_day": "Aktivität nach Tag"
+        "activity_by_day": "Aktivität nach Tag",
+        "busiest_around": "Am aktivsten gegen {{hour}}"
       },
       "storage_breakdown": {
         "title": "Speicheraufschlüsselung"
@@ -517,10 +561,8 @@
       "progress": "Fortschritt",
       "status": {
         "pending": "Ausstehend",
-        "in_progress": "In Bearbeitung",
         "completed": "Abgeschlossen",
         "failed": "Fehlgeschlagen",
-        "processing": "Wird verarbeitet",
         "staging": "Wird vorbereitet",
         "running": "Läuft",
         "paused": "Pausiert",
@@ -616,6 +658,19 @@
         "backup_queued": "Backup-Job wurde in die Warteschlange gestellt! Er wird in Kürze bearbeitet.",
         "backup_deleted": "Backup wurde gelöscht!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Filter zurücksetzen",
+      "clear_selection": "Auswahl aufheben",
+      "delete_selected": "Auswahl löschen",
+      "try_again": "Erneut versuchen",
+      "sort": "Sortierung",
+      "no_matches": "Keine Treffer gefunden",
+      "adjust_filters": "Versuche eine andere Suche oder setze deine Filter zurück.",
+      "select_item": "{{name}} auswählen",
+      "selected": "{{count}} ausgewählt",
+      "showing": "{{shown}} von {{total}} angezeigt",
+      "load_more": "Mehr laden"
     }
   },
   "admin": {
@@ -628,18 +683,6 @@
     },
     "background_jobs": {
       "background_jobs": "Hintergrundaufgaben",
-      "crawler_jobs": "Crawler-Aufgaben",
-      "indexing_jobs": "Indexierungsaufgaben",
-      "inference_jobs": "Inferenzaufgaben",
-      "tidy_assets_jobs": "Aufräumaufgaben",
-      "job": "Aufgabe",
-      "queued": "Warteschlange",
-      "pending": "Ausstehend",
-      "failed": "Fehlgeschlagen",
-      "video_jobs": "Video-Download-Aufträge",
-      "webhook_jobs": "Webhook-Aufträge",
-      "asset_preprocessing_jobs": "Asset-Vorverarbeitungsaufträge",
-      "feed_jobs": "RSS-Feed-Aufträge",
       "jobs": {
         "crawler": {
           "title": "Crawler-Jobs",
@@ -656,10 +699,6 @@
         "asset_preprocessing": {
           "title": "Asset-Vorverarbeitungs-Jobs",
           "description": "Bild- und Dokumenten-Vorverarbeitung (Screenshots, Textextraktion, etc.)"
-        },
-        "tidy_assets": {
-          "title": "Tidy-Assets-Jobs",
-          "description": "Asset-Bereinigung und Speicheroptimierung"
         },
         "video": {
           "title": "Video-Download-Jobs",
@@ -719,18 +758,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Einbettungen nur für fehlgeschlagene Lesezeichen regenerieren",
         "regenerate_embeddings_for_all_bookmarks": "Einbettungen für alle Lesezeichen regenerieren"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Nur fehlgeschlagene Links erneut abrufen",
-      "recrawl_all_links": "Alle Links erneut abrufen",
-      "without_inference": "Ohne Inferenz",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "KI-Tags nur für fehlgeschlagene Lesezeichen neu generieren",
-      "regenerate_ai_tags_for_all_bookmarks": "KI-Tags für alle Lesezeichen neu generieren",
-      "reindex_all_bookmarks": "Alle Lesezeichen neu indizieren",
-      "compact_assets": "Assets komprimieren",
-      "reprocess_assets_fix_mode": "Assets neu verarbeiten (Fix-Modus)",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "KI-Zusammenfassungen nur für fehlgeschlagene Lesezeichen neu generieren",
-      "regenerate_ai_summaries_for_all_bookmarks": "KI-Zusammenfassungen für alle Lesezeichen neu generieren"
     },
     "users_list": {
       "users_list": "Benutzerliste",
@@ -799,8 +826,10 @@
     }
   },
   "options": {
+    "theme": "Design",
     "dark_mode": "Dunkelmodus",
     "light_mode": "Hellmodus",
+    "system_mode": "Systemmodus",
     "apps_extensions": "Apps & Erweiterungen",
     "documentation": "Dokumentation",
     "follow_us_on_x": "Folge uns auf X"
@@ -895,11 +924,11 @@
       "shared": "Geteilt",
       "private": "Privat"
     },
-    "summary_list_one": "{{count}} Listen",
+    "summary_list_one": "{{count}} Liste",
     "summary_list_other": "{{count}} Listen",
     "summary_bookmark_one": "{{count}} Lesezeichen",
     "summary_bookmark_other": "{{count}} Lesezeichen",
-    "items_count_one": "{{count}} Elemente",
+    "items_count_one": "{{count}} Element",
     "items_count_other": "{{count}} Elemente"
   },
   "tags": {
@@ -936,6 +965,9 @@
     "view_original": "Original anzeigen",
     "cached_content": "Gecachte Inhalte",
     "reader_view": "Leseansicht",
+    "page_overview": "Seitenübersicht",
+    "try_reader_view": "Leseansicht ausprobieren",
+    "archived_page": "Archivierte Seite",
     "tabs": {
       "content": "Inhalt",
       "details": "Details"
@@ -949,7 +981,6 @@
     "continue_button": "Weiter"
   },
   "editor": {
-    "quickly_focus": "Du kannst schnell auf dieses Feld fokussieren, indem du ⌘ + E drückst",
     "multiple_urls_dialog_title": "URLs als separate Lesezeichen importieren?",
     "multiple_urls_dialog_desc": "Die Eingabe enthält mehrere URLs in separaten Zeilen. Möchtest du sie als separate Lesezeichen importieren?",
     "import_as_text": "Als Text-Lesezeichen importieren",
@@ -1016,6 +1047,7 @@
       "delete_from_list": "Das Lesezeichen wurde aus der Liste gelöscht",
       "clipboard_copied": "Link wurde in deine Zwischenablage kopiert!",
       "preserve_pdf": "Die PDF-Speicherung wurde ausgelöst",
+      "preserve_video": "Video-Download wurde ausgelöst",
       "update_banner": "Banner wurde aktualisiert!",
       "uploading_banner": "Banner wird hochgeladen ..."
     },
@@ -1054,6 +1086,10 @@
     "is_not_favorited": "ist nicht favorisiert",
     "is_archived": "Ist archiviert",
     "has_no_tags": "hat kein Tag",
+    "has_notes": "Hat Notizen",
+    "has_no_notes": "Hat keine Notizen",
+    "has_highlights": "Hat Textmarkierungen",
+    "has_no_highlights": "Hat keine Textmarkierungen",
     "created_on_or_after": "wurde am oder danach erstellt",
     "is_in_list": "ist in der Liste",
     "is_in_any_list": "ist in irgendeiner Liste",

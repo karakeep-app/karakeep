@@ -20,6 +20,7 @@ import {
 import { deleteAsset, deleteUserAssets } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import {
+  zUpdateUserProfileSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
   zUserBookmarkCountsResponseSchema,
@@ -100,6 +101,9 @@ export class User {
               emailVerified: input.emailVerified ?? false,
               bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
               storageQuota: serverConfig.quotas.free.assetSizeBytes,
+              // New accounts open the preview. The column default stays
+              // "open_original_link" so existing users keep what they have.
+              bookmarkClickAction: "expand_bookmark_preview",
             })
             .returning()
             .all();
@@ -153,9 +157,12 @@ export class User {
       },
     });
 
+    // past_due subscriptions are still being retried by Stripe, so they can
+    // charge the user just like active ones.
     if (
       subscription?.status === "active" ||
-      subscription?.status === "trialing"
+      subscription?.status === "trialing" ||
+      subscription?.status === "past_due"
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -284,6 +291,15 @@ export class User {
       .where(eq(users.id, this.user.id));
   }
 
+  async updateProfile(
+    input: z.infer<typeof zUpdateUserProfileSchema>,
+  ): Promise<void> {
+    await this.ctx.db
+      .update(users)
+      .set({ name: input.name })
+      .where(eq(users.id, this.user.id));
+  }
+
   async updateAvatar(assetId: string | null): Promise<void> {
     const previousImage = this.user.image ?? null;
     const [asset, previousAsset] = await Promise.all([
@@ -372,13 +388,16 @@ export class User {
 
     this.user.image = assetId;
 
-    if (!previousImage || previousImage === assetId) {
+    // Only delete files backed by an asset row this user owns. `users.image`
+    // can hold arbitrary strings (e.g. OAuth picture URLs), so it must never be
+    // used as a storage key on its own.
+    if (!previousAsset || previousAsset.bookmarkId) {
       return;
     }
 
     await deleteAsset({
       userId: this.user.id,
-      assetId: previousImage,
+      assetId: previousAsset.id,
     }).catch(() => ({}));
   }
 
@@ -408,6 +427,34 @@ export class User {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const yearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+    const hostExpr = sql<string>`CASE
+            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 9)
+              END
+            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
+              CASE
+                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
+                ELSE
+                  SUBSTR(${bookmarkLinks.url}, 8)
+              END
+            ELSE
+              CASE
+                WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
+                  SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
+                ELSE
+                  ${bookmarkLinks.url}
+              END
+          END`;
+    const topDomainExpr = sql<string>`CASE
+      WHEN ${hostExpr} LIKE 'www.%' THEN SUBSTR(${hostExpr}, 5)
+      ELSE ${hostExpr}
+    END`;
 
     const [
       [{ numBookmarks }],
@@ -470,62 +517,16 @@ export class User {
         .where(eq(bookmarks.userId, this.user.id))
         .groupBy(bookmarks.type),
 
-      // Top domains
+      // Top domains, with "www." folded into the bare host before the limit.
       this.ctx.db
         .select({
-          domain: sql<string>`CASE
-            WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
-              CASE
-                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
-                  SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
-                ELSE
-                  SUBSTR(${bookmarkLinks.url}, 9)
-              END
-            WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
-              CASE
-                WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
-                  SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
-                ELSE
-                  SUBSTR(${bookmarkLinks.url}, 8)
-              END
-            ELSE
-              CASE
-                WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
-                  SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
-                ELSE
-                  ${bookmarkLinks.url}
-              END
-          END`,
+          domain: topDomainExpr,
           count: count(),
         })
         .from(bookmarkLinks)
         .innerJoin(bookmarks, eq(bookmarks.id, bookmarkLinks.id))
         .where(eq(bookmarks.userId, this.user.id))
-        .groupBy(
-          sql`CASE
-          WHEN ${bookmarkLinks.url} LIKE 'https://%' THEN
-            CASE
-              WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') > 0 THEN
-                SUBSTR(${bookmarkLinks.url}, 9, INSTR(SUBSTR(${bookmarkLinks.url}, 9), '/') - 1)
-              ELSE
-                SUBSTR(${bookmarkLinks.url}, 9)
-            END
-          WHEN ${bookmarkLinks.url} LIKE 'http://%' THEN
-            CASE
-              WHEN INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') > 0 THEN
-                SUBSTR(${bookmarkLinks.url}, 8, INSTR(SUBSTR(${bookmarkLinks.url}, 8), '/') - 1)
-              ELSE
-                SUBSTR(${bookmarkLinks.url}, 8)
-            END
-          ELSE
-            CASE
-              WHEN INSTR(${bookmarkLinks.url}, '/') > 0 THEN
-                SUBSTR(${bookmarkLinks.url}, 1, INSTR(${bookmarkLinks.url}, '/') - 1)
-              ELSE
-                ${bookmarkLinks.url}
-            END
-        END`,
-        )
+        .groupBy(topDomainExpr)
         .orderBy(desc(count()))
         .limit(10),
 

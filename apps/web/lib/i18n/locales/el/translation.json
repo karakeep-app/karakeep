@@ -61,9 +61,9 @@
     "toggle_show_archived": "Εμφάνιση Αρχειοθετημένων",
     "refresh": "Ανανέωση",
     "recrawl": "Επαναφόρτωση",
-    "download_full_page_archive": "Λήψη Πλήρους Αρχείου Σελίδας",
     "edit_tags": "Επεξεργασία Ετικετών",
     "add_to_list": "Προσθήκη στη Λίστα",
+    "select": "Επιλογή",
     "select_all": "Επιλογή Όλων",
     "unselect_all": "Αποεπιλογή Όλων",
     "copy_link": "Αντιγραφή Συνδέσμου",
@@ -96,6 +96,7 @@
     "load_more": "Φορτώστε περισσότερα",
     "edit_notes": "Επεξεργασία σημειώσεων",
     "preserve_as_pdf": "Διατήρηση ως PDF",
+    "preserve_video": "Διατήρηση Βίντεο",
     "offline_copies": "Αντίγραφα εκτός σύνδεσης",
     "preserve_offline_archive": "Διατήρηση αρχείου εκτός σύνδεσης",
     "download_full_page_archive_file": "Λήψη αρχείου",
@@ -362,7 +363,49 @@
       "broken_links": "Χαλασμένοι Σύνδεσμοι",
       "last_crawled_at": "Τελευταία Σάρωση στις",
       "crawling_status": "Κατάσταση Σάρωσης",
-      "crawling_failed": "Η Σάρωση Απέτυχε"
+      "crawling_failed": "Η Σάρωση Απέτυχε",
+      "description": "Ελέγξτε τους συνδέσμους που δεν ήταν δυνατό να ληφθούν, δοκιμάστε τους ξανά ή αφαιρέστε παλιούς σελιδοδείκτες.",
+      "category_all": "Χρειάζονται προσοχή",
+      "category_blocked": "Αποκλεισμένη πρόσβαση",
+      "category_missing": "Δεν βρέθηκε",
+      "category_errors": "Άλλα σφάλματα",
+      "category_all_hint": "Σύνδεσμοι για έλεγχο",
+      "category_blocked_hint": "Περιορισμένη πρόσβαση ή όριο αιτημάτων",
+      "category_missing_hint": "Η σελίδα λείπει ή έχει αφαιρεθεί",
+      "category_errors_hint": "Σφάλματα διακομιστή ή σάρωσης",
+      "blocked_hint": "Ένα αποκλεισμένο αίτημα δεν σημαίνει πάντα χαλασμένο σύνδεσμο. Ορισμένοι ιστότοποι περιορίζουν την αυτοματοποιημένη πρόσβαση. Ανοίξτε την αρχική σελίδα για να ελέγξετε πριν τη διαγραφή.",
+      "search": "Αναζήτηση με τίτλο ή URL…",
+      "sort_recent": "Πρόσφατα ελεγμένοι",
+      "sort_oldest": "Παλαιότερος έλεγχος πρώτα",
+      "sort_domain": "Ιστότοπος A–Z",
+      "result_count_one": "{{count}} σύνδεσμος για έλεγχο",
+      "result_count_other": "{{count}} σύνδεσμοι για έλεγχο",
+      "retry_selected": "Επανάληψη επιλεγμένων",
+      "empty": "Δεν βρέθηκαν χαλασμένοι σύνδεσμοι",
+      "empty_description": "Κανένας από τους αποθηκευμένους συνδέσμους σας δεν έχει αυτή τη στιγμή αναφερόμενο σφάλμα σάρωσης.",
+      "select_visible": "Επιλογή όλων των ορατών συνδέσμων",
+      "bookmark": "Σελιδοδείκτης",
+      "issue": "Πρόβλημα",
+      "never_crawled": "Χωρίς ημερομηνία σάρωσης",
+      "issue_blocked": "Αποκλεισμένη πρόσβαση",
+      "issue_missing": "Δεν βρέθηκε",
+      "issue_server": "Σφάλμα διακομιστή",
+      "issue_http": "Σφάλμα HTTP",
+      "issue_failed": "Η σάρωση απέτυχε",
+      "issue_blocked_hint": "Ο ιστότοπος περιόρισε αυτό το αίτημα",
+      "issue_missing_hint": "Η σελίδα μπορεί να έχει αφαιρεθεί",
+      "issue_server_hint": "Ο ιστότοπος δεν μπόρεσε να ολοκληρώσει το αίτημα",
+      "issue_http_hint": "Ο ιστότοπος επέστρεψε μια μη αναμενόμενη απόκριση",
+      "issue_failed_hint": "Δεν καταγράφηκε επιτυχής απόκριση",
+      "queued": "Στην ουρά",
+      "queued_count_one": "{{count}} σύνδεσμος μπήκε στην ουρά για νέα σάρωση.",
+      "queued_count_other": "{{count}} σύνδεσμοι μπήκαν στην ουρά για νέα σάρωση.",
+      "deleted_count_one": "Διαγράφηκε {{count}} σελιδοδείκτης.",
+      "deleted_count_other": "Διαγράφηκαν {{count}} σελιδοδείκτες.",
+      "action_failed": "Απέτυχαν {{count}} από {{total}}.",
+      "delete_title_one": "Διαγραφή {{count}} σελιδοδείκτη;",
+      "delete_title_other": "Διαγραφή {{count}} σελιδοδεικτών;",
+      "delete_description": "Αυτό διαγράφει οριστικά τους επιλεγμένους σελιδοδείκτες και τα αποθηκευμένα αρχεία, τις επισημάνσεις και τις σημειώσεις τους. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί."
     },
     "manage_assets": {
       "manage_assets": "Διαχείριση Στοιχείων",
@@ -469,7 +512,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Δραστηριότητα ανά ώρα",
-        "activity_by_day": "Δραστηριότητα ανά ημέρα"
+        "activity_by_day": "Δραστηριότητα ανά ημέρα",
+        "busiest_around": "Μεγαλύτερη κίνηση γύρω στις {{hour}}"
       },
       "storage_breakdown": {
         "title": "Ανάλυση αποθήκευσης"
@@ -520,10 +564,8 @@
       "progress": "Πρόοδος",
       "status": {
         "pending": "Σε εκκρεμότητα",
-        "in_progress": "Σε εξέλιξη",
         "completed": "Ολοκληρώθηκε",
         "failed": "Αποτυχία",
-        "processing": "Επεξεργασία",
         "staging": "Στάδιο",
         "running": "Εκτέλεση",
         "paused": "Σε παύση",
@@ -619,6 +661,19 @@
         "backup_queued": "Η εργασία δημιουργίας αντιγράφου ασφαλείας έχει μπει στην ουρά! Θα διεκπεραιωθεί σε λίγο.",
         "backup_deleted": "Το αντίγραφο ασφαλείας διαγράφηκε!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Εκκαθάριση φίλτρων",
+      "clear_selection": "Εκκαθάριση επιλογής",
+      "delete_selected": "Διαγραφή επιλεγμένων",
+      "try_again": "Δοκιμάστε ξανά",
+      "sort": "Σειρά ταξινόμησης",
+      "no_matches": "Δεν βρέθηκαν αποτελέσματα",
+      "adjust_filters": "Δοκιμάστε διαφορετική αναζήτηση ή καταργήστε τα φίλτρα σας.",
+      "select_item": "Επιλογή {{name}}",
+      "selected": "{{count}} επιλεγμένα",
+      "showing": "Εμφανίζονται {{shown}} από {{total}}",
+      "load_more": "Φορτώστε περισσότερα"
     }
   },
   "admin": {
@@ -631,18 +686,6 @@
     },
     "background_jobs": {
       "background_jobs": "Εργασίες Παρασκηνίου",
-      "crawler_jobs": "Εργασίες Σάρωσης",
-      "indexing_jobs": "Εργασίες Ευρετηρίασης",
-      "inference_jobs": "Εργασίες Εξαγωγής Συμπερασμάτων",
-      "tidy_assets_jobs": "Εργασίες Οργάνωσης Στοιχείων",
-      "video_jobs": "Εργασίες Λήψης Βίντεο",
-      "webhook_jobs": "Εργασίες Webhook",
-      "asset_preprocessing_jobs": "Εργασίες Προεπεξεργασίας Στοιχείων",
-      "feed_jobs": "Εργασίες RSS Feed",
-      "job": "Εργασία",
-      "queued": "Στην Ουρά",
-      "pending": "Εκκρεμής",
-      "failed": "Απέτυχε",
       "jobs": {
         "crawler": {
           "title": "Εργασίες ανίχνευσης",
@@ -659,10 +702,6 @@
         "asset_preprocessing": {
           "title": "Εργασίες προεπεξεργασίας στοιχείων",
           "description": "Επεξεργασία εικόνων και εγγράφων (στιγμιότυπα οθόνης, εξαγωγή κειμένου, κ.λπ.)"
-        },
-        "tidy_assets": {
-          "title": "Εργασίες τακτοποίησης στοιχείων",
-          "description": "Εκκαθάριση στοιχείων και βελτιστοποίηση χώρου αποθήκευσης"
         },
         "video": {
           "title": "Εργασίες λήψης βίντεο",
@@ -722,18 +761,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Αναγέννηση ενσωματώσεων μόνο για αποτυχημένους σελιδοδείκτες",
         "regenerate_embeddings_for_all_bookmarks": "Αναγέννηση ενσωματώσεων για όλους τους σελιδοδείκτες"
       }
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Επανασάρωση Μόνο Αποτυχημένων Συνδέσμων",
-      "recrawl_all_links": "Επανασάρωση Όλων των Συνδέσμων",
-      "without_inference": "Χωρίς Εξαγωγή Συμπερασμάτων",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Αναδημιουργία Ετικετών AI Μόνο για Αποτυχημένους Σελιδοδείκτες",
-      "regenerate_ai_tags_for_all_bookmarks": "Αναδημιουργία Ετικετών AI για Όλους τους Σελιδοδείκτες",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Αναδημιουργία Περιλήψεων AI Μόνο για Αποτυχημένους Σελιδοδείκτες",
-      "regenerate_ai_summaries_for_all_bookmarks": "Αναδημιουργία Περιλήψεων AI για Όλους τους Σελιδοδείκτες",
-      "reindex_all_bookmarks": "Επαναευρετηρίαση Όλων των Σελιδοδεικτών",
-      "compact_assets": "Συμπίεση Στοιχείων",
-      "reprocess_assets_fix_mode": "Επαναεπεξεργασία Στοιχείων (Λειτουργία Διόρθωσης)"
     },
     "users_list": {
       "users_list": "Λίστα Χρηστών",
@@ -802,8 +829,10 @@
     }
   },
   "options": {
+    "theme": "Θέμα",
     "dark_mode": "Σκοτεινή Λειτουργία",
     "light_mode": "Ανοιχτή Λειτουργία",
+    "system_mode": "Λειτουργία Συστήματος",
     "apps_extensions": "Εφαρμογές & Επεκτάσεις",
     "documentation": "Τεκμηρίωση",
     "follow_us_on_x": "Ακολουθήστε μας στο X"
@@ -898,11 +927,11 @@
       "shared": "Κοινόχρηστο",
       "private": "Ιδιωτικό"
     },
-    "summary_list_one": "{{count}} Λίστες",
-    "summary_list_other": "{{count}} Λίστες",
-    "summary_bookmark_one": "{{count}} Σελιδοδείκτες",
-    "summary_bookmark_other": "{{count}} Σελιδοδείκτες",
-    "items_count_one": "{{count}} στοιχεία",
+    "summary_list_one": "{{count}} λίστα",
+    "summary_list_other": "{{count}} λίστες",
+    "summary_bookmark_one": "{{count}} σελιδοδείκτης",
+    "summary_bookmark_other": "{{count}} σελιδοδείκτες",
+    "items_count_one": "{{count}} στοιχείο",
     "items_count_other": "{{count}} στοιχεία"
   },
   "tags": {
@@ -942,6 +971,10 @@
     "is_not_archived": "Δεν Είναι Αρχειοθετημένο",
     "has_any_tag": "Έχει Οποιαδήποτε Ετικέτα",
     "has_no_tags": "Δεν Έχει Ετικέτες",
+    "has_notes": "Έχει Σημειώσεις",
+    "has_no_notes": "Δεν Έχει Σημειώσεις",
+    "has_highlights": "Έχει Επισημάνσεις",
+    "has_no_highlights": "Δεν Έχει Επισημάνσεις",
     "is_in_any_list": "Είναι σε Οποιαδήποτε Λίστα",
     "is_not_in_any_list": "Δεν Είναι σε Καμία Λίστα",
     "created_on_or_after": "Δημιουργήθηκε την ή μετά την",
@@ -999,6 +1032,9 @@
     "view_original": "Προβολή Πρωτότυπου",
     "cached_content": "Περιεχόμενο σε Cache",
     "reader_view": "Προβολή Ανάγνωσης",
+    "page_overview": "Επισκόπηση Σελίδας",
+    "try_reader_view": "Δοκιμάστε την Προβολή Ανάγνωσης",
+    "archived_page": "Αρχειοθετημένη Σελίδα",
     "tabs": {
       "content": "Περιεχόμενο",
       "details": "Λεπτομέρειες"
@@ -1012,7 +1048,6 @@
     "continue_button": "Συνεχίστε"
   },
   "editor": {
-    "quickly_focus": "Μπορείτε να εστιάσετε γρήγορα σε αυτό το πεδίο πατώντας ⌘ + E",
     "multiple_urls_dialog_title": "Εισαγωγή URLs ως Ξεχωριστών Σελιδοδεικτών;",
     "multiple_urls_dialog_desc": "Η είσοδος περιέχει πολλαπλά URLs σε ξεχωριστές γραμμές. Θέλετε να τα εισάγετε ως ξεχωριστούς σελιδοδείκτες;",
     "import_as_text": "Εισαγωγή ως Σελιδοδείκτης Κειμένου",
@@ -1086,6 +1121,7 @@
       "delete_from_list": "Ο σελιδοδείκτης διαγράφηκε από τη λίστα",
       "clipboard_copied": "Ο σύνδεσμος προστέθηκε στο πρόχειρό σας!",
       "preserve_pdf": "Η διατήρηση PDF έχει ενεργοποιηθεί",
+      "preserve_video": "Η λήψη του βίντεο ενεργοποιήθηκε",
       "update_banner": "Το banner ενημερώθηκε!",
       "uploading_banner": "Μεταφόρτωση banner..."
     },

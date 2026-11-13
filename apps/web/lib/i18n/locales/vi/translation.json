@@ -17,7 +17,7 @@
     "refresh": "Làm mới",
     "select_all": "Chọn tất cả",
     "add_to_list": "Thêm vào danh sách",
-    "download_full_page_archive": "Tải xuống toàn bộ trang lưu trữ",
+    "select": "Chọn",
     "recrawl": "Quét lại",
     "close_bulk_edit": "Đóng sửa hàng loạt",
     "remove_from_list": "Xóa khỏi danh sách",
@@ -44,6 +44,7 @@
     "load_more": "Tải thêm",
     "edit_notes": "Sửa ghi chú",
     "preserve_as_pdf": "Lưu giữ dưới dạng PDF",
+    "preserve_video": "Lưu giữ video",
     "offline_copies": "Bản sao ngoại tuyến",
     "preserve_offline_archive": "Lưu Trữ Ngoại Tuyến",
     "download_full_page_archive_file": "Tải File Lưu Trữ",
@@ -313,7 +314,45 @@
       "broken_links": "Liên kết hỏng",
       "last_crawled_at": "Lần quét cuối lúc",
       "crawling_status": "Tình trạng quét",
-      "crawling_failed": "Quét thất bại"
+      "crawling_failed": "Quét thất bại",
+      "description": "Xem lại các liên kết không thể tìm nạp, thử lại hoặc xóa các dấu trang cũ.",
+      "category_all": "Cần chú ý",
+      "category_blocked": "Bị chặn truy cập",
+      "category_missing": "Không tìm thấy",
+      "category_errors": "Lỗi khác",
+      "category_all_hint": "Liên kết cần xem lại",
+      "category_blocked_hint": "Bị hạn chế hoặc giới hạn tần suất",
+      "category_missing_hint": "Trang bị thiếu hoặc đã bị xóa",
+      "category_errors_hint": "Lỗi máy chủ hoặc lỗi quét",
+      "blocked_hint": "Yêu cầu bị chặn không phải lúc nào cũng có nghĩa là liên kết bị hỏng. Một số trang web hạn chế truy cập tự động. Hãy mở trang gốc để kiểm tra trước khi xóa.",
+      "search": "Tìm theo tiêu đề hoặc URL…",
+      "sort_recent": "Kiểm tra gần đây",
+      "sort_oldest": "Kiểm tra cũ nhất trước",
+      "sort_domain": "Trang web A–Z",
+      "result_count_other": "{{count}} liên kết cần xem lại",
+      "retry_selected": "Thử lại mục đã chọn",
+      "empty": "Không tìm thấy liên kết hỏng",
+      "empty_description": "Hiện không có liên kết đã lưu nào của bạn bị báo lỗi quét.",
+      "select_visible": "Chọn tất cả liên kết đang hiển thị",
+      "bookmark": "Dấu trang",
+      "issue": "Sự cố",
+      "never_crawled": "Chưa có ngày quét",
+      "issue_blocked": "Bị chặn truy cập",
+      "issue_missing": "Không tìm thấy",
+      "issue_server": "Lỗi máy chủ",
+      "issue_http": "Lỗi HTTP",
+      "issue_failed": "Quét thất bại",
+      "issue_blocked_hint": "Trang web đã hạn chế yêu cầu này",
+      "issue_missing_hint": "Trang có thể đã bị xóa",
+      "issue_server_hint": "Trang web không thể hoàn tất yêu cầu",
+      "issue_http_hint": "Trang web trả về phản hồi không mong đợi",
+      "issue_failed_hint": "Chưa ghi nhận phản hồi thành công nào",
+      "queued": "Đã xếp hàng",
+      "queued_count_other": "Đã xếp hàng {{count}} liên kết để quét lại.",
+      "deleted_count_other": "Đã xóa {{count}} dấu trang.",
+      "action_failed": "{{count}} trên {{total}} thất bại.",
+      "delete_title_other": "Xóa {{count}} dấu trang?",
+      "delete_description": "Thao tác này sẽ xóa vĩnh viễn các dấu trang đã chọn cùng các tệp, điểm nổi bật và ghi chú đã lưu của chúng. Không thể hoàn tác thao tác này."
     },
     "manage_assets": {
       "asset_type": "Loại tài sản",
@@ -420,7 +459,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Hoạt động theo giờ",
-        "activity_by_day": "Hoạt động theo ngày"
+        "activity_by_day": "Hoạt động theo ngày",
+        "busiest_around": "Bận rộn nhất vào khoảng {{hour}}"
       },
       "storage_breakdown": {
         "title": "Phân tích bộ nhớ"
@@ -471,10 +511,8 @@
       "progress": "Tiến trình",
       "status": {
         "pending": "Đang chờ xử lý",
-        "in_progress": "Đang thực hiện",
         "completed": "Đã hoàn thành",
         "failed": "Thất bại",
-        "processing": "Đang xử lý",
         "staging": "Đang dàn dựng",
         "running": "Đang chạy",
         "paused": "Đang tạm dừng",
@@ -570,6 +608,19 @@
         "backup_queued": "Công việc sao lưu đã được đưa vào hàng đợi! Nó sẽ sớm được xử lý thôi.",
         "backup_deleted": "Đã xóa bản sao lưu!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Xóa bộ lọc",
+      "clear_selection": "Bỏ chọn",
+      "delete_selected": "Xóa mục đã chọn",
+      "try_again": "Thử lại",
+      "sort": "Thứ tự sắp xếp",
+      "no_matches": "Không tìm thấy kết quả phù hợp",
+      "adjust_filters": "Hãy thử tìm kiếm khác hoặc xóa bộ lọc.",
+      "select_item": "Chọn {{name}}",
+      "selected": "Đã chọn {{count}}",
+      "showing": "Đang hiển thị {{shown}} trên {{total}}",
+      "load_more": "Tải thêm"
     }
   },
   "admin": {
@@ -581,18 +632,6 @@
     },
     "background_jobs": {
       "background_jobs": "Tiến trình chạy nền",
-      "failed": "Thất bại",
-      "inference_jobs": "Việc suy luận",
-      "video_jobs": "Công việc tải video xuống",
-      "webhook_jobs": "Công việc webhook",
-      "asset_preprocessing_jobs": "Công việc tiền xử lý tài sản",
-      "feed_jobs": "Việc làm RSS Feed",
-      "tidy_assets_jobs": "Công việc sắp xếp tài sản",
-      "job": "Việc làm",
-      "queued": "Đã xếp hàng",
-      "pending": "Đang chờ xử lý",
-      "crawler_jobs": "Việc làm của trình thu thập dữ liệu",
-      "indexing_jobs": "Đang lập chỉ mục công việc",
       "jobs": {
         "crawler": {
           "title": "Các Công Việc Thu Thập Dữ Liệu",
@@ -609,10 +648,6 @@
         "asset_preprocessing": {
           "title": "Các Công Việc Tiền Xử Lý Tài Sản",
           "description": "Xử lý trước hình ảnh và tài liệu (chụp ảnh màn hình, trích xuất văn bản, v.v.)"
-        },
-        "tidy_assets": {
-          "title": "Các Công Việc Dọn Dẹp Tài Sản",
-          "description": "Dọn dẹp tài sản và tối ưu hóa lưu trữ"
         },
         "video": {
           "title": "Các Công Việc Tải Xuống Video",
@@ -686,18 +721,6 @@
       "local_user": "Người dùng cục bộ",
       "delete_user_confirm_description": "Bạn có chắc chắn muốn xóa người dùng \"{{name}}\" không?",
       "unlimited": "Không giới hạn"
-    },
-    "actions": {
-      "recrawl_failed_links_only": "Chỉ quét lại liên kết hỏng",
-      "recrawl_all_links": "Quét lại mọi liên kết",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Tạo lại thẻ AI chỉ cho các dấu trang bị lỗi",
-      "regenerate_ai_tags_for_all_bookmarks": "Tạo lại thẻ AI cho tất cả dấu trang",
-      "reindex_all_bookmarks": "Lập chỉ mục lại tất cả dấu trang",
-      "compact_assets": "Gộp tài sản",
-      "reprocess_assets_fix_mode": "Xử lý lại tài sản (Chế độ sửa lỗi)",
-      "without_inference": "Không có suy luận",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Tạo lại tóm tắt AI chỉ cho các bookmark bị lỗi",
-      "regenerate_ai_summaries_for_all_bookmarks": "Tạo lại tóm tắt AI cho tất cả các bookmark"
     },
     "service_connections": {
       "title": "Kết nối Dịch vụ",
@@ -892,9 +915,9 @@
       "private": "Riêng tư"
     },
     "summary_list_one": "{{count}} Danh sách",
-    "summary_list_other": "{{count}} Danh sách",
+    "summary_list_other": "{{count}} danh sách",
     "summary_bookmark_one": "{{count}} Dấu trang",
-    "summary_bookmark_other": "{{count}} Dấu trang",
+    "summary_bookmark_other": "{{count}} dấu trang",
     "items_count_one": "{{count}} mục",
     "items_count_other": "{{count}} mục"
   },
@@ -912,6 +935,10 @@
     "is_not_in_any_list": "Không ở trong danh sách nào",
     "has_any_tag": "Được gán nhãn",
     "has_no_tags": "Không được gán nhãn",
+    "has_notes": "Có ghi chú",
+    "has_no_notes": "Không có ghi chú",
+    "has_highlights": "Có điểm nổi bật",
+    "has_no_highlights": "Không có điểm nổi bật",
     "not_created_on_or_before": "Không được tạo vào hoặc trước lúc",
     "url_does_not_contain": "URL không chứa",
     "is_in_list": "Ở trong danh sách",
@@ -989,8 +1016,10 @@
     "attached_by_ai": "{{count}} bởi AI"
   },
   "options": {
+    "theme": "Giao diện",
     "dark_mode": "Chế độ tối",
     "light_mode": "Chế độ sáng",
+    "system_mode": "Chế độ hệ thống",
     "apps_extensions": "Ứng dụng & Tiện ích mở rộng",
     "documentation": "Tài liệu",
     "follow_us_on_x": "Theo dõi chúng tôi trên X"
@@ -1044,7 +1073,6 @@
       "strikethrough": "Gạch ngang",
       "code": "Mã"
     },
-    "quickly_focus": "Bạn có thể nhanh chóng tập trung vào trường này bằng cách nhấn ⌘ + E",
     "disabled_submissions": "Đã tắt tính năng gửi",
     "multiple_urls_dialog_desc": "Đầu vào chứa nhiều URL trên các dòng riêng biệt. Bạn có muốn nhập chúng dưới dạng các dấu trang riêng biệt không?",
     "import_as_separate_bookmarks": "Nhập dưới dạng Dấu trang riêng biệt",
@@ -1077,6 +1105,7 @@
       "delete_from_list": "Đã xóa dấu trang khỏi danh sách",
       "clipboard_copied": "Liên kết đã được thêm vào bảng nhớ tạm của bạn!",
       "preserve_pdf": "Đã kích hoạt lưu giữ PDF",
+      "preserve_video": "Đã kích hoạt tải xuống video",
       "update_banner": "Banner đã được cập nhật!",
       "uploading_banner": "Đang tải banner lên..."
     },
@@ -1097,6 +1126,9 @@
     "view_original": "Xem bản gốc",
     "cached_content": "Nội dung được lưu trong bộ nhớ cache",
     "reader_view": "Chế độ đọc",
+    "page_overview": "Tổng quan trang",
+    "try_reader_view": "Thử chế độ đọc",
+    "archived_page": "Trang lưu trữ",
     "tabs": {
       "content": "Nội dung",
       "details": "Chi tiết"
@@ -1150,8 +1182,8 @@
   "wrapped": {
     "sections": {
       "total_saves": {
-        "suffix": "{{items}} trong năm nay",
-        "suffix_singular": "{{item}} trong năm nay",
+        "suffix": "mục trong năm nay",
+        "suffix_singular": "mục trong năm nay",
         "prefix": "Bạn đã lưu"
       },
       "first_bookmark": {

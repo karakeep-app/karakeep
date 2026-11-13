@@ -38,8 +38,9 @@ enum TokenType {
 
 // Rules are in order of priority
 const lexerRules: [RegExp, TokenType][] = [
-  [/^\s+and/i, TokenType.And],
-  [/^\s+or/i, TokenType.Or],
+  // Only whole words are operators, so "android" or "oregon" stay plain text.
+  [/^\s+and(?=\s|$)/i, TokenType.And],
+  [/^\s+or(?=\s|$)/i, TokenType.Or],
 
   [/^#/, TokenType.Hash],
   [
@@ -312,7 +313,17 @@ MATCHER.setPattern(
                 text: "",
                 matcher: {
                   type: "age",
-                  relativeDate: { direction, amount, unit },
+                  relativeDate: {
+                    // "newer" (>=) and "older" (<) are exact complements, so
+                    // negating the qualifier is the same as flipping it.
+                    direction: minus
+                      ? direction === "newer"
+                        ? "older"
+                        : "newer"
+                      : direction,
+                    amount,
+                    unit,
+                  },
                 },
               };
             } catch {

@@ -7,6 +7,8 @@ import { ActionButton } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Empty, EmptyHeader, EmptyTitle } from "@/components/ui/empty";
+import { PageHeader } from "../ui/page-header";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -97,21 +99,21 @@ function getStatusColor(status: string) {
 function getStatusIcon(status: string) {
   switch (status) {
     case "staging":
-      return <Upload className="h-4 w-4" />;
+      return <Upload className="size-4" />;
     case "pending":
-      return <Clock className="h-4 w-4" />;
+      return <Clock className="size-4" />;
     case "running":
-      return <Loader2 className="h-4 w-4 animate-spin" />;
+      return <Loader2 className="size-4 animate-spin" />;
     case "paused":
-      return <Pause className="h-4 w-4" />;
+      return <Pause className="size-4" />;
     case "completed":
-      return <CheckCircle2 className="h-4 w-4" />;
+      return <CheckCircle2 className="size-4" />;
     case "archived":
-      return <Archive className="h-4 w-4" />;
+      return <Archive className="size-4" />;
     case "failed":
-      return <AlertCircle className="h-4 w-4" />;
+      return <AlertCircle className="size-4" />;
     default:
-      return <Clock className="h-4 w-4" />;
+      return <Clock className="size-4" />;
   }
 }
 
@@ -319,40 +321,36 @@ export default function ImportSessionDetail({
   };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5">
       {/* Back link */}
       <Link
         href="/settings/import"
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft className="size-4" />
         {t("settings.import_sessions.detail.back_to_import")}
       </Link>
 
-      {/* Header */}
-      <div className="rounded-md border bg-background p-4">
-        <div className="flex flex-col gap-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <h2 className="text-lg font-medium">{stats.name}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t("settings.import_sessions.created_at", {
-                  time: formatDistanceToNow(stats.createdAt, {
-                    addSuffix: true,
-                  }),
-                })}
-              </p>
-            </div>
-            <Badge
-              className={`${getStatusColor(stats.status)} hover:bg-inherit`}
-            >
-              {getStatusIcon(stats.status)}
-              <span className="ml-1 capitalize">
-                {statusLabels(stats.status)}
-              </span>
-            </Badge>
-          </div>
+      <PageHeader
+        title={stats.name}
+        description={t("settings.import_sessions.created_at", {
+          time: formatDistanceToNow(stats.createdAt, {
+            addSuffix: true,
+          }),
+        })}
+        actions={
+          <Badge className={`${getStatusColor(stats.status)} hover:bg-inherit`}>
+            {getStatusIcon(stats.status)}
+            <span className="ml-1 capitalize">
+              {statusLabels(stats.status)}
+            </span>
+          </Badge>
+        }
+      />
 
+      {/* Header */}
+      <div className="rounded-lg border bg-card p-6 shadow-sm">
+        <div className="flex flex-col gap-4">
           {/* Progress bar + stats */}
           {stats.totalBookmarks > 0 && (
             <div className="space-y-3">
@@ -429,7 +427,7 @@ export default function ImportSessionDetail({
 
           {/* Action buttons */}
           <div className="flex items-center justify-end">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               {canPause && (
                 <Button
                   variant="outline"
@@ -439,7 +437,7 @@ export default function ImportSessionDetail({
                   }
                   disabled={pauseSession.isPending}
                 >
-                  <Pause className="mr-1 h-4 w-4" />
+                  <Pause className="size-4" />
                   {t("settings.import_sessions.pause_session")}
                 </Button>
               )}
@@ -471,7 +469,7 @@ export default function ImportSessionDetail({
                   )}
                 >
                   <Button size="sm" disabled={finalizeSession.isPending}>
-                    <Play className="mr-1 h-4 w-4" />
+                    <Play className="size-4" />
                     {t("settings.import_sessions.finalize_staging")}
                   </Button>
                 </ActionConfirmingDialog>
@@ -485,7 +483,7 @@ export default function ImportSessionDetail({
                   }
                   disabled={resumeSession.isPending}
                 >
-                  <Play className="mr-1 h-4 w-4" />
+                  <Play className="size-4" />
                   {t("settings.import_sessions.resume_session")}
                 </Button>
               )}
@@ -513,11 +511,11 @@ export default function ImportSessionDetail({
                   )}
                 >
                   <Button
-                    variant="destructive"
+                    variant="ghostDestructive"
                     size="sm"
                     disabled={deleteSession.isPending}
                   >
-                    <Trash2 className="mr-1 h-4 w-4" />
+                    <Trash2 className="size-4" />
                     {t("actions.delete")}
                   </Button>
                 </ActionConfirmingDialog>
@@ -528,7 +526,7 @@ export default function ImportSessionDetail({
       </div>
 
       {/* Filter tabs + Results table */}
-      <div className="rounded-md border bg-background p-4">
+      <div className="rounded-lg border bg-card p-6 shadow-sm">
         {stats.status === "archived" && (
           <p className="rounded-md bg-muted p-4 text-center text-sm text-muted-foreground">
             {t("settings.import_sessions.detail.archived_results")}
@@ -560,12 +558,16 @@ export default function ImportSessionDetail({
         {stats.status === "archived" ? null : isResultsLoading ? (
           <FullPageSpinner />
         ) : items.length === 0 ? (
-          <p className="rounded-md bg-muted p-4 text-center text-sm text-muted-foreground">
-            {t("settings.import_sessions.detail.no_results")}
-          </p>
+          <Empty className="p-4 md:p-6">
+            <EmptyHeader>
+              <EmptyTitle className="text-base">
+                {t("settings.import_sessions.detail.no_results")}
+              </EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         ) : (
           <div className="flex flex-col gap-2">
-            <Table>
+            <Table inCard>
               <TableHeader>
                 <TableRow>
                   <TableHead>
@@ -613,7 +615,7 @@ export default function ImportSessionDetail({
                       {item.resultBookmarkId ? (
                         <Link
                           href={`/dashboard/preview/${item.resultBookmarkId}`}
-                          className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
+                          className="flex items-center gap-1 text-sm underline underline-offset-4 hover:text-muted-foreground"
                           prefetch={false}
                         >
                           <ExternalLink className="h-3 w-3" />

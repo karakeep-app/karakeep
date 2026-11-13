@@ -10,11 +10,19 @@ import {
 } from "lucide-react";
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
 
+// The year dropdown only offers what's in this range. 1900 is the earliest date
+// the bookmark editor accepts.
+const THIS_YEAR = new Date().getFullYear();
+const DEFAULT_START_MONTH = new Date(1900, 0);
+const DEFAULT_END_MONTH = new Date(THIS_YEAR + 10, 11);
+
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  captionLayout = "label",
+  captionLayout = "dropdown",
+  startMonth = DEFAULT_START_MONTH,
+  endMonth = DEFAULT_END_MONTH,
   buttonVariant = "ghost",
   formatters,
   components,
@@ -28,12 +36,14 @@ function Calendar({
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn(
-        "group/calendar bg-background p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
+        "group/calendar bg-popover p-3 [--cell-size:2rem] max-sm:[--cell-size:min(2.75rem,calc((100vw_-_4rem)/7))] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
         String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className,
       )}
       captionLayout={captionLayout}
+      startMonth={startMonth}
+      endMonth={endMonth}
       formatters={{
         formatMonthDropdown: (date) =>
           date.toLocaleString("default", { month: "short" }),
@@ -69,15 +79,18 @@ function Calendar({
           defaultClassNames.dropdowns,
         ),
         dropdown_root: cn(
-          "has-focus:border-ring shadow-xs has-focus:ring-ring/50 has-focus:ring-[3px] relative rounded-md border border-input",
+          "relative rounded-md border border-input shadow-sm transition-colors has-[select:focus-visible]:border-ring has-[select:hover]:bg-accent has-[select:focus-visible]:ring-[3px] has-[select:focus-visible]:ring-ring/50",
           defaultClassNames.dropdown_root,
         ),
-        dropdown: cn("absolute inset-0 opacity-0", defaultClassNames.dropdown),
+        dropdown: cn(
+          "absolute inset-0 cursor-pointer bg-popover text-popover-foreground opacity-0",
+          defaultClassNames.dropdown,
+        ),
         caption_label: cn(
           "select-none font-medium",
           captionLayout === "label"
             ? "text-sm"
-            : "flex h-8 items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-3.5 [&>svg]:text-muted-foreground",
+            : "flex h-[calc(var(--cell-size)-2px)] items-center gap-1 rounded-md pl-2 pr-1 text-sm [&>svg]:size-4 [&>svg]:text-muted-foreground",
           defaultClassNames.caption_label,
         ),
         table: "w-full border-collapse",
@@ -86,7 +99,9 @@ function Calendar({
           "flex-1 select-none rounded-md text-[0.8rem] font-normal text-muted-foreground",
           defaultClassNames.weekday,
         ),
-        week: cn("mt-2 flex w-full", defaultClassNames.week),
+        // The picker leaves out days outside of its range rather than leaving them blank,
+        // so a cut-off first week is kept to the right, under its weekdays
+        week: cn("mt-2 flex w-full first:justify-end", defaultClassNames.week),
         week_number_header: cn(
           "w-[--cell-size] select-none",
           defaultClassNames.week_number_header,
@@ -96,7 +111,7 @@ function Calendar({
           defaultClassNames.week_number,
         ),
         day: cn(
-          "group/day relative aspect-square h-full w-full select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
+          "group/day relative aspect-square h-full w-[--cell-size] flex-none select-none p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md",
           defaultClassNames.day,
         ),
         range_start: cn(

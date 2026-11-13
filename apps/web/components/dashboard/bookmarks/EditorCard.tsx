@@ -206,7 +206,7 @@ export default function EditorCard({ className }: { className?: string }) {
               ref={inputRef}
               disabled={isPending}
               className={cn(
-                "text-md h-full w-full border-none p-0 font-light focus-visible:ring-0",
+                "h-full w-full border-none p-0 text-base font-light shadow-none focus-visible:ring-0 dark:bg-transparent md:text-base",
                 { "resize-none": bookmarkLayout !== "list" },
               )}
               placeholder={t("editor.placeholder_v2")}

@@ -153,6 +153,7 @@ const allEnv = z.object({
   CRAWLER_VIDEO_DOWNLOAD: stringBool("false"),
   CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: z.coerce.number().default(50),
   CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC: z.coerce.number().default(10 * 60),
+  CRAWLER_VIDEO_DOWNLOAD_ON_DEMAND: optionalStringBool(),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_ENABLE_AUTOCONSENT: stringBool("true"),
   CRAWLER_YTDLP_ARGS: z
@@ -171,6 +172,16 @@ const allEnv = z.object({
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   CRAWLER_PREFLIGHT_USER_AGENT: z.string().optional(),
+  CRAWLER_REMOTE_SERVER_ENABLED: stringBool("false"),
+  CRAWLER_REMOTE_URL: z.string().url().optional(),
+  CRAWLER_REMOTE_TOKEN: z
+    .string()
+    // It's sent as a bearer token, so it must use the bearer token alphabet.
+    .regex(
+      /^[A-Za-z0-9._~+/-]+=*$/,
+      "CRAWLER_REMOTE_TOKEN can only contain letters, digits and . _ ~ + / - (optionally followed by =)",
+    )
+    .optional(),
   LOG_LEVEL: z.string().default("debug"),
   // https://no-color.org/: any nonempty value disables colors.
   NO_COLOR: z.string().optional().transform(Boolean),
@@ -209,6 +220,9 @@ const allEnv = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+
+  // Problem reports
+  PROBLEM_REPORTS_EMAIL: z.string().email().optional(),
   EMAIL_VERIFICATION_REQUIRED: stringBool("false"),
 
   // Asset storage configuration
@@ -231,6 +245,28 @@ const allEnv = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_ID: z.string().optional(),
   STRIPE_YEARLY_PRICE_ID: z.string().optional(),
+
+  // RevenueCat (mobile in-app purchases) configuration
+  REVENUECAT_PROJECT_ID: z.string().optional(),
+  REVENUECAT_SECRET_API_KEY: z.string().optional(),
+  REVENUECAT_WEBHOOK_AUTH_TOKEN: z.string().optional(),
+  REVENUECAT_ENTITLEMENT_ID: z.string().default("pro"),
+  // App Store review and TestFlight purchase in the sandbox against the
+  // production server, so sandbox purchases need to grant the paid tier
+  // unless explicitly disabled.
+  REVENUECAT_ALLOW_SANDBOX_PURCHASES: stringBool("true"),
+  // The platforms whose mobile apps offer purchases (e.g. "ios,android").
+  // None by default, so app builds can ship before billing gets enabled.
+  REVENUECAT_PURCHASE_PLATFORMS: z
+    .string()
+    .prefault("")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
+    .pipe(z.array(z.enum(["ios", "android"]))),
 
   FREE_QUOTA_BOOKMARK_LIMIT: z.coerce.number().optional(),
   FREE_QUOTA_ASSET_SIZE_BYTES: z.coerce.number().optional(),
@@ -344,6 +380,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           }
         : undefined,
     },
+    problemReports: {
+      enabled: !!val.PROBLEM_REPORTS_EMAIL,
+      email: val.PROBLEM_REPORTS_EMAIL,
+    },
     inference: {
       isConfigured: !!val.OPENAI_API_KEY || !!val.OLLAMA_BASE_URL,
       numWorkers: val.INFERENCE_NUM_WORKERS,
@@ -427,6 +467,8 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       downloadVideo: val.CRAWLER_VIDEO_DOWNLOAD,
       maxVideoDownloadSize: val.CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE,
       downloadVideoTimeout: val.CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC,
+      downloadVideoOnDemand:
+        val.CRAWLER_VIDEO_DOWNLOAD_ON_DEMAND ?? val.CRAWLER_VIDEO_DOWNLOAD,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       enableAutoconsent: val.CRAWLER_ENABLE_AUTOCONSENT,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
@@ -449,6 +491,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
             }
           : null,
       preflightUserAgent: val.CRAWLER_PREFLIGHT_USER_AGENT,
+      remote: {
+        serverEnabled: val.CRAWLER_REMOTE_SERVER_ENABLED,
+        url: val.CRAWLER_REMOTE_URL,
+        token: val.CRAWLER_REMOTE_TOKEN,
+      },
     },
     ocr: {
       langs: val.OCR_LANGS,
@@ -534,6 +581,18 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       yearlyPriceId: val.STRIPE_YEARLY_PRICE_ID,
       isConfigured: !!val.STRIPE_SECRET_KEY && !!val.STRIPE_PUBLISHABLE_KEY,
     },
+    revenueCat: {
+      projectId: val.REVENUECAT_PROJECT_ID,
+      secretApiKey: val.REVENUECAT_SECRET_API_KEY,
+      webhookAuthToken: val.REVENUECAT_WEBHOOK_AUTH_TOKEN,
+      entitlementId: val.REVENUECAT_ENTITLEMENT_ID,
+      allowSandboxPurchases: val.REVENUECAT_ALLOW_SANDBOX_PURCHASES,
+      purchasePlatforms: val.REVENUECAT_PURCHASE_PLATFORMS,
+      isConfigured:
+        !!val.REVENUECAT_PROJECT_ID &&
+        !!val.REVENUECAT_SECRET_API_KEY &&
+        !!val.REVENUECAT_WEBHOOK_AUTH_TOKEN,
+    },
     quotas: {
       free: {
         bookmarkLimit: val.FREE_QUOTA_BOOKMARK_LIMIT ?? null,
@@ -571,6 +630,15 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     });
     return z.NEVER;
   }
+  if (obj.problemReports.enabled && !obj.email.smtp) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "To enable problem reports (PROBLEM_REPORTS_EMAIL), SMTP settings must be configured",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
   if (obj.auth.turnstile.enabled && !obj.auth.turnstile.secretKey) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -585,6 +653,18 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       code: z.ZodIssueCode.custom,
       message:
         "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is required when OTEL_EVENT_LOGS_EXPORT_ENABLED is true",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
+  if (
+    (obj.crawler.remote.serverEnabled || obj.crawler.remote.url) &&
+    !obj.crawler.remote.token
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "CRAWLER_REMOTE_TOKEN is required when CRAWLER_REMOTE_SERVER_ENABLED or CRAWLER_REMOTE_URL is set",
       fatal: true,
     });
     return z.NEVER;
@@ -642,9 +722,19 @@ export const clientConfig = {
   stripe: {
     isConfigured: serverConfig.stripe.isConfigured,
   },
+  crawler: {
+    videoDownloadOnDemand: serverConfig.crawler.downloadVideoOnDemand,
+  },
+  revenueCat: {
+    isConfigured: serverConfig.revenueCat.isConfigured,
+    purchasePlatforms: serverConfig.revenueCat.purchasePlatforms,
+  },
   legal: {
     termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,
     privacyPolicyUrl: serverConfig.legal.privacyPolicyUrl,
+  },
+  problemReports: {
+    enabled: serverConfig.problemReports.enabled,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,

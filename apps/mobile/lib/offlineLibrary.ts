@@ -1,4 +1,4 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useMemo } from "react";
 import { createMMKV, useMMKVString } from "react-native-mmkv";
 import superjson from "superjson";
 import { z } from "zod";
@@ -13,6 +13,7 @@ import {
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import type { Settings } from "./settings";
+import { i18n } from "./i18n";
 
 // The article body lives under its own key so that callers who only need the
 // bookmark's metadata never pay to deserialize megabytes of HTML.
@@ -47,12 +48,50 @@ const zOfflineLibraryItem = z.object({
   savedAt: z.number(),
   displayTitle: z.string(),
   url: z.string().optional(),
+  // Copies saved before automatic downloads existed were all explicit saves.
+  source: z.enum(["manual", "auto"]).default("manual"),
+  // Approximate on-disk footprint. Missing on older copies until reconciled.
+  byteSize: z.number().optional(),
 });
 
 const zOfflineLibraryManifest = z.array(zOfflineLibraryItem);
 
 export type OfflineArticle = z.infer<typeof zOfflineArticle>;
 export type OfflineLibraryItem = z.infer<typeof zOfflineLibraryItem>;
+export type OfflineArticleSource = OfflineLibraryItem["source"];
+
+// Covers the manifest entry and MMKV's per-key bookkeeping.
+const PER_ARTICLE_OVERHEAD_BYTES = 512;
+
+// Counting instead of encoding: bodies with inlined images run to megabytes,
+// and this only needs the length.
+function utf8ByteLength(value: string) {
+  let bytes = 0;
+  for (let index = 0; index < value.length; index++) {
+    const code = value.charCodeAt(index);
+    if (code < 0x80) {
+      bytes += 1;
+    } else if (code < 0x800) {
+      bytes += 2;
+    } else if (code >= 0xd800 && code <= 0xdbff) {
+      bytes += 4;
+      index++;
+    } else {
+      bytes += 3;
+    }
+  }
+  return bytes;
+}
+
+// What saving this bookmark would cost, before it is saved. Matches what
+// saveOfflineArticle records closely enough to plan evictions with.
+export function estimateOfflineArticleSize(
+  bookmark: OfflineArticle["bookmark"],
+) {
+  return (
+    utf8ByteLength(superjson.stringify(bookmark)) + PER_ARTICLE_OVERHEAD_BYTES
+  );
+}
 
 function encodeKeyPart(value: string) {
   return encodeURIComponent(value);
@@ -224,7 +263,7 @@ function getDisplayTitle(bookmark: OfflineArticle["bookmark"]) {
     }
   }
 
-  return "Untitled bookmark";
+  return i18n.t("bookmarks.untitled_fallback");
 }
 
 export function getOfflineLibraryScope(
@@ -241,7 +280,11 @@ function restoreKey(key: string, raw: string | undefined) {
   }
 }
 
-export function saveOfflineArticle(scope: string, article: OfflineArticle) {
+export function saveOfflineArticle(
+  scope: string,
+  article: OfflineArticle,
+  source: OfflineArticleSource = "manual",
+) {
   const parsed = zOfflineArticle.safeParse(article);
   const split = parsed.success
     ? splitArticleContent(parsed.data.bookmark)
@@ -251,7 +294,7 @@ export function saveOfflineArticle(scope: string, article: OfflineArticle) {
     !split ||
     parsed.data.bookmarkId !== parsed.data.bookmark.id
   ) {
-    throw new Error("The article does not contain a complete offline copy.");
+    throw new Error(i18n.t("offline_library.incomplete_copy"));
   }
 
   const key = articleKey(scope, article.bookmarkId);
@@ -263,28 +306,30 @@ export function saveOfflineArticle(scope: string, article: OfflineArticle) {
   const currentContentRaw = offlineLibraryStorage.getString(bodyKey);
 
   try {
+    let byteSize = PER_ARTICLE_OVERHEAD_BYTES;
     if (split.htmlContent !== undefined) {
-      offlineLibraryStorage.set(
-        bodyKey,
-        superjson.stringify({
-          schemaVersion: OFFLINE_LIBRARY_SCHEMA_VERSION,
-          bookmarkId: parsed.data.bookmarkId,
-          htmlContent: split.htmlContent,
-        }),
-      );
+      const rawContent = superjson.stringify({
+        schemaVersion: OFFLINE_LIBRARY_SCHEMA_VERSION,
+        bookmarkId: parsed.data.bookmarkId,
+        htmlContent: split.htmlContent,
+      });
+      offlineLibraryStorage.set(bodyKey, rawContent);
+      byteSize += utf8ByteLength(rawContent);
     } else {
       offlineLibraryStorage.remove(bodyKey);
     }
 
-    offlineLibraryStorage.set(
-      key,
-      superjson.stringify({ ...parsed.data, bookmark: split.bookmark }),
-    );
+    const rawArticle = superjson.stringify({
+      ...parsed.data,
+      bookmark: split.bookmark,
+    });
+    offlineLibraryStorage.set(key, rawArticle);
+    byteSize += utf8ByteLength(rawArticle);
 
     const stored = readOfflineArticle(scope, article.bookmarkId);
     const storedContent = readOfflineArticleContent(scope, article.bookmarkId);
     if (!stored || !isRenderableArticle(stored, storedContent !== undefined)) {
-      throw new Error("The offline copy could not be verified.");
+      throw new Error(i18n.t("offline_library.verify_failed"));
     }
 
     const current = parseManifest(currentManifestRaw);
@@ -294,6 +339,8 @@ export function saveOfflineArticle(scope: string, article: OfflineArticle) {
       savedAt: parsed.data.savedAt,
       displayTitle: getDisplayTitle(parsed.data.bookmark),
       ...(sourceUrl ? { url: sourceUrl } : {}),
+      source,
+      byteSize,
     };
     writeManifest(scope, [
       item,
@@ -307,6 +354,21 @@ export function saveOfflineArticle(scope: string, article: OfflineArticle) {
   }
 }
 
+const TRIM_DELAY = 2_000;
+let trimTimeout: ReturnType<typeof setTimeout> | undefined;
+
+// MMKV never shrinks its file on its own. Removals tend to come in bursts
+// (evictions, "remove all"), so trim once they settle.
+function scheduleTrim() {
+  if (trimTimeout !== undefined) {
+    clearTimeout(trimTimeout);
+  }
+  trimTimeout = setTimeout(() => {
+    trimTimeout = undefined;
+    offlineLibraryStorage.trim();
+  }, TRIM_DELAY);
+}
+
 export function removeOfflineArticle(scope: string, bookmarkId: string) {
   const current = parseManifest(
     offlineLibraryStorage.getString(manifestKey(scope)),
@@ -317,6 +379,7 @@ export function removeOfflineArticle(scope: string, bookmarkId: string) {
   );
   offlineLibraryStorage.remove(articleKey(scope, bookmarkId));
   offlineLibraryStorage.remove(contentKey(scope, bookmarkId));
+  scheduleTrim();
 }
 
 export function removeAllOfflineArticles(scope: string) {
@@ -329,28 +392,25 @@ export function removeAllOfflineArticles(scope: string) {
       offlineLibraryStorage.remove(key);
     }
   }
+  scheduleTrim();
 }
 
 export function clearOfflineLibrary() {
   offlineLibraryStorage.clearAll();
+  scheduleTrim();
 }
 
-function subscribeToOfflineLibrary(onStoreChange: () => void) {
-  const listener = offlineLibraryStorage.addOnValueChangedListener(() => {
-    onStoreChange();
-  });
-  return () => listener.remove();
+export function getOfflineLibraryItems(scope: string) {
+  return parseManifestMemoized(
+    offlineLibraryStorage.getString(manifestKey(scope)),
+  );
 }
 
-function getOfflineLibrarySize() {
-  return offlineLibraryStorage.byteSize;
-}
-
-export function useOfflineLibrarySize() {
-  return useSyncExternalStore(
-    subscribeToOfflineLibrary,
-    getOfflineLibrarySize,
-    getOfflineLibrarySize,
+function measureStoredArticle(key: string, bodyKey: string) {
+  return (
+    PER_ARTICLE_OVERHEAD_BYTES +
+    utf8ByteLength(offlineLibraryStorage.getString(key) ?? "") +
+    utf8ByteLength(offlineLibraryStorage.getString(bodyKey) ?? "")
   );
 }
 
@@ -369,7 +429,11 @@ export function reconcileOfflineLibrary(scope: string) {
     // Presence is checked by key rather than by parsing: this runs over the
     // whole library, and the bodies are the thing worth not reading.
     if (article && isRenderableArticle(article, storedKeys.has(bodyKey))) {
-      validItems.push(item);
+      validItems.push(
+        item.byteSize === undefined
+          ? { ...item, byteSize: measureStoredArticle(key, bodyKey) }
+          : item,
+      );
       validKeys.add(key);
       if (storedKeys.has(bodyKey)) {
         validKeys.add(bodyKey);
@@ -380,6 +444,7 @@ export function reconcileOfflineLibrary(scope: string) {
     }
   }
 
+  let removedAny = validItems.length !== current.length;
   for (const key of storedKeys) {
     if (
       (key.startsWith(articlePrefix(scope)) ||
@@ -387,10 +452,14 @@ export function reconcileOfflineLibrary(scope: string) {
       !validKeys.has(key)
     ) {
       offlineLibraryStorage.remove(key);
+      removedAny = true;
     }
   }
 
   writeManifest(scope, validItems);
+  if (removedAny) {
+    scheduleTrim();
+  }
 }
 
 // Metadata only — the article body is not read. Use useOfflineArticleContent

@@ -272,13 +272,10 @@ describe("useBookmarkKeyboardNavigation", () => {
       hotkey("f").callback();
     });
 
-    expect(mocks.updateMutate).toHaveBeenCalledWith(
-      {
-        bookmarkId: "owned",
-        favourited: true,
-      },
-      expect.any(Object),
-    );
+    expect(mocks.updateMutate).toHaveBeenCalledWith({
+      bookmarkId: "owned",
+      favourited: true,
+    });
   });
 
   it("bulk favorite only updates selected owned bookmarks", async () => {
@@ -329,12 +326,9 @@ describe("useBookmarkKeyboardNavigation", () => {
     });
 
     expect(mocks.updateMutateAsync).not.toHaveBeenCalled();
-    expect(mocks.updateMutate).toHaveBeenCalledWith(
-      {
-        bookmarkId: "current",
-        favourited: true,
-      },
-      expect.any(Object),
-    );
+    expect(mocks.updateMutate).toHaveBeenCalledWith({
+      bookmarkId: "current",
+      favourited: true,
+    });
   });
 });

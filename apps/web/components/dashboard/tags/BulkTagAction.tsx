@@ -72,7 +72,8 @@ export default function BulkTagAction() {
         : t("actions.select_all"),
       icon: (
         <p className="flex items-center gap-2">
-          ( <CheckCheck size={18} /> {selectedTagIds.length} )
+          ( <CheckCheck size={18} className="size-[18px]" />{" "}
+          {selectedTagIds.length} )
         </p>
       ),
       action: () =>
@@ -81,12 +82,12 @@ export default function BulkTagAction() {
     },
     {
       name: t("actions.delete"),
-      icon: <Trash2 size={18} color="red" />,
+      icon: <Trash2 size={18} className="size-[18px]" color="red" />,
       action: () => setIsDeleteDialogOpen(true),
     },
     {
       name: t("actions.close_bulk_edit"),
-      icon: <X size={18} />,
+      icon: <X size={18} className="size-[18px]" />,
       action: () => setIsBulkEditEnabled(false),
       alwaysEnable: true,
     },
@@ -97,7 +98,7 @@ export default function BulkTagAction() {
       <ActionConfirmingDialog
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}
-        title={"Delete Tags"}
+        title={t("tags.delete_tags")}
         description={<p>Are you sure you want to delete these tags?</p>}
         actionButton={() => (
           <ActionButton

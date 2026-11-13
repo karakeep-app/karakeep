@@ -180,7 +180,7 @@ export function MergeListModal({
                         form.resetField("targetId");
                       }}
                     >
-                      <X />
+                      <X className="size-6" />
                     </Button>
                   </div>
                   <FormMessage />

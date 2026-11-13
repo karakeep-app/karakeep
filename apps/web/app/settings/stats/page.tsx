@@ -1,40 +1,60 @@
 "use client";
 
-import { useMemo } from "react";
-import { SettingsPage } from "@/components/settings/SettingsPage";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect, useRef, useState } from "react";
+import NextLink from "next/link";
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/settings/SettingsPage";
+import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { StatTile } from "@/components/ui/stat-tile";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { normalizeI18nLanguage } from "@/lib/date-format";
 import { useTranslation } from "@/lib/i18n/client";
+import { cn } from "@/lib/utils";
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
 import { useQuery } from "@tanstack/react-query";
 import {
   Archive,
   BarChart3,
-  BookOpen,
+  Bookmark,
   Chrome,
-  Clock,
   Code,
   Database,
   FileText,
   Globe,
-  Hash,
-  Heart,
-  HelpCircle,
   Highlighter,
   Image,
   Link,
   List,
   Rss,
   Smartphone,
-  TrendingUp,
+  Star,
+  Tag,
   Upload,
   Zap,
+  CircleHelp,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { z } from "zod";
 
+import type { AssetTypes } from "@karakeep/db/schema";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { zBookmarkSourceSchema } from "@karakeep/shared/types/bookmarks";
+import { mapDBAssetTypeToUserType } from "@karakeep/trpc/lib/attachments";
 
 type BookmarkSource = z.infer<typeof zBookmarkSourceSchema>;
 
@@ -56,133 +76,292 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const hourLabels = Array.from({ length: 24 }, (_, i) =>
-  i === 0 ? "12 AM" : i < 12 ? `${i} AM` : i === 12 ? "12 PM" : `${i - 12} PM`,
-);
-
-function formatSourceName(source: BookmarkSource | null): string {
-  if (!source) return "Unknown";
-  const sourceMap: Record<BookmarkSource, string> = {
-    api: "API",
-    web: "Web",
-    extension: "Browser Extension",
-    cli: "CLI",
-    mobile: "Mobile App",
-    singlefile: "SingleFile",
-    rss: "RSS Feed",
-    import: "Import",
-  };
-  return sourceMap[source];
+function getDayNames(locale: string | undefined): string[] {
+  const formatter = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    timeZone: "UTC",
+  });
+  // 2023-01-01 was a Sunday, matching the stats API's day 0.
+  return Array.from({ length: 7 }, (_, day) =>
+    formatter.format(Date.UTC(2023, 0, 1 + day)),
+  );
 }
 
-function getSourceIcon(source: BookmarkSource | null): React.ReactNode {
-  const iconProps = { className: "h-4 w-4 text-muted-foreground" };
-  switch (source) {
-    case "api":
-      return <Zap {...iconProps} />;
-    case "web":
-      return <Globe {...iconProps} />;
-    case "extension":
-      return <Chrome {...iconProps} />;
-    case "cli":
-      return <Code {...iconProps} />;
-    case "mobile":
-      return <Smartphone {...iconProps} />;
-    case "singlefile":
-      return <FileText {...iconProps} />;
-    case "rss":
-      return <Rss {...iconProps} />;
-    case "import":
-      return <Upload {...iconProps} />;
-    default:
-      return <HelpCircle {...iconProps} />;
+function getHourLabels(locale: string | undefined): string[] {
+  const formatter = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    timeZone: "UTC",
+  });
+  return Array.from({ length: 24 }, (_, hour) =>
+    formatter.format(Date.UTC(2023, 0, 1, hour)),
+  );
+}
+
+/**
+ * A missing source is its own row: bookmarks saved before sources were recorded
+ * have none, whichever app they came from.
+ */
+function sortSources(
+  sources: { source: BookmarkSource | null; count: number }[],
+) {
+  return sources
+    .map(({ source, count }) => ({
+      source: source ?? ("unknown" as const),
+      count,
+    }))
+    .sort((a, b) => b.count - a.count);
+}
+
+const sourceIcons: Record<BookmarkSource | "unknown", LucideIcon> = {
+  unknown: CircleHelp,
+  api: Zap,
+  web: Globe,
+  extension: Chrome,
+  cli: Code,
+  mobile: Smartphone,
+  singlefile: FileText,
+  rss: Rss,
+  import: Upload,
+};
+
+// Rounds up to 1, 2 or 5 times a power of ten, so the axis ends on a round number.
+function niceCeiling(value: number) {
+  if (value <= 5) {
+    return value;
   }
+  const magnitude = 10 ** Math.floor(Math.log10(value));
+  const step = [1, 2, 5, 10].find((m) => m * magnitude >= value) ?? 10;
+  return step * magnitude;
 }
 
-function SimpleBarChart({
+// Roughly how wide a character of the text-xs value labels is, in pixels.
+const VALUE_LABEL_CHAR_WIDTH = 7;
+
+/** The width of the element, kept up to date while it resizes. */
+function useWidth<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) {
+      return;
+    }
+    const observer = new ResizeObserver(([entry]) =>
+      setWidth(entry.contentRect.width),
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width] as const;
+}
+
+function ColumnChart({
+  title,
   data,
-  maxValue,
   labels,
+  axisLabels,
+  summary,
 }: {
+  title: string;
   data: number[];
-  maxValue: number;
   labels: string[];
+  axisLabels: string[];
+  summary: string;
 }) {
+  const { t } = useTranslation();
+  const top = niceCeiling(Math.max(...data, 0));
+  const [plotRef, plotWidth] = useWidth<HTMLDivElement>();
+  // Values show at rest only if the longest one fits over its own bar, the rest
+  // of the time they're in the tooltip.
+  const longestValue = Math.max(...data.map((v) => formatNumber(v).length));
+  const showValues =
+    plotWidth > 0 &&
+    plotWidth / data.length >= longestValue * VALUE_LABEL_CHAR_WIDTH;
   return (
-    <div className="space-y-2">
-      {data.map((value, index) => (
-        <div key={index} className="flex items-center gap-3">
-          <div className="w-12 text-right text-xs text-muted-foreground">
-            {labels[index]}
-          </div>
-          <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary transition-all duration-300"
-              style={{
-                width: `${maxValue > 0 ? (value / maxValue) * 100 : 0}%`,
-              }}
-            />
-          </div>
-          <div className="w-8 text-right text-xs text-muted-foreground">
-            {value}
+    <div className="space-y-3">
+      <div>
+        <h4 className="text-sm font-medium">{title}</h4>
+        <p className="text-xs text-muted-foreground">{summary}</p>
+      </div>
+      {/* The padding is room for the label over a full-height bar. */}
+      <div className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1.5 pt-4">
+        <div
+          aria-hidden
+          className="flex h-32 flex-col justify-between text-right text-xs tabular-nums leading-none text-muted-foreground"
+        >
+          <span>{formatNumber(top)}</span>
+          <span>0</span>
+        </div>
+        <div
+          ref={plotRef}
+          role="group"
+          aria-label={title}
+          className="relative h-32"
+        >
+          <div className="absolute inset-x-0 top-0 border-t border-dashed" />
+          <div className="absolute inset-x-0 bottom-0 border-t" />
+          <div
+            className={cn(
+              "relative flex h-full items-end",
+              data.length > 12 ? "gap-0.5 sm:gap-1" : "gap-2 sm:gap-3",
+            )}
+          >
+            {data.map((value, index) => {
+              const description = t("settings.stats.activity_patterns.bar", {
+                label: labels[index],
+                count: value,
+              });
+              return (
+                <Tooltip key={index} delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={description}
+                      className="group flex h-full min-w-0 flex-1 items-end justify-center rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    >
+                      <span
+                        className={cn(
+                          "relative block w-full max-w-8 rounded-t",
+                          value > 0
+                            ? "bg-primary group-hover:bg-primary/80 dark:bg-primary/70 dark:group-hover:bg-primary"
+                            : "bg-muted-foreground/30",
+                        )}
+                        style={{
+                          height: value > 0 ? `${(value / top) * 100}%` : "2px",
+                          minHeight: "2px",
+                        }}
+                      >
+                        {showValues && value > 0 && (
+                          <span
+                            aria-hidden
+                            className="absolute bottom-full left-1/2 mb-0.5 -translate-x-1/2 text-xs tabular-nums leading-none text-muted-foreground"
+                          >
+                            {formatNumber(value)}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipPortal>
+                    <TooltipContent>{description}</TooltipContent>
+                  </TooltipPortal>
+                </Tooltip>
+              );
+            })}
           </div>
         </div>
-      ))}
+        <div />
+        <div
+          aria-hidden
+          className={cn(
+            "grid text-xs text-muted-foreground",
+            axisLabels.length === data.length
+              ? "gap-2 text-center sm:gap-3"
+              : "",
+          )}
+          style={{ gridTemplateColumns: `repeat(${axisLabels.length}, 1fr)` }}
+        >
+          {axisLabels.map((label) => (
+            <span key={label} className="truncate">
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
 
-function StatCard({
-  title,
+function BarRow({
+  label,
   value,
+  maxValue,
   icon,
-  description,
+  rank,
 }: {
-  title: string;
-  value: string | number;
-  icon: React.ReactNode;
-  description?: string;
+  label: string;
+  value: number;
+  maxValue: number;
+  icon?: React.ReactNode;
+  rank?: number;
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {description && (
-          <p className="text-xs text-muted-foreground">{description}</p>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 text-sm">
+        {rank !== undefined && (
+          <span className="w-4 text-xs tabular-nums text-muted-foreground">
+            {rank}
+          </span>
         )}
-      </CardContent>
-    </Card>
+        {icon}
+        <span className="min-w-0 flex-1 truncate" title={label}>
+          {label}
+        </span>
+        <span className="tabular-nums text-muted-foreground">{value}</span>
+      </div>
+      <div className="h-1 overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary/40"
+          style={{
+            width: `${maxValue > 0 ? (value / maxValue) * 100 : 0}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+const sectionIconClass = "size-4 text-muted-foreground";
+
+const PERIOD_DAYS = [7, 30, 365] as const;
+
+/** One count of bookmarks added, for the period picked under it. */
+function BookmarksAddedStat({
+  counts,
+}: {
+  counts: Record<(typeof PERIOD_DAYS)[number], number>;
+}) {
+  const { t } = useTranslation();
+  const [days, setDays] = useState<(typeof PERIOD_DAYS)[number]>(30);
+  return (
+    <StatTile
+      className="max-sm:col-span-2"
+      label={t("settings.stats.overview.bookmarks_added")}
+      value={formatNumber(counts[days])}
+      helper={
+        <RadioGroupPrimitive.Root
+          aria-label={t("settings.stats.recent_activity.period")}
+          value={String(days)}
+          onValueChange={(next) =>
+            setDays(Number(next) as (typeof PERIOD_DAYS)[number])
+          }
+          className="mt-1 inline-flex rounded-md bg-muted p-0.5"
+        >
+          {PERIOD_DAYS.map((period) => (
+            <RadioGroupPrimitive.Item
+              key={period}
+              value={String(period)}
+              aria-label={t("settings.stats.recent_activity.days", {
+                count: period,
+              })}
+              className="h-8 min-w-8 whitespace-nowrap rounded-sm px-1.5 text-xs font-medium text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 data-[state=checked]:bg-background data-[state=checked]:text-foreground data-[state=checked]:shadow-sm max-sm:h-11 max-sm:min-w-11"
+            >
+              {t("settings.stats.recent_activity.days_short", {
+                count: period,
+              })}
+            </RadioGroupPrimitive.Item>
+          ))}
+        </RadioGroupPrimitive.Root>
+      }
+    />
   );
 }
 
 export default function StatsPage() {
   const api = useTRPC();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: stats, isLoading } = useQuery(api.users.stats.queryOptions());
   const { data: userSettings } = useQuery(api.users.settings.queryOptions());
-
-  const maxHourlyActivity = useMemo(() => {
-    if (!stats) return 0;
-    return Math.max(
-      ...stats.bookmarkingActivity.byHour.map(
-        (h: { hour: number; count: number }) => h.count,
-      ),
-    );
-  }, [stats]);
-
-  const maxDailyActivity = useMemo(() => {
-    if (!stats) return 0;
-    return Math.max(
-      ...stats.bookmarkingActivity.byDayOfWeek.map(
-        (d: { day: number; count: number }) => d.count,
-      ),
-    );
-  }, [stats]);
 
   if (isLoading) {
     return (
@@ -190,17 +369,9 @@ export default function StatsPage() {
         title={t("settings.stats.usage_statistics")}
         description={t("settings.stats.insights_description")}
       >
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="space-y-0 pb-2">
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="mb-2 h-8 w-16" />
-                <Skeleton className="h-3 w-32" />
-              </CardContent>
-            </Card>
+            <StatTile key={i} label={"\u00a0"} value={0} loading />
           ))}
         </div>
       </SettingsPage>
@@ -209,399 +380,305 @@ export default function StatsPage() {
 
   if (!stats) {
     return (
-      <div className="flex h-64 items-center justify-center">
-        <p className="text-muted-foreground">
-          {t("settings.stats.failed_to_load")}
-        </p>
-      </div>
+      <SettingsPage
+        title={t("settings.stats.usage_statistics")}
+        description={t("settings.stats.insights_description")}
+      >
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <BarChart3 />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.stats.failed_to_load")}</EmptyTitle>
+          </EmptyHeader>
+        </Empty>
+      </SettingsPage>
     );
   }
+
+  if (stats.numBookmarks === 0) {
+    return (
+      <SettingsPage
+        title={t("settings.stats.usage_statistics")}
+        description={t("settings.stats.insights_description")}
+      >
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <BarChart3 />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.stats.empty_title")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.stats.empty_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button asChild>
+              <NextLink href="/settings/import">
+                <Upload className="size-4" />
+                {t("settings.stats.empty_action")}
+              </NextLink>
+            </Button>
+          </EmptyContent>
+        </Empty>
+      </SettingsPage>
+    );
+  }
+
+  const locale = normalizeI18nLanguage(i18n.language);
+  const dayNames = getDayNames(locale);
+  const hourLabels = getHourLabels(locale);
+  const activityByDay = dayNames.map(
+    (_, day) =>
+      stats.bookmarkingActivity.byDayOfWeek.find((d) => d.day === day)?.count ??
+      0,
+  );
+  const activityByHour = hourLabels.map(
+    (_, hour) =>
+      stats.bookmarkingActivity.byHour.find((h) => h.hour === hour)?.count ?? 0,
+  );
+  const maxHourCount = Math.max(...activityByHour);
+  const busiestHour =
+    maxHourCount > 0 ? activityByHour.indexOf(maxHourCount) : undefined;
+  const typeCounts = [
+    {
+      label: t("settings.stats.bookmark_types.links"),
+      value: stats.bookmarksByType.link,
+      icon: <Link className={sectionIconClass} />,
+    },
+    {
+      label: t("settings.stats.bookmark_types.text_notes"),
+      value: stats.bookmarksByType.text,
+      icon: <FileText className={sectionIconClass} />,
+    },
+    {
+      label: t("settings.stats.bookmark_types.assets"),
+      value: stats.bookmarksByType.asset,
+      icon: <Image className={sectionIconClass} />,
+    },
+  ];
+  const sources = sortSources(stats.bookmarksBySource);
+  const maxSourceCount = Math.max(...sources.map((s) => s.count), 0);
+  const topDomains = stats.topDomains.slice(0, 8);
+  const topTags = stats.tagUsage.slice(0, 8);
+  const timezoneNote = userSettings?.timezone &&
+    userSettings.timezone !== "UTC" && (
+      <span className="text-xs text-muted-foreground">
+        {userSettings.timezone}
+      </span>
+    );
+  const allTime = t("settings.stats.activity_patterns.all_time");
 
   return (
     <SettingsPage
       title={t("settings.stats.usage_statistics")}
-      description="Insights into your bookmarking habits and collection"
+      description={t("settings.stats.insights_description")}
     >
       {/* Overview Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title={t("settings.stats.overview.total_bookmarks")}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatTile
+          label={t("settings.stats.overview.total_bookmarks")}
           value={formatNumber(stats.numBookmarks)}
-          icon={<BookOpen className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.all_saved_items")}
+          icon={Bookmark}
+          href="/dashboard/bookmarks"
         />
-        <StatCard
-          title={t("settings.stats.overview.favorites")}
+        <StatTile
+          label={t("settings.stats.overview.favorites")}
           value={formatNumber(stats.numFavorites)}
-          icon={<Heart className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.starred_bookmarks")}
+          icon={Star}
+          href="/dashboard/favourites"
         />
-        <StatCard
-          title={t("settings.stats.overview.archived")}
+        <StatTile
+          label={t("settings.stats.overview.archived")}
           value={formatNumber(stats.numArchived)}
-          icon={<Archive className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.archived_items")}
+          icon={Archive}
+          href="/dashboard/archive"
         />
-        <StatCard
-          title={t("settings.stats.overview.tags")}
+        <StatTile
+          label={t("settings.stats.overview.tags")}
           value={formatNumber(stats.numTags)}
-          icon={<Hash className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.unique_tags_created")}
+          icon={Tag}
+          href="/dashboard/tags"
         />
-        <StatCard
-          title={t("settings.stats.overview.lists")}
+        <StatTile
+          label={t("settings.stats.overview.lists")}
           value={formatNumber(stats.numLists)}
-          icon={<List className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.bookmark_collections")}
+          icon={List}
+          href="/dashboard/lists"
         />
-        <StatCard
-          title={t("settings.stats.overview.highlights")}
+        <StatTile
+          label={t("settings.stats.overview.highlights")}
           value={formatNumber(stats.numHighlights)}
-          icon={<Highlighter className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.text_highlights")}
+          icon={Highlighter}
+          href="/dashboard/highlights"
         />
-        <StatCard
-          title={t("settings.stats.overview.storage_used")}
+        {/* Across the whole phone, as they don't fit its period picker otherwise. */}
+        <StatTile
+          className="max-sm:col-span-2"
+          label={t("settings.stats.overview.storage_used")}
           value={formatBytes(stats.totalAssetSize)}
-          icon={<Database className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.total_asset_storage")}
+          icon={Database}
+          href="/settings/assets"
         />
-        <StatCard
-          title={t("settings.stats.overview.this_month")}
-          value={formatNumber(stats.bookmarkingActivity.thisMonth)}
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-          description={t("settings.stats.overview.bookmarks_added")}
+        <BookmarksAddedStat
+          counts={{
+            7: stats.bookmarkingActivity.thisWeek,
+            30: stats.bookmarkingActivity.thisMonth,
+            365: stats.bookmarkingActivity.thisYear,
+          }}
         />
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
+
+      {/* Activity patterns */}
+      <SettingsSection
+        title={t("settings.stats.activity_patterns.title")}
+        action={timezoneNote}
+      >
+        <div className="grid gap-8 md:grid-cols-5">
+          <div className="md:col-span-2">
+            <ColumnChart
+              title={t("settings.stats.activity_patterns.activity_by_day")}
+              data={activityByDay}
+              labels={dayNames}
+              axisLabels={dayNames}
+              summary={allTime}
+            />
+          </div>
+          <div className="md:col-span-3">
+            <ColumnChart
+              title={t("settings.stats.activity_patterns.activity_by_hour")}
+              data={activityByHour}
+              labels={hourLabels}
+              axisLabels={[0, 6, 12, 18].map((hour) => hourLabels[hour])}
+              summary={
+                busiestHour !== undefined
+                  ? `${allTime} · ${t(
+                      "settings.stats.activity_patterns.busiest_around",
+                      { hour: hourLabels[busiestHour] },
+                    )}`
+                  : allTime
+              }
+            />
+          </div>
+        </div>
+      </SettingsSection>
+
+      {/* Rows of equal height, so that the cards line up across the columns. */}
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Bookmark Types */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              {t("settings.stats.bookmark_types.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Link className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm">
-                    {t("settings.stats.bookmark_types.links")}
-                  </span>
-                </div>
-                <span className="text-sm font-medium">
-                  {stats.bookmarksByType.link}
-                </span>
-              </div>
-              <Progress
-                value={
-                  stats.numBookmarks > 0
-                    ? (stats.bookmarksByType.link / stats.numBookmarks) * 100
-                    : 0
-                }
-                className="h-2"
+        <SettingsSection title={t("settings.stats.bookmark_types.title")}>
+          <div className="space-y-4">
+            {typeCounts.map((type) => (
+              <BarRow
+                key={type.label}
+                label={type.label}
+                value={type.value}
+                maxValue={stats.numBookmarks}
+                icon={type.icon}
               />
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">
-                    {t("settings.stats.bookmark_types.text_notes")}
-                  </span>
-                </div>
-                <span className="text-sm font-medium">
-                  {stats.bookmarksByType.text}
-                </span>
-              </div>
-              <Progress
-                value={
-                  stats.numBookmarks > 0
-                    ? (stats.bookmarksByType.text / stats.numBookmarks) * 100
-                    : 0
-                }
-                className="h-2"
-              />
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Image className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm">
-                    {t("settings.stats.bookmark_types.assets")}
-                  </span>
-                </div>
-                <span className="text-sm font-medium">
-                  {stats.bookmarksByType.asset}
-                </span>
-              </div>
-              <Progress
-                value={
-                  stats.numBookmarks > 0
-                    ? (stats.bookmarksByType.asset / stats.numBookmarks) * 100
-                    : 0
-                }
-                className="h-2"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              {t("settings.stats.recent_activity.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-1 items-center">
-            <div className="grid w-full grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {stats.bookmarkingActivity.thisWeek}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {t("settings.stats.recent_activity.this_week")}
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {stats.bookmarkingActivity.thisMonth}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {t("settings.stats.recent_activity.this_month")}
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-purple-600">
-                  {stats.bookmarkingActivity.thisYear}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {t("settings.stats.recent_activity.this_year")}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Top Domains */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5" />
-              {t("settings.stats.top_domains.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stats.topDomains.length > 0 ? (
-              <div className="space-y-3">
-                {stats.topDomains
-                  .slice(0, 8)
-                  .map(
-                    (
-                      domain: { domain: string; count: number },
-                      index: number,
-                    ) => (
-                      <div
-                        key={domain.domain}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                            {index + 1}
-                          </div>
-                          <span
-                            className="max-w-[200px] truncate text-sm"
-                            title={domain.domain}
-                          >
-                            {domain.domain}
-                          </span>
-                        </div>
-                        <Badge variant="secondary">{domain.count}</Badge>
-                      </div>
-                    ),
-                  )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("settings.stats.top_domains.no_domains_found")}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Top Tags */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Hash className="h-5 w-5" />
-              {t("settings.stats.most_used_tags.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stats.tagUsage.length > 0 ? (
-              <div className="space-y-3">
-                {stats.tagUsage
-                  .slice(0, 8)
-                  .map(
-                    (tag: { name: string; count: number }, index: number) => (
-                      <div
-                        key={tag.name}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-medium">
-                            {index + 1}
-                          </div>
-                          <span
-                            className="max-w-[200px] truncate text-sm"
-                            title={tag.name}
-                          >
-                            {tag.name}
-                          </span>
-                        </div>
-                        <Badge variant="secondary">{tag.count}</Badge>
-                      </div>
-                    ),
-                  )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("settings.stats.most_used_tags.no_tags_found")}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        </SettingsSection>
 
         {/* Bookmark Sources */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              {t("settings.stats.bookmark_sources.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {stats.bookmarksBySource.length > 0 ? (
-              <div className="space-y-3">
-                {stats.bookmarksBySource.map(
-                  (source: {
-                    source: BookmarkSource | null;
-                    count: number;
-                  }) => (
-                    <div
-                      key={source.source || "unknown"}
-                      className="flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-2">
-                        {getSourceIcon(source.source)}
-                        <span className="max-w-[200px] truncate text-sm">
-                          {formatSourceName(source.source)}
-                        </span>
-                      </div>
-                      <Badge variant="secondary">{source.count}</Badge>
-                    </div>
-                  ),
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("settings.stats.bookmark_sources.empty")}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      {/* Activity Patterns */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Hourly Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              {t("settings.stats.activity_patterns.activity_by_hour")}
-              {userSettings?.timezone && userSettings.timezone !== "UTC" && (
-                <span className="text-xs font-normal text-muted-foreground">
-                  ({userSettings.timezone})
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SimpleBarChart
-              data={stats.bookmarkingActivity.byHour.map(
-                (h: { hour: number; count: number }) => h.count,
-              )}
-              maxValue={maxHourlyActivity}
-              labels={hourLabels}
-            />
-          </CardContent>
-        </Card>
+        <SettingsSection title={t("settings.stats.bookmark_sources.title")}>
+          {sources.length > 0 ? (
+            <div className="space-y-4">
+              {sources.map(({ source, count }) => {
+                const Icon = sourceIcons[source];
+                return (
+                  <BarRow
+                    key={source}
+                    label={t(`settings.stats.bookmark_sources.names.${source}`)}
+                    value={count}
+                    maxValue={maxSourceCount}
+                    icon={<Icon className={sectionIconClass} />}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("settings.stats.bookmark_sources.empty")}
+            </p>
+          )}
+        </SettingsSection>
 
-        {/* Daily Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              {t("settings.stats.activity_patterns.activity_by_day")}
-              {userSettings?.timezone && userSettings.timezone !== "UTC" && (
-                <span className="text-xs font-normal text-muted-foreground">
-                  ({userSettings.timezone})
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SimpleBarChart
-              data={stats.bookmarkingActivity.byDayOfWeek.map(
-                (d: { day: number; count: number }) => d.count,
-              )}
-              maxValue={maxDailyActivity}
-              labels={dayNames}
-            />
-          </CardContent>
-        </Card>
+        {/* Top Domains */}
+        <SettingsSection title={t("settings.stats.top_domains.title")}>
+          {topDomains.length > 0 ? (
+            <div className="space-y-4">
+              {topDomains.map((domain, index) => (
+                <BarRow
+                  key={domain.domain}
+                  rank={index + 1}
+                  label={domain.domain}
+                  value={domain.count}
+                  maxValue={topDomains[0].count}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("settings.stats.top_domains.no_domains_found")}
+            </p>
+          )}
+        </SettingsSection>
+
+        {/* Top Tags */}
+        <SettingsSection title={t("settings.stats.most_used_tags.title")}>
+          {topTags.length > 0 ? (
+            <div className="space-y-4">
+              {topTags.map((tag, index) => (
+                <BarRow
+                  key={tag.name}
+                  rank={index + 1}
+                  label={tag.name}
+                  value={tag.count}
+                  maxValue={topTags[0].count}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {t("settings.stats.most_used_tags.no_tags_found")}
+            </p>
+          )}
+        </SettingsSection>
       </div>
+
       {/* Asset Storage */}
       {stats.assetsByType.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              {t("settings.stats.storage_breakdown.title")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {stats.assetsByType.map(
-                (asset: { type: string; count: number; totalSize: number }) => (
-                  <div key={asset.type} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium capitalize">
-                        {asset.type.replace(/([A-Z])/g, " $1").trim()}
-                      </span>
-                      <Badge variant="outline">{asset.count}</Badge>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatBytes(asset.totalSize)}
-                    </div>
-                    <Progress
-                      value={
-                        stats.totalAssetSize > 0
-                          ? (asset.totalSize / stats.totalAssetSize) * 100
-                          : 0
-                      }
-                      className="h-2"
-                    />
-                  </div>
-                ),
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <SettingsSection title={t("settings.stats.storage_breakdown.title")}>
+          <div className="grid gap-x-8 gap-y-4 md:grid-cols-2 lg:grid-cols-3">
+            {stats.assetsByType.map((asset) => (
+              <div key={asset.type} className="space-y-1.5">
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <span className="truncate">
+                    {/* The same names as the Storage page. */}
+                    {t(
+                      `preview.attachments.types.${mapDBAssetTypeToUserType(asset.type as AssetTypes) ?? "unknown"}`,
+                    )}
+                    <span className="ml-2 text-xs tabular-nums text-muted-foreground">
+                      {asset.count}
+                    </span>
+                  </span>
+                  <span className="font-medium tabular-nums">
+                    {formatBytes(asset.totalSize)}
+                  </span>
+                </div>
+                <div className="h-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary/40"
+                    style={{
+                      width: `${stats.totalAssetSize > 0 ? (asset.totalSize / stats.totalAssetSize) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </SettingsSection>
       )}
     </SettingsPage>
   );

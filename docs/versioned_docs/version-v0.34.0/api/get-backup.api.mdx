@@ -1,0 +1,71 @@
+---
+id: get-backup
+title: "Get a single backup"
+description: "Retrieve metadata for a single backup, including its current status (pending, success, or failure)."
+sidebar_label: "Get a single backup"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vu+KGzcQf5VB+ZKYPftSUhr2Q8FJk3BNCiG5o5TLgce7Y69irbSRRnfnmIU+RJ+wT9KOdr322U4pFPrJa41m9Jt/v5mNcg15ZO3sRalytSR+gcUqNipTJYXC60ZkKlcfiL2mW4KaGEtkhIXzgBC0XRqCedLKQNvCxFLbJWgOUETvyTIERo4BHjdkRZZBiEVBIWTgPCxQm+jpyVhlinEZVH6tOhBB3WQqUBG95rXKrzdqTujJTyNXKr++aW8y1aDHmph8SBdCUVGNKt8oXjekchXYa7s8cueyIohWf4kEuiTLeqHJg1sAV1tnBA/dY90YsaNJl+Z+vazvPj//wd1//b66Z3bFcwGtOV3pQF+Uqs2Upy9ReypVzj5SpizWcmW+vZIpLTAa5EqJG55C42ygINC/Oz+Xn2PEYpUCU7kHsXCWybIoYNMYXaRsTj4H0ToREDf/TAWrTDVecs+6e1OXx0FrMxUD+YvTIgyB+JQsUzYag3MJinjfZqrwhEzllE9aCvor7QlsrOfkRTB3blWjX7100fLJG11lncJANtZSSn3NqUz1Racy1ZecumkzRd47/wuFgEv6F748yO21hG0I0i4k+w737h06M0C/aVsx+uz86XHOryxGrpzXX/9O+Z+//5Gq80XqAWC3Igs6QK1DSE2l7S0aXaamovtGIB4UCNM9TxqD+nRp7GI3lP0+ArVF+uwYaVf7YB3DwkV7+PB/qczClScT8xDAFGosKm3pzBOWkjBImQVRH0up1N/O8aGpKtZoDw31+mN1WAMJ4M7+zY4RXoliClt6nyvXk6w4Ka2fq0nXyWGy2XJDK7VB/nZLadEblasNlqWnENoJNnpy+1Rl6ha9FnwpSr24y8wCo2GVq4q5Cflkwn49XqHHFVEzxuaY3YVcegtbEnzb34cOi3ixx8YfJXndy/ucPIRWXhY/0jUhvnRJuiB9vHa+RkH486+XKZ7aLpyoi9cdpKfj8/H5HrsOeKbvL47wD0IdZCaRWZxVLnDK3rbvZCihLUHSeqb5zCCTT97pgsZwWekgtgGNcXcB1i4CO6jR4nJnJGRgdOCQgYyqDCq9rIxeVnKSul9+7ZafAzTeLT3WNbIu0Jj1+JP9ZB89AgmXjJ2uJ+RwagyQLRunLQfo6wvwYbs38kYJ2qYUzaZ9byYjM6gIS/Jj+M1FKNDCkqwMdwK0ybMVrWHhXf0wv3c0h6sLiLYkD6PRR2LWdhngx6TzltZhNNrCfo9LbQfI73TgPcwhNo3zLFM/OH82R4HaDBpwqxFmnXCWgjQzutY8gy+R/Bp2k1ySIcOuG4n9TkGS2Zmle37Zm1hoMh0tSlhAM2Do4rJ9ZDApmVwQF1WSixEBRmOYwkwIfga3aCKlnebBG9qWkiNKhiUfnsA6qJ1PAKPhsI3Ni75E4HLdUJDD7UlI2ZgTOEtde3kikE4J+Sd7BqOR0XY1GiVfpnD14d1Qb3CnuQKX6hwNFB7vDJXDEjbu1IXXB/XE7yBHQsfUX0nFub1jITbGYUklLLQheKxrKXLn4f1Pr58ktmxc4BoTUfe7yxviw33vsA83O87/vxbGjm72BpssLcKYm55hr/ulS+Z+PuxfN5kSghDxZiOVeuVN28pxKkbZLncEm2i41EG+S5Uv0AT6B88ff+iHwxP4FsL+EO068biJ8k9lakXr/S2xlQWl6+qEoRNPi4Ia3lM8mq7C1MO4efPqUlaTh/x8wMfJ+klQm01341L4p20HjImPBGDb/gWcCEi2
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a single backup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/backups/{backupId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve metadata for a single backup, including its current status (pending, success, or failure).
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the backup.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BackupId"},"required":true,"name":"backupId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The requested backup.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"userId":{"type":"string"},"assetId":{"type":"string","nullable":true},"createdAt":{"type":"string"},"size":{"type":"number"},"bookmarkCount":{"type":"number"},"status":{"type":"string","enum":["pending","success","failure"]},"errorMessage":{"type":"string","nullable":true}},"required":["id","userId","assetId","createdAt","size","bookmarkCount","status"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Backup not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

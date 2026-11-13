@@ -1,46 +1,13 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { AdminNotices } from "@/components/admin/AdminNotices";
-import MobileSidebar from "@/components/shared/sidebar/MobileSidebar";
-import Sidebar from "@/components/shared/sidebar/Sidebar";
+import AdminsOnly from "@/components/admin/AdminsOnly";
+import { adminNavGroups } from "@/components/admin/adminNav";
+import { SectionMobileBar } from "@/components/settings/SectionNav";
+import SectionSidebar from "@/components/settings/SectionSidebar";
 import SidebarLayout from "@/components/shared/sidebar/SidebarLayout";
+import { useTranslation } from "@/lib/i18n/server";
 import { getServerAuthSession } from "@/server/auth";
-import { TFunction } from "i18next";
-import { Activity, ArrowLeft, Settings, Users, Wrench } from "lucide-react";
-
-const adminSidebarItems = (
-  t: TFunction,
-): {
-  name: string;
-  icon: React.ReactElement;
-  path: string;
-}[] => [
-  {
-    name: t("settings.back_to_app"),
-    icon: <ArrowLeft size={18} />,
-    path: "/dashboard/bookmarks",
-  },
-  {
-    name: t("admin.server_stats.server_stats"),
-    icon: <Activity size={18} />,
-    path: "/admin/overview",
-  },
-  {
-    name: t("admin.users_list.users_list"),
-    icon: <Users size={18} />,
-    path: "/admin/users",
-  },
-  {
-    name: t("admin.background_jobs.background_jobs"),
-    icon: <Settings size={18} />,
-    path: "/admin/background_jobs",
-  },
-  {
-    name: t("admin.admin_tools.admin_tools"),
-    icon: <Wrench size={18} />,
-    path: "/admin/admin_tools",
-  },
-];
 
 export default async function AdminLayout({
   children,
@@ -48,15 +15,25 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerAuthSession();
-  if (!session || session.user.role !== "admin") {
+  if (!session) {
     redirect("/");
   }
+  if (session.user.role !== "admin") {
+    return <AdminsOnly />;
+  }
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
 
   return (
     <SidebarLayout
-      sidebar={<Sidebar items={adminSidebarItems} />}
-      mobileSidebar={<MobileSidebar items={adminSidebarItems} />}
+      sidebar={<SectionSidebar groups={adminNavGroups(t)} />}
+      mobileSidebar={null}
     >
+      <SectionMobileBar
+        indexPath="/admin"
+        indexLabel={t("admin.admin_settings")}
+        backToAppLabel={t("settings.back_to_app")}
+      />
       <div className="flex flex-col gap-1">
         <AdminNotices />
         {children}

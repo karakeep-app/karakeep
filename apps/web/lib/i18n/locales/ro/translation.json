@@ -77,10 +77,12 @@
     "preserve_offline_archive": "Păstrează arhiva offline",
     "download_full_page_archive_file": "Descarcă fișierul arhivat",
     "preserve_as_pdf": "Păstrează ca PDF",
+    "preserve_video": "Păstrează videoclipul",
     "download_pdf_file": "Descarcă fișierul PDF",
     "edit_tags": "Editează etichetele",
     "edit_notes": "Editează notele",
     "add_to_list": "Adaugă în listă",
+    "select": "Selectează",
     "select_all": "Selectează tot",
     "unselect_all": "Deselectează tot",
     "copy_link": "Copiază linkul",
@@ -234,7 +236,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Activitate pe oră",
-        "activity_by_day": "Activitate pe zi"
+        "activity_by_day": "Activitate pe zi",
+        "busiest_around": "Cea mai mare activitate în jurul orei {{hour}}"
       },
       "storage_breakdown": {
         "title": "Analiza stocării"
@@ -427,7 +430,53 @@
       "broken_links": "Linkuri nefuncționale",
       "last_crawled_at": "Ultima scanare la",
       "crawling_status": "Stare scanare",
-      "crawling_failed": "Indexarea a eșuat"
+      "crawling_failed": "Indexarea a eșuat",
+      "description": "Revizuiește linkurile care nu au putut fi preluate, reîncearcă-le sau elimină semnele de carte vechi.",
+      "category_all": "Necesită atenție",
+      "category_blocked": "Acces blocat",
+      "category_missing": "Negăsit",
+      "category_errors": "Alte erori",
+      "category_all_hint": "Linkuri de revizuit",
+      "category_blocked_hint": "Restricționat sau limitat ca rată",
+      "category_missing_hint": "Pagină lipsă sau eliminată",
+      "category_errors_hint": "Erori de server sau de scanare",
+      "blocked_hint": "O cerere blocată nu înseamnă întotdeauna un link nefuncțional. Unele site-uri restricționează accesul automat. Deschide pagina originală pentru a verifica înainte de ștergere.",
+      "search": "Caută după titlu sau URL…",
+      "sort_recent": "Verificate recent",
+      "sort_oldest": "Cea mai veche verificare întâi",
+      "sort_domain": "Site web A–Z",
+      "result_count_one": "{{count}} link de revizuit",
+      "result_count_other": "{{count}} de linkuri de revizuit",
+      "result_count_few": "{{count}} linkuri de revizuit",
+      "retry_selected": "Reîncearcă selecția",
+      "empty": "Nu s-au găsit linkuri nefuncționale",
+      "empty_description": "Niciunul dintre linkurile tale salvate nu are în prezent o eroare de scanare raportată.",
+      "select_visible": "Selectează toate linkurile vizibile",
+      "bookmark": "Semn de carte",
+      "issue": "Problemă",
+      "never_crawled": "Fără dată de scanare",
+      "issue_blocked": "Acces blocat",
+      "issue_missing": "Negăsit",
+      "issue_server": "Eroare de server",
+      "issue_http": "Eroare HTTP",
+      "issue_failed": "Scanarea a eșuat",
+      "issue_blocked_hint": "Site-ul a restricționat această cerere",
+      "issue_missing_hint": "Este posibil ca pagina să fi fost eliminată",
+      "issue_server_hint": "Site-ul nu a putut finaliza cererea",
+      "issue_http_hint": "Site-ul a returnat un răspuns neașteptat",
+      "issue_failed_hint": "Nu a fost înregistrat niciun răspuns reușit",
+      "queued": "În coadă",
+      "queued_count_one": "{{count}} link pus în coadă pentru o nouă scanare.",
+      "queued_count_other": "{{count}} de linkuri puse în coadă pentru o nouă scanare.",
+      "deleted_count_one": "{{count}} semn de carte șters.",
+      "deleted_count_other": "{{count}} de semne de carte șterse.",
+      "deleted_count_few": "{{count}} semne de carte șterse.",
+      "queued_count_few": "{{count}} linkuri puse în coadă pentru o nouă scanare.",
+      "action_failed": "{{count}} din {{total}} au eșuat.",
+      "delete_title_one": "Ștergi {{count}} semn de carte?",
+      "delete_title_other": "Ștergi {{count}} de semne de carte?",
+      "delete_title_few": "Ștergi {{count}} semne de carte?",
+      "delete_description": "Această acțiune șterge definitiv semnele de carte selectate și fișierele salvate, evidențierile și notele lor. Acțiunea nu poate fi anulată."
     },
     "manage_assets": {
       "manage_assets": "Gestionare active",
@@ -628,6 +677,19 @@
         "backup_queued": "Sarcina de rezervă a fost adăugată în coadă! Va fi procesată în scurt timp.",
         "backup_deleted": "Copia de rezervă a fost ștearsă!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Șterge filtrele",
+      "clear_selection": "Șterge selecția",
+      "delete_selected": "Șterge elementele selectate",
+      "try_again": "Încearcă din nou",
+      "sort": "Ordine de sortare",
+      "no_matches": "Nu s-au găsit potriviri",
+      "adjust_filters": "Încearcă o altă căutare sau șterge filtrele.",
+      "select_item": "Selectează {{name}}",
+      "selected": "{{count}} selectate",
+      "showing": "Se afișează {{shown}} din {{total}}",
+      "load_more": "Încarcă mai multe"
     }
   },
   "admin": {
@@ -783,8 +845,10 @@
     }
   },
   "options": {
+    "theme": "Temă",
     "dark_mode": "Mod întunecat",
     "light_mode": "Mod luminos",
+    "system_mode": "Mod sistem",
     "apps_extensions": "Aplicații și extensii",
     "documentation": "Documentație",
     "follow_us_on_x": "Urmărește-ne pe X"
@@ -880,10 +944,13 @@
       "success": "Ai părăsit „{{icon}} {{name}}”"
     },
     "summary_list_one": "{{count}} listă",
+    "summary_list_few": "{{count}} liste",
     "summary_list_other": "{{count}} liste",
     "summary_bookmark_one": "{{count}} semn de carte",
+    "summary_bookmark_few": "{{count}} semne de carte",
     "summary_bookmark_other": "{{count}} semne de carte",
     "items_count_one": "{{count}} element",
+    "items_count_few": "{{count}} elemente",
     "items_count_other": "{{count}} elemente"
   },
   "tags": {
@@ -923,6 +990,10 @@
     "is_not_archived": "Nu este arhivat",
     "has_any_tag": "Are orice etichetă",
     "has_no_tags": "Nu are nicio etichetă",
+    "has_notes": "Are note",
+    "has_no_notes": "Nu are note",
+    "has_highlights": "Are evidențieri",
+    "has_no_highlights": "Nu are evidențieri",
     "is_in_any_list": "Este în orice listă",
     "is_not_in_any_list": "Nu este în nicio listă",
     "created_on_or_after": "Creat pe sau după",
@@ -980,6 +1051,9 @@
     "view_original": "Vezi originalul",
     "cached_content": "Conținut stocat în cache",
     "reader_view": "Vizualizare cititor",
+    "page_overview": "Prezentare generală a paginii",
+    "try_reader_view": "Încearcă vizualizarea cititor",
+    "archived_page": "Pagină arhivată",
     "archive_info": "Arhivele s-ar putea să nu fie redate corect în pagină dacă necesită Javascript. Pentru rezultate optime, <1>descarcă fișierul și deschide-l în browser</1>.",
     "fetch_error_title": "Conținut indisponibil",
     "fetch_error_description": "Nu am putut prelua conținutul pentru acest link. Pagina poate fi protejată, poate necesita autentificare sau este temporar indisponibilă.",
@@ -1060,7 +1134,8 @@
       "deleted": "Semnul de carte a fost șters!",
       "refetch": "Recuperarea a fost pusă la coadă!",
       "full_page_archive": "Crearea arhivei complete a paginii a fost declanșată",
-      "preserve_pdf": "Păstrarea PDF a fost declanșată"
+      "preserve_pdf": "Păstrarea PDF a fost declanșată",
+      "preserve_video": "Descărcarea videoclipului a fost declanșată"
     },
     "lists": {
       "created": "Lista a fost creată!",

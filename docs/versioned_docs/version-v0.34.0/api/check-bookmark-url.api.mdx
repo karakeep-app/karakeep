@@ -1,0 +1,71 @@
+---
+id: check-bookmark-url
+title: "Check if a URL exists in bookmarks"
+description: "Check if a URL is already bookmarked. Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison."
+sidebar_label: "Check if a URL exists in bookmarks"
+hide_title: true
+hide_table_of_contents: true
+api: eJzVVtuOGzcM/RVCeUmMWXtT9GkeAjhJU2wToEGyi6LYLGB6RM8o1kiKqNldxzDQj+gX9ksKai7rvfSh6FOfPNaFPDwkD7VXPlDEZLw706pUVUPV9rX32xbj9iJaVShNXEUT5Igq1Rs5AGYDCBefPoBhQBsJ9Q7Wwy3Sc7hgYuBuzSkaV0OLqWrkI3nYGKehQqeNxkRcQGrIgfOxRWu+E4tZhuemdj7fbZAb2ESsW3KJAZ2GFNFY2WOL3BC/gI2PQLdYJah8GzAa9m6uCpWwZlVeqjEiVleFYqq6aNJOlZd7tSaMFJddalR5eXW4KlTAiC0lipwPcNVQi6rcq7QLpErVx/SImPOGMiPJQyYRsEbjOAHdGk6CdiSI5+pQqEjfOhNJqzLFjv6TtUI5bAValxNmxMC3juJOSTyROHjHxBLDD6en8nPf2a/rr1QlME6bCrPxm4ZSQ1FyM6b5OL2r8c+ZXsneynXWrqQqnE+w8Z3TgqryLpFL4hBDsNm4d4uvLF6fYNZnHKpQIUpVJtNjvnP2VBbENa4t/TOPZ2/Bb3Ioj8grwEcQC4L9KFgJ4yhgdbiXsMtjSFeHg+z+ePryMbEXDrvU+Gi+k4a//vgzu3idKw6S35ITX61hNq4uwLhrtEZnTHQbxNcDFhPdpkWwaJ7mb+KEbrENQsk9BOrQQ20pNV6avaZMNkrtq8VUUItccSd9MTHF67EVZKVUe9Q6EvNhgcEsrl+qQl1jNJKDnK5hu2djg51NqlRNSoHLxSLF3XyLEbdEYY4hPNlGg4Uxa++H89BjkTCOuvizsDAUylEvT6SIZ4kjH1PlcEgVw8c7ER5B+Mtv5znNxm28XJeoe0gv56fzUxETkzKnE57lx7NH+KdNUUZgspuTxnMSdqaKkgoUHRPdPDHpxGKimKMzFc3hvDEstgGt9TcMO9+JDrTosL4zwgVYw0kEFGsuoDF1Y03dyAoyU/51GtZYbbvAEKKvI7YtJlOhtbv5F/fFPXsGQhe5NDSnLC6tBXI6eCOCO5Q94P3CDeJDg3E5RavlUGXZyAoaQk1xDr/7TrQeanIyZQjQ5ci2tINN9O39/N7QGi7OoHOaIsxmnylJszK8ynfe045nsxH2R6yNmyB/MCKNE2buQvAxQdVF9vFkjQI1TDfg2iCs+s1VJmllTWvSCrJqwt0EkGQQjAoKxlW20ySZXTm6TW8GExtDtm9woQVMAuSel9HJZDKPQEpVk/fFiACjOSxHFb1G21GeaPd8DOpM2bDkIxI4D62PGWBnE4/cjNMOzneBWBan+ZezsSbwjvr2ikQgncLlF3cCs5k1bjub5ViWWQ3HeoMbkxrwuc7RQhXxxpKGlhJqTDjvr4tCTdezUoEsiaDScCQX53jGQResR00aNsYSPDetFLmP8PHtuxd5UAbPqcWseMOYe/AGyarOUopTbzxsy/2div7fXjC9ih0p/6HohXg/KPfdNJKw77T7qlCiPHJgv5cWuIj2cJDl/m0giq4NizJpVW7Q8sPpecza80/D+HsB//Jt8mQEW9pN75Vc8KpU+bUyjpL8GitULyQZa39lWVUU0tGtRy8LsTKNuJ9/OleFwvsj4cEIyNaHLXS7I9v7fX/iXCTvcFAj7iyB6iCj/2/jS/aa
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Check if a URL exists in bookmarks"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/bookmarks/check-url"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Check if a URL is already bookmarked. Uses substring matching to find candidates, then normalizes URLs (ignoring hash fragments and trailing slashes) for exact comparison.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The URL to check against existing bookmarks."},"required":true,"description":"The URL to check against existing bookmarks.","name":"url","in":"query"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"Object indicating whether the URL is bookmarked. `bookmarkId` is `null` if not found.","content":{"application/json":{"schema":{"type":"object","properties":{"bookmarkId":{"type":"string","nullable":true,"description":"The ID of the existing bookmark, or null if the URL is not bookmarked."}},"required":["bookmarkId"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

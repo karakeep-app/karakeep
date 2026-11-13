@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useArchiveBookmarkWithUndo } from "@/components/dashboard/bookmarks/useArchiveBookmarkWithUndo";
 import { useSession } from "@/lib/auth/client";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { useBookmarkBulkMutations } from "@/lib/hooks/useBookmarkBulkActions";
@@ -378,6 +379,7 @@ function useBookmarkUpdateHotkeys({
   withOwnedFocusedBookmark: (action: (bookmark: ZBookmark) => void) => void;
 }) {
   const { t } = useTranslation();
+  const { setArchived } = useArchiveBookmarkWithUndo();
 
   useHotkeys(
     "f",
@@ -389,18 +391,12 @@ function useBookmarkUpdateHotkeys({
           })
           .catch(() => undefined);
       } else {
+        // No success toast, like the card's star: the star shows the result
         withOwnedFocusedBookmark((bookmark) =>
-          updateBookmarkMutator.mutate(
-            {
-              bookmarkId: bookmark.id,
-              favourited: !bookmark.favourited,
-            },
-            {
-              onSuccess: () => {
-                toast.success(t("toasts.bookmarks.updated"));
-              },
-            },
-          ),
+          updateBookmarkMutator.mutate({
+            bookmarkId: bookmark.id,
+            favourited: !bookmark.favourited,
+          }),
         );
       }
     },
@@ -427,17 +423,7 @@ function useBookmarkUpdateHotkeys({
           .catch(() => undefined);
       } else {
         withOwnedFocusedBookmark((bookmark) =>
-          updateBookmarkMutator.mutate(
-            {
-              bookmarkId: bookmark.id,
-              archived: !bookmark.archived,
-            },
-            {
-              onSuccess: () => {
-                toast.success(t("toasts.bookmarks.updated"));
-              },
-            },
-          ),
+          setArchived(bookmark.id, !bookmark.archived),
         );
       }
     },
@@ -446,9 +432,9 @@ function useBookmarkUpdateHotkeys({
       disabled,
       hasBulkSelection,
       isNavigating,
+      setArchived,
       setSelectedBookmarksToNextState,
       t,
-      updateBookmarkMutator,
       withOwnedFocusedBookmark,
     ],
   );
@@ -593,7 +579,12 @@ function useBookmarkGlobalHotkeys({
         clearFocus();
       }
     },
-    { enabled: !disabled },
+    {
+      enabled: !disabled,
+      // A dialog or menu already handled this Esc (Radix prevents default
+      // when it dismisses), e.g. the bulk "Add to list" or "Edit tags" dialogs
+      ignoreEventWhen: (e) => e.defaultPrevented,
+    },
     [disabled, bulkActionsStore.isBulkEditEnabled],
   );
 

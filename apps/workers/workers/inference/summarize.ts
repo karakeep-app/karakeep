@@ -1,5 +1,4 @@
 import { and, eq } from "drizzle-orm";
-import { getBookmarkDomain } from "network";
 
 import { db } from "@karakeep/db";
 import { bookmarks, customPrompts, users } from "@karakeep/db/schema";
@@ -17,6 +16,8 @@ import { DequeuedJob } from "@karakeep/shared/queueing";
 import { buildSummarizationInput } from "@karakeep/shared/summarization";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
+
+import { getBookmarkDomain } from "../../network";
 
 async function fetchBookmarkDetailsForSummary(bookmarkId: string) {
   const bookmark = await db.query.bookmarks.findFirst({

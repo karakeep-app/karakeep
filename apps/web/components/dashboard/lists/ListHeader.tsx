@@ -103,7 +103,7 @@ export default function ListHeader({
       <div className="flex shrink-0 items-center">
         <ListOptions list={list}>
           <Button variant="ghost">
-            <MoreHorizontal />
+            <MoreHorizontal className="size-6" />
           </Button>
         </ListOptions>
       </div>

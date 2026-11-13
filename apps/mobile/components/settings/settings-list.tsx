@@ -13,7 +13,8 @@ import ChevronRight from "@/components/ui/ChevronRight";
 import { Text } from "@/components/ui/Text";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react-native";
+import { MenuView } from "@react-native-menu/menu";
+import { Check, ChevronsUpDown } from "lucide-react-native";
 
 function SettingsScreen({
   children,
@@ -59,16 +60,12 @@ function SettingsGroup({
   return (
     <View className="gap-1.5">
       {header ? (
-        <Text
-          variant="footnote"
-          color="tertiary"
-          className="px-4 uppercase tracking-wide"
-        >
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
           {header}
         </Text>
       ) : null}
       <View
-        className="overflow-hidden rounded-xl bg-card py-2"
+        className="overflow-hidden rounded-xl bg-card"
         style={{ borderCurve: "continuous" }}
       >
         {children}
@@ -91,7 +88,7 @@ function SettingsSeparator({
 }) {
   return (
     <View
-      className={cn("mx-6 my-1 bg-border", className)}
+      className={cn("ml-4 bg-border", className)}
       style={[{ height: StyleSheet.hairlineWidth }, style]}
     />
   );
@@ -112,7 +109,7 @@ function SettingsNavigationRow({
     <Pressable
       accessibilityHint={`Opens ${label} settings`}
       accessibilityRole="button"
-      className="flex-row items-center px-4 py-1 active:bg-muted/10"
+      className="min-h-11 flex-row items-center px-4 py-2 active:bg-muted/10"
       onPress={onPress}
     >
       <Text className="mr-3 flex-1" numberOfLines={1}>
@@ -125,7 +122,7 @@ function SettingsNavigationRow({
           {value}
         </Text>
       ) : null}
-      <ChevronRight size={17} strokeWidth={2.25} />
+      <ChevronRight size={16} />
     </Pressable>
   );
 }
@@ -142,7 +139,7 @@ function SettingsToggleRow({
   value: boolean;
 }) {
   return (
-    <View className="flex-row items-center px-4 py-1">
+    <View className="min-h-11 flex-row items-center px-4 py-1.5">
       <Text className="mr-3 flex-1">{label}</Text>
       <Switch
         accessibilityLabel={label}
@@ -151,6 +148,57 @@ function SettingsToggleRow({
         value={value}
       />
     </View>
+  );
+}
+
+function SettingsMenuRow<T extends string | number>({
+  label,
+  onSelect,
+  options,
+  value,
+}: {
+  label: string;
+  onSelect: (value: T) => void;
+  options: readonly { label: string; value: T }[];
+  value: T;
+}) {
+  const { colors } = useColorScheme();
+  const selected = options.find((option) => option.value === value);
+
+  return (
+    <MenuView
+      actions={options.map((option) => ({
+        id: String(option.value),
+        title: option.label,
+        state: option.value === value ? "on" : "off",
+      }))}
+      onPressAction={({ nativeEvent }) => {
+        const option = options.find(
+          (candidate) => String(candidate.value) === nativeEvent.event,
+        );
+        if (option) {
+          onSelect(option.value);
+        }
+      }}
+      shouldOpenOnLongPress={false}
+    >
+      <View
+        accessible
+        accessibilityLabel={`${label}: ${selected?.label ?? ""}`}
+        accessibilityRole="button"
+        className="min-h-11 flex-row items-center px-4 py-2"
+      >
+        <Text className="mr-3 flex-1" numberOfLines={1}>
+          {label}
+        </Text>
+        {selected ? (
+          <Text color="tertiary" className="mr-1.5" numberOfLines={1}>
+            {selected.label}
+          </Text>
+        ) : null}
+        <ChevronsUpDown color={colors.grey} size={15} strokeWidth={2.25} />
+      </View>
+    </MenuView>
   );
 }
 
@@ -177,7 +225,7 @@ function SettingsChoiceRow({
       accessibilityState={{ checked: selected, disabled }}
       className={cn(
         "flex-row items-center px-4 active:bg-muted/10",
-        description ? "min-h-16 py-2" : "py-1",
+        description ? "min-h-16 py-2" : "min-h-11 py-2",
       )}
       disabled={disabled}
       onPress={onPress}
@@ -193,7 +241,7 @@ function SettingsChoiceRow({
         ) : null}
       </View>
       {selected ? (
-        <Check color={colors.primary} size={22} strokeWidth={2.4} />
+        <Check color={colors.primary} size={20} strokeWidth={2.4} />
       ) : null}
     </Pressable>
   );
@@ -201,13 +249,14 @@ function SettingsChoiceRow({
 
 function SettingsValueRow({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-row items-center gap-4 px-4 py-1">
-      <Text className="flex-1">{label}</Text>
+    <View className="min-h-11 flex-row items-center gap-4 px-4 py-2">
+      <Text>{label}</Text>
       <Text
         selectable
         color="tertiary"
-        className="max-w-[60%] text-right"
-        numberOfLines={2}
+        className="flex-1 text-right"
+        ellipsizeMode="middle"
+        numberOfLines={1}
       >
         {value}
       </Text>
@@ -244,7 +293,7 @@ function SettingsActionRow({
     <Pressable
       accessibilityRole="button"
       className={cn(
-        "flex-row items-center gap-2 px-4 py-1 active:bg-muted/10",
+        "min-h-11 flex-row items-center gap-2 px-4 py-2 active:bg-muted/10",
         centered ? "justify-center" : undefined,
       )}
       disabled={disabled}
@@ -266,6 +315,7 @@ export {
   SettingsActionRow,
   SettingsChoiceRow,
   SettingsGroup,
+  SettingsMenuRow,
   SettingsNavigationRow,
   SettingsScreen,
   SettingsSeparator,

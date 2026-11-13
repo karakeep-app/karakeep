@@ -54,9 +54,9 @@
     "unfavorite": "Видалити з улюбленого",
     "refresh": "Оновити",
     "recrawl": "Повторне сканування",
-    "download_full_page_archive": "Завантажити повний архів сторінки",
     "edit_tags": "Редагувати теги",
     "add_to_list": "Додати до списку",
+    "select": "Вибрати",
     "select_all": "Вибрати все",
     "unselect_all": "Зняти виділення з усіх",
     "copy_link": "Копіювати посилання",
@@ -90,6 +90,7 @@
     "load_more": "Завантажити більше",
     "edit_notes": "Редагувати примітки",
     "preserve_as_pdf": "Зберегти як PDF",
+    "preserve_video": "Зберегти відео",
     "offline_copies": "Офлайн копії",
     "preserve_offline_archive": "Зберегти офлайн-архів",
     "download_full_page_archive_file": "Завантажити файл архіву",
@@ -353,6 +354,56 @@
       "broken_links": "Неробочі посилання",
       "last_crawled_at": "Останнє сканування",
       "crawling_failed": "Помилка сканування",
+      "description": "Перегляньте посилання, які не вдалося отримати, повторіть спробу або видаліть старі закладки.",
+      "category_all": "Потребують уваги",
+      "category_blocked": "Доступ заблоковано",
+      "category_missing": "Не знайдено",
+      "category_errors": "Інші помилки",
+      "category_all_hint": "Посилання для перегляду",
+      "category_blocked_hint": "Обмежено або перевищено ліміт запитів",
+      "category_missing_hint": "Сторінка відсутня або видалена",
+      "category_errors_hint": "Збої сервера або сканування",
+      "blocked_hint": "Заблокований запит не завжди означає неробоче посилання. Деякі сайти обмежують автоматизований доступ. Перш ніж видаляти, відкрийте оригінальну сторінку, щоб перевірити.",
+      "search": "Пошук за назвою або URL…",
+      "sort_recent": "Нещодавно перевірені",
+      "sort_oldest": "Спочатку найдавніше перевірені",
+      "sort_domain": "Сайт А–Я",
+      "result_count_one": "{{count}} посилання для перегляду",
+      "result_count_other": "{{count}} посилання для перегляду",
+      "result_count_few": "{{count}} посилання для перегляду",
+      "result_count_many": "{{count}} посилань для перегляду",
+      "retry_selected": "Повторити вибрані",
+      "empty": "Неробочих посилань не знайдено",
+      "empty_description": "Для жодного з ваших збережених посилань зараз немає помилки сканування.",
+      "select_visible": "Вибрати всі видимі посилання",
+      "bookmark": "Закладка",
+      "issue": "Проблема",
+      "never_crawled": "Немає дати сканування",
+      "issue_blocked": "Доступ заблоковано",
+      "issue_missing": "Не знайдено",
+      "issue_server": "Помилка сервера",
+      "issue_http": "Помилка HTTP",
+      "issue_failed": "Помилка сканування",
+      "issue_blocked_hint": "Сайт обмежив цей запит",
+      "issue_missing_hint": "Можливо, сторінку було видалено",
+      "issue_server_hint": "Сайт не зміг виконати запит",
+      "issue_http_hint": "Сайт повернув неочікувану відповідь",
+      "issue_failed_hint": "Успішної відповіді не зафіксовано",
+      "queued": "У черзі",
+      "queued_count_one": "{{count}} посилання поставлено в чергу на повторне сканування.",
+      "queued_count_other": "{{count}} посилання поставлено в чергу на повторне сканування.",
+      "deleted_count_one": "{{count}} закладку видалено.",
+      "deleted_count_other": "{{count}} закладки видалено.",
+      "deleted_count_few": "{{count}} закладки видалено.",
+      "deleted_count_many": "{{count}} закладок видалено.",
+      "queued_count_few": "{{count}} посилання поставлено в чергу на повторне сканування.",
+      "queued_count_many": "{{count}} посилань поставлено в чергу на повторне сканування.",
+      "action_failed": "Не вдалося: {{count}} з {{total}}.",
+      "delete_title_one": "Видалити {{count}} закладку?",
+      "delete_title_other": "Видалити {{count}} закладки?",
+      "delete_title_few": "Видалити {{count}} закладки?",
+      "delete_title_many": "Видалити {{count}} закладок?",
+      "delete_description": "Це остаточно видалить вибрані закладки та їхні збережені файли, виділення й нотатки. Цю дію неможливо скасувати.",
       "crawling_status": "Статус сканування"
     },
     "manage_assets": {
@@ -460,7 +511,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Активність за годину",
-        "activity_by_day": "Активність за днями"
+        "activity_by_day": "Активність за днями",
+        "busiest_around": "Найактивніше близько {{hour}}"
       },
       "storage_breakdown": {
         "title": "Розбивка сховища"
@@ -511,10 +563,8 @@
       "progress": "Прогрес",
       "status": {
         "pending": "В очікуванні",
-        "in_progress": "В процесі виконання",
         "completed": "Завершено",
         "failed": "Не вдалося",
-        "processing": "Обробка",
         "staging": "Підготовка",
         "running": "Працює",
         "paused": "Призупинено",
@@ -610,6 +660,19 @@
         "backup_queued": "Завдання резервного копіювання поставлено в чергу! Воно буде оброблено найближчим часом.",
         "backup_deleted": "Резервну копію видалено!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Скинути фільтри",
+      "clear_selection": "Зняти виділення",
+      "delete_selected": "Видалити вибрані",
+      "try_again": "Спробувати ще раз",
+      "sort": "Порядок сортування",
+      "no_matches": "Збігів не знайдено",
+      "adjust_filters": "Спробуйте інший запит або скиньте фільтри.",
+      "select_item": "Вибрати {{name}}",
+      "selected": "Вибрано: {{count}}",
+      "showing": "Показано {{shown}} з {{total}}",
+      "load_more": "Завантажити більше"
     }
   },
   "search": {
@@ -618,6 +681,10 @@
     "is_not_favorited": "Не в обраних",
     "is_not_archived": "Не заархівовано",
     "has_no_tags": "Немає теґа",
+    "has_notes": "Має нотатки",
+    "has_no_notes": "Немає нотаток",
+    "has_highlights": "Має виділення",
+    "has_no_highlights": "Немає виділень",
     "is_in_any_list": "Є в будь-якому списку",
     "not_created_on_or_after": "Не створено після",
     "created_on_or_before": "Створено або до",
@@ -676,6 +743,9 @@
     "cached_content": "Кешований вміст",
     "view_original": "Переглянути оригінал",
     "reader_view": "Режим читання",
+    "page_overview": "Огляд сторінки",
+    "try_reader_view": "Спробувати режим читання",
+    "archived_page": "Архівна сторінка",
     "tabs": {
       "details": "Деталі",
       "content": "Вміст"
@@ -706,19 +776,7 @@
       "server_version": "Версія сервера"
     },
     "background_jobs": {
-      "video_jobs": "Завдання завантаження відео",
-      "feed_jobs": "Завдання для RSS-каналу",
-      "webhook_jobs": "Завдання вебхуків",
-      "asset_preprocessing_jobs": "Завдання попередньої обробки ресурсів",
-      "inference_jobs": "Завдання висновування",
-      "tidy_assets_jobs": "Завдання з очищення ресурсів",
-      "job": "Завдання",
-      "queued": "У черзі",
       "background_jobs": "Фонові завдання",
-      "crawler_jobs": "Завдання сканування",
-      "indexing_jobs": "Завдання індексації",
-      "pending": "В очікуванні",
-      "failed": "Не вдалося",
       "jobs": {
         "crawler": {
           "title": "Завдання для краулера",
@@ -735,10 +793,6 @@
         "asset_preprocessing": {
           "title": "Завдання попередньої обробки ресурсів",
           "description": "Попередня обробка зображень і документів (скріншоти, вилучення тексту тощо)"
-        },
-        "tidy_assets": {
-          "title": "Завдання з очищення ресурсів",
-          "description": "Очищення ресурсів та оптимізація зберігання"
         },
         "video": {
           "title": "Завдання завантаження відео",
@@ -798,18 +852,6 @@
         "regenerate_embeddings_for_failed_bookmarks_only": "Перегенерувати вбудовування лише для невдалих закладок",
         "regenerate_embeddings_for_all_bookmarks": "Перегенерувати вбудовування для всіх закладок"
       }
-    },
-    "actions": {
-      "recrawl_all_links": "Повторно просканувати всі посилання",
-      "without_inference": "Без висновків",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Згенерувати теги ШІ тільки для невдалих закладок",
-      "reprocess_assets_fix_mode": "Переобробити ресурси (режим виправлення)",
-      "reindex_all_bookmarks": "Переіндексувати всі закладки",
-      "compact_assets": "Компактні активи",
-      "regenerate_ai_tags_for_all_bookmarks": "Відновити теги ШІ для всіх закладок",
-      "recrawl_failed_links_only": "Повторно просканувати лише пошкоджені посилання",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "Згенерувати AI-резюме лише для невдалих закладок",
-      "regenerate_ai_summaries_for_all_bookmarks": "Згенерувати AI-резюме для всіх закладок"
     },
     "users_list": {
       "users_list": "Список користувачів",
@@ -967,12 +1009,18 @@
       "shared": "Спільний",
       "private": "Приватний"
     },
-    "summary_list_one": "{{count}} Списки",
-    "summary_list_other": "{{count}} Списки",
-    "summary_bookmark_one": "{{count}} Закладки",
-    "summary_bookmark_other": "{{count}} Закладки",
-    "items_count_one": "{{count}} елементів",
-    "items_count_other": "{{count}} елементів"
+    "summary_list_one": "{{count}} список",
+    "summary_list_few": "{{count}} списки",
+    "summary_list_many": "{{count}} списків",
+    "summary_list_other": "{{count}} списку",
+    "summary_bookmark_one": "{{count}} закладка",
+    "summary_bookmark_few": "{{count}} закладки",
+    "summary_bookmark_many": "{{count}} закладок",
+    "summary_bookmark_other": "{{count}} закладки",
+    "items_count_one": "{{count}} елемент",
+    "items_count_few": "{{count}} елементи",
+    "items_count_many": "{{count}} елементів",
+    "items_count_other": "{{count}} елемента"
   },
   "tags": {
     "your_tags": "Ваші теги",
@@ -1055,7 +1103,6 @@
       "undo": "Скасувати",
       "redo": "Повторити"
     },
-    "quickly_focus": "Ви можете швидко зосередитися на цьому полі, натиснувши ⌘ + E",
     "import_as_text": "Імпортувати як текстову закладку",
     "import_as_separate_bookmarks": "Імпортувати як окремі закладки",
     "placeholder": "Вставте посилання або зображення, напишіть нотатку або перетягніть зображення сюди…",
@@ -1071,8 +1118,10 @@
     }
   },
   "options": {
+    "theme": "Тема",
     "dark_mode": "Темний режим",
     "light_mode": "Світлий режим",
+    "system_mode": "Системний режим",
     "apps_extensions": "Застосунки та розширення",
     "documentation": "Документація",
     "follow_us_on_x": "Слідкуйте за нами в X"
@@ -1086,6 +1135,7 @@
       "updated": "Закладку оновлено!",
       "deleted": "Закладку видалено!",
       "preserve_pdf": "Збереження PDF ініційовано",
+      "preserve_video": "Завантаження відео запущено",
       "update_banner": "Банер оновлено!",
       "uploading_banner": "Завантаження банера..."
     },

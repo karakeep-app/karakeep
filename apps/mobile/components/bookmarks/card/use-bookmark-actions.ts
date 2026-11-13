@@ -1,4 +1,5 @@
 import { useOfflineAvailability } from "@/components/bookmarks/useOfflineAvailability";
+import { getBookmarkDisplayTitle } from "@/lib/bookmarkDisplay";
 import useAppSettings from "@/lib/settings";
 import { shareBookmark } from "@/lib/shareBookmark";
 import { useMenuIconColors } from "@/lib/useMenuIconColors";
@@ -13,16 +14,26 @@ import {
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import { useToast } from "../../ui/Toast";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
+import { showUndoToast, useToast } from "../../ui/Toast";
 
 export interface BookmarkActionController {
   isOwner: boolean;
   isBusy: boolean;
   isFavourited: boolean;
   menuActions: MenuAction[];
+  /** The overflow actions, plus the ones the card row doesn't show. */
+  contextMenuActions: MenuAction[];
   handleAction: (actionId: string) => void;
   share: () => void;
   toggleFavourite: () => void;
+  isArchived: boolean;
+  isAvailableOffline: boolean;
+  toggleArchived: () => void;
 }
 
 export function useBookmarkActions(
@@ -30,6 +41,9 @@ export function useBookmarkActions(
   isOwner: boolean,
 ): BookmarkActionController {
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const strings = useCommonStrings();
   const { settings } = useAppSettings();
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
   const offlineAvailability = useOfflineAvailability(bookmark.id);
@@ -39,7 +53,7 @@ export function useBookmarkActions(
 
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -49,7 +63,8 @@ export function useBookmarkActions(
     useDeleteBookmark({
       onSuccess: () => {
         toast({
-          message: "The bookmark has been deleted!",
+          message: t("bookmark_actions.bookmark_deleted"),
+          variant: "success",
           showProgress: false,
         });
       },
@@ -60,13 +75,22 @@ export function useBookmarkActions(
     onError,
   });
 
+  // Undo only flips the flag back: no second undo toast.
+  const { mutate: undoArchive } = useUpdateBookmark({ onError });
+
   const { mutate: archiveBookmark, isPending: isArchivePending } =
     useUpdateBookmark({
       onSuccess: (response) => {
-        toast({
-          message: `The bookmark has been ${response.archived ? "archived" : "un-archived"}!`,
-          showProgress: false,
-        });
+        showUndoToast(
+          response.archived
+            ? t("bookmarks.archived")
+            : t("bookmark_actions.moved_out_of_archive"),
+          () =>
+            undoArchive({
+              bookmarkId: bookmark.id,
+              archived: !response.archived,
+            }),
+        );
       },
       onError,
     });
@@ -86,12 +110,14 @@ export function useBookmarkActions(
 
   const deleteBookmarkAlert = () =>
     Alert.alert(
-      "Delete bookmark?",
-      "Are you sure you want to delete this bookmark?",
+      t("bookmark_actions.delete_named_title", {
+        title: getBookmarkDisplayTitle(bookmark),
+      }),
+      t("bookmark_actions.delete_named_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
           style: "destructive",
         },
@@ -103,25 +129,27 @@ export function useBookmarkActions(
     menuActions.push(
       {
         id: "edit",
-        title: "Edit",
+        title: t("bookmark_actions.edit_details"),
         image: Platform.select({ ios: "pencil" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
       {
         id: "manage_list",
-        title: "Manage Lists",
+        title: t("bookmark_actions.manage_lists"),
         image: Platform.select({ ios: "list.bullet" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
       {
         id: "manage_tags",
-        title: "Manage Tags",
+        title: t("bookmark_actions.manage_tags"),
         image: Platform.select({ ios: "tag" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
       {
         id: "archive",
-        title: bookmark.archived ? "Un-archive" : "Archive",
+        title: bookmark.archived
+          ? t("bookmark_actions.move_out_of_archive")
+          : t("bookmark_actions.archive"),
         image: Platform.select({ ios: "archivebox" }),
         imageColor: Platform.select({ ios: menuIconColor }),
       },
@@ -132,15 +160,15 @@ export function useBookmarkActions(
     if (offlineAvailability.isAvailableOffline) {
       menuActions.push({
         id: "offline-group",
-        title: "Available offline",
+        title: t("bookmark_actions.downloaded"),
         image: Platform.select({ ios: "checkmark.circle" }),
         imageColor: Platform.select({ ios: menuIconColor }),
         subactions: [
           {
             id: "update-offline-copy",
             title: offlineAvailability.isSaving
-              ? "Saving offline copy..."
-              : "Update offline copy",
+              ? t("bookmark_actions.downloading")
+              : t("bookmark_actions.update_download"),
             image: Platform.select({ ios: "arrow.clockwise" }),
             imageColor: Platform.select({ ios: menuIconColor }),
             attributes: {
@@ -149,7 +177,7 @@ export function useBookmarkActions(
           },
           {
             id: "remove-offline-copy",
-            title: "Remove offline copy",
+            title: t("bookmark_actions.remove_download"),
             attributes: { destructive: true },
             image: Platform.select({ ios: "trash" }),
             imageColor: Platform.select({ ios: destructiveMenuIconColor }),
@@ -160,8 +188,8 @@ export function useBookmarkActions(
       menuActions.push({
         id: "make-available-offline",
         title: offlineAvailability.isSaving
-          ? "Saving offline copy..."
-          : "Make available offline",
+          ? t("bookmark_actions.downloading")
+          : t("bookmark_actions.download"),
         image: Platform.select({ ios: "arrow.down.circle" }),
         imageColor: Platform.select({ ios: menuIconColor }),
         attributes: {
@@ -174,12 +202,36 @@ export function useBookmarkActions(
   if (isOwner) {
     menuActions.push({
       id: "delete",
-      title: "Delete",
+      title: t("bookmark_actions.delete"),
       attributes: { destructive: true },
       image: Platform.select({ ios: "trash" }),
       imageColor: Platform.select({ ios: destructiveMenuIconColor }),
     });
   }
+
+  const contextMenuActions: MenuAction[] = [
+    ...(isOwner
+      ? [
+          {
+            id: "toggle-favourite",
+            title: isFavourited
+              ? t("bookmark_actions.remove_from_favourites")
+              : t("bookmark_actions.add_to_favourites"),
+            image: Platform.select({
+              ios: isFavourited ? "star.fill" : "star",
+            }),
+            imageColor: Platform.select({ ios: menuIconColor }),
+          },
+        ]
+      : []),
+    {
+      id: "share",
+      title: t("bookmark_actions.share"),
+      image: Platform.select({ ios: "square.and.arrow.up" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
+    ...menuActions,
+  ];
 
   const handleAction = (actionId: string) => {
     if (actionId === "toggle-favourite") {
@@ -214,8 +266,16 @@ export function useBookmarkActions(
     isBusy: isArchivePending || isDeletionPending,
     isFavourited,
     menuActions,
+    contextMenuActions,
     handleAction,
     share,
     toggleFavourite,
+    isArchived: bookmark.archived,
+    isAvailableOffline: offlineAvailability.isAvailableOffline,
+    toggleArchived: () =>
+      archiveBookmark({
+        bookmarkId: bookmark.id,
+        archived: !bookmark.archived,
+      }),
   };
 }

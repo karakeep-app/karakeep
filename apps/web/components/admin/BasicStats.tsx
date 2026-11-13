@@ -58,12 +58,12 @@ function ReleaseInfo() {
 function StatsSkeleton() {
   return (
     <AdminCard>
-      <div className="mb-4 h-7 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+      <div className="mb-4 h-7 w-32 animate-pulse rounded bg-gray-200 dark:bg-muted"></div>
       <div className="flex flex-col gap-4 sm:flex-row">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="rounded-md border bg-background p-4 sm:w-1/4">
-            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
-            <div className="h-9 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+          <div key={i} className="rounded-md border bg-card p-4 sm:w-1/4">
+            <div className="mb-2 h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-muted"></div>
+            <div className="h-9 w-16 animate-pulse rounded bg-gray-200 dark:bg-muted"></div>
           </div>
         ))}
       </div>
@@ -90,13 +90,13 @@ export default function BasicStats() {
         {t("admin.server_stats.server_stats")}
       </div>
       <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="rounded-md border bg-background p-4 sm:w-1/4">
+        <div className="rounded-md border bg-card p-4 sm:w-1/4">
           <div className="text-sm font-medium text-gray-400">
             {t("admin.server_stats.total_users")}
           </div>
           <div className="text-3xl font-semibold">{serverStats.numUsers}</div>
         </div>
-        <div className="rounded-md border bg-background p-4 sm:w-1/4">
+        <div className="rounded-md border bg-card p-4 sm:w-1/4">
           <div className="text-sm font-medium text-gray-400">
             {t("admin.server_stats.total_bookmarks")}
           </div>
@@ -104,7 +104,7 @@ export default function BasicStats() {
             {serverStats.numBookmarks}
           </div>
         </div>
-        <div className="rounded-md border bg-background p-4 sm:w-1/4">
+        <div className="rounded-md border bg-card p-4 sm:w-1/4">
           <div className="text-sm font-medium text-gray-400">
             {t("admin.server_stats.server_version")}
           </div>

@@ -1,0 +1,71 @@
+---
+id: get-bookmark-highlights
+title: "Get highlights of a bookmark"
+description: "Retrieve all text highlights within the specified bookmark."
+sidebar_label: "Get highlights of a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVm2P2zYM/iuE+qUNfMl16LDCHwakW9vdOmCH9g7DcD0gjE3bamTJleTcuYGB/Yj9wv2SjfJLnEvaFeinBBZFPSQfPuROmIosemn0RSpikZN/YcymRLv5ReaFknnhnYhESi6xsmI7EYu35K2kLQEqBZ7uPRSjMdxJX0gNviBwFSUyk5TCunc6F5HwmDsR34jhISduI+Eoqa30jYhvdmJNaMkua1+I+Oa2vY1EhRZL8mRdMHBJQSWKeCd8U5GIhfNW6vwI6FVBUGv5sSaQKWnPYCyYLKCbYqJ7LCvFniTJVN03eXn34fkP5v7T98W99yZ5zsClDyYD8ItUtJGw9LGWllIRe1tTJDSWbLTeG0VCMpgKfSE4GEuuMtqR4wC+Oz/nn2Pcp1Iq3QHqxGhP2vN9rColk1DIxQfHTk5kyaw/UOJFJCrLZfeyg7B/aWKL1mLD0D2V7v99TMI9qkobCefR+t+zzJGfnOu6XJPlc9LpF04To4w9VW3SdclUakgpcyc4tZzu3BJpEYm1qonJlVKGtfIiHgzbSDBtT7nUtVK45jpzOdtIaOPpqwzl6dBrR/YzWUksoad0eQJIe8Csm0M6TbM5zV0fVY85IBrfn752u+fy2OWiffjkhBa3bTh9dv70mKvXGmtfGCs//dfn//z1d+itF6GDwZsNaZAOSumc1HkEUm9RyTQCY4HuK37rAZM5hEWlUJ7m8L72Y8tOEYgB6bNjpEPfgjYeMlPrh09/SxMlJj1Jk0MISygxKaSmM0uYMn2ArDUW+PqcOVGSc5h/lauiLlE/dNTfnx8xKADc+59w4CVfDIkL7/vC9KOAg2TRisVi4J9b7PZUbBfFdEg4sttBoWurRCx2mKaWnGsXWMnF9qmIxBatZLghaf1xV6qhRwvvKxcvFt428w1a3BBVc6yqk+reexg0/U1vDx0WDmoyXN5xLXu9moyYMdP8MscRzFjDgxELSfjzytgSGeGvf1yF9EqdGb7OUXeQns7P5+eTUTHiWV5eHOEfD6UDBEcqOyuM86GYQ5KlzgF1ClzlM+nPFHqyITqZ0ByueCQsLy94Eps7B42pwRsoUWO+d+IiUNJ5FwHP3mgyWiJA5yj86hTWmGzqykFlTW6xLNHLBJVq5u/1e/3oEXC6eIp2LcIfl0oB6bQyUnsHPd0AD/u/4jdS6JeC1bJv1uBkBQVhSnYOf5oaEtSQk+aNhAB1iGxDDWTWlIf1vaM1XF9ArVOyMJu9I++lzh38GO68ocbNZgPsS8ylHiH/Jp2fYHZ1VRnrIamtM/ZsjQy1Gm/AViKsusNVSNJKyVL6FXysyTawX0y4GATDbAepE1WnxJVdabr3P/UuMkmq00lOC0gP6Lq8DI+MLrmSGfmkCOfshIHRHJaw4umzgi2qmiAz9vANqVOuEQXHXA9LoA2UxgaAtfJuyM2oiVdNRY4/jmtZqMaawGjq2ssSAXeKi9/rM5jNlNSb2SzEsoTrt7+NfAsLC5jAc1SQWLxTlEJJHlP0OO+us9CP14Pgd7skD6/eJJBzsNFQV8pgSilkUhE8liWT3Fi4/PnVkyCelXG+xKDb/Rr2mg6WU5MBjjAfNuRuPwu+dcXt9GQyyngRYEnc9Yq6n+isnPHBeJ8O3kiwJLD9bsfcvLaqbflzoB+vx3tJDcKbSsf/UxFnqBx9IcTHb/vp8AQ+B3nYBXUTlJvXqViISGyoOVxx29s2El0nBxSdwTJJqPKTq0cDltV5nDivX16JSOChJj/Q4OD9JKzdrrO4Ys1p2xFl0CAG2Lb/AidXhhI=
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get highlights of a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/bookmarks/{bookmarkId}/highlights"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve all text highlights within the specified bookmark.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the bookmark.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The highlights within this bookmark.","content":{"application/json":{"schema":{"type":"object","properties":{"highlights":{"type":"array","items":{"type":"object","properties":{"bookmarkId":{"type":"string"},"startOffset":{"type":"number"},"endOffset":{"type":"number"},"color":{"type":"string","enum":["yellow","red","green","blue"],"default":"yellow"},"text":{"type":"string","nullable":true},"note":{"type":"string","nullable":true},"id":{"type":"string"},"userId":{"type":"string"},"createdAt":{"type":"string"}},"required":["bookmarkId","startOffset","endOffset","text","note","id","userId","createdAt"],"title":"Highlight"}}},"required":["highlights"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Bookmark not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

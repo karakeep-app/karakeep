@@ -8,7 +8,7 @@
 | `apps/workers`           | The background workers logic                             |
 | `apps/mobile`            | The react native based mobile app                        |
 | `apps/browser-extension` | The browser extension                                    |
-| `apps/landing`           | The landing page of [karakeep.app](https://karakeep.app) |
+| `apps/landing`           | The landing page of [karakeep.com](https://karakeep.com) |
 
 ## Shared Packages
 
@@ -26,5 +26,4 @@
 | -------------------- | ----------------------- |
 | `tooling/typescript` | The shared tsconfigs    |
 | `tooling/eslint`     | ESlint configs          |
-| `tooling/prettier`   | Prettier configs        |
 | `tooling/tailwind`   | Shared tailwind configs |

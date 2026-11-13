@@ -9,8 +9,9 @@ import { TailwindResolver } from "@/components/TailwindResolver";
 import { Button } from "@/components/ui/Button";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import useAppSettings from "@/lib/settings";
-import { cn } from "@/lib/utils";
+
 import { useMutation } from "@tanstack/react-query";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
@@ -20,23 +21,34 @@ enum LoginType {
   ApiKey,
 }
 
-const DEFAULT_SERVER_ADDRESS = "https://cloud.karakeep.app";
-const CONNECTION_ERROR_MESSAGE =
-  "Couldn’t connect to this Karakeep server. Check the server address and your internet connection, then try again.";
+const DEFAULT_SERVER_ADDRESS = "https://cloud.karakeep.com";
+// Survives a trip to the server sheet, which you'd make because of a failed
+// sign-in; retyping credentials at that point is the last thing anyone wants.
+const credentialDraft = { email: "", password: "", apiKey: "" };
 
-function getLoginErrorMessage(
-  error: { data?: { code?: string } | null; message: string },
-  unauthorizedMessage: string,
-) {
-  if (error.data?.code === "UNAUTHORIZED") {
-    return unauthorizedMessage;
-  }
+function clearCredentialDraft() {
+  credentialDraft.email = "";
+  credentialDraft.password = "";
+  credentialDraft.apiKey = "";
+}
 
-  if (error.message.toLowerCase().includes("fetch failed")) {
-    return CONNECTION_ERROR_MESSAGE;
-  }
+function useLoginErrorMessage() {
+  const { t } = useTranslation();
+  const connectionError = t("auth.connection_error");
+  return (
+    error: { data?: { code?: string } | null; message: string },
+    unauthorizedMessage: string,
+  ) => {
+    if (error.data?.code === "UNAUTHORIZED") {
+      return unauthorizedMessage;
+    }
 
-  return error.message;
+    if (error.message.toLowerCase().includes("fetch failed")) {
+      return connectionError;
+    }
+
+    return error.message;
+  };
 }
 
 // The logo artboard is 598x166; derive the width so it never letterboxes.
@@ -66,24 +78,27 @@ FieldRow.displayName = "FieldRow";
 
 export default function Signin() {
   const { settings, setSettings } = useAppSettings();
+  const { t } = useTranslation();
   const router = useRouter();
   const api = useTRPC();
   const [error, setError] = useState<string | undefined>();
   const [loginType, setLoginType] = useState<LoginType>(LoginType.Password);
+  const getLoginErrorMessage = useLoginErrorMessage();
 
-  const emailRef = useRef<string>("");
-  const passwordRef = useRef<string>("");
-  const apiKeyRef = useRef<string>("");
+  const emailRef = useRef<string>(credentialDraft.email);
+  const passwordRef = useRef<string>(credentialDraft.password);
+  const apiKeyRef = useRef<string>(credentialDraft.apiKey);
   const passwordInputRef = useRef<TextInput>(null);
 
   const { mutate: login, isPending: userNamePasswordRequestIsPending } =
     useMutation(
       api.apiKeys.exchange.mutationOptions({
         onSuccess: (resp) => {
+          clearCredentialDraft();
           setSettings({ ...settings, apiKey: resp.key, apiKeyId: resp.id });
         },
         onError: (e) => {
-          setError(getLoginErrorMessage(e, "Wrong username or password"));
+          setError(getLoginErrorMessage(e, t("auth.incorrect_credentials")));
         },
       }),
     );
@@ -93,10 +108,11 @@ export default function Signin() {
       api.apiKeys.validate.mutationOptions({
         onSuccess: () => {
           const apiKey = apiKeyRef.current;
+          clearCredentialDraft();
           setSettings({ ...settings, apiKey: apiKey });
         },
         onError: (e) => {
-          setError(getLoginErrorMessage(e, "Invalid API key"));
+          setError(getLoginErrorMessage(e, t("auth.invalid_api_key")));
         },
       }),
     );
@@ -117,7 +133,7 @@ export default function Signin() {
 
   const onSignin = () => {
     if (!settings.address) {
-      setError("Server address is required");
+      setError(t("auth.server_address_required"));
       return;
     }
 
@@ -125,7 +141,7 @@ export default function Signin() {
       !settings.address.startsWith("http://") &&
       !settings.address.startsWith("https://")
     ) {
-      setError("Server address must start with http:// or https://");
+      setError(t("auth.server_address_protocol"));
       return;
     }
 
@@ -134,6 +150,10 @@ export default function Signin() {
     if (loginType === LoginType.Password) {
       const email = emailRef.current;
       const password = passwordRef.current;
+      if (!email.trim() || !password) {
+        setError(t("auth.enter_email_and_password"));
+        return;
+      }
 
       const randStr = (Math.random() + 1).toString(36).substring(5);
       login({
@@ -143,6 +163,10 @@ export default function Signin() {
       });
     } else if (loginType === LoginType.ApiKey) {
       const apiKey = apiKeyRef.current;
+      if (!apiKey.trim()) {
+        setError(t("auth.enter_api_key"));
+        return;
+      }
       validateApiKey({ apiKey: apiKey });
     }
   };
@@ -184,10 +208,9 @@ export default function Signin() {
           <GroupedSection>
             {loginType === LoginType.Password ? (
               <>
-                <RowSeparator />
                 <FieldRow
-                  label="Email"
-                  placeholder="you@example.com"
+                  label={t("auth.email")}
+                  placeholder={t("auth.email_placeholder")}
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -196,38 +219,46 @@ export default function Signin() {
                   returnKeyType="next"
                   submitBehavior="submit"
                   onSubmitEditing={() => passwordInputRef.current?.focus()}
-                  defaultValue={""}
-                  onChangeText={(text) => (emailRef.current = text)}
+                  defaultValue={credentialDraft.email}
+                  onChangeText={(text) => {
+                    emailRef.current = text;
+                    credentialDraft.email = text;
+                  }}
                 />
                 <RowSeparator />
                 <FieldRow
                   ref={passwordInputRef}
-                  label="Password"
-                  placeholder="Enter your password"
+                  label={t("auth.password")}
+                  placeholder={t("auth.password_placeholder")}
                   secureTextEntry
                   autoCapitalize="none"
                   autoComplete="current-password"
                   textContentType="password"
                   returnKeyType="go"
                   onSubmitEditing={onSignin}
-                  defaultValue={""}
-                  onChangeText={(text) => (passwordRef.current = text)}
+                  defaultValue={credentialDraft.password}
+                  onChangeText={(text) => {
+                    passwordRef.current = text;
+                    credentialDraft.password = text;
+                  }}
                 />
               </>
             ) : (
               <>
-                <RowSeparator />
                 <FieldRow
-                  label="API Key"
-                  placeholder="Paste your key"
+                  label={t("auth.api_key")}
+                  placeholder={t("auth.api_key_placeholder")}
                   secureTextEntry
                   autoCapitalize="none"
                   autoCorrect={false}
                   textContentType="password"
                   returnKeyType="go"
                   onSubmitEditing={onSignin}
-                  defaultValue={""}
-                  onChangeText={(text) => (apiKeyRef.current = text)}
+                  defaultValue={credentialDraft.apiKey}
+                  onChangeText={(text) => {
+                    apiKeyRef.current = text;
+                    credentialDraft.apiKey = text;
+                  }}
                 />
               </>
             )}
@@ -235,12 +266,40 @@ export default function Signin() {
 
           {error && (
             <View
-              className="rounded-xl bg-destructive/10 px-4 py-3"
+              className="rounded-xl bg-card px-4 py-3"
               style={{ borderCurve: "continuous" }}
             >
-              <Text className="text-center text-sm text-destructive">
+              <Text variant="footnote" className="text-center text-destructive">
                 {error}
               </Text>
+              {error === t("auth.connection_error") && (
+                <View className="mt-2 flex-row justify-center gap-5">
+                  <Pressable
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={() => router.push("/server-address")}
+                  >
+                    <Text
+                      variant="footnote"
+                      className="font-medium text-primary"
+                    >
+                      {t("auth.change_server")}
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={() => router.push("/test-connection")}
+                  >
+                    <Text
+                      variant="footnote"
+                      className="font-medium text-primary"
+                    >
+                      {t("headers.test_connection")}
+                    </Text>
+                  </Pressable>
+                </View>
+              )}
             </View>
           )}
 
@@ -252,36 +311,57 @@ export default function Signin() {
             disabled={isPending}
           >
             {isPending && <ActivityIndicator size="small" color="white" />}
-            <Text>{isPending ? "Signing in…" : "Sign In"}</Text>
+            <Text>
+              {isPending ? t("auth.signing_in_title") : t("auth.sign_in")}
+            </Text>
           </Button>
         </View>
 
         <View className="items-center gap-3">
-          <View className="flex-row items-center gap-2">
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => router.push("/server-address")}
-              hitSlop={8}
-              className="flex-row items-center gap-1 active:opacity-60"
+          <Pressable
+            accessibilityRole="button"
+            accessibilityHint={t("auth.change_server_hint")}
+            onPress={() => router.push("/server-address")}
+            hitSlop={8}
+            className="max-w-full active:opacity-60"
+          >
+            <Text
+              variant="footnote"
+              color="tertiary"
+              ellipsizeMode="middle"
+              numberOfLines={1}
             >
-              <Text className="text-sm text-blue-600">{serverAddress}</Text>
-            </Pressable>
-            <Text className="text-sm text-muted-foreground">|</Text>
+              {t("auth.server_label")}{" "}
+              <Text variant="footnote" className="text-primary">
+                {serverAddress.replace(/^https?:\/\//, "")}
+              </Text>
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={onSignUp}
+            hitSlop={8}
+            className="active:opacity-60"
+          >
+            <Text variant="footnote" color="tertiary">
+              {t("auth.new_to_karakeep")}{" "}
+              <Text variant="footnote" className="font-medium text-primary">
+                {t("auth.create_account_title")}
+              </Text>
+            </Text>
+          </Pressable>
+          {settings.address ? (
             <Pressable
               accessibilityRole="button"
               onPress={() => router.push("/test-connection")}
-              disabled={!settings.address}
               hitSlop={8}
-              className={cn(
-                "active:opacity-60",
-                !settings.address && "opacity-40",
-              )}
+              className="active:opacity-60"
             >
-              <Text className="text-sm text-muted-foreground">
-                Test connection
+              <Text variant="footnote" className="text-primary">
+                {t("headers.test_connection")}
               </Text>
             </Pressable>
-          </View>
+          ) : null}
           <Pressable
             accessibilityRole="button"
             onPress={() => {
@@ -295,23 +375,10 @@ export default function Signin() {
             hitSlop={8}
             className="active:opacity-60"
           >
-            <Text className="text-sm text-muted-foreground">
+            <Text variant="footnote" className="text-primary">
               {loginType === LoginType.Password
-                ? "Use an API key instead"
-                : "Use your password instead"}
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            onPress={onSignUp}
-            hitSlop={8}
-            className="active:opacity-60"
-          >
-            <Text className="text-sm text-muted-foreground">
-              New to Karakeep?{" "}
-              <Text className="text-sm font-medium text-primary">
-                Create account
-              </Text>
+                ? t("auth.sign_in_with_api_key")
+                : t("auth.sign_in_with_email")}
             </Text>
           </Pressable>
         </View>

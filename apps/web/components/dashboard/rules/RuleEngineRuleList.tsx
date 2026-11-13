@@ -73,12 +73,12 @@ export default function RuleList({
         <Card key={rule.id} className={rule.enabled ? "" : "opacity-70"}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="mr-4 flex-1">
-                <h3 className="font-medium">{rule.name}</h3>
+              <div className="mr-4 min-w-0 flex-1">
+                <h3 className="break-words font-medium">{rule.name}</h3>
                 <p className="line-clamp-2 text-sm text-muted-foreground">
                   {rule.description}
                 </p>
-                <div className="mt-2 flex items-center text-xs text-muted-foreground">
+                <div className="mt-2 flex flex-wrap items-center text-xs text-muted-foreground">
                   <span className="flex items-center">
                     <span className="mr-1">Trigger:</span>
                     <span className="font-medium">
@@ -92,8 +92,11 @@ export default function RuleList({
                   </span>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex shrink-0 items-center space-x-2">
                 <Switch
+                  aria-label={t("settings.rules.rule_enabled_toggle", {
+                    name: rule.name,
+                  })}
                   disabled={!!demoMode || isUpdating}
                   checked={rule.enabled}
                   onCheckedChange={(checked) =>
@@ -106,6 +109,7 @@ export default function RuleList({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label={t("settings.rules.edit_rule")}
                   onClick={() => onEditRule(rule)}
                 >
                   <Edit className="h-4 w-4" />
@@ -122,12 +126,16 @@ export default function RuleList({
                         setDialogOpen(true);
                       }}
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                       {t("actions.delete")}
                     </ActionButton>
                   )}
                 >
-                  <Button variant="ghostDestructive" size="icon">
+                  <Button
+                    variant="ghostDestructive"
+                    size="icon"
+                    aria-label={t("settings.rules.delete_rule")}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </ActionConfirmingDialog>

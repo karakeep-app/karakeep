@@ -32,15 +32,16 @@ Check the logs of the container and this will usually tell you what's wrong. Com
 Check the logs of the container and this will usually tell you what's wrong. Common problems are:
 1. You changed the name of the chrome container but didn't change the `BROWSER_WEB_URL` env variable.
 
+### Browserless compatibility
+
+Connections to Browserless through `BROWSER_WEBSOCKET_URL` use the Playwright protocol. The server must support the same Playwright major/minor version as Karakeep's bundled client.
+
+Karakeep 0.34.0 bundles Patchright 1.59.4 (a Playwright fork), but Browserless v2.57.1 no longer includes a Playwright 1.59 server. As reported in [#3207](https://github.com/karakeep-app/karakeep/issues/3207), this mismatch can leave every crawl stuck after `Successfully navigated to "…". Waiting for the page to load ...` until `CRAWLER_JOB_TIMEOUT_SEC` expires (60 seconds by default), even though the browser connection succeeds. The reporter's working comparison was Browserless v2.57.0, which still includes Playwright 1.59 support.
+
+Prefer [migrating to the Karakeep Chrome image](09-chrome-image-migration.md). Set `BROWSER_WEB_URL=http://chrome:9222` (adjust the hostname for your setup) and remove `BROWSER_WEBSOCKET_URL`. If you continue using Browserless, choose a release that supports your Karakeep client's Playwright major/minor version.
+
 ## Upgrading Meilisearch - Migrating the Meilisearch db version
 
-[Meilisearch](https://www.meilisearch.com/) is the database used by karakeep for searching in your bookmarks. The version used by karakeep is `1.41.0` and it is advised not to upgrade it without good reasons. If you do, you might see errors like `Your database version (x.x.x) is incompatible with your current engine version (x.x.x). To migrate data between Meilisearch versions, please follow our guide on https://www.meilisearch.com/docs/learn/update_and_migration/updating.`.
+[Meilisearch](https://www.meilisearch.com/) is the database used by karakeep for searching in your bookmarks. Karakeep is tested with the Meilisearch version pinned in the bundled docker compose file, so prefer that version unless you have a reason to change it. After changing the Meilisearch version, you might see errors like `Your database version (x.x.x) is incompatible with your current engine version (x.x.x)`.
 
-Luckily we can easily workaround this:
-1. Stop the Meilisearch container.
-2. Inside the Meilisearch volume bound to `/meili_data`, erase/rename the folder called `data.ms`.
-3. Launch Meilisearch again.
-4. Login to karakeep as administrator and go to (as of v0.24.1) `Admin Settings > Background Jobs` then click on `Reindex All Bookmarks`.
-5. When the reindexing has finished, Meilisearch should be working as usual.
-
-If you run into issues, the official documentation can be found [there](https://www.meilisearch.com/docs/learn/update_and_migration/updating).
+See [Upgrading Meilisearch](10-meilisearch-upgrade.md) for how to migrate the database in place, or how to rebuild it from Karakeep instead.

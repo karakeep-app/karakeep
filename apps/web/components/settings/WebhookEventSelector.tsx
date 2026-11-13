@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -12,7 +11,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { selectTriggerClass } from "@/components/ui/select";
+import { useTranslation } from "@/lib/i18n/client";
+import { Check, ChevronDown } from "lucide-react";
 
 import {
   ZWebhookEvent,
@@ -22,27 +23,41 @@ import {
 export function WebhookEventSelector({
   value,
   onChange,
+  ...triggerAttributes
 }: {
   value: ZWebhookEvent[];
   onChange: (value: ZWebhookEvent[]) => void;
-}) {
+} & Pick<
+  React.ComponentProps<"button">,
+  "id" | "aria-describedby" | "aria-invalid"
+>) {
+  const { t } = useTranslation();
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
+        <button
+          type="button"
           role="combobox"
-          className="w-full justify-between"
+          className={selectTriggerClass}
+          {...triggerAttributes}
         >
-          {value.length > 0 ? value.join(", ") : "Select events"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+          {value.length > 0 ? (
+            <span className="truncate">{value.join(", ")}</span>
+          ) : (
+            <span className="text-muted-foreground/85">
+              {t("settings.webhooks.events.select")}
+            </span>
+          )}
+          <ChevronDown className="size-4 shrink-0 opacity-50" />
+        </button>
       </PopoverTrigger>
-      <PopoverContent>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
         <Command>
-          <CommandInput placeholder="Search events..." />
+          <CommandInput placeholder={t("settings.webhooks.events.search")} />
           <CommandList>
-            <CommandEmpty>No events found.</CommandEmpty>
+            <CommandEmpty>
+              {t("settings.webhooks.events.none_found")}
+            </CommandEmpty>
             <CommandGroup>
               {zWebhookEventSchema.options.map((eventType) => (
                 <CommandItem
@@ -57,7 +72,7 @@ export function WebhookEventSelector({
                 >
                   {eventType}
                   {value?.includes(eventType) && (
-                    <Check className="ml-auto h-4 w-4" />
+                    <Check className="ml-auto size-4" />
                   )}
                 </CommandItem>
               ))}

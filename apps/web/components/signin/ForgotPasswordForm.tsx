@@ -26,8 +26,10 @@ import { AlertCircle, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { humanAuthErrors } from "./authFormErrors";
+
 const forgotPasswordSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().email(),
 });
 
 export default function ForgotPasswordForm() {
@@ -36,7 +38,10 @@ export default function ForgotPasswordForm() {
   const router = useRouter();
 
   const form = useForm<z.infer<typeof forgotPasswordSchema>>({
-    resolver: zodResolver(forgotPasswordSchema),
+    resolver: zodResolver(forgotPasswordSchema, humanAuthErrors),
+    defaultValues: {
+      email: "",
+    },
   });
 
   const onSubmit = async (values: z.infer<typeof forgotPasswordSchema>) => {
@@ -54,7 +59,7 @@ export default function ForgotPasswordForm() {
   return (
     <Card className="w-full">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">
+        <CardTitle className="text-xl font-semibold">
           {isSubmitted ? "Check your email" : "Forgot your password?"}
         </CardTitle>
         <CardDescription>
@@ -67,33 +72,28 @@ export default function ForgotPasswordForm() {
         {isSubmitted ? (
           <>
             <div className="flex items-center justify-center">
-              <CheckCircle className="h-12 w-12 text-green-600" />
+              <CheckCircle className="size-10 text-green-500" />
             </div>
-            <Alert>
-              <AlertDescription className="text-center">
-                If an account with that email exists, we&apos;ve sent you a
-                password reset link.
-              </AlertDescription>
-            </Alert>
             <ActionButton
               variant="outline"
               loading={false}
               onClick={() => router.push("/signin")}
               className="w-full"
             >
-              Back to Sign In
+              Back to sign in
             </ActionButton>
           </>
         ) : (
           <>
             <Form {...form}>
               <form
+                noValidate
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-4"
               >
                 {errorMessage && (
                   <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
+                    <AlertCircle className="size-4" />
                     <AlertDescription>{errorMessage}</AlertDescription>
                   </Alert>
                 )}
@@ -107,6 +107,9 @@ export default function ForgotPasswordForm() {
                       <FormControl>
                         <Input
                           type="email"
+                          autoComplete="email"
+                          autoFocus
+                          spellCheck={false}
                           placeholder="Enter your email address"
                           {...field}
                         />
@@ -121,7 +124,7 @@ export default function ForgotPasswordForm() {
                   loading={form.formState.isSubmitting}
                   className="w-full"
                 >
-                  Send Reset Link
+                  Send reset link
                 </ActionButton>
               </form>
             </Form>
@@ -133,7 +136,7 @@ export default function ForgotPasswordForm() {
                 onClick={() => router.push("/signin")}
                 className="w-full"
               >
-                Back to Sign In
+                Back to sign in
               </ActionButton>
             </div>
           </>

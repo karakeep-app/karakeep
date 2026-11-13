@@ -11,6 +11,7 @@ README.md
 ./data
 
 # Files that don't need to be included in the Docker image
+.github
 docs
 kubernetes
 charts
@@ -19,6 +20,7 @@ apps/landing
 apps/browser-extension
 packages/e2e_tests
 packages/benchmarks
+tools/compare-models
 tools/seed-snapshot
 snapshots
 

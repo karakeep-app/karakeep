@@ -122,7 +122,9 @@ export function QuotaProgress() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{t("settings.subscription.usage_quotas")}</CardTitle>
+          <CardTitle className="text-base">
+            {t("settings.subscription.usage_quotas")}
+          </CardTitle>
           <CardDescription>
             {t("settings.subscription.loading_usage")}
           </CardDescription>
@@ -150,7 +152,9 @@ export function QuotaProgress() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("settings.subscription.usage_quotas")}</CardTitle>
+        <CardTitle className="text-base">
+          {t("settings.subscription.usage_quotas")}
+        </CardTitle>
         <CardDescription>
           {t("settings.subscription.track_usage")}
         </CardDescription>

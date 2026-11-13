@@ -1,10 +1,11 @@
 import type { CheerioAPI } from "cheerio";
 import type { Rules, RulesOptions } from "metascraper";
 import { decode as decodeHtmlEntities } from "html-entities";
-import { fetchWithProxy } from "network";
 import { z } from "zod";
 
 import logger from "@karakeep/shared/logger";
+
+import { fetchWithProxy } from "../network";
 
 /**
  * This is a metascraper plugin to select a better

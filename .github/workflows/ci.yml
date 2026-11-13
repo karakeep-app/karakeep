@@ -16,15 +16,30 @@ env:
   FORCE_COLOR: 3
 
 jobs:
+  actions-lock:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4.3.1
+        with:
+          persist-credentials: false
+
+      - name: Install gh-actions-lock
+        run: gh extension install github/gh-actions-lock --pin v0.4.0
+
+      - name: Verify actions.lock
+        run: gh actions-lock --verify
+
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Lint
         run: pnpm lint && pnpm exec sherif
@@ -32,12 +47,12 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Format
         run: pnpm format
@@ -45,24 +60,96 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Typecheck
         run: pnpm typecheck
   tests:
-    runs-on: ubuntu-latest
+    # Playwright 1.59 can't install Chromium on Ubuntu 26.04, which
+    # ubuntu-latest now points to.
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
+          # For pull requests, HEAD is a merge commit whose first parent is the
+          # base, which is used to tell whether docker/chrome changed.
+          fetch-depth: 2
+
+      # With the containerd image store, the default docker driver can import
+      # the registry build cache that the e2e docker-compose file uses, and
+      # built images land straight in the image store instead of being
+      # exported from a buildx builder and loaded into docker.
+      - name: Enable the containerd image store
+        run: |
+          config=/etc/docker/daemon.json
+          current=$(sudo cat "$config" 2>/dev/null || echo '{}')
+          jq '.features["containerd-snapshotter"] = true' <<<"$current" \
+            | sudo tee "$config" >/dev/null
+          sudo systemctl restart docker
+          driver=$(docker info -f '{{ json .DriverStatus }}')
+          echo "Storage driver status: $driver"
+          if [[ "$driver" != *io.containerd.snapshotter* ]]; then
+            echo "The containerd image store isn't enabled"
+            exit 1
+          fi
+
+      # Use the published chrome image that chrome.yml currently points at
+      # instead of building it on every run.
+      - name: Resolve chrome image
+        run: |
+          image=$(sed -n 's/^  IMAGE: *//p' .github/workflows/chrome.yml)
+          version=$(sed -n 's/^  GOOGLE_CHROME_VERSION: *//p' .github/workflows/chrome.yml)
+          revision=$(sed -n 's/^  IMAGE_REVISION: *//p' .github/workflows/chrome.yml)
+          if [[ -z "$image" || -z "$version" || -z "$revision" ]]; then
+            echo "Failed to read the chrome image from chrome.yml"
+            exit 1
+          fi
+          echo "KARAKEEP_CHROME_IMAGE=${image}:${version}-${revision}" >> "$GITHUB_ENV"
+
+      # The e2e images are built and pulled in the background while the unit
+      # tests run, and waited on right before the e2e tests.
+      - name: Build E2E web image
+        id: e2e-web-image
+        background: true
+        working-directory: packages/e2e_tests
+        run: docker compose build web web-remote crawler
+
+      # The chrome image is only built when its build inputs (docker/chrome,
+      # .dockerignore and its compose build definition) changed in this
+      # PR/push, or when its tag hasn't been published yet.
+      - name: Pull E2E images
+        id: e2e-pulled-images
+        background: true
+        working-directory: packages/e2e_tests
+        env:
+          # A push or a merge group can contain several commits, so compare
+          # against what was there before them. Pull requests use HEAD^1.
+          BASE_SHA: ${{ github.event_name == 'push' && github.event.before || github.event_name == 'merge_group' && github.event.merge_group.base_sha || '' }}
+        run: |
+          docker compose pull --ignore-buildable --quiet
+          base=HEAD^1
+          if [[ -n "$BASE_SHA" ]]; then
+            # Fails (and so builds chrome) if the SHA can't be fetched, e.g.
+            # the all-zeros SHA of a newly created branch.
+            git fetch --quiet --depth=1 origin "$BASE_SHA" && base="$BASE_SHA" || base=""
+          fi
+          if [[ -n "$base" ]] \
+            && git diff --quiet "$base" HEAD -- ../../docker/chrome ../../.dockerignore docker-compose.yml \
+            && docker pull --quiet "$KARAKEEP_CHROME_IMAGE"; then
+            echo "Using the published $KARAKEEP_CHROME_IMAGE"
+          else
+            echo "Building $KARAKEEP_CHROME_IMAGE"
+            docker compose build chrome
+          fi
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Shared Package Tests
         working-directory: packages/shared
@@ -76,6 +163,26 @@ jobs:
         working-directory: apps/workers
         run: pnpm test
 
+      - name: Web Tests
+        working-directory: apps/web
+        run: pnpm test
+
+      - name: API Tests
+        working-directory: packages/api
+        run: pnpm test
+
+      - name: Shared Server Tests
+        working-directory: packages/shared-server
+        run: pnpm test
+
+      - name: MCP Tests
+        working-directory: apps/mcp
+        run: pnpm test
+
+      - name: Mobile Tests
+        working-directory: apps/mobile
+        run: pnpm test
+
       # - name: Plugins Tests
       #   working-directory: packages/plugins
       #   run: pnpm test
@@ -84,18 +191,19 @@ jobs:
         working-directory: packages/e2e_tests
         run: pnpm exec playwright install --with-deps chromium
 
-      # The default docker driver can't import the registry build cache that
-      # the e2e docker-compose file uses, so build with a buildx builder.
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Wait for E2E images
+        wait: [e2e-web-image, e2e-pulled-images]
 
       - name: E2E Tests
         working-directory: packages/e2e_tests
         run: pnpm test
+        env:
+          # The images were built above.
+          E2E_TEST_NO_BUILD: "1"
 
       - name: Upload Docker Logs
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: e2e-docker-logs-${{ github.sha }}-${{ github.run_attempt }}
           path: packages/e2e_tests/setup/docker-logs/
@@ -103,12 +211,12 @@ jobs:
   open-api-spec:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@v4.3.1
         with:
           persist-credentials: false
 
       - name: Setup
-        uses: ./tooling/github/setup
+        uses: $/tooling/github/setup
 
       - name: Regenerate OpenAPI spec
         working-directory: packages/open-api

@@ -18,18 +18,27 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group"
+      // Sonner's phone layout makes up for its offset on the toasts rather than on
+      // this, which would have them off-centre now that they size to their content
+      className="toaster group max-[600px]:!w-[calc(100%-2*var(--mobile-offset-left))]"
+      position="bottom-center"
       icons={{
-        success: <CircleCheck className="h-4 w-4" />,
-        info: <Info className="h-4 w-4" />,
-        warning: <TriangleAlert className="h-4 w-4" />,
-        error: <OctagonX className="h-4 w-4" />,
-        loading: <LoaderCircle className="h-4 w-4 animate-spin" />,
+        success: <CircleCheck className="size-4" />,
+        info: <Info className="size-4" />,
+        warning: <TriangleAlert className="size-4" />,
+        error: <OctagonX className="size-4 text-destructive" />,
+        loading: <LoaderCircle className="size-4 animate-spin" />,
       }}
       toastOptions={{
         classNames: {
+          // A modal dialog makes the body inert, and toasts live outside of it.
+          // Their actions, like Undo, still have to work over a dialog.
+          // As wide as their content.
           toast:
-            "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",
+            "group toast group-[.toaster]:pointer-events-auto group-[.toaster]:inset-x-0 group-[.toaster]:mx-auto group-[.toaster]:w-fit group-[.toaster]:bg-popover group-[.toaster]:text-popover-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg dark:group-[.toaster]:border-foreground/25 dark:group-[.toaster]:bg-accent",
+          // A tint over the toast's own surface, which has to stay opaque
+          error:
+            "from-destructive/10 to-destructive/10 group-[.toaster]:bg-gradient-to-b group-[.toaster]:!border-destructive/40",
           description: "group-[.toast]:text-muted-foreground",
           actionButton:
             "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
@@ -64,7 +73,8 @@ const legacyToast = ({
   if (variant === "destructive") {
     toast.error(toastTitle, { description: toastDescription });
   } else {
-    toast(toastTitle, { description: toastDescription });
+    // Plain toast() has no icon, and every toast has to have one
+    toast.success(toastTitle, { description: toastDescription });
   }
 };
 

@@ -14,15 +14,6 @@ vi.mock("@karakeep/shared/inference", async (original) => {
   };
 });
 
-// Bare worker-local imports; runOpenAI doesn't touch them.
-vi.mock("metrics", () => ({ workerStatsCounter: {} }));
-vi.mock("workerTracing", () => ({
-  withWorkerEventLog: vi.fn(),
-  withWorkerTracing: vi.fn(),
-}));
-vi.mock("network", () => ({ getBookmarkDomain: vi.fn() }));
-vi.mock("trpc", () => ({ buildImpersonatingTRPCClient: vi.fn() }));
-
 import { runOpenAI } from "./inferenceWorker";
 
 function job(type: "summarize" | "tag") {

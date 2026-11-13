@@ -295,8 +295,8 @@ export function ConditionBuilder({
                 });
               }}
             >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Condition
+              <PlusCircle className="h-4 w-4" />
+              {t("settings.rules.add_condition")}
             </Button>
           </div>
         );
@@ -312,7 +312,7 @@ export function ConditionBuilder({
 
   const conditionSelector = (
     <Select value={value.type} onValueChange={handleTypeChange}>
-      <SelectTrigger className="ml-2 h-8 border-none bg-transparent px-2">
+      <SelectTrigger className="ml-2 h-8 border-none bg-transparent px-2 shadow-none dark:bg-transparent dark:hover:bg-transparent">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -370,10 +370,14 @@ export function ConditionBuilder({
       <CardContent className="p-3">
         {value.type === "and" || value.type === "or" ? (
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center">
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-7 w-7 p-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-1 has-[>svg]:px-1"
+                  >
                     {isOpen ? (
                       <ChevronDown className="h-4 w-4" />
                     ) : (
@@ -382,7 +386,7 @@ export function ConditionBuilder({
                   </Button>
                 </CollapsibleTrigger>
                 {conditionSelector}
-                <span className="ml-1 text-sm text-muted-foreground">
+                <span className="ml-1 shrink-0 whitespace-nowrap text-sm text-muted-foreground">
                   {value.conditions.length} condition
                   {value.conditions.length !== 1 ? "s" : ""}
                 </span>
@@ -393,7 +397,7 @@ export function ConditionBuilder({
                   variant="ghost"
                   size="sm"
                   onClick={onRemove}
-                  className="h-7 w-7 p-0"
+                  className="h-7 w-7 shrink-0 p-0 has-[>svg]:px-0"
                 >
                   <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>
@@ -404,8 +408,8 @@ export function ConditionBuilder({
           </Collapsible>
         ) : (
           <div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center">
                 {renderConditionIcon(value.type)}
                 {conditionSelector}
               </div>
@@ -415,7 +419,7 @@ export function ConditionBuilder({
                   variant="ghost"
                   size="sm"
                   onClick={onRemove}
-                  className="h-7 w-7 p-0"
+                  className="h-7 w-7 shrink-0 p-0 has-[>svg]:px-0"
                 >
                   <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>

@@ -1,16 +1,26 @@
 import React from "react";
-import { Platform, ScrollView, View } from "react-native";
+import { ActivityIndicator, Platform, ScrollView, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { Button } from "@/components/ui/Button";
+import { router, Stack } from "expo-router";
+import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
+import { HeaderTextButton } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
+import { useToast } from "@/components/ui/Toast";
+import { SettingsActionRow } from "@/components/settings/settings-list";
 import useAppSettings from "@/lib/settings";
-import { buildApiHeaders, cn } from "@/lib/utils";
+import { useColorScheme } from "@/lib/useColorScheme";
+import { buildApiHeaders } from "@/lib/utils";
+import { CircleAlert, CircleCheck } from "lucide-react-native";
 import { z } from "zod";
 
 export default function TestConnection() {
   const { settings, isLoading } = useAppSettings();
+  const { t } = useTranslation();
+  const { colors } = useColorScheme();
+  const { toast } = useToast();
   const [text, setText] = React.useState("");
-  const [randomId, setRandomId] = React.useState(Math.random());
+  const [randomId, setRandomId] = React.useState(() => Math.random());
   const [status, setStatus] = React.useState<"running" | "success" | "error">(
     "running",
   );
@@ -24,7 +34,7 @@ export default function TestConnection() {
       return;
     }
     setStatus("running");
-    appendText("Running connection test ...");
+    appendText(t("connection_test.running"));
     function runTest() {
       const request = new XMLHttpRequest();
       request.onreadystatechange = () => {
@@ -33,14 +43,16 @@ export default function TestConnection() {
         }
 
         if (request.status === 0) {
-          appendText("Network connection failed: " + request.responseText);
+          appendText(
+            t("connection_test.network_failed") + request.responseText,
+          );
           setStatus("error");
           return;
         }
 
         if (request.status !== 200) {
-          appendText("Recieve non success error code: " + request.status);
-          appendText("Got the following response:");
+          appendText(t("connection_test.non_success_code") + request.status);
+          appendText(t("connection_test.got_response"));
           appendText(request.responseText);
           setStatus("error");
           return;
@@ -51,22 +63,24 @@ export default function TestConnection() {
           });
           const data = schema.parse(JSON.parse(request.responseText));
           if (data.status !== "ok") {
-            appendText(`Server is not healthy: ${data.status}`);
+            appendText(
+              `${t("connection_test.server_unhealthy")}${data.status}`,
+            );
             setStatus("error");
             return;
           }
-          appendText("ALL GOOD");
+          appendText(t("connection_test.all_good_message"));
           setStatus("success");
         } catch (e) {
-          appendText(`Failed to parse response as JSON: ${e}`);
-          appendText("Got the following response:");
+          appendText(`${t("connection_test.parse_failed")}${e}`);
+          appendText(t("connection_test.got_response"));
           appendText(request.responseText);
           setStatus("error");
           return;
         }
       };
 
-      appendText("Using address: " + settings.address);
+      appendText(t("connection_test.using_address") + settings.address);
       request.open("GET", `${settings.address}/api/health`);
       const headers = buildApiHeaders(settings.apiKey, settings.customHeaders);
       Object.entries(headers).forEach(([key, value]) => {
@@ -75,61 +89,80 @@ export default function TestConnection() {
       request.send();
     }
     runTest();
+    // oxlint-disable-next-line exhaustive-deps
   }, [settings.address, randomId]);
+
+  const server =
+    settings.address?.replace(/^https?:\/\//, "") ??
+    t("connection_test.your_server");
 
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerClassName="m-4 flex flex-1 flex-col gap-2"
+      contentContainerClassName="gap-6 px-4 pt-2 pb-10"
     >
-      <Button
-        className="w-full"
-        onPress={async () => {
-          await Clipboard.setStringAsync(text);
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <HeaderTextButton
+              label={t("actions.done")}
+              emphasized
+              onPress={() => router.back()}
+            />
+          ),
         }}
-      >
-        <Text>Copy Diagnostics Result</Text>
-      </Button>
-      <Button
-        className="w-full"
-        variant="secondary"
-        onPress={() => {
-          setText("");
-          setRandomId(Math.random());
-        }}
-      >
-        <Text>Retry</Text>
-      </Button>
-      <View
-        className={cn(
-          "w-full rounded-md p-2",
-          status === "running" && "bg-primary/50",
-          status === "success" && "bg-green-500",
-          status === "error" && "bg-red-500",
-        )}
-      >
-        <Text
-          className={cn(
-            "w-full text-center",
-            status === "running" && "text-primary-foreground",
-            status === "success" && "text-white",
-            status === "error" && "text-white",
+      />
+      <GroupedSection>
+        <View className="min-h-16 flex-row items-center gap-3 px-4 py-3">
+          {status === "running" && <ActivityIndicator size="small" />}
+          {status === "success" && <CircleCheck size={24} color="#34c759" />}
+          {status === "error" && (
+            <CircleAlert size={24} color={colors.destructive} />
           )}
-        >
-          {status === "running" && "Running connection test ..."}
-          {status === "success" && "Connection test successful"}
-          {status === "error" && "Connection test failed"}
-        </Text>
-      </View>
-      <ScrollView className="border-1 border-md h-64 flex-1 border-border bg-input p-2 leading-6">
+          <View className="flex-1">
+            <Text variant="heading">
+              {status === "running" && t("connection_test.testing_heading")}
+              {status === "success" && t("connection_test.connected_heading")}
+              {status === "error" && t("connection_test.failed_heading")}
+            </Text>
+            <Text variant="footnote" color="tertiary" numberOfLines={1}>
+              {server}
+            </Text>
+          </View>
+        </View>
+        <RowSeparator />
+        <SettingsActionRow
+          label={t("connection_test.test_again")}
+          tone="primary"
+          disabled={status === "running"}
+          onPress={() => {
+            setText("");
+            setRandomId(Math.random());
+          }}
+        />
+      </GroupedSection>
+
+      <GroupedSection header={t("connection_test.diagnostics")}>
         <Text
+          selectable
+          variant="footnote"
+          className="px-4 py-3"
           style={{
-            fontFamily: Platform.OS === "ios" ? "Courier New" : "monospace",
+            fontFamily: Platform.OS === "ios" ? "Menlo" : "monospace",
           }}
         >
           {text}
         </Text>
-      </ScrollView>
+        <RowSeparator />
+        <SettingsActionRow
+          label={t("connection_test.copy_diagnostics_short")}
+          tone="primary"
+          onPress={async () => {
+            await Clipboard.setStringAsync(text);
+            toast({ message: t("actions.copied"), showProgress: false });
+          }}
+        />
+      </GroupedSection>
     </ScrollView>
   );
 }

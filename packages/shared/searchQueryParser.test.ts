@@ -659,6 +659,30 @@ describe("Search Query Parser", () => {
         },
       },
     });
+    expect(parseSearchQuery("-age:<3d")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "age",
+        relativeDate: {
+          direction: "older",
+          amount: 3,
+          unit: "day",
+        },
+      },
+    });
+    expect(parseSearchQuery("!age:>2y")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "age",
+        relativeDate: {
+          direction: "newer",
+          amount: 2,
+          unit: "year",
+        },
+      },
+    });
   });
 
   test("complex queries", () => {
@@ -796,6 +820,45 @@ describe("Search Query Parser", () => {
             tagName: "my-tag",
             inverse: false,
           },
+        ],
+      },
+    });
+  });
+
+  test("words starting with and/or are not operators", () => {
+    expect(parseSearchQuery("foo android #tag")).toEqual({
+      result: "full",
+      text: "foo android",
+      matcher: {
+        type: "tagName",
+        tagName: "tag",
+        inverse: false,
+      },
+    });
+    expect(parseSearchQuery("is:fav oregon -is:archived")).toEqual({
+      result: "full",
+      text: "oregon",
+      matcher: {
+        type: "and",
+        matchers: [
+          { type: "favourited", favourited: true },
+          { type: "archived", archived: false },
+        ],
+      },
+    });
+    expect(parseSearchQuery("is:fav ORDER")).toEqual({
+      result: "full",
+      text: "ORDER",
+      matcher: { type: "favourited", favourited: true },
+    });
+    expect(parseSearchQuery("is:fav or is:archived")).toEqual({
+      result: "full",
+      text: "",
+      matcher: {
+        type: "or",
+        matchers: [
+          { type: "favourited", favourited: true },
+          { type: "archived", archived: true },
         ],
       },
     });

@@ -149,9 +149,11 @@ export default function BookmarksGrid({
   fetchNextPage = () => ({}),
   isFetchingNextPage = false,
   showEditorCard = false,
+  isSearch = false,
 }: {
   bookmarks: ZBookmark[];
   showEditorCard?: boolean;
+  isSearch?: boolean;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void;
@@ -221,7 +223,7 @@ export default function BookmarksGrid({
   if (bookmarks.length == 0 && !showEditorCard) {
     return (
       <>
-        <NoBookmarksBanner />
+        <NoBookmarksBanner isSearch={isSearch} />
         <KeyboardShortcutsDialog
           open={helpDialogOpen}
           setOpen={setHelpDialogOpen}
@@ -273,7 +275,7 @@ export default function BookmarksGrid({
             onClick={() => fetchNextPage()}
             variant="ghost"
           >
-            Load More
+            {t("actions.load_more")}
           </ActionButton>
         </div>
       )}

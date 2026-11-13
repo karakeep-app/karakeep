@@ -6,6 +6,7 @@ import {
   Switch,
   TextInput,
   View,
+  Platform,
 } from "react-native";
 import {
   KeyboardAwareScrollView,
@@ -13,8 +14,10 @@ import {
 } from "react-native-keyboard-controller";
 import * as Haptics from "expo-haptics";
 import { router, Stack, useLocalSearchParams } from "expo-router";
+import { AppIcon } from "@/components/ui/AppIcon";
 import AttachmentBox from "@/components/bookmarks/AttachmentBox";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
+import { useOfflineAvailability } from "@/components/bookmarks/useOfflineAvailability";
 import TagPill from "@/components/bookmarks/TagPill";
 import QueryPageState from "@/components/QueryPageState";
 import ChevronRight from "@/components/ui/ChevronRight";
@@ -23,23 +26,33 @@ import {
   NavigationRow,
   RowSeparator,
 } from "@/components/ui/GroupedList";
+import { useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { getIntlLocale } from "@/lib/i18n";
+import {
+  useCommonActions,
+  useCommonStrings,
+  useTranslation,
+} from "@/lib/i18n/hooks";
 import { shareBookmark } from "@/lib/shareBookmark";
 import useAppSettings from "@/lib/settings";
 import { useColorScheme } from "@/lib/useColorScheme";
 import {
   Archive,
+  ArrowDownToLine,
   ChevronUp,
-  Highlighter,
+  PenLine,
   RefreshCw,
-  Share2,
+  ShareIcon,
   Sparkles,
   Star,
   Trash2,
 } from "lucide-react-native";
 import { useHeaderHeight } from "expo-router/react-navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useTRPC } from "@karakeep/shared-react/trpc";
 
 import {
   useAutoRefreshingBookmarkQuery,
@@ -50,6 +63,22 @@ import {
 import { useWhoAmI } from "@karakeep/shared-react/hooks/users";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { isBookmarkStillTagging } from "@karakeep/shared/utils/bookmarkUtils";
+
+// Date and time in the app language, e.g. "Nov 8, 2026" and "3:04 PM".
+function formatTimestamp(date: Date) {
+  const locale = getIntlLocale();
+  return {
+    date: date.toLocaleDateString(locale, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }),
+    time: date.toLocaleTimeString(locale, {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+  };
+}
 
 // --- Section Components ---
 
@@ -64,13 +93,19 @@ function TitleEditor({
   isPending: boolean;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const { colors } = useColorScheme();
   return (
-    <GroupedSection header="Title">
+    <GroupedSection header={t("bookmarks.title_section")}>
       <TextInput
         editable={!isPending && !disabled}
-        placeholder="Untitled"
+        placeholder={t("bookmarks.add_title_placeholder")}
+        // A single line opens scrolled to its end on Android, hiding the start.
+        multiline
+        submitBehavior="blurAndSubmit"
+        scrollEnabled={false}
         placeholderTextColor={colors.grey}
+        selectionColor={Platform.OS === "ios" ? colors.primary : undefined}
         onChangeText={(text) => setTitle(text)}
         defaultValue={title ?? ""}
         className="px-4 py-3 text-[17px] leading-6 text-foreground"
@@ -90,14 +125,16 @@ function NotesEditor({
   isPending: boolean;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const { colors } = useColorScheme();
   return (
-    <GroupedSection header="Notes">
+    <GroupedSection header={t("bookmarks.notes_section")}>
       <TextInput
         editable={!isPending && !disabled}
         multiline
-        placeholder="Add notes..."
+        placeholder={t("bookmarks.notes_placeholder")}
         placeholderTextColor={colors.grey}
+        selectionColor={Platform.OS === "ios" ? colors.primary : undefined}
         onChangeText={(text) => setNotes(text)}
         textAlignVertical="top"
         defaultValue={notes ?? ""}
@@ -114,6 +151,7 @@ function TagList({
   bookmark: ZBookmark;
   readOnly: boolean;
 }) {
+  const { t } = useTranslation();
   const hasTags = bookmark.tags.length > 0;
   const isTagging = isBookmarkStillTagging(bookmark);
 
@@ -122,7 +160,7 @@ function TagList({
   }
 
   return (
-    <GroupedSection header="Tags">
+    <GroupedSection header={t("bookmarks.organize_section")}>
       {isTagging ? (
         <View className="gap-3 p-4">
           <Skeleton className="h-4 w-full" />
@@ -132,8 +170,8 @@ function TagList({
         hasTags && (
           <>
             <View className="flex-row flex-wrap gap-2 px-4 py-3">
-              {bookmark.tags.map((t) => (
-                <TagPill key={t.id} tag={t} clickable={!readOnly} />
+              {bookmark.tags.map((tag) => (
+                <TagPill key={tag.id} tag={tag} clickable={!readOnly} />
               ))}
             </View>
             {!readOnly && <RowSeparator />}
@@ -141,27 +179,40 @@ function TagList({
         )
       )}
       {!readOnly && (
-        <NavigationRow
-          label="Manage Tags"
-          onPress={() =>
-            router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
-          }
-        />
+        <>
+          <NavigationRow
+            label={t("bookmarks.manage_tags")}
+            onPress={() =>
+              router.push(`/dashboard/bookmarks/${bookmark.id}/manage_tags`)
+            }
+          />
+          <RowSeparator />
+          <ManageListsRow bookmark={bookmark} />
+        </>
       )}
     </GroupedSection>
   );
 }
 
-function ManageLists({ bookmark }: { bookmark: ZBookmark }) {
+function ManageListsRow({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
+  const api = useTRPC();
+  const { data } = useQuery(
+    api.lists.getListsOfBookmark.queryOptions({ bookmarkId: bookmark.id }),
+  );
+  const names = data
+    ? data.lists.map((list) => list.name).join(", ") ||
+      t("bookmarks.lists_none")
+    : undefined;
+
   return (
-    <GroupedSection header="Lists">
-      <NavigationRow
-        label="Manage Lists"
-        onPress={() =>
-          router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`)
-        }
-      />
-    </GroupedSection>
+    <NavigationRow
+      label={t("bookmarks.manage_lists")}
+      value={names}
+      onPress={() =>
+        router.push(`/dashboard/bookmarks/${bookmark.id}/manage_lists`)
+      }
+    />
   );
 }
 
@@ -172,6 +223,7 @@ function AISummarySection({
   bookmark: ZBookmark;
   readOnly: boolean;
 }) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { colors } = useColorScheme();
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -179,7 +231,8 @@ function AISummarySection({
   const { mutate: summarize, isPending: isSummarizing } = useSummarizeBookmark({
     onError: () => {
       toast({
-        message: "Failed to generate summary",
+        message: t("bookmarks.summarize_failed_ai"),
+        variant: "destructive",
         showProgress: false,
       });
     },
@@ -188,11 +241,11 @@ function AISummarySection({
   const { mutate: resummarize, isPending: isResummarizing } =
     useSummarizeBookmark({
       onSuccess: () => {
-        toast({ message: "Summary regenerated!", showProgress: false });
+        toast({ message: t("bookmarks.summary_updated"), showProgress: false });
       },
       onError: () => {
         toast({
-          message: "Failed to regenerate summary",
+          message: t("bookmarks.failed_regenerate_summary"),
           showProgress: false,
         });
       },
@@ -202,7 +255,7 @@ function AISummarySection({
     useUpdateBookmark({
       onError: () => {
         toast({
-          message: "Failed to delete summary",
+          message: t("bookmarks.failed_delete_summary"),
           showProgress: false,
         });
       },
@@ -216,17 +269,17 @@ function AISummarySection({
 
   if (bookmark.summary) {
     return (
-      <GroupedSection header="AI Summary">
+      <GroupedSection header={t("bookmarks.ai_summary")}>
         <Pressable
           onPress={() => setIsExpanded(!isExpanded)}
           className="px-4 py-3"
         >
           <View className={isExpanded ? "" : "max-h-16 overflow-hidden"}>
-            <BookmarkTextMarkdown text={bookmark.summary} />
+            <BookmarkTextMarkdown text={bookmark.summary} size="subhead" />
           </View>
           {!isExpanded && (
             <Text variant="footnote" className="mt-1.5 text-primary">
-              Show more
+              {t("bookmarks.show_more")}
             </Text>
           )}
         </Pressable>
@@ -285,12 +338,14 @@ function AISummarySection({
         {isSummarizing ? (
           <>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text className="text-primary">Generating...</Text>
+            <Text className="text-primary">{t("bookmarks.generating")}</Text>
           </>
         ) : (
           <>
-            <Sparkles size={16} color={colors.primary} />
-            <Text className="text-primary">Summarize with AI</Text>
+            <AppIcon icon={Sparkles} size={16} color={colors.primary} />
+            <Text className="text-primary">
+              {t("bookmarks.summarize_with_ai")}
+            </Text>
           </>
         )}
       </Pressable>
@@ -299,13 +354,15 @@ function AISummarySection({
 }
 
 function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
+  const { t } = useTranslation();
+  const strings = useCommonStrings();
   const { toast } = useToast();
   const { settings } = useAppSettings();
   const { colors } = useColorScheme();
 
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -326,108 +383,147 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
       ? favoriteVariables.favourited
       : bookmark.favourited;
 
-  const actionIconColor = colors.grey;
+  const actionIconColor = colors.icon;
+  const offline = useOfflineAvailability(bookmark.id);
 
   return (
-    <GroupedSection>
-      <Pressable
-        onPress={() => {
-          Haptics.selectionAsync();
-          favoriteBookmark({
-            bookmarkId: bookmark.id,
-            favourited: !isFavourited,
-          });
-        }}
-        className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
-      >
-        <View className="flex-1 flex-row items-center gap-3">
-          <Star
-            size={20}
-            color={isFavourited ? "#ebb434" : actionIconColor}
-            fill={isFavourited ? "#ebb434" : "transparent"}
-          />
-          <Text className="flex-1" numberOfLines={1}>
-            Favourite
-          </Text>
-        </View>
-        <Switch
-          className="shrink-0"
-          value={isFavourited}
-          onValueChange={(value) => {
+    <>
+      <GroupedSection>
+        <Pressable
+          onPress={() => {
             Haptics.selectionAsync();
             favoriteBookmark({
               bookmarkId: bookmark.id,
-              favourited: value,
+              favourited: !isFavourited,
             });
           }}
-        />
-      </Pressable>
-      <RowSeparator />
-      <Pressable
-        onPress={() => {
-          Haptics.selectionAsync();
-          archiveBookmark({
-            bookmarkId: bookmark.id,
-            archived: !bookmark.archived,
-          });
-        }}
-        disabled={isArchivePending}
-        className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
-      >
-        <View className="flex-1 flex-row items-center gap-3">
-          <Archive size={20} color={actionIconColor} />
-          <Text className="flex-1" numberOfLines={1}>
-            Archived
-          </Text>
-        </View>
-        {isArchivePending ? (
-          <ActivityIndicator size="small" />
-        ) : (
+          className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+        >
+          <View className="flex-1 flex-row items-center gap-3">
+            <AppIcon
+              icon={Star}
+              size={19}
+              filled={isFavourited}
+              color={isFavourited ? "#ebb434" : actionIconColor}
+            />
+            <Text className="flex-1" numberOfLines={1}>
+              {t("bookmarks.favourited")}
+            </Text>
+          </View>
           <Switch
             className="shrink-0"
-            value={bookmark.archived}
+            value={isFavourited}
             onValueChange={(value) => {
               Haptics.selectionAsync();
-              archiveBookmark({
+              favoriteBookmark({
                 bookmarkId: bookmark.id,
-                archived: value,
+                favourited: value,
               });
             }}
           />
+        </Pressable>
+        <RowSeparator />
+        <Pressable
+          onPress={() => {
+            Haptics.selectionAsync();
+            archiveBookmark({
+              bookmarkId: bookmark.id,
+              archived: !bookmark.archived,
+            });
+          }}
+          disabled={isArchivePending}
+          className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+        >
+          <View className="flex-1 flex-row items-center gap-3">
+            <AppIcon icon={Archive} size={19} color={actionIconColor} />
+            <Text className="flex-1" numberOfLines={1}>
+              {t("bookmarks.archived")}
+            </Text>
+          </View>
+          {isArchivePending ? (
+            <ActivityIndicator size="small" />
+          ) : (
+            <Switch
+              className="shrink-0"
+              value={bookmark.archived}
+              onValueChange={(value) => {
+                Haptics.selectionAsync();
+                archiveBookmark({
+                  bookmarkId: bookmark.id,
+                  archived: value,
+                });
+              }}
+            />
+          )}
+        </Pressable>
+        <RowSeparator />
+        {bookmark.content.type === BookmarkTypes.LINK && (
+          <>
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync();
+                router.push(`/dashboard/bookmarks/${bookmark.id}/highlights`);
+              }}
+              className="flex-row items-center justify-between gap-3 px-4 py-3 active:opacity-70"
+            >
+              <View className="flex-1 flex-row items-center gap-3">
+                <AppIcon icon={PenLine} size={19} color={actionIconColor} />
+                <Text className="flex-1" numberOfLines={1}>
+                  {t("headers.highlights")}
+                </Text>
+              </View>
+              <ChevronRight size={16} />
+            </Pressable>
+            <RowSeparator />
+          </>
         )}
-      </Pressable>
-      <RowSeparator />
-      {bookmark.content.type === BookmarkTypes.LINK && (
-        <>
-          <Pressable
-            onPress={() => {
-              Haptics.selectionAsync();
-              router.push(`/dashboard/bookmarks/${bookmark.id}/highlights`);
-            }}
-            className="flex-row items-center justify-between gap-3 px-4 py-3 active:opacity-70"
-          >
-            <View className="flex-1 flex-row items-center gap-3">
-              <Highlighter size={20} color={actionIconColor} />
-              <Text className="flex-1" numberOfLines={1}>
-                Highlights
-              </Text>
+        {(bookmark.content.type === BookmarkTypes.LINK ||
+          bookmark.content.type === BookmarkTypes.TEXT) && (
+          <>
+            <View className="flex-row items-center justify-between px-4 py-2.5">
+              <View className="flex-1 flex-row items-center gap-3">
+                <AppIcon
+                  icon={ArrowDownToLine}
+                  size={19}
+                  color={actionIconColor}
+                />
+                <Text className="flex-1" numberOfLines={1}>
+                  {t("bookmarks.downloaded")}
+                </Text>
+              </View>
+              {offline.isSaving ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <Switch
+                  className="shrink-0"
+                  value={offline.isAvailableOffline}
+                  onValueChange={(value) => {
+                    void Haptics.selectionAsync();
+                    if (value) {
+                      void offline.save();
+                    } else {
+                      offline.confirmRemove();
+                    }
+                  }}
+                />
+              )}
             </View>
-            <ChevronRight size={16} />
-          </Pressable>
-          <RowSeparator />
-        </>
-      )}
-      <Pressable
-        onPress={() => {
-          Haptics.selectionAsync();
-          shareBookmark(bookmark, settings, toast);
-        }}
-        className="flex-row items-center gap-3 px-4 py-3 active:opacity-70"
-      >
-        <Share2 size={20} color={actionIconColor} />
-        <Text numberOfLines={1}>Share Bookmark</Text>
-      </Pressable>
-    </GroupedSection>
+          </>
+        )}
+      </GroupedSection>
+      <GroupedSection>
+        <Pressable
+          onPress={() => {
+            Haptics.selectionAsync();
+            shareBookmark(bookmark, settings, toast);
+          }}
+          className="flex-row items-center gap-3 px-4 py-3 active:opacity-70"
+        >
+          <AppIcon icon={ShareIcon} size={19} color={actionIconColor} />
+          <Text numberOfLines={1}>{t("bookmark_actions.share")}</Text>
+        </Pressable>
+      </GroupedSection>
+    </>
   );
 }
 
@@ -436,6 +532,8 @@ function BookmarkActionsSection({ bookmark }: { bookmark: ZBookmark }) {
 const ViewBookmarkPage = () => {
   const headerHeight = useHeaderHeight();
   const { slug } = useLocalSearchParams();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
   const { toast } = useToast();
   const { data: currentUser } = useWhoAmI();
   if (typeof slug !== "string") {
@@ -448,10 +546,12 @@ const ViewBookmarkPage = () => {
   }>({});
 
   const hasChanges = Object.keys(editedBookmark).length > 0;
+  const allowLeave = useDiscardGuard(hasChanges);
 
   const { mutate: editBookmark, isPending: isEditPending } = useUpdateBookmark({
     onSuccess: () => {
-      toast({ message: "Bookmark updated!", showProgress: false });
+      toast({ message: t("bookmarks.saved_toast"), showProgress: false });
+      allowLeave();
       if (router.canGoBack()) {
         router.back();
       } else {
@@ -459,15 +559,22 @@ const ViewBookmarkPage = () => {
       }
     },
     onError: () => {
-      toast({ message: "Failed to save changes", showProgress: false });
+      toast({
+        message: t("bookmarks.failed_save_changes"),
+        showProgress: false,
+      });
     },
   });
 
   const { mutate: deleteBookmark, isPending: isDeletionPending } =
     useDeleteBookmark({
       onSuccess: () => {
+        allowLeave();
         router.replace("dashboard");
-        toast({ message: "Bookmark deleted!", showProgress: false });
+        toast({
+          message: t("bookmarks.bookmark_deleted_toast"),
+          showProgress: false,
+        });
       },
     });
 
@@ -504,12 +611,12 @@ const ViewBookmarkPage = () => {
   const handleDeleteBookmark = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
-      "Delete Bookmark",
-      "Are you sure you want to delete this bookmark?",
+      t("bookmark_actions.delete_this_title"),
+      t("bookmark_actions.delete_permanent_message"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: actions.cancel, style: "cancel" },
         {
-          text: "Delete",
+          text: t("bookmark_actions.delete"),
           onPress: () => deleteBookmark({ bookmarkId: bookmark.id }),
           style: "destructive",
         },
@@ -536,7 +643,7 @@ const ViewBookmarkPage = () => {
         options={{
           headerShown: true,
           headerTransparent: false,
-          headerTitle: "Edit Bookmark",
+          headerTitle: t("headers.edit_details"),
           headerRight: () => (
             <Pressable
               onPress={onDone}
@@ -551,7 +658,7 @@ const ViewBookmarkPage = () => {
                     hasChanges ? "font-semibold text-primary" : "text-primary"
                   }
                 >
-                  {hasChanges ? "Save" : "Done"}
+                  {hasChanges ? actions.save : t("bookmarks.done")}
                 </Text>
               )}
             </Pressable>
@@ -566,17 +673,17 @@ const ViewBookmarkPage = () => {
           gap: 20,
           paddingBottom: 40 + headerHeight,
         }}
-        className="bg-background"
       >
         <TitleEditor
           title={title}
-          setTitle={(t) => setEditedBookmark((prev) => ({ ...prev, title: t }))}
+          setTitle={(newTitle) =>
+            setEditedBookmark((prev) => ({ ...prev, title: newTitle }))
+          }
           isPending={isEditPending}
           disabled={!isOwner}
         />
         <AISummarySection bookmark={bookmark} readOnly={!isOwner} />
         <TagList bookmark={bookmark} readOnly={!isOwner} />
-        {isOwner && <ManageLists bookmark={bookmark} />}
         <NotesEditor
           notes={bookmark.note}
           setNotes={(note) =>
@@ -595,19 +702,21 @@ const ViewBookmarkPage = () => {
               className="items-center px-4 py-3 active:opacity-70"
             >
               <Text className="text-destructive" numberOfLines={1}>
-                {isDeletionPending ? "Deleting..." : "Delete Bookmark"}
+                {isDeletionPending
+                  ? t("bookmarks.deleting")
+                  : t("bookmarks.delete_bookmark")}
               </Text>
             </Pressable>
           </GroupedSection>
         )}
         <View className="items-center gap-1 pt-2">
           <Text variant="caption1" color="tertiary" selectable>
-            Created {bookmark.createdAt.toLocaleString()}
+            {t("bookmarks.saved_at", formatTimestamp(bookmark.createdAt))}
           </Text>
           {bookmark.modifiedAt &&
             bookmark.modifiedAt.getTime() !== bookmark.createdAt.getTime() && (
               <Text variant="caption1" color="tertiary" selectable>
-                Modified {bookmark.modifiedAt.toLocaleString()}
+                {t("bookmarks.edited_at", formatTimestamp(bookmark.modifiedAt))}
               </Text>
             )}
         </View>

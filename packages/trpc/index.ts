@@ -40,6 +40,11 @@ export type RequestAuth =
   | {
       type: "session";
     }
+  | {
+      // Server-initiated calls on behalf of a user (workers, impersonation).
+      // These are exempt from user-facing rate limits.
+      type: "internal";
+    }
   | null;
 
 export interface Context {

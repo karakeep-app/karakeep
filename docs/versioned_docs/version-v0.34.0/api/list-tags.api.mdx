@@ -1,0 +1,71 @@
+---
+id: list-tags
+title: "Get all tags"
+description: "Retrieve a paginated list of all tags. Supports filtering by name, attached-by source, and sorting by name, usage count, or relevance."
+sidebar_label: "Get all tags"
+hide_title: true
+hide_table_of_contents: true
+api: eJzNVs2OGzcMfhWCubTGrL0peppDAW/aBGlyCBIvimLXgOkZ2qNYI00kjXcdw0Afok/YJykojf+dzaKnnrw7osiP5KePXKNt2FFQ1rwtMUetfBjR3GOGJfvCqUaOMMePHJziJQNBQ3NlKHAJYg12BqQ1BJr7Pnxqm8a64GGmdGCnzBymKzBUcwYUAhUVl1fTFXjbukK+mRK8deHIsPU0Zyhsa0IG1oFjzUsyBfcxQ4mD+R1GlOMMPRetU2GF+d0ap0yO3bANFeZ34804w4Yc1RzY+Wjgi4prwnyNYdUw5uiDgMRNho6/tMpxifmMtOcMBQzm8eeVNYGUkbIoqcaXlt0KN9m3HWbIpq0FaHSTYUwKJUyXjIAveUatDph3x0/AkCr9l/CkMMOqrclghsYaxvETUbY9ulk9P9YT7orWeeue4cq09ZTF0LRa01Qz5sG1/IRrrWp1WpCxmPvGGs9enP90fS0/x0weXiCwkAoeVKgOueeFboU1gU0QN9Q0WhXxrQw+e/F1IRE7/cyF4GqcvKygEpLE2p0VOUexwoFr//3bqrxY9VSJSwdtfWPtoia38OdFPjG4WQ27po+i2ffAkLroMlHs/GSzOWrinSSTbR/FEdAnYY0zDCoIL+Tlozg1/BheJYJd4P8xkU7lLN2DmXUQKgZxJbTgqDdyFdQMjIXaOgbHvtVCh9NUQlLKAyDjlO/P1y/PiXdrqA2Vdeorl/DPX3/HyDdRsSDYBRtQHmrlvTLzDJRZklZlBMSPjYQ84WPgxzBoNKnLTNwrwSPVTazcIYLYmU2GNYfKivTPOfaaRDtx0KXm2S232tk6jTmuqSwde78ZUKMGy5eY4ZKcklIneqTjlP5W3aoQGp8PBsGt+gtytGBu+tQ0Z2NmVDF0HuK7rBjedfaQsAjuA9n/JGmnyIfiv6uCRJY8ohnmnRFm3R+vratJEP7+xyi2V5mZleuSdYL0sn/dv8Y9/XZ4hh/enuHfHSoPBJ717KqyPkh1YNpRW2adzD3HVF6pcKUpsIvZqYL7MKqUF98yVe2Dh5VtIVioyYgybZ34LIqXz6J2ZVCpeaXVvJIv5D3HX1PClIpF23honJ07qmsKqiCtV/17c29evAApF5vQ6Zp8HGoNbMrGKhM8dHQHOmZqIzFKUCa2aDLsaBWdTKBiKtn14U/bQkEG5mxkyWAgEzNb8ApmztbH/X3gKdy+hdaU7KDX+8RB1gIPv8Q773jle70t7A9JwjvI70XG95h9WkIgTZ+rKQnUZncDlopgkg4nsUiTOEwmEMcI7FcGaUZ8/nGkgDKFbkuWzk72b34CM8U6vWgpC6gA5FNdtkF2LqWTMw5FdSw7fRjCRGRnAkvSLUdhOoqhTCk94uhY+uH4TJ+62mwlFEQ4vXzciWrsxpTBGk7PyzGDvBSf35sr6PW0MoteL+YyhNuP73d8S9PRRp6ThsLRg+YSag5UUqB+ui6StLsepQnkExgbuDOJ5NzaGGgbbankUhZGhh9ULSS3Dj78+vrHvsyVxvrQTZZu8r/hsNs4Tx/gei+Q/6OVNUnRgV5vsqSm605vu1EyzlDUQv5fr4W2t05vNvI5LTiiwqXyoib7fWjBq/MtNbIIc4zb1jeudBvlc0yP1sLnXNgtfs8x3q5ye9vxfqjERT7DJCmxAunSsCi4Obx1tp6Jl910e/PbCDOk4+FwMgyi9+2GZg5TXa+TxUjEb7PBLfIohriRqf8v9k2eOw==
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get all tags"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/tags"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve a paginated list of all tags. Supports filtering by name, attached-by source, and sorting by name, usage count, or relevance.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string"},"required":false,"name":"nameContains","in":"query"},{"schema":{"type":"string","enum":["name","usage","relevance"],"default":"usage"},"required":false,"name":"sort","in":"query"},{"schema":{"type":"string","enum":["ai","human","none"]},"required":false,"name":"attachedBy","in":"query"},{"schema":{"type":"string"},"required":false,"name":"cursor","in":"query"},{"schema":{"type":"number","nullable":true},"required":false,"name":"limit","in":"query"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"A paginated list of tags with usage counts.","content":{"application/json":{"schema":{"type":"object","properties":{"tags":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"numBookmarks":{"type":"number"},"numBookmarksByAttachedType":{"type":"object","properties":{"ai":{"type":"number"},"human":{"type":"number"}}}},"required":["id","name","numBookmarks","numBookmarksByAttachedType"],"title":"Tag"}},"nextCursor":{"type":"string","nullable":true,"description":"Cursor for the next page, or null if no more results."}},"required":["tags","nextCursor"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

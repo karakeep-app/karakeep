@@ -59,9 +59,9 @@
     "unarchive": "Verwijder uit archief",
     "unfavorite": "Verwijder uit favorieten",
     "refresh": "Vernieuwen",
-    "download_full_page_archive": "Download volledig pagina archief",
     "edit_tags": "Wijzig Tags",
     "add_to_list": "Toevoegen aan lijst",
+    "select": "Selecteren",
     "select_all": "Selecteer alles",
     "unselect_all": "Deselecteer alles",
     "bulk_edit": "Bulk bewerking",
@@ -96,6 +96,7 @@
     "load_more": "Laad meer",
     "edit_notes": "Notities bewerken",
     "preserve_as_pdf": "Opslaan als PDF",
+    "preserve_video": "Video bewaren",
     "offline_copies": "Offline kopieën",
     "remove": "Verwijderen",
     "more": "Meer",
@@ -161,7 +162,49 @@
       "broken_links": "Gebroken Links",
       "last_crawled_at": "Laatste Crawl Op",
       "crawling_status": "Crawl Status",
-      "crawling_failed": "Crawl Mislukt"
+      "crawling_failed": "Crawl Mislukt",
+      "description": "Bekijk links die niet konden worden opgehaald, probeer ze opnieuw of verwijder oude bladwijzers.",
+      "category_all": "Vereist aandacht",
+      "category_blocked": "Toegang geblokkeerd",
+      "category_missing": "Niet gevonden",
+      "category_errors": "Overige fouten",
+      "category_all_hint": "Te controleren links",
+      "category_blocked_hint": "Beperkt of rate limit bereikt",
+      "category_missing_hint": "Pagina ontbreekt of is verwijderd",
+      "category_errors_hint": "Server- of crawlfouten",
+      "blocked_hint": "Een geblokkeerd verzoek betekent niet altijd een gebroken link. Sommige sites beperken geautomatiseerde toegang. Open de oorspronkelijke pagina om dit te controleren voordat je verwijdert.",
+      "search": "Zoeken op titel of URL…",
+      "sort_recent": "Recent gecontroleerd",
+      "sort_oldest": "Oudste controle eerst",
+      "sort_domain": "Website A–Z",
+      "result_count_one": "{{count}} link om te controleren",
+      "result_count_other": "{{count}} links om te controleren",
+      "retry_selected": "Selectie opnieuw proberen",
+      "empty": "Geen gebroken links gevonden",
+      "empty_description": "Geen van je opgeslagen links heeft momenteel een gemelde crawlfout.",
+      "select_visible": "Alle zichtbare links selecteren",
+      "bookmark": "Bladwijzer",
+      "issue": "Probleem",
+      "never_crawled": "Geen crawldatum",
+      "issue_blocked": "Toegang geblokkeerd",
+      "issue_missing": "Niet gevonden",
+      "issue_server": "Serverfout",
+      "issue_http": "HTTP-fout",
+      "issue_failed": "Crawl mislukt",
+      "issue_blocked_hint": "De site heeft dit verzoek beperkt",
+      "issue_missing_hint": "De pagina is mogelijk verwijderd",
+      "issue_server_hint": "De site kon het verzoek niet voltooien",
+      "issue_http_hint": "De site gaf een onverwacht antwoord",
+      "issue_failed_hint": "Er is geen succesvol antwoord geregistreerd",
+      "queued": "In de wachtrij",
+      "queued_count_one": "{{count}} link in de wachtrij gezet voor een nieuwe crawl.",
+      "queued_count_other": "{{count}} links in de wachtrij gezet voor een nieuwe crawl.",
+      "deleted_count_one": "{{count}} bladwijzer verwijderd.",
+      "deleted_count_other": "{{count}} bladwijzers verwijderd.",
+      "action_failed": "{{count}} van {{total}} mislukt.",
+      "delete_title_one": "{{count}} bladwijzer verwijderen?",
+      "delete_title_other": "{{count}} bladwijzers verwijderen?",
+      "delete_description": "Hiermee worden de geselecteerde bladwijzers en hun opgeslagen bestanden, hoogtepunten en notities permanent verwijderd. Dit kan niet ongedaan worden gemaakt."
     },
     "api_keys": {
       "key_success_please_copy": "Kopieer de sleutel en bewaar het op een veilige plaats. Wanneer je de dialoog sluit, zal je deze niet meer opnieuw kunnen raadplegen.",
@@ -466,7 +509,8 @@
       },
       "activity_patterns": {
         "activity_by_hour": "Activiteit per uur",
-        "activity_by_day": "Activiteit per dag"
+        "activity_by_day": "Activiteit per dag",
+        "busiest_around": "Drukst rond {{hour}}"
       },
       "storage_breakdown": {
         "title": "Opslagoverzicht"
@@ -517,10 +561,8 @@
       "progress": "Voortgang",
       "status": {
         "pending": "In behandeling",
-        "in_progress": "Bezig",
         "completed": "Voltooid",
         "failed": "Mislukt",
-        "processing": "Verwerken",
         "staging": "Voorbereiding",
         "running": "Actief",
         "paused": "Gepauzeerd",
@@ -616,6 +658,19 @@
         "backup_queued": "Back-uptaak is in de wachtrij geplaatst! Het wordt binnenkort verwerkt.",
         "backup_deleted": "Back-up is verwijderd!"
       }
+    },
+    "maintenance": {
+      "clear_filters": "Filters wissen",
+      "clear_selection": "Selectie wissen",
+      "delete_selected": "Selectie verwijderen",
+      "try_again": "Opnieuw proberen",
+      "sort": "Sorteervolgorde",
+      "no_matches": "Geen resultaten gevonden",
+      "adjust_filters": "Probeer een andere zoekopdracht of wis je filters.",
+      "select_item": "{{name}} selecteren",
+      "selected": "{{count}} geselecteerd",
+      "showing": "{{shown}} van {{total}} weergegeven",
+      "load_more": "Meer laden"
     }
   },
   "admin": {
@@ -626,19 +681,7 @@
       "server_version": "Server Versie"
     },
     "background_jobs": {
-      "failed": "Mislukt",
-      "crawler_jobs": "Crawl Taken",
       "background_jobs": "Achtergrondtaken",
-      "indexing_jobs": "Indexeer Taken",
-      "inference_jobs": "Inferentie Taken",
-      "pending": "In behandeling",
-      "tidy_assets_jobs": "Tidy Assets-taken",
-      "asset_preprocessing_jobs": "Asset pre-processing taken",
-      "queued": "In de wachtrij",
-      "job": "Taak",
-      "video_jobs": "Taken voor het downloaden van video's",
-      "webhook_jobs": "Webhook-taken",
-      "feed_jobs": "RSS-feedtaken",
       "jobs": {
         "crawler": {
           "title": "Crawler Jobs",
@@ -655,10 +698,6 @@
         "asset_preprocessing": {
           "title": "Asset Preprocessing Jobs",
           "description": "Voorbewerking van afbeeldingen en documenten (screenshots, tekstuitlezing, enz.)"
-        },
-        "tidy_assets": {
-          "title": "Tidy Assets Jobs",
-          "description": "Asset opschonen en opslagoptimalisatie"
         },
         "video": {
           "title": "Video Download Jobs",
@@ -733,18 +772,6 @@
       "unlimited": "Onbeperkt"
     },
     "admin_settings": "Admin Instellingen",
-    "actions": {
-      "without_inference": "Zonder gevolgtrekking",
-      "regenerate_ai_tags_for_failed_bookmarks_only": "Alleen AI-tags opnieuw genereren voor mislukte bladwijzers",
-      "regenerate_ai_tags_for_all_bookmarks": "AI-tags voor alle bladwijzers opnieuw genereren",
-      "compact_assets": "Compacte assets",
-      "reprocess_assets_fix_mode": "Activa opnieuw verwerken (Fix-modus)",
-      "recrawl_failed_links_only": "Alleen mislukte links opnieuw crawlen",
-      "recrawl_all_links": "Alle links opnieuw crawlen",
-      "reindex_all_bookmarks": "Alle bladwijzers opnieuw indexeren",
-      "regenerate_ai_summaries_for_failed_bookmarks_only": "AI-samenvattingen opnieuw genereren, alleen voor mislukte bladwijzers",
-      "regenerate_ai_summaries_for_all_bookmarks": "AI-samenvattingen opnieuw genereren voor alle bladwijzers"
-    },
     "service_connections": {
       "title": "Serviceverbindingen",
       "description": "Bewaak de gezondheid en connectiviteit van externe systeemafhankelijkheden",
@@ -832,6 +859,9 @@
     "view_original": "Toon origineel",
     "cached_content": "Inhoud in cache",
     "reader_view": "Lezersweergave",
+    "page_overview": "Paginaoverzicht",
+    "try_reader_view": "Probeer lezersweergave",
+    "archived_page": "Gearchiveerde pagina",
     "tabs": {
       "content": "Inhoud",
       "details": "Details"
@@ -893,7 +923,6 @@
       "align_right": "Rechts uitlijnen",
       "undo": "Ongedaan maken"
     },
-    "quickly_focus": "Je kunt snel op dit veld focussen door op ⌘ + E te drukken",
     "multiple_urls_dialog_title": "URL's importeren als afzonderlijke bladwijzers?",
     "import_as_text": "Importeren als tekstbladwijzer",
     "import_as_separate_bookmarks": "Importeren als afzonderlijke bladwijzers",
@@ -904,8 +933,10 @@
     "placeholder_v2": "Plak een link, schrijf een notitie of sleep een afbeelding…"
   },
   "options": {
+    "theme": "Thema",
     "dark_mode": "Donkere Modus",
     "light_mode": "Lichte Modus",
+    "system_mode": "Systeemmodus",
     "apps_extensions": "Apps & Extensies",
     "documentation": "Documentatie",
     "follow_us_on_x": "Volg ons op X"
@@ -1000,11 +1031,11 @@
       "shared": "Gedeeld",
       "private": "Privé"
     },
-    "summary_list_one": "{{count}} Lijsten",
-    "summary_list_other": "{{count}} Lijsten",
-    "summary_bookmark_one": "{{count}} Bladwijzers",
-    "summary_bookmark_other": "{{count}} Bladwijzers",
-    "items_count_one": "{{count}} items",
+    "summary_list_one": "{{count}} lijst",
+    "summary_list_other": "{{count}} lijsten",
+    "summary_bookmark_one": "{{count}} bladwijzer",
+    "summary_bookmark_other": "{{count}} bladwijzers",
+    "items_count_one": "{{count}} item",
     "items_count_other": "{{count}} items"
   },
   "search": {
@@ -1028,6 +1059,10 @@
     "is_not_archived": "Is niet gearchiveerd",
     "has_any_tag": "Heeft een tag",
     "has_no_tags": "Heeft geen tag",
+    "has_notes": "Heeft notities",
+    "has_no_notes": "Heeft geen notities",
+    "has_highlights": "Heeft hoogtepunten",
+    "has_no_highlights": "Heeft geen hoogtepunten",
     "is_in_any_list": "Staat in een lijst",
     "created_on_or_after": "Gemaakt op of na",
     "type_is": "Type is",
@@ -1083,6 +1118,7 @@
       "delete_from_list": "De bladwijzer is uit de lijst verwijderd",
       "clipboard_copied": "Link is naar je klembord gekopieerd!",
       "preserve_pdf": "PDF-opslag is geactiveerd",
+      "preserve_video": "Video-download is gestart",
       "update_banner": "Banner is bijgewerkt!",
       "uploading_banner": "Banner uploaden..."
     },

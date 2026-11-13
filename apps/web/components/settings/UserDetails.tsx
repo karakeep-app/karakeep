@@ -1,10 +1,12 @@
 import { Input } from "@/components/ui/input";
 import { useTranslation } from "@/lib/i18n/server";
 import { api } from "@/server/api/client";
-import { Mail } from "lucide-react";
+import { Lock } from "lucide-react";
 
 import { Label } from "../ui/label";
-import { SettingsSection } from "./SettingsPage";
+import ProfileNameForm from "./ProfileNameForm";
+import { SettingsRow, SettingsRows, SettingsSection } from "./SettingsPage";
+import UserAvatar from "./UserAvatar";
 
 export default async function UserDetails() {
   // oxlint-disable-next-line rules-of-hooks
@@ -13,37 +15,26 @@ export default async function UserDetails() {
 
   return (
     <SettingsSection title={t("settings.info.basic_details")}>
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium">
-            {t("common.name")}
-          </Label>
+      <SettingsRows>
+        <UserAvatar />
+        <SettingsRow
+          label={<Label htmlFor="email">{t("common.email")}</Label>}
+          description={
+            whoami.localUser
+              ? undefined
+              : t("settings.info.details_locked_oauth")
+          }
+        >
           <Input
-            id="name"
-            defaultValue={whoami.name ?? ""}
-            className="h-11"
+            id="email"
+            type="email"
+            defaultValue={whoami.email ?? ""}
+            endIcon={<Lock className="size-4 text-muted-foreground" />}
             disabled
           />
-        </div>
-        <div className="space-y-2">
-          <Label
-            htmlFor="email"
-            className="flex items-center gap-2 text-sm font-medium"
-          >
-            <Mail className="h-4 w-4" />
-            {t("common.email")}
-          </Label>
-          <div className="relative">
-            <Input
-              id="email"
-              type="email"
-              defaultValue={whoami.email ?? ""}
-              className="h-11"
-              disabled
-            />
-          </div>
-        </div>
-      </div>
+        </SettingsRow>
+        <ProfileNameForm name={whoami.name ?? ""} />
+      </SettingsRows>
     </SettingsSection>
   );
 }
