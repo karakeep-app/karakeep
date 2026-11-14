@@ -88,6 +88,23 @@
     "header_value": "Vrijednost zaglavlja",
     "value": "Vrijednost"
   },
+  "client_certificate": {
+    "header": "Klijentski certifikat (mTLS)",
+    "footer": "Potrebno samo ako vaš poslužitelj ili njegov proxy zahtijeva klijentski TLS certifikat. Certifikat se sprema u privjesak ključeva ovog uređaja i šalje se samo vašem poslužitelju.",
+    "import": "Uvezi certifikat…",
+    "replace": "Zamijeni certifikat…",
+    "remove": "Ukloni certifikat",
+    "unnamed": "Certifikat",
+    "import_confirm": "Uvezi",
+    "expires": "Istječe {{date}}",
+    "expired": "Istekao {{date}}",
+    "password_title": "Lozinka certifikata",
+    "password_message": "Unesite lozinku koja štiti {{name}}.",
+    "wrong_password": "Ta lozinka nije ispravna.",
+    "invalid_file": "Ova datoteka nije PKCS#12 certifikat (.p12 ili .pfx) s privatnim ključem.",
+    "import_failed": "Certifikat nije moguće uvesti.",
+    "http_warning": "Adresa vašeg poslužitelja koristi http://, pa se certifikat neće koristiti."
+  },
   "connection_test": {
     "running": "Test veze u tijeku…",
     "network_failed": "Mrežna veza nije uspjela: ",

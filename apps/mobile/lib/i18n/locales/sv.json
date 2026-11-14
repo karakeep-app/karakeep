@@ -88,6 +88,23 @@
     "header_value": "Headervärde",
     "value": "Värde"
   },
+  "client_certificate": {
+    "header": "Klientcertifikat (mTLS)",
+    "footer": "Behövs bara om din server eller dess proxy kräver ett TLS-klientcertifikat. Certifikatet lagras i enhetens nyckelring och skickas bara till din server.",
+    "import": "Importera certifikat…",
+    "replace": "Ersätt certifikat…",
+    "remove": "Ta bort certifikat",
+    "unnamed": "Certifikat",
+    "import_confirm": "Importera",
+    "expires": "Går ut {{date}}",
+    "expired": "Gick ut {{date}}",
+    "password_title": "Certifikatets lösenord",
+    "password_message": "Ange lösenordet som skyddar {{name}}.",
+    "wrong_password": "Lösenordet är felaktigt.",
+    "invalid_file": "Den här filen är inte ett PKCS#12-certifikat (.p12 eller .pfx) med en privat nyckel.",
+    "import_failed": "Certifikatet kunde inte importeras.",
+    "http_warning": "Din serveradress använder http://, så certifikatet kommer inte att användas."
+  },
   "connection_test": {
     "running": "Testar anslutningen…",
     "network_failed": "Nätverksanslutningen misslyckades: ",

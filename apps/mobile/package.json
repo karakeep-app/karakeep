@@ -47,6 +47,7 @@
     "expo-clipboard": "~57.0.2",
     "expo-constants": "~57.0.19",
     "expo-dev-client": "~57.0.19",
+    "expo-document-picker": "~57.0.3",
     "expo-file-system": "~57.0.7",
     "expo-glass-effect": "~57.0.4",
     "expo-haptics": "~57.0.3",
