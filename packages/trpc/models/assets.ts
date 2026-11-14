@@ -256,6 +256,7 @@ export class Asset {
       id: updatedAsset.id,
       assetType: mapDBAssetTypeToUserType(updatedAsset.assetType),
       fileName: updatedAsset.fileName,
+      size: updatedAsset.size,
     };
   }
 

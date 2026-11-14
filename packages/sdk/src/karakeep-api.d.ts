@@ -941,6 +941,7 @@ export interface components {
           | "avatar"
           | "unknown";
         fileName?: string | null;
+        size?: number | null;
       }[];
     };
     /** @description Cursor from a previous response to fetch the next page. */
@@ -1906,6 +1907,7 @@ export interface operations {
               | "avatar"
               | "unknown";
             fileName?: string | null;
+            size?: number | null;
           };
         };
       };
