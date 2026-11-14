@@ -98,6 +98,12 @@ services:
       dockerfile: docker/chrome/Dockerfile
     restart: unless-stopped
     init: true
+    # Chrome's own sandbox, so the crawler tests run against the setup
+    # docker/chrome/README.md documents.
+    environment:
+      KARAKEEP_CHROME_SANDBOX: "true"
+    security_opt:
+      - seccomp=../../docker/chrome/seccomp.json
     command:
       - --disable-gpu
       - --disable-dev-shm-usage
