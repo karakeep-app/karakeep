@@ -318,6 +318,9 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
 
 const SWIPE_ACTION_WIDTH = 84;
 const SWIPE_TAP_GUARD_MS = 700;
+// Cards sit 16pt from the screen edge; ignoring their first 24pt leaves the
+// iOS edge-swipe-back zone to the navigator.
+const SWIPE_LEFT_EDGE_INSET = 24;
 
 function SwipeAction({
   icon: Icon,
@@ -470,6 +473,7 @@ function CardGestures({
     <ReanimatedSwipeable
       ref={swipeableRef}
       friction={1.6}
+      hitSlop={{ left: -SWIPE_LEFT_EDGE_INSET }}
       overshootLeft={false}
       overshootRight={false}
       leftThreshold={SWIPE_ACTION_WIDTH / 2}
