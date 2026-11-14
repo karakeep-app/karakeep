@@ -51,3 +51,26 @@ export function normalizeBrowserUserAgent(userAgent: string): string {
     .replace("HeadlessChrome/", "Chrome/")
     .replace(/Chrome\/(\d+)\.[\d.]+/, "Chrome/$1.0.0.0");
 }
+
+/**
+ * Gives a best-effort download (e.g. the banner image) its own time budget on
+ * top of the job-wide signal, so a host that never answers only costs that
+ * download instead of the whole crawl. A non-positive budget disables the
+ * separate timeout (AbortSignal.timeout rejects negative values, and 0 would
+ * skip every download), leaving only the job-wide signal.
+ */
+export function withDownloadTimeout(
+  jobSignal: AbortSignal,
+  timeoutSec: number,
+): AbortSignal {
+  if (!(timeoutSec > 0) || !Number.isFinite(timeoutSec)) {
+    return jobSignal;
+  }
+  // AbortSignal.timeout only takes whole milliseconds, and its timer falls
+  // back to 1 ms for anything above the signed 32-bit range (~24.8 days).
+  const timeoutMs = Math.min(
+    Math.max(1, Math.round(timeoutSec * 1000)),
+    0x7fffffff,
+  );
+  return AbortSignal.any([jobSignal, AbortSignal.timeout(timeoutMs)]);
+}
