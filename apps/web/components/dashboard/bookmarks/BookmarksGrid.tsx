@@ -149,10 +149,12 @@ export default function BookmarksGrid({
   fetchNextPage = () => ({}),
   isFetchingNextPage = false,
   showEditorCard = false,
+  keyboardNavigationDisabled = false,
   isSearch = false,
 }: {
   bookmarks: ZBookmark[];
   showEditorCard?: boolean;
+  keyboardNavigationDisabled?: boolean;
   isSearch?: boolean;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
@@ -195,6 +197,7 @@ export default function BookmarksGrid({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    disabled: keyboardNavigationDisabled,
   });
 
   useEffect(() => {
