@@ -317,6 +317,7 @@
   "lists": {
     "type_manual": "手动",
     "type_smart": "智能",
+    "all_lists": "所有列表",
     "parent_label": "父级列表",
     "no_parent": "没有父级",
     "parent_unavailable": "父级列表不可用",

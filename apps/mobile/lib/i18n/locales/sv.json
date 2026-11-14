@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Manuell",
     "type_smart": "Smart",
+    "all_lists": "Alla listor",
     "parent_label": "Föräldralista",
     "no_parent": "Ingen förälder",
     "parent_unavailable": "Föräldralistan är inte tillgänglig",

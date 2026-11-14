@@ -317,6 +317,7 @@
   "lists": {
     "type_manual": "手動",
     "type_smart": "智慧",
+    "all_lists": "所有清單",
     "parent_label": "上層清單",
     "no_parent": "無上層清單",
     "parent_unavailable": "無法使用上層清單",

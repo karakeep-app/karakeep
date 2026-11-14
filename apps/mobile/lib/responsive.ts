@@ -1,10 +1,24 @@
 import type { LayoutChangeEvent } from "react-native";
 import { useState } from "react";
-import { useWindowDimensions } from "react-native";
+import { Platform, useWindowDimensions } from "react-native";
 
 // Max width for single-column content (lists, forms, reading) so that rows
 // and lines don't stretch across the whole screen on tablets.
 export const READABLE_CONTENT_MAX_WIDTH = 720;
+
+export const SIDEBAR_WIDTH = 260;
+// Narrower windows (phones, iPhone Duo folded or in Split View) don't leave
+// enough room next to the sidebar, so they keep the tab bar instead.
+const SIDEBAR_MIN_WINDOW_WIDTH = 800;
+
+/**
+ * Whether the dashboard shows its sidebar instead of the tab bar. Reads the
+ * window size on every render, so folding or resizing switches between them.
+ */
+export function useShowSidebar() {
+  const { width } = useWindowDimensions();
+  return Platform.OS === "ios" && width >= SIDEBAR_MIN_WINDOW_WIDTH;
+}
 
 /**
  * Tracks the width of a container through its `onLayout`. Until the first

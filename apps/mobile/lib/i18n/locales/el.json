@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Χειροκίνητη",
     "type_smart": "Έξυπνη",
+    "all_lists": "Όλες οι Λίστες",
     "parent_label": "Γονική λίστα",
     "no_parent": "Χωρίς γονική",
     "parent_unavailable": "Η γονική λίστα δεν είναι διαθέσιμη",

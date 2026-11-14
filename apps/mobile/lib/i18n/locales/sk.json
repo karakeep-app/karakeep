@@ -323,6 +323,7 @@
   "lists": {
     "type_manual": "Manuálny",
     "type_smart": "Automatický",
+    "all_lists": "Všetky zoznamy",
     "parent_label": "Nadradený zoznam",
     "no_parent": "Bez nadradeného zoznamu",
     "parent_unavailable": "Nadradený zoznam nie je dostupný",

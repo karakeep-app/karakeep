@@ -323,6 +323,7 @@
   "lists": {
     "type_manual": "Ręczna",
     "type_smart": "Inteligentna",
+    "all_lists": "Wszystkie listy",
     "parent_label": "Lista nadrzędna",
     "no_parent": "Bez rodzica",
     "parent_unavailable": "Rodzic niedostępny",

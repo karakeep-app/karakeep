@@ -317,6 +317,7 @@
   "lists": {
     "type_manual": "수동",
     "type_smart": "스마트",
+    "all_lists": "모든 목록",
     "parent_label": "상위 목록",
     "no_parent": "상위 목록 없음",
     "parent_unavailable": "상위 목록을 사용할 수 없음",

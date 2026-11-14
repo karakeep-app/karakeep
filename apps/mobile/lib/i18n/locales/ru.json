@@ -323,6 +323,7 @@
   "lists": {
     "type_manual": "Ручной",
     "type_smart": "Умный",
+    "all_lists": "Все списки",
     "parent_label": "Родительский список",
     "no_parent": "Нет",
     "parent_unavailable": "Родительский список недоступен",
