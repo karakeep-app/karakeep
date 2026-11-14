@@ -211,6 +211,19 @@ export default function OptionsPage() {
         </SettingsRow>
         {settings.showCountBadge && (
           <SettingsRow
+            label="Ignore query parameters"
+            description="Also mark pages whose URL only differs in the part after '?'. May give false positives on sites like YouTube."
+          >
+            <Switch
+              checked={settings.badgeIgnoreQuery}
+              onCheckedChange={(checked) =>
+                setSettings((s) => ({ ...s, badgeIgnoreQuery: checked }))
+              }
+            />
+          </SettingsRow>
+        )}
+        {settings.showCountBadge && (
+          <SettingsRow
             label="Cache badge status"
             description="Fewer requests to your server, but the badge can be stale."
           >
