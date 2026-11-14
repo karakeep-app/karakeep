@@ -268,7 +268,7 @@ export default function PublicBookmarkGrid({
     <>
       <Masonry
         className="-ml-4 flex w-auto"
-        columnClassName="pl-4"
+        columnClassName="pl-4 [container-type:inline-size]"
         breakpointCols={breakpointConfig}
       >
         {bookmarks.map((bookmark) => (
