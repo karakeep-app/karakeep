@@ -88,22 +88,28 @@ export default function BookmarksGridSkeleton({
     masonry: (
       <Masonry
         className="-ml-4 flex w-auto"
-        columnClassName="pl-4"
+        columnClassName="pl-4 [container-type:inline-size]"
         breakpointCols={breakpointConfig}
       >
         {items.map((i) => (
-          <GridCardSkeleton key={i} imageHeight="h-40" />
+          <GridCardSkeleton
+            key={i}
+            imageHeight="h-40 sm:h-[clamp(7rem,50cqw,14rem)]"
+          />
         ))}
       </Masonry>
     ),
     grid: (
       <Masonry
         className="-ml-4 flex w-auto"
-        columnClassName="pl-4"
+        columnClassName="pl-4 [container-type:inline-size]"
         breakpointCols={breakpointConfig}
       >
         {items.map((i) => (
-          <GridCardSkeleton key={i} imageHeight="h-40" />
+          <GridCardSkeleton
+            key={i}
+            imageHeight="h-40 sm:h-[clamp(7rem,50cqw,14rem)]"
+          />
         ))}
       </Masonry>
     ),

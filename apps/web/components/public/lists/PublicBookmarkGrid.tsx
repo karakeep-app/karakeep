@@ -63,7 +63,7 @@ function PublicCardImage({ href, src }: { href: string; src: string }) {
       // The title right below goes to the same place
       tabIndex={-1}
       aria-hidden
-      className="relative block h-40 w-full shrink-0 overflow-hidden"
+      className="relative block h-40 w-full shrink-0 overflow-hidden sm:h-[clamp(7rem,50cqw,14rem)]"
     >
       <CardImage
         src={src}
@@ -268,7 +268,7 @@ export default function PublicBookmarkGrid({
     <>
       <Masonry
         className="-ml-4 flex w-auto"
-        columnClassName="pl-4"
+        columnClassName="pl-4 [container-type:inline-size]"
         breakpointCols={breakpointConfig}
       >
         {bookmarks.map((bookmark) => (

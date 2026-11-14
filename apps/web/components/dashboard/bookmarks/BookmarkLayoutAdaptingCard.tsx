@@ -654,9 +654,13 @@ function GridView({
     <div
       className={cn(
         "group relative isolate flex flex-col overflow-hidden rounded-lg",
+        // The banner follows the card's width (a 2:1 box, kept between 7rem and
+        // 14rem), so wide cards don't crop their image to a strip. cqw is the
+        // masonry column's width, which is the card's.
+        "[--banner-h:clamp(7rem,50cqw,14rem)]",
         className,
-        // An image, a two line title, a row of tags and the footer, and no more
-        isFixedHeight && "h-[18.25rem] max-sm:h-auto",
+        // A banner, a two line title, a row of tags and the footer, and no more
+        isFixedHeight && "h-[calc(var(--banner-h)+8.25rem)] max-sm:h-auto",
       )}
       data-bookmark-index={bookmarkIndex}
     >
@@ -672,7 +676,9 @@ function GridView({
               ? "min-h-20 flex-1"
               : cn(
                   "shrink-0",
-                  !isFixedHeight && imageIsPlaceholder ? "h-14" : "h-40",
+                  !isFixedHeight && imageIsPlaceholder
+                    ? "h-14"
+                    : "h-[var(--banner-h)]",
                 ),
             phoneImageClass,
           )}
