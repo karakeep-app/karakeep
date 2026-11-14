@@ -257,10 +257,10 @@ index 0000000000000000000000000000000000000000..8258d653884938fe14eb99e3c16bb512
 +    }
 +}
 diff --git a/build/utils.js b/build/utils.js
-index 3d343c633b4bb267a1ee994352516997f8e058b3..597f33c641b3eb702086e735929d7e34ff10a9db 100644
+index 3d343c633b4bb267a1ee994352516997f8e058b3..064e42785c23ef6d4a544f2d45e3cc0e05e3de0f 100644
 --- a/build/utils.js
 +++ b/build/utils.js
-@@ -45,6 +45,52 @@ export function parseJson(value, defaultValue = null) {
+@@ -45,6 +45,60 @@ export function parseJson(value, defaultValue = null) {
          return defaultValue;
      }
  }
@@ -271,18 +271,26 @@ index 3d343c633b4bb267a1ee994352516997f8e058b3..597f33c641b3eb702086e735929d7e34
 +const CLOSER_TO_OPENER = { ")": "(", "]": "[" };
 +const isValidWebUrl = (url) => /^https?:\/\/[^/?#]+/i.test(url);
 +export const extractWebUrl = (text) => {
-+    // Characters that must be percent-encoded in a URI ({ } | \ ^ `), typographic
-+    // quotes and full-width (CJK) punctuation are never part of a URL, so they
-+    // end it. The latter matters for CJK text, which has no spaces.
-+    const match = text.match(/https?:\/\/[^\s<>"{}|\\^`“”«»「」『』【】《》〈〉（）。、，；：！？]+/i);
++    // These end a URL:
++    // - characters that must be percent-encoded in a URI ({ } | \ ^ `)
++    // - typographic quotes
++    // - CJK characters (ideographs, kana, hangul, CJK and full-width
++    //   punctuation): CJK prose has no spaces, so it often runs straight into
++    //   the link. Shared links carry these percent-encoded anyway.
++    const match = text.match(/https?:\/\/[^\s<>"{}|\\^`“”«»ᄀ-ᇿ⺀-鿿ꥠ-꥿가-퟿豈-﫿︰-﹏＀-￯]+/i);
 +    if (!match)
 +        return null;
-+    const url = match[0];
++    const token = match[0];
++    // "](" can't occur in a URL (an unencoded "]" is only valid in an IPv6
++    // host), but it's how a Markdown link labelled with a URL continues:
++    // [https://a](https://b).
++    const markdownLink = token.indexOf("](");
++    const url = markdownLink === -1 ? token : token.slice(0, markdownLink);
 +    // A URL alone on its line (e.g. the whole share, or "Title\nURL") is taken
 +    // verbatim: there's no sentence on that line whose punctuation could have
 +    // leaked into it.
 +    const lineStart = text.lastIndexOf("\n", match.index) + 1;
-+    const lineEnd = text.indexOf("\n", match.index + url.length);
++    const lineEnd = text.indexOf("\n", match.index + token.length);
 +    const line = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd);
 +    if (line.trim() === url)
 +        return isValidWebUrl(url) ? url : null;
@@ -313,7 +321,7 @@ index 3d343c633b4bb267a1ee994352516997f8e058b3..597f33c641b3eb702086e735929d7e34
  export const parseShareIntent = (value, options) => {
      let result = SHAREINTENT_DEFAULTVALUE;
      if (!value)
-@@ -59,9 +105,7 @@ export const parseShareIntent = (value, options) => {
+@@ -59,9 +113,7 @@ export const parseShareIntent = (value, options) => {
      }
      if (shareIntent?.text) {
          // Try to find the webURL in the SharedIntent text
