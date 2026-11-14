@@ -28,6 +28,9 @@ export class S3AssetStoreProvider implements PluginProvider<AssetStore> {
           region: this.options.region,
           endpoint: this.options.endpoint,
           forcePathStyle: this.options.forcePathStyle,
+          // Many S3-compatible stores (e.g. Alibaba OSS) reject the default CRC32 checksums and aws-chunked encoding.
+          requestChecksumCalculation: "WHEN_REQUIRED",
+          responseChecksumValidation: "WHEN_REQUIRED",
           credentials: {
             accessKeyId: this.options.accessKeyId,
             secretAccessKey: this.options.secretAccessKey,
