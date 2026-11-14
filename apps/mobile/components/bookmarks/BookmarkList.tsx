@@ -93,7 +93,7 @@ export default function BookmarkList({
     containerWidth,
     horizontalInset: HORIZONTAL_MARGIN,
     gap: GAP,
-    minColumnWidth: settings.bookmarkLayout === "list" ? 420 : 340,
+    minColumnWidth: settings.bookmarkLayout === "list" ? 420 : 280,
   });
 
   return (

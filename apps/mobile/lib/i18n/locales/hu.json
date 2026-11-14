@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Manuális",
     "type_smart": "Okos",
+    "all_lists": "Minden lista",
     "parent_label": "Szülő lista",
     "no_parent": "Nincs szülő",
     "parent_unavailable": "A szülő lista nem érhető el",

@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Manual",
     "type_smart": "Intelixente",
+    "all_lists": "Todas as listas",
     "parent_label": "Lista superior",
     "no_parent": "Ningunha",
     "parent_unavailable": "Lista superior non dispoñible",

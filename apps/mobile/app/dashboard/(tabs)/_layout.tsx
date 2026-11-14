@@ -3,12 +3,14 @@ import { Platform } from "react-native";
 import { NativeTabs } from "expo-router/native-tabs";
 import { isIOS26 } from "@/lib/ios";
 import { useTranslation } from "@/lib/i18n/hooks";
+import { useShowSidebar } from "@/lib/responsive";
 import { useColorScheme } from "@/lib/useColorScheme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function TabLayout() {
   const { colors } = useColorScheme();
   const { t } = useTranslation();
+  const showSidebar = useShowSidebar();
   return (
     <NativeTabs
       backgroundColor={colors.grey6}
@@ -17,6 +19,11 @@ export default function TabLayout() {
         default: "onScrollDown",
       })}
       labelVisibilityMode={Platform.select({ android: "labeled" })}
+      // Wide windows show the dashboard's own sidebar instead, so keep iOS
+      // from turning the tab bar into its sidebar and hide it there.
+      sidebarAdaptable={false}
+      hidden={showSidebar}
+      disableHiddenAnimation
     >
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Icon

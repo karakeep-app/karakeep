@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { OfflineDownloadSync } from "@/components/OfflineDownloadSync";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { SIDEBAR_WIDTH, useShowSidebar } from "@/lib/responsive";
 import { Toaster } from "sonner-native";
 
 import { TRPCSettingsProvider } from "@karakeep/shared-react/providers/trpc-provider";
@@ -25,6 +27,9 @@ import { useColorScheme } from "./useColorScheme";
 export function Providers({ children }: { children: React.ReactNode }) {
   const { isDarkColorScheme } = useColorScheme();
   const { settings, isLoading, load } = useAppSettings();
+  const insets = useSafeAreaInsets();
+  // The dashboard's sidebar only shows once signed in.
+  const showSidebar = useShowSidebar() && !!settings.apiKey;
   const [queryClient] = useState(() => makeMobileQueryClient());
 
   useEffect(() => {
@@ -65,8 +70,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 <Toaster
                   position="bottom-center"
                   offset={Platform.OS === "android" ? 170 : 100}
-                  // Raised above the near-black cards and page in dark mode.
                   toastOptions={{
+                    // Center toasts over the content, clear of the sidebar
+                    // and iPhone Duo's rail.
+                    toastContainerStyle: {
+                      paddingLeft:
+                        insets.left + (showSidebar ? SIDEBAR_WIDTH : 0),
+                      paddingRight: insets.right,
+                    },
+                    // Raised above the near-black cards and page in dark mode.
                     style: {
                       backgroundColor: isDarkColorScheme
                         ? "#3a3a3c"

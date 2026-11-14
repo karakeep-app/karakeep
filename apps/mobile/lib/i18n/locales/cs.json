@@ -323,6 +323,7 @@
   "lists": {
     "type_manual": "Ruční",
     "type_smart": "Chytrý",
+    "all_lists": "Všechny seznamy",
     "parent_label": "Nadřazený seznam",
     "no_parent": "Bez nadřazeného",
     "parent_unavailable": "Nadřazený seznam není dostupný",

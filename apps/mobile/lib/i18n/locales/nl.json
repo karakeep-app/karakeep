@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Handmatig",
     "type_smart": "Slim",
+    "all_lists": "Alle Lijsten",
     "parent_label": "Bovenliggende lijst",
     "no_parent": "Geen bovenliggende lijst",
     "parent_unavailable": "Bovenliggende lijst niet beschikbaar",

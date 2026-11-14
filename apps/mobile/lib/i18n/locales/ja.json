@@ -317,6 +317,7 @@
   "lists": {
     "type_manual": "手動",
     "type_smart": "スマート",
+    "all_lists": "すべてのリスト",
     "parent_label": "親リスト",
     "no_parent": "親なし",
     "parent_unavailable": "親リストを利用できません",

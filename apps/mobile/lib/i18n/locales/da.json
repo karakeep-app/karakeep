@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Manuel",
     "type_smart": "Smart",
+    "all_lists": "Alle lister",
     "parent_label": "Overordnet liste",
     "no_parent": "Ingen overordnet",
     "parent_unavailable": "Overordnet liste utilgængelig",

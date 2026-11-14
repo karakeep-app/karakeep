@@ -323,6 +323,7 @@
   "lists": {
     "type_manual": "Ročni",
     "type_smart": "Pametni",
+    "all_lists": "Vsi seznami",
     "parent_label": "Nadrejeni seznam",
     "no_parent": "Brez nadrejenega",
     "parent_unavailable": "Nadrejeni seznam ni na voljo",

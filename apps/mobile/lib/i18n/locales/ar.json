@@ -327,6 +327,7 @@
   "lists": {
     "type_manual": "يدوية",
     "type_smart": "ذكية",
+    "all_lists": "جميع القوائم",
     "parent_label": "القائمة الأم",
     "no_parent": "بلا قائمة أم",
     "parent_unavailable": "القائمة الأم غير متاحة",

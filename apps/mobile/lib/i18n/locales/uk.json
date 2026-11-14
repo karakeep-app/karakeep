@@ -323,6 +323,7 @@
   "lists": {
     "type_manual": "Ручний",
     "type_smart": "Розумний",
+    "all_lists": "Усі списки",
     "parent_label": "Батьківський список",
     "no_parent": "Немає",
     "parent_unavailable": "Батьківський список недоступний",

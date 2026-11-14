@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react-native";
-import { RefreshControl, useWindowDimensions, View } from "react-native";
+import { RefreshControl, View } from "react-native";
 import { AppIcon } from "@/components/ui/AppIcon";
 import QueryPageState from "@/components/QueryPageState";
 import {
@@ -12,6 +12,7 @@ import { Text } from "@/components/ui/Text";
 import { getIntlLocale } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/hooks";
 import type { MobileTFunction } from "@/lib/i18n/hooks";
+import { useContainerWidth } from "@/lib/responsive";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -521,7 +522,8 @@ function StatsSkeleton() {
 }
 
 export default function UsageStatsScreen() {
-  const { width: windowWidth } = useWindowDimensions();
+  const { width: metricGridWidth, onLayout: onMetricGridLayout } =
+    useContainerWidth();
   const { colors } = useColorScheme();
   const { t } = useTranslation();
   const api = useTRPC();
@@ -542,9 +544,8 @@ export default function UsageStatsScreen() {
   const assetsBySize = [...stats.assetsByType].sort(
     (left, right) => right.totalSize - left.totalSize,
   );
-  const metricColumnCount = windowWidth >= 700 ? 3 : 2;
+  const metricColumnCount = metricGridWidth >= 668 ? 3 : 2;
   const metricGridGap = 8;
-  const metricGridWidth = windowWidth - 32;
   const metricTileWidth =
     (metricGridWidth - metricGridGap * (metricColumnCount - 1)) /
     metricColumnCount;
@@ -613,7 +614,7 @@ export default function UsageStatsScreen() {
       </View>
 
       <SectionLabel>{t("stats.at_a_glance")}</SectionLabel>
-      <View className="flex-row flex-wrap gap-2">
+      <View className="flex-row flex-wrap gap-2" onLayout={onMetricGridLayout}>
         <MetricTile
           label={t("stats.favourites")}
           value={formatNumber(stats.numFavorites)}

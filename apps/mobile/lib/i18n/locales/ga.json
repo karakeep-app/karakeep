@@ -325,6 +325,7 @@
   "lists": {
     "type_manual": "Láimhe",
     "type_smart": "Cliste",
+    "all_lists": "Gach Liosta",
     "parent_label": "Liosta Tuismitheora",
     "no_parent": "Gan tuismitheoir",
     "parent_unavailable": "Níl an tuismitheoir ar fáil",

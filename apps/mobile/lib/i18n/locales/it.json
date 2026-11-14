@@ -321,6 +321,7 @@
   "lists": {
     "type_manual": "Manuale",
     "type_smart": "Intelligente",
+    "all_lists": "Tutte le liste",
     "parent_label": "Lista principale",
     "no_parent": "Nessuna",
     "parent_unavailable": "Lista principale non disponibile",

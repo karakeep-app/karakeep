@@ -317,6 +317,7 @@
   "lists": {
     "type_manual": "Thủ công",
     "type_smart": "Thông minh",
+    "all_lists": "Tất cả danh sách",
     "parent_label": "Danh sách cha",
     "no_parent": "Không có danh sách cha",
     "parent_unavailable": "Danh sách cha không khả dụng",

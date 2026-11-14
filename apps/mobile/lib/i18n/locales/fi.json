@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Manuaalinen",
     "type_smart": "Älykäs",
+    "all_lists": "Kaikki listat",
     "parent_label": "Ylälista",
     "no_parent": "Ei ylälistaa",
     "parent_unavailable": "Ylälista ei ole saatavilla",

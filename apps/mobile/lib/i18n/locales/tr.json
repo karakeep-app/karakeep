@@ -319,6 +319,7 @@
   "lists": {
     "type_manual": "Manuel",
     "type_smart": "Akıllı",
+    "all_lists": "Tüm Listeler",
     "parent_label": "Üst Liste",
     "no_parent": "Üst liste yok",
     "parent_unavailable": "Üst liste kullanılamıyor",
