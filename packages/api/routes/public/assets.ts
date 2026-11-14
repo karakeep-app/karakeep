@@ -44,7 +44,7 @@ const app = new Hono()
       if (!assetDb) {
         return c.json({ error: "Asset not found" }, { status: 404 });
       }
-      return await serveAsset(c, assetId, userId);
+      return await serveAsset(c, assetId, userId, assetDb.assetType);
     },
   );
 
