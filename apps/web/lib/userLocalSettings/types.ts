@@ -13,6 +13,7 @@ export const zUserLocalSettings = z.object({
   showTags: z.boolean().optional().default(true),
   showTitle: z.boolean().optional().default(true),
   imageFit: z.enum(["cover", "contain"]).optional().default("cover"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 export type UserLocalSettings = z.infer<typeof zUserLocalSettings>;
