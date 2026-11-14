@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const HORIZONTAL_EDGES = ["left", "right"] as const;
 
@@ -12,38 +13,33 @@ const HORIZONTAL_EDGES = ["left", "right"] as const;
  * the app is portrait-only.
  *
  * The native SafeAreaView measures where the screen actually is, so form
- * sheets away from the rail and Split View windows get the right inset. It
- * uses margin rather than padding so absolutely positioned children (FABs,
- * toolbars) move along with the content.
+ * sheets away from the rail and Split View windows get the right inset.
+ *
+ * It uses padding, not margin. Screens in a modal or sheet (and cards pushed
+ * inside one) sit outside the app's SafeAreaProvider, so the SafeAreaView
+ * measures its own insets there. A margin would move it by those insets and
+ * change them, which loops forever; padding leaves its frame alone. The inner
+ * view keeps absolutely positioned children (FABs, toolbars) inside the
+ * padding too.
  *
  * Screens that are navigators themselves are passed through: their own
  * screens apply this, and wrapping them would also inset their headers.
- *
- * Modals and sheets are presented outside the app's SafeAreaProvider, so they
- * get their own. Without one, the SafeAreaView measures its own insets, and
- * moving itself by the margin changes them, which loops forever.
  */
 export function horizontalSafeAreaLayout(nestedNavigators: string[] = []) {
   return function ScreenLayout({
     route,
-    options,
     children,
   }: {
     route: { name: string };
-    options: { presentation?: string };
     children: ReactElement;
   }) {
     if (nestedNavigators.includes(route.name)) {
       return children;
     }
-    const content = (
-      <SafeAreaView mode="margin" edges={HORIZONTAL_EDGES} style={{ flex: 1 }}>
-        {children}
+    return (
+      <SafeAreaView mode="padding" edges={HORIZONTAL_EDGES} style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>{children}</View>
       </SafeAreaView>
     );
-    if (options.presentation && options.presentation !== "card") {
-      return <SafeAreaProvider>{content}</SafeAreaProvider>;
-    }
-    return content;
   };
 }
