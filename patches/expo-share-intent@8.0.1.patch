@@ -257,41 +257,58 @@ index 0000000000000000000000000000000000000000..8258d653884938fe14eb99e3c16bb512
 +    }
 +}
 diff --git a/build/utils.js b/build/utils.js
-index 3d343c633b4bb267a1ee994352516997f8e058b3..15dfcd5a70cc2159ac1fe68723c887ef05db3aba 100644
+index 3d343c633b4bb267a1ee994352516997f8e058b3..a59198db4973c56d34eb16540af037e6cb41aec1 100644
 --- a/build/utils.js
 +++ b/build/utils.js
-@@ -45,6 +45,30 @@ export function parseJson(value, defaultValue = null) {
+@@ -45,6 +45,47 @@ export function parseJson(value, defaultValue = null) {
          return defaultValue;
      }
  }
 +// Extract the first http(s) URL from shared text. The upstream regex stopped at
 +// characters that are valid in URLs (e.g. parentheses), truncating links like
 +// https://en.wikipedia.org/wiki/Bug_(engineering) (karakeep#2219).
-+const countChar = (str, char) => str.split(char).length - 1;
++const TRAILING_PUNCTUATION = new Set(".,;:!?'*’‘…");
++const CLOSER_TO_OPENER = { ")": "(", "]": "[" };
++const isValidWebUrl = (url) => /^https?:\/\/[^/?#]+/i.test(url);
 +export const extractWebUrl = (text) => {
-+    const match = text.match(/https?:\/\/[^\s<>"]+/i);
++    // Typographic quotes and full-width (CJK) punctuation are never part of a
++    // URL, so they end it. This matters for CJK text, which has no spaces.
++    const match = text.match(/https?:\/\/[^\s<>"“”«»「」『』【】《》〈〉（）。、，；：！？]+/i);
 +    if (!match)
 +        return null;
-+    let url = match[0];
-+    // Drop trailing punctuation that belongs to the surrounding sentence, and
-+    // closing brackets that have no matching opener inside the URL.
-+    while (url.length > 0) {
-+        const last = url[url.length - 1];
-+        if (".,;:!?'".includes(last) ||
-+            (last === ")" && countChar(url, "(") < countChar(url, ")")) ||
-+            (last === "]" && countChar(url, "[") < countChar(url, "]"))) {
-+            url = url.slice(0, -1);
++    const url = match[0];
++    // A URL shared on its own is taken verbatim: there's no surrounding
++    // sentence whose punctuation could have leaked into it.
++    if (text.trim() === url)
++        return isValidWebUrl(url) ? url : null;
++    // Otherwise drop trailing punctuation that belongs to the surrounding
++    // sentence, and closing brackets that have no matching opener inside the
++    // URL. Bracket counts are computed once so this stays linear.
++    const counts = {};
++    for (const char of url)
++        counts[char] = (counts[char] ?? 0) + 1;
++    let end = url.length;
++    while (end > 0) {
++        const last = url[end - 1];
++        const opener = CLOSER_TO_OPENER[last];
++        if (TRAILING_PUNCTUATION.has(last)) {
++            end--;
++        }
++        else if (opener && (counts[opener] ?? 0) < counts[last]) {
++            counts[last]--;
++            end--;
 +        }
 +        else {
 +            break;
 +        }
 +    }
-+    return /^https?:\/\/[^/?#]+/i.test(url) ? url : null;
++    const trimmed = url.slice(0, end);
++    return isValidWebUrl(trimmed) ? trimmed : null;
 +};
  export const parseShareIntent = (value, options) => {
      let result = SHAREINTENT_DEFAULTVALUE;
      if (!value)
-@@ -59,9 +83,7 @@ export const parseShareIntent = (value, options) => {
+@@ -59,9 +100,7 @@ export const parseShareIntent = (value, options) => {
      }
      if (shareIntent?.text) {
          // Try to find the webURL in the SharedIntent text
