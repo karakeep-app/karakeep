@@ -1,11 +1,22 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { View } from "react-native";
-import WebView from "react-native-webview";
+import type { ComponentProps, ComponentType, RefAttributes } from "react";
+import RNWebView from "react-native-webview";
 import { useTranslation } from "@/lib/i18n/hooks";
 import { WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
+
+interface WebViewHandle {
+  injectJavaScript: (script: string) => void;
+}
+
+// react-native-webview 14 types its cross-platform export without a ref, but
+// every native implementation forwards one.
+const WebView = RNWebView as ComponentType<
+  ComponentProps<typeof RNWebView> & RefAttributes<WebViewHandle>
+>;
 
 export interface ReaderPreviewRef {
   updateStyles: (
@@ -23,7 +34,7 @@ interface ReaderPreviewProps {
 
 export const ReaderPreview = forwardRef<ReaderPreviewRef, ReaderPreviewProps>(
   ({ initialFontFamily, initialFontSize, initialLineHeight }, ref) => {
-    const webViewRef = useRef<WebView>(null);
+    const webViewRef = useRef<WebViewHandle>(null);
     const { isDarkColorScheme: isDark } = useColorScheme();
     const { t } = useTranslation();
     const previewText = t("settings.reader_preview_text")

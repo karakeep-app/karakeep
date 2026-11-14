@@ -1,0 +1,12 @@
+diff --git a/ios/MenuViewManager.mm b/ios/MenuViewManager.mm
+index 3d149b3e7426b8f7c999603ddf1e15e12331c33a..6816e948876d6b4370e4accfe8717571a94c4812 100644
+--- a/ios/MenuViewManager.mm
++++ b/ios/MenuViewManager.mm
+@@ -1,6 +1,6 @@
+ #import <React/RCTViewManager.h>
+ #import <React/RCTUIManager.h>
+-#import "RCTBridge.h"
++#import <React/RCTBridge.h>
+ 
+ #ifdef RCT_NEW_ARCH_ENABLED
+ // NEW ARCH
