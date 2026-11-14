@@ -48,3 +48,7 @@ jobs:
         with:
           name: karakeep-android
           path: ${{ github.workspace }}/app-release.aab
+
+      - name: Submit to Google Play internal testing
+        working-directory: apps/mobile
+        run: eas submit --platform android --profile production --path ${{ github.workspace }}/app-release.aab --non-interactive

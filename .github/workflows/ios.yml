@@ -37,3 +37,7 @@ jobs:
         with:
           name: karakeep-ios
           path: ${{ github.workspace }}/app-release.ipa
+
+      - name: Submit to TestFlight
+        working-directory: apps/mobile
+        run: eas submit --platform ios --profile production --path ${{ github.workspace }}/app-release.ipa --non-interactive
