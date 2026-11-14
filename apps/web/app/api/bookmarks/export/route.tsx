@@ -31,7 +31,6 @@ export async function GET(request: NextRequest) {
   const req = {
     limit: MAX_NUM_BOOKMARKS_PER_PAGE,
     useCursorV2: true,
-    includeContent: true,
   };
 
   const caller = createTrcpClientFromCtx(() => ctx);
