@@ -854,16 +854,23 @@ const crawlAndParseUrl = traced(
         ? (readableContent?.content ?? null)
         : null;
     readableContent = null;
+    // If the new content couldn't be saved, keep the previously saved content
+    // rather than wiping it.
+    const keepOldContent = htmlContentAssetInfo.result === "over_quota";
     await db.transaction((txn) => {
       txn
         .update(bookmarkLinks)
         .set({
           crawledAt: new Date(),
-          htmlContent: inlineHtmlContent,
-          contentAssetId:
-            htmlContentAssetInfo.result === "stored"
-              ? htmlContentAssetInfo.assetId
-              : null,
+          ...(keepOldContent
+            ? {}
+            : {
+                htmlContent: inlineHtmlContent,
+                contentAssetId:
+                  htmlContentAssetInfo.result === "stored"
+                    ? htmlContentAssetInfo.assetId
+                    : null,
+              }),
           readerViewStatus: readerViewAssessment?.status ?? null,
           readerViewScore: readerViewAssessment?.score ?? null,
           readerViewReasons,
@@ -924,7 +931,7 @@ const crawlAndParseUrl = traced(
           txn,
         );
         assetIdsToDelete.push(oldAssets.contentAssetId);
-      } else if (oldAssets.contentAssetId) {
+      } else if (oldAssets.contentAssetId && !keepOldContent) {
         // Unlink the old content asset
         txn.delete(assets).where(eq(assets.id, oldAssets.contentAssetId)).run();
         assetIdsToDelete.push(oldAssets.contentAssetId);
@@ -1515,7 +1522,9 @@ const archiveWebpage = traced(
 type StoreHtmlResult =
   | { result: "stored"; assetId: string; size: number }
   | { result: "store_inline" }
-  | { result: "not_stored" };
+  | { result: "not_stored" }
+  // The content was too big for the user's remaining storage quota.
+  | { result: "over_quota" };
 
 const storeHtmlContent = traced(
   "storeHtmlContent",
@@ -1550,7 +1559,7 @@ const storeHtmlContent = traced(
       { contentType: ASSET_TYPES.TEXT_HTML, fileName: null },
     );
     if (!assetId) {
-      return { result: "not_stored" };
+      return { result: "over_quota" };
     }
     return { result: "stored", assetId, size: contentSize };
   },
