@@ -74,8 +74,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     // Center toasts over the content, clear of the sidebar
                     // and iPhone Duo's rail.
                     toastContainerStyle: {
-                      paddingLeft:
-                        insets.left + (showSidebar ? SIDEBAR_WIDTH : 0),
+                      // The sidebar already keeps clear of the rail when
+                      // it's on that side.
+                      paddingLeft: showSidebar ? SIDEBAR_WIDTH : insets.left,
                       paddingRight: insets.right,
                     },
                     // Raised above the near-black cards and page in dark mode.

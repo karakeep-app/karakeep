@@ -1,6 +1,7 @@
 import type { AppStateStatus } from "react-native";
 import { useEffect } from "react";
 import { AppState, Platform, View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
@@ -43,10 +44,12 @@ export default function Dashboard() {
     <View style={{ flex: 1, flexDirection: "row" }}>
       {showSidebar && <DashboardSidebar />}
       {/* The navigator keeps its place in the tree when the sidebar appears or
-          disappears (folding), so navigation state survives. */}
-      <View style={{ flex: 1 }}>
+          disappears (folding), so navigation state survives. Its own provider
+          measures insets against this column rather than the window, so the
+          rail isn't counted again when it's on the sidebar's side. */}
+      <SafeAreaProvider style={{ flex: 1 }}>
         <Stack
-          screenLayout={horizontalSafeAreaLayout(["(tabs)"])}
+          screenLayout={horizontalSafeAreaLayout(["(tabs)", "settings"])}
           screenOptions={{
             ...Platform.select({
               ios: {
@@ -273,7 +276,7 @@ export default function Dashboard() {
             }}
           />
         </Stack>
-      </View>
+      </SafeAreaProvider>
     </View>
   );
 }

@@ -233,15 +233,33 @@ function Disclosure({
 
 const EMPTY_DISCLOSURE = <View style={{ width: CHEVRON_SLOT_WIDTH }} />;
 
+/**
+ * State for opening and closing groups by hand. It's dropped whenever the
+ * selected entry changes, so a manual close only lasts while you stay where
+ * you made it, and a list you go to (or come back to) is never hidden inside
+ * a parent you closed earlier.
+ */
+function useTogglesUntilNavigation<T>(activeKey: string | undefined) {
+  const [toggles, setToggles] = useState<{
+    activeKey: string | undefined;
+    value?: T;
+  }>({ activeKey });
+  if (toggles.activeKey !== activeKey) {
+    setToggles({ activeKey });
+  }
+  const value = toggles.activeKey === activeKey ? toggles.value : undefined;
+  const set = (next: T) => setToggles({ activeKey, value: next });
+  return [value, set] as const;
+}
+
 function byName(a: ZBookmarkListTreeNode, b: ZBookmarkListTreeNode) {
   return a.item.name.localeCompare(b.item.name);
 }
 
 /**
  * A list tree. Like on the web, a list opens while you're in it or in one of
- * its children, and can be opened or closed by hand from there. Those manual
- * toggles only last until you go somewhere else, so a list you open next is
- * never hidden inside a parent you closed earlier.
+ * its children, and can be opened or closed by hand until you go somewhere
+ * else.
  */
 function ListRows({
   nodes,
@@ -256,11 +274,9 @@ function ListRows({
   openIds: Set<string>;
   stats: Map<string, number> | undefined;
 }) {
-  const [toggled, setToggled] = useState<{
-    activeKey?: string;
-    open: Record<string, boolean>;
-  }>({ open: {} });
-  const overrides = toggled.activeKey === activeKey ? toggled.open : {};
+  const [toggled, setToggled] =
+    useTogglesUntilNavigation<Record<string, boolean>>(activeKey);
+  const overrides = toggled ?? {};
 
   return [...nodes].sort(byName).map((node) => {
     const hasChildren = node.children.length > 0;
@@ -280,10 +296,7 @@ function ListRows({
                 label={node.item.name}
                 expanded={isOpen}
                 onToggle={() =>
-                  setToggled({
-                    activeKey,
-                    open: { ...overrides, [node.item.id]: !isOpen },
-                  })
+                  setToggled({ ...overrides, [node.item.id]: !isOpen })
                 }
               />
             ) : (
@@ -314,11 +327,8 @@ export function DashboardSidebar() {
   const { colors } = useColorScheme();
   const { t } = useTranslation();
   const activeKey = useActiveKey();
-  // Like the lists' own toggles, this only lasts until you go somewhere else.
-  const [sharedToggled, setSharedToggled] = useState<{
-    activeKey?: string;
-    open: boolean;
-  }>();
+  const [sharedToggled, setSharedToggled] =
+    useTogglesUntilNavigation<boolean>(activeKey);
 
   const api = useTRPC();
   const { data: lists } = useBookmarkLists();
@@ -337,9 +347,7 @@ export function DashboardSidebar() {
     : undefined;
   const openIds = new Set(activePath?.map((list) => list.id));
   const sharedOpen =
-    sharedToggled && sharedToggled.activeKey === activeKey
-      ? sharedToggled.open
-      : sharedLists.some((node) => openIds.has(node.item.id));
+    sharedToggled ?? sharedLists.some((node) => openIds.has(node.item.id));
 
   return (
     <SafeAreaView
@@ -437,14 +445,12 @@ export function DashboardSidebar() {
               label={t("lists_tab.shared_with_me")}
               emoji="👥"
               active={false}
-              onPress={() => setSharedToggled({ activeKey, open: !sharedOpen })}
+              onPress={() => setSharedToggled(!sharedOpen)}
               leading={
                 <Disclosure
                   label={t("lists_tab.shared_with_me")}
                   expanded={sharedOpen}
-                  onToggle={() =>
-                    setSharedToggled({ activeKey, open: !sharedOpen })
-                  }
+                  onToggle={() => setSharedToggled(!sharedOpen)}
                 />
               }
             />
