@@ -216,8 +216,6 @@
     "reader_continue_plain": "Folytatás ott, ahol abbahagytad",
     "couldnt_open_link": "Nem sikerült megnyitni a linket",
     "photo_title": "Fotó",
-    "more_tags_label_one": "és még {{count}} címke",
-    "more_tags_label_other": "és még {{count}} címke",
     "archive_empty_title": "Nincs archivált elem",
     "archive_empty_subtitle": "Húzd balra a könyvjelzőt az archiváláshoz, így eltűnik a Főoldalról.",
     "favourites_empty_title": "Még nincsenek kedvencek",

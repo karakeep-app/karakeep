@@ -224,8 +224,6 @@
     "reader_continue_plain": "تابع من حيث توقفت",
     "couldnt_open_link": "تعذّر فتح هذا الرابط",
     "photo_title": "صورة",
-    "more_tags_label_one": "ووسم آخر واحد",
-    "more_tags_label_other": "و{{count}} وسم آخر",
     "archive_empty_title": "لا شيء مؤرشف",
     "archive_empty_subtitle": "اسحب إشارة مرجعية لليسار لأرشفتها وإزالتها من الرئيسية.",
     "favourites_empty_title": "لا توجد مفضلات بعد",
@@ -265,11 +263,7 @@
     "tap_to_write_note": "اضغط لكتابة ملاحظتك",
     "highlight_tip": "نصيحة: حدّد أي نص لتمييزه.",
     "screenshot_zoom_label": "لقطة شاشة. اضغط للتكبير",
-    "tap_to_zoom": "اضغط للتكبير",
-    "more_tags_label_zero": "ولا وسوم أخرى",
-    "more_tags_label_two": "ووسمان آخران",
-    "more_tags_label_few": "و{{count}} وسوم أخرى",
-    "more_tags_label_many": "و{{count}} وسمًا آخر"
+    "tap_to_zoom": "اضغط للتكبير"
   },
   "bookmark_actions": {
     "lists": "القوائم",

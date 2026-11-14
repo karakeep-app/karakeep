@@ -216,8 +216,6 @@
     "reader_continue_plain": "Jatka siitä, mihin jäit",
     "couldnt_open_link": "Linkin avaaminen ei onnistunut",
     "photo_title": "Kuva",
-    "more_tags_label_one": "ja {{count}} tunniste lisää",
-    "more_tags_label_other": "ja {{count}} tunnistetta lisää",
     "archive_empty_title": "Ei arkistoituja",
     "archive_empty_subtitle": "Pyyhkäise kirjanmerkkiä vasemmalle arkistoidaksesi sen ja poistaaksesi sen Kotinäkymästä.",
     "favourites_empty_title": "Ei vielä suosikkeja",

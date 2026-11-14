@@ -216,8 +216,6 @@
     "reader_continue_plain": "Fortsæt, hvor du slap",
     "couldnt_open_link": "Kunne ikke åbne dette link",
     "photo_title": "Foto",
-    "more_tags_label_one": "og {{count}} tag mere",
-    "more_tags_label_other": "og {{count}} tags mere",
     "archive_empty_title": "Intet arkiveret",
     "archive_empty_subtitle": "Stryg til venstre på et bogmærke for at arkivere det og fjerne det fra Hjem.",
     "favourites_empty_title": "Ingen stjernemarkeringer endnu",

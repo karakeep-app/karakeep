@@ -216,8 +216,6 @@
     "reader_continue_plain": "Continue where you left off",
     "couldnt_open_link": "Couldn't open this link",
     "photo_title": "Photo",
-    "more_tags_label_one": "and {{count}} more tag",
-    "more_tags_label_other": "and {{count}} more tags",
     "archive_empty_title": "Nothing Archived",
     "archive_empty_subtitle": "Swipe left on a bookmark to archive it and clear it from Home.",
     "favourites_empty_title": "No Favourites Yet",

@@ -214,7 +214,6 @@
     "reader_continue_plain": "마지막으로 읽은 곳부터 이어 읽기",
     "couldnt_open_link": "이 링크를 열 수 없습니다",
     "photo_title": "사진",
-    "more_tags_label_other": "태그 {{count}}개 더 있음",
     "archive_empty_title": "보관된 항목 없음",
     "archive_empty_subtitle": "북마크를 왼쪽으로 밀어 보관하면 홈에서 사라집니다.",
     "favourites_empty_title": "아직 즐겨찾기가 없습니다",
