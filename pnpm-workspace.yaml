@@ -54,6 +54,7 @@ patchedDependencies:
   react-native@0.86.3: patches/react-native@0.86.3.patch
   # Android: don't drop shares that arrive while the app is being recreated after
   # process death, and don't replay the task's launch share on reopen (#513).
+  # JS: don't truncate shared URLs at parentheses and other valid URL chars (#2219).
   expo-share-intent@8.0.1: patches/expo-share-intent@8.0.1.patch
   # Detach service worker targets that Chrome reports without a browserContextId
   # instead of failing an assertion that crashes connectOverCDP().

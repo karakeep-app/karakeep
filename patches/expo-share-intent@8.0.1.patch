@@ -256,6 +256,52 @@ index 0000000000000000000000000000000000000000..8258d653884938fe14eb99e3c16bb512
 +        finish()
 +    }
 +}
+diff --git a/build/utils.js b/build/utils.js
+index 3d343c633b4bb267a1ee994352516997f8e058b3..15dfcd5a70cc2159ac1fe68723c887ef05db3aba 100644
+--- a/build/utils.js
++++ b/build/utils.js
+@@ -45,6 +45,30 @@ export function parseJson(value, defaultValue = null) {
+         return defaultValue;
+     }
+ }
++// Extract the first http(s) URL from shared text. The upstream regex stopped at
++// characters that are valid in URLs (e.g. parentheses), truncating links like
++// https://en.wikipedia.org/wiki/Bug_(engineering) (karakeep#2219).
++const countChar = (str, char) => str.split(char).length - 1;
++export const extractWebUrl = (text) => {
++    const match = text.match(/https?:\/\/[^\s<>"]+/i);
++    if (!match)
++        return null;
++    let url = match[0];
++    // Drop trailing punctuation that belongs to the surrounding sentence, and
++    // closing brackets that have no matching opener inside the URL.
++    while (url.length > 0) {
++        const last = url[url.length - 1];
++        if (".,;:!?'".includes(last) ||
++            (last === ")" && countChar(url, "(") < countChar(url, ")")) ||
++            (last === "]" && countChar(url, "[") < countChar(url, "]"))) {
++            url = url.slice(0, -1);
++        }
++        else {
++            break;
++        }
++    }
++    return /^https?:\/\/[^/?#]+/i.test(url) ? url : null;
++};
+ export const parseShareIntent = (value, options) => {
+     let result = SHAREINTENT_DEFAULTVALUE;
+     if (!value)
+@@ -59,9 +83,7 @@ export const parseShareIntent = (value, options) => {
+     }
+     if (shareIntent?.text) {
+         // Try to find the webURL in the SharedIntent text
+-        const webUrl = shareIntent.text
+-            .match(/[(http(s)?)://(www.)?-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/gi)
+-            ?.find((link) => link.startsWith("http")) || null;
++        const webUrl = extractWebUrl(shareIntent.text);
+         result = {
+             ...SHAREINTENT_DEFAULTVALUE,
+             type: webUrl ? "weburl" : "text",
 diff --git a/plugin/build/android/withAndroidIntentFilters.js b/plugin/build/android/withAndroidIntentFilters.js
 index 8814220cab965a7393bc422873cfdf6be29b13a6..9c1f09acf391de61c6565cff8640c41e4a6f9ccd 100644
 --- a/plugin/build/android/withAndroidIntentFilters.js
