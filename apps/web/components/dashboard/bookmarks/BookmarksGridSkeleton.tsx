@@ -92,7 +92,10 @@ export default function BookmarksGridSkeleton({
         breakpointCols={breakpointConfig}
       >
         {items.map((i) => (
-          <GridCardSkeleton key={i} imageHeight="h-[clamp(7rem,50cqw,14rem)]" />
+          <GridCardSkeleton
+            key={i}
+            imageHeight="h-40 sm:h-[clamp(7rem,50cqw,14rem)]"
+          />
         ))}
       </Masonry>
     ),
@@ -103,7 +106,10 @@ export default function BookmarksGridSkeleton({
         breakpointCols={breakpointConfig}
       >
         {items.map((i) => (
-          <GridCardSkeleton key={i} imageHeight="h-[clamp(7rem,50cqw,14rem)]" />
+          <GridCardSkeleton
+            key={i}
+            imageHeight="h-40 sm:h-[clamp(7rem,50cqw,14rem)]"
+          />
         ))}
       </Masonry>
     ),
