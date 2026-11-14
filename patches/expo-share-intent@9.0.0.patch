@@ -256,6 +256,84 @@ index 0000000000000000000000000000000000000000..8258d653884938fe14eb99e3c16bb512
 +        finish()
 +    }
 +}
+diff --git a/build/utils.js b/build/utils.js
+index 3d343c633b4bb267a1ee994352516997f8e058b3..d528f6563370724abe47e830bd5cccb713ce3c05 100644
+--- a/build/utils.js
++++ b/build/utils.js
+@@ -45,6 +45,62 @@ export function parseJson(value, defaultValue = null) {
+         return defaultValue;
+     }
+ }
++// Extract the first http(s) URL from shared text. The upstream regex stopped at
++// characters that are valid in URLs (e.g. parentheses), truncating links like
++// https://en.wikipedia.org/wiki/Bug_(engineering) (karakeep#2219).
++const TRAILING_PUNCTUATION = new Set(".,;:!?'*’‘…");
++const CLOSER_TO_OPENER = { ")": "(", "]": "[" };
++const isValidWebUrl = (url) => /^https?:\/\/[^/?#]+/i.test(url);
++export const extractWebUrl = (text) => {
++    // These end a URL:
++    // - characters that must be percent-encoded in a URI ({ } | \ ^ `)
++    // - typographic quotes
++    // - CJK characters (ideographs, kana, hangul, CJK and full-width
++    //   punctuation): CJK prose has no spaces, so it often runs straight into
++    //   the link. Shared links carry these percent-encoded anyway.
++    // - characters outside the BMP (surrogate pairs): astral CJK ideographs
++    //   and emoji, for the same reason.
++    const match = text.match(/https?:\/\/[^\s<>"{}|\\^`“”«»\u1100-\u11FF\u2E80-\u9FFF\uA960-\uA97F\uAC00-\uD7FF\uD800-\uDFFF\uF900-\uFAFF\uFE30-\uFE4F\uFF00-\uFFEF]+/i);
++    if (!match)
++        return null;
++    const token = match[0];
++    // "](" can't occur in a URL (an unencoded "]" is only valid in an IPv6
++    // host), but it's how a Markdown link labelled with a URL continues:
++    // [https://a](https://b).
++    const markdownLink = token.indexOf("](");
++    const url = markdownLink === -1 ? token : token.slice(0, markdownLink);
++    // A URL alone on its line (e.g. the whole share, or "Title\nURL") is taken
++    // verbatim: there's no sentence on that line whose punctuation could have
++    // leaked into it.
++    const lineStart = text.lastIndexOf("\n", match.index) + 1;
++    const lineEnd = text.indexOf("\n", match.index + token.length);
++    const line = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd);
++    if (line.trim() === url)
++        return isValidWebUrl(url) ? url : null;
++    // Otherwise drop trailing punctuation that belongs to the surrounding
++    // sentence, and closing brackets that have no matching opener inside the
++    // URL. Bracket counts are computed once so this stays linear.
++    const counts = {};
++    for (const char of url)
++        counts[char] = (counts[char] ?? 0) + 1;
++    let end = url.length;
++    while (end > 0) {
++        const last = url[end - 1];
++        const opener = CLOSER_TO_OPENER[last];
++        if (TRAILING_PUNCTUATION.has(last)) {
++            end--;
++        }
++        else if (opener && (counts[opener] ?? 0) < counts[last]) {
++            counts[last]--;
++            end--;
++        }
++        else {
++            break;
++        }
++    }
++    const trimmed = url.slice(0, end);
++    return isValidWebUrl(trimmed) ? trimmed : null;
++};
+ export const parseShareIntent = (value, options) => {
+     let result = SHAREINTENT_DEFAULTVALUE;
+     if (!value)
+@@ -59,9 +115,7 @@ export const parseShareIntent = (value, options) => {
+     }
+     if (shareIntent?.text) {
+         // Try to find the webURL in the SharedIntent text
+-        const webUrl = shareIntent.text
+-            .match(/[(http(s)?)://(www.)?-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/gi)
+-            ?.find((link) => link.startsWith("http")) || null;
++        const webUrl = extractWebUrl(shareIntent.text);
+         result = {
+             ...SHAREINTENT_DEFAULTVALUE,
+             type: webUrl ? "weburl" : "text",
 diff --git a/plugin/build/android/withAndroidIntentFilters.js b/plugin/build/android/withAndroidIntentFilters.js
 index 8814220cab965a7393bc422873cfdf6be29b13a6..9c1f09acf391de61c6565cff8640c41e4a6f9ccd 100644
 --- a/plugin/build/android/withAndroidIntentFilters.js
