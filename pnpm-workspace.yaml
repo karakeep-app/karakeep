@@ -29,6 +29,11 @@ trustPolicyExclude:
 # can't silently turn it off.
 blockExoticSubdeps: true
 
+# pdfjs-dist only needs its native canvas to render pages; the workers use it to
+# extract text.
+ignoredOptionalDependencies:
+  - "@napi-rs/canvas"
+
 allowBuilds:
   "@sentry/cli": true
   "@swc/core": true

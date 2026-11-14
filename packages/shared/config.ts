@@ -143,6 +143,7 @@ const allEnv = z.object({
   WEBHOOK_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
+  ASSET_PREPROCESSING_PDF_PARSER_MEM_LIMIT_MB: z.coerce.number().default(1024),
   RULE_ENGINE_NUM_WORKERS: z.coerce.number().default(1),
   CRAWLER_DOWNLOAD_BANNER_IMAGE: stringBool("true"),
   CRAWLER_STORE_SCREENSHOT: stringBool("true"),
@@ -545,6 +546,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
       jobTimeoutSec: val.ASSET_PREPROCESSING_JOB_TIMEOUT_SEC,
+      pdfParserMemLimitMb: val.ASSET_PREPROCESSING_PDF_PARSER_MEM_LIMIT_MB,
     },
     ruleEngine: {
       numWorkers: val.RULE_ENGINE_NUM_WORKERS,
