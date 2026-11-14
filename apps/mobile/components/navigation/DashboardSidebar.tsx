@@ -239,7 +239,9 @@ function byName(a: ZBookmarkListTreeNode, b: ZBookmarkListTreeNode) {
 
 /**
  * A list tree. Like on the web, a list opens while you're in it or in one of
- * its children, and can be opened or closed by hand from there.
+ * its children, and can be opened or closed by hand from there. Those manual
+ * toggles only last until you go somewhere else, so a list you open next is
+ * never hidden inside a parent you closed earlier.
  */
 function ListRows({
   nodes,
@@ -254,11 +256,15 @@ function ListRows({
   openIds: Set<string>;
   stats: Map<string, number> | undefined;
 }) {
-  const [toggled, setToggled] = useState<Record<string, boolean>>({});
+  const [toggled, setToggled] = useState<{
+    activeKey?: string;
+    open: Record<string, boolean>;
+  }>({ open: {} });
+  const overrides = toggled.activeKey === activeKey ? toggled.open : {};
 
   return [...nodes].sort(byName).map((node) => {
     const hasChildren = node.children.length > 0;
-    const isOpen = toggled[node.item.id] ?? openIds.has(node.item.id);
+    const isOpen = overrides[node.item.id] ?? openIds.has(node.item.id);
     return (
       <View key={node.item.id}>
         <SidebarRow
@@ -274,7 +280,10 @@ function ListRows({
                 label={node.item.name}
                 expanded={isOpen}
                 onToggle={() =>
-                  setToggled((prev) => ({ ...prev, [node.item.id]: !isOpen }))
+                  setToggled({
+                    activeKey,
+                    open: { ...overrides, [node.item.id]: !isOpen },
+                  })
                 }
               />
             ) : (
@@ -305,7 +314,11 @@ export function DashboardSidebar() {
   const { colors } = useColorScheme();
   const { t } = useTranslation();
   const activeKey = useActiveKey();
-  const [sharedToggled, setSharedToggled] = useState<boolean>();
+  // Like the lists' own toggles, this only lasts until you go somewhere else.
+  const [sharedToggled, setSharedToggled] = useState<{
+    activeKey?: string;
+    open: boolean;
+  }>();
 
   const api = useTRPC();
   const { data: lists } = useBookmarkLists();
@@ -324,7 +337,9 @@ export function DashboardSidebar() {
     : undefined;
   const openIds = new Set(activePath?.map((list) => list.id));
   const sharedOpen =
-    sharedToggled ?? sharedLists.some((node) => openIds.has(node.item.id));
+    sharedToggled && sharedToggled.activeKey === activeKey
+      ? sharedToggled.open
+      : sharedLists.some((node) => openIds.has(node.item.id));
 
   return (
     <SafeAreaView
@@ -422,12 +437,14 @@ export function DashboardSidebar() {
               label={t("lists_tab.shared_with_me")}
               emoji="👥"
               active={false}
-              onPress={() => setSharedToggled(!sharedOpen)}
+              onPress={() => setSharedToggled({ activeKey, open: !sharedOpen })}
               leading={
                 <Disclosure
                   label={t("lists_tab.shared_with_me")}
                   expanded={sharedOpen}
-                  onToggle={() => setSharedToggled(!sharedOpen)}
+                  onToggle={() =>
+                    setSharedToggled({ activeKey, open: !sharedOpen })
+                  }
                 />
               }
             />
