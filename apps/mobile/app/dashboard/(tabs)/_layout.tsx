@@ -1,6 +1,6 @@
 import React from "react";
 import { Platform } from "react-native";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/native-tabs";
 import { isIOS26 } from "@/lib/ios";
 import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";

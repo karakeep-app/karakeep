@@ -9,7 +9,7 @@ export default function App() {
     // Wait until it's loaded
     return <FullPageSpinner />;
   } else if (isLoggedIn) {
-    return <Redirect href="dashboard" />;
+    return <Redirect href="/dashboard/(home)" />;
   } else {
     return <Redirect href="signin" />;
   }
