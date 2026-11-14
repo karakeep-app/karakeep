@@ -700,6 +700,7 @@
       "delete_rule_confirmation": "Delete this rule? This can't be undone.",
       "whenever": "Whenever ...",
       "if": "If ...",
+      "preview_matches": "Preview Matches",
       "enter_rule_name": "Enter rule name",
       "describe_what_this_rule_does": "Describe what this rule does",
       "rule_has_been_created": "Rule created",

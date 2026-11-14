@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ActionBuilder } from "@/components/dashboard/rules/RuleEngineActionBuilder";
 import { ConditionBuilder } from "@/components/dashboard/rules/RuleEngineConditionBuilder";
 import { EventSelector } from "@/components/dashboard/rules/RuleEngineEventSelector";
+import { PreviewMatchesButton } from "@/components/dashboard/rules/RuleEnginePreviewButton";
 import { ActionButton } from "@/components/ui/action-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,7 +172,10 @@ export function RuleEditor({ rule, onCancel }: RuleEditorProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>{t("settings.rules.if")}</Label>
+            <div className="flex items-center justify-between">
+              <Label>{t("settings.rules.if")}</Label>
+              <PreviewMatchesButton condition={editedRule.condition} />
+            </div>
             <ConditionBuilder
               value={editedRule.condition}
               onChange={handleConditionChange}
