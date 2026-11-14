@@ -216,8 +216,6 @@
     "reader_continue_plain": "Fortsätt där du slutade",
     "couldnt_open_link": "Kunde inte öppna länken",
     "photo_title": "Foto",
-    "more_tags_label_one": "och {{count}} tagg till",
-    "more_tags_label_other": "och {{count}} taggar till",
     "archive_empty_title": "Inget arkiverat",
     "archive_empty_subtitle": "Svep åt vänster på ett bokmärke för att arkivera det och ta bort det från Hem.",
     "favourites_empty_title": "Inga favoriter än",

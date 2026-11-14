@@ -242,7 +242,8 @@ function CardActions({
   itemName?: string;
 }) {
   return (
-    <View className="absolute bottom-3 right-3">
+    // Same height as the tag row, so the icons share its centre line.
+    <View className="absolute bottom-3 right-3 h-[22px] justify-center">
       <ActionBar actions={actions} compact={compact} itemName={itemName} />
     </View>
   );
@@ -263,7 +264,7 @@ function CardLayout({ ctx }: { ctx: BookmarkCardContext }) {
           className="min-h-[22px] justify-center"
           style={{ paddingRight: EXPANDED_ACTIONS_CLEARANCE }}
         >
-          <TagList bookmark={ctx.bookmark} maxVisible={3} />
+          <TagList bookmark={ctx.bookmark} />
         </View>
       </View>
     </BookmarkCardContainer.Provider>

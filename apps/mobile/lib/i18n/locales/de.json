@@ -216,8 +216,6 @@
     "reader_continue_plain": "Da weitermachen, wo du aufgehört hast",
     "couldnt_open_link": "Dieser Link konnte nicht geöffnet werden",
     "photo_title": "Foto",
-    "more_tags_label_one": "und {{count}} weiterer Tag",
-    "more_tags_label_other": "und {{count}} weitere Tags",
     "archive_empty_title": "Nichts archiviert",
     "archive_empty_subtitle": "Wische bei einem Lesezeichen nach links, um es zu archivieren und aus der Startseite zu entfernen.",
     "favourites_empty_title": "Noch keine Favoriten",

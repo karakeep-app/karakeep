@@ -214,7 +214,6 @@
     "reader_continue_plain": "從上次的位置繼續",
     "couldnt_open_link": "無法開啟此連結",
     "photo_title": "照片",
-    "more_tags_label_other": "還有 {{count}} 個標籤",
     "archive_empty_title": "沒有封存內容",
     "archive_empty_subtitle": "將書籤向左滑動即可封存，並從首頁移除。",
     "favourites_empty_title": "尚無最愛",

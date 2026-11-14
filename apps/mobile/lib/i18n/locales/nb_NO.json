@@ -216,8 +216,6 @@
     "reader_continue_plain": "Fortsett der du slapp",
     "couldnt_open_link": "Kunne ikke åpne denne lenken",
     "photo_title": "Bilde",
-    "more_tags_label_one": "og {{count}} merke til",
-    "more_tags_label_other": "og {{count}} merker til",
     "archive_empty_title": "Ingenting arkivert",
     "archive_empty_subtitle": "Sveip til venstre på et bokmerke for å arkivere det og fjerne det fra Hjem.",
     "favourites_empty_title": "Ingen favoritter ennå",
