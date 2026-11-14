@@ -31,6 +31,7 @@ export async function uploadTestAsset(
   return response.json() as Promise<{
     assetId: string;
     contentType: string;
+    size: number;
     fileName: string;
   }>;
 }
