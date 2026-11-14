@@ -36,6 +36,43 @@ export function getCuratedTagsPrompt(curatedTags?: string[]): string {
   return "";
 }
 
+/**
+ * The rule used to decide whether two tag names are the same tag: case,
+ * spaces, hyphens and underscores are ignored. Mirrors the generated
+ * `normalizedName` column on `bookmarkTags`; keep the two in sync. (SQLite's
+ * `lower()` only folds ASCII, so the two can differ for non-ASCII names.)
+ */
+export function normalizeTagForMatching(tag: string): string {
+  return tag.toLowerCase().replace(/[ \-_]/g, "");
+}
+
+/**
+ * Keeps only the inferred tags that are on the curated list. The prompt asks
+ * the model to stay on the list, but models don't always comply, and anything
+ * off the list would otherwise be created as a new tag. Matching uses
+ * `normalizeTagForMatching`; kept tags take the curated spelling and are
+ * deduplicated.
+ */
+export function filterToCuratedTags(
+  inferredTags: string[],
+  curatedTags: string[],
+): { kept: string[]; dropped: string[] } {
+  const curatedByNormalized = new Map(
+    curatedTags.map((t) => [normalizeTagForMatching(t), t]),
+  );
+  const kept = new Set<string>();
+  const dropped: string[] = [];
+  for (const tag of inferredTags) {
+    const curated = curatedByNormalized.get(normalizeTagForMatching(tag));
+    if (curated === undefined) {
+      dropped.push(tag);
+    } else {
+      kept.add(curated);
+    }
+  }
+  return { kept: [...kept], dropped };
+}
+
 export function getPotentialRelevantTagsPrompt(
   potentialRelevantTags?: string[],
 ): string {
