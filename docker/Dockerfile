@@ -1,7 +1,6 @@
-# Pinned to an exact release so security fixes land deliberately instead of
-# depending on whether a floating tag was re-pulled. Bump on every Node.js
-# security release: https://nodejs.org/en/blog/vulnerability
-ARG NODE_VERSION=24.22.3
+# Tracks the latest Node.js 24 release so security fixes land on the next
+# build. Pass --build-arg NODE_VERSION=<x.y.z> to pin an exact release.
+ARG NODE_VERSION=24
 
 ################# Monolith Builder ##############
 FROM rust:1-bookworm AS monolith_builder
