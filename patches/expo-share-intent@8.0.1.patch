@@ -257,10 +257,10 @@ index 0000000000000000000000000000000000000000..8258d653884938fe14eb99e3c16bb512
 +    }
 +}
 diff --git a/build/utils.js b/build/utils.js
-index 3d343c633b4bb267a1ee994352516997f8e058b3..a59198db4973c56d34eb16540af037e6cb41aec1 100644
+index 3d343c633b4bb267a1ee994352516997f8e058b3..597f33c641b3eb702086e735929d7e34ff10a9db 100644
 --- a/build/utils.js
 +++ b/build/utils.js
-@@ -45,6 +45,47 @@ export function parseJson(value, defaultValue = null) {
+@@ -45,6 +45,52 @@ export function parseJson(value, defaultValue = null) {
          return defaultValue;
      }
  }
@@ -271,15 +271,20 @@ index 3d343c633b4bb267a1ee994352516997f8e058b3..a59198db4973c56d34eb16540af037e6
 +const CLOSER_TO_OPENER = { ")": "(", "]": "[" };
 +const isValidWebUrl = (url) => /^https?:\/\/[^/?#]+/i.test(url);
 +export const extractWebUrl = (text) => {
-+    // Typographic quotes and full-width (CJK) punctuation are never part of a
-+    // URL, so they end it. This matters for CJK text, which has no spaces.
-+    const match = text.match(/https?:\/\/[^\s<>"“”«»「」『』【】《》〈〉（）。、，；：！？]+/i);
++    // Characters that must be percent-encoded in a URI ({ } | \ ^ `), typographic
++    // quotes and full-width (CJK) punctuation are never part of a URL, so they
++    // end it. The latter matters for CJK text, which has no spaces.
++    const match = text.match(/https?:\/\/[^\s<>"{}|\\^`“”«»「」『』【】《》〈〉（）。、，；：！？]+/i);
 +    if (!match)
 +        return null;
 +    const url = match[0];
-+    // A URL shared on its own is taken verbatim: there's no surrounding
-+    // sentence whose punctuation could have leaked into it.
-+    if (text.trim() === url)
++    // A URL alone on its line (e.g. the whole share, or "Title\nURL") is taken
++    // verbatim: there's no sentence on that line whose punctuation could have
++    // leaked into it.
++    const lineStart = text.lastIndexOf("\n", match.index) + 1;
++    const lineEnd = text.indexOf("\n", match.index + url.length);
++    const line = text.slice(lineStart, lineEnd === -1 ? text.length : lineEnd);
++    if (line.trim() === url)
 +        return isValidWebUrl(url) ? url : null;
 +    // Otherwise drop trailing punctuation that belongs to the surrounding
 +    // sentence, and closing brackets that have no matching opener inside the
@@ -308,7 +313,7 @@ index 3d343c633b4bb267a1ee994352516997f8e058b3..a59198db4973c56d34eb16540af037e6
  export const parseShareIntent = (value, options) => {
      let result = SHAREINTENT_DEFAULTVALUE;
      if (!value)
-@@ -59,9 +100,7 @@ export const parseShareIntent = (value, options) => {
+@@ -59,9 +105,7 @@ export const parseShareIntent = (value, options) => {
      }
      if (shareIntent?.text) {
          // Try to find the webURL in the SharedIntent text
