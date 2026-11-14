@@ -46,19 +46,22 @@ allowBuilds:
 
 patchedDependencies:
   react-tweet@3.2.2: "patches/react-tweet@3.2.2.patch"
-  xcode@3.0.1: "patches/xcode@3.0.1.patch"
-  # Swift 6.2 / Xcode 26 rejects `weak let`; rewrite to `nonisolated(unsafe) weak var`.
-  expo-modules-jsi@57.1.1: patches/expo-modules-jsi@57.1.1.patch
-  # Disables React 19.2's dev "component performance track" prop serialization,
-  # which crashes when a changed prop is a tRPC proxy (RN 0.86 + new arch).
-  react-native@0.86.3: patches/react-native@0.86.3.patch
+  # Disables React 19's dev "component performance track" prop serialization,
+  # which crashes when a changed prop is a tRPC proxy (RN 0.88 + new arch).
+  react-native@0.88.1: patches/react-native@0.88.1.patch
   # Android: don't drop shares that arrive while the app is being recreated after
   # process death, and don't replay the task's launch share on reopen (#513).
   # JS: don't truncate shared URLs at parentheses and other valid URL chars (#2219).
-  expo-share-intent@8.0.1: patches/expo-share-intent@8.0.1.patch
+  expo-share-intent@9.0.0: patches/expo-share-intent@9.0.0.patch
   # Detach service worker targets that Chrome reports without a browserContextId
   # instead of failing an assertion that crashes connectOverCDP().
   patchright-core@1.59.4: patches/patchright-core@1.59.4.patch
+  # React Native's prebuilt core (Expo SDK 58) only exposes <React/...> headers,
+  # so the quoted "RCTBridge.h" import no longer resolves.
+  "@react-native-menu/menu@2.0.0": patches/@react-native-menu__menu@2.0.0.patch
+  # Android Gradle Plugin 9 (Expo SDK 58) rejects proguard-android.txt. Fixed
+  # upstream in 0.24.12; drop this when upgrading.
+  react-native-blob-util@0.21.2: patches/react-native-blob-util@0.21.2.patch
 
 # Docker builds can prune packages that use one of the root patches.
 allowUnusedPatches: true
@@ -108,7 +111,7 @@ overrides:
   # experimental types also contain unique symbols, so separate @types/react
   # versions are not structurally compatible. Keep these in sync with the
   # versions used by the apps when bumping Expo or React.
-  react: 19.2.3
-  react-dom: 19.2.3
-  "@types/react": 19.2.15
-  "@types/react-dom": 19.2.3
+  react: 19.3.0
+  react-dom: 19.3.0
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0

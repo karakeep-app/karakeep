@@ -554,7 +554,7 @@ export default function UsageStatsScreen() {
       refreshControl={
         <RefreshControl
           refreshing={isRefetching}
-          onRefresh={() => refetch()}
+          onRefresh={() => void refetch()}
           tintColor={colors.primary}
           colors={[colors.primary]}
         />

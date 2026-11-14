@@ -1,4 +1,4 @@
-import type { TextInputProps } from "react-native";
+import type { TextInputInstance, TextInputProps } from "react-native";
 import { forwardRef, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
@@ -60,20 +60,21 @@ const LOGO_WIDTH = Math.round((LOGO_HEIGHT * 598) / 166);
  */
 const LABEL_WIDTH = 104;
 
-const FieldRow = forwardRef<TextInput, { label: string } & TextInputProps>(
-  ({ label, ...props }, ref) => (
-    <View className="flex-row items-center px-4">
-      <Text className="py-3.5" style={{ width: LABEL_WIDTH }}>
-        {label}
-      </Text>
-      <TextInput
-        ref={ref}
-        className="flex-1 py-3.5 text-[17px] leading-6 text-foreground placeholder:text-muted-foreground/50"
-        {...props}
-      />
-    </View>
-  ),
-);
+const FieldRow = forwardRef<
+  TextInputInstance,
+  { label: string } & TextInputProps
+>(({ label, ...props }, ref) => (
+  <View className="flex-row items-center px-4">
+    <Text className="py-3.5" style={{ width: LABEL_WIDTH }}>
+      {label}
+    </Text>
+    <TextInput
+      ref={ref}
+      className="flex-1 py-3.5 text-[17px] leading-6 text-foreground placeholder:text-muted-foreground/50"
+      {...props}
+    />
+  </View>
+));
 FieldRow.displayName = "FieldRow";
 
 export default function Signin() {
@@ -88,7 +89,7 @@ export default function Signin() {
   const emailRef = useRef<string>(credentialDraft.email);
   const passwordRef = useRef<string>(credentialDraft.password);
   const apiKeyRef = useRef<string>(credentialDraft.apiKey);
-  const passwordInputRef = useRef<TextInput>(null);
+  const passwordInputRef = useRef<TextInputInstance>(null);
 
   const { mutate: login, isPending: userNamePasswordRequestIsPending } =
     useMutation(
@@ -118,7 +119,7 @@ export default function Signin() {
     );
 
   if (settings.apiKey) {
-    return <Redirect href="dashboard" />;
+    return <Redirect href="/dashboard/(home)" />;
   }
 
   const isPending =

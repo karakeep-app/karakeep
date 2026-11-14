@@ -129,7 +129,7 @@ export default function Sharing() {
 
     autoCloseTimeoutId.current = setTimeout(
       () => {
-        router.replace("dashboard");
+        router.replace("/dashboard/(home)");
       },
       mode.type === "error" ? 3000 : 2500,
     );
@@ -154,7 +154,7 @@ export default function Sharing() {
     if (autoCloseTimeoutId.current) {
       clearTimeout(autoCloseTimeoutId.current);
     }
-    router.replace("dashboard");
+    router.replace("/dashboard/(home)");
   };
 
   return (

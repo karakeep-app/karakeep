@@ -1,4 +1,3 @@
-import type { AppStateStatus } from "react-native";
 import { useEffect } from "react";
 import { AppState } from "react-native";
 import * as Network from "expo-network";
@@ -20,7 +19,7 @@ const CHANGE_DEBOUNCE = 1_500;
 // a pass starts soon after one is due rather than up to a throttle late.
 const TICK_INTERVAL = 60_000;
 
-function isActive(state: AppStateStatus = AppState.currentState) {
+function isActive(state = AppState.currentState) {
   return state === "active";
 }
 
