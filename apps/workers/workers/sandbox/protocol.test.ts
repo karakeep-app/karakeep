@@ -9,6 +9,7 @@ import {
   readJsonPart,
   readParts,
   zArchivePageRequestSchema,
+  zProcessAssetRequestSchema,
 } from "./protocol";
 
 function responseOf(writer: MultipartWriter, body: ReadableStream) {
@@ -59,7 +60,7 @@ const body = Buffer.concat([
   writer.part(jsonPart("parsed", parsed), { last: true }),
 ]);
 
-describe("remote crawler protocol", () => {
+describe("remote sandbox protocol", () => {
   it.each([1, 3, 7, 4096])(
     "reads parts split into %i-byte chunks",
     async (chunkSize) => {
@@ -112,7 +113,7 @@ describe("remote crawler protocol", () => {
     ]);
     await expect(
       readAll(responseOf(writer, chunked(failed, 16))),
-    ).rejects.toThrow("The remote crawler failed: the parse timed out");
+    ).rejects.toThrow("The remote sandbox failed: the parse timed out");
   });
 
   it.each([3, 40])(
@@ -135,9 +136,12 @@ describe("remote crawler protocol", () => {
     browserCrawlingEnabled: true,
   };
 
-  function requestOf(params: object, html?: string) {
-    const { contentType, body } = encodeRequest(params, html);
-    return new Request("http://remote/archive", {
+  function requestOf(
+    params: object,
+    attachments?: { html?: string; file?: Uint8Array },
+  ) {
+    const { contentType, body } = encodeRequest(params, attachments);
+    return new Request("http://remote/archive-page", {
       method: "POST",
       headers: { "Content-Type": contentType },
       body,
@@ -147,7 +151,7 @@ describe("remote crawler protocol", () => {
   it("round-trips a request with its html", async () => {
     expect(
       await decodeRequest(
-        requestOf({ ctx, url: "https://example.com/" }, html),
+        requestOf({ ctx, url: "https://example.com/" }, { html }),
         zArchivePageRequestSchema,
       ),
     ).toEqual({ ctx, url: "https://example.com/", html });
@@ -158,6 +162,28 @@ describe("remote crawler protocol", () => {
       await decodeRequest(
         requestOf({ ctx, url: "https://example.com/" }),
         zArchivePageRequestSchema,
+      ),
+    ).toBeNull();
+  });
+
+  it("round-trips a request with its file as is", async () => {
+    // Bytes that aren't valid UTF-8, and a CRLF followed by dashes.
+    const file = new Uint8Array([
+      0x25, 0x50, 0xff, 0xfe, 0x0d, 0x0a, 0x2d, 0x2d,
+    ]);
+    const decoded = await decodeRequest(
+      requestOf({ jobId: "job" }, { file }),
+      zProcessAssetRequestSchema,
+    );
+    expect(decoded?.jobId).toBe("job");
+    expect(Buffer.compare(Buffer.from(decoded!.file), file)).toBe(0);
+  });
+
+  it("rejects a request missing its required file", async () => {
+    expect(
+      await decodeRequest(
+        requestOf({ jobId: "job" }, { html }),
+        zProcessAssetRequestSchema,
       ),
     ).toBeNull();
   });

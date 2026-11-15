@@ -51,19 +51,21 @@ services:
       NEXTAUTH_SECRET: secret
       NEXTAUTH_URL: http://localhost:${KARAKEEP_REMOTE_PORT:-3001}
       CRAWLER_NUM_WORKERS: 6
-      CRAWLER_REMOTE_URL: http://crawler:4000
-      CRAWLER_REMOTE_TOKEN: e2e-remote-crawler-token
-  # The remote crawler: just the workers process, in remote crawler mode. The
-  # settings for how pages are fetched and captured are read here.
-  crawler:
+      CRAWLER_VIDEO_DOWNLOAD: "true"
+      SANDBOX_REMOTE_URL: http://sandbox:4000
+      SANDBOX_REMOTE_TOKEN: e2e-sandbox-token
+  # The remote sandbox: just the workers process, in sandbox server mode. The
+  # settings for how pages are fetched and captured, videos are downloaded and
+  # assets are parsed are read here.
+  sandbox:
     <<: *karakeep
     user: node
     working_dir: /app/apps/workers
     entrypoint: ["node", "dist/index.js"]
     networks: [default, sites]
     environment:
-      CRAWLER_REMOTE_SERVER_ENABLED: "true"
-      CRAWLER_REMOTE_TOKEN: e2e-remote-crawler-token
+      SANDBOX_REMOTE_SERVER_ENABLED: "true"
+      SANDBOX_REMOTE_TOKEN: e2e-sandbox-token
       WORKERS_HOST: 0.0.0.0
       WORKERS_PORT: 4000
       DATA_DIR: /tmp
@@ -71,6 +73,7 @@ services:
       CRAWLER_NUM_WORKERS: 6
       CRAWLER_ALLOWED_INTERNAL_HOSTNAMES: nginx
       CRAWLER_STORE_PDF: "true"
+      CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE: -1
     healthcheck:
       test:
         - CMD

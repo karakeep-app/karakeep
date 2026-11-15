@@ -1,8 +1,8 @@
 // The local crawler: fetches pages with the browser (or over plain HTTP when
 // there's no browser or the user has browser crawling disabled), parses them
 // in a subprocess, downloads assets and archives pages with monolith. The
-// crawler worker uses it directly unless CRAWLER_REMOTE_URL is set, and a
-// remote crawler (remoteCrawlerServer.ts) uses it to serve other workers.
+// crawler worker uses it directly unless SANDBOX_REMOTE_URL is set, and a
+// remote sandbox (sandbox/server.ts) uses it to serve other workers.
 
 import { execa } from "execa";
 import { fetchWithProxy, matchesNoProxy, validateUrl } from "../../network";
@@ -93,7 +93,7 @@ async function fetchPage(
 
 /**
  * The first half of fetchPage: crawls the page, or screenshots the
- * precrawled archive. Exported for the remote crawler, which streams the page
+ * precrawled archive. Exported for the remote sandbox, which streams the page
  * back while it's being parsed.
  */
 export async function loadPage(
