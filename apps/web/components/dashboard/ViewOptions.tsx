@@ -35,6 +35,7 @@ import {
   updateBookmarksLayout,
   updateGridColumns,
   updateImageFit,
+  updateShowNewItemCard,
   updateShowNotes,
   updateShowTags,
   updateShowTitle,
@@ -50,6 +51,7 @@ import {
   LucideIcon,
   NotepadText,
   Settings,
+  SquarePlus,
   Tag,
 } from "lucide-react";
 
@@ -123,6 +125,16 @@ export default function ViewOptions() {
         showTitle: checked,
       });
       await updateShowTitle(checked);
+    });
+  };
+
+  const handleShowNewItemCardChange = (checked: boolean) => {
+    startTransition(async () => {
+      setOptimisticDisplaySettings({
+        ...optimisticDisplaySettings,
+        showNewItemCard: checked,
+      });
+      await updateShowNewItemCard(checked);
     });
   };
 
@@ -233,6 +245,20 @@ export default function ViewOptions() {
             id="show-title"
             checked={optimisticDisplaySettings.showTitle}
             onCheckedChange={handleShowTitleChange}
+          />
+        </div>
+        <div className="flex items-center justify-between px-2 py-1.5 max-sm:min-h-11">
+          <Label
+            htmlFor="show-new-item-card"
+            className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
+          >
+            <SquarePlus className="size-4 text-muted-foreground" />
+            <span>{t("view_options.show_new_item_card")}</span>
+          </Label>
+          <Switch
+            id="show-new-item-card"
+            checked={optimisticDisplaySettings.showNewItemCard}
+            onCheckedChange={handleShowNewItemCardChange}
           />
         </div>
 
