@@ -147,7 +147,7 @@ describe.each([
       return data.content.crawledAt !== null;
     }, "Bookmark is crawled");
 
-    const trpc = getTrpcClient(apiKey);
+    const trpc = getTrpcClient(apiKey, String(port));
     await trpc.bookmarks.recrawlBookmark.mutate({
       bookmarkId: bookmark.id,
       storePdf: true,
@@ -203,7 +203,7 @@ describe.each([
       return data.content.crawledAt !== null;
     }, "Bookmark is crawled");
 
-    const trpc = getTrpcClient(apiKey);
+    const trpc = getTrpcClient(apiKey, String(port));
     await trpc.bookmarks.recrawlBookmark.mutate({
       bookmarkId: bookmark.id,
       storeScreenPdf: true,
