@@ -40,6 +40,7 @@ import {
   zFetchPageRequestSchema,
   zProbeRequestSchema,
   zProcessAssetRequestSchema,
+  zProcessPdfRequestSchema,
 } from "./protocol";
 
 interface Env {
@@ -190,14 +191,15 @@ function tempFile(filePath: string, contentType: string): FileResult {
 }
 
 /**
- * Runs fn on the asset of a /pdf-text, /pdf-screenshot or /image-text
- * request. Responds with an error status if fn throws.
+ * Runs fn on the asset of a /pdf or /image-text request. Responds with an
+ * error status if fn throws.
  */
-async function processAsset(
+async function processAsset<T extends { jobId: string; file: Uint8Array }>(
   c: Context<Env>,
-  fn: (job: AssetJob, asset: Buffer) => Promise<Response>,
+  schema: z.ZodType<T>,
+  fn: (request: T, job: AssetJob, asset: Buffer) => Promise<Response>,
 ) {
-  const request = await decodeRequest(c.req.raw, zProcessAssetRequestSchema);
+  const request = await decodeRequest(c.req.raw, schema);
   if (!request) {
     return malformedRequest(c);
   }
@@ -210,7 +212,7 @@ async function processAsset(
   };
   const { buffer, byteOffset, byteLength } = request.file;
   try {
-    return await fn(job, Buffer.from(buffer, byteOffset, byteLength));
+    return await fn(request, job, Buffer.from(buffer, byteOffset, byteLength));
   } catch (e) {
     logger.error(
       `[assetPreprocessing][${job.jobId}] Sandbox request failed: ${e}`,
@@ -334,27 +336,45 @@ export function buildSandboxRoutes(token: string) {
           );
       }
     })
-    .post("/pdf-text", (c) =>
-      processAsset(c, async (job, pdf) =>
-        c.json(await localAssetProcessor.readPdfText(job, pdf)),
-      ),
-    )
-    .post("/pdf-screenshot", (c) =>
-      processAsset(c, async (job, pdf) =>
-        c.body(
-          new Uint8Array(
-            await localAssetProcessor.renderPdfScreenshot(job, pdf),
-          ),
-          200,
-          { "Content-Type": "image/png" },
-        ),
-      ),
+    .post("/pdf", (c) =>
+      processAsset(c, zProcessPdfRequestSchema, async (request, job, pdf) => {
+        const result = await localAssetProcessor.processPdf(job, pdf, request);
+        const parts: Part[] = [];
+        if (result.text) {
+          parts.push(
+            result.text.ok
+              ? jsonPart("pdfText", result.text.value)
+              : jsonPart("pdfTextError", { message: result.text.error }),
+          );
+        }
+        if (result.screenshot) {
+          parts.push(
+            result.screenshot.ok
+              ? {
+                  name: "screenshot",
+                  contentType: "image/png",
+                  data: result.screenshot.value,
+                }
+              : jsonPart("screenshotError", {
+                  message: result.screenshot.error,
+                }),
+          );
+        }
+        const writer = new MultipartWriter();
+        // Buffer.concat always allocates a new (non-shared) ArrayBuffer.
+        return c.body(writer.body(parts) as Uint8Array<ArrayBuffer>, 200, {
+          "Content-Type": writer.contentType,
+        });
+      }),
     )
     .post("/image-text", (c) =>
-      processAsset(c, async (job, image) =>
-        c.json({
-          text: await localAssetProcessor.readImageText(job, image),
-        }),
+      processAsset(
+        c,
+        zProcessAssetRequestSchema,
+        async (_request, job, image) =>
+          c.json({
+            text: await localAssetProcessor.readImageText(job, image),
+          }),
       ),
     );
 }

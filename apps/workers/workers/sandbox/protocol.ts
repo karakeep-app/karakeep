@@ -15,15 +15,16 @@
 //   /archive:        the archived page
 //   /video:          the video, or 204 No Content when there's nothing to
 //                    download, with the reason in the X-Skip-Reason header
-//   /pdf-text:       JSON: the PDF's text and metadata
-//   /pdf-screenshot: the PDF's first page, as a PNG
+//   /pdf:            multipart parts, for the steps requested: pdfText (or
+//                    pdfTextError), screenshot (or screenshotError)
 //   /image-text:     JSON: the image's text (OCR), or null
 //
 // The multipart responses (multipart/form-data, binary parts as is) send each
 // part as soon as it's ready, so the worker can act on the content type while
 // the metadata is being extracted. A failure partway through ends the
 // response with an error part. A response without its closing boundary was
-// cut off, and the parser rejects it.
+// cut off, and the parser rejects it. /pdf runs each step even if the other
+// one fails, and reports a step's failure in its own error part.
 //
 // The other responses fail with an HTTP error status if anything fails before
 // sending starts: WORK_FAILED_STATUS when the work itself failed on the input
@@ -118,16 +119,16 @@ export const zDownloadVideoRequestSchema = z.object({
   runProxy: zRunProxySchema,
 });
 
-// For /pdf-text, /pdf-screenshot and /image-text. "file" is the asset.
+// For /image-text. "file" is the asset.
 export const zProcessAssetRequestSchema = z.object({
   jobId: z.string(),
   file: z.instanceof(Uint8Array),
 });
 
-export const zPdfTextResponseSchema = z.object({
-  text: z.string(),
-  metadata: z.record(z.string(), z.unknown()).nullable(),
-});
+// The steps to run on the PDF, at least one.
+export const zProcessPdfRequestSchema = zProcessAssetRequestSchema
+  .extend({ text: z.boolean(), screenshot: z.boolean() })
+  .refine((r) => r.text || r.screenshot);
 
 export const zImageTextResponseSchema = z.object({
   text: z.string().nullable(),
@@ -138,6 +139,12 @@ const zJsonParts = {
   metadata: parseSubprocessMetadataSchema.nullable(),
   page: z.object({ statusCode: z.number(), url: z.string() }),
   parsed: parseSubprocessOutputSchema.nullable(),
+  pdfText: z.object({
+    text: z.string(),
+    metadata: z.record(z.string(), z.unknown()).nullable(),
+  }),
+  pdfTextError: z.object({ message: z.string() }),
+  screenshotError: z.object({ message: z.string() }),
   error: z.object({ message: z.string() }),
 };
 type JsonPartName = keyof typeof zJsonParts;

@@ -30,7 +30,13 @@ import {
   getQueueClient,
 } from "@karakeep/shared/queueing";
 
-import type { AssetJob, AssetProcessor } from "./assetPreprocessing/common";
+import type {
+  AssetJob,
+  AssetProcessor,
+  PdfSteps,
+  PdfText,
+  StepResult,
+} from "./assetPreprocessing/common";
 import { AssetProcessorUnavailableError } from "./assetPreprocessing/common";
 import { workerStatsCounter } from "../metrics";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
@@ -170,90 +176,11 @@ async function readImageTextWithLLM(
   return extractedText;
 }
 
-export async function extractAndSavePDFScreenshot(
-  job: AssetJob,
-  asset: Buffer,
-  bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
-  isFixMode: boolean,
-): Promise<boolean> {
-  const { jobId } = job;
-  {
-    const alreadyHasScreenshot =
-      bookmark.assets.find(
-        (r) => r.assetType === AssetTypes.ASSET_SCREENSHOT,
-      ) !== undefined;
-    if (alreadyHasScreenshot && isFixMode) {
-      logger.info(
-        `[assetPreprocessing][${jobId}] Skipping PDF screenshot generation as it's already been generated.`,
-      );
-      return false;
-    }
-  }
-  logger.info(
-    `[assetPreprocessing][${jobId}] Attempting to generate PDF screenshot for bookmarkId: ${bookmark.id}`,
-  );
-  try {
-    const screenshot = await assetProcessor.renderPdfScreenshot(job, asset);
-
-    // Check storage quota before inserting
-    const quotaApproved = await QuotaService.checkStorageQuota(
-      db,
-      bookmark.userId,
-      screenshot.byteLength,
-    );
-
-    // Store the screenshot
-    const assetId = newAssetId();
-    const fileName = "screenshot.png";
-    const contentType = "image/png";
-    await saveAsset({
-      userId: bookmark.userId,
-      assetId,
-      asset: screenshot,
-      metadata: {
-        contentType,
-        fileName,
-      },
-      quotaApproved,
-    });
-
-    // Insert into database
-    await db.insert(assets).values({
-      id: assetId,
-      bookmarkId: bookmark.id,
-      userId: bookmark.userId,
-      assetType: AssetTypes.ASSET_SCREENSHOT,
-      contentType,
-      size: screenshot.byteLength,
-      fileName,
-    });
-
-    logger.info(
-      `[assetPreprocessing][${jobId}] Successfully saved PDF screenshot to database`,
-    );
-    return true;
-  } catch (error) {
-    if (mustFailJob(job, error)) {
-      throw error;
-    }
-    if (error instanceof StorageQuotaError) {
-      logger.warn(
-        `[assetPreprocessing][${jobId}] Skipping PDF screenshot due to quota exceeded: ${error.message}`,
-      );
-      return true; // Return true to indicate the job completed successfully, just skipped the asset
-    }
-    logger.error(
-      `[assetPreprocessing][${jobId}] Failed to process PDF screenshot: ${error}`,
-    );
-    return false;
-  }
-}
-
 async function extractAndSaveImageText(
   job: AssetJob,
   asset: Buffer,
   contentType: string,
-  bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
+  bookmark: Bookmark,
   isFixMode: boolean,
 ): Promise<boolean> {
   const { jobId } = job;
@@ -315,42 +242,143 @@ async function extractAndSaveImageText(
   return true;
 }
 
-async function extractAndSavePDFText(
+type Bookmark = NonNullable<Awaited<ReturnType<typeof getBookmark>>>;
+
+async function extractAndSavePDFTextAndScreenshot(
   job: AssetJob,
   asset: Buffer,
-  bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
+  bookmark: Bookmark,
   isFixMode: boolean,
 ): Promise<boolean> {
   const { jobId } = job;
-  {
-    const alreadyHasText = !!bookmark.asset.content;
-    if (alreadyHasText && isFixMode) {
-      logger.info(
-        `[assetPreprocessing][${jobId}] Skipping PDF text extraction as it's already been extracted.`,
-      );
-      return false;
-    }
+  const steps: PdfSteps = { text: true, screenshot: true };
+  if (isFixMode && bookmark.asset.content) {
+    logger.info(
+      `[assetPreprocessing][${jobId}] Skipping PDF text extraction as it's already been extracted.`,
+    );
+    steps.text = false;
+  }
+  if (
+    isFixMode &&
+    bookmark.assets.some((r) => r.assetType === AssetTypes.ASSET_SCREENSHOT)
+  ) {
+    logger.info(
+      `[assetPreprocessing][${jobId}] Skipping PDF screenshot generation as it's already been generated.`,
+    );
+    steps.screenshot = false;
+  }
+  if (!steps.text && !steps.screenshot) {
+    return false;
   }
   logger.info(
-    `[assetPreprocessing][${jobId}] Attempting to extract text from pdf.`,
+    `[assetPreprocessing][${jobId}] Attempting to process the pdf (text: ${steps.text}, screenshot: ${steps.screenshot}).`,
   );
-  const pdfParse = await assetProcessor.readPdfText(job, asset);
-  if (!pdfParse?.text) {
+  const result = await assetProcessor.processPdf(job, asset, steps);
+  // The text goes first: it failing fails the job, and a screenshot saved
+  // before that would be saved again on every retry.
+  const savedText = result.text
+    ? await savePDFText(job, bookmark, result.text)
+    : false;
+  const savedScreenshot = result.screenshot
+    ? await savePDFScreenshot(job, bookmark, result.screenshot)
+    : false;
+  return savedText || savedScreenshot;
+}
+
+async function savePDFText(
+  job: AssetJob,
+  bookmark: Bookmark,
+  result: StepResult<PdfText>,
+): Promise<boolean> {
+  const { jobId } = job;
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+  const { text, metadata } = result.value;
+  if (!text) {
     throw new Error(
       `[assetPreprocessing][${jobId}] PDF text is empty. Please make sure that the PDF includes text and not just images.`,
     );
   }
   logger.info(
-    `[assetPreprocessing][${jobId}] Extracted ${pdfParse.text.length} characters from pdf.`,
+    `[assetPreprocessing][${jobId}] Extracted ${text.length} characters from pdf.`,
   );
   await db
     .update(bookmarkAssets)
     .set({
-      content: pdfParse.text,
-      metadata: pdfParse.metadata ? JSON.stringify(pdfParse.metadata) : null,
+      content: text,
+      metadata: metadata ? JSON.stringify(metadata) : null,
     })
     .where(eq(bookmarkAssets.id, bookmark.id));
   return true;
+}
+
+async function savePDFScreenshot(
+  job: AssetJob,
+  bookmark: Bookmark,
+  result: StepResult<Buffer>,
+): Promise<boolean> {
+  const { jobId } = job;
+  if (!result.ok) {
+    logger.error(
+      `[assetPreprocessing][${jobId}] Failed to generate PDF screenshot: ${result.error}`,
+    );
+    return false;
+  }
+  const screenshot = result.value;
+  try {
+    // Check storage quota before inserting
+    const quotaApproved = await QuotaService.checkStorageQuota(
+      db,
+      bookmark.userId,
+      screenshot.byteLength,
+    );
+
+    // Store the screenshot
+    const assetId = newAssetId();
+    const fileName = "screenshot.png";
+    const contentType = "image/png";
+    await saveAsset({
+      userId: bookmark.userId,
+      assetId,
+      asset: screenshot,
+      metadata: {
+        contentType,
+        fileName,
+      },
+      quotaApproved,
+    });
+
+    // Insert into database
+    await db.insert(assets).values({
+      id: assetId,
+      bookmarkId: bookmark.id,
+      userId: bookmark.userId,
+      assetType: AssetTypes.ASSET_SCREENSHOT,
+      contentType,
+      size: screenshot.byteLength,
+      fileName,
+    });
+
+    logger.info(
+      `[assetPreprocessing][${jobId}] Successfully saved PDF screenshot to database`,
+    );
+    return true;
+  } catch (error) {
+    if (mustFailJob(job, error)) {
+      throw error;
+    }
+    if (error instanceof StorageQuotaError) {
+      logger.warn(
+        `[assetPreprocessing][${jobId}] Skipping PDF screenshot due to quota exceeded: ${error.message}`,
+      );
+      return true; // Return true to indicate the job completed successfully, just skipped the asset
+    }
+    logger.error(
+      `[assetPreprocessing][${jobId}] Failed to save PDF screenshot: ${error}`,
+    );
+    return false;
+  }
 }
 
 async function getBookmark(bookmarkId: string) {
@@ -425,19 +453,13 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
       break;
     }
     case "pdf": {
-      const extractedText = await extractAndSavePDFText(
+      const extracted = await extractAndSavePDFTextAndScreenshot(
         job,
         asset,
         bookmark,
         isFixMode,
       );
-      const extractedScreenshot = await extractAndSavePDFScreenshot(
-        job,
-        asset,
-        bookmark,
-        isFixMode,
-      );
-      anythingChanged ||= extractedText || extractedScreenshot;
+      anythingChanged ||= extracted;
       break;
     }
     default:

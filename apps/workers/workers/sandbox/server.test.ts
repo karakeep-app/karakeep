@@ -1,6 +1,9 @@
-// How failures cross the sandbox: the work failing on its input (which isn't
-// retried, or is a skipped step) must stay distinguishable from the sandbox
-// being unable to do the work (which is retried).
+// The sandbox's routes, through the clients that call them. The routes' work
+// (yt-dlp, the asset parsing) is mocked.
+//
+// How failures cross the sandbox matters most: the work failing on its input
+// (which isn't retried, or is a skipped step) must stay distinguishable from
+// the sandbox being unable to do the work (which is retried).
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -21,8 +24,7 @@ vi.mock("../video/localVideoDownloader", () => ({
 }));
 vi.mock("../assetPreprocessing/localAssetProcessor", () => ({
   localAssetProcessor: {
-    readPdfText: vi.fn(),
-    renderPdfScreenshot: vi.fn(),
+    processPdf: vi.fn(),
     readImageText: vi.fn(),
   },
 }));
@@ -77,15 +79,24 @@ describe("the sandbox's error statuses", () => {
   });
 
   it("answers an asset that fails to parse with WORK_FAILED_STATUS", async () => {
-    vi.mocked(localAssetProcessor.readPdfText).mockRejectedValueOnce(
-      new Error("Invalid PDF structure"),
+    vi.mocked(localAssetProcessor.readImageText).mockRejectedValueOnce(
+      new Error("Error attempting to read image"),
     );
     const res = await callSandbox(
-      "pdf-text",
+      "image-text",
       { jobId: "1" },
       { file: new Uint8Array([1, 2, 3]) },
     );
     expect(res.status).toBe(WORK_FAILED_STATUS);
+  });
+
+  it("rejects a /pdf request that asks for no steps", async () => {
+    const res = await callSandbox(
+      "pdf",
+      { jobId: "1", text: false, screenshot: false },
+      { file: new Uint8Array([1, 2, 3]) },
+    );
+    expect(res.status).toBe(400);
   });
 });
 
@@ -165,5 +176,89 @@ describe("the clients' handling of the sandbox's errors", () => {
   it("returns the text on success", async () => {
     fetchMock.mockResolvedValueOnce(Response.json({ text: "hello" }));
     await expect(readImageText()).resolves.toBe("hello");
+  });
+});
+
+describe("/pdf", () => {
+  const job: AssetJob = {
+    jobId: "1",
+    abortSignal: new AbortController().signal,
+  };
+  const pdf = Buffer.from("%PDF-1.4");
+  const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const fetchMock = vi.fn<typeof fetch>();
+
+  beforeEach(() => {
+    // The client talks to the real routes.
+    fetchMock.mockImplementation((url, init) =>
+      Promise.resolve(
+        routes.request(String(url).replace(/^.*\/sandbox\/v1/, ""), init),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+  });
+  afterEach(() => {
+    fetchMock.mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  it("uploads the PDF once and gets back both results", async () => {
+    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
+      text: { ok: true, value: { text: "hello", metadata: { Title: "t" } } },
+      screenshot: { ok: true, value: png },
+    });
+    const result = await remoteAssetProcessor.processPdf(job, pdf, {
+      text: true,
+      screenshot: true,
+    });
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(result.text).toEqual({
+      ok: true,
+      value: { text: "hello", metadata: { Title: "t" } },
+    });
+    expect(result.screenshot).toEqual({ ok: true, value: png });
+  });
+
+  it("reports each step's failure on its own", async () => {
+    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
+      text: { ok: false, error: "Invalid PDF structure" },
+      screenshot: { ok: true, value: png },
+    });
+    const result = await remoteAssetProcessor.processPdf(job, pdf, {
+      text: true,
+      screenshot: true,
+    });
+    expect(result.text).toEqual({ ok: false, error: "Invalid PDF structure" });
+    expect(result.screenshot).toEqual({ ok: true, value: png });
+  });
+
+  it("only runs the requested steps", async () => {
+    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
+      screenshot: { ok: false, error: "gm not found" },
+    });
+    const result = await remoteAssetProcessor.processPdf(job, pdf, {
+      text: false,
+      screenshot: true,
+    });
+    expect(vi.mocked(localAssetProcessor.processPdf)).toHaveBeenLastCalledWith(
+      expect.anything(),
+      pdf,
+      expect.objectContaining({ text: false, screenshot: true }),
+    );
+    expect(result).toEqual({
+      screenshot: { ok: false, error: "gm not found" },
+    });
+  });
+
+  it("treats a response missing a requested step as the sandbox being unavailable", async () => {
+    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
+      text: { ok: true, value: { text: "hello", metadata: null } },
+    });
+    await expect(
+      remoteAssetProcessor.processPdf(job, pdf, {
+        text: true,
+        screenshot: true,
+      }),
+    ).rejects.toBeInstanceOf(AssetProcessorUnavailableError);
   });
 });

@@ -22,10 +22,32 @@ export interface PdfText {
  */
 export class AssetProcessorUnavailableError extends Error {}
 
+/** A step's result, or why it failed. */
+export type StepResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: string };
+
+export interface PdfSteps {
+  /** Extract the PDF's text. */
+  text: boolean;
+  /** Render its first page as a PNG. */
+  screenshot: boolean;
+}
+
+/** The result of each step that was requested. */
+export interface PdfResult {
+  text?: StepResult<PdfText>;
+  screenshot?: StepResult<Buffer>;
+}
+
 export interface AssetProcessor {
-  readPdfText(job: AssetJob, pdf: Buffer): Promise<PdfText>;
-  /** Renders the PDF's first page as a PNG. */
-  renderPdfScreenshot(job: AssetJob, pdf: Buffer): Promise<Buffer>;
+  /**
+   * Runs the requested steps on the PDF, all in one go so that a remote
+   * sandbox gets the PDF only once. A step failing doesn't stop the other
+   * one, and is reported in its result. Throws only when the processor
+   * couldn't run (AssetProcessorUnavailableError) or the job was aborted.
+   */
+  processPdf(job: AssetJob, pdf: Buffer, steps: PdfSteps): Promise<PdfResult>;
   /**
    * Reads the image's text with Tesseract. Null when OCR is disabled or the
    * text isn't recognized confidently enough.

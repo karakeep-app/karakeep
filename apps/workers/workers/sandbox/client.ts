@@ -14,8 +14,7 @@ export type SandboxEndpoint =
   | "asset"
   | "archive"
   | "video"
-  | "pdf-text"
-  | "pdf-screenshot"
+  | "pdf"
   | "image-text";
 
 /** The remote sandbox responded with an error status. */

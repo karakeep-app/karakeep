@@ -6,30 +6,51 @@ import os from "os";
 
 import serverConfig from "@karakeep/shared/config";
 
-import type { AssetProcessor } from "./common";
+import type { AssetJob, AssetProcessor, StepResult } from "./common";
 import { runPdfParseSubprocess } from "../utils/pdfSubprocess";
 
-export const localAssetProcessor: AssetProcessor = {
-  readPdfText: (job, pdf) =>
-    runPdfParseSubprocess(pdf, job.jobId, job.abortSignal),
+async function renderPdfScreenshot(pdf: Buffer): Promise<Buffer> {
+  const { fromBuffer } = await import("pdf2pic");
+  /**
+   * If you encountered any issues with this library, make sure you have ghostscript and graphicsmagick installed following this URL
+   * https://github.com/yakovmeister/pdf2image/blob/HEAD/docs/gm-installation.md
+   */
+  const screenshot = await fromBuffer(pdf, {
+    density: 100,
+    quality: 100,
+    format: "png",
+    preserveAspectRatio: true,
+  })(1, { responseType: "buffer" });
+  if (!screenshot.buffer) {
+    throw new Error("pdf2pic didn't render the PDF's first page");
+  }
+  return screenshot.buffer;
+}
 
-  renderPdfScreenshot: async (_job, pdf) => {
-    const { fromBuffer } = await import("pdf2pic");
-    /**
-     * If you encountered any issues with this library, make sure you have ghostscript and graphicsmagick installed following this URL
-     * https://github.com/yakovmeister/pdf2image/blob/HEAD/docs/gm-installation.md
-     */
-    const screenshot = await fromBuffer(pdf, {
-      density: 100,
-      quality: 100,
-      format: "png",
-      preserveAspectRatio: true,
-    })(1, { responseType: "buffer" });
-    if (!screenshot.buffer) {
-      throw new Error("pdf2pic didn't render the PDF's first page");
-    }
-    return screenshot.buffer;
-  },
+/** Runs a step, catching its failure unless the job was aborted. */
+async function step<T>(
+  job: AssetJob,
+  fn: () => Promise<T>,
+): Promise<StepResult<T>> {
+  try {
+    return { ok: true, value: await fn() };
+  } catch (e) {
+    job.abortSignal.throwIfAborted();
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+export const localAssetProcessor: AssetProcessor = {
+  processPdf: async (job, pdf, steps) => ({
+    text: steps.text
+      ? await step(job, () =>
+          runPdfParseSubprocess(pdf, job.jobId, job.abortSignal),
+        )
+      : undefined,
+    screenshot: steps.screenshot
+      ? await step(job, () => renderPdfScreenshot(pdf))
+      : undefined,
+  }),
 
   readImageText: async ({ abortSignal }, image) => {
     if (serverConfig.ocr.langs.length == 1 && serverConfig.ocr.langs[0] == "") {
