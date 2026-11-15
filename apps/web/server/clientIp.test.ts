@@ -2,10 +2,7 @@ import { describe, expect, test, vi } from "vitest";
 
 import { buildTrustedProxies, getClientIp } from "./clientIp";
 
-function ipFor(
-  headers: Record<string, string>,
-  trusted: string[] = ["private"],
-) {
+function ipFor(headers: Record<string, string>, trusted: string[] = ["none"]) {
   return getClientIp(new Headers(headers), buildTrustedProxies(trusted));
 }
 
@@ -25,33 +22,44 @@ describe("getClientIp", () => {
     );
   });
 
+  test("doesn't let a client on a private network pick its IP by default", () => {
+    // A LAN client sent "1.2.3.4"; the proxy appended its private address.
+    expect(ipFor({ "x-forwarded-for": "1.2.3.4, 192.168.1.10" })).toBe(
+      "192.168.1.10",
+    );
+  });
+
+  test("trusts nothing by default or with 'none'", () => {
+    const xff = { "x-forwarded-for": "1.2.3.4, 172.18.0.5" };
+    expect(ipFor(xff)).toBe("172.18.0.5");
+    expect(ipFor(xff, ["none"])).toBe("172.18.0.5");
+  });
+
   test("skips every trusted proxy in a chain", () => {
-    // Cloudflare Tunnel (loopback) -> nginx (Docker network).
+    // Two inner proxies on private addresses in front of the one connecting
+    // to Karakeep (which never appears in the header).
     expect(
-      ipFor({
-        "x-forwarded-for": "1.2.3.4, 203.0.113.7, 127.0.0.1, 172.18.0.5",
-      }),
+      ipFor(
+        { "x-forwarded-for": "1.2.3.4, 203.0.113.7, 127.0.0.1, 172.18.0.5" },
+        ["private"],
+      ),
     ).toBe("203.0.113.7");
   });
 
   test("only skips addresses that are configured as trusted", () => {
     const xff = { "x-forwarded-for": "1.2.3.4, 203.0.113.7, 198.51.100.9" };
     expect(ipFor(xff)).toBe("198.51.100.9");
+    expect(ipFor(xff, ["private"])).toBe("198.51.100.9");
     expect(ipFor(xff, ["private", "198.51.100.0/24"])).toBe("203.0.113.7");
     expect(ipFor(xff, ["198.51.100.9"])).toBe("203.0.113.7");
   });
 
-  test("trusts nothing with 'none'", () => {
-    expect(ipFor({ "x-forwarded-for": "1.2.3.4, 172.18.0.5" }, ["none"])).toBe(
-      "172.18.0.5",
-    );
-  });
-
-  test("returns the left-most address when every entry is trusted", () => {
-    // A client on the local network, behind a local proxy.
-    expect(ipFor({ "x-forwarded-for": "192.168.1.10, 172.18.0.5" })).toBe(
-      "192.168.1.10",
-    );
+  test("falls back to the right-most address when every entry is trusted", () => {
+    // With "private" trusted, a LAN client can add private addresses in front
+    // of its own; those mustn't become its rate-limit key.
+    expect(
+      ipFor({ "x-forwarded-for": "10.9.8.7, 192.168.1.10" }, ["private"]),
+    ).toBe("192.168.1.10");
   });
 
   test("never reads other client-IP headers", () => {
@@ -67,9 +75,9 @@ describe("getClientIp", () => {
   });
 
   test("handles IPv6, ports and IPv4-mapped addresses", () => {
-    expect(ipFor({ "x-forwarded-for": "2001:db8::1, fd00::2" })).toBe(
-      "2001:db8::1",
-    );
+    expect(
+      ipFor({ "x-forwarded-for": "2001:db8::1, fd00::2" }, ["private"]),
+    ).toBe("2001:db8::1");
     expect(ipFor({ "x-forwarded-for": "[2001:db8::1]:443" })).toBe(
       "2001:db8::1",
     );
@@ -79,15 +87,22 @@ describe("getClientIp", () => {
     expect(ipFor({ "x-forwarded-for": "::ffff:203.0.113.7" })).toBe(
       "203.0.113.7",
     );
-    expect(ipFor({ "x-forwarded-for": "203.0.113.7, ::ffff:172.18.0.5" })).toBe(
-      "203.0.113.7",
-    );
+    expect(
+      ipFor({ "x-forwarded-for": "203.0.113.7, ::ffff:172.18.0.5" }, [
+        "private",
+      ]),
+    ).toBe("203.0.113.7");
   });
 
   test("stops at entries it can't parse", () => {
-    expect(ipFor({ "x-forwarded-for": "1.2.3.4, unknown, 172.18.0.5" })).toBe(
-      "172.18.0.5",
-    );
+    expect(
+      ipFor({ "x-forwarded-for": "1.2.3.4, unknown, 172.18.0.5" }, ["private"]),
+    ).toBe("172.18.0.5");
+    expect(
+      ipFor({ "x-forwarded-for": "unknown, 10.0.0.1, 172.18.0.5" }, [
+        "private",
+      ]),
+    ).toBe("172.18.0.5");
     expect(ipFor({ "x-forwarded-for": "garbage" })).toBeNull();
   });
 });
@@ -105,8 +120,8 @@ describe("TRUSTED_PROXIES config", () => {
     }
   }
 
-  test("defaults to the private ranges", async () => {
-    expect(await loadTrustedProxies()).toEqual(["private"]);
+  test("defaults to trusting no proxies", async () => {
+    expect(await loadTrustedProxies()).toEqual(["none"]);
   });
 
   test("accepts IPs, CIDR ranges and keywords", async () => {

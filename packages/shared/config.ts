@@ -227,10 +227,13 @@ const allEnv = z.object({
   RATE_LIMITING_ENABLED: stringBool("false"),
   // Comma-separated IPs/CIDRs of reverse proxies whose X-Forwarded-For entries
   // are trusted when working out a request's client IP. "private" expands to
-  // the loopback and private-network ranges; "none" trusts nothing.
+  // the loopback and private-network ranges; "none" trusts nothing. Only
+  // needed for chains of proxies: the one connecting to Karakeep never shows
+  // up in the header. Defaults to "none" because trusting private ranges lets
+  // clients on them pick their own IP.
   TRUSTED_PROXIES: z
     .string()
-    .default("private")
+    .default("none")
     .transform((val) =>
       val
         .split(",")

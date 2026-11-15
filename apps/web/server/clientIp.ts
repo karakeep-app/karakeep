@@ -2,8 +2,8 @@ import net from "node:net";
 
 import serverConfig from "@karakeep/shared/config";
 
-// Loopback and private-network ranges, used by the "private" keyword (and so by
-// the default) in TRUSTED_PROXIES.
+// Loopback and private-network ranges, used by the "private" keyword in
+// TRUSTED_PROXIES.
 const PRIVATE_RANGES: [string, number, "ipv4" | "ipv6"][] = [
   ["127.0.0.0", 8, "ipv4"],
   ["10.0.0.0", 8, "ipv4"],
@@ -69,6 +69,11 @@ let trustedProxies: net.BlockList | undefined;
  * and is ignored. Other client-IP headers (X-Real-IP, X-Client-IP, ...) are
  * never read, since any client can set them.
  *
+ * The proxy that connects to Karakeep never appears in the header (it's the
+ * socket peer), so with a single proxy the right-most entry is already the
+ * client and nothing needs to be trusted. TRUSTED_PROXIES is only needed for
+ * chains, to skip the entries the inner proxies were added under.
+ *
  * Next.js only fills in X-Forwarded-For with the connecting address when the
  * header is missing, so on an instance exposed without a proxy, a client that
  * sends its own header can still pick its IP.
@@ -84,20 +89,22 @@ export function getClientIp(
     return null;
   }
   const entries = forwardedFor.split(",");
-  let lastTrusted: string | null = null;
+  let rightMost: string | null = null;
   for (let i = entries.length - 1; i >= 0; i--) {
     const address = parseAddress(entries[i]);
     if (!address) {
       // Unparsable values can only come from further left than the trusted
-      // proxies have vouched for, so stop at the last trusted address.
+      // proxies have vouched for, so stop here.
       break;
     }
     if (!proxies.check(address, net.isIPv4(address) ? "ipv4" : "ipv6")) {
       return address;
     }
-    lastTrusted = address;
+    rightMost ??= address;
   }
-  // Every address was a trusted proxy (e.g. a client on the local network),
-  // so the left-most one we could read is the client.
-  return lastTrusted;
+  // Every address we could read is trusted. The ones further left may have
+  // been written by the client (e.g. a client on the local network when
+  // "private" is trusted), so fall back to the right-most one: requests then
+  // share that address's limits rather than picking their own.
+  return rightMost;
 }
