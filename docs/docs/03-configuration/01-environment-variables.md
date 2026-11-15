@@ -211,6 +211,25 @@ Karakeep uses [tesseract.js](https://github.com/naptha/tesseract.js) to extract 
 | OCR_CONFIDENCE_THRESHOLD | No       | 50        | A number between 0 and 100 indicating the minimum acceptable confidence from tessaract. If tessaract's confidence is lower than this value, extracted text won't be stored.                                                                                                                                   |
 | OCR_USE_LLM              | No       | false     | If set to true, uses the configured inference model (OpenAI or Ollama) for OCR instead of Tesseract. This can provide better results for complex images but requires a configured inference provider (`OPENAI_API_KEY` or `OLLAMA_BASE_URL`). Falls back to Tesseract if no inference provider is configured. |
 
+## Remote Sandbox
+
+Crawling pages, downloading videos (yt-dlp), and parsing uploaded PDFs and images (PDF text extraction, PDF screenshots and Tesseract OCR) all handle untrusted content. Instead of doing this work in the workers that also have access to your database, asset storage and API keys, you can move it to a separate, stateless "sandbox" container.
+
+The sandbox is the same workers image, started with `SANDBOX_REMOTE_SERVER_ENABLED=true`. In that mode it runs no queues and doesn't need the database, the asset storage or any secrets other than `SANDBOX_REMOTE_TOKEN`. It only serves an HTTP API on `WORKERS_HOST`:`WORKERS_PORT` under `/sandbox/v1`. Workers configured with `SANDBOX_REMOTE_URL` send all of their crawling, video downloads and asset preprocessing to it, then store the results themselves.
+
+| Name                          | Required                                                                      | Default | Description                                                                                                                                                                                         |
+| ----------------------------- | ----------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SANDBOX_REMOTE_SERVER_ENABLED | No                                                                            | false   | Set on the sandbox container. Runs the workers as a remote sandbox instead of the usual workers.                                                                                                    |
+| SANDBOX_REMOTE_URL            | No                                                                            | Not set | Set on the regular workers. The URL of the sandbox (e.g. `http://sandbox:4000`). When set, the workers hand their crawling, video downloads and asset preprocessing to the sandbox.                    |
+| SANDBOX_REMOTE_TOKEN          | Yes, if `SANDBOX_REMOTE_SERVER_ENABLED` or `SANDBOX_REMOTE_URL` is set         | Not set | A shared secret that the workers use to authenticate with the sandbox. Must be the same on both. Use a long random value, e.g. `openssl rand -base64 36`.                                            |
+
+Which settings are read where:
+
+- **On the sandbox:** everything about how the work is done. That includes the browser (`BROWSER_WEB_URL`, `BROWSER_COOKIE_PATH`, ...), how pages are fetched and captured (`CRAWLER_*` timeouts, screenshot and adblocker settings, `CRAWLER_MONOLITH_ARGS`, `CRAWLER_ALLOWED_INTERNAL_HOSTNAMES`), yt-dlp (`CRAWLER_YTDLP_ARGS`, `CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE`, `CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC`), Tesseract (`OCR_LANGS`, `OCR_CONFIDENCE_THRESHOLD`, `OCR_CACHE_DIR`) and `ASSET_PREPROCESSING_PDF_PARSER_MEM_LIMIT_MB`. `CRAWLER_NUM_WORKERS` caps how many pages the sandbox loads at once.
+- **On the regular workers:** whether the work happens at all (e.g. `CRAWLER_VIDEO_DOWNLOAD`, `CRAWLER_FULL_PAGE_ARCHIVE`), how many jobs run at once, the proxy settings (the workers pick the proxy and pass it to the sandbox with each request), storage quotas, and LLM-based OCR (`OCR_USE_LLM`), which only calls your inference provider and keeps running on the workers.
+
+The sandbox must be reachable from the workers, and it needs to reach the internet (and your browser container). The workers no longer need to reach the crawled websites. Run the sandbox with the same Karakeep version as the workers.
+
 ## Webhook Configs
 
 You can use webhooks to trigger actions when bookmarks are created, changed or crawled.

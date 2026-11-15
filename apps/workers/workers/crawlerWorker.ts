@@ -11,8 +11,8 @@
 //
 // Everything that talks to the crawled website (probing, fetching the page,
 // parsing it, downloading assets and archiving) goes through a Crawler (see
-// crawler/common.ts): the local one, or a remote crawler when
-// CRAWLER_REMOTE_URL is set. What's left here reads and writes the database
+// crawler/common.ts): the local one, or a remote sandbox when
+// SANDBOX_REMOTE_URL is set. What's left here reads and writes the database
 // and the asset store.
 
 import { promises as fs } from "fs";
@@ -99,7 +99,7 @@ import {
   resolveMetadata,
 } from "./utils/metadataResolver";
 
-const crawler: Crawler = serverConfig.crawler.remote.url
+const crawler: Crawler = serverConfig.sandbox.url
   ? remoteCrawler
   : localCrawler;
 

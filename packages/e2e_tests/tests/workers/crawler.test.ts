@@ -13,7 +13,7 @@ const imageFixture = fs.readFileSync(path.join(e2eDir, "setup/html/image.png"));
 const pdfFixture = fs.readFileSync(path.join(e2eDir, "fixtures/test.pdf"));
 
 // The same tests run against both instances. "local" crawls with its own
-// browser. "remote" sends all its crawls to the remote crawler (the crawler
+// browser. "remote" sends all its crawls to the remote sandbox (the sandbox
 // service in docker-compose.yml) and can't reach the test site or chrome
 // itself, so anything it fetched locally would fail.
 describe.each([

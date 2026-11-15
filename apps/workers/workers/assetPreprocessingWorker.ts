@@ -1,4 +1,3 @@
-import os from "os";
 import { and, eq } from "drizzle-orm";
 
 import type { AssetPreprocessingRequest } from "@karakeep/shared-server";
@@ -31,9 +30,17 @@ import {
   getQueueClient,
 } from "@karakeep/shared/queueing";
 
+import type { AssetJob, AssetProcessor } from "./assetPreprocessing/common";
 import { workerStatsCounter } from "../metrics";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
-import { runPdfParseSubprocess } from "./utils/pdfSubprocess";
+import { localAssetProcessor } from "./assetPreprocessing/localAssetProcessor";
+import { remoteAssetProcessor } from "./assetPreprocessing/remoteAssetProcessor";
+
+// The PDF parsing, PDF screenshots and OCR (but not the LLM OCR) happen on the
+// remote sandbox when there's one.
+const assetProcessor: AssetProcessor = serverConfig.sandbox.url
+  ? remoteAssetProcessor
+  : localAssetProcessor;
 
 export class AssetPreprocessingWorker {
   static async build() {
@@ -118,52 +125,17 @@ export class AssetPreprocessingWorker {
   }
 }
 
-async function readImageText(buffer: Buffer, abortSignal: AbortSignal) {
-  if (serverConfig.ocr.langs.length == 1 && serverConfig.ocr.langs[0] == "") {
-    return null;
-  }
-  const { createWorker } = await import("tesseract.js");
-  const worker = await createWorker(serverConfig.ocr.langs, undefined, {
-    cachePath: serverConfig.ocr.cacheDir ?? os.tmpdir(),
-  });
-  // OCR runs in a worker thread that keeps going after the job times out.
-  // terminate() (in the finally) stops it at once, but then recognize()'s
-  // promise never settles, so it's raced against the abort.
-  let onAbort: () => void = () => undefined;
-  const aborted = new Promise<never>((_, reject) => {
-    onAbort = () =>
-      reject(
-        abortSignal.reason instanceof Error
-          ? abortSignal.reason
-          : new Error("Image OCR aborted"),
-      );
-    abortSignal.addEventListener("abort", onAbort, { once: true });
-  });
-  try {
-    // The signal may have fired while the worker was starting up.
-    abortSignal.throwIfAborted();
-    const ret = await Promise.race([worker.recognize(buffer), aborted]);
-    if (ret.data.confidence <= serverConfig.ocr.confidenceThreshold) {
-      return null;
-    }
-    return ret.data.text;
-  } finally {
-    abortSignal.removeEventListener("abort", onAbort);
-    await worker.terminate();
-  }
-}
-
 async function readImageTextWithLLM(
+  job: AssetJob,
   buffer: Buffer,
   contentType: string,
-  abortSignal: AbortSignal,
 ): Promise<string | null> {
   const inferenceClient = InferenceClientFactory.build();
   if (!inferenceClient) {
     logger.warn(
       "[assetPreprocessing] LLM OCR is enabled but no inference client is configured. Falling back to Tesseract.",
     );
-    return readImageText(buffer, abortSignal);
+    return assetProcessor.readImageText(job, buffer);
   }
 
   const base64 = buffer.toString("base64");
@@ -175,7 +147,7 @@ async function readImageTextWithLLM(
     base64,
     {
       schema: null,
-      abortSignal,
+      abortSignal: job.abortSignal,
     },
   );
 
@@ -188,11 +160,12 @@ async function readImageTextWithLLM(
 }
 
 export async function extractAndSavePDFScreenshot(
-  jobId: string,
+  job: AssetJob,
   asset: Buffer,
   bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
   isFixMode: boolean,
 ): Promise<boolean> {
+  const { jobId } = job;
   {
     const alreadyHasScreenshot =
       bookmark.assets.find(
@@ -209,30 +182,13 @@ export async function extractAndSavePDFScreenshot(
     `[assetPreprocessing][${jobId}] Attempting to generate PDF screenshot for bookmarkId: ${bookmark.id}`,
   );
   try {
-    const { fromBuffer } = await import("pdf2pic");
-    /**
-     * If you encountered any issues with this library, make sure you have ghostscript and graphicsmagick installed following this URL
-     * https://github.com/yakovmeister/pdf2image/blob/HEAD/docs/gm-installation.md
-     */
-    const screenshot = await fromBuffer(asset, {
-      density: 100,
-      quality: 100,
-      format: "png",
-      preserveAspectRatio: true,
-    })(1, { responseType: "buffer" });
-
-    if (!screenshot.buffer) {
-      logger.error(
-        `[assetPreprocessing][${jobId}] Failed to generate PDF screenshot`,
-      );
-      return false;
-    }
+    const screenshot = await assetProcessor.renderPdfScreenshot(job, asset);
 
     // Check storage quota before inserting
     const quotaApproved = await QuotaService.checkStorageQuota(
       db,
       bookmark.userId,
-      screenshot.buffer.byteLength,
+      screenshot.byteLength,
     );
 
     // Store the screenshot
@@ -242,7 +198,7 @@ export async function extractAndSavePDFScreenshot(
     await saveAsset({
       userId: bookmark.userId,
       assetId,
-      asset: screenshot.buffer,
+      asset: screenshot,
       metadata: {
         contentType,
         fileName,
@@ -257,7 +213,7 @@ export async function extractAndSavePDFScreenshot(
       userId: bookmark.userId,
       assetType: AssetTypes.ASSET_SCREENSHOT,
       contentType,
-      size: screenshot.buffer.byteLength,
+      size: screenshot.byteLength,
       fileName,
     });
 
@@ -280,13 +236,13 @@ export async function extractAndSavePDFScreenshot(
 }
 
 async function extractAndSaveImageText(
-  jobId: string,
+  job: AssetJob,
   asset: Buffer,
   contentType: string,
   bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
   isFixMode: boolean,
-  abortSignal: AbortSignal,
 ): Promise<boolean> {
+  const { jobId } = job;
   {
     const alreadyHasText = !!bookmark.asset.content;
     if (alreadyHasText && isFixMode) {
@@ -303,11 +259,11 @@ async function extractAndSaveImageText(
       `[assetPreprocessing][${jobId}] Attempting to extract text from image using LLM OCR.`,
     );
     try {
-      imageText = await readImageTextWithLLM(asset, contentType, abortSignal);
+      imageText = await readImageTextWithLLM(job, asset, contentType);
     } catch (e) {
       // A timed-out job must stop here, not carry on and enqueue follow-up
       // work next to its own retry.
-      if (abortSignal.aborted) {
+      if (job.abortSignal.aborted) {
         throw e;
       }
       logger.error(
@@ -319,9 +275,9 @@ async function extractAndSaveImageText(
       `[assetPreprocessing][${jobId}] Attempting to extract text from image using Tesseract.`,
     );
     try {
-      imageText = await readImageText(asset, abortSignal);
+      imageText = await assetProcessor.readImageText(job, asset);
     } catch (e) {
-      if (abortSignal.aborted) {
+      if (job.abortSignal.aborted) {
         throw e;
       }
       logger.error(
@@ -348,12 +304,12 @@ async function extractAndSaveImageText(
 }
 
 async function extractAndSavePDFText(
-  jobId: string,
+  job: AssetJob,
   asset: Buffer,
   bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
   isFixMode: boolean,
-  abortSignal: AbortSignal,
 ): Promise<boolean> {
+  const { jobId } = job;
   {
     const alreadyHasText = !!bookmark.asset.content;
     if (alreadyHasText && isFixMode) {
@@ -366,7 +322,7 @@ async function extractAndSavePDFText(
   logger.info(
     `[assetPreprocessing][${jobId}] Attempting to extract text from pdf.`,
   );
-  const pdfParse = await runPdfParseSubprocess(asset, jobId, abortSignal);
+  const pdfParse = await assetProcessor.readPdfText(job, asset);
   if (!pdfParse?.text) {
     throw new Error(
       `[assetPreprocessing][${jobId}] PDF text is empty. Please make sure that the PDF includes text and not just images.`,
@@ -398,6 +354,7 @@ async function getBookmark(bookmarkId: string) {
 async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
   const isFixMode = req.data.fixMode;
   const jobId = req.id;
+  const job: AssetJob = { jobId, abortSignal: req.abortSignal };
   const bookmarkId = req.data.bookmarkId;
   addLogFields<"assetPreprocessingWorker.run">({ "bookmark.id": bookmarkId });
 
@@ -446,26 +403,24 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
   switch (bookmark.asset.assetType) {
     case "image": {
       const extractedText = await extractAndSaveImageText(
-        jobId,
+        job,
         asset,
         metadata.contentType,
         bookmark,
         isFixMode,
-        req.abortSignal,
       );
       anythingChanged ||= extractedText;
       break;
     }
     case "pdf": {
       const extractedText = await extractAndSavePDFText(
-        jobId,
+        job,
         asset,
         bookmark,
         isFixMode,
-        req.abortSignal,
       );
       const extractedScreenshot = await extractAndSavePDFScreenshot(
-        jobId,
+        job,
         asset,
         bookmark,
         isFixMode,

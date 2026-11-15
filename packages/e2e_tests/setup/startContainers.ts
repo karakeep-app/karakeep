@@ -95,7 +95,7 @@ export default async function ({ provide }: TestProject) {
       const services = [
         "web",
         "web-remote",
-        "crawler",
+        "sandbox",
         "meilisearch",
         "chrome",
         "nginx",

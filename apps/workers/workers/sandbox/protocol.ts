@@ -1,13 +1,23 @@
-// The protocol between the crawler worker and a remote crawler (a worker
-// started with CRAWLER_REMOTE_SERVER_ENABLED=true). There's one endpoint per
-// Crawler method. The worker POSTs a multipart request: a "request" part with
-// the JSON parameters, and an "html" part for the HTML that /page (a
-// precrawled archive) and /archive take. The remote crawler responds with:
+// The protocol between the workers and a remote sandbox (a worker started
+// with SANDBOX_REMOTE_SERVER_ENABLED=true). The remote sandbox does the work
+// that handles untrusted content: the crawler worker's (one endpoint per
+// Crawler method), the video worker's yt-dlp downloads, and the asset
+// preprocessing worker's PDF parsing, PDF screenshots and OCR.
 //
-//   /probe:   multipart parts: contentType, metadata
-//   /page:    multipart parts: page, [html], [screenshot], [pdf], parsed
-//   /asset:   the file
-//   /archive: the archived page
+// The workers POST a multipart request: a "request" part with the JSON
+// parameters, an "html" part for the HTML that /page (a precrawled archive)
+// and /archive take, and a "file" part for the asset that the asset
+// preprocessing endpoints take. The remote sandbox responds with:
+//
+//   /probe:          multipart parts: contentType, metadata
+//   /page:           multipart parts: page, [html], [screenshot], [pdf], parsed
+//   /asset:          the file
+//   /archive:        the archived page
+//   /video:          the video, or 204 No Content when there's nothing to
+//                    download, with the reason in the X-Skip-Reason header
+//   /pdf-text:       JSON: the PDF's text and metadata
+//   /pdf-screenshot: the PDF's first page, as a PNG
+//   /image-text:     JSON: the image's text (OCR), or null
 //
 // The multipart responses (multipart/form-data, binary parts as is) send each
 // part as soon as it's ready, so the worker can act on the content type while
@@ -15,9 +25,10 @@
 // response with an error part. A response without its closing boundary was
 // cut off, and the parser rejects it.
 //
-// The file responses fail with an HTTP error status if the download or
-// archiving fails before sending starts. A failure partway through drops the
-// connection, so a truncated file never looks complete to the worker.
+// The other responses fail with an HTTP error status (502 when the work itself
+// failed) if anything fails before sending starts. A failure partway through
+// drops the connection, so a truncated file never looks complete to the
+// worker.
 
 import type { RunProxyConfig } from "../../network";
 import type { MultipartPart } from "@remix-run/multipart-parser";
@@ -33,26 +44,32 @@ import {
   parseSubprocessOutputSchema,
 } from "../utils/parseHtmlSubprocessIpc";
 
-export const REMOTE_CRAWLER_BASE_PATH = "/crawler/v1";
+export const SANDBOX_BASE_PATH = "/sandbox/v1";
 
-// The serializable part of the CrawlContext. The remote crawler uses the
-// proxy the worker picked for the run, so all of a run's requests share it.
+/** The header of a /video 204 response that says why nothing was downloaded. */
+export const SKIP_REASON_HEADER = "X-Skip-Reason";
+
+// The remote sandbox uses the proxy the worker picked for the run, so all of a
+// run's requests share it.
+const zRunProxySchema = z
+  .object({
+    httpProxy: z.string().optional(),
+    httpsProxy: z.string().optional(),
+    noProxy: z.array(z.string()).optional(),
+  })
+  .transform((p): RunProxyConfig => ({
+    httpProxy: p.httpProxy,
+    httpsProxy: p.httpsProxy,
+    noProxy: p.noProxy,
+  }));
+
+// The serializable part of the CrawlContext.
 const zCrawlContextSchema = z.object({
   jobId: z.string(),
   bookmarkId: z.string(),
   userId: z.string(),
   url: z.string(),
-  runProxy: z
-    .object({
-      httpProxy: z.string().optional(),
-      httpsProxy: z.string().optional(),
-      noProxy: z.array(z.string()).optional(),
-    })
-    .transform((p): RunProxyConfig => ({
-      httpProxy: p.httpProxy,
-      httpsProxy: p.httpsProxy,
-      noProxy: p.noProxy,
-    })),
+  runProxy: zRunProxySchema,
   browserCrawlingEnabled: z.boolean(),
 });
 export type SerializedCrawlContext = z.infer<typeof zCrawlContextSchema>;
@@ -85,6 +102,27 @@ export const zArchivePageRequestSchema = z.object({
   url: z.string(),
 });
 
+export const zDownloadVideoRequestSchema = z.object({
+  jobId: z.string(),
+  url: z.string(),
+  runProxy: zRunProxySchema,
+});
+
+// For /pdf-text, /pdf-screenshot and /image-text. "file" is the asset.
+export const zProcessAssetRequestSchema = z.object({
+  jobId: z.string(),
+  file: z.instanceof(Uint8Array),
+});
+
+export const zPdfTextResponseSchema = z.object({
+  text: z.string(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
+});
+
+export const zImageTextResponseSchema = z.object({
+  text: z.string().nullable(),
+});
+
 const zJsonParts = {
   contentType: z.object({ contentType: z.string().nullable() }),
   metadata: parseSubprocessMetadataSchema.nullable(),
@@ -98,7 +136,7 @@ type JsonParts = {
 };
 
 export interface Part {
-  name: JsonPartName | "request" | "html" | "screenshot" | "pdf";
+  name: JsonPartName | "request" | "html" | "file" | "screenshot" | "pdf";
   contentType: string;
   data: string | Uint8Array;
 }
@@ -154,8 +192,14 @@ export class MultipartWriter {
   }
 }
 
-/** Encodes a request: its JSON parameters, and the HTML it carries, if any. */
-export function encodeRequest(params: object, html?: string) {
+/**
+ * Encodes a request: its JSON parameters, and the HTML or file it carries, if
+ * any.
+ */
+export function encodeRequest(
+  params: object,
+  { html, file }: { html?: string; file?: Uint8Array } = {},
+) {
   const writer = new MultipartWriter();
   const parts: Part[] = [
     {
@@ -169,6 +213,13 @@ export function encodeRequest(params: object, html?: string) {
       name: "html",
       contentType: "text/html; charset=utf-8",
       data: html,
+    });
+  }
+  if (file !== undefined) {
+    parts.push({
+      name: "file",
+      contentType: "application/octet-stream",
+      data: file,
     });
   }
   return {
@@ -191,9 +242,10 @@ export async function decodeRequest<T>(
   }
   let params: object | undefined;
   let html: string | undefined;
+  let file: Uint8Array | undefined;
   try {
-    // The requests are authenticated, and a precrawled archive can be larger
-    // than the parser's default limits.
+    // The requests are authenticated, and a precrawled archive or an asset can
+    // be larger than the parser's default limits.
     for await (const part of parseMultipartStream(request.body, {
       boundary,
       maxFileSize: Infinity,
@@ -203,6 +255,8 @@ export async function decodeRequest<T>(
         params = JSON.parse(part.text) as object;
       } else if (part.name === "html") {
         html = part.text;
+      } else if (part.name === "file") {
+        file = part.bytes;
       } else {
         return null;
       }
@@ -210,7 +264,7 @@ export async function decodeRequest<T>(
   } catch {
     return null;
   }
-  const parsed = schema.safeParse({ ...params, html });
+  const parsed = schema.safeParse({ ...params, html, file });
   return parsed.success ? parsed.data : null;
 }
 
@@ -225,9 +279,9 @@ export async function* readParts(
     response.headers.get("content-type") ?? "",
   );
   if (!boundary || !response.body) {
-    throw new Error("The remote crawler didn't send a multipart response");
+    throw new Error("The remote sandbox didn't send a multipart response");
   }
-  // The remote crawler is trusted, and the html, screenshot and PDF can be
+  // The remote sandbox is trusted, and the html, screenshot and PDF can be
   // larger than the parser's default limits.
   for await (const part of parseMultipartStream(response.body, {
     boundary,
@@ -236,7 +290,7 @@ export async function* readParts(
   })) {
     if (part.name === "error") {
       throw new Error(
-        `The remote crawler failed: ${readJsonPart(part, "error").message}`,
+        `The remote sandbox failed: ${readJsonPart(part, "error").message}`,
       );
     }
     yield part;
@@ -254,5 +308,5 @@ export function readJsonPart<N extends JsonPartName>(
 }
 
 export function unexpectedPart(part: MultipartPart): Error {
-  return new Error(`Unexpected "${part.name}" part from the remote crawler`);
+  return new Error(`Unexpected "${part.name}" part from the remote sandbox`);
 }
