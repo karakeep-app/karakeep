@@ -33,6 +33,7 @@ import {
 
 import { workerStatsCounter } from "../metrics";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
+import { runPdfParseSubprocess } from "./utils/pdfSubprocess";
 
 export class AssetPreprocessingWorker {
   static async build() {
@@ -166,24 +167,6 @@ async function readImageTextWithLLM(
   }
 
   return extractedText;
-}
-
-async function readPDFText(buffer: Buffer): Promise<{
-  text: string;
-  metadata: Record<string, object>;
-}> {
-  const { default: PDFParser } = await import("pdf2json");
-  return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser(null, true);
-    pdfParser.on("pdfParser_dataError", reject);
-    pdfParser.on("pdfParser_dataReady", (pdfData) => {
-      resolve({
-        text: pdfParser.getRawTextContent(),
-        metadata: pdfData.Meta,
-      });
-    });
-    pdfParser.parseBuffer(buffer);
-  });
 }
 
 export async function extractAndSavePDFScreenshot(
@@ -342,6 +325,7 @@ async function extractAndSavePDFText(
   asset: Buffer,
   bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
   isFixMode: boolean,
+  abortSignal: AbortSignal,
 ): Promise<boolean> {
   {
     const alreadyHasText = !!bookmark.asset.content;
@@ -355,7 +339,7 @@ async function extractAndSavePDFText(
   logger.info(
     `[assetPreprocessing][${jobId}] Attempting to extract text from pdf.`,
   );
-  const pdfParse = await readPDFText(asset);
+  const pdfParse = await runPdfParseSubprocess(asset, jobId, abortSignal);
   if (!pdfParse?.text) {
     throw new Error(
       `[assetPreprocessing][${jobId}] PDF text is empty. Please make sure that the PDF includes text and not just images.`,
@@ -450,6 +434,7 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
         asset,
         bookmark,
         isFixMode,
+        req.abortSignal,
       );
       const extractedScreenshot = await extractAndSavePDFScreenshot(
         jobId,
