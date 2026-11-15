@@ -143,7 +143,7 @@ async function file<T extends { ctx: SerializedCrawlContext }>(
     result = await fn(request, ctx);
   } catch (e) {
     ctx.log.error(`Sandbox request failed: ${e}`);
-    return c.json({ error: errorMessage(e) }, WORK_FAILED_STATUS);
+    return c.json({ error: errorMessage(e) }, failedStatus(ctx.abortSignal));
   }
   return sendFile(c, ctx.log.error, result);
 }

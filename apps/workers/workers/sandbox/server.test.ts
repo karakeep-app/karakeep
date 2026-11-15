@@ -15,7 +15,7 @@ vi.mock("@karakeep/shared/config", () => ({
   },
 }));
 vi.mock("../crawler/localCrawler", () => ({
-  localCrawler: {},
+  localCrawler: { fetchAsset: vi.fn() },
   loadPage: vi.fn(),
   parsePage: vi.fn(),
 }));
@@ -34,6 +34,7 @@ import serverConfig from "@karakeep/shared/config";
 import type { AssetJob, PdfStepResult } from "../assetPreprocessing/common";
 import { AssetProcessorUnavailableError } from "../assetPreprocessing/common";
 import { localAssetProcessor } from "../assetPreprocessing/localAssetProcessor";
+import { localCrawler } from "../crawler/localCrawler";
 import { remoteAssetProcessor } from "../assetPreprocessing/remoteAssetProcessor";
 import { localVideoDownloader } from "../video/localVideoDownloader";
 import { remoteVideoDownloader } from "../video/remoteVideoDownloader";
@@ -94,14 +95,17 @@ describe("the sandbox's error statuses", () => {
 
   describe("when the sandbox's own timeout passes first", () => {
     const timeouts = {
+      crawl: serverConfig.crawler.jobTimeoutSec,
       video: serverConfig.crawler.downloadVideoTimeout,
       assets: serverConfig.assetPreprocessing.jobTimeoutSec,
     };
     beforeEach(() => {
+      serverConfig.crawler.jobTimeoutSec = 0.05;
       serverConfig.crawler.downloadVideoTimeout = 0.05;
       serverConfig.assetPreprocessing.jobTimeoutSec = 0.05;
     });
     afterEach(() => {
+      serverConfig.crawler.jobTimeoutSec = timeouts.crawl;
       serverConfig.crawler.downloadVideoTimeout = timeouts.video;
       serverConfig.assetPreprocessing.jobTimeoutSec = timeouts.assets;
     });
@@ -121,6 +125,25 @@ describe("the sandbox's error statuses", () => {
         { jobId: "1" },
         { file: new Uint8Array([1, 2, 3]) },
       );
+      expect(res.status).toBe(504);
+    });
+
+    it("answers an asset download that it stopped with a 504", async () => {
+      vi.mocked(localCrawler.fetchAsset).mockImplementationOnce((ctx) =>
+        untilAborted(ctx.abortSignal),
+      );
+      const res = await callSandbox("fetch-asset", {
+        ctx: {
+          jobId: "1",
+          bookmarkId: "b",
+          userId: "u",
+          url: "https://example.com/",
+          runProxy: videoRequest.runProxy,
+          browserCrawlingEnabled: false,
+        },
+        url: "https://example.com/image.png",
+        fileType: "image",
+      });
       expect(res.status).toBe(504);
     });
 
