@@ -34,20 +34,26 @@ export interface PdfSteps {
   screenshot: boolean;
 }
 
-/** The result of each step that was requested. */
-export interface PdfResult {
-  text?: StepResult<PdfText>;
-  screenshot?: StepResult<Buffer>;
-}
+/** A step's result, tagged with the step. */
+export type PdfStepResult =
+  | { step: "text"; result: StepResult<PdfText> }
+  | { step: "screenshot"; result: StepResult<Buffer> };
 
 export interface AssetProcessor {
   /**
    * Runs the requested steps on the PDF, all in one go so that a remote
-   * sandbox gets the PDF only once. A step failing doesn't stop the other
-   * one, and is reported in its result. Throws only when the processor
-   * couldn't run (AssetProcessorUnavailableError) or the job was aborted.
+   * sandbox gets the PDF only once, and yields each step's result as soon as
+   * it's ready: the text first, then the screenshot. A step failing doesn't
+   * stop the other one, and is reported in its result. Stopping early doesn't
+   * wait for the steps left: they're skipped, or cancelled on the sandbox.
+   * Throws only when the processor couldn't run
+   * (AssetProcessorUnavailableError) or the job was aborted.
    */
-  processPdf(job: AssetJob, pdf: Buffer, steps: PdfSteps): Promise<PdfResult>;
+  processPdf(
+    job: AssetJob,
+    pdf: Buffer,
+    steps: PdfSteps,
+  ): AsyncGenerator<PdfStepResult>;
   /**
    * Reads the image's text with Tesseract. Null when OCR is disabled or the
    * text isn't recognized confidently enough.

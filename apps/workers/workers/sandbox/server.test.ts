@@ -29,7 +29,9 @@ vi.mock("../assetPreprocessing/localAssetProcessor", () => ({
   },
 }));
 
-import type { AssetJob } from "../assetPreprocessing/common";
+import serverConfig from "@karakeep/shared/config";
+
+import type { AssetJob, PdfStepResult } from "../assetPreprocessing/common";
 import { AssetProcessorUnavailableError } from "../assetPreprocessing/common";
 import { localAssetProcessor } from "../assetPreprocessing/localAssetProcessor";
 import { remoteAssetProcessor } from "../assetPreprocessing/remoteAssetProcessor";
@@ -88,6 +90,51 @@ describe("the sandbox's error statuses", () => {
       { file: new Uint8Array([1, 2, 3]) },
     );
     expect(res.status).toBe(WORK_FAILED_STATUS);
+  });
+
+  describe("when the sandbox's own timeout passes first", () => {
+    const timeouts = {
+      video: serverConfig.crawler.downloadVideoTimeout,
+      assets: serverConfig.assetPreprocessing.jobTimeoutSec,
+    };
+    beforeEach(() => {
+      serverConfig.crawler.downloadVideoTimeout = 0.05;
+      serverConfig.assetPreprocessing.jobTimeoutSec = 0.05;
+    });
+    afterEach(() => {
+      serverConfig.crawler.downloadVideoTimeout = timeouts.video;
+      serverConfig.assetPreprocessing.jobTimeoutSec = timeouts.assets;
+    });
+
+    /** Rejects like the tools do when their signal fires. */
+    const untilAborted = (signal: AbortSignal) =>
+      new Promise<never>((_, reject) =>
+        signal.addEventListener("abort", () => reject(new Error("aborted"))),
+      );
+
+    it("answers an OCR that it stopped with a 504", async () => {
+      vi.mocked(localAssetProcessor.readImageText).mockImplementationOnce(
+        (job) => untilAborted(job.abortSignal),
+      );
+      const res = await callSandbox(
+        "read-image-text",
+        { jobId: "1" },
+        { file: new Uint8Array([1, 2, 3]) },
+      );
+      expect(res.status).toBe(504);
+    });
+
+    it("answers a yt-dlp run that it stopped with a 504", async () => {
+      // yt-dlp reports being stopped as a failed download.
+      vi.mocked(localVideoDownloader.download).mockImplementationOnce(
+        async ({ abortSignal }) => {
+          await untilAborted(abortSignal).catch(() => undefined);
+          return { status: "failed", reason: "yt-dlp was killed" };
+        },
+      );
+      const res = await callSandbox("download-video", videoRequest);
+      expect(res.status).toBe(504);
+    });
   });
 
   it("rejects a /process-pdf request that asks for no steps", async () => {
@@ -186,7 +233,33 @@ describe("/process-pdf", () => {
   };
   const pdf = Buffer.from("%PDF-1.4");
   const png = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const text: PdfStepResult = {
+    step: "text",
+    result: { ok: true, value: { text: "hello", metadata: { Title: "t" } } },
+  };
+  const screenshot: PdfStepResult = {
+    step: "screenshot",
+    result: { ok: true, value: png },
+  };
+  const both = { text: true, screenshot: true };
   const fetchMock = vi.fn<typeof fetch>();
+
+  /** Has the sandbox's processPdf yield these results. */
+  function sandboxYields(...results: PdfStepResult[]) {
+    vi.mocked(localAssetProcessor.processPdf).mockImplementationOnce(
+      async function* () {
+        yield* results;
+      },
+    );
+  }
+
+  async function collect(steps = both) {
+    const results: PdfStepResult[] = [];
+    for await (const r of remoteAssetProcessor.processPdf(job, pdf, steps)) {
+      results.push(r);
+    }
+    return results;
+  }
 
   beforeEach(() => {
     // The client talks to the real routes.
@@ -203,62 +276,84 @@ describe("/process-pdf", () => {
   });
 
   it("uploads the PDF once and gets back both results", async () => {
-    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
-      text: { ok: true, value: { text: "hello", metadata: { Title: "t" } } },
-      screenshot: { ok: true, value: png },
-    });
-    const result = await remoteAssetProcessor.processPdf(job, pdf, {
-      text: true,
-      screenshot: true,
-    });
+    sandboxYields(text, screenshot);
+    expect(await collect()).toEqual([text, screenshot]);
     expect(fetchMock).toHaveBeenCalledOnce();
-    expect(result.text).toEqual({
-      ok: true,
-      value: { text: "hello", metadata: { Title: "t" } },
-    });
-    expect(result.screenshot).toEqual({ ok: true, value: png });
   });
 
   it("reports each step's failure on its own", async () => {
-    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
-      text: { ok: false, error: "Invalid PDF structure" },
-      screenshot: { ok: true, value: png },
-    });
-    const result = await remoteAssetProcessor.processPdf(job, pdf, {
-      text: true,
-      screenshot: true,
-    });
-    expect(result.text).toEqual({ ok: false, error: "Invalid PDF structure" });
-    expect(result.screenshot).toEqual({ ok: true, value: png });
+    const failed: PdfStepResult = {
+      step: "text",
+      result: { ok: false, error: "Invalid PDF structure" },
+    };
+    sandboxYields(failed, screenshot);
+    expect(await collect()).toEqual([failed, screenshot]);
   });
 
   it("only runs the requested steps", async () => {
-    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
-      screenshot: { ok: false, error: "gm not found" },
-    });
-    const result = await remoteAssetProcessor.processPdf(job, pdf, {
-      text: false,
-      screenshot: true,
-    });
+    const failed: PdfStepResult = {
+      step: "screenshot",
+      result: { ok: false, error: "gm not found" },
+    };
+    sandboxYields(failed);
+    expect(await collect({ text: false, screenshot: true })).toEqual([failed]);
     expect(vi.mocked(localAssetProcessor.processPdf)).toHaveBeenLastCalledWith(
       expect.anything(),
       pdf,
       expect.objectContaining({ text: false, screenshot: true }),
     );
-    expect(result).toEqual({
-      screenshot: { ok: false, error: "gm not found" },
+  });
+
+  it("hands over the text before the screenshot is ready", async () => {
+    let renderScreenshot = () => undefined as void;
+    const rendered = new Promise<void>((resolve) => {
+      renderScreenshot = resolve;
     });
+    vi.mocked(localAssetProcessor.processPdf).mockImplementationOnce(
+      async function* () {
+        yield text;
+        await rendered;
+        yield screenshot;
+      },
+    );
+    const results = remoteAssetProcessor.processPdf(job, pdf, both);
+    expect((await results.next()).value).toEqual(text);
+    renderScreenshot();
+    expect((await results.next()).value).toEqual(screenshot);
+    expect((await results.next()).done).toBe(true);
+  });
+
+  it("stops the sandbox when the worker stops reading", async () => {
+    let sandboxSignal: AbortSignal | undefined;
+    vi.mocked(localAssetProcessor.processPdf).mockImplementationOnce(
+      async function* (job) {
+        sandboxSignal = job.abortSignal;
+        yield text;
+        await new Promise(() => undefined); // A screenshot that never renders.
+      },
+    );
+    const results = remoteAssetProcessor.processPdf(job, pdf, both);
+    expect((await results.next()).value).toEqual(text);
+    await results.return(undefined);
+    await vi.waitFor(() => expect(sandboxSignal?.aborted).toBe(true));
   });
 
   it("treats a response missing a requested step as the sandbox being unavailable", async () => {
-    vi.mocked(localAssetProcessor.processPdf).mockResolvedValueOnce({
-      text: { ok: true, value: { text: "hello", metadata: null } },
-    });
-    await expect(
-      remoteAssetProcessor.processPdf(job, pdf, {
-        text: true,
-        screenshot: true,
-      }),
-    ).rejects.toBeInstanceOf(AssetProcessorUnavailableError);
+    sandboxYields(text);
+    await expect(collect()).rejects.toBeInstanceOf(
+      AssetProcessorUnavailableError,
+    );
+  });
+
+  it("treats a step that throws on the sandbox as the sandbox being unavailable", async () => {
+    vi.mocked(localAssetProcessor.processPdf).mockImplementationOnce(
+      async function* () {
+        yield text;
+        throw new Error("aborted");
+      },
+    );
+    await expect(collect()).rejects.toBeInstanceOf(
+      AssetProcessorUnavailableError,
+    );
   });
 });

@@ -273,15 +273,19 @@ async function extractAndSavePDFTextAndScreenshot(
   logger.info(
     `[assetPreprocessing][${jobId}] Attempting to process the pdf (text: ${steps.text}, screenshot: ${steps.screenshot}).`,
   );
-  const result = await assetProcessor.processPdf(job, asset, steps);
-  // The text goes first: it failing fails the job, and a screenshot saved
-  // before that would be saved again on every retry.
-  const savedText = result.text
-    ? await savePDFText(job, bookmark, result.text)
-    : false;
-  const savedScreenshot = result.screenshot
-    ? await savePDFScreenshot(job, bookmark, result.screenshot)
-    : false;
+  let savedText = false;
+  let savedScreenshot = false;
+  // Each result is saved as soon as it's ready, so the text doesn't wait for
+  // the screenshot to render. The text comes first: it failing fails the job
+  // before the screenshot is saved (or, locally, even rendered), as a
+  // screenshot saved before that would be saved again on every retry.
+  for await (const r of assetProcessor.processPdf(job, asset, steps)) {
+    if (r.step === "text") {
+      savedText = await savePDFText(job, bookmark, r.result);
+    } else {
+      savedScreenshot = await savePDFScreenshot(job, bookmark, r.result);
+    }
+  }
   return savedText || savedScreenshot;
 }
 

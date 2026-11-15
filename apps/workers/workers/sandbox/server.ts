@@ -21,7 +21,7 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
-import type { AssetJob } from "../assetPreprocessing/common";
+import type { AssetJob, PdfStepResult } from "../assetPreprocessing/common";
 import type { CrawlContext } from "../crawler/common";
 import type { Part, SerializedCrawlContext } from "./protocol";
 import { localAssetProcessor } from "../assetPreprocessing/localAssetProcessor";
@@ -191,8 +191,28 @@ function tempFile(filePath: string, contentType: string): FileResult {
 }
 
 /**
- * Runs fn on the asset of a /process-pdf or /read-image-text request. Responds with an
- * error status if fn throws.
+ * The status for work that threw or failed. When the request's signal fired
+ * first (the sandbox's timeout passed, or the worker went away), the failure
+ * says nothing about the input, so it's one that the worker retries.
+ */
+function failedStatus(signal: AbortSignal) {
+  return signal.aborted ? 504 : WORK_FAILED_STATUS;
+}
+
+function pdfStepPart(r: PdfStepResult): Part {
+  if (r.step === "text") {
+    return r.result.ok
+      ? jsonPart("pdfText", r.result.value)
+      : jsonPart("pdfTextError", { message: r.result.error });
+  }
+  return r.result.ok
+    ? { name: "screenshot", contentType: "image/png", data: r.result.value }
+    : jsonPart("screenshotError", { message: r.result.error });
+}
+
+/**
+ * Runs fn on the asset of a /process-pdf or /read-image-text request.
+ * Responds with an error status if fn throws.
  */
 async function processAsset<T extends { jobId: string; file: Uint8Array }>(
   c: Context<Env>,
@@ -217,7 +237,7 @@ async function processAsset<T extends { jobId: string; file: Uint8Array }>(
     logger.error(
       `[assetPreprocessing][${job.jobId}] Sandbox request failed: ${e}`,
     );
-    return c.json({ error: errorMessage(e) }, WORK_FAILED_STATUS);
+    return c.json({ error: errorMessage(e) }, failedStatus(job.abortSignal));
   }
 }
 
@@ -304,21 +324,26 @@ export function buildSandboxRoutes(token: string) {
       const logError = (message: string) =>
         logger.error(`[VideoCrawler][${request.jobId}] ${message}`);
       const assetId = newAssetId();
+      const abortSignal = requestSignal(
+        c,
+        serverConfig.crawler.downloadVideoTimeout,
+      );
       let result;
       try {
         result = await localVideoDownloader.download({
           ...request,
           assetId,
-          abortSignal: requestSignal(
-            c,
-            serverConfig.crawler.downloadVideoTimeout,
-          ),
+          abortSignal,
         });
       } catch (e) {
         // Not yt-dlp failing (that's a "failed" result), so the worker should
         // retry, as it would after the same error locally.
         logError(`Sandbox request failed: ${e}`);
         return c.json({ error: errorMessage(e) }, 500);
+      }
+      if (abortSignal.aborted && result.status === "skipped") {
+        // Stopped by the signal before it found out whether there's a video.
+        return c.json({ error: result.reason }, 504);
       }
       switch (result.status) {
         case "skipped":
@@ -327,7 +352,8 @@ export function buildSandboxRoutes(token: string) {
           });
         case "failed":
           logError(`Failed to download the video: ${result.reason}`);
-          return c.json({ error: result.reason }, WORK_FAILED_STATUS);
+          // yt-dlp also fails when it's stopped by the signal.
+          return c.json({ error: result.reason }, failedStatus(abortSignal));
         case "downloaded":
           return sendFile(
             c,
@@ -337,34 +363,42 @@ export function buildSandboxRoutes(token: string) {
       }
     })
     .post("/process-pdf", (c) =>
-      processAsset(c, zProcessPdfRequestSchema, async (request, job, pdf) => {
-        const result = await localAssetProcessor.processPdf(job, pdf, request);
-        const parts: Part[] = [];
-        if (result.text) {
-          parts.push(
-            result.text.ok
-              ? jsonPart("pdfText", result.text.value)
-              : jsonPart("pdfTextError", { message: result.text.error }),
-          );
-        }
-        if (result.screenshot) {
-          parts.push(
-            result.screenshot.ok
-              ? {
-                  name: "screenshot",
-                  contentType: "image/png",
-                  data: result.screenshot.value,
-                }
-              : jsonPart("screenshotError", {
-                  message: result.screenshot.error,
-                }),
-          );
-        }
+      processAsset(c, zProcessPdfRequestSchema, (request, job, pdf) => {
+        // Each step's part is sent as soon as it's ready, so the worker can
+        // save the text while the screenshot renders.
         const writer = new MultipartWriter();
-        // Buffer.concat always allocates a new (non-shared) ArrayBuffer.
-        return c.body(writer.body(parts) as Uint8Array<ArrayBuffer>, 200, {
-          "Content-Type": writer.contentType,
-        });
+        const count = Number(request.text) + Number(request.screenshot);
+        c.header("Content-Type", writer.contentType);
+        return Promise.resolve(
+          stream(c, async (s) => {
+            await s.write(writer.start());
+            let written = 0;
+            try {
+              for await (const r of localAssetProcessor.processPdf(
+                job,
+                pdf,
+                request,
+              )) {
+                written += 1;
+                await s.write(
+                  writer.part(pdfStepPart(r), { last: written === count }),
+                );
+              }
+              if (written !== count) {
+                throw new Error("A step didn't report its result");
+              }
+            } catch (e) {
+              logger.error(
+                `[assetPreprocessing][${job.jobId}] Sandbox request failed: ${e}`,
+              );
+              await s.write(
+                writer.part(jsonPart("error", { message: errorMessage(e) }), {
+                  last: true,
+                }),
+              );
+            }
+          }),
+        );
       }),
     )
     .post("/read-image-text", (c) =>

@@ -29,8 +29,9 @@
 // The other responses fail with an HTTP error status if anything fails before
 // sending starts: WORK_FAILED_STATUS when the work itself failed on the input
 // (e.g. yt-dlp or the PDF parser failed), and any other status when the
-// sandbox couldn't do the work. A failure partway through drops the
-// connection, so a truncated file never looks complete to the worker.
+// sandbox couldn't do the work (e.g. 504 when its timeout passed first). A
+// failure partway through drops the connection, so a truncated file never
+// looks complete to the worker.
 
 import type { RunProxyConfig } from "../../network";
 import type { MultipartPart } from "@remix-run/multipart-parser";

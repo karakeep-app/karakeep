@@ -41,16 +41,22 @@ async function step<T>(
 }
 
 export const localAssetProcessor: AssetProcessor = {
-  processPdf: async (job, pdf, steps) => ({
-    text: steps.text
-      ? await step(job, () =>
+  processPdf: async function* (job, pdf, steps) {
+    if (steps.text) {
+      yield {
+        step: "text",
+        result: await step(job, () =>
           runPdfParseSubprocess(pdf, job.jobId, job.abortSignal),
-        )
-      : undefined,
-    screenshot: steps.screenshot
-      ? await step(job, () => renderPdfScreenshot(pdf))
-      : undefined,
-  }),
+        ),
+      };
+    }
+    if (steps.screenshot) {
+      yield {
+        step: "screenshot",
+        result: await step(job, () => renderPdfScreenshot(pdf)),
+      };
+    }
+  },
 
   readImageText: async ({ abortSignal }, image) => {
     if (serverConfig.ocr.langs.length == 1 && serverConfig.ocr.langs[0] == "") {
