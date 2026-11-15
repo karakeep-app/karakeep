@@ -46,7 +46,8 @@ vi.mock("@karakeep/db", () => ({
   db: dbMock,
 }));
 
-vi.mock("@karakeep/db/schema", () => ({
+vi.mock("@karakeep/db/schema", async (original) => ({
+  ...(await original<typeof import("@karakeep/db/schema")>()),
   bookmarks: { id: "id", embeddingStatus: "embeddingStatus" },
 }));
 
