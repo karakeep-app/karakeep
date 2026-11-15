@@ -60,21 +60,26 @@ export function getBookmarkRefreshInterval(
     return false;
   }
 
+  // Back off from when the bookmark last changed rather than when it was
+  // created, so that reprocessing an old bookmark (e.g. a recrawl) is polled too.
+  const lastChangedAt = Math.max(
+    bookmark.createdAt.valueOf(),
+    bookmark.modifiedAt?.valueOf() ?? 0,
+  );
+  const elapsed = Date.now() - lastChangedAt;
+
   // For the first 30 seconds, we'll refresh the bookmark every second
-  if (Date.now().valueOf() - bookmark.createdAt.valueOf() < 30 * 1000) {
+  if (elapsed < 30 * 1000) {
     return 1000;
   }
 
   // Then, we'll refresh it every 10 seconds after than for 10mins
-  if (Date.now().valueOf() - bookmark.createdAt.valueOf() < 10 * 60 * 1000) {
+  if (elapsed < 10 * 60 * 1000) {
     return 10_000;
   }
 
   // Then, we'll refresh it every minute after than for 6hrs
-  if (
-    Date.now().valueOf() - bookmark.createdAt.valueOf() <
-    6 * 60 * 60 * 1000
-  ) {
+  if (elapsed < 6 * 60 * 60 * 1000) {
     return 60_000;
   }
 

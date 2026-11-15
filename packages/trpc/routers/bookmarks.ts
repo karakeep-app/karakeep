@@ -844,10 +844,18 @@ export const bookmarksAppRouter = router({
         priority: QueuePriority.Low,
         idempotencyKey: buildCrawlIdempotencyKey(payload),
       });
-      await ctx.db
-        .update(bookmarkLinks)
-        .set({ crawlStatus: "pending" })
-        .where(eq(bookmarkLinks.id, input.bookmarkId));
+      ctx.db.transaction((tx) => {
+        tx.update(bookmarkLinks)
+          .set({ crawlStatus: "pending" })
+          .where(eq(bookmarkLinks.id, input.bookmarkId))
+          .run();
+        // Clients poll a bookmark that's still loading, backing off from when
+        // it was last modified, so the bookmark's own row has to change too.
+        tx.update(bookmarks)
+          .set({ modifiedAt: new Date() })
+          .where(eq(bookmarks.id, input.bookmarkId))
+          .run();
+      });
     }),
   // Captures an offline copy (a PDF or a full-page archive) of a link without
   // recrawling it: the bookmark's content, metadata and crawl status are kept.
