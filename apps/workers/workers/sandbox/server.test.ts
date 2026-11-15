@@ -66,7 +66,7 @@ describe("the sandbox's error statuses", () => {
       status: "failed",
       reason: "yt-dlp failed",
     });
-    const res = await callSandbox("video", videoRequest);
+    const res = await callSandbox("download-video", videoRequest);
     expect(res.status).toBe(WORK_FAILED_STATUS);
   });
 
@@ -74,7 +74,7 @@ describe("the sandbox's error statuses", () => {
     vi.mocked(localVideoDownloader.download).mockRejectedValueOnce(
       new Error("ENOSPC"),
     );
-    const res = await callSandbox("video", videoRequest);
+    const res = await callSandbox("download-video", videoRequest);
     expect(res.status).toBe(500);
   });
 
@@ -83,16 +83,16 @@ describe("the sandbox's error statuses", () => {
       new Error("Error attempting to read image"),
     );
     const res = await callSandbox(
-      "image-text",
+      "read-image-text",
       { jobId: "1" },
       { file: new Uint8Array([1, 2, 3]) },
     );
     expect(res.status).toBe(WORK_FAILED_STATUS);
   });
 
-  it("rejects a /pdf request that asks for no steps", async () => {
+  it("rejects a /process-pdf request that asks for no steps", async () => {
     const res = await callSandbox(
-      "pdf",
+      "process-pdf",
       { jobId: "1", text: false, screenshot: false },
       { file: new Uint8Array([1, 2, 3]) },
     );
@@ -179,7 +179,7 @@ describe("the clients' handling of the sandbox's errors", () => {
   });
 });
 
-describe("/pdf", () => {
+describe("/process-pdf", () => {
   const job: AssetJob = {
     jobId: "1",
     abortSignal: new AbortController().signal,

@@ -72,7 +72,7 @@ export const remoteCrawler: Crawler = {
     try {
       const parts = readParts(
         await request(
-          "probe",
+          "probe-url",
           ctx,
           { skipMetadataExtraction: opts?.skipMetadataExtraction },
           { signal: AbortSignal.any([ctx.abortSignal, requestAbort.signal]) },
@@ -113,7 +113,7 @@ export const remoteCrawler: Crawler = {
     let page: CrawlPageResult | undefined;
     let parsed: FetchedPage["parsed"] | undefined;
     for await (const part of readParts(
-      await request("page", ctx, params, { html: precrawledHtml }),
+      await request("fetch-page", ctx, params, { html: precrawledHtml }),
     )) {
       if (part.name === "page") {
         page = {
@@ -139,7 +139,7 @@ export const remoteCrawler: Crawler = {
   },
 
   fetchAsset: async (ctx, url, fileType) => {
-    const response = await request("asset", ctx, { url, fileType });
+    const response = await request("fetch-asset", ctx, { url, fileType });
     return {
       contentType: response.headers.get("content-type") ?? "",
       body: bodyStream(response),
@@ -148,7 +148,7 @@ export const remoteCrawler: Crawler = {
 
   archivePage: async (ctx, html, url, assetPath) => {
     try {
-      const response = await request("archive", ctx, { url }, { html });
+      const response = await request("archive-page", ctx, { url }, { html });
       await pipeline(bodyStream(response), createWriteStream(assetPath));
       return { failed: false };
     } catch (e) {

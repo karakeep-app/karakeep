@@ -141,7 +141,7 @@ describe("remote sandbox protocol", () => {
     attachments?: { html?: string; file?: Uint8Array },
   ) {
     const { contentType, body } = encodeRequest(params, attachments);
-    return new Request("http://remote/archive", {
+    return new Request("http://remote/archive-page", {
       method: "POST",
       headers: { "Content-Type": contentType },
       body,

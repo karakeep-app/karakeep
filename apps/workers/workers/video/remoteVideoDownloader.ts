@@ -17,7 +17,7 @@ export const remoteVideoDownloader: VideoDownloader = {
     let response: Response;
     try {
       response = await postToSandbox(
-        "video",
+        "download-video",
         { jobId, url, runProxy },
         { signal: abortSignal },
       );

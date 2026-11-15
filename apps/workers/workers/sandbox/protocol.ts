@@ -5,26 +5,26 @@
 // preprocessing worker's PDF parsing, PDF screenshots and OCR.
 //
 // The workers POST a multipart request: a "request" part with the JSON
-// parameters, an "html" part for the HTML that /page (a precrawled archive)
-// and /archive take, and a "file" part for the asset that the asset
-// preprocessing endpoints take. The remote sandbox responds with:
+// parameters, an "html" part for the HTML that /fetch-page (a precrawled
+// archive) and /archive-page take, and a "file" part for the asset that
+// /process-pdf and /read-image-text take. The remote sandbox responds with:
 //
-//   /probe:          multipart parts: contentType, metadata
-//   /page:           multipart parts: page, [html], [screenshot], [pdf], parsed
-//   /asset:          the file
-//   /archive:        the archived page
-//   /video:          the video, or 204 No Content when there's nothing to
-//                    download, with the reason in the X-Skip-Reason header
-//   /pdf:            multipart parts, for the steps requested: pdfText (or
-//                    pdfTextError), screenshot (or screenshotError)
-//   /image-text:     JSON: the image's text (OCR), or null
+//   /probe-url:       multipart parts: contentType, metadata
+//   /fetch-page:      multipart parts: page, [html], [screenshot], [pdf], parsed
+//   /fetch-asset:     the file
+//   /archive-page:    the archived page
+//   /download-video:  the video, or 204 No Content when there's nothing to
+//                     download, with the reason in the X-Skip-Reason header
+//   /process-pdf:     multipart parts, for the steps requested: pdfText (or
+//                     pdfTextError), screenshot (or screenshotError)
+//   /read-image-text: JSON: the image's text (OCR), or null
 //
 // The multipart responses (multipart/form-data, binary parts as is) send each
 // part as soon as it's ready, so the worker can act on the content type while
 // the metadata is being extracted. A failure partway through ends the
 // response with an error part. A response without its closing boundary was
-// cut off, and the parser rejects it. /pdf runs each step even if the other
-// one fails, and reports a step's failure in its own error part.
+// cut off, and the parser rejects it. /process-pdf runs each step even if the
+// other one fails, and reports a step's failure in its own error part.
 //
 // The other responses fail with an HTTP error status if anything fails before
 // sending starts: WORK_FAILED_STATUS when the work itself failed on the input
@@ -57,7 +57,7 @@ export const SANDBOX_BASE_PATH = "/sandbox/v1";
  */
 export const WORK_FAILED_STATUS = 422;
 
-/** The header of a /video 204 response that says why nothing was downloaded. */
+/** The header of a /download-video 204 response that says why nothing was downloaded. */
 export const SKIP_REASON_HEADER = "X-Skip-Reason";
 
 // The remote sandbox uses the proxy the worker picked for the run, so all of a
@@ -119,7 +119,9 @@ export const zDownloadVideoRequestSchema = z.object({
   runProxy: zRunProxySchema,
 });
 
-// For /image-text. "file" is the asset.
+// For /read-image-text. "file" is the asset. Like "html", it's sent as is in
+// its own multipart part, not in the JSON parameters: decodeRequest adds it
+// to them before they're validated.
 export const zProcessAssetRequestSchema = z.object({
   jobId: z.string(),
   file: z.instanceof(Uint8Array),

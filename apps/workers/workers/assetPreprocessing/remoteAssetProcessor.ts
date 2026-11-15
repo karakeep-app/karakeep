@@ -14,7 +14,7 @@ import {
 import { AssetProcessorUnavailableError } from "./common";
 
 async function post<T>(
-  endpoint: "pdf" | "image-text",
+  endpoint: "process-pdf" | "read-image-text",
   job: AssetJob,
   params: object,
   file: Buffer,
@@ -41,7 +41,7 @@ async function post<T>(
 
 export const remoteAssetProcessor: AssetProcessor = {
   processPdf: (job, pdf, steps) =>
-    post("pdf", job, steps, pdf, async (response) => {
+    post("process-pdf", job, steps, pdf, async (response) => {
       const result: PdfResult = {};
       for await (const part of readParts(response)) {
         switch (part.name) {
@@ -78,7 +78,7 @@ export const remoteAssetProcessor: AssetProcessor = {
 
   readImageText: (job, image) =>
     post(
-      "image-text",
+      "read-image-text",
       job,
       {},
       image,

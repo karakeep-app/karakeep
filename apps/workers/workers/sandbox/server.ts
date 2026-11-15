@@ -191,7 +191,7 @@ function tempFile(filePath: string, contentType: string): FileResult {
 }
 
 /**
- * Runs fn on the asset of a /pdf or /image-text request. Responds with an
+ * Runs fn on the asset of a /process-pdf or /read-image-text request. Responds with an
  * error status if fn throws.
  */
 async function processAsset<T extends { jobId: string; file: Uint8Array }>(
@@ -228,7 +228,7 @@ export function buildSandboxRoutes(token: string) {
 
   return new Hono<Env>()
     .use(bearerAuth({ token }))
-    .post("/probe", (c) =>
+    .post("/probe-url", (c) =>
       multipart(c, zProbeRequestSchema, async (request, ctx, write) => {
         const { contentType, metadata } =
           await localCrawler.getContentTypeAndMetadata(ctx, request);
@@ -236,7 +236,7 @@ export function buildSandboxRoutes(token: string) {
         return jsonPart("metadata", await metadata);
       }),
     )
-    .post("/page", (c) =>
+    .post("/fetch-page", (c) =>
       multipart(c, zFetchPageRequestSchema, async (request, ctx, write) => {
         const opts = { ...request, precrawledHtml: request.html };
         // Only the browser work holds a slot, so a slow reader can't.
@@ -272,12 +272,12 @@ export function buildSandboxRoutes(token: string) {
         return jsonPart("parsed", await parsePage(ctx, page, opts));
       }),
     )
-    .post("/asset", (c) =>
+    .post("/fetch-asset", (c) =>
       file(c, zFetchAssetRequestSchema, (request, ctx) =>
         localCrawler.fetchAsset(ctx, request.url, request.fileType),
       ),
     )
-    .post("/archive", (c) =>
+    .post("/archive-page", (c) =>
       file(c, zArchivePageRequestSchema, async (request, ctx) => {
         const assetPath = path.join(os.tmpdir(), newAssetId());
         const res = await localCrawler.archivePage(
@@ -293,7 +293,7 @@ export function buildSandboxRoutes(token: string) {
         return tempFile(assetPath, "text/html");
       }),
     )
-    .post("/video", async (c) => {
+    .post("/download-video", async (c) => {
       const request = await decodeRequest(
         c.req.raw,
         zDownloadVideoRequestSchema,
@@ -336,7 +336,7 @@ export function buildSandboxRoutes(token: string) {
           );
       }
     })
-    .post("/pdf", (c) =>
+    .post("/process-pdf", (c) =>
       processAsset(c, zProcessPdfRequestSchema, async (request, job, pdf) => {
         const result = await localAssetProcessor.processPdf(job, pdf, request);
         const parts: Part[] = [];
@@ -367,7 +367,7 @@ export function buildSandboxRoutes(token: string) {
         });
       }),
     )
-    .post("/image-text", (c) =>
+    .post("/read-image-text", (c) =>
       processAsset(
         c,
         zProcessAssetRequestSchema,

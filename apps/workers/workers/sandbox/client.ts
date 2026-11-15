@@ -9,13 +9,13 @@ import serverConfig from "@karakeep/shared/config";
 import { encodeRequest, SANDBOX_BASE_PATH } from "./protocol";
 
 export type SandboxEndpoint =
-  | "probe"
-  | "page"
-  | "asset"
-  | "archive"
-  | "video"
-  | "pdf"
-  | "image-text";
+  | "probe-url"
+  | "fetch-page"
+  | "fetch-asset"
+  | "archive-page"
+  | "download-video"
+  | "process-pdf"
+  | "read-image-text";
 
 /** The remote sandbox responded with an error status. */
 export class SandboxError extends Error {
