@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,23 +18,36 @@ import { useBookmarkSearchState } from "@/lib/hooks/bookmark-search";
 import { useTranslation } from "@/lib/i18n/client";
 import { useInSearchPageStore } from "@/lib/store/useInSearchPageStore";
 import { useSortOrderStore } from "@/lib/store/useSortOrderStore";
+import { useSortOrder } from "@/lib/userLocalSettings/bookmarksLayout";
+import { updateSortOrder } from "@/lib/userLocalSettings/userLocalSettings";
 import { Check, ListFilter, SortAsc, SortDesc } from "lucide-react";
+
+import type { ZSortOrder } from "@karakeep/shared/types/bookmarks";
 
 export default function SortOrderToggle() {
   const { t } = useTranslation();
   const isInSearchPage = useInSearchPageStore((state) => state.inSearchPage);
   const { effectiveSearchMode } = useBookmarkSearchState();
 
-  const { sortOrder: currentSort, setSortOrder } = useSortOrderStore();
+  const defaultSortOrder = useSortOrder();
+  const { sortOrder: overrideSortOrder, setSortOrder } = useSortOrderStore();
+  const currentSort = overrideSortOrder ?? defaultSortOrder;
+  const [, startTransition] = useTransition();
 
-  // also see related on page enter sortOrder.relevance init
-  // in apps/web/app/dashboard/search/page.tsx
   useEffect(() => {
     if (!isInSearchPage && currentSort === "relevance") {
-      // reset to default sort order
-      setSortOrder("desc");
+      setSortOrder(null);
     }
   }, [isInSearchPage, currentSort, setSortOrder]);
+
+  const handleSortOrderChange = (nextSortOrder: ZSortOrder) => {
+    setSortOrder(nextSortOrder);
+    if (nextSortOrder !== "relevance") {
+      startTransition(async () => {
+        await updateSortOrder(nextSortOrder);
+      });
+    }
+  };
 
   if (isInSearchPage && effectiveSearchMode !== "fts") {
     return null;
@@ -68,7 +81,7 @@ export default function SortOrderToggle() {
         {isInSearchPage && (
           <DropdownMenuItem
             className="cursor-pointer justify-between"
-            onClick={() => setSortOrder("relevance")}
+            onClick={() => handleSortOrderChange("relevance")}
           >
             <div className="flex items-center">
               <ListFilter size={16} className="mr-2" />
@@ -79,7 +92,7 @@ export default function SortOrderToggle() {
         )}
         <DropdownMenuItem
           className="cursor-pointer justify-between"
-          onClick={() => setSortOrder("desc")}
+          onClick={() => handleSortOrderChange("desc")}
         >
           <div className="flex items-center">
             <SortDesc size={16} className="mr-2" />
@@ -89,7 +102,7 @@ export default function SortOrderToggle() {
         </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer justify-between"
-          onClick={() => setSortOrder("asc")}
+          onClick={() => handleSortOrderChange("asc")}
         >
           <div className="flex items-center">
             <SortAsc size={16} className="mr-2" />
