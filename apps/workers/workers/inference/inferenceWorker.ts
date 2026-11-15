@@ -129,7 +129,7 @@ export class OpenAiWorker {
   }
 }
 
-export async function runOpenAI(
+async function runOpenAI(
   job: DequeuedJob<ZOpenAIRequest>,
 ): Promise<SummarizationOutcome | undefined> {
   const jobId = job.id;
