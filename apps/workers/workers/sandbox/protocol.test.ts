@@ -134,6 +134,7 @@ describe("remote sandbox protocol", () => {
     url: "https://example.com/",
     runProxy: {},
     browserCrawlingEnabled: true,
+    colorScheme: "system",
   };
 
   function requestOf(
