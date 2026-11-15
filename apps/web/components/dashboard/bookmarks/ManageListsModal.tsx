@@ -1,30 +1,43 @@
-import { useState } from "react";
-import { ActionButton } from "@/components/ui/action-button";
-import { Button } from "@/components/ui/button";
+import { useRef, useState } from "react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/sonner";
 import LoadingSpinner from "@/components/ui/spinner";
+import { useClientConfig } from "@/lib/clientConfig";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useTranslation } from "@/lib/i18n/client";
-import { useQuery } from "@tanstack/react-query";
-import { Archive, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check } from "lucide-react";
 
+import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import {
   useAddBookmarkToList,
   useBookmarkLists,
   useRemoveBookmarkFromList,
 } from "@karakeep/shared-react/hooks/lists";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { listNameFromPath } from "@karakeep/shared/utils/listUtils";
 
-import { BookmarkListSelector } from "../lists/BookmarkListSelector";
-import ArchiveBookmarkButton from "./action-buttons/ArchiveBookmarkButton";
+/** Matches on list names only, as an item's value is its id. */
+function filterByName(_value: string, search: string, keywords?: string[]) {
+  const name = keywords?.join(" ").toLowerCase() ?? "";
+  return name.includes(search.trim().toLowerCase()) ? 1 : 0;
+}
 
+/** The same search and check list as the preview's lists field. */
 export default function ManageListsModal({
   bookmarkId,
   open,
@@ -36,137 +49,132 @@ export default function ManageListsModal({
 }) {
   const api = useTRPC();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const demoMode = !!useClientConfig().demoMode;
+  const isTouch = useMediaQuery("(pointer: coarse)");
 
   const { data: allLists, isPending: isAllListsPending } = useBookmarkLists(
     undefined,
     { enabled: open },
   );
 
-  const { data: alreadyInList, isPending: isAlreadyInListPending } = useQuery(
+  const membershipKey = api.lists.getListsOfBookmark.queryKey({ bookmarkId });
+  const { data: membership, isPending: isMembershipPending } = useQuery(
     api.lists.getListsOfBookmark.queryOptions(
-      {
-        bookmarkId,
-      },
+      { bookmarkId },
       { enabled: open },
     ),
   );
 
-  const isLoading = isAllListsPending || isAlreadyInListPending;
+  const onError = (e: { data?: { code?: string } | null; message: string }) => {
+    // Takes back the optimistic change.
+    queryClient.invalidateQueries({ queryKey: membershipKey });
+    if (e.data?.code === "BAD_REQUEST") {
+      toast({ variant: "destructive", description: e.message });
+    } else {
+      toast({
+        variant: "destructive",
+        title: t("common.something_went_wrong"),
+      });
+    }
+  };
+  // A list's next toggle waits for its last one, or a quick check then uncheck
+  // could reach the server out of order and leave the bookmark in the list.
+  const pendingListIds = useRef(new Set<string>());
+  const onSettled = (_res: unknown, _err: unknown, req: { listId: string }) => {
+    pendingListIds.current.delete(req.listId);
+  };
+  const { mutate: addToList } = useAddBookmarkToList({ onError, onSettled });
+  const { mutate: removeFromList } = useRemoveBookmarkFromList({
+    onError,
+    onSettled,
+  });
 
-  const { mutate: addToList, isPending: isAddingToListPending } =
-    useAddBookmarkToList({
-      onSuccess: () => {
-        toast({
-          description: t("toasts.lists.updated"),
-        });
-      },
-      onError: (e) => {
-        if (e.data?.code == "BAD_REQUEST") {
-          toast({
-            variant: "destructive",
-            description: e.message,
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: t("common.something_went_wrong"),
-          });
-        }
-      },
-    });
+  const memberIds = new Set(membership?.lists.map((list) => list.id));
 
-  const { mutate: deleteFromList, isPending: isDeleteFromListPending } =
-    useRemoveBookmarkFromList({
-      onSuccess: () => {
-        toast({
-          description: t("toasts.lists.updated"),
-        });
-      },
-      onError: (e) => {
-        if (e.data?.code == "BAD_REQUEST") {
-          toast({
-            variant: "destructive",
-            description: e.message,
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: t("common.something_went_wrong"),
-          });
-        }
-      },
-    });
+  // Only manual lists take bookmarks by hand, and viewers can't change them.
+  const editablePaths = allLists?.allPaths.filter((path) => {
+    const list = path[path.length - 1];
+    return list.type === "manual" && list.userRole !== "viewer";
+  });
+
+  const toggle = (list: ZBookmarkList) => {
+    if (pendingListIds.current.has(list.id)) {
+      return;
+    }
+    pendingListIds.current.add(list.id);
+    const isMember = memberIds.has(list.id);
+    queryClient.setQueryData(membershipKey, (old) =>
+      old
+        ? {
+            ...old,
+            lists: isMember
+              ? old.lists.filter((l) => l.id !== list.id)
+              : [...old.lists, list],
+          }
+        : old,
+    );
+    const mutate = isMember ? removeFromList : addToList;
+    mutate({ bookmarkId, listId: list.id });
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent
+        className="gap-0 overflow-hidden p-0 sm:max-w-sm"
+        // The search takes the focus once it's there, rather than the close button
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
+        <DialogHeader className="p-4 pr-12">
           <DialogTitle>{t("actions.manage_lists")}</DialogTitle>
         </DialogHeader>
-        {isLoading ? (
+        {isAllListsPending || isMembershipPending ? (
           <LoadingSpinner className="my-4" />
         ) : (
-          <ul className="flex flex-col gap-2 pb-2 pt-4">
-            {alreadyInList?.lists.map((list) => {
-              const path = allLists?.getPathById(list.id);
-              return (
-                <li
-                  key={list.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-background px-2 py-1 text-foreground"
-                >
-                  <p>
-                    {path
-                      ? path.map((l) => `${l.icon} ${l.name}`).join(" / ")
-                      : list.name}
-                  </p>
-                  <ActionButton
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    loading={isDeleteFromListPending}
-                    onClick={() =>
-                      deleteFromList({ bookmarkId, listId: list.id })
-                    }
-                    aria-label={t("actions.remove_from_list")}
-                  >
-                    <X className="size-4" />
-                  </ActionButton>
-                </li>
-              );
-            })}
-          </ul>
+          <Command filter={filterByName} className="bg-transparent">
+            <div className="border-t">
+              <CommandInput
+                placeholder={t("preview.lists_search")}
+                // On touch screens the keyboard would cover the list to pick from
+                autoFocus={!isTouch}
+              />
+            </div>
+            <CommandList className="max-h-72">
+              <CommandEmpty>{t("preview.lists_none_found")}</CommandEmpty>
+              <CommandGroup>
+                {editablePaths?.map((path) => {
+                  const list = path[path.length - 1];
+                  const name = listNameFromPath(path);
+                  const isMember = memberIds.has(list.id);
+                  return (
+                    <CommandItem
+                      key={list.id}
+                      value={list.id}
+                      keywords={[name]}
+                      aria-checked={isMember}
+                      disabled={demoMode}
+                      className="cursor-pointer max-sm:min-h-11 [@media(pointer:coarse)]:min-h-11"
+                      onSelect={() => toggle(list)}
+                    >
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "flex size-4 shrink-0 items-center justify-center rounded-[4px] border border-input",
+                          isMember && "border-primary bg-primary",
+                        )}
+                      >
+                        {isMember && (
+                          <Check className="!size-3 text-primary-foreground" />
+                        )}
+                      </span>
+                      <span className="min-w-0 truncate">{name}</span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
+          </Command>
         )}
-
-        <div className="pb-4">
-          <BookmarkListSelector
-            hideBookmarkIds={alreadyInList?.lists.map((l) => l.id)}
-            onChange={(listId) => {
-              if (!isLoading && !isAddingToListPending) {
-                addToList({
-                  bookmarkId: bookmarkId,
-                  listId: listId,
-                });
-              }
-            }}
-            listTypes={["manual"]}
-            disabled={isLoading || isAddingToListPending}
-          />
-        </div>
-        <DialogFooter className="sm:justify-end">
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              {t("actions.close")}
-            </Button>
-          </DialogClose>
-          <ArchiveBookmarkButton
-            type="button"
-            bookmarkId={bookmarkId}
-            onDone={() => setOpen(false)}
-            variant="secondary"
-          >
-            <Archive className="size-4" /> {t("actions.archive")}
-          </ArchiveBookmarkButton>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

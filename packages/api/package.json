@@ -32,7 +32,6 @@
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/bcryptjs": "^2.4.6",
-    "@types/deep-equal": "^1.0.4",
     "@types/rss": "^0.0.32",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"

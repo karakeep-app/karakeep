@@ -124,7 +124,7 @@ CLI reads `~/.config/karakeep/config.json`.
 Command-line options take precedence over environment variables, and
 environment variables take precedence over the config file.
 If no server address is provided, the CLI defaults to
-`https://cloud.karakeep.app`.
+`https://cloud.karakeep.com`.
 
 To create or update this file interactively, run:
 

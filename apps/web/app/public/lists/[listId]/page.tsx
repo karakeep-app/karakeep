@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import NoBookmarksBanner from "@/components/dashboard/bookmarks/NoBookmarksBanner";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import PublicBookmarkGrid from "@/components/public/lists/PublicBookmarkGrid";
 import PublicListHeader from "@/components/public/lists/PublicListHeader";
+import { useTranslation } from "@/lib/i18n/server";
 import { api } from "@/server/api/client";
 import { TRPCError } from "@trpc/server";
+import { Bookmark } from "lucide-react";
 
 export async function generateMetadata(props: {
   params: Promise<{ listId: string }>;
@@ -41,6 +48,8 @@ export default async function PublicListPage(props: {
   params: Promise<{ listId: string }>;
 }) {
   const params = await props.params;
+  // oxlint-disable-next-line rules-of-hooks
+  const { t } = await useTranslation();
   try {
     const { list, bookmarks, nextCursor } =
       await api.publicBookmarks.getPublicBookmarksInList({
@@ -72,7 +81,14 @@ export default async function PublicListPage(props: {
             nextCursor={nextCursor}
           />
         ) : (
-          <NoBookmarksBanner />
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Bookmark />
+              </EmptyMedia>
+              <EmptyTitle>{t("public_lists.empty_title")}</EmptyTitle>
+            </EmptyHeader>
+          </Empty>
         )}
       </div>
     );

@@ -1,7 +1,4 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { fetchWithProxy } from "network";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import { db } from "@karakeep/db";
 import { bookmarks, webhooksTable } from "@karakeep/db/schema";
@@ -14,6 +11,10 @@ import {
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
+
+import { workerStatsCounter } from "../metrics";
+import { fetchWithProxy } from "../network";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 export class WebhookWorker {
   static async build() {
@@ -126,11 +127,11 @@ async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
     matchingWebhooks.map(async (webhook) => {
       const url = webhook.url;
       const webhookToken = webhook.token;
-      const maxRetries = serverConfig.webhook.retryTimes;
+      const maxAttempts = serverConfig.webhook.retryTimes + 1;
       let attempt = 0;
       let success = false;
 
-      while (attempt < maxRetries && !success) {
+      while (attempt < maxAttempts && !success) {
         try {
           const response = await fetchWithProxy(url, {
             method: "POST",
@@ -167,7 +168,7 @@ async function runWebhook(job: DequeuedJob<ZWebhookRequest>) {
           );
         }
         attempt++;
-        if (!success && attempt < maxRetries) {
+        if (!success && attempt < maxAttempts) {
           logger.info(
             `[webhook][${jobId}] Retrying webhook call to ${url}, attempt ${attempt + 1}`,
           );

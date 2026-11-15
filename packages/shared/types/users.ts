@@ -28,6 +28,10 @@ export const zUserNameSchema = z
   .transform(normalizeUserNameInput)
   .pipe(z.string().min(1, { message: "Name can't be empty" }));
 
+export const zUpdateUserProfileSchema = z.object({
+  name: zUserNameSchema,
+});
+
 export const zSignUpSchema = z
   .object({
     name: zUserNameSchema,

@@ -129,7 +129,7 @@ function Title() {
 
   return (
     <Text
-      className="text-xl font-bold text-foreground"
+      className="text-[17px] font-semibold leading-[22px] text-foreground"
       numberOfLines={2}
       onPress={titleOnPress}
     >

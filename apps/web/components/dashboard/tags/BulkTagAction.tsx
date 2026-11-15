@@ -98,7 +98,7 @@ export default function BulkTagAction() {
       <ActionConfirmingDialog
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}
-        title={"Delete Tags"}
+        title={t("tags.delete_tags")}
         description={<p>Are you sure you want to delete these tags?</p>}
         actionButton={() => (
           <ActionButton

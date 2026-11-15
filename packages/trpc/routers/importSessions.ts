@@ -1,4 +1,4 @@
-import { experimental_trpcMiddleware } from "@trpc/server";
+import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -16,6 +16,7 @@ import type { AuthedContext } from "../index";
 import { createScopedAuthedProcedure, router } from "../index";
 import { actorFromContext } from "../lib/actor";
 import { ImportSessionsService } from "../models/importSessions.service";
+import { List } from "../models/lists";
 
 const importSessionsProcedure = createScopedAuthedProcedure(
   "importSessions",
@@ -56,6 +57,18 @@ export const importSessionsRouter = router({
     .input(zCreateImportSessionRequestSchema)
     .output(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }) => {
+      if (input.rootListId !== undefined) {
+        // The import worker adds every imported bookmark to the root list, so
+        // the user must be able to add bookmarks to it.
+        const list = await List.fromId(ctx, input.rootListId);
+        if (list.type === "smart") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Smart lists cannot be used as an import root list",
+          });
+        }
+        list.ensureCanEdit();
+      }
       const session = await ctx.importSessionsService.create(ctx.actor, input);
       return { id: session.id };
     }),

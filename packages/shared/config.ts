@@ -172,6 +172,16 @@ const allEnv = z.object({
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   CRAWLER_PREFLIGHT_USER_AGENT: z.string().optional(),
+  CRAWLER_REMOTE_SERVER_ENABLED: stringBool("false"),
+  CRAWLER_REMOTE_URL: z.string().url().optional(),
+  CRAWLER_REMOTE_TOKEN: z
+    .string()
+    // It's sent as a bearer token, so it must use the bearer token alphabet.
+    .regex(
+      /^[A-Za-z0-9._~+/-]+=*$/,
+      "CRAWLER_REMOTE_TOKEN can only contain letters, digits and . _ ~ + / - (optionally followed by =)",
+    )
+    .optional(),
   LOG_LEVEL: z.string().default("debug"),
   // https://no-color.org/: any nonempty value disables colors.
   NO_COLOR: z.string().optional().transform(Boolean),
@@ -210,6 +220,9 @@ const allEnv = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().optional(),
+
+  // Problem reports
+  PROBLEM_REPORTS_EMAIL: z.string().email().optional(),
   EMAIL_VERIFICATION_REQUIRED: stringBool("false"),
 
   // Asset storage configuration
@@ -367,6 +380,10 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           }
         : undefined,
     },
+    problemReports: {
+      enabled: !!val.PROBLEM_REPORTS_EMAIL,
+      email: val.PROBLEM_REPORTS_EMAIL,
+    },
     inference: {
       isConfigured: !!val.OPENAI_API_KEY || !!val.OLLAMA_BASE_URL,
       numWorkers: val.INFERENCE_NUM_WORKERS,
@@ -474,6 +491,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
             }
           : null,
       preflightUserAgent: val.CRAWLER_PREFLIGHT_USER_AGENT,
+      remote: {
+        serverEnabled: val.CRAWLER_REMOTE_SERVER_ENABLED,
+        url: val.CRAWLER_REMOTE_URL,
+        token: val.CRAWLER_REMOTE_TOKEN,
+      },
     },
     ocr: {
       langs: val.OCR_LANGS,
@@ -608,6 +630,15 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     });
     return z.NEVER;
   }
+  if (obj.problemReports.enabled && !obj.email.smtp) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "To enable problem reports (PROBLEM_REPORTS_EMAIL), SMTP settings must be configured",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
   if (obj.auth.turnstile.enabled && !obj.auth.turnstile.secretKey) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -622,6 +653,18 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       code: z.ZodIssueCode.custom,
       message:
         "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is required when OTEL_EVENT_LOGS_EXPORT_ENABLED is true",
+      fatal: true,
+    });
+    return z.NEVER;
+  }
+  if (
+    (obj.crawler.remote.serverEnabled || obj.crawler.remote.url) &&
+    !obj.crawler.remote.token
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message:
+        "CRAWLER_REMOTE_TOKEN is required when CRAWLER_REMOTE_SERVER_ENABLED or CRAWLER_REMOTE_URL is set",
       fatal: true,
     });
     return z.NEVER;
@@ -689,6 +732,9 @@ export const clientConfig = {
   legal: {
     termsOfServiceUrl: serverConfig.legal.termsOfServiceUrl,
     privacyPolicyUrl: serverConfig.legal.privacyPolicyUrl,
+  },
+  problemReports: {
+    enabled: serverConfig.problemReports.enabled,
   },
   serverVersion: serverConfig.serverVersion,
   disableNewReleaseCheck: serverConfig.disableNewReleaseCheck,

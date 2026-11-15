@@ -8,7 +8,7 @@ export interface CliConfig {
   serverAddr?: string;
 }
 
-export const DEFAULT_SERVER_ADDR = "https://cloud.karakeep.app";
+export const DEFAULT_SERVER_ADDR = "https://cloud.karakeep.com";
 
 export const zCliConfigFileSchema = z
   .object({

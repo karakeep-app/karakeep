@@ -1,6 +1,4 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZEmbeddingsRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -24,6 +22,9 @@ import {
   getVectorStoreClient,
 } from "@karakeep/shared/vectorStore";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
+
+import { workerStatsCounter } from "../metrics";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 const MAX_EMBEDDING_CONTENT_EXCERPT_LENGTH = 3000;
 const MAX_EMBEDDING_METADATA_LENGTH = 800;

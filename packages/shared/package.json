@@ -6,9 +6,10 @@
   "type": "module",
   "dependencies": {
     "cheerio": "^1.2.0",
+    "csv-parse": "^7.0.2",
+    "domhandler": "^5.0.3",
     "html-to-text": "^9.0.5",
     "js-tiktoken": "^1.0.20",
-    "nodemailer": "^10.0.9",
     "ollama": "^0.5.14",
     "openai": "^6.34.0",
     "typescript-parsec": "^0.3.4",
@@ -19,7 +20,6 @@
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/html-to-text": "^9.0.4",
-    "@types/nodemailer": "^6.4.17",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
   },

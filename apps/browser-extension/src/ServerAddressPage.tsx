@@ -109,7 +109,7 @@ export default function ServerAddressPage() {
           id="address"
           name="address"
           value={serverAddress}
-          placeholder="https://cloud.karakeep.app"
+          placeholder="https://cloud.karakeep.com"
           autoComplete="url"
           autoFocus
           onChange={(e) => {
@@ -118,7 +118,7 @@ export default function ServerAddressPage() {
           }}
         />
         <p className="text-xs text-muted-foreground">
-          Use https://cloud.karakeep.app for Karakeep Cloud, or the address of
+          Use https://cloud.karakeep.com for Karakeep Cloud, or the address of
           your self-hosted instance.
         </p>
       </section>

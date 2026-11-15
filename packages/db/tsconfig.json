@@ -4,7 +4,6 @@
   "include": ["**/*.ts"],
   "exclude": ["node_modules"],
   "compilerOptions": {
-    "baseUrl" : ".",
     "tsBuildInfoFile": "node_modules/.cache/tsbuildinfo.json"
   }
 }

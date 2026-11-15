@@ -1,10 +1,11 @@
-import { Share } from "react-native";
+import { Platform, Share } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
 
+import { i18n } from "@/lib/i18n";
 import { useToast } from "@/components/ui/Toast";
 import type { Settings } from "@/lib/settings";
 import { buildApiHeaders } from "@/lib/utils";
@@ -19,16 +20,19 @@ export async function shareBookmark(
   try {
     switch (bookmark.content.type) {
       case BookmarkTypes.LINK:
-        await Share.share({
-          url: bookmark.content.url,
-          message: bookmark.content.url,
-        });
+        // On iOS, `url` and `message` are shared as separate items, so passing
+        // both makes targets like Messages receive the link twice.
+        await Share.share(
+          Platform.OS === "ios"
+            ? { url: bookmark.content.url }
+            : { message: bookmark.content.url },
+        );
         break;
 
       case BookmarkTypes.TEXT:
         await Clipboard.setStringAsync(bookmark.content.text);
         toast({
-          message: "Text copied to clipboard",
+          message: i18n.t("bookmark_actions.text_copied"),
           showProgress: false,
         });
         break;
@@ -42,7 +46,7 @@ export async function shareBookmark(
 
         if (!isShareable) {
           toast({
-            message: "Sharing is not available for this file type",
+            message: i18n.t("bookmark_actions.share_unavailable"),
             variant: "destructive",
             showProgress: false,
           });
@@ -62,7 +66,7 @@ export async function shareBookmark(
           },
         );
         if (downloadResult.status !== 200) {
-          throw new Error("Failed to download file");
+          throw new Error(i18n.t("bookmarks.failed_download_pdf"));
         }
         try {
           await Sharing.shareAsync(
@@ -82,7 +86,7 @@ export async function shareBookmark(
   } catch (error) {
     console.error("Share error:", error);
     toast({
-      message: "Failed to share",
+      message: i18n.t("bookmark_actions.share_failed"),
       variant: "destructive",
       showProgress: false,
     });

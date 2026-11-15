@@ -197,6 +197,35 @@ describe("LocalFileSystemAssetStore - Filesystem-Specific Behaviors", () => {
           .catch(() => false),
       ).toBe(false);
     });
+
+    it("should reject asset ids that escape the user directory", async () => {
+      const victim = createTestAssetData({ userId: "victim" });
+      await store.saveAsset({
+        userId: victim.userId,
+        assetId: victim.assetId,
+        asset: victim.content,
+        metadata: victim.metadata,
+      });
+
+      for (const assetId of [
+        "..",
+        "../..",
+        `../${victim.userId}`,
+        `../${victim.userId}/${victim.assetId}`,
+      ]) {
+        await expect(
+          store.deleteAsset({ userId: "attacker", assetId }),
+        ).rejects.toThrow("Invalid asset path");
+      }
+
+      const victimAssetDir = path.join(tempDir, victim.userId, victim.assetId);
+      expect(
+        await fs.promises
+          .access(victimAssetDir)
+          .then(() => true)
+          .catch(() => false),
+      ).toBe(true);
+    });
   });
 
   describe("File System Permissions", () => {

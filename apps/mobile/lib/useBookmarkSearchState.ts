@@ -55,6 +55,10 @@ export function useBookmarkSearchState(rawSearch: string) {
       { text: query, searchMode: effectiveSearchMode },
       {
         enabled: query.trim().length > 0,
+        // Retrying a server with no search set up only delays telling people.
+        retry: (failureCount, error) =>
+          !error.message.toLowerCase().includes("not configured") &&
+          failureCount < 3,
         placeholderData: keepPreviousData,
         gcTime: 0,
         initialCursor: null,
@@ -81,7 +85,7 @@ export function useBookmarkSearchState(rawSearch: string) {
 
   const commitTerm = (term: string) => {
     const normalized = term.trim();
-    if (normalized.length > 0) {
+    if (normalized.length > 0 && !error) {
       addTerm(normalized);
     }
   };

@@ -1,13 +1,22 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { View } from "react-native";
-import WebView from "react-native-webview";
+import type { ComponentProps, ComponentType, RefAttributes } from "react";
+import RNWebView from "react-native-webview";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { WEBVIEW_FONT_FAMILIES } from "@/lib/readerSettings";
 import { useColorScheme } from "@/lib/useColorScheme";
 
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
 
-const PREVIEW_TEXT =
-  "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!";
+interface WebViewHandle {
+  injectJavaScript: (script: string) => void;
+}
+
+// react-native-webview 14 types its cross-platform export without a ref, but
+// every native implementation forwards one.
+const WebView = RNWebView as ComponentType<
+  ComponentProps<typeof RNWebView> & RefAttributes<WebViewHandle>
+>;
 
 export interface ReaderPreviewRef {
   updateStyles: (
@@ -25,8 +34,13 @@ interface ReaderPreviewProps {
 
 export const ReaderPreview = forwardRef<ReaderPreviewRef, ReaderPreviewProps>(
   ({ initialFontFamily, initialFontSize, initialLineHeight }, ref) => {
-    const webViewRef = useRef<WebView>(null);
+    const webViewRef = useRef<WebViewHandle>(null);
     const { isDarkColorScheme: isDark } = useColorScheme();
+    const { t } = useTranslation();
+    const previewText = t("settings.reader_preview_text")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
 
     const fontFamily = WEBVIEW_FONT_FAMILIES[initialFontFamily];
     const textColor = isDark ? "#e5e7eb" : "#374151";
@@ -90,13 +104,16 @@ export const ReaderPreview = forwardRef<ReaderPreviewRef, ReaderPreviewProps>(
           </script>
         </head>
         <body>
-          ${PREVIEW_TEXT}
+          ${previewText}
         </body>
       </html>
     `;
 
     return (
-      <View className="h-32 w-full overflow-hidden rounded-lg">
+      <View
+        className="h-40 w-full overflow-hidden rounded-xl"
+        style={{ borderCurve: "continuous" }}
+      >
         <WebView
           ref={webViewRef}
           originWhitelist={["*"]}

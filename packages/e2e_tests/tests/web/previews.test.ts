@@ -3,7 +3,7 @@ import { expect } from "playwright/test";
 
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
-import { createWebTestUser, it, signIn } from "../../utils/browser";
+import { createWebTestUser, goto, it, signIn } from "../../utils/browser";
 
 async function seedPreview(page: Page) {
   const { trpc, email } = await createWebTestUser();
@@ -34,7 +34,7 @@ it("opens and closes a bookmark preview modal", async ({ page }) => {
       .filter({ visible: true }),
   ).toBeVisible();
   await expect(
-    dialog.getByPlaceholder("Write some notes ...").filter({ visible: true }),
+    dialog.getByPlaceholder("Add a note…").filter({ visible: true }),
   ).toHaveValue("Bring the paperback");
 
   await page.keyboard.press("Escape");
@@ -45,7 +45,7 @@ it("opens and closes a bookmark preview modal", async ({ page }) => {
 
 it("loads a bookmark preview directly as a full page", async ({ page }) => {
   const previewPath = await seedPreview(page);
-  await page.goto(previewPath);
+  await goto(page, previewPath);
   await expect(page).toHaveURL(new RegExp(`${previewPath}$`));
   await expect(
     page.getByRole("heading", { name: "Weekend plans" }),
@@ -57,6 +57,6 @@ it("loads a bookmark preview directly as a full page", async ({ page }) => {
       .filter({ visible: true }),
   ).toBeVisible();
   await expect(
-    page.getByPlaceholder("Write some notes ...").filter({ visible: true }),
+    page.getByPlaceholder("Add a note…").filter({ visible: true }),
   ).toHaveValue("Bring the paperback");
 });

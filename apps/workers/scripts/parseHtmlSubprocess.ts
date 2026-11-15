@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 
 import { Readability } from "@mozilla/readability";
+import { DefuddleClass } from "defuddle/node";
 import DOMPurify from "dompurify";
 import { HttpProxyAgent } from "http-proxy-agent";
 import { HttpsProxyAgent } from "https-proxy-agent";
@@ -16,7 +17,6 @@ import metascraperTitle from "metascraper-title";
 import metascraperUrl from "metascraper-url";
 import metascraperX from "metascraper-x";
 import metascraperYoutube from "metascraper-youtube";
-import { getRandomProxy } from "network";
 import winston from "winston";
 
 import serverConfig from "@karakeep/shared/config";
@@ -25,6 +25,7 @@ import logger from "@karakeep/shared/logger";
 import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
 import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
+import { getRandomProxy } from "../network";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
@@ -75,9 +76,9 @@ const metascraperParser = metascraper([
  * standard `src` attribute (e.g. WeChat's data-src, data-actualsrc, data-srv, or
  * the common data-original / data-lazy patterns used by jQuery plugins).
  *
- * Readability and DOMPurify both operate on the DOM, so images with no `src` are
+ * Defuddle and DOMPurify both operate on the DOM, so images with no `src` are
  * either ignored or their placeholders are stripped.  We normalise these attributes
- * to `src` *before* passing the document to Readability so that the extracted
+ * to `src` *before* passing the document to Defuddle so that the extracted
  * article retains the actual image URLs.
  */
 const LAZY_SRC_ATTRS = [
@@ -132,6 +133,45 @@ function normalizeLazyLoadImages(document: Document): void {
   }
 }
 
+/**
+ * Extracts the main content with Defuddle. Its async extractors (YouTube
+ * transcripts, Reddit/X/Bilibili APIs, ...) stay disabled: they make their own
+ * HTTP requests, which would bypass the crawler's proxy settings. The sync
+ * parse() never calls them; the throwing fetch is a backstop in case a future
+ * version adds a network call to the sync path.
+ */
+function runDefuddle(document: Document, url: string): string | null {
+  const result = new DefuddleClass(document, {
+    url,
+    useAsync: false,
+    fetch: () => {
+      throw new Error("Defuddle attempted a network request");
+    },
+  }).parse();
+  return result.content || null;
+}
+
+function runReadability(document: Document): string | null {
+  const result = new Readability(document).parse();
+  return typeof result?.content === "string" ? result.content : null;
+}
+
+/**
+ * Whether sanitized extractor output has anything a reader would see. Defuddle
+ * never reports "nothing found": it falls back to serializing an empty
+ * `<body>`/`<main>`, and its cleanup can strip everything from very small
+ * pages (e.g. it removes trailing headings, so a page that is just an `<h1>`
+ * comes back empty).
+ */
+function hasVisibleContent(sanitizedHtml: string, document: Document): boolean {
+  const container = document.createElement("div");
+  container.innerHTML = sanitizedHtml;
+  return (
+    !!container.textContent?.trim() ||
+    !!container.querySelector("img, picture, video, audio, iframe, svg")
+  );
+}
+
 function extractReadableContent(
   htmlContent: string,
   url: string,
@@ -141,38 +181,52 @@ function extractReadableContent(
 } {
   const virtualConsole = new VirtualConsole();
   const dom = new JSDOM(htmlContent, { url, virtualConsole });
+  const purifyWindow = new JSDOM("").window;
   try {
     normalizeLazyLoadImages(dom.window.document);
-    const documentClone = dom.window.document.cloneNode(true) as Document;
-    const readableContent = new Readability(documentClone).parse();
-    if (!readableContent || typeof readableContent.content !== "string") {
+    const purify = DOMPurify(purifyWindow);
+    // Both extractors mutate the document they're given, so each gets a clone.
+    const extractors = [
+      () => runDefuddle(dom.window.document.cloneNode(true) as Document, url),
+      // Fallback for the rare pages where Defuddle extracts nothing.
+      () => runReadability(dom.window.document.cloneNode(true) as Document),
+    ];
+
+    let purifiedHTML: string | null = null;
+    for (const extract of extractors) {
+      const content = extract();
+      if (content === null) {
+        continue;
+      }
+      const sanitized = purify.sanitize(content);
+      if (hasVisibleContent(sanitized, purifyWindow.document)) {
+        purifiedHTML = sanitized;
+        break;
+      }
+    }
+
+    if (purifiedHTML === null) {
       return {
         readableContent: null,
         readerViewAssessment: unavailableReaderViewAssessment(),
       };
     }
 
-    const purifyWindow = new JSDOM("").window;
+    const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
     try {
-      const purify = DOMPurify(purifyWindow);
-      const purifiedHTML = purify.sanitize(readableContent.content);
-      const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
-      try {
-        return {
-          readableContent: { content: purifiedHTML },
-          readerViewAssessment: assessReaderView(
-            dom.window.document,
-            extractedDom.window.document,
-            url,
-          ),
-        };
-      } finally {
-        extractedDom.window.close();
-      }
+      return {
+        readableContent: { content: purifiedHTML },
+        readerViewAssessment: assessReaderView(
+          dom.window.document,
+          extractedDom.window.document,
+          url,
+        ),
+      };
     } finally {
-      purifyWindow.close();
+      extractedDom.window.close();
     }
   } finally {
+    purifyWindow.close();
     dom.window.close();
   }
 }
@@ -244,7 +298,7 @@ async function main() {
 
   logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
 
-  // Conditionally run readability (skip if metascraper already provided readable content, e.g. Reddit plugin)
+  // Conditionally run Defuddle (skip if metascraper already provided readable content, e.g. Reddit plugin)
   let readableContent: { content: string } | null = null;
   let readerViewAssessment: ReaderViewAssessment | null = null;
   if (!metadataOnly && meta.readableContentHtml) {

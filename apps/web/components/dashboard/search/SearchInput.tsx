@@ -222,16 +222,20 @@ const SearchInput = React.forwardRef<
             {t("actions.save")}
           </Button>
         ) : null}
-        <Link
-          href="https://docs.karakeep.com/Guides/search-query-language"
-          target="_blank"
-          className="flex size-7 shrink-0 items-center justify-center rounded-md stroke-foreground transition-colors hover:bg-background/80"
-        >
-          <QueryExplainerTooltip
-            parsedSearchQuery={parsedValue}
-            className="text-muted-foreground"
-          />
-        </Link>
+        {/* The explainer shows nothing for an empty query, which would leave an
+            empty link that only shows up as a dark square on hover */}
+        {parsedValue.result !== "invalid" && (
+          <Link
+            href="https://docs.karakeep.com/Guides/search-query-language"
+            target="_blank"
+            className="flex size-7 shrink-0 items-center justify-center rounded-md stroke-foreground transition-colors hover:bg-background/80"
+          >
+            <QueryExplainerTooltip
+              parsedSearchQuery={parsedValue}
+              className="text-muted-foreground"
+            />
+          </Link>
+        )}
         {semanticSearchEnabled ? (
           <SearchModeSelector
             value={searchMode}

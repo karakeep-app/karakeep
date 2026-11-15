@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslation } from "@/lib/i18n/client";
 import { AlertCircle } from "lucide-react";
 
@@ -19,18 +20,31 @@ export default function UnknownCard({
   const { t } = useTranslation();
   return (
     <BookmarkLayoutAdaptingCard
-      title={bookmark.title}
+      title={
+        // A linked title, as the card relies on it to open the preview
+        bookmark.title ? (
+          <Link href={`/dashboard/preview/${bookmark.id}`}>
+            {bookmark.title}
+          </Link>
+        ) : undefined
+      }
       bookmark={bookmark}
       className={className}
       bookmarkIndex={bookmarkIndex}
       wrapTags={false}
       image={(_layout) => (
-        <div className="flex size-full flex-1 flex-col items-center justify-center bg-red-50 dark:bg-red-950/10">
-          <AlertCircle className="mb-3 h-10 w-10 text-red-500" />
-          <h3 className="font-medium text-red-700 dark:text-red-400">
+        // Opens the preview, like the title, for cards whose title is hidden
+        <Link
+          href={`/dashboard/preview/${bookmark.id}`}
+          // The card's own preview link is the tab stop
+          tabIndex={-1}
+          className="flex size-full flex-1 flex-col items-center justify-center bg-muted text-muted-foreground"
+        >
+          <AlertCircle className="mb-2 size-5" />
+          <h3 className="text-sm font-medium">
             {t("common.something_went_wrong")}
           </h3>
-        </div>
+        </Link>
       )}
     />
   );

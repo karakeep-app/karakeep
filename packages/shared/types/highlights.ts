@@ -4,7 +4,7 @@ import { zCursorV2 } from "./pagination";
 
 export const DEFAULT_NUM_HIGHLIGHTS_PER_PAGE = 20;
 
-const zHighlightColorSchema = z.enum(["yellow", "red", "green", "blue"]);
+export const zHighlightColorSchema = z.enum(["yellow", "red", "green", "blue"]);
 export type ZHighlightColor = z.infer<typeof zHighlightColorSchema>;
 export const SUPPORTED_HIGHLIGHT_COLORS = zHighlightColorSchema.options;
 
@@ -14,6 +14,9 @@ const zHighlightBaseSchema = z.object({
   endOffset: z.number(),
   color: zHighlightColorSchema.default("yellow"),
   text: z.string().nullable(),
+  // Text surrounding the highlight, used to re-anchor it when offsets drift.
+  prefix: z.string().nullable(),
+  suffix: z.string().nullable(),
   note: z.string().nullable(),
 });
 
@@ -27,7 +30,10 @@ export const zHighlightSchema = zHighlightBaseSchema.extend(
 
 export type ZHighlight = z.infer<typeof zHighlightSchema>;
 
-export const zNewHighlightSchema = zHighlightBaseSchema;
+export const zNewHighlightSchema = zHighlightBaseSchema.extend({
+  prefix: zHighlightBaseSchema.shape.prefix.optional(),
+  suffix: zHighlightBaseSchema.shape.suffix.optional(),
+});
 
 export const zUpdateHighlightSchema = z.object({
   highlightId: z.string(),
@@ -35,8 +41,18 @@ export const zUpdateHighlightSchema = z.object({
   note: z.string().nullable().optional(),
 });
 
+export const zHighlightWithBookmarkSchema = zHighlightSchema.extend({
+  bookmark: z.object({
+    title: z.string().nullable(),
+    url: z.string().nullable(),
+  }),
+});
+export type ZHighlightWithBookmark = z.infer<
+  typeof zHighlightWithBookmarkSchema
+>;
+
 export const zGetAllHighlightsResponseSchema = z.object({
-  highlights: z.array(zHighlightSchema),
+  highlights: z.array(zHighlightWithBookmarkSchema),
   nextCursor: zCursorV2.nullable(),
 });
 export type ZGetAllHighlightsResponse = z.infer<

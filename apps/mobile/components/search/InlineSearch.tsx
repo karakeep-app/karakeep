@@ -1,14 +1,16 @@
 import { useRef, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import type { TextInputInstance } from "react-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BookmarkSearchResults from "@/components/search/BookmarkSearchResults";
 import {
   SearchModeSelector,
-  SEARCH_MODE_PLACEHOLDERS,
+  SEARCH_MODE_PLACEHOLDER_KEYS,
 } from "@/components/search/SearchModeSelector";
 import { useBookmarkSearchState } from "@/lib/useBookmarkSearchState";
 import { TailwindResolver } from "@/components/TailwindResolver";
 import { SearchInput } from "@/components/ui/SearchInput";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { XIcon } from "lucide-react-native";
 
 interface InlineSearchProps {
@@ -22,8 +24,9 @@ export default function InlineSearch({
 }: InlineSearchProps) {
   const [search, setSearch] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(true);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const state = useBookmarkSearchState(search);
 
   const handleSearchSubmit = () => {
@@ -46,7 +49,7 @@ export default function InlineSearch({
         <View className="flex-1">
           <SearchInput
             ref={inputRef}
-            placeholder={SEARCH_MODE_PLACEHOLDERS[state.searchMode]}
+            placeholder={t(SEARCH_MODE_PLACEHOLDER_KEYS[state.searchMode])}
             value={search}
             onChangeText={setSearch}
             onFocus={() => setIsInputFocused(true)}
@@ -63,7 +66,7 @@ export default function InlineSearch({
         {rightElement}
         <Pressable
           onPress={onClose}
-          accessibilityLabel="Close"
+          accessibilityLabel={t("search.close")}
           accessibilityRole="button"
           className="p-1"
         >

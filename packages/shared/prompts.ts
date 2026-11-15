@@ -29,6 +29,7 @@ export function buildImagePrompt(
 You are an expert whose responsibility is to help with automatic tagging for a read-it-later/bookmarking app.
 Analyze the attached image and suggest relevant tags that describe its key themes, topics, and main ideas. The rules are:
 - Prefer concrete, durable tags: named products, technologies, projects, standards, subject areas, and important concepts.
+- For photos, artwork, and other non-textual images, tag the visual subject matter: scenes, places, landscapes, nature, objects, people, activities, and style.
 - Include only retrieval-worthy tags that describe the saved item's intended content, not incidental UI or page chrome.
 - The tags must be in ${lang}.
 - Keep each tag short: ideally 1-3 words. Do not include parenthetical explanations, comma-separated examples, or long descriptive phrases inside a tag.
@@ -36,7 +37,7 @@ Analyze the attached image and suggest relevant tags that describe its key theme
 - Do NOT generate any tags if the image is mainly:
     - A screenshot of an error, unavailable, forbidden, unauthorized, not found, DNS, timeout, or service failure page
     - A Cloudflare/security check, CAPTCHA, bot check, anti-DDoS challenge, browser verification, or access-blocked page
-    - Boilerplate content such as cookie consent, login walls, GDPR notices, navigation menus, or a blank/empty image
+    - Boilerplate content such as cookie consent, login walls, GDPR notices, navigation menus, or a blank or solid-color image with no discernible subject
   In these cases, return an empty tags array. Do not tag the failure/interstitial page itself.
 - Aim for 10-15 tags.
 - If there are no good tags, leave the array empty.

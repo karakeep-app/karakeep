@@ -1,3 +1,5 @@
 User-agent: *
 Disallow: /v*/
 Disallow: /next/
+
+Sitemap: https://docs.karakeep.com/sitemap.xml

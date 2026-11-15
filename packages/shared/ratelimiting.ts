@@ -38,3 +38,28 @@ export interface RateLimitClient {
 export async function getRateLimitClient(): Promise<RateLimitClient | null> {
   return PluginManager.getClient(PluginType.RateLimit);
 }
+
+/**
+ * Build the identity part of a rate limit key. Authenticated requests are
+ * keyed by user id so that a user gets a single bucket regardless of the IP
+ * they come from (client IPs are derived from spoofable headers). Anonymous
+ * requests fall back to the client IP.
+ * @returns The identity key, or null if the request shouldn't be rate limited
+ * (internal server-initiated calls, or requests that can't be identified).
+ */
+export function getRateLimitIdentity(opts: {
+  userId?: string | null;
+  ip?: string | null;
+  internal?: boolean;
+}): string | null {
+  if (opts.internal) {
+    return null;
+  }
+  if (opts.userId) {
+    return `user:${opts.userId}`;
+  }
+  if (opts.ip) {
+    return `ip:${opts.ip}`;
+  }
+  return null;
+}

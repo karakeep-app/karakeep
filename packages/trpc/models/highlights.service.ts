@@ -2,6 +2,10 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
+import type {
+  ZGetAllHighlightsResponse,
+  ZHighlightColor,
+} from "@karakeep/shared/types/highlights";
 import {
   zHighlightSchema,
   zNewHighlightSchema,
@@ -40,19 +44,24 @@ export class HighlightsService {
     return await this.repo.create(actorUserId(actor), input);
   }
 
-  async getForBookmark(bookmarkId: string): Promise<Highlight[]> {
-    return await this.repo.getForBookmark(bookmarkId);
+  async getForBookmark(actor: Actor, bookmarkId: string): Promise<Highlight[]> {
+    const highlights = await this.repo.getForBookmark(bookmarkId);
+    const userId = actorUserId(actor);
+    // Collaborators on a shared list can see the highlighted text, but the
+    // note is the author's personal annotation, like a bookmark's note (see
+    // Bookmark.asZBookmark), so only its author gets it.
+    return highlights.map((highlight) =>
+      highlight.userId === userId ? highlight : { ...highlight, note: null },
+    );
   }
 
   async getAll(
     actor: Actor,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
-  ): Promise<{
-    highlights: Highlight[];
-    nextCursor: z.infer<typeof zCursorV2> | null;
-  }> {
-    return await this.repo.getAll(actorUserId(actor), cursor, limit);
+    color?: ZHighlightColor,
+  ): Promise<ZGetAllHighlightsResponse> {
+    return await this.repo.getAll(actorUserId(actor), cursor, limit, color);
   }
 
   async search(
@@ -60,15 +69,14 @@ export class HighlightsService {
     searchText: string,
     cursor?: z.infer<typeof zCursorV2> | null,
     limit = 50,
-  ): Promise<{
-    highlights: Highlight[];
-    nextCursor: z.infer<typeof zCursorV2> | null;
-  }> {
+    color?: ZHighlightColor,
+  ): Promise<ZGetAllHighlightsResponse> {
     return await this.repo.search(
       actorUserId(actor),
       searchText,
       cursor,
       limit,
+      color,
     );
   }
 

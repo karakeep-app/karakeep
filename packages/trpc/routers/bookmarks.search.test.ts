@@ -121,7 +121,7 @@ describe("bookmark search modes", () => {
             windowMs: 60_000,
             maxRequests: 300,
           },
-          "127.0.0.1:user:user-123:bookmarks.searchBookmarks",
+          "user:user-123:bookmarks.searchBookmarks",
         );
       } finally {
         serverConfig.rateLimiting.enabled = wasRateLimitingEnabled;

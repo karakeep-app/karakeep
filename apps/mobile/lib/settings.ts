@@ -14,6 +14,7 @@ const zToolbarActionId = z.enum([
   "favourite",
   "archive",
   "browser",
+  "offline",
   "share",
   "delete",
 ]);
@@ -21,23 +22,25 @@ const zToolbarActionId = z.enum([
 export type ToolbarActionId = z.infer<typeof zToolbarActionId>;
 
 export const DEFAULT_TOOLBAR_ACTIONS: ToolbarActionId[] = [
-  "lists",
-  "tags",
-  "info",
   "favourite",
+  "archive",
+  "tags",
+  "lists",
   "share",
-  "browser",
 ];
 
 export const DEFAULT_OVERFLOW_ACTIONS: ToolbarActionId[] = [
-  "archive",
+  "info",
+  "offline",
+  "browser",
   "delete",
 ];
 
 const zSettingsSchema = z.object({
   apiKey: z.string().optional(),
   apiKeyId: z.string().optional(),
-  address: z.string().optional().default("https://cloud.karakeep.app"),
+  address: z.string().optional().default("https://cloud.karakeep.com"),
+  language: z.string().optional().default("system"),
   imageQuality: z.number().optional().default(0.2),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   defaultBookmarkView: z
@@ -76,7 +79,8 @@ const useSettings = create<AppSettingsState>((set, get) => ({
   settings: {
     isLoading: true,
     settings: {
-      address: "https://cloud.karakeep.app",
+      address: "https://cloud.karakeep.com",
+      language: "system",
       imageQuality: 0.2,
       theme: "system",
       defaultBookmarkView: "reader",

@@ -9,9 +9,6 @@ import * as path from "node:path";
 import * as os from "os";
 import { PlaywrightBlocker } from "@ghostery/adblocker-playwright";
 import { Mutex } from "async-mutex";
-import { exitAbortController } from "exit";
-import { fetchWithProxy } from "network";
-import type { RunProxyConfig } from "network";
 // patchright is a drop-in Playwright fork that drives Chrome without enabling
 // the CDP Runtime domain, the most widely checked automation signal.
 import {
@@ -20,7 +17,6 @@ import {
   BrowserContextOptions,
   chromium,
 } from "patchright";
-import { raceWith, timeoutRace } from "utils";
 import { z } from "zod";
 
 import serverConfig from "@karakeep/shared/config";
@@ -28,6 +24,10 @@ import logger from "@karakeep/shared/logger";
 import { setUrlHostnameFromResolvedAddress } from "@karakeep/shared/utils/url";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
+import type { RunProxyConfig } from "../../network";
+import { exitAbortController } from "../../exit";
+import { fetchWithProxy } from "../../network";
+import { raceWith, timeoutRace } from "../../utils";
 import { loadAutoconsent } from "./autoconsent";
 import {
   normalizeBrowserUserAgent,

@@ -4,6 +4,7 @@ import React, { useCallback, useState } from "react";
 import { toast } from "@/components/ui/sonner";
 import { BOOKMARK_DRAG_MIME } from "@/lib/bookmark-drag";
 import useUpload from "@/lib/hooks/upload-file";
+import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 import { TRPCClientError } from "@trpc/client";
 import DropZone from "react-dropzone";
@@ -111,6 +112,7 @@ export default function UploadDropzone({
   children: React.ReactNode;
 }) {
   const [numUploading, setNumUploading] = useState(0);
+  const { t } = useTranslation();
   const [numUploaded, setNumUploaded] = useState(0);
   const uploadAssets = useUploadAssets({
     onFileUpload: () => {
@@ -163,7 +165,7 @@ export default function UploadDropzone({
               </div>
             ) : (
               <p className="text-2xl font-bold text-gray-700">
-                Drop Your Image / PDF / Markdown file
+                {t("editor.drop_files")}
               </p>
             )}
           </div>

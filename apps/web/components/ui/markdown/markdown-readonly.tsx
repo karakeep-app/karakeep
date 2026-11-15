@@ -79,10 +79,13 @@ export function MarkdownReadonly({
   children: markdown,
   className,
   onSave,
+  skipHtml,
 }: {
   children: string;
   className?: string;
   onSave?: (markdown: string) => void;
+  // Drops raw HTML instead of showing it as text.
+  skipHtml?: boolean;
 }) {
   /**
    * This method is triggered when a checkbox is toggled from the masonry view
@@ -120,7 +123,12 @@ export function MarkdownReadonly({
   return (
     <Markdown
       remarkPlugins={[remarkGfm, remarkBreaks]}
-      className={cn("prose dark:prose-invert", className)}
+      skipHtml={skipHtml}
+      className={cn(
+        // A task's checkbox is its marker
+        "prose dark:prose-invert [&_li.task-list-item]:list-none",
+        className,
+      )}
       components={{
         input: (props) =>
           props.type === "checkbox" ? (

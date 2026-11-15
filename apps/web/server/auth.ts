@@ -487,6 +487,12 @@ export const auth = betterAuth({
         input: false,
         returned: false,
       },
+      bookmarkClickAction: {
+        type: ["open_original_link", "expand_bookmark_preview"],
+        required: false,
+        input: false,
+        returned: false,
+      },
     },
   },
   account: {
@@ -517,6 +523,9 @@ export const auth = betterAuth({
               role: (await isFirstUser()) ? "admin" : "user",
               bookmarkQuota: serverConfig.quotas.free.bookmarkLimit,
               storageQuota: serverConfig.quotas.free.assetSizeBytes,
+              // New accounts open the preview. The column default stays
+              // "open_original_link" so existing users keep what they have.
+              bookmarkClickAction: "expand_bookmark_preview",
             },
           };
         },

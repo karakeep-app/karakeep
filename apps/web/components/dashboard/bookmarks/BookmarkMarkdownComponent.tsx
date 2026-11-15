@@ -1,12 +1,14 @@
 import MarkdownEditor from "@/components/ui/markdown/markdown-editor";
 import { MarkdownReadonly } from "@/components/ui/markdown/markdown-readonly";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 
 export function BookmarkMarkdownComponent({
   children: bookmark,
   readOnly = true,
+  className,
 }: {
   children: {
     id: string;
@@ -15,15 +17,20 @@ export function BookmarkMarkdownComponent({
     };
   };
   readOnly?: boolean;
+  className?: string;
 }) {
+  const { t } = useTranslation();
   const { mutate: updateBookmarkMutator, isPending } = useUpdateBookmark({
     onSuccess: () => {
       toast({
-        description: "Note updated!",
+        description: t("toasts.bookmarks.note_updated"),
       });
     },
     onError: () => {
-      toast({ description: "Something went wrong", variant: "destructive" });
+      toast({
+        description: t("common.something_went_wrong"),
+        variant: "destructive",
+      });
     },
   });
 
@@ -37,7 +44,7 @@ export function BookmarkMarkdownComponent({
   return (
     <div className="h-full">
       {readOnly ? (
-        <MarkdownReadonly onSave={onSave}>
+        <MarkdownReadonly onSave={onSave} className={className}>
           {bookmark.content.text}
         </MarkdownReadonly>
       ) : (

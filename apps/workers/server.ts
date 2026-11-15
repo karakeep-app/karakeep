@@ -1,3 +1,4 @@
+import type { HttpBindings } from "@hono/node-server";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
@@ -17,10 +18,20 @@ const app = new Hono()
     printMetrics,
   );
 
-export function buildServer() {
+/**
+ * Starts the workers' HTTP server. Extra routes (e.g. the remote crawler's)
+ * are mounted at their given base paths.
+ */
+export function buildServer(
+  extraRoutes: Record<string, Hono<{ Bindings: HttpBindings }>> = {},
+) {
+  const root = new Hono<{ Bindings: HttpBindings }>().route("/", app);
+  for (const [basePath, routes] of Object.entries(extraRoutes)) {
+    root.route(basePath, routes);
+  }
   const server = serve(
     {
-      fetch: app.fetch,
+      fetch: root.fetch,
       port: serverConfig.workers.port,
       hostname: serverConfig.workers.host,
     },

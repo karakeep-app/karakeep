@@ -18,7 +18,7 @@ import {
   router,
 } from "../index";
 import { ListInvitation } from "../models/listInvitations";
-import { List } from "../models/lists";
+import { List, SmartList } from "../models/lists";
 import { ensureBookmarkOwnership } from "./bookmarks";
 
 const listsProcedure = createScopedAuthedProcedure("lists");
@@ -197,6 +197,19 @@ export const listsAppRouter = router({
     .query(async ({ ctx }) => {
       const lists = await List.getAll(ctx);
       return { stats: await List.getSizes(ctx, lists) };
+    }),
+  previewSmartQuery: listsProcedure
+    .input(z.object({ query: z.string().min(1) }))
+    .output(
+      z.object({
+        count: z.number(),
+        sample: z.array(
+          z.object({ id: z.string(), title: z.string().nullable() }),
+        ),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      return await SmartList.preview(ctx, input.query);
     }),
 
   // Rss endpoints

@@ -19,8 +19,10 @@
     "@opentelemetry/semantic-conventions": "^1.38.0",
     "@opentelemetry/winston-transport": "^0.23.0",
     "@trpc/server": "^11.9.0",
+    "drizzle-orm": "^0.45.4",
     "sharp": "^0.35.5",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "zod": "^4.2.0"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",

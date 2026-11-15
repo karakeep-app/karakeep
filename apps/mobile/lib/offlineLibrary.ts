@@ -13,6 +13,7 @@ import {
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import type { Settings } from "./settings";
+import { i18n } from "./i18n";
 
 // The article body lives under its own key so that callers who only need the
 // bookmark's metadata never pay to deserialize megabytes of HTML.
@@ -262,7 +263,7 @@ function getDisplayTitle(bookmark: OfflineArticle["bookmark"]) {
     }
   }
 
-  return "Untitled bookmark";
+  return i18n.t("bookmarks.untitled_fallback");
 }
 
 export function getOfflineLibraryScope(
@@ -293,7 +294,7 @@ export function saveOfflineArticle(
     !split ||
     parsed.data.bookmarkId !== parsed.data.bookmark.id
   ) {
-    throw new Error("The article does not contain a complete offline copy.");
+    throw new Error(i18n.t("offline_library.incomplete_copy"));
   }
 
   const key = articleKey(scope, article.bookmarkId);
@@ -328,7 +329,7 @@ export function saveOfflineArticle(
     const stored = readOfflineArticle(scope, article.bookmarkId);
     const storedContent = readOfflineArticleContent(scope, article.bookmarkId);
     if (!stored || !isRenderableArticle(stored, storedContent !== undefined)) {
-      throw new Error("The offline copy could not be verified.");
+      throw new Error(i18n.t("offline_library.verify_failed"));
     }
 
     const current = parseManifest(currentManifestRaw);

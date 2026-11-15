@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonWithTooltip } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   $convertFromMarkdownString,
@@ -23,112 +34,139 @@ import {
   Bold,
   Code,
   Highlighter,
+  Info,
   Italic,
   LucideIcon,
-  Save,
   Strikethrough,
 } from "lucide-react";
 
-import { ActionButton } from "../../action-button";
-import InfoTooltip from "../../info-tooltip";
 import { Label } from "../../label";
 import { Switch } from "../../switch";
 
 const LowPriority = 1;
 
+const CONTROL_CLASS = "size-8 max-sm:size-11 [@media(pointer:coarse)]:size-11";
+
 function MarkdownToolTip() {
   const { t } = useTranslation();
+  const label = t("editor.text_toolbar.markdown_shortcuts.label");
+  // A popover, as a tooltip's content can't be reached by touch.
   return (
-    <InfoTooltip size={15}>
-      <table className="w-full table-auto text-left text-sm">
-        <thead>
-          <tr>
-            <th>{t("editor.text_toolbar.markdown_shortcuts.label")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.heading.label")}
-            </td>
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.heading.example")}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.bold.label")}
-            </td>
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.bold.example")}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.italic.label")}
-            </td>
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.italic.example")}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.blockquote.label")}
-            </td>
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.blockquote.example")}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.ordered_list.label")}
-            </td>
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.ordered_list.example")}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.unordered_list.label")}
-            </td>
-            <td className="py-2">
-              {t(
-                "editor.text_toolbar.markdown_shortcuts.unordered_list.example",
-              )}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.inline_code.label")}
-            </td>
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.inline_code.example")}
-            </td>
-          </tr>
-          <tr className="border-b">
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.block_code.label")}
-            </td>
-            <td className="py-2">
-              {t("editor.text_toolbar.markdown_shortcuts.block_code.example")}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </InfoTooltip>
+    <Popover>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="none"
+              aria-label={label}
+              className={`${CONTROL_CLASS} text-muted-foreground hover:text-foreground`}
+            >
+              <Info className="size-4" />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipPortal>
+          <TooltipContent>{label}</TooltipContent>
+        </TooltipPortal>
+      </Tooltip>
+      <PopoverContent
+        align="end"
+        collisionPadding={8}
+        className="w-96 max-w-[calc(100vw-1rem)] p-3"
+      >
+        <table className="w-full table-auto text-left text-sm">
+          <thead>
+            <tr>
+              <th>{t("editor.text_toolbar.markdown_shortcuts.label")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b">
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.heading.label")}
+              </td>
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.heading.example")}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.bold.label")}
+              </td>
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.bold.example")}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.italic.label")}
+              </td>
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.italic.example")}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.blockquote.label")}
+              </td>
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.blockquote.example")}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.ordered_list.label")}
+              </td>
+              <td className="py-2">
+                {t(
+                  "editor.text_toolbar.markdown_shortcuts.ordered_list.example",
+                )}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">
+                {t(
+                  "editor.text_toolbar.markdown_shortcuts.unordered_list.label",
+                )}
+              </td>
+              <td className="py-2">
+                {t(
+                  "editor.text_toolbar.markdown_shortcuts.unordered_list.example",
+                )}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.inline_code.label")}
+              </td>
+              <td className="py-2">
+                {t(
+                  "editor.text_toolbar.markdown_shortcuts.inline_code.example",
+                )}
+              </td>
+            </tr>
+            <tr className="border-b">
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.block_code.label")}
+              </td>
+              <td className="py-2">
+                {t("editor.text_toolbar.markdown_shortcuts.block_code.example")}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </PopoverContent>
+    </Popover>
   );
 }
 
 export default function ToolbarPlugin({
   isRawMarkdownMode = false,
   setIsRawMarkdownMode,
-  onSave,
-  isSaving,
 }: {
   isRawMarkdownMode: boolean;
   setIsRawMarkdownMode: (value: boolean) => void;
-  onSave?: () => void;
-  isSaving: boolean;
 }) {
   const { t } = useTranslation();
   const [editor] = useLexicalComposerContext();
@@ -223,7 +261,6 @@ export default function ToolbarPlugin({
 
   const handleRawMarkdownToggle = useCallback(() => {
     editor.update(() => {
-      console.log(isRawMarkdownMode);
       const root = $getRoot();
       const firstChild = root.getFirstChild();
       if (isRawMarkdownMode) {
@@ -242,47 +279,43 @@ export default function ToolbarPlugin({
   }, [editor, isRawMarkdownMode]);
 
   return (
-    <div className="mb-1 flex items-center justify-between rounded-t-lg p-1">
-      <div className="flex">
+    <div className="mb-1 flex shrink-0 flex-wrap items-center justify-between gap-x-2 rounded-t-lg p-1 max-sm:px-0">
+      <div className="flex flex-wrap">
         {formatButtons.map(
           ({ command, format, icon: Icon, isActive, label }) => (
-            <Button
+            <ButtonWithTooltip
               key={format}
+              tooltip={label}
+              delayDuration={0}
               disabled={isRawMarkdownMode}
-              size={"sm"}
+              size="none"
+              className={CONTROL_CLASS}
               onClick={() => {
                 editor.dispatchCommand(command, format);
               }}
               variant={isActive ? "default" : "ghost"}
               aria-label={label}
+              aria-pressed={!!isActive}
             >
-              <Icon className="h-4 w-4" />
-            </Button>
+              <Icon className="size-4" />
+            </ButtonWithTooltip>
           ),
         )}
       </div>
       <div className="flex items-center gap-2">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           <Switch
             id="editor-raw-markdown"
             onCheckedChange={handleRawMarkdownToggle}
             checked={isRawMarkdownMode}
           />
-          <Label htmlFor="editor-raw-markdown">Raw Markdown</Label>
-        </div>
-        {onSave && (
-          <ActionButton
-            loading={isSaving}
-            className="flex items-center gap-2"
-            size={"sm"}
-            onClick={() => {
-              onSave?.();
-            }}
+          <Label
+            htmlFor="editor-raw-markdown"
+            className="flex min-h-8 items-center max-sm:min-h-11"
           >
-            <Save className="size-4" />
-            Save
-          </ActionButton>
-        )}
+            {t("editor.text_toolbar.raw_markdown")}
+          </Label>
+        </div>
         <MarkdownToolTip />
       </div>
     </div>

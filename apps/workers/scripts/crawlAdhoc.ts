@@ -90,9 +90,10 @@ function scoreHtml(
 async function main() {
   // Dynamic imports so the DATA_DIR override above takes effect first.
   const { default: serverConfig } = await import("@karakeep/shared/config");
-  const { selectRunProxies } = await import("network");
-  const { crawlPage, crawlLogger, CrawlerWorker } =
-    await import("workers/crawlerWorker");
+  const { selectRunProxies } = await import("../network");
+  const { CrawlerWorker } = await import("../workers/crawlerWorker");
+  const { crawlLogger } = await import("../workers/crawler/common");
+  const { crawlPage } = await import("../workers/crawler/localCrawler");
 
   const { values } = parseArgs({
     options: {
@@ -154,7 +155,7 @@ async function main() {
             browserCrawlingEnabled: true,
             log: crawlLogger(jobId),
           },
-          values.pdf,
+          { forceStorePdf: values.pdf },
         );
         const { blocked, marker } = scoreHtml(res.statusCode, res.htmlContent);
         if (screenshotDir && res.screenshot) {

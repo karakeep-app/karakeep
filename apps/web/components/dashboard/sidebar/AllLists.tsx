@@ -102,6 +102,7 @@ function DroppableListSidebarItem({
   selectedListId: string | null;
   setSelectedListId: (id: string | null) => void;
 }) {
+  const { t } = useTranslation();
   const canDrop =
     node.item.type === "manual" &&
     (node.item.userRole === "owner" || node.item.userRole === "editor");
@@ -112,7 +113,11 @@ function DroppableListSidebarItem({
     <SidebarItem
       collapseButton={
         node.children.length > 0 ? (
-          <CollapsibleTriggerChevron className="size-4" open={open} />
+          <CollapsibleTriggerChevron
+            className="size-4"
+            open={open}
+            aria-label={t(open ? "actions.collapse" : "actions.expand")}
+          />
         ) : (
           <span className="size-4" />
         )
@@ -136,7 +141,12 @@ function DroppableListSidebarItem({
           }}
           list={node.item}
         >
-          <Button size="none" variant="ghost" className="relative">
+          <Button
+            size="none"
+            variant="ghost"
+            className="relative"
+            aria-label={t("actions.more_options")}
+          >
             <MoreHorizontal
               className={cn(
                 "absolute inset-0 m-auto size-4 opacity-0 transition-opacity duration-100 group-hover:opacity-100",
@@ -267,6 +277,9 @@ export default function AllLists({
               <CollapsibleTriggerChevron
                 className="size-4"
                 open={sharedListsOpen}
+                aria-label={t(
+                  sharedListsOpen ? "actions.collapse" : "actions.expand",
+                )}
               />
             }
             logo={<span className="text-lg">👥</span>}

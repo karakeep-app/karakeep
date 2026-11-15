@@ -5,7 +5,6 @@
     "types": ["nativewind/types", "react-native"],
     "incremental": true,
     "strict": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"]
     }

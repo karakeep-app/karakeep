@@ -7,7 +7,7 @@ export const DEFAULT_SHOW_COUNT_BADGE = false;
 const zSettingsSchema = z.object({
   apiKey: z.string(),
   apiKeyId: z.string().optional(),
-  address: z.string().optional().default("https://cloud.karakeep.app"),
+  address: z.string().optional().default("https://cloud.karakeep.com"),
   theme: z.enum(["light", "dark", "system"]).optional().default("system"),
   showCountBadge: z.boolean().default(DEFAULT_SHOW_COUNT_BADGE),
   useBadgeCache: z.boolean().default(true),
@@ -20,7 +20,7 @@ const zSettingsSchema = z.object({
 
 const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
-  address: "https://cloud.karakeep.app",
+  address: "https://cloud.karakeep.com",
   theme: "system",
   showCountBadge: DEFAULT_SHOW_COUNT_BADGE,
   useBadgeCache: true,
@@ -72,7 +72,7 @@ export default function usePluginSettings() {
     await STORAGE.set({ settings: newVal });
   };
 
-  return { settings, setSettings, isPending: isInit };
+  return { settings, setSettings, isLoaded: isInit };
 }
 
 export async function getPluginSettings() {

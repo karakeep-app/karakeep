@@ -17,6 +17,7 @@ export default async function MobileSidebar({
         {items(t).map((item) => (
           <MobileSidebarItem
             key={item.name}
+            name={item.name}
             logo={item.icon}
             path={item.path}
           />

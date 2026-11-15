@@ -7,7 +7,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { ButtonWithTooltip } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipPortal,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useTranslation } from "@/lib/i18n/client";
 import {
   useBookmarkDisplaySettings,
@@ -129,15 +135,20 @@ export default function ViewOptions() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <ButtonWithTooltip
-          tooltip={t("view_options.title")}
-          delayDuration={100}
-          variant="ghost"
-        >
-          <Settings className="size-[18px]" size={18} />
-        </ButtonWithTooltip>
-      </DropdownMenuTrigger>
+      {/* The tooltip goes outside the menu's trigger, which cancels the pointer
+          press the tooltip closes on, so it sees the press first. */}
+      <Tooltip delayDuration={100}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" aria-label={t("view_options.title")}>
+              <Settings className="size-[18px]" size={18} />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipPortal>
+          <TooltipContent>{t("view_options.title")}</TooltipContent>
+        </TooltipPortal>
+      </Tooltip>
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel className="text-xs text-muted-foreground">
           {t("view_options.layout")}
@@ -182,7 +193,7 @@ export default function ViewOptions() {
         <DropdownMenuLabel className="text-xs text-muted-foreground">
           {t("view_options.display_options")}
         </DropdownMenuLabel>
-        <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="flex items-center justify-between px-2 py-1.5 max-sm:min-h-11">
           <Label
             htmlFor="show-notes"
             className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
@@ -196,7 +207,7 @@ export default function ViewOptions() {
             onCheckedChange={handleShowNotesChange}
           />
         </div>
-        <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="flex items-center justify-between px-2 py-1.5 max-sm:min-h-11">
           <Label
             htmlFor="show-tags"
             className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"
@@ -210,7 +221,7 @@ export default function ViewOptions() {
             onCheckedChange={handleShowTagsChange}
           />
         </div>
-        <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="flex items-center justify-between px-2 py-1.5 max-sm:min-h-11">
           <Label
             htmlFor="show-title"
             className="flex flex-1 cursor-pointer items-center gap-2 font-normal leading-normal"

@@ -1,7 +1,6 @@
 // A CDP-level guard on the crawler's browser page: blocks redirects into
 // disallowed (internal/private) addresses, which Playwright's request routing
 // doesn't see, and answers proxy auth challenges with the run's credentials.
-import { matchesNoProxy, validateUrl } from "network";
 import type {
   BrowserContext,
   BrowserContextOptions,
@@ -10,6 +9,8 @@ import type {
 } from "patchright";
 
 import logger from "@karakeep/shared/logger";
+
+import { matchesNoProxy, validateUrl } from "../../network";
 
 function getHeaderValue(
   headers: { name: string; value: string }[] | undefined,

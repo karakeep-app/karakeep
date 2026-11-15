@@ -45,6 +45,9 @@ export const zClientConfigSchema = z.object({
     termsOfServiceUrl: z.string().optional(),
     privacyPolicyUrl: z.string().optional(),
   }),
+  problemReports: z.object({
+    enabled: z.boolean(),
+  }),
   serverVersion: z.string().optional(),
   disableNewReleaseCheck: z.boolean(),
 });

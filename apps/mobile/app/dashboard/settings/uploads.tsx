@@ -5,23 +5,32 @@ import {
   SettingsScreen,
   SettingsSeparator,
 } from "@/components/settings/settings-list";
-import {
-  getUploadQualityLabel,
-  UPLOAD_QUALITY_OPTIONS,
-} from "@/lib/settings-display";
+import { useTranslation } from "@/lib/i18n/hooks";
+import { getUploadQualityOptions } from "@/lib/settings-display";
 import useAppSettings from "@/lib/settings";
 
 export default function UploadSettings() {
   const { settings, setSettings, isLoading } = useAppSettings();
-  const selectedLabel = getUploadQualityLabel(settings.imageQuality);
+  const { t } = useTranslation();
+  const uploadQualityOptions = getUploadQualityOptions();
+  const selectedLabel =
+    uploadQualityOptions.find(
+      (option) =>
+        Math.abs(option.value - settings.imageQuality) ===
+        Math.min(
+          ...uploadQualityOptions.map((o) =>
+            Math.abs(o.value - settings.imageQuality),
+          ),
+        ),
+    )?.label ?? uploadQualityOptions[0].label;
 
   return (
     <SettingsScreen>
       <SettingsGroup
-        header="Image quality"
-        footer="This controls image compression when adding an image bookmark."
+        header={t("settings.uploads_image_quality")}
+        footer={t("settings.uploads_hint")}
       >
-        {UPLOAD_QUALITY_OPTIONS.map((option, index) => {
+        {uploadQualityOptions.map((option, index) => {
           const isSelected = selectedLabel === option.label;
 
           return (

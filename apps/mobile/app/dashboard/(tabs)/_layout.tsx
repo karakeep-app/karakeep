@@ -1,12 +1,16 @@
 import React from "react";
 import { Platform } from "react-native";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/native-tabs";
 import { isIOS26 } from "@/lib/ios";
+import { useTranslation } from "@/lib/i18n/hooks";
+import { useShowSidebar } from "@/lib/responsive";
 import { useColorScheme } from "@/lib/useColorScheme";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 export default function TabLayout() {
   const { colors } = useColorScheme();
+  const { t } = useTranslation();
+  const showSidebar = useShowSidebar();
   return (
     <NativeTabs
       backgroundColor={colors.grey6}
@@ -15,10 +19,15 @@ export default function TabLayout() {
         default: "onScrollDown",
       })}
       labelVisibilityMode={Platform.select({ android: "labeled" })}
+      // Wide windows show the dashboard's own sidebar instead, so keep iOS
+      // from turning the tab bar into its sidebar and hide it there.
+      sidebarAdaptable={false}
+      hidden={showSidebar}
+      disableHiddenAnimation
     >
       <NativeTabs.Trigger name="(home)">
         <NativeTabs.Trigger.Icon
-          sf="house.fill"
+          sf="house"
           src={
             <NativeTabs.Trigger.VectorIcon
               family={MaterialCommunityIcons}
@@ -26,12 +35,12 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.home")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(lists)">
         <NativeTabs.Trigger.Icon
-          sf="list.clipboard.fill"
+          sf="list.bullet"
           src={
             <NativeTabs.Trigger.VectorIcon
               family={MaterialCommunityIcons}
@@ -39,12 +48,12 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Lists</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.lists")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(tags)">
         <NativeTabs.Trigger.Icon
-          sf="tag.fill"
+          sf="tag"
           src={
             <NativeTabs.Trigger.VectorIcon
               family={MaterialCommunityIcons}
@@ -52,7 +61,7 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Tags</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.tags")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="(highlights)">
@@ -65,7 +74,9 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Highlights</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>
+          {t("tabs.highlights")}
+        </NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger
@@ -82,7 +93,7 @@ export default function TabLayout() {
             />
           }
         />
-        <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("tabs.search")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );

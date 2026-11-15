@@ -7,7 +7,7 @@
     "lib": ["ES2022"],
     "outDir": "dist",
     "rootDir": "src",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,

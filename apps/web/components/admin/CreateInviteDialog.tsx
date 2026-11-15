@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
@@ -39,6 +40,7 @@ interface CreateInviteDialogProps {
 export default function CreateInviteDialog({
   children,
 }: CreateInviteDialogProps) {
+  const { t } = useTranslation();
   const api = useTRPC();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -77,7 +79,7 @@ export default function CreateInviteDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Send User Invitation</DialogTitle>
+          <DialogTitle>{t("admin.invites.send_user_invitation")}</DialogTitle>
           <DialogDescription>
             Send an invitation to a new user to join Karakeep. They&apos;ll
             receive an email with instructions to create their account and will
@@ -102,7 +104,7 @@ export default function CreateInviteDialog({
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Address</FormLabel>
+                  <FormLabel>{t("admin.invites.email_address")}</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -128,7 +130,7 @@ export default function CreateInviteDialog({
                 type="submit"
                 loading={createInviteMutation.isPending}
               >
-                Send Invitation
+                {t("admin.invites.send_invitation")}
               </ActionButton>
             </div>
           </form>

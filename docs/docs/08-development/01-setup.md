@@ -72,7 +72,6 @@ Packages: +3129
 Progress: resolved 0, reused 2699, downloaded 0, added 3129, done
 
 devDependencies:
-+ @karakeep/prettier-config 0.1.0 <- tooling/prettier
 
 . prepare$ husky
 └─ Done in 45ms
@@ -97,7 +96,7 @@ You can now continue with the rest of this documentation.
 
 #### Meilisearch
 
-Meilisearch is the provider for the full text search (and at some point embeddings search too). You can get it running with `docker run -p 7700:7700 getmeili/meilisearch:v1.41.0`.
+Meilisearch is the provider for the full text search (and at some point embeddings search too). You can get it running with `docker run -p 7700:7700 getmeili/meilisearch:v1.55.0`.
 
 Mount persistent volume if you want to keep index data across restarts. You can trigger a re-index for the entire items collection in the admin panel in the web app.
 

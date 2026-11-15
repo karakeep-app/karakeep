@@ -1,11 +1,11 @@
-const storageSizeFormatter = new Intl.NumberFormat(undefined, {
-  maximumFractionDigits: 1,
-});
-
-export function formatStorageSize(bytes: number) {
+export function formatStorageSize(bytes: number, locale?: string) {
   if (bytes < 1024) {
     return `${bytes} B`;
   }
+
+  const storageSizeFormatter = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 1,
+  });
 
   const units = ["KB", "MB", "GB"];
   let value = bytes / 1024;

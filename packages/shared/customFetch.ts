@@ -27,7 +27,7 @@ export function createCustomFetch(
   proxyUrl?: string,
 ): typeof fetch {
   const dispatcher = getDispatcher(timeoutMs, proxyUrl);
-  return ((input: RequestInfo | URL, init?: RequestInit) =>
+  return ((input: Parameters<typeof fetch>[0], init?: RequestInit) =>
     undiciFetch(
       input as Parameters<typeof undiciFetch>[0],
       { ...init, dispatcher } as Parameters<typeof undiciFetch>[1],

@@ -1,7 +1,10 @@
 import * as z from "zod";
 
 import { zBookmarkSchema } from "@karakeep/shared/types/bookmarks";
-import { zHighlightSchema } from "@karakeep/shared/types/highlights";
+import {
+  zHighlightSchema,
+  zHighlightWithBookmarkSchema,
+} from "@karakeep/shared/types/highlights";
 import { zBookmarkListSchema } from "@karakeep/shared/types/lists";
 import { zGetTagResponseSchema } from "@karakeep/shared/types/tags";
 
@@ -48,9 +51,13 @@ export const IncludeContentSearchParamSchema = z.object({
 
 export const HighlightSchema = zHighlightSchema.openapi("Highlight");
 
+export const HighlightWithBookmarkSchema = zHighlightWithBookmarkSchema.openapi(
+  "HighlightWithBookmark",
+);
+
 export const PaginatedHighlightsSchema = z
   .object({
-    highlights: z.array(HighlightSchema),
+    highlights: z.array(HighlightWithBookmarkSchema),
     nextCursor: z
       .string()
       .nullable()

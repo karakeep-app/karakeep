@@ -7,13 +7,14 @@ import { useClientConfig } from "@/lib/clientConfig";
 
 export default function OAuthAutoRedirect({
   oauthProviderId,
+  redirectUrl,
 }: {
   oauthProviderId: string;
+  redirectUrl: string;
 }) {
   const clientConfig = useClientConfig();
   const searchParams = useSearchParams();
   const hasError = searchParams.has("error");
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
   const shouldRedirect =
     clientConfig.auth.oauthAutoRedirect &&
@@ -26,12 +27,12 @@ export default function OAuthAutoRedirect({
   useEffect(() => {
     if (shouldRedirect) {
       signIn(oauthProviderId, {
-        callbackUrl,
+        callbackUrl: redirectUrl,
       });
     } else {
       setIsRedirecting(false);
     }
-  }, [shouldRedirect, oauthProviderId, callbackUrl]);
+  }, [shouldRedirect, oauthProviderId, redirectUrl]);
 
   if (isRedirecting) {
     return (

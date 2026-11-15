@@ -1,13 +1,16 @@
 import React, { useMemo } from "react";
 import { Pressable, ScrollView, View } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import QueryPageState from "@/components/QueryPageState";
+import { SelectionIndicator } from "@/components/ui/AppIcon";
 import { useTagAutocomplete } from "@karakeep/shared-react/hooks/tags";
 import { GroupedSection, RowSeparator } from "@/components/ui/GroupedList";
+import { HeaderTextButton } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
-import { useToast } from "@/components/ui/Toast";
+import { showUndoToast, useToast } from "@/components/ui/Toast";
+import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
-import { Check, Plus } from "lucide-react-native";
+import { Plus } from "lucide-react-native";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useDebounce } from "@karakeep/shared-react/hooks/use-debounce";
 
@@ -29,9 +32,11 @@ const TagPickerPage = () => {
   }
 
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const strings = useCommonStrings();
   const onError = () => {
     toast({
-      message: "Something went wrong",
+      message: strings.somethingWentWrong,
       variant: "destructive",
       showProgress: false,
     });
@@ -127,6 +132,31 @@ const TagPickerPage = () => {
     });
   }, [existingTags]);
 
+  // Tags it already has come first, in the order they had when the sheet opened:
+  // rows that jump on tap would move out from under your finger.
+  const openingTagIds = React.useRef<Set<string> | null>(null);
+  if (existingTags && !openingTagIds.current) {
+    openingTagIds.current = new Set(existingTags.map((tag) => tag.id));
+  }
+  const rows = useMemo(() => {
+    const lowered = search.toLowerCase();
+    const selectedRows = optimisticTags
+      .filter((tag) => !search || tag.lowered.includes(lowered))
+      .map((tag) => ({ ...tag, selected: true }));
+    const otherRows = filteredAllTags.map((tag) => ({
+      ...tag,
+      selected: false,
+    }));
+    const rank = (tag: { id: string; name: string }) =>
+      openingTagIds.current?.has(tag.id) ? 0 : 1;
+    return [...selectedRows, ...otherRows].sort(
+      (a, b) =>
+        (a.id === NEW_TAG_ID ? -1 : 0) - (b.id === NEW_TAG_ID ? -1 : 0) ||
+        rank(a) - rank(b) ||
+        a.lowered.localeCompare(b.lowered),
+    );
+  }, [optimisticTags, filteredAllTags, search]);
+
   const { mutate: updateTags } = useUpdateBookmarkTags({
     onMutate: (req) => {
       req.attach.forEach((t) =>
@@ -143,34 +173,19 @@ const TagPickerPage = () => {
         setOptimisticTags((prev) => prev.filter((p) => p.id != t.tagId!)),
       );
     },
-    onSuccess: (_data, req) => {
-      const isAttaching = req.attach.length > 0;
-      const isBulkUpdate = req.attach.length + req.detach.length > 1;
-
-      toast({
-        message: isAttaching
-          ? isBulkUpdate
-            ? "Tags added!"
-            : "Tag added!"
-          : isBulkUpdate
-            ? "Tags removed!"
-            : "Tag removed!",
-        showProgress: false,
-      });
-    },
     onError,
   });
 
   const clearAllTags = () => {
     if (optimisticTags.length === 0) return;
-    updateTags({
-      bookmarkId,
-      detach: optimisticTags.map((tag) => ({
-        tagId: tag.id,
-        tagName: tag.name,
-      })),
-      attach: [],
-    });
+    const removed = optimisticTags.map((tag) => ({
+      tagId: tag.id,
+      tagName: tag.name,
+    }));
+    updateTags({ bookmarkId, detach: removed, attach: [] });
+    showUndoToast(t("manage_tags.all_tags_removed"), () =>
+      updateTags({ bookmarkId, attach: removed, detach: [] }),
+    );
   };
 
   const handleTagPress = (
@@ -217,19 +232,17 @@ const TagPickerPage = () => {
       <Stack.Screen
         options={{
           headerSearchBarOptions: {
-            placeholder: "Search Tags",
+            placeholder: t("tags_tab.search_placeholder"),
             onChangeText: (event) => setSearch(event.nativeEvent.text),
             autoCapitalize: "none",
             hideWhenScrolling: false,
           },
           headerRight: () => (
-            <Pressable
-              onPress={clearAllTags}
-              disabled={optimisticTags.length === 0}
-              className={`px-2 ${optimisticTags.length === 0 ? "opacity-50" : ""}`}
-            >
-              <Text className="text-primary">Clear</Text>
-            </Pressable>
+            <HeaderTextButton
+              label={t("actions.done")}
+              emphasized
+              onPress={() => router.back()}
+            />
           ),
         }}
       />
@@ -241,51 +254,59 @@ const TagPickerPage = () => {
           gap: 20,
           paddingBottom: 40 + headerHeight,
         }}
-        className="flex-1 bg-background"
+        className="flex-1"
       >
-        {optimisticTags.length > 0 && (
-          <GroupedSection header="Attached">
-            {optimisticTags.map((tag, index) => (
+        {rows.length > 0 && (
+          <GroupedSection>
+            {rows.map((tag, index) => (
               <React.Fragment key={tag.id}>
                 {index > 0 && <RowSeparator />}
                 <Pressable
-                  onPress={() => handleTagPress(tag, "detach")}
-                  className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
-                >
-                  <Text className="flex-1 pr-3">{tag.name}</Text>
-                  <Check size={20} color={colors.primary} strokeWidth={2.5} />
-                </Pressable>
-              </React.Fragment>
-            ))}
-          </GroupedSection>
-        )}
-        {filteredAllTags.length > 0 && (
-          <GroupedSection header="All Tags">
-            {filteredAllTags.map((tag, index) => (
-              <React.Fragment key={tag.id}>
-                {index > 0 && <RowSeparator />}
-                <Pressable
-                  onPress={() => handleTagPress(tag, "attach")}
-                  className="flex-row items-center justify-between px-4 py-3 active:opacity-70"
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: tag.selected }}
+                  onPress={() =>
+                    handleTagPress(tag, tag.selected ? "detach" : "attach")
+                  }
+                  className="min-h-11 flex-row items-center justify-between px-4 py-2.5 active:opacity-70"
                 >
                   {tag.id === NEW_TAG_ID ? (
                     <>
                       <Text className="flex-1 pr-3 text-primary">
-                        Create &ldquo;{tag.name}&rdquo;
+                        {t("manage_tags.create_tag", { name: tag.name })}
                       </Text>
                       <Plus size={20} color={colors.primary} strokeWidth={2} />
                     </>
                   ) : (
-                    <Text className="flex-1 pr-3">{tag.name}</Text>
+                    <>
+                      <Text className="flex-1 pr-3">{tag.name}</Text>
+                      <SelectionIndicator
+                        selected={tag.selected}
+                        selectedColor={colors.primary}
+                        color={colors.grey}
+                      />
+                    </>
                   )}
                 </Pressable>
               </React.Fragment>
             ))}
           </GroupedSection>
         )}
+        {optimisticTags.length > 0 && !search && (
+          <GroupedSection>
+            <Pressable
+              accessibilityRole="button"
+              onPress={clearAllTags}
+              className="min-h-11 items-center justify-center px-4 py-2.5 active:opacity-70"
+            >
+              <Text className="text-destructive">
+                {t("manage_tags.remove_all")}
+              </Text>
+            </Pressable>
+          </GroupedSection>
+        )}
         {optimisticTags.length === 0 && filteredAllTags.length === 0 && (
           <View className="items-center py-12">
-            <Text color="tertiary">No tags found</Text>
+            <Text color="tertiary">{t("manage_tags.no_tags_found")}</Text>
           </View>
         )}
       </ScrollView>

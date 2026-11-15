@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { router, useLocalSearchParams } from "expo-router";
-import { ListParentField } from "@/components/lists/list-parent-field";
+import {
+  getSmartQueryErrorMessage,
+  isSmartQueryIncomplete,
+  ListFormFields,
+} from "@/components/lists/ListFormFields";
 import QueryPageState from "@/components/QueryPageState";
-import { Button } from "@/components/ui/Button";
-import { EmojiPicker } from "@/components/ui/emoji-picker";
 import FullPageSpinner from "@/components/ui/FullPageSpinner";
 import { GroupedSection, NavigationRow } from "@/components/ui/GroupedList";
-import { Input } from "@/components/ui/Input";
-import { Text } from "@/components/ui/Text";
+import { SheetHeader, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { useToast } from "@/components/ui/Toast";
+import { useCommonStrings, useTranslation } from "@/lib/i18n/hooks";
 import { NO_PARENT_VALUE } from "@/lib/list-parent-selection";
 import { useQuery } from "@tanstack/react-query";
 
@@ -24,16 +26,20 @@ const EditListPage = () => {
   const [text, setText] = useState("");
   const [icon, setIcon] = useState("📁");
   const [query, setQuery] = useState("");
+  const [queryError, setQueryError] = useState<string | undefined>();
   const [parentId, setParentId] = useState<string | null>(null);
   const { toast } = useToast();
+  const { t } = useTranslation();
+  const strings = useCommonStrings();
   const api = useTRPC();
   const { mutate, isPending: editIsPending } = useEditBookmarkList({
     onSuccess: () => {
+      allowLeave();
       dismiss();
     },
     onError: (error) => {
       // Extract error message from the error object
-      let errorMessage = "Something went wrong";
+      let errorMessage = strings.somethingWentWrong;
       if (error.data?.zodError) {
         errorMessage = Object.values(error.data.zodError.fieldErrors)
           .flat()
@@ -41,10 +47,11 @@ const EditListPage = () => {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      toast({
-        message: errorMessage,
-        variant: "destructive",
-      });
+      if (list?.type === "smart") {
+        setQueryError(getSmartQueryErrorMessage(errorMessage, query));
+      } else {
+        toast({ message: errorMessage, variant: "destructive" });
+      }
     },
   });
 
@@ -80,20 +87,21 @@ const EditListPage = () => {
     router.setParams({ selectedParentId: undefined });
   }, [selectedParentId]);
 
+  const allowLeave = useDiscardGuard(
+    !!list &&
+      (text !== (list.name ?? "") ||
+        icon !== (list.icon || "📁") ||
+        query !== (list.query ?? "") ||
+        parentId !== list.parentId),
+  );
+
+  const canSave =
+    text.trim().length > 0 &&
+    (list?.type !== "smart" ||
+      (query.trim().length > 0 && !isSmartQueryIncomplete(query)));
+
   const onSubmit = () => {
-    if (!text.trim()) {
-      toast({ message: "List name can't be empty", variant: "destructive" });
-      return;
-    }
-
-    if (list?.type === "smart" && !query.trim()) {
-      toast({
-        message: "Smart lists must have a search query",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    setQueryError(undefined);
     mutate({
       listId,
       name: text.trim(),
@@ -109,53 +117,27 @@ const EditListPage = () => {
 
   return (
     <>
+      <SheetHeader
+        onSave={onSubmit}
+        saveDisabled={!canSave}
+        isSaving={editIsPending}
+      />
       {editIsPending ? (
         <FullPageSpinner />
       ) : (
-        <ScrollView
+        <KeyboardAwareScrollView
+          bottomOffset={160}
           contentInsetAdjustmentBehavior="automatic"
           keyboardShouldPersistTaps="handled"
-          contentContainerClassName="gap-4 px-4 pb-8"
+          contentContainerClassName="gap-4 px-4 pt-2 pb-8"
         >
-          {/* List Type Info - not editable */}
-          <View className="gap-2">
-            <Text className="text-sm text-muted-foreground">List Type</Text>
-            <View className="flex flex-row gap-2">
-              <View className="flex-1">
-                <Button
-                  variant={list?.type === "manual" ? "primary" : "secondary"}
-                  disabled
-                >
-                  <Text>Manual</Text>
-                </Button>
-              </View>
-              <View className="flex-1">
-                <Button
-                  variant={list?.type === "smart" ? "primary" : "secondary"}
-                  disabled
-                >
-                  <Text>Smart</Text>
-                </Button>
-              </View>
-            </View>
-          </View>
-
-          <EmojiPicker value={icon} onChange={setIcon} />
-
-          <Input
-            className="bg-card"
-            label="List Name"
-            labelClasses="text-sm text-muted-foreground"
-            onChangeText={setText}
-            value={text}
-            placeholder="Reading list"
-            autoFocus
-            autoCapitalize="sentences"
-          />
-
-          <ListParentField
-            value={parentId}
-            onPress={() =>
+          <ListFormFields
+            name={text}
+            onNameChange={setText}
+            icon={icon}
+            onIconChange={setIcon}
+            parentId={parentId}
+            onPressParent={() =>
               router.push({
                 pathname: "/dashboard/lists/select-parent",
                 params: {
@@ -166,43 +148,28 @@ const EditListPage = () => {
                 },
               })
             }
+            isSmart={list.type === "smart"}
+            query={query}
+            onQueryChange={(value) => {
+              setQuery(value);
+              setQueryError(undefined);
+            }}
+            queryError={queryError}
           />
 
-          {list.userRole === "owner" && (
-            <GroupedSection>
-              <NavigationRow
-                label="Sharing & Access"
-                onPress={() =>
-                  router.push(`/dashboard/lists/${listId}/sharing`)
-                }
-              />
-            </GroupedSection>
-          )}
-
-          {/* Smart List Query Input */}
-          {list?.type === "smart" && (
-            <View className="gap-2">
-              <Text className="text-sm text-muted-foreground">
-                Search Query
-              </Text>
-              <Input
-                className="bg-card"
-                onChangeText={setQuery}
-                value={query}
-                placeholder="e.g., #important OR list:work"
-                autoCapitalize={"none"}
-              />
-              <Text className="text-xs italic text-muted-foreground">
-                Smart lists automatically show bookmarks matching your search
-                query
-              </Text>
-            </View>
-          )}
-
-          <Button disabled={editIsPending} onPress={onSubmit}>
-            <Text>Save</Text>
-          </Button>
-        </ScrollView>
+          <GroupedSection
+            footer={
+              list.type === "smart"
+                ? t("lists.type_locked_smart")
+                : t("lists.type_locked_manual")
+            }
+          >
+            <NavigationRow
+              label={t("list_sharing.title")}
+              onPress={() => router.push(`/dashboard/lists/${listId}/sharing`)}
+            />
+          </GroupedSection>
+        </KeyboardAwareScrollView>
       )}
     </>
   );

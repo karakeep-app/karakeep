@@ -34,6 +34,9 @@ export const DEFAULT_CLIENT_CONFIG: ZClientConfig = {
     purchasePlatforms: [],
   },
   legal: {},
+  problemReports: {
+    enabled: false,
+  },
   disableNewReleaseCheck: true,
 };
 
@@ -83,6 +86,10 @@ export function ClientConfigProvider({
       legal: {
         ...DEFAULT_CLIENT_CONFIG.legal,
         ...value?.legal,
+      },
+      problemReports: {
+        ...DEFAULT_CLIENT_CONFIG.problemReports,
+        ...value?.problemReports,
       },
     }),
     [value],

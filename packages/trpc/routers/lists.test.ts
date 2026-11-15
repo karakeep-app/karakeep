@@ -105,6 +105,103 @@ describe("Lists Routes", () => {
     ).rejects.toThrow(/List not found/);
   });
 
+  describe("previewSmartQuery", () => {
+    test<CustomTestContext>("returns the count and the newest titles", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      const ids = [];
+      for (const title of ["First", "Second", "Third", "Fourth"]) {
+        const bookmark = await api.bookmarks.createBookmark({
+          type: BookmarkTypes.TEXT,
+          text: `${title} body`,
+          title,
+          favourited: true,
+        });
+        ids.push(bookmark.id);
+      }
+      await api.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Not a favourite",
+      });
+
+      const preview = await api.lists.previewSmartQuery({ query: "is:fav" });
+
+      expect(preview.count).toBe(4);
+      expect(preview.sample).toHaveLength(3);
+      for (const item of preview.sample) {
+        expect(ids).toContain(item.id);
+        expect(item.title).toEqual(expect.any(String));
+      }
+    });
+
+    test<CustomTestContext>("falls back to the text of untitled bookmarks", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      await api.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Line one\nLine two",
+        favourited: true,
+      });
+
+      const preview = await api.lists.previewSmartQuery({ query: "is:fav" });
+
+      expect(preview.sample.map((item) => item.title)).toEqual(["Line one"]);
+    });
+
+    test<CustomTestContext>("agrees with the size of a real smart list", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0];
+      await api.bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Favourite",
+        favourited: true,
+      });
+      const list = await api.lists.create({
+        name: "Favourites",
+        icon: "⭐",
+        type: "smart",
+        query: "is:fav",
+      });
+
+      const preview = await api.lists.previewSmartQuery({ query: "is:fav" });
+      const { stats } = await api.lists.stats();
+
+      expect(preview.count).toBe(stats.get(list.id));
+    });
+
+    test<CustomTestContext>("doesn't see other users' bookmarks", async ({
+      apiCallers,
+    }) => {
+      await apiCallers[0].bookmarks.createBookmark({
+        type: BookmarkTypes.TEXT,
+        text: "Someone else's",
+        favourited: true,
+      });
+
+      const preview = await apiCallers[1].lists.previewSmartQuery({
+        query: "is:fav",
+      });
+
+      expect(preview).toEqual({ count: 0, sample: [] });
+    });
+
+    test<CustomTestContext>("rejects queries a smart list can't have", async ({
+      apiCallers,
+    }) => {
+      const api = apiCallers[0].lists;
+
+      await expect(
+        api.previewSmartQuery({ query: "plain text" }),
+      ).rejects.toThrow(/not valid/);
+      await expect(api.previewSmartQuery({ query: "is:" })).rejects.toThrow(
+        /not valid/,
+      );
+    });
+  });
+
   test<CustomTestContext>("merge lists", async ({ apiCallers }) => {
     const api = apiCallers[0].lists;
 
@@ -153,6 +250,83 @@ describe("Lists Routes", () => {
         deleteSourceAfterMerge: true,
       }),
     ).rejects.toThrow(/List not found/);
+  });
+
+  test<CustomTestContext>("merge doesn't move collaborators' bookmarks", async ({
+    apiCallers,
+  }) => {
+    const [ownerApi, editorApi, viewerApi] = apiCallers;
+
+    const sourceList = await ownerApi.lists.create({
+      name: "Source List",
+      type: "manual",
+      icon: "📚",
+    });
+    const targetList = await ownerApi.lists.create({
+      name: "Target List",
+      type: "manual",
+      icon: "📖",
+    });
+    await shareList(ownerApi, editorApi, sourceList.id, "editor");
+    await shareList(ownerApi, viewerApi, targetList.id, "viewer");
+
+    const ownerBookmarkId = await createTestBookmark(ownerApi);
+    const editorBookmarkId = await createTestBookmark(editorApi);
+    await ownerApi.lists.addToList({
+      listId: sourceList.id,
+      bookmarkId: ownerBookmarkId,
+    });
+    await editorApi.lists.addToList({
+      listId: sourceList.id,
+      bookmarkId: editorBookmarkId,
+    });
+
+    await ownerApi.lists.merge({
+      sourceId: sourceList.id,
+      targetId: targetList.id,
+      deleteSourceAfterMerge: true,
+    });
+
+    const { bookmarks } = await viewerApi.bookmarks.getBookmarks({
+      listId: targetList.id,
+    });
+    expect(bookmarks.map((b) => b.id)).toEqual([ownerBookmarkId]);
+    await expect(() =>
+      viewerApi.bookmarks.getBookmark({ bookmarkId: editorBookmarkId }),
+    ).rejects.toThrow(/Bookmark not found/);
+  });
+
+  test<CustomTestContext>("merge a list with only collaborators' bookmarks", async ({
+    apiCallers,
+  }) => {
+    const [ownerApi, editorApi] = apiCallers;
+
+    const sourceList = await ownerApi.lists.create({
+      name: "Source List",
+      type: "manual",
+      icon: "📚",
+    });
+    const targetList = await ownerApi.lists.create({
+      name: "Target List",
+      type: "manual",
+      icon: "📖",
+    });
+    await shareList(ownerApi, editorApi, sourceList.id, "editor");
+    await editorApi.lists.addToList({
+      listId: sourceList.id,
+      bookmarkId: await createTestBookmark(editorApi),
+    });
+
+    await ownerApi.lists.merge({
+      sourceId: sourceList.id,
+      targetId: targetList.id,
+      deleteSourceAfterMerge: false,
+    });
+
+    const { bookmarks } = await ownerApi.bookmarks.getBookmarks({
+      listId: targetList.id,
+    });
+    expect(bookmarks).toHaveLength(0);
   });
 
   test<CustomTestContext>("delete list", async ({ apiCallers }) => {

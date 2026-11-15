@@ -13,20 +13,17 @@ import {
   SettingsSeparator,
 } from "@/components/settings/settings-list";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { MOBILE_FONT_FAMILIES, useReaderSettings } from "@/lib/readerSettings";
-import { useColorScheme } from "@/lib/useColorScheme";
-import { RotateCcw } from "lucide-react-native";
 
 import {
-  formatFontFamily,
-  formatFontSize,
   formatLineHeight,
   READER_SETTING_CONSTRAINTS,
 } from "@karakeep/shared/types/readers";
 import { ZReaderFontFamily } from "@karakeep/shared/types/users";
 
 export default function ReaderSettingsPage() {
-  const { isDarkColorScheme: isDark } = useColorScheme();
+  const { t } = useTranslation();
 
   const {
     settings,
@@ -128,11 +125,14 @@ export default function ReaderSettingsPage() {
 
   return (
     <SettingsScreen>
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
-          Font Family
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
+          {t("settings.reader_font_family")}
           {localOverrides.fontFamily !== undefined && (
-            <Text className="text-blue-500"> (local)</Text>
+            <Text variant="footnote" className="normal-case text-primary">
+              {" "}
+              · {t("settings.reader_this_device")}
+            </Text>
           )}
         </Text>
         <SettingsGroup>
@@ -142,7 +142,13 @@ export default function ReaderSettingsPage() {
               <View key={fontFamily}>
                 {index > 0 ? <SettingsSeparator /> : null}
                 <SettingsChoiceRow
-                  label={formatFontFamily(fontFamily)}
+                  label={
+                    fontFamily === "serif"
+                      ? t("settings.reader_font_serif")
+                      : fontFamily === "sans"
+                        ? t("settings.reader_font_sans")
+                        : t("settings.reader_font_mono")
+                  }
                   labelStyle={{
                     fontFamily: MOBILE_FONT_FAMILIES[fontFamily],
                   }}
@@ -155,11 +161,14 @@ export default function ReaderSettingsPage() {
         </SettingsGroup>
       </View>
 
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
-          Font Size ({formatFontSize(displayFontSize)})
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
+          {t("settings.reader_font_size_value", { size: displayFontSize })}
           {localOverrides.fontSize !== undefined && (
-            <Text className="text-blue-500"> (local)</Text>
+            <Text variant="footnote" className="normal-case text-primary">
+              {" "}
+              · {t("settings.reader_this_device")}
+            </Text>
           )}
         </Text>
         <SettingsGroup>
@@ -186,11 +195,16 @@ export default function ReaderSettingsPage() {
         </SettingsGroup>
       </View>
 
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
-          Line Height ({formatLineHeight(displayLineHeight)})
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
+          {t("settings.reader_line_height_value", {
+            height: formatLineHeight(displayLineHeight),
+          })}
           {localOverrides.lineHeight !== undefined && (
-            <Text className="text-blue-500"> (local)</Text>
+            <Text variant="footnote" className="normal-case text-primary">
+              {" "}
+              · {t("settings.reader_this_device")}
+            </Text>
           )}
         </Text>
         <SettingsGroup>
@@ -215,9 +229,9 @@ export default function ReaderSettingsPage() {
         </SettingsGroup>
       </View>
 
-      <View className="w-full gap-2">
-        <Text className="px-1 text-sm font-medium text-muted-foreground">
-          Preview
+      <View className="w-full gap-1.5">
+        <Text variant="footnote" color="tertiary" className="px-4 uppercase">
+          {t("settings.reader_preview")}
         </Text>
         <ReaderPreview
           ref={previewRef}
@@ -231,7 +245,7 @@ export default function ReaderSettingsPage() {
         <SettingsActionRow
           centered
           disabled={!hasLocalOverrides}
-          label="Save as Default (All Devices)"
+          label={t("settings.reader_save_default_all_devices")}
           onPress={handleSaveAsDefault}
           tone="primary"
         />
@@ -240,12 +254,9 @@ export default function ReaderSettingsPage() {
             <SettingsSeparator />
             <SettingsActionRow
               centered
-              label="Clear Local Overrides"
-              leading={
-                <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-              }
+              label={t("settings.reader_reset_this_device")}
               onPress={handleClearLocalOverrides}
-              tone="default"
+              tone="primary"
             />
           </>
         ) : null}
@@ -254,12 +265,9 @@ export default function ReaderSettingsPage() {
             <SettingsSeparator />
             <SettingsActionRow
               centered
-              label="Clear Server Defaults"
-              leading={
-                <RotateCcw size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-              }
+              label={t("settings.reader_reset_all_devices")}
               onPress={handleClearServerDefaults}
-              tone="default"
+              tone="primary"
             />
           </>
         ) : null}

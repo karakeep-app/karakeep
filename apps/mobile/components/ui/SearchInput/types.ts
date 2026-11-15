@@ -1,4 +1,4 @@
-import type { TextInput, TextInputProps } from "react-native";
+import type { TextInputInstance, TextInputProps } from "react-native";
 
 interface SearchInputProps extends TextInputProps {
   containerClassName?: string;
@@ -8,6 +8,6 @@ interface SearchInputProps extends TextInputProps {
   onCancel?: () => void;
 }
 
-type SearchInputRef = TextInput;
+type SearchInputRef = TextInputInstance;
 
 export type { SearchInputProps, SearchInputRef };

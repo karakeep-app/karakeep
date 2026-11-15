@@ -191,7 +191,7 @@ export default function SidebarVersion({
         href={releasePageUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-auto flex items-center border-t pt-2 text-sm text-gray-400 hover:underline"
+        className="mt-auto flex items-center border-t pt-2 text-sm text-muted-foreground hover:underline"
       >
         {versionLabel}
       </Link>
@@ -207,7 +207,7 @@ export default function SidebarVersion({
           aria-label={
             shouldNotify ? t("version.new_release_available") : undefined
           }
-          className="flex w-full items-center justify-between rounded-sm text-left text-sm text-gray-400 transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          className="flex w-full items-center justify-between rounded-sm text-left text-sm text-muted-foreground transition hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
           <span aria-hidden={shouldNotify}>{versionLabel}</span>
           {shouldNotify && (
@@ -248,7 +248,7 @@ export default function SidebarVersion({
               </div>
             ) : releaseNotesQuery.data !== undefined ? (
               releaseNotesQuery.data.trim() ? (
-                <MarkdownReadonly className="prose-sm">
+                <MarkdownReadonly className="prose-sm max-w-none" skipHtml>
                   {releaseNotesQuery.data}
                 </MarkdownReadonly>
               ) : (

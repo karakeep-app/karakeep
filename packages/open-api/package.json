@@ -15,8 +15,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "check": "tsx index.ts check",
-    "generate": "tsx index.ts",
+    "check": "node --import tsx index.ts check",
+    "generate": "node --import tsx index.ts",
     "format": "oxfmt --ignore-path=../../.gitignore --check .",
     "format:fix": "oxfmt --ignore-path=../../.gitignore .",
     "lint": "oxlint --ignore-path=../../.gitignore .",

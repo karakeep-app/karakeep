@@ -27,7 +27,10 @@ export default async function SubscriptionPage() {
   const { t } = await useTranslation();
 
   return (
-    <SettingsPage title={t("settings.subscription.subscription")}>
+    <SettingsPage
+      title={t("settings.subscription.subscription")}
+      description={t("settings.subscription.manage_subscription")}
+    >
       <SubscriptionSettings />
       <QuotaProgress />
     </SettingsPage>

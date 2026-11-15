@@ -13,10 +13,11 @@ import { createRequire } from "node:module";
 import * as path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import type { Page } from "patchright";
-import { abortRaceResolve, raceWith } from "utils";
 
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
+
+import { abortRaceResolve, raceWith } from "../../utils";
 
 // Set by the standalone bundle on the page's global object. In a browser
 // `globalThis === window`; declaring it here keeps the waitForFunction callback

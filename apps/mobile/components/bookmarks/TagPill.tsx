@@ -1,19 +1,8 @@
-import { Text, View } from "react-native";
+import { Pressable, View } from "react-native";
 import { Link } from "expo-router";
-import { useColorScheme } from "@/lib/useColorScheme";
+import { Text } from "@/components/ui/Text";
 
 import { ZBookmarkTags } from "@karakeep/shared/types/tags";
-
-const TAG_PILL_COLORS = {
-  light: {
-    backgroundColor: "hsl(210, 40%, 96.1%)",
-    color: "rgb(55, 65, 81)",
-  },
-  dark: {
-    backgroundColor: "rgb(40, 40, 40)",
-    color: "rgb(156, 163, 175)",
-  },
-};
 
 export default function TagPill({
   tag,
@@ -22,35 +11,27 @@ export default function TagPill({
   tag: ZBookmarkTags;
   clickable?: boolean;
 }) {
-  const { isDarkColorScheme } = useColorScheme();
-  const colors = isDarkColorScheme
-    ? TAG_PILL_COLORS.dark
-    : TAG_PILL_COLORS.light;
+  const pill = (
+    <View className="h-[22px] flex-row items-center rounded-full bg-background px-2.5 dark:bg-muted/25">
+      <Text
+        variant="caption1"
+        className="text-muted-foreground dark:text-foreground/80"
+        numberOfLines={1}
+      >
+        {tag.name}
+      </Text>
+    </View>
+  );
+
+  if (!clickable) {
+    return pill;
+  }
 
   return (
-    <View
-      key={tag.id}
-      className="h-[22px] flex-row items-center rounded-full border border-transparent px-2.5"
-      style={{ backgroundColor: colors.backgroundColor }}
-    >
-      {clickable ? (
-        <Link
-          className="text-xs font-light"
-          numberOfLines={1}
-          style={{ color: colors.color }}
-          href={`dashboard/tags/${tag.id}`}
-        >
-          {tag.name}
-        </Link>
-      ) : (
-        <Text
-          className="text-xs font-light"
-          numberOfLines={1}
-          style={{ color: colors.color }}
-        >
-          {tag.name}
-        </Text>
-      )}
-    </View>
+    <Link asChild href={`dashboard/tags/${tag.id}`}>
+      <Pressable accessibilityRole="link" className="active:opacity-60">
+        {pill}
+      </Pressable>
+    </Link>
   );
 }

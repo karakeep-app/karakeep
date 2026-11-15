@@ -1,6 +1,4 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZOpenAIRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -15,6 +13,8 @@ import { InferenceClientFactory } from "@karakeep/shared/inference";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
+import { workerStatsCounter } from "../../metrics";
+import { withWorkerEventLog, withWorkerTracing } from "../../workerTracing";
 import { runSummarization } from "./summarize";
 import { runTagging } from "./tagging";
 

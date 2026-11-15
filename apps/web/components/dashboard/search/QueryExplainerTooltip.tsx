@@ -257,7 +257,13 @@ export default function QueryExplainerTooltip({
     return null;
   }
 
-  const body = (
+  // Nothing typed yet, so there's nothing to explain
+  const isEmpty =
+    !header && !parsedSearchQuery.text && !parsedSearchQuery.matcher;
+
+  const body = isEmpty ? (
+    t("search.query_language_help")
+  ) : (
     <>
       {header}
       <Table className="[&_tr:hover]:bg-transparent">

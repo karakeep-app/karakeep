@@ -3,6 +3,7 @@ import {
   Dialog,
   DialogClose,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -42,11 +43,14 @@ export default function ActionConfirmingDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {description}
+        {/* A div, as some of these hold paragraphs or a control to go with them. */}
+        <DialogDescription asChild>
+          <div>{description}</div>
+        </DialogDescription>
         <DialogFooter className="sm:justify-end">
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              {t("actions.close")}
+            <Button type="button" variant="outline">
+              {t("actions.cancel")}
             </Button>
           </DialogClose>
           {actionButton(setDialogOpen)}

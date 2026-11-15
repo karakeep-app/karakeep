@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { TRPCClientError } from "@trpc/client";
@@ -44,6 +45,7 @@ export default function AddUserDialog({
   children?: React.ReactNode;
 }) {
   const api = useTRPC();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isOpen, onOpenChange] = useState(false);
   const form = useForm<AdminCreateUserSchema>({
@@ -93,7 +95,7 @@ export default function AddUserDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add User</DialogTitle>
+          <DialogTitle>{t("admin.users_list.create_user")}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((val) => mutate(val))}>
@@ -157,11 +159,13 @@ export default function AddUserDialog({
                 name="confirmPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
+                    <FormLabel>
+                      {t("admin.users_list.confirm_password")}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="Confirm Password"
+                        placeholder={t("admin.users_list.confirm_password")}
                         {...field}
                         className="w-full rounded border p-2"
                       />

@@ -1,3 +1,5 @@
+import { decode as decodeHtmlEntities } from "html-entities";
+
 import type { ParseSubprocessOutput } from "./parseHtmlSubprocessIpc";
 
 /**
@@ -58,6 +60,19 @@ const CHALLENGE_PAGE_BODY_MARKERS = [
  * copy (e.g. a post about bot protection) isn't misclassified.
  */
 const CHALLENGE_PAGE_MAX_HTML_LENGTH = 100_000;
+
+/**
+ * The text of the document's <title>, for when the page isn't parsed. A regex
+ * is enough here: it's only used to match the short, plain titles of
+ * challenge pages.
+ */
+export function extractHtmlTitle(htmlContent: string): string | null {
+  const match = /<title\b[^>]*>([\s\S]*?)<\/title\s*>/i.exec(htmlContent);
+  if (!match) {
+    return null;
+  }
+  return decodeHtmlEntities(match[1]).replace(/\s+/g, " ").trim();
+}
 
 /**
  * Conservative detection of bot-challenge/block pages that are served with an

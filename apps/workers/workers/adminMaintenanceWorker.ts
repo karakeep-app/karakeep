@@ -1,6 +1,4 @@
-import { workerStatsCounter } from "metrics";
 import cron from "node-cron";
-import { withWorkerTracing } from "workerTracing";
 
 import {
   AdminMaintenanceQueue,
@@ -12,6 +10,8 @@ import {
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 
+import { workerStatsCounter } from "../metrics";
+import { withWorkerTracing } from "../workerTracing";
 import { runMigrateLargeLinkHtmlTask } from "./adminMaintenance/tasks/migrateLinkHtmlContent";
 import { runPurgeBookmarksOverQuotaTask } from "./adminMaintenance/tasks/purgeBookmarksOverQuota";
 import { runPurgeExpiredTrashTask } from "./adminMaintenance/tasks/purgeExpiredTrash";

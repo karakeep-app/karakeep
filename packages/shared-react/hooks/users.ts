@@ -20,6 +20,22 @@ export function useUpdateUserSettings(
   );
 }
 
+export function useUpdateUserProfile(
+  opts?: Parameters<TRPCApi["users"]["updateProfile"]["mutationOptions"]>[0],
+) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.users.updateProfile.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(api.users.whoami.pathFilter());
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
+}
+
 export function useUpdateUserAvatar(
   opts?: Parameters<TRPCApi["users"]["updateAvatar"]["mutationOptions"]>[0],
 ) {

@@ -10,9 +10,11 @@ import { ThemeProvider as NavThemeProvider, useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
+import { horizontalSafeAreaLayout } from "@/components/navigation/screen-layout";
 import { StyledStack } from "@/components/navigation/stack";
 import SplashScreenController from "@/components/SplashScreenController";
 import { getFormSheetSurfaceOptions } from "@/lib/form-sheet-options";
+import { useAppTranslation } from "@/lib/i18n/hooks";
 import { isIOS26 } from "@/lib/ios";
 import { Providers } from "@/lib/providers";
 import { useColorScheme, useInitialAndroidBarSync } from "@/lib/useColorScheme";
@@ -36,7 +38,11 @@ export default Sentry.wrap(function RootLayout() {
   const router = useRouter();
   const { hasShareIntent } = useShareIntent();
   const { colorScheme, colors } = useColorScheme();
-  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.background);
+  const formSheetSurfaceOptions = getFormSheetSurfaceOptions(colors.sheet);
+  // RootLayout sits above <Providers>/<I18nProvider>, so the translation
+  // hook is bound to the shared singleton explicitly. Language changes still
+  // re-render this component via the hook subscription.
+  const { t } = useAppTranslation();
 
   useEffect(() => {
     if (hasShareIntent) {
@@ -64,6 +70,7 @@ export default Sentry.wrap(function RootLayout() {
                 </GestureHandlerRootView>
               );
             }}
+            screenLayout={horizontalSafeAreaLayout(["dashboard"])}
             contentClassName={cn(
               "w-full flex-1 bg-gray-100 text-foreground dark:bg-background",
               colorScheme == "dark" ? "dark" : "light",
@@ -98,7 +105,7 @@ export default Sentry.wrap(function RootLayout() {
               options={{
                 headerShown: true,
                 headerBackVisible: true,
-                headerBackTitle: "Back",
+                headerBackTitle: t("app.back"),
                 title: "",
               }}
             />
@@ -118,7 +125,7 @@ export default Sentry.wrap(function RootLayout() {
               name="server-address"
               options={{
                 ...formSheetSurfaceOptions,
-                title: "Server Address",
+                title: t("headers.server_address"),
                 headerShown: true,
                 headerTransparent: false,
                 headerLargeTitle: false,
@@ -133,7 +140,7 @@ export default Sentry.wrap(function RootLayout() {
               name="test-connection"
               options={{
                 ...formSheetSurfaceOptions,
-                title: "Test Connection",
+                title: t("headers.server_connection"),
                 headerShown: true,
                 headerTransparent: false,
                 headerLargeTitle: false,

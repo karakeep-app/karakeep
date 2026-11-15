@@ -3,6 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import Pdf from "react-native-pdf";
 import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useColorScheme } from "nativewind";
 
@@ -13,6 +14,7 @@ interface PDFViewerProps {
 
 export function PDFViewer({ source, headers }: PDFViewerProps) {
   const [pdfRenderError, setPdfRenderError] = useState<string | null>(null);
+  const { t } = useTranslation();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = {
@@ -45,24 +47,24 @@ export function PDFViewer({ source, headers }: PDFViewerProps) {
   // Merge download and render errors
   const error = useMemo(() => {
     if (downloadError) {
-      let errorMessage = "Failed to download PDF";
+      let errorMessage = t("bookmarks.failed_download_pdf");
       if (downloadError.message.includes("Network request failed")) {
-        errorMessage = "Network error. Please check your connection.";
+        errorMessage = t("bookmarks.pdf_network_error");
       } else if (
         downloadError.message.includes("401") ||
         downloadError.message.includes("403")
       ) {
-        errorMessage = "Authentication failed. Please sign in again.";
+        errorMessage = t("bookmarks.pdf_auth_error");
       } else if (downloadError.message.includes("404")) {
-        errorMessage = "PDF not found.";
+        errorMessage = t("bookmarks.pdf_not_found");
       }
       return errorMessage;
     }
     if (pdfRenderError) {
-      return pdfRenderError;
+      return t("bookmarks.failed_render_pdf");
     }
     return null;
-  }, [downloadError, pdfRenderError]);
+  }, [downloadError, pdfRenderError, t]);
 
   // Cleanup function to remove temporary file on unmount
   useEffect(() => {
@@ -89,7 +91,7 @@ export function PDFViewer({ source, headers }: PDFViewerProps) {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.foreground} />
           <Text style={[styles.loadingText, { color: colors.mutedForeground }]}>
-            Downloading PDF...
+            {t("bookmarks.downloading_pdf")}
           </Text>
         </View>
       </View>
@@ -104,7 +106,7 @@ export function PDFViewer({ source, headers }: PDFViewerProps) {
         spacing={16}
         maxScale={3}
         onLoadComplete={() => ({})}
-        onError={() => setPdfRenderError("Failed to render PDF")}
+        onError={() => setPdfRenderError("render")}
         trustAllCerts={false}
         renderActivityIndicator={() => (
           <ActivityIndicator size="large" color={colors.foreground} />

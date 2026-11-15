@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { SqliteError } from "@karakeep/db";
 import { apiKeys } from "@karakeep/db/schema";
 import { addLogFields, logEvent } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
@@ -52,7 +53,15 @@ export const apiKeysAppRouter = router({
         ctx.user.id,
         ctx.db,
         scopes,
-      );
+      ).catch((e) => {
+        if (e instanceof SqliteError && e.code === "SQLITE_CONSTRAINT_UNIQUE") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You already have an API key with this name",
+          });
+        }
+        throw e;
+      });
       addLogFields<"apiKey.create">({
         "apiKey.id": created.id,
         "apiKey.source": "session",

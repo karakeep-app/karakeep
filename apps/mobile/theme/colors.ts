@@ -14,6 +14,10 @@ const SYSTEM_COLORS = {
     card: "rgb(242, 242, 247)",
     destructive: "rgb(255, 56, 43)",
     primary: "rgb(0, 123, 255)",
+    // Same as the page in light mode; elevated in dark, so sheets have an edge.
+    sheet: "rgb(242, 242, 247)",
+    // Secondary icons on cards: visible, but quieter than text.
+    icon: "rgb(99, 99, 102)",
   },
   dark: {
     grey6: "rgb(21, 21, 24)",
@@ -28,6 +32,8 @@ const SYSTEM_COLORS = {
     card: "rgb(0, 0, 0)",
     destructive: "rgb(254, 67, 54)",
     primary: "rgb(3, 133, 255)",
+    sheet: "rgb(18, 18, 20)",
+    icon: "rgb(152, 152, 159)",
   },
 } as const;
 

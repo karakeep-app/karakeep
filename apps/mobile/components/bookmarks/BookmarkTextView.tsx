@@ -1,14 +1,28 @@
 import { useState } from "react";
-import { Keyboard, Pressable, ScrollView, TextInput, View } from "react-native";
+import {
+  Alert,
+  Keyboard,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+  Platform,
+} from "react-native";
+import { Stack } from "expo-router";
 import BookmarkTextMarkdown from "@/components/bookmarks/BookmarkTextMarkdown";
-import { Button } from "@/components/ui/Button";
+import { HeaderTextButton, useDiscardGuard } from "@/components/ui/SheetHeader";
 import { Text } from "@/components/ui/Text";
 import { useToast } from "@/components/ui/Toast";
+import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 import { READABLE_CONTENT_MAX_WIDTH } from "@/lib/responsive";
-import { useColorScheme } from "nativewind";
+import { useColorScheme } from "@/lib/useColorScheme";
 
 import { useUpdateBookmark } from "@karakeep/shared-react/hooks/bookmarks";
 import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+
+// Shared by the view and edit states, so the text doesn't move when you tap it.
+const TEXT_PADDING = 20;
+const TEXT_BOTTOM_PADDING = 120;
 
 interface BookmarkTextViewProps {
   bookmark: ZBookmark;
@@ -19,25 +33,24 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
     throw new Error("Wrong content type rendered");
   }
   const { toast } = useToast();
-  const { colorScheme } = useColorScheme();
+  const { t } = useTranslation();
+  const actions = useCommonActions();
+  const { colors } = useColorScheme();
 
   const [isEditing, setIsEditing] = useState(false);
   const initialText = bookmark.content.text;
   const [content, setContent] = useState(initialText);
+  useDiscardGuard(isEditing && content !== initialText);
 
   const { mutate, isPending } = useUpdateBookmark({
     onError: () => {
       toast({
-        message: "Something went wrong",
+        message: t("bookmarks.save_changes_failed"),
         variant: "destructive",
       });
     },
     onSuccess: () => {
       setIsEditing(false);
-      toast({
-        message: "Text updated successfully",
-        showProgress: false,
-      });
     },
   });
 
@@ -46,53 +59,80 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
       bookmarkId: bookmark.id,
       text: content,
     });
+    Keyboard.dismiss();
   };
 
-  const handleDiscard = () => {
+  const discard = () => {
     setContent(initialText);
     setIsEditing(false);
     Keyboard.dismiss();
   };
 
+  const handleDiscard = () => {
+    if (content === initialText) {
+      discard();
+      return;
+    }
+    Alert.alert(
+      t("bookmarks.discard_changes_title"),
+      t("bookmarks.discard_note_message"),
+      [
+        { text: t("bookmarks.keep_editing"), style: "cancel" },
+        {
+          text: t("bookmarks.discard"),
+          style: "destructive",
+          onPress: discard,
+        },
+      ],
+    );
+  };
+
   if (isEditing) {
     return (
       <View
-        className="w-full flex-1 self-center p-4"
+        className="w-full flex-1 self-center"
         style={{ maxWidth: READABLE_CONTENT_MAX_WIDTH }}
       >
-        <View className="flex-row justify-end gap-2 px-4 py-2">
-          <Button
-            size="sm"
-            onPress={handleDiscard}
-            disabled={isPending}
-            variant="plain"
-          >
-            <Text>Cancel</Text>
-          </Button>
-          <Button size="sm" onPress={handleSave} disabled={isPending}>
-            <Text>{isPending ? "Saving..." : "Save"}</Text>
-          </Button>
-        </View>
-
+        <Stack.Screen
+          options={{
+            headerBackVisible: false,
+            headerLeft: () => (
+              <HeaderTextButton
+                label={actions.cancel}
+                onPress={handleDiscard}
+                disabled={isPending}
+              />
+            ),
+            headerRight: () => (
+              <HeaderTextButton
+                label={
+                  isPending ? t("bookmarks.saving_ellipsis") : actions.save
+                }
+                onPress={handleSave}
+                emphasized
+                disabled={isPending}
+              />
+            ),
+          }}
+        />
         <TextInput
           value={content}
           onChangeText={setContent}
           multiline
           autoFocus
           editable={!isPending}
-          placeholder="Enter your text here..."
-          placeholderTextColor={colorScheme === "dark" ? "#666" : "#999"}
+          placeholder={t("bookmarks.write_note_placeholder")}
+          placeholderTextColor={colors.grey}
+          selectionColor={Platform.OS === "ios" ? colors.primary : undefined}
+          scrollEnabled
           style={{
             flex: 1,
-            fontSize: 16,
+            fontSize: 17,
             lineHeight: 24,
-            color: colorScheme === "dark" ? "#fff" : "#000",
+            color: colors.foreground,
             textAlignVertical: "top",
-            padding: 12,
-            borderRadius: 8,
-            borderWidth: 1,
-            borderColor: colorScheme === "dark" ? "#333" : "#ddd",
-            backgroundColor: colorScheme === "dark" ? "#111" : "#fff",
+            padding: TEXT_PADDING,
+            paddingTop: TEXT_PADDING,
           }}
         />
       </View>
@@ -104,16 +144,41 @@ export default function BookmarkTextView({ bookmark }: BookmarkTextViewProps) {
       className="w-full flex-1 self-center"
       style={{ maxWidth: READABLE_CONTENT_MAX_WIDTH }}
     >
-      <ScrollView className="m-4 flex-1 rounded-lg border border-border bg-card p-2">
-        <Pressable onPress={() => setIsEditing(true)}>
-          <View className="min-h-[200px] rounded-xl p-4">
+      <Stack.Screen
+        options={{
+          headerBackVisible: true,
+          headerLeft: undefined,
+          headerRight: () => (
+            <HeaderTextButton
+              label={actions.edit}
+              onPress={() => setIsEditing(true)}
+            />
+          ),
+        }}
+      />
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          flexGrow: 1,
+          padding: TEXT_PADDING,
+          paddingBottom: TEXT_BOTTOM_PADDING,
+        }}
+      >
+        {bookmark.title?.trim() ? (
+          <Text variant="title3" className="mb-3 font-semibold leading-7">
+            {bookmark.title}
+          </Text>
+        ) : null}
+        <Pressable
+          accessibilityHint={t("bookmarks.edit_note_hint")}
+          className="flex-1"
+          onPress={() => setIsEditing(true)}
+        >
+          {content.trim() === "" ? (
+            <Text color="tertiary">{t("bookmarks.tap_to_write_note")}</Text>
+          ) : (
             <BookmarkTextMarkdown text={content} />
-            {content.trim() === "" && (
-              <Text className="italic text-muted-foreground">
-                Tap to add text...
-              </Text>
-            )}
-          </View>
+          )}
         </Pressable>
       </ScrollView>
     </View>

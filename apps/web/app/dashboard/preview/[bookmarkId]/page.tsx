@@ -22,7 +22,9 @@ export default async function BookmarkPreviewPage(props: {
   }
 
   return (
-    <div className="h-[calc(100dvh-theme(spacing.16)-theme(spacing.8))] overflow-hidden sm:h-[calc(100dvh-theme(spacing.16)-theme(spacing.8)-theme(spacing.2)-2px)]">
+    // On phones the preview takes over the screen, with its own back button, so
+    // that the dashboard's header and nav don't sit above the article.
+    <div className="h-[calc(100dvh-theme(spacing.16)-theme(spacing.8))] overflow-hidden max-sm:fixed max-sm:inset-0 max-sm:z-50 max-sm:h-dvh sm:h-[calc(100dvh-theme(spacing.16)-theme(spacing.8)-theme(spacing.2)-2px)]">
       <BookmarkPreview bookmarkId={bookmark.id} initialData={bookmark} />
     </div>
   );

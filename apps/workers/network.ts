@@ -75,19 +75,25 @@ async function resolveHostAddresses(hostname: string): Promise<string[]> {
   throw new Error(errorMessage);
 }
 
+// IPv6 ranges that carry an IPv4 address in their last 32 bits, which a
+// translator (NAT64/SIIT) on the host network may route to that IPv4 address:
+// IPv4-mapped (::ffff:0:0/96), the NAT64 well-known prefix (64:ff9b::/96,
+// RFC 6052) and IPv4-translated addresses (::ffff:0:0:0/96, RFC 6145).
+// They aren't blocked wholesale because on IPv6-only networks DNS64
+// synthesizes NAT64 addresses for every public IPv4-only site.
+const IPV4_EMBEDDING_RANGES = new Set(["ipv4Mapped", "rfc6052", "rfc6145"]);
+
 function isAddressForbidden(address: string): boolean {
   if (!ipaddr.isValid(address)) {
     return true;
   }
   const parsed = ipaddr.parse(address);
-  if (
-    parsed.kind() === "ipv6" &&
-    (parsed as ipaddr.IPv6).isIPv4MappedAddress()
-  ) {
-    const mapped = (parsed as ipaddr.IPv6).toIPv4Address();
-    return DISALLOWED_IP_RANGES.has(mapped.range());
+  const range = parsed.range();
+  if (parsed.kind() === "ipv6" && IPV4_EMBEDDING_RANGES.has(range)) {
+    const embedded = new ipaddr.IPv4(parsed.toByteArray().slice(12));
+    return DISALLOWED_IP_RANGES.has(embedded.range());
   }
-  return DISALLOWED_IP_RANGES.has(parsed.range());
+  return DISALLOWED_IP_RANGES.has(range);
 }
 
 export function getBookmarkDomain(url?: string | null): string | undefined {
@@ -384,6 +390,26 @@ function cloneHeaders(init?: HeadersInit): Headers {
   return headers;
 }
 
+// Headers that carry credentials for the origin they were configured for (e.g.
+// a webhook's bearer token) and must not follow a redirect to another origin.
+// Mirrors what undici/WHATWG fetch and follow-redirects do.
+const ORIGIN_BOUND_HEADERS = ["authorization", "proxy-authorization", "cookie"];
+
+function stripCredentialsOnCrossOriginRedirect(
+  headers: Headers,
+  from: URL,
+  to: URL,
+): void {
+  // Origin includes the scheme, so an https -> http downgrade on the same host
+  // also counts as cross-origin.
+  if (from.origin === to.origin) {
+    return;
+  }
+  for (const header of ORIGIN_BOUND_HEADERS) {
+    headers.delete(header);
+  }
+}
+
 function isRedirectResponse(response: Response): boolean {
   return (
     response.status === 301 ||
@@ -545,6 +571,7 @@ export const fetchWithProxy = async (
       baseHeaders.delete("content-length");
     }
 
+    stripCredentialsOnCrossOriginRedirect(baseHeaders, requestUrl, nextUrl);
     currentUrl = nextUrl.toString();
     redirectsRemaining -= 1;
   }
@@ -616,7 +643,9 @@ export async function resolveValidatedRedirectUrl(
       throw new Error(`Too many redirects while resolving ${url}`);
     }
 
-    currentUrl = new URL(locationHeader, currentUrl).toString();
+    const nextUrl = new URL(locationHeader, currentUrl);
+    stripCredentialsOnCrossOriginRedirect(baseHeaders, requestUrl, nextUrl);
+    currentUrl = nextUrl.toString();
     redirectsRemaining -= 1;
   }
 }

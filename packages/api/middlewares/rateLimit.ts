@@ -3,7 +3,10 @@ import { HTTPException } from "hono/http-exception";
 
 import type { RateLimitConfig } from "@karakeep/shared/ratelimiting";
 import serverConfig from "@karakeep/shared/config";
-import { getRateLimitClient } from "@karakeep/shared/ratelimiting";
+import {
+  getRateLimitClient,
+  getRateLimitIdentity,
+} from "@karakeep/shared/ratelimiting";
 import { Context } from "@karakeep/trpc";
 
 export function createRateLimitMiddleware(config: RateLimitConfig) {
@@ -16,8 +19,12 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
       return next();
     }
 
-    const ip = c.var.ctx.req.ip;
-    if (!ip) {
+    const identity = getRateLimitIdentity({
+      userId: c.var.ctx.user?.id,
+      ip: c.var.ctx.req.ip,
+      internal: c.var.ctx.auth?.type === "internal",
+    });
+    if (!identity) {
       return next();
     }
 
@@ -26,8 +33,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
       return next();
     }
 
-    const userSegment = c.var.ctx.user?.id ? `:user:${c.var.ctx.user.id}` : "";
-    const key = `${ip}${userSegment}:${config.name}`;
+    const key = `${identity}:${config.name}`;
     const result = await client.checkRateLimit(config, key);
 
     if (!result.allowed) {

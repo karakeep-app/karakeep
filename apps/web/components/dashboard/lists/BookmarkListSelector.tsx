@@ -167,10 +167,10 @@ function BookmarkListSingleSelector({
         variant="outline"
         role="combobox"
         aria-expanded={open}
-        className={cn("w-full justify-between", className)}
+        className={cn("w-full min-w-0 justify-between", className)}
         disabled={disabled}
       >
-        {selectedListName || placeholder}
+        <span className="truncate">{selectedListName || placeholder}</span>
         <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
       </Button>
     </ListSelectorComponent>

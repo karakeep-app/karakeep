@@ -11,7 +11,6 @@ import {
   or,
 } from "drizzle-orm";
 import { Counter, Gauge, Histogram } from "prom-client";
-import { buildImpersonatingTRPCClient } from "trpc";
 
 import { db } from "@karakeep/db";
 import {
@@ -29,6 +28,7 @@ import {
 import { ImportSessionsService } from "@karakeep/trpc/models/importSessions.service";
 
 import { registry } from "../metrics";
+import { buildImpersonatingTRPCClient } from "../trpc";
 
 // Prometheus metrics
 const importStagingProcessedCounter = new Counter({

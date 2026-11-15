@@ -1,10 +1,6 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { fetchWithProxy } from "network";
 import cron from "node-cron";
-import { buildImpersonatingTRPCClient } from "trpc";
 import { TRPCError } from "@trpc/server";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 import { ZodError } from "zod";
 
 import type { ZFeedRequestSchema } from "@karakeep/shared-server";
@@ -15,6 +11,10 @@ import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import { workerStatsCounter } from "../metrics";
+import { fetchWithProxy } from "../network";
+import { buildImpersonatingTRPCClient } from "../trpc";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 import { parseFeedItems } from "./utils/feedParser";
 
 type FeedRunResult = "success" | "failure";

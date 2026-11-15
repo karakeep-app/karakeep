@@ -3,15 +3,29 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  MaintenanceEmpty,
   MaintenanceError,
   MaintenanceSearch,
   SelectionCheckbox,
 } from "@/components/settings/Maintenance";
-import { SettingsPage } from "@/components/settings/SettingsPage";
-import { ActionButton } from "@/components/ui/action-button";
+import { RowActionsMenu } from "@/components/settings/RowActions";
+import {
+  SettingsPage,
+  SettingsSection,
+} from "@/components/settings/SettingsPage";
+import {
+  ActionButton,
+  ActionButtonWithTooltip,
+} from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import FormattedDate from "@/components/ui/formatted-date";
 import {
   Select,
@@ -21,8 +35,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatTile } from "@/components/ui/stat-tile";
 import { toast } from "@/components/ui/sonner";
 import {
+  stackedTable,
   Table,
   TableBody,
   TableCell,
@@ -41,8 +57,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowUpRight,
   Check,
+  CircleAlert,
   CircleCheck,
   CircleHelp,
+  ExternalLink,
   Link2Off,
   RefreshCw,
   ShieldAlert,
@@ -55,7 +73,7 @@ import { MAX_CONCURRENT_BULK_ACTIONS } from "@/lib/hooks/useBookmarkBulkActions"
 
 const categories = ["all", "blocked", "missing", "errors"] as const;
 const categoryIcons = {
-  all: Link2Off,
+  all: CircleAlert,
   blocked: ShieldAlert,
   missing: Link2Off,
   errors: CircleHelp,
@@ -148,6 +166,13 @@ export default function BrokenLinksPage() {
     [bookmarks, category, searchQuery, sort],
   );
   const selection = filtered.filter((bookmark) => selected.has(bookmark.id));
+  const toggleSelected = (id: string) =>
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   const hasFilters = !!searchQuery || category !== "all";
   const clearFilters = () => {
     setSearch("");
@@ -203,60 +228,60 @@ export default function BrokenLinksPage() {
     }
   }
 
+  // Nothing to review or filter, so there's only the good news to show.
+  if (data && bookmarks.length === 0 && !hasFilters) {
+    return (
+      <SettingsPage
+        title={t("settings.broken_links.broken_links")}
+        description={t("settings.broken_links.description")}
+      >
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <CircleCheck />
+            </EmptyMedia>
+            <EmptyTitle>{t("settings.broken_links.empty")}</EmptyTitle>
+            <EmptyDescription>
+              {t("settings.broken_links.empty_description")}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      </SettingsPage>
+    );
+  }
+
   return (
     <SettingsPage
       title={t("settings.broken_links.broken_links")}
       description={t("settings.broken_links.description")}
     >
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {categories.map((value) => {
-          const Icon = categoryIcons[value];
-          return (
-            <button
-              key={value}
-              aria-pressed={category === value}
-              onClick={() => {
-                setCategory(value);
-                setSelected(new Set());
-              }}
-              className={cn(
-                "rounded-xl border bg-card p-4 text-left transition-colors hover:border-muted-foreground/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring sm:p-5",
-                category === value &&
-                  "border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/40",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
-                <span>{t(`settings.broken_links.category_${value}`)}</span>
-                <Icon
-                  className={cn(
-                    "size-4",
-                    value === "blocked" && "text-amber-500",
-                    value === "missing" && "text-rose-500",
-                  )}
-                />
-              </div>
-              {isPending ? (
-                <Skeleton className="mt-3 h-8 w-12" />
-              ) : (
-                <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight">
-                  {data ? counts[value] : "—"}
-                </p>
-              )}
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t(`settings.broken_links.category_${value}_hint`)}
-              </p>
-            </button>
-          );
-        })}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {categories.map((value) => (
+          <StatTile
+            key={value}
+            label={t(`settings.broken_links.category_${value}`)}
+            icon={categoryIcons[value]}
+            value={data ? counts[value] : "—"}
+            helper={t(`settings.broken_links.category_${value}_hint`)}
+            loading={isPending}
+            pressed={category === value}
+            onClick={() => {
+              setCategory(value);
+              setSelected(new Set());
+            }}
+          />
+        ))}
       </div>
-      <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm">
-        <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-        <p className="text-muted-foreground">
-          {t("settings.broken_links.blocked_hint")}
-        </p>
-      </div>
-      <section className="overflow-hidden rounded-xl border bg-card">
-        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row">
+      {counts.blocked > 0 && (
+        <div className="flex items-start gap-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm">
+          <ShieldAlert className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="text-muted-foreground">
+            {t("settings.broken_links.blocked_hint")}
+          </p>
+        </div>
+      )}
+      <SettingsSection>
+        <div className="flex flex-col gap-3 sm:flex-row">
           <MaintenanceSearch
             aria-label={t("settings.broken_links.search")}
             placeholder={t("settings.broken_links.search")}
@@ -285,8 +310,30 @@ export default function BrokenLinksPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex min-h-14 flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-4 py-2 text-sm">
-          <p className="text-muted-foreground" aria-live="polite">
+        <div className="flex min-h-9 flex-wrap items-center justify-between gap-2 text-sm">
+          <p
+            className="flex items-center gap-2 text-muted-foreground"
+            aria-live="polite"
+          >
+            {/* The table header, and its select-all box, is hidden on phones. */}
+            {filtered.length > 0 && (
+              <SelectionCheckbox
+                className="lg:hidden"
+                aria-label={t("settings.broken_links.select_visible")}
+                checked={selection.length === filtered.length}
+                indeterminate={
+                  selection.length > 0 && selection.length < filtered.length
+                }
+                disabled={busy}
+                onChange={(event) =>
+                  setSelected(
+                    event.target.checked
+                      ? new Set(filtered.map((bookmark) => bookmark.id))
+                      : new Set(),
+                  )
+                }
+              />
+            )}
             {selection.length
               ? t("settings.maintenance.selected", { count: selection.length })
               : t("settings.broken_links.result_count", {
@@ -316,7 +363,7 @@ export default function BrokenLinksPage() {
                     )
                   }
                 >
-                  <RefreshCw className="mr-2 size-3.5" />
+                  <RefreshCw className="size-4" />
                   {t("settings.broken_links.retry_selected")}
                 </ActionButton>
                 <Button
@@ -327,7 +374,7 @@ export default function BrokenLinksPage() {
                     setDeleting(selection.map((bookmark) => bookmark.id))
                   }
                 >
-                  <Trash2 className="mr-2 size-3.5" />
+                  <Trash2 className="size-4" />
                   {t("settings.maintenance.delete_selected")}
                 </Button>
               </>
@@ -341,40 +388,36 @@ export default function BrokenLinksPage() {
           </div>
         </div>
         {isError ? (
-          <div className="p-4">
-            <MaintenanceError onRetry={() => void refetch()} />
-          </div>
+          <MaintenanceError onRetry={() => void refetch()} />
         ) : isPending ? (
-          <div className="space-y-4 p-5">
+          <div className="space-y-4">
             {[0, 1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-14 w-full" />
             ))}
           </div>
         ) : !filtered.length ? (
-          <MaintenanceEmpty
-            icon={
-              hasFilters ? (
-                <Link2Off className="size-6" />
-              ) : (
-                <CircleCheck className="size-6" />
-              )
-            }
-            title={t(
-              hasFilters
-                ? "settings.maintenance.no_matches"
-                : "settings.broken_links.empty",
-            )}
-            description={t(
-              hasFilters
-                ? "settings.maintenance.adjust_filters"
-                : "settings.broken_links.empty_description",
-            )}
-            onReset={hasFilters ? clearFilters : undefined}
-          />
+          <Empty className="p-4 md:p-6">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Link2Off />
+              </EmptyMedia>
+              <EmptyTitle className="text-base">
+                {t("settings.maintenance.no_matches")}
+              </EmptyTitle>
+              <EmptyDescription>
+                {t("settings.maintenance.adjust_filters")}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                {t("settings.maintenance.clear_filters")}
+              </Button>
+            </EmptyContent>
+          </Empty>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
+          <Table inCard className={stackedTable.table}>
+            <TableHeader className={stackedTable.header}>
+              <TableRow>
                 <TableHead className="w-10 pr-0">
                   <SelectionCheckbox
                     aria-label={t("settings.broken_links.select_visible")}
@@ -405,35 +448,44 @@ export default function BrokenLinksPage() {
                 </TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className={stackedTable.body}>
               {filtered.map((bookmark) => {
                 const isCrawling = bookmark.isCrawling;
                 return (
                   <TableRow
                     key={bookmark.id}
-                    className="data-[state=selected]:bg-blue-50 dark:data-[state=selected]:bg-blue-950/40"
+                    className={cn(
+                      "relative block h-auto py-3 pe-6 ps-14 lg:table-row lg:h-14 lg:p-0",
+                      selection.length > 0 && !busy && "cursor-pointer",
+                    )}
                     data-state={
                       selected.has(bookmark.id) ? "selected" : undefined
                     }
+                    // Once selecting, a row is the target: a thumb shouldn't
+                    // have to find the checkbox for each one.
+                    onClick={(event) => {
+                      if (
+                        selection.length > 0 &&
+                        !busy &&
+                        !(event.target as Element).closest(
+                          "a, button, input, label",
+                        )
+                      ) {
+                        toggleSelected(bookmark.id);
+                      }
+                    }}
                   >
-                    <TableCell className="pr-0">
+                    <TableCell className="absolute start-6 top-3.5 p-0 lg:static lg:table-cell lg:py-2 lg:pe-0">
                       <SelectionCheckbox
                         aria-label={t("settings.maintenance.select_item", {
                           name: bookmark.title || bookmark.url,
                         })}
                         checked={selected.has(bookmark.id)}
                         disabled={busy}
-                        onChange={(event) =>
-                          setSelected((current) => {
-                            const next = new Set(current);
-                            if (event.target.checked) next.add(bookmark.id);
-                            else next.delete(bookmark.id);
-                            return next;
-                          })
-                        }
+                        onChange={() => toggleSelected(bookmark.id)}
                       />
                     </TableCell>
-                    <TableCell className="w-full max-w-0 px-2 sm:px-4">
+                    <TableCell className="block p-0 pe-20 max-sm:pe-24 lg:table-cell lg:w-full lg:max-w-0 lg:px-3 lg:py-2">
                       <Link
                         href={`/dashboard/preview/${bookmark.id}`}
                         prefetch={false}
@@ -455,10 +507,10 @@ export default function BrokenLinksPage() {
                         <ArrowUpRight className="size-3 shrink-0" />
                       </a>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="inline-block whitespace-nowrap p-0 pe-3 pt-2 lg:table-cell lg:px-3 lg:py-2">
                       <IssueBadge statusCode={bookmark.statusCode} />
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                    <TableCell className="inline-block whitespace-nowrap p-0 pt-2 text-xs text-muted-foreground lg:table-cell lg:px-3 lg:py-2">
                       {bookmark.crawledAt ? (
                         <FormattedDate
                           date={bookmark.crawledAt}
@@ -468,15 +520,15 @@ export default function BrokenLinksPage() {
                         t("settings.broken_links.never_crawled")
                       )}
                     </TableCell>
-                    <TableCell className="px-2 sm:px-4">
+                    <TableCell className="absolute end-6 top-1.5 p-0 lg:static lg:table-cell lg:px-3 lg:py-2">
                       <div className="flex items-center gap-1">
-                        <ActionButton
+                        <ActionButtonWithTooltip
                           variant="ghost"
                           size="sm"
                           loading={false}
                           disabled={busy || isCrawling}
                           onClick={() => void runAction([bookmark.id], "retry")}
-                          title={t(
+                          tooltip={t(
                             isCrawling
                               ? "settings.broken_links.queued"
                               : "actions.recrawl",
@@ -487,7 +539,7 @@ export default function BrokenLinksPage() {
                               : "actions.recrawl",
                           )}
                           className={cn(
-                            "gap-2 px-2 sm:px-3",
+                            "gap-2 px-2 max-lg:size-8 max-sm:size-11 lg:px-3",
                             isCrawling && "text-teal-600 dark:text-teal-400",
                           )}
                         >
@@ -496,25 +548,33 @@ export default function BrokenLinksPage() {
                           ) : (
                             <RefreshCw className="size-4" />
                           )}
-                          <span className="hidden sm:inline">
+                          <span className="hidden lg:inline">
                             {t(
                               isCrawling
                                 ? "settings.broken_links.queued"
                                 : "actions.recrawl",
                             )}
                           </span>
-                        </ActionButton>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={busy}
-                          onClick={() => setDeleting([bookmark.id])}
-                          aria-label={t("actions.delete")}
-                          title={t("actions.delete")}
-                          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        </ActionButtonWithTooltip>
+                        <RowActionsMenu
+                          label={t("common.actions_for", {
+                            name: bookmark.title || bookmark.url,
+                          })}
+                          items={[
+                            {
+                              label: t("settings.manage_assets.view_bookmark"),
+                              icon: <ExternalLink className="size-4" />,
+                              href: `/dashboard/preview/${bookmark.id}`,
+                            },
+                            {
+                              label: t("actions.delete"),
+                              icon: <Trash2 className="size-4" />,
+                              destructive: true,
+                              disabled: busy,
+                              onSelect: () => setDeleting([bookmark.id]),
+                            },
+                          ]}
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -523,15 +583,7 @@ export default function BrokenLinksPage() {
             </TableBody>
           </Table>
         )}
-        {!!filtered.length && (
-          <div className="border-t px-5 py-3 text-xs text-muted-foreground">
-            {t("settings.maintenance.showing", {
-              shown: filtered.length,
-              total: bookmarks.length,
-            })}
-          </div>
-        )}
-      </section>
+      </SettingsSection>
       <ActionConfirmingDialog
         open={deleting.length > 0}
         setOpen={(open) => {

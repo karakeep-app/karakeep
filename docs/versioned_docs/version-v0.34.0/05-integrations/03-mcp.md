@@ -41,7 +41,7 @@ From NPM:
         "@karakeep/mcp"
       ],
       "env": {
-        "KARAKEEP_API_ADDR": "https://cloud.karakeep.app",
+        "KARAKEEP_API_ADDR": "https://cloud.karakeep.com",
         "KARAKEEP_API_KEY": "<YOUR_TOKEN>"
       }
     }
@@ -59,7 +59,7 @@ From Docker:
       "args": [
         "run",
         "-e",
-        "KARAKEEP_API_ADDR=https://cloud.karakeep.app",
+        "KARAKEEP_API_ADDR=https://cloud.karakeep.com",
         "-e",
         "KARAKEEP_API_KEY=<YOUR_TOKEN>",
         "ghcr.io/karakeep-app/karakeep-mcp:latest"

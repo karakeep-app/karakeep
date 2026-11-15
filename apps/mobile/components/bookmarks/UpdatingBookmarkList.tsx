@@ -6,14 +6,19 @@ import type { ZGetBookmarksRequest } from "@karakeep/shared/types/bookmarks";
 import { useTRPC } from "@karakeep/shared-react/trpc";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
+import type { BookmarkListEmptyState } from "./BookmarkList";
 import BookmarkList from "./BookmarkList";
 
 export default function UpdatingBookmarkList({
   query,
   header,
+  emptyState,
+  scrollToTopOnSave,
 }: {
   query: Omit<ZGetBookmarksRequest, "sortOrder" | "includeContent">; // Sort order is handled by mobile settings
   header?: React.ReactElement;
+  emptyState?: BookmarkListEmptyState;
+  scrollToTopOnSave?: boolean;
 }) {
   const api = useTRPC();
   const queryClient = useQueryClient();
@@ -65,6 +70,8 @@ export default function UpdatingBookmarkList({
         .flatMap((p) => p.bookmarks)
         .filter((b) => b.content.type != BookmarkTypes.UNKNOWN)}
       header={header}
+      emptyState={emptyState}
+      scrollToTopOnSave={scrollToTopOnSave}
       onRefresh={onRefresh}
       fetchNextPage={onEndReached}
       isFetchingNextPage={isFetchingNextPage}

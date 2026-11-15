@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,6 +35,7 @@ export default function BulkManageListsModal({
   open: boolean;
   setOpen: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const formSchema = z.object({
     listId: z.string({
       error: (issue) =>
@@ -61,7 +63,7 @@ export default function BulkManageListsModal({
         } else {
           toast({
             variant: "destructive",
-            title: "Something went wrong",
+            title: t("common.something_went_wrong"),
           });
         }
       },
@@ -84,7 +86,9 @@ export default function BulkManageListsModal({
     const successes = results.filter((r) => r.status == "fulfilled").length;
     if (successes > 0) {
       toast({
-        description: `${successes} bookmarks have been added to the list!`,
+        description: t("toasts.bookmarks.bulk_added_to_list", {
+          count: successes,
+        }),
       });
     }
 
@@ -101,7 +105,9 @@ export default function BulkManageListsModal({
           >
             <DialogHeader>
               <DialogTitle>
-                Add {bookmarkIds.length} bookmarks to List
+                {t("dialogs.bookmarks.bulk_add_to_list_title", {
+                  count: bookmarkIds.length,
+                })}
               </DialogTitle>
             </DialogHeader>
 
@@ -125,8 +131,8 @@ export default function BulkManageListsModal({
             />
             <DialogFooter className="sm:justify-end">
               <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Close
+                <Button type="button" variant="outline">
+                  {t("actions.cancel")}
                 </Button>
               </DialogClose>
               <ActionButton
@@ -134,7 +140,7 @@ export default function BulkManageListsModal({
                 loading={isAddingToListPending}
                 disabled={isAddingToListPending}
               >
-                Add
+                {t("actions.add")}
               </ActionButton>
             </DialogFooter>
           </form>

@@ -7,7 +7,7 @@
   "main": "index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "migrate": "tsx migrate.ts",
+    "migrate": "node --import tsx migrate.ts",
     "generate": "drizzle-kit generate",
     "studio": "drizzle-kit studio",
     "format": "oxfmt --ignore-path=../../.gitignore --check .",
@@ -28,6 +28,6 @@
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/better-sqlite3": "^7.6.11",
-    "@vercel/ncc": "^0.38.4"
+    "rolldown": "^1.2.16"
   }
 }

@@ -1,7 +1,5 @@
 import os from "os";
 import { and, eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { AssetPreprocessingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -32,6 +30,9 @@ import {
   EnqueueOptions,
   getQueueClient,
 } from "@karakeep/shared/queueing";
+
+import { workerStatsCounter } from "../metrics";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 export class AssetPreprocessingWorker {
   static async build() {

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { addLogFields } from "@karakeep/shared-server";
 import { zAdminUserSchema } from "@karakeep/shared/types/admin";
 import {
+  zUpdateUserProfileSchema,
   zUpdateUserSettingsSchema,
   zUserSettingsSchema,
   zUserBookmarkCountsResponseSchema,
@@ -112,6 +113,12 @@ export const usersAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       const user = await User.fromCtx(ctx);
       await user.updateSettings(input);
+    }),
+  updateProfile: usersProcedure
+    .input(zUpdateUserProfileSchema)
+    .mutation(async ({ input, ctx }) => {
+      const user = await User.fromCtx(ctx);
+      await user.updateProfile(input);
     }),
   updateAvatar: usersProcedure
     .input(

@@ -55,3 +55,15 @@ export function matchFunc<T extends string | number | symbol, U>(
 ) {
   return options[val]();
 }
+
+/**
+ * A tab opened on a shared link has nothing of ours to go back to. The Navigation
+ * API only counts this site's entries, where the history's length also counts the
+ * new tab page that came before.
+ */
+export function canGoBackInApp() {
+  const { navigation } = window as Window & {
+    navigation?: { canGoBack: boolean };
+  };
+  return navigation ? navigation.canGoBack : window.history.length > 1;
+}

@@ -9,9 +9,9 @@ import usePluginSettings from "./utils/settings";
 
 export default function Layout() {
   const navigate = useNavigate();
-  const { settings, isPending: isInit } = usePluginSettings();
+  const { settings, isLoaded } = usePluginSettings();
 
-  if (!isInit) {
+  if (!isLoaded) {
     return (
       <div className="flex justify-center py-8 text-muted-foreground">
         <Spinner className="size-5" />

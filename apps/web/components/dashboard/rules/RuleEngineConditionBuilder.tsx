@@ -296,7 +296,7 @@ export function ConditionBuilder({
               }}
             >
               <PlusCircle className="h-4 w-4" />
-              Add Condition
+              {t("settings.rules.add_condition")}
             </Button>
           </div>
         );
@@ -370,8 +370,8 @@ export function ConditionBuilder({
       <CardContent className="p-3">
         {value.type === "and" || value.type === "or" ? (
           <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center">
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
@@ -386,7 +386,7 @@ export function ConditionBuilder({
                   </Button>
                 </CollapsibleTrigger>
                 {conditionSelector}
-                <span className="ml-1 text-sm text-muted-foreground">
+                <span className="ml-1 shrink-0 whitespace-nowrap text-sm text-muted-foreground">
                   {value.conditions.length} condition
                   {value.conditions.length !== 1 ? "s" : ""}
                 </span>
@@ -397,7 +397,7 @@ export function ConditionBuilder({
                   variant="ghost"
                   size="sm"
                   onClick={onRemove}
-                  className="h-7 w-7 p-0 has-[>svg]:px-0"
+                  className="h-7 w-7 shrink-0 p-0 has-[>svg]:px-0"
                 >
                   <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>
@@ -408,8 +408,8 @@ export function ConditionBuilder({
           </Collapsible>
         ) : (
           <div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center">
                 {renderConditionIcon(value.type)}
                 {conditionSelector}
               </div>
@@ -419,7 +419,7 @@ export function ConditionBuilder({
                   variant="ghost"
                   size="sm"
                   onClick={onRemove}
-                  className="h-7 w-7 p-0 has-[>svg]:px-0"
+                  className="h-7 w-7 shrink-0 p-0 has-[>svg]:px-0"
                 >
                   <Trash2 className="h-4 w-4 text-red-500" />
                 </Button>

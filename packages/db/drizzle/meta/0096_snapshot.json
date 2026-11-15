@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b69b4cc0-8e94-479b-aa30-1da0f3350ba1",
+  "id": "c31d84ca-0026-4898-b6a7-0409258d0aa4",
   "prevId": "8d59e336-76ef-4c54-b24d-599885947f0c",
   "tables": {
     "account": {
@@ -1078,13 +1078,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "deleteAt": {
-          "name": "deleteAt",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
         }
       },
       "indexes": {
@@ -1121,13 +1114,6 @@
             "favourited",
             "lastSavedAt",
             "id"
-          ],
-          "isUnique": false
-        },
-        "bookmarks_deleteAt_idx": {
-          "name": "bookmarks_deleteAt_idx",
-          "columns": [
-            "deleteAt"
           ],
           "isUnique": false
         }
@@ -1549,6 +1535,20 @@
         },
         "text": {
           "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "prefix": {
+          "name": "prefix",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "suffix": {
+          "name": "suffix",
           "type": "text",
           "primaryKey": false,
           "notNull": false,

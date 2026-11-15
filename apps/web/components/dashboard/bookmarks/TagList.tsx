@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 
+import { CARD_TAG_CLASS } from "./icons";
+
 export default function TagList({
   bookmark,
   loading,
@@ -35,9 +37,15 @@ export default function TagList({
               key={t.id}
               className={cn(
                 badgeVariants({ variant: "secondary" }),
-                "text-nowrap font-light text-gray-700 hover:bg-foreground hover:text-secondary dark:text-gray-400",
+                CARD_TAG_CLASS,
+                "hover:bg-accent hover:text-foreground",
+                // 44px to tap on phones, without looking any bigger. The row of
+                // tags doesn't clip vertically there, see CARD_TAG_ROW_CLASS.
+                "relative max-sm:after:absolute max-sm:after:left-1/2 max-sm:after:top-1/2 max-sm:after:h-11 max-sm:after:w-full max-sm:after:min-w-11 max-sm:after:-translate-x-1/2 max-sm:after:-translate-y-1/2 max-sm:after:content-['']",
               )}
               href={`/dashboard/tags/${t.id}`}
+              // A card's tab stops are its title and its menu
+              tabIndex={-1}
             >
               {t.name}
             </Link>
@@ -46,7 +54,7 @@ export default function TagList({
               key={t.id}
               className={cn(
                 badgeVariants({ variant: "secondary" }),
-                "text-nowrap font-light text-gray-700 dark:text-gray-400",
+                CARD_TAG_CLASS,
               )}
             >
               {t.name}

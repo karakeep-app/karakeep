@@ -3,6 +3,7 @@
 import { ActionButton } from "@/components/ui/action-button";
 import { ButtonWithTooltip } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import {
   Table,
   TableBody,
@@ -26,6 +27,7 @@ import { AdminCard } from "./AdminCard";
 import CreateInviteDialog from "./CreateInviteDialog";
 
 export default function InvitesList() {
+  const { t } = useTranslation();
   const api = useTRPC();
   const queryClient = useQueryClient();
   const { data: invites } = useSuspenseQuery(api.invites.list.queryOptions());
@@ -68,18 +70,15 @@ export default function InvitesList() {
 
   const renderInviteTable = (
     inviteList: NonNullable<typeof invites>["invites"],
-    title: string,
   ) => (
     <div className="mb-6">
       {inviteList.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          No {title.toLowerCase()} invites
-        </p>
+        <p className="text-sm text-gray-500">{t("admin.invites.no_invites")}</p>
       ) : (
         <Table>
           <TableHeader className="bg-gray-200 dark:bg-muted">
             <TableHead>Email</TableHead>
-            <TableHead>Invited By</TableHead>
+            <TableHead>{t("admin.invites.invited_by")}</TableHead>
             <TableHead>Created</TableHead>
             <TableHead>Actions</TableHead>
           </TableHeader>
@@ -97,7 +96,7 @@ export default function InvitesList() {
                   {
                     <>
                       <ButtonWithTooltip
-                        tooltip="Resend Invite"
+                        tooltip={t("admin.invites.resend_invite")}
                         variant="outline"
                         size="sm"
                         onClick={() => resendInvite({ inviteId: invite.id })}
@@ -106,8 +105,10 @@ export default function InvitesList() {
                         <Mail className="size-3.5" size={14} />
                       </ButtonWithTooltip>
                       <ActionConfirmingDialog
-                        title="Revoke Invite"
-                        description={`Are you sure you want to revoke the invite for ${invite.email}? This action cannot be undone.`}
+                        title={t("admin.invites.revoke_invite")}
+                        description={t("admin.invites.revoke_confirmation", {
+                          email: invite.email,
+                        })}
                         actionButton={(setDialogOpen) => (
                           <ActionButton
                             variant="destructive"
@@ -122,7 +123,7 @@ export default function InvitesList() {
                         )}
                       >
                         <ButtonWithTooltip
-                          tooltip="Revoke Invite"
+                          tooltip={t("admin.invites.revoke_invite")}
                           variant="outline"
                           size="sm"
                         >
@@ -144,15 +145,20 @@ export default function InvitesList() {
     <AdminCard>
       <div className="flex flex-col gap-4">
         <div className="mb-2 flex items-center justify-between text-xl font-medium">
-          <span>User Invitations ({activeInvites.length})</span>
+          <span>
+            {t("admin.invites.title", { count: activeInvites.length })}
+          </span>
           <CreateInviteDialog>
-            <ButtonWithTooltip tooltip="Send Invite" variant="outline">
+            <ButtonWithTooltip
+              tooltip={t("admin.invites.send_invite")}
+              variant="outline"
+            >
               <UserPlus size={16} />
             </ButtonWithTooltip>
           </CreateInviteDialog>
         </div>
 
-        {renderInviteTable(activeInvites, "Invites")}
+        {renderInviteTable(activeInvites)}
       </div>
     </AdminCard>
   );

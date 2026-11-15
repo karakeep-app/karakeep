@@ -52,7 +52,10 @@ export default function DeleteListConfirmationDialog({
       description={
         <div className="space-y-3">
           <p className="text-balance">
-            Are you sure you want to delete {list.icon} {list.name}?
+            {t("lists.delete_list.confirm", {
+              icon: list.icon,
+              name: list.name,
+            })}
           </p>
           <p className="text-balance text-sm text-muted-foreground">
             {t("lists.delete_list.description")}

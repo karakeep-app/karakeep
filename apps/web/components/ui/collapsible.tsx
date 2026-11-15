@@ -33,12 +33,17 @@ function CollapsibleTriggerTriangle({
 function CollapsibleTriggerChevron({
   open,
   className,
+  "aria-label": ariaLabel,
 }: {
   open: boolean;
   className?: string;
+  "aria-label"?: string;
 }) {
   return (
-    <CollapsibleTrigger asChild>
+    <CollapsibleTrigger
+      aria-label={ariaLabel}
+      className="flex shrink-0 rounded-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+    >
       <ChevronRight
         className={cn(!open ? "rotate-0" : "rotate-90", className)}
       />

@@ -1,6 +1,4 @@
 import { eq } from "drizzle-orm";
-import { workerStatsCounter } from "metrics";
-import { withWorkerEventLog, withWorkerTracing } from "workerTracing";
 
 import type { ZSearchIndexingRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -19,6 +17,9 @@ import {
   SearchIndexClient,
 } from "@karakeep/shared/search";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
+
+import { workerStatsCounter } from "../metrics";
+import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 
 export class SearchIndexingWorker {
   static async build() {

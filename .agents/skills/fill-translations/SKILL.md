@@ -1,6 +1,6 @@
 ---
 name: fill-translations
-description: Find and fill missing or outdated translation strings in the web app's locales, using the English (en) strings as the source of truth. Use when asked to update, sync, fill or fix translations/i18n, or after adding or changing English strings in apps/web/lib/i18n/locales/en/translation.json.
+description: Find and fill missing or outdated translation strings in the web app's and the mobile app's locales, using the English (en) strings as the source of truth. Use when asked to update, sync, fill or fix translations/i18n, or after adding or changing English strings in apps/web/lib/i18n/locales/en/translation.json or apps/mobile/lib/i18n/locales/en.json.
 ---
 
 # Filling missing and outdated translations
@@ -12,6 +12,14 @@ The web app's strings live in `apps/web/lib/i18n/locales/<locale>/translation.js
 - **MISSING**: the key exists in `en` but is absent or empty in the locale.
 - **OUTDATED**: the `en` value changed after the locale's value last changed. The script works this out from the git history of both files plus the working tree, so it also catches `en` edits you haven't committed yet.
 - **OBSOLETE**: the key exists in the locale but no longer in `en` (usually a removed or renamed key).
+
+### Mobile app
+
+The mobile app reuses the web files above for shared strings, and keeps its own mobile-only strings in `apps/mobile/lib/i18n/locales/<locale>.json` (same nested format, `en.json` is the source). Pass `--app mobile` to `report` and `apply` to work on those instead. Everything else in this guide applies unchanged, except:
+
+- Rewrite the placeholder check in step 4 for `apps/mobile/lib/i18n/locales/<locale>.json`.
+- A new mobile locale also needs a `LANGUAGES` entry in `apps/mobile/lib/i18n/index.ts` (see `apps/mobile/lib/i18n/README.md`). Then run `pnpm test --filter=@karakeep/mobile`, which checks key parity and plural forms.
+- The mobile app has no `en_US` file.
 
 Plurals follow i18next's `_one`/`_other` suffixes. For each plural group in `en`, the script expects the locale's own CLDR categories (from `Intl.PluralRules`). Arabic, for example, needs `_zero`, `_one`, `_two`, `_few`, `_many` and `_other`, and Japanese needs only `_other`.
 
