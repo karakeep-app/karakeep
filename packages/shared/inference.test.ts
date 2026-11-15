@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
-import { OpenAIInferenceClient } from "./inference";
+import { OllamaInferenceClient, OpenAIInferenceClient } from "./inference";
 import type { OpenAIInferenceConfig } from "./inference";
 
 const capturedBodies: Record<string, unknown>[] = [];
@@ -28,6 +28,17 @@ vi.mock("openai", () => {
 
   return { default: OpenAIMock };
 });
+
+const ollamaMocks = vi.hoisted(() => ({
+  generate: vi.fn(),
+  abort: vi.fn(),
+}));
+
+vi.mock("ollama", () => ({
+  Ollama: vi.fn().mockImplementation(function () {
+    return { generate: ollamaMocks.generate, abort: ollamaMocks.abort };
+  }),
+}));
 
 vi.mock("openai/helpers/zod", () => ({
   zodResponseFormat: (schema: unknown, name: string) => ({
@@ -163,5 +174,63 @@ describe("OpenAIInferenceClient response handling", () => {
     await expect(
       client.inferFromImage("ocr", "image/png", "BASE64", { schema: null }),
     ).rejects.toThrow(/refused the request: I can't help with that/);
+  });
+});
+
+describe("OllamaInferenceClient abort handling", () => {
+  const makeClient = () =>
+    new OllamaInferenceClient({
+      baseUrl: "http://ollama.test",
+      textModel: "test-text-model",
+      imageModel: "test-image-model",
+      contextLength: 2048,
+      maxOutputTokens: 1024,
+      outputSchema: "plain",
+    });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    ollamaMocks.generate.mockImplementation(async () =>
+      (async function* () {
+        yield { response: "some text", eval_count: 2, prompt_eval_count: 3 };
+      })(),
+    );
+  });
+
+  it("doesn't start a request when the signal has already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort(new Error("Job timed out"));
+
+    await expect(
+      makeClient().inferFromImage("prompt", "image/png", "aGVsbG8=", {
+        abortSignal: controller.signal,
+      }),
+    ).rejects.toThrow("Job timed out");
+    expect(ollamaMocks.generate).not.toHaveBeenCalled();
+  });
+
+  it("aborts the in-flight request when the signal fires", async () => {
+    const controller = new AbortController();
+    ollamaMocks.generate.mockImplementation(async () => {
+      controller.abort(new Error("Job timed out"));
+      return (async function* () {
+        yield { response: "partial" };
+      })();
+    });
+
+    await makeClient().inferFromText("prompt", {
+      abortSignal: controller.signal,
+    });
+    expect(ollamaMocks.abort).toHaveBeenCalledOnce();
+  });
+
+  it("runs normally with a live signal", async () => {
+    await expect(
+      makeClient().inferFromText("prompt", {
+        abortSignal: new AbortController().signal,
+      }),
+    ).resolves.toEqual({ response: "some text", totalTokens: 5 });
+    expect(ollamaMocks.generate).toHaveBeenCalledOnce();
+    expect(ollamaMocks.abort).not.toHaveBeenCalled();
   });
 });
