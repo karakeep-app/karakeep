@@ -22,7 +22,6 @@ interface UseBookmarkKeyboardNavigationOptions {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
-  disabled?: boolean;
 }
 
 type MoveBookmarkFocus = (offset: number, maxIndex: number) => void;
@@ -602,14 +601,16 @@ export function useBookmarkKeyboardNavigation({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
-  disabled: disabledByParent = false,
 }: UseBookmarkKeyboardNavigationOptions) {
   const { t } = useTranslation();
   const shortcutsDialogOpen = useKeyboardNavigationStore(
     (state) => state.shortcutsDialogOpen,
   );
+  const newItemDialogOpen = useKeyboardNavigationStore(
+    (state) => state.newItemDialogOpen,
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const disabled = disabledByParent || shortcutsDialogOpen || deleteDialogOpen;
+  const disabled = shortcutsDialogOpen || newItemDialogOpen || deleteDialogOpen;
   const hasBookmarks = bookmarks.length > 0;
   const canMutateBookmark = useBookmarkOwnership();
   const bulkActionsStore = useBulkActionsStore();

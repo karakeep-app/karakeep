@@ -11,7 +11,7 @@ Everything in Karakeep starts as a bookmark. Here’s how the different types wo
 
 In the web app, the new item card is shown by default. To hide it, open **View options** and turn off **Show new item card** under **Display options**. This preference is saved in your browser.
 
-When the card is hidden, press `Ctrl+E` (`⌘+E` on macOS) to open the bookmark editor. You can still drag files onto the bookmark grid to upload them. To restore the card, turn **Show new item card** back on.
+When the card is hidden, it moves to the **+** button in the top bar. Click it, or press `Ctrl+E` (`⌘+E` on macOS), to open the bookmark editor. You can still drag files onto the bookmark grid to upload them. To restore the card, turn **Show new item card** back on.
 
 ## Favourites
 

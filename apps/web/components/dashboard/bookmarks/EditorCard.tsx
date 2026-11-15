@@ -83,6 +83,7 @@ export default function EditorCard({
         });
       }
       form.reset();
+      dialog?.onOpenChange(false);
       // if the list layout is used, we reset the size of the editor card to the original size after submitting
       if (bookmarkLayout === "list" && inputRef?.current?.style) {
         inputRef.current.style.height = "auto";

@@ -1,6 +1,7 @@
 "use client";
 
 import BulkBookmarksAction from "@/components/dashboard/BulkBookmarksAction";
+import NewItemButton from "@/components/dashboard/NewItemButton";
 import SortOrderToggle from "@/components/dashboard/SortOrderToggle";
 import ViewOptions from "@/components/dashboard/ViewOptions";
 import { useInBookmarkGridStore } from "@/lib/store/useInBookmarkGridStore";
@@ -11,6 +12,7 @@ export default function GlobalActions() {
   );
   return (
     <div className="flex min-w-max flex-wrap overflow-hidden">
+      {inBookmarkGrid && <NewItemButton />}
       {inBookmarkGrid && <ViewOptions />}
       {inBookmarkGrid && <BulkBookmarksAction />}
       {inBookmarkGrid && <SortOrderToggle />}

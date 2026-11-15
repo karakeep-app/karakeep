@@ -113,17 +113,14 @@ function renderKeyboardHook(
     fetchNextPage?: () => void;
   } = {},
 ) {
-  return renderHook(
-    ({ disabled }) =>
-      useBookmarkKeyboardNavigation({
-        bookmarks,
-        columns: 2,
-        hasNextPage,
-        isFetchingNextPage,
-        fetchNextPage,
-        disabled,
-      }),
-    { initialProps: { disabled: false } },
+  return renderHook(() =>
+    useBookmarkKeyboardNavigation({
+      bookmarks,
+      columns: 2,
+      hasNextPage,
+      isFetchingNextPage,
+      fetchNextPage,
+    }),
   );
 }
 
@@ -246,28 +243,6 @@ describe("useBookmarkKeyboardNavigation", () => {
     });
 
     expect(mocks.push).toHaveBeenCalledWith("/dashboard/preview/b");
-  });
-
-  it("suspends navigation and bookmark actions when disabled by the grid", () => {
-    useKeyboardNavigationStore.setState({
-      focusedIndex: 0,
-      isNavigating: true,
-    });
-
-    const { rerender } = renderKeyboardHook();
-    rerender({ disabled: true });
-
-    expect(hotkey("j").options?.enabled).toBe(false);
-    expect(hotkey("o,enter").options?.enabled).toBe(false);
-    expect(hotkey("f").options?.enabled).toBe(false);
-    expect(hotkey("a").options?.enabled).toBe(false);
-
-    rerender({ disabled: false });
-
-    expect(hotkey("j").options?.enabled).toBe(true);
-    expect(hotkey("o,enter").options?.enabled).toBe(true);
-    expect(hotkey("f").options?.enabled).toBe(true);
-    expect(hotkey("a").options?.enabled).toBe(true);
   });
 
   it("updates only owned focused bookmarks from single-bookmark hotkeys", () => {
