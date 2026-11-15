@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import type { ZBookmark } from "../types/bookmarks";
 import { BookmarkTypes } from "../types/bookmarks";
-import { getBookmarkDisplayTitle, getTextDisplayTitle } from "./bookmarkUtils";
+import {
+  getBookmarkDisplayTitle,
+  getBookmarkRefreshInterval,
+  getTextDisplayTitle,
+} from "./bookmarkUtils";
 
 describe("getTextDisplayTitle", () => {
   it("uses the first non-empty line", () => {
@@ -123,5 +127,65 @@ describe("getBookmarkDisplayTitle", () => {
         withContent({ type: BookmarkTypes.ASSET, fileName: "scan.pdf" }),
       ),
     ).toBe("scan.pdf");
+  });
+});
+
+describe("getBookmarkRefreshInterval", () => {
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+  const link = (opts: {
+    createdAt: Date;
+    modifiedAt: Date | null;
+    crawlStatus: "pending" | "success";
+  }) =>
+    ({
+      id: "bookmark",
+      createdAt: opts.createdAt,
+      modifiedAt: opts.modifiedAt,
+      taggingStatus: "success",
+      summarizationStatus: "success",
+      content: {
+        type: BookmarkTypes.LINK,
+        url: "https://example.com",
+        crawlStatus: opts.crawlStatus,
+      },
+    }) as unknown as ZBookmark;
+
+  it("polls a freshly created bookmark every second", () => {
+    const now = new Date();
+    expect(
+      getBookmarkRefreshInterval(
+        link({ createdAt: now, modifiedAt: now, crawlStatus: "pending" }),
+      ),
+    ).toBe(1000);
+  });
+
+  it("stops polling a bookmark that hasn't changed in a long time", () => {
+    const longAgo = new Date(Date.now() - WEEK);
+    expect(
+      getBookmarkRefreshInterval(
+        link({ createdAt: longAgo, modifiedAt: null, crawlStatus: "pending" }),
+      ),
+    ).toBe(false);
+  });
+
+  it("polls an old bookmark that was just modified (e.g. recrawled)", () => {
+    expect(
+      getBookmarkRefreshInterval(
+        link({
+          createdAt: new Date(Date.now() - WEEK),
+          modifiedAt: new Date(),
+          crawlStatus: "pending",
+        }),
+      ),
+    ).toBe(1000);
+  });
+
+  it("doesn't poll a bookmark that's done loading", () => {
+    const now = new Date();
+    expect(
+      getBookmarkRefreshInterval(
+        link({ createdAt: now, modifiedAt: now, crawlStatus: "success" }),
+      ),
+    ).toBe(false);
   });
 });

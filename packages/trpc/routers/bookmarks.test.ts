@@ -1135,7 +1135,15 @@ describe("Bookmark Routes", () => {
       .update(bookmarkLinks)
       .set({ crawlStatus: "failure", crawlStatusCode: 403 })
       .where(eq(bookmarkLinks.id, brokenBookmark.id));
+    const longAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    await db
+      .update(bookmarks)
+      .set({ modifiedAt: longAgo })
+      .where(eq(bookmarks.id, brokenBookmark.id));
     await api.recrawlBookmark({ bookmarkId: brokenBookmark.id });
+    // Clients poll a loading bookmark based on when it last changed.
+    const recrawled = await api.getBookmark({ bookmarkId: brokenBookmark.id });
+    expect(recrawled.modifiedAt!.getTime()).toBeGreaterThan(longAgo.getTime());
     expect((await api.getBrokenLinks()).bookmarks[0]).toMatchObject({
       isCrawling: true,
       isCrawlingFailure: false,
