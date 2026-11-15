@@ -13,9 +13,13 @@
   "type": "module",
   "publishConfig": {
     "main": "./dist/index.js",
-    "exports": "./dist/index.js",
-    "module": "./dist/index.mjs",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",

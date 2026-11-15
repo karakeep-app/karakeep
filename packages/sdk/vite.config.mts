@@ -10,11 +10,12 @@ export default defineConfig({
     },
     rolldownOptions: {
       external: ["openapi-fetch"],
-      // Preserve the published entry points in Vite 8's SSR build.
-      output: [
-        { format: "es", entryFileNames: "index.mjs" },
-        { format: "cjs", entryFileNames: "index.js" },
-      ],
+      // Ship a single ESM bundle at dist/index.js (the package is
+      // `"type": "module"`). CommonJS consumers load it through Node's
+      // require(esm) support. A CJS bundle isn't emitted because Rolldown's
+      // Node-mode interop turns openapi-fetch's default export into its
+      // module namespace object in that format.
+      output: [{ format: "es", entryFileNames: "index.js" }],
     },
     ssr: true,
     sourcemap: true,
