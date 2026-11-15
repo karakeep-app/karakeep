@@ -8,7 +8,7 @@ import { pipeline } from "stream/promises";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import type { VideoDownloader } from "./common";
-import { SKIP_REASON_HEADER } from "../sandbox/protocol";
+import { SKIP_REASON_HEADER, WORK_FAILED_STATUS } from "../sandbox/protocol";
 import { bodyStream, postToSandbox, SandboxError } from "../sandbox/client";
 import { VIDEO_TMP_FOLDER } from "./common";
 
@@ -22,9 +22,9 @@ export const remoteVideoDownloader: VideoDownloader = {
         { signal: abortSignal },
       );
     } catch (e) {
-      // 502 means that yt-dlp itself failed, which the local downloader
-      // doesn't retry either.
-      if (e instanceof SandboxError && e.status === 502) {
+      // yt-dlp itself failed, which the local downloader doesn't retry
+      // either. Any other error is retried.
+      if (e instanceof SandboxError && e.status === WORK_FAILED_STATUS) {
         return { status: "failed", reason: e.message };
       }
       throw e;

@@ -25,10 +25,11 @@
 // response with an error part. A response without its closing boundary was
 // cut off, and the parser rejects it.
 //
-// The other responses fail with an HTTP error status (502 when the work itself
-// failed) if anything fails before sending starts. A failure partway through
-// drops the connection, so a truncated file never looks complete to the
-// worker.
+// The other responses fail with an HTTP error status if anything fails before
+// sending starts: WORK_FAILED_STATUS when the work itself failed on the input
+// (e.g. yt-dlp or the PDF parser failed), and any other status when the
+// sandbox couldn't do the work. A failure partway through drops the
+// connection, so a truncated file never looks complete to the worker.
 
 import type { RunProxyConfig } from "../../network";
 import type { MultipartPart } from "@remix-run/multipart-parser";
@@ -45,6 +46,15 @@ import {
 } from "../utils/parseHtmlSubprocessIpc";
 
 export const SANDBOX_BASE_PATH = "/sandbox/v1";
+
+/**
+ * The status of a response whose work failed on the input, e.g. yt-dlp failed
+ * to download the video. Retrying isn't expected to help, unlike after any
+ * other error status, which says the sandbox couldn't do the work (it's
+ * overloaded, or a proxy in front of it can't reach it). So it's one that
+ * proxies don't send on their own.
+ */
+export const WORK_FAILED_STATUS = 422;
 
 /** The header of a /video 204 response that says why nothing was downloaded. */
 export const SKIP_REASON_HEADER = "X-Skip-Reason";

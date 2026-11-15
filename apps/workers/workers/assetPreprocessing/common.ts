@@ -15,6 +15,13 @@ export interface PdfText {
   metadata: Record<string, unknown> | null;
 }
 
+/**
+ * The AssetProcessor couldn't do the work, e.g. the remote sandbox is
+ * unreachable. Unlike the asset failing to parse, it says nothing about the
+ * asset, so the job must fail (and be retried) rather than skip the step.
+ */
+export class AssetProcessorUnavailableError extends Error {}
+
 export interface AssetProcessor {
   readPdfText(job: AssetJob, pdf: Buffer): Promise<PdfText>;
   /** Renders the PDF's first page as a PNG. */

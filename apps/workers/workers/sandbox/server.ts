@@ -33,6 +33,7 @@ import {
   jsonPart,
   MultipartWriter,
   SKIP_REASON_HEADER,
+  WORK_FAILED_STATUS,
   zArchivePageRequestSchema,
   zDownloadVideoRequestSchema,
   zFetchAssetRequestSchema,
@@ -141,7 +142,7 @@ async function file<T extends { ctx: SerializedCrawlContext }>(
     result = await fn(request, ctx);
   } catch (e) {
     ctx.log.error(`Sandbox request failed: ${e}`);
-    return c.json({ error: errorMessage(e) }, 502);
+    return c.json({ error: errorMessage(e) }, WORK_FAILED_STATUS);
   }
   return sendFile(c, ctx.log.error, result);
 }
@@ -214,7 +215,7 @@ async function processAsset(
     logger.error(
       `[assetPreprocessing][${job.jobId}] Sandbox request failed: ${e}`,
     );
-    return c.json({ error: errorMessage(e) }, 502);
+    return c.json({ error: errorMessage(e) }, WORK_FAILED_STATUS);
   }
 }
 
@@ -312,8 +313,10 @@ export function buildSandboxRoutes(token: string) {
           ),
         });
       } catch (e) {
+        // Not yt-dlp failing (that's a "failed" result), so the worker should
+        // retry, as it would after the same error locally.
         logError(`Sandbox request failed: ${e}`);
-        return c.json({ error: errorMessage(e) }, 502);
+        return c.json({ error: errorMessage(e) }, 500);
       }
       switch (result.status) {
         case "skipped":
@@ -322,7 +325,7 @@ export function buildSandboxRoutes(token: string) {
           });
         case "failed":
           logError(`Failed to download the video: ${result.reason}`);
-          return c.json({ error: result.reason }, 502);
+          return c.json({ error: result.reason }, WORK_FAILED_STATUS);
         case "downloaded":
           return sendFile(
             c,

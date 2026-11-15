@@ -225,8 +225,11 @@ The sandbox is the same workers image, started with `SANDBOX_REMOTE_SERVER_ENABL
 
 Which settings are read where:
 
-- **On the sandbox:** everything about how the work is done. That includes the browser (`BROWSER_WEB_URL`, `BROWSER_COOKIE_PATH`, ...), how pages are fetched and captured (`CRAWLER_*` timeouts, screenshot and adblocker settings, `CRAWLER_MONOLITH_ARGS`, `CRAWLER_ALLOWED_INTERNAL_HOSTNAMES`), yt-dlp (`CRAWLER_YTDLP_ARGS`, `CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE`, `CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC`), Tesseract (`OCR_LANGS`, `OCR_CONFIDENCE_THRESHOLD`, `OCR_CACHE_DIR`) and `ASSET_PREPROCESSING_PDF_PARSER_MEM_LIMIT_MB`. `CRAWLER_NUM_WORKERS` caps how many pages the sandbox loads at once.
+- **On the sandbox:** everything about how the work is done. That includes the browser (`BROWSER_WEB_URL`, `BROWSER_COOKIE_PATH`, ...), how pages are fetched and captured (the navigation and screenshot timeouts, screenshot and adblocker settings, `CRAWLER_MONOLITH_ARGS`, `CRAWLER_ALLOWED_INTERNAL_HOSTNAMES`), yt-dlp (`CRAWLER_YTDLP_ARGS`, `CRAWLER_VIDEO_DOWNLOAD_MAX_SIZE`), Tesseract (`OCR_LANGS`, `OCR_CONFIDENCE_THRESHOLD`, `OCR_CACHE_DIR`) and `ASSET_PREPROCESSING_PDF_PARSER_MEM_LIMIT_MB`. `CRAWLER_NUM_WORKERS` caps how many pages the sandbox loads at once.
 - **On the regular workers:** whether the work happens at all (e.g. `CRAWLER_VIDEO_DOWNLOAD`, `CRAWLER_FULL_PAGE_ARCHIVE`), how many jobs run at once, the proxy settings (the workers pick the proxy and pass it to the sandbox with each request), storage quotas, and LLM-based OCR (`OCR_USE_LLM`), which only calls your inference provider and keeps running on the workers.
+- **On both:** the job timeouts (`CRAWLER_JOB_TIMEOUT_SEC`, `CRAWLER_VIDEO_DOWNLOAD_TIMEOUT_SEC` and `ASSET_PREPROCESSING_JOB_TIMEOUT_SEC`). The workers give up on the sandbox's request when their job times out, and the sandbox gives up on the work when its own timeout passes, so raising a timeout only takes effect when it's raised on both.
+
+Apart from page loads (capped by its `CRAWLER_NUM_WORKERS`), the sandbox runs as many video downloads and asset preprocessing jobs at once as the workers send it. So size it for the combined concurrency of all the workers that use it (`ASSET_PREPROCESSING_NUM_WORKERS`, plus one video download per worker process).
 
 The sandbox must be reachable from the workers, and it needs to reach the internet (and your browser container). The workers no longer need to reach the crawled websites. Run the sandbox with the same Karakeep version as the workers.
 

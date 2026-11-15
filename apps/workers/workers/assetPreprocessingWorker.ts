@@ -31,6 +31,7 @@ import {
 } from "@karakeep/shared/queueing";
 
 import type { AssetJob, AssetProcessor } from "./assetPreprocessing/common";
+import { AssetProcessorUnavailableError } from "./assetPreprocessing/common";
 import { workerStatsCounter } from "../metrics";
 import { withWorkerEventLog, withWorkerTracing } from "../workerTracing";
 import { localAssetProcessor } from "./assetPreprocessing/localAssetProcessor";
@@ -123,6 +124,16 @@ export class AssetPreprocessingWorker {
 
     return worker;
   }
+}
+
+/**
+ * Whether an error in a best-effort step (OCR, the PDF screenshot) must still
+ * fail the job: a timed-out job must stop rather than enqueue follow-up work
+ * next to its own retry, and an unreachable sandbox says nothing about the
+ * asset, so the job is retried once it's back.
+ */
+function mustFailJob(job: AssetJob, e: unknown): boolean {
+  return job.abortSignal.aborted || e instanceof AssetProcessorUnavailableError;
 }
 
 async function readImageTextWithLLM(
@@ -222,6 +233,9 @@ export async function extractAndSavePDFScreenshot(
     );
     return true;
   } catch (error) {
+    if (mustFailJob(job, error)) {
+      throw error;
+    }
     if (error instanceof StorageQuotaError) {
       logger.warn(
         `[assetPreprocessing][${jobId}] Skipping PDF screenshot due to quota exceeded: ${error.message}`,
@@ -261,9 +275,7 @@ async function extractAndSaveImageText(
     try {
       imageText = await readImageTextWithLLM(job, asset, contentType);
     } catch (e) {
-      // A timed-out job must stop here, not carry on and enqueue follow-up
-      // work next to its own retry.
-      if (job.abortSignal.aborted) {
+      if (mustFailJob(job, e)) {
         throw e;
       }
       logger.error(
@@ -277,7 +289,7 @@ async function extractAndSaveImageText(
     try {
       imageText = await assetProcessor.readImageText(job, asset);
     } catch (e) {
-      if (job.abortSignal.aborted) {
+      if (mustFailJob(job, e)) {
         throw e;
       }
       logger.error(
