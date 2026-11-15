@@ -6,6 +6,8 @@ import { eq } from "drizzle-orm";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { z } from "zod";
 
+import type { RateLimitConfig } from "@karakeep/shared/ratelimiting";
+
 import { getInMemoryDB } from "@karakeep/db/drizzle";
 import { accounts, sessions, users } from "@karakeep/db/schema";
 
@@ -618,5 +620,93 @@ describe("oauth token endpoint authentication", () => {
     expect(form.get("client_id")).toBe("karakeep");
     expect(form.has("client_secret")).toBe(false);
     expect(form.get("code_verifier")).toBeTruthy();
+  });
+});
+
+describe("rate limiting", () => {
+  // A minimal fixed-window limiter standing in for the rate limit plugin.
+  function createLimiter() {
+    const counts = new Map<string, number>();
+    return {
+      checkRateLimit(config: RateLimitConfig, key: string) {
+        const k = `${config.name}:${key}`;
+        const n = (counts.get(k) ?? 0) + 1;
+        counts.set(k, n);
+        return n <= config.maxRequests
+          ? { allowed: true as const }
+          : { allowed: false as const, resetInSeconds: 60 };
+      },
+      reset() {
+        counts.clear();
+      },
+      clear() {
+        counts.clear();
+      },
+    };
+  }
+
+  async function setupWithRateLimits() {
+    const limiter = createLimiter();
+    vi.doMock("@karakeep/shared/ratelimiting", async (importOriginal) => ({
+      ...(await importOriginal<
+        typeof import("@karakeep/shared/ratelimiting")
+      >()),
+      getRateLimitClient: async () => limiter,
+    }));
+    return await setup({ RATE_LIMITING_ENABLED: "true" });
+  }
+
+  afterEach(() => {
+    vi.doUnmock("@karakeep/shared/ratelimiting");
+  });
+
+  test("spoofed client-IP headers don't reset the login limit", async () => {
+    const { call } = await setupWithRateLimits();
+    const attempt = (i: number) =>
+      call("/sign-in/email", {
+        body: { email: "victim@example.com", password: `guess-${i}` },
+        headers: {
+          // The client rotates these; the proxy appends the real address.
+          "x-client-ip": `198.51.100.${i}`,
+          "x-real-ip": `198.51.100.${i}`,
+          "x-forwarded-for": `198.51.100.${i}, 203.0.113.7`,
+        },
+      });
+
+    for (let i = 0; i < 10; i++) {
+      expect((await attempt(i)).status).toBe(401);
+    }
+    expect((await attempt(10)).status).toBe(429);
+  });
+
+  test("limits login attempts per email across client IPs", async () => {
+    const { call } = await setupWithRateLimits();
+    const attempt = (i: number) =>
+      call("/sign-in/email", {
+        body: {
+          email: i % 2 ? "Victim@Example.com" : "victim@example.com",
+          password: `guess-${i}`,
+        },
+        headers: { "x-forwarded-for": `203.0.113.${i}` },
+      });
+
+    for (let i = 0; i < 50; i++) {
+      expect((await attempt(i)).status).toBe(401);
+    }
+    expect((await attempt(50)).status).toBe(429);
+  });
+
+  test("limits password reset requests per email, even without an IP", async () => {
+    const { call } = await setupWithRateLimits();
+    const request = () =>
+      call("/request-password-reset", {
+        body: { email: "victim@example.com" },
+      });
+
+    // SMTP isn't configured, so allowed requests fail with 400.
+    for (let i = 0; i < 5; i++) {
+      expect((await request()).status).toBe(400);
+    }
+    expect((await request()).status).toBe(429);
   });
 });
