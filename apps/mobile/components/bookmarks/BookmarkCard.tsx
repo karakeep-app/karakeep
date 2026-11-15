@@ -31,10 +31,13 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
   getBookmarkRefreshInterval,
+  isBookmarkStillCrawling,
+  isBookmarkStillTagging,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { getIntlLocale } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/hooks";
+import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkTextMarkdown from "./BookmarkTextMarkdown";
@@ -143,9 +146,16 @@ function useLinkCardContext({
       : { uri: imageUrl.url }
     : undefined;
 
+  // Hold the image's spot while the crawler may still find one.
+  const isCrawling = !source && isBookmarkStillCrawling(bookmark);
+
   return {
     // A page with no image just leads with its title in the expanded layout.
-    media: source ? <ExpandedLinkImage source={source} /> : undefined,
+    media: source ? (
+      <ExpandedLinkImage source={source} />
+    ) : isCrawling ? (
+      <Skeleton className="h-44 w-full rounded-none" />
+    ) : undefined,
     compactMedia: (
       <View
         className="h-[72px] w-[72px] overflow-hidden rounded-lg"
@@ -157,6 +167,8 @@ function useLinkCardContext({
             style={{ width: "100%", height: "100%" }}
             contentFit="cover"
           />
+        ) : isCrawling ? (
+          <Skeleton className="h-full w-full rounded-none" />
         ) : (
           <LinkPlaceholder iconSize={24} />
         )}
@@ -276,7 +288,10 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
   const { settings } = useAppSettings();
   const showsNote = settings.showNotes && Boolean(ctx.bookmark.note?.trim());
   const hasRowBelowMeta =
-    ctx.bookmark.tags.length > 0 || Boolean(ctx.compactBody) || showsNote;
+    ctx.bookmark.tags.length > 0 ||
+    isBookmarkStillTagging(ctx.bookmark) ||
+    Boolean(ctx.compactBody) ||
+    showsNote;
 
   return (
     <BookmarkCardContainer.Provider value={ctx}>
