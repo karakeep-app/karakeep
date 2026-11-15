@@ -20,7 +20,7 @@ concurrency:
 env:
   IMAGE: ghcr.io/karakeep-app/karakeep-chrome
   # Google Chrome version (amd64); arm64 images use Debian's Chromium.
-  GOOGLE_CHROME_VERSION: 157.0.8103.38
+  GOOGLE_CHROME_VERSION: 157.0.8103.78
   IMAGE_REVISION: r1
 
 jobs:
