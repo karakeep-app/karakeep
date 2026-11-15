@@ -1,0 +1,71 @@
+---
+id: create-tag
+title: "Create a new tag"
+description: "Create a new tag. Tag names are normalized (trimmed and converted to the user's preferred tag style)."
+sidebar_label: "Create a new tag"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9VlFvGzcM/iuE+rDWuNjtsKd7GOB2K9C1wILVwTCkAUyf6DvVOkmVeE5uxgH7EfuF+yUDdWfHSYNhD8NeYoeiyI/kx08+KB8oIhvv3mlVqioSMq2wVoXSlKpogpypUr3JJ4Dg6BYY6zmssAaHLSXASOB8bNGa30nDc46mbUkDOg2Vd3uKTBrYAzcEXaL4TYIQaUsxih1rSNxbejFXhWKskyqv1Uo+bwqVqOqi4V6V1we1IYwUlx03qry+GW4KFelLR4lfe92r8vAI86qhHF1QSvqxOslSecfkWK5gCNZUuQWLz0nuHVSqGmpRvnEfSJXKbz5TxapQIUrD2FCSUwl85pU4GlerYRhxmUhaSsleN8Mw2lPwLo3Xv3356mnQI9Dcmv8QrdFPYC3+ZRFGq+JBJd89Bf7KYceNj5kHf/3xZ5746zw1YL8jByZBa1Iyri7AuD1aowvwEeguSKpH5TLd8SJYNE8XOmEtFN1hGyw9QqCGEWpL3Hihd/AptwWFQGqRuSYUi3uKKTOsi1aV6oBaR0ppWGAwi/0rVag9RoMbO3ZyOh7r32JnWZWqYQ6pXCw49vMdRtwRhTmG8NUqyYSnCOC3uUXvJ38YsQjwM+5/lLrHzOcbcGqDZJY6spsqJydVTF/eymoKwp9+XeW5CnF+uV+cH4/NOxL6jBzGbb0cSING9K/mL+cvZVEN54afoC8v331V6unQJEBIZLcXjU8sjYSN97sW4864OitFJNQXhi8sMsXcCFPRHFaNSRIb0Fp/m6D3nexyiw7r+yCpAGsSp0J2JhXQmLqxpm7EgilR/nQaNljtuiDy4+uIbYtsKrS2n39yn9yzZyCdJcfTiolxaS2Q08EbxwmmlQB8yOogOTQYl6e5Xk4UzEHW0BBqinP4zXdQoYOanIguAbpc2Y562EbfPqTCLW3g6h10TlOE2ewjMRtXJ/g+33lPfZrNjrAvsTbuBPmDSXyGOXUh+MhQdTH5eLFBgRpON2BvENbj4To3aW1Na3gNXzqKPQSM2BJTTDIMgqOEgXGV7bToP6wd3fGbKcTWkB23X9oChgHT2JdjklNImeSWuGryuQQRYDSHJaxdZ+0a9mg7gq2PD3MYp2VGlAPLPPITBK2PGWBnOR1783qiCKz6QEmMR0vK09gQeEfjJkYikKVK5Sd3AbOZNW43m+ValnD1y4cT3+DWcAM+8xwtVBFvLWloiVEj43y8LvJ1up5lDMQEzjNNLpmcRx8HXbAeNWnYGkvw3LRCch/h8oe3L+aykCJhLbqzZX38Mj9ewsO9oP5/r/goTGfyPRSjth4m9b0eX/qbQokgyP+HgzDzKtphEHMmnzzz99qbH/1CjeuU5XpHvVQ11nchA85SbTvJ/tVbORTHG8uqosD/6Htz9m5c/vxxJXI6/cpovZY7EW9Vkf+WShVqJENW6Ww7KIuu7rAW3zGmiC8+1O5HWp2rmo7Q9WcID4fRYyWCMwyqmErJAqQGeZX/Bt1jblI=
+sidebar_class_name: "post api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Create a new tag"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"post"}
+  path={"/tags"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Create a new tag. Tag names are normalized (trimmed and converted to the user's preferred tag style).
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={undefined}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The tag name to create.","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"}},"required":["name"]}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"201":{"description":"The created tag.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"}},"required":["id","name"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

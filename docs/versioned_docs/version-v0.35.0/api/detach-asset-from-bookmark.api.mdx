@@ -1,0 +1,71 @@
+---
+id: detach-asset-from-bookmark
+title: "Detach asset from a bookmark"
+description: "Detach an asset from a bookmark."
+sidebar_label: "Detach asset from a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9Vm1v2zYQ/isH9ktrKHY6dFihDwPcNQWyFkPRJhiG1IDP4kliTZEsSSV2DQH7EfuF+yXDUZJf0qzrgGGf4lB3x+eeu3uOO2EdeYzKmkspciEpYlHPQ6D4ytvmhbXrBv1aZEJSKLxybCly8TLZARpAtoXS2wYQVoP9VGQiYhVEfiPGGEEsMhGoaL2KW5Hf7MSK0JOft7EW+c2iW2TCoceGIvmQDEJRU4Mi34m4dSRyEaJXpvoCzVVN0Br1qSVQkkxUpSIPtoRY0wkm2mDjNEdSpKTebKvm7uPzH+zm8/f1JkZbPGfgKiaTEfilFF0mPH1qlScp8uhbyoTBho1WB6NMKAbjMNaiy/4j9Inefw09FfCruHGwOAG9YPPgrAkUGPd358/4zyncXywU1kQyEf78/Y+h/ncYoO8dkhDaoqAQylbr7ZQxPDt/+mWca4NtrK1Xn0mmSJzui9QSEO2aDKgAjQpBmSoDZW5RK5mB9UAbxxkxKwOSRDJt4sxp5Hy+Rv6ByGMEouu6hPSBjMdG4Lv7dI2NUNrW3MeAzmlVpHGafQz2YSR29ZGKKDLhPA9fVD3ZhZX0z80yhwaLWhk684QSV5qAvLce2D2R3VAIWH1TqLpt0NwPNPhPRXfSPTc9wEP8xaHdLtgxMZjuj7XttURTZI/UXLmYjbMSZrvD2HSzRGmY7YaW7ATLhL8dRaD1WuRih1J6CqGboVOz26ciE7foFeNO7A2f++KV2OooclHH6EI+m0W/na7R45rITdG5B0dwiDAO3uvBHnosnN2Rfr3novY3H6vYnnK+mfNIZiwTyUhkw49X1jfICH/+9SrxrExp2Z2z7iE9nZ5Pz49Geo9n/vbyC/z7jyoAQiBdntU2xFTVkWplKkAjgct9puKZxkg+ZacKmsJVrQLHBtTa3gXY2haihQYNVocgIQOtQgwZsLxnUKuq1qqq+aSvY5YuWWGxbl0A523lsWkwqgJZDj6YD+bRI2C6WOr6WeHDudZARjqrTAww9B3gqSI4vkOCMqlEy/kwvinIEmpCSX4Kv9kWCjRQkeHdRrymOLM1bftFdVLfO1rB9SW0RpKHyeQ9xahMFeDH5POatmEyGWG/xUqZPeQ3KsQjzKF1zvoIReuD9WcrZKhu7wG3CmHZf1wmkpZaNSou4VNLfguH3cfFIBiVGJQpdCuJK7s0tIk/DSFKRbpXTqYFVAQMPS/jJfuQXMmSYlGn7xyEgdEU5rA0rdZLuEXdEpTWn96hjOQaUQrM9fAExkJjfQLY6hhGbvYqebV1FPhwv/lTNVYE1lA/Xp4IeFJC/sGcwWSilVlPJimXOVy/e7PvN7hTsQab+hw1FB7vNEloKKLEiNPenaV/755WAPARyzQNJqk5RxsDrdMWJUkolSZ4rBpucuvh7ctXT5KKOhtig0nAh405Pnkeeu/cH8jdYSl801OpF42jDdZlve7tBvG82T80gshEfvLq6OeOj8elvsgEjz+77Xbch9dedx0fp1bj19ZBPpPIShX4txR5iTrQV9J5/G5YCU/g75APh2i2SaV1y/+JTKxpe/pi4lfS/3jzSE+36DLRi0VKvv86Lwpy8cjvOPTiaK+9vHhzcXXBxJ9q/j2NT6EfBLTb9RZXrGldt8eXNI7Rdd1fn98Mqw==
+sidebar_class_name: "delete api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Detach asset from a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/bookmarks/{bookmarkId}/assets/{assetId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Detach an asset from a bookmark.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the bookmark.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"},{"schema":{"type":"string","description":"The unique identifier of the asset.","example":"ieidlxygmwj87oxz5hxttoc8","title":"AssetId"},"required":true,"name":"assetId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No content — asset was detached successfully."},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Bookmark or asset not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

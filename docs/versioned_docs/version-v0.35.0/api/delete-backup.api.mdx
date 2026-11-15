@@ -1,0 +1,71 @@
+---
+id: delete-backup
+title: "Delete a backup"
+description: "Permanently delete a backup and its associated archive file."
+sidebar_label: "Delete a backup"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVttuGzcQ/ZUB85IIa8kuUiTYhwJK4wBugsJIbBSFI0Cj5Ug7FpfckFxZirBAP6Jf2C8phru62WlaoE9akTPDM5dzyK1yNXmM7OyVVrnSZCjSGyyWTa0ypSkUnmvZVrm6Jl+hJRvNBjpDQJglW0CrgWMADMEVjJE0oC9KXhHM2dBQZSriIqj8TnXRg5pkKlDReI4bld9t1YzQkx83sVT53aSdZKpGjxVF8iEZhKKkClW+VXFTk8pViJ7t4gnOm5KgsfylIWBNNvKcyYObQyypxyt4aI1VbSQOE2uz3iyqh/vXr9z664/lOkZXvBbQHJNJB/pKqzZTnr407EmrPPqGMmWxEpPZziRTLDBqjKWSNDyF2tlAQaD/cP5Sfk4R/+qgcDaSjfDXH38e4YQHDH2tNYSmKCiEeWPMZihAXp5fPI11a7GJpfP8lfQ+2ptUW4huSRY4QMUhsF1kwHaFhnUGzgOta0lLatOjSbWmdRzVBiWn7/XgUM5jBKpt24T0G1l3NQXrIsxdYx8fjHVtuEizOboP7tvHu9k9FVFlqvYyyZG7KhdO078PyhgqLEq2dOYJNc4MAXnvPIh7qnBFIeDiP4Uqmwrt40C9/1C1J3Nz1wE8xJ8cJu1SHFPZ0vmxdAdiSp4yVbkadfMRRtvd2LVK+ORXO7Y03qhcbVFrTyG0I6x5tLpQmVqhZ4GYCtVvd82ZY2OiylUZYx3y0Sj6zXCJHpdE9RDrp4ogTOsj7Pj1vreHDoskckT0T9K/7uRjuu+rKydLHslMOJWMVNZ/vHO+QkH4y283qaRs507cJesO0sXwfHh+RNw9nvH11RP8+00OgBDIzM9KF2Jq4My5ZYV+yXaR1E06e8bxzGAkn7LjgoZwU3KQ2IDGuIcAG9dAdFChxcUhSMjAcIghA1HBDEpelIYXpaxgCJR+re5ZH6D2buGxqjBygUL3z/azffYMpFyiaB0tZHFsDJDVtWMbA/QjBnjK+FrO0MA2tWg67umZgkyhJNTkh/C7a6BACwuycicQoE2ZLWkDc++q0/4+0Axur6CxmjwMBp8oRraLAD8ln/e0CYPBDvY1LtjuIX/gEI8wh6aunY9QND44fzZDgVrvPWDFCNNuc5qKNDVccZzCl4b8Bg6XhDSDYKe2wLYwjSbp7NTSOv7ch5gzmU4ZpSzAETB0ddkdsg8pnZxTLMq0L0EEGA1hDFPbGDOFFZqGYO786RlstfSIUmDphyewDirnE8DGxLCrzZt+ROBmU1OQxd1KSN2YEThLHb08EQhTQv7ZnsFgYNguB4OUyxhuP37Yzxs8cCzBpTlHA4XHB0MaKoqoMeKwcxdp37sniQdZEkWm3iQN587GQlMbh5p0utThOVcy5M7D9dt3L5Jg1i7ECpNW99fi29OXwmMObg+S/78fGJ2GHF1YbdbJ4LaXzbv+kg4qU/n+vp5kSlgv29utjN+tN20ry2nC5DVyUM2krZqDfGuVz9EE+k5Kzz/2ov8C/glhv4h2k8TZNPJPZWpJm+NXRTtpM9VRNWHotsdFQXU8cjyOPTm6QN5efri8uVSZwlPFfaSwKfQ3EW23ncWNKErb7gEmhRF0bfs3Y8WbRQ==
+sidebar_class_name: "delete api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete a backup"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/backups/{backupId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently delete a backup and its associated archive file.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the backup.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BackupId"},"required":true,"name":"backupId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No content — the backup was deleted successfully."},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Backup not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

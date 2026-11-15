@@ -1,0 +1,71 @@
+---
+id: delete-bookmark
+title: "Delete a bookmark"
+description: "Permanently delete a bookmark and all its associated data (tags, highlights, assets)."
+sidebar_label: "Delete a bookmark"
+hide_title: true
+hide_table_of_contents: true
+api: eJy1Vt1u2zYUfpUD9qY1FDsdOqzQxQB3TYGsxRC0CYYhNeBj8chiTZEsSSVWDQF7iD3hnmQ4lCzbadrtZleWyfPznb/vcCesI49RWXMpRS4kaYr0ytpNjX4jMiEpFF45FhC5uCJfoyETdQu9KCCsBmlAIwG1BhUDYAi2UBhJgsSI8DTiOmRQqXWl1bqKIWMRiuHZVGSCL0V+K/aOg1hkIlDReBVbkd/uxIrQk583sRL57aJbZMKhx5oi+ZAEQlFRjSLfidg6ErkI0Suz/iqE64qgMepzQ6AkmahKRR5sCbGiMRTGRFusnWZLipTU23Zd3396+ZPdfvmx2sZoi5cMXMUksgd+KUWXCU+fG+VJijz6hjJhsGah1UEoE4rBOIyV4GA8BWdNoMAB/HD+gn9Ocf9mobAmkonw959/naCFewxDOSSEpigohLLRup0ymBfnz7+2dmOwiZX16gvJ0d6rlGOIdkMGVIBahaDMOgNl7lArmYH1QFvHoXGGBjwp57SNM6eRo/peLQ5JPUYguq5LSB+Je59ZMDZCaRvz0DU6p1WRWnj2KdjHAdjVJyqiyITz3PBR9ZkurKR/b5k51FhUytCZJ5S40gTkvfXA6inHNYWA6/9kqmpqNA8NDfpT0Z10z20P8GB/cei4C1ZMiUv+Y2UP88txcmflYrbvkTDbHdqvEzxd/m4/O43XIhc7lNJTCN0MnZrdPReZuEOvGGZK1nDdl6jERkeRiypGF/LZLPp2ukGPGyI3RecenbvBwn7a3g7y0GPhYI7G/gPXsPd8PPxjhtkzx5HEeLqSkMiGjzfW18gIf/39OqVVmdKyOkfdQ3o+PZ+eHw3xiGd+dfkV/vFSBUAIpMuzyoaYirjPrDLrRIJc3TMVzzRG8ik6VdAUrisV2DaTpL0P0NoGooUaDa4PRkIGWgUmyG9RZpacrLDYNC6A83btsa4xqgJ56D+aj+bJE+B0Mb/1o8GHc62BjHRWmRhgaDPA07l37EOCMqlEy/kwpMnIEipCSX4Kf9gGCjSwJsPrgwBNimxDLZTe1qf1vacV3FxCYyR5mEw+UIzKrAP8nHTeUhsmkz3sK1wrM0J+p0I8whwa56yPUDQ+WH+2QobqRg24UwjL/nKZkrTUqlZxCZ8b8i0cVgYXg2DPuqBMoRtJXNmloW38ZTBRKtI9P3JaQEXA0Odl72Q0yZUsKRZVumcjDIymMIelabRewh3qhqC0/tSHMpJrRMkw18MTGAu19Qlgo2PY52bkwuvWUeDDcWGmaqwIrKF+vDwR8KSE/KM5g8lEK7OZTFIsc7h5/+5oe6hYgU19jhoKj/eaJNQUkTf3tFdngh/VE9EDHzEr0yCSmnMvY6Bx2qIkCaXSBE9VzU1uPVy9fvMskaazIdaY+HpYkK8fPikeTuHuQPz/31ukp5ejjdZlPUPuBla9HTd5EJnIj9b6IhNMCiyy23F33njddXycGpCfLgdSTdQrVeBvKfISdaDvxPv0/bAXnsG3UA6HaNrE3brhfyITG2pPnx/dostEP8sJRS8wLwpy8Uj12PriaMu8vnh3cX0hMoGnlPyAgpPpRzHtdr3ENVNO140QEwUxuq77BxUht/M=
+sidebar_class_name: "delete api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Delete a bookmark"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/bookmarks/{bookmarkId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Permanently delete a bookmark and all its associated data (tags, highlights, assets).
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the bookmark.","example":"ieidlxygmwj87oxz5hxttoc8","title":"BookmarkId"},"required":true,"name":"bookmarkId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"204":{"description":"No content — the bookmark was deleted successfully."},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Bookmark not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,71 @@
+---
+id: get-list
+title: "Get a single list"
+description: "Retrieve a single list by its ID."
+sidebar_label: "Get a single list"
+hide_title: true
+hide_table_of_contents: true
+api: eJylVtuO2zYQ/ZUB85IYWntTpEjghwLOFdvkIdjsoig2BjwWx9bEFKmQ1NqOIaAf0S/slxRDybe1GyzQJ8vkXA7ncmY2ylXkMbKzV1oN1ZziJw5RZUpTyD1XcqOG6pqiZ7onQAhs54bAcIgwXQPHAFdv+ypTEedBDe+UGAhqnKlAee05rtXwbqOmhJ78qI6FGt6Nm3GmKvRYUiQfkkDICypRDTcqritSQxWiZzs/gXJTENSWv9cErMlGnjF5cDOIRYtKsNAKy8qIFSbWZrWel8tvr1661Y9fi1WMLn8lgDkmEQF8pVWTKU/fa/ak1TD6mjJlsRQB0wpkigVAhbFQ8gBPoXI2UBDQv1xeys8pVrFJIZLegcudjWSjiGNVGc5T/AffguicCYSbfqNcclJ5yVbk1iPr02A1W8xnLo6gnUbZ1sbgVAIib28yxfk5wSYljqwE5DFWWoFTQbJ1KdVSoq3RqEyFEn2UstE0w9pENdzeNZn6XpNfP8pfVU8N5weiU+cMoRUrBYY3TuSdx+h8OC9VB/LXzvwUtVta8vJfc3Tycc+0TCed/3FzVE53kq0uN11kD+K40zoD8QDP+LhkVdOIkxeXz08L79ZiHQvn+Qdp+Oevv1NzvE4tCNEtyAIHKDlIM2fA9h4N6wycB1pVAvlBnUZaxUFlkM9X6D4+u747RLBD+uIUqbwErIswc7V96Pb/tEfu9NkUHrsfQYl5wZYuPKGWSgLy3nkQ9b6UQ0kh4PxRpoq6RPvQUKffVw8rIgHc2z/I7jtRTEFL/mPhOm5ORSMMqgZCJmGwaampkf4hf7/l0tobNVQb1NpTCM0AKx7cP5cyRc+CLUWou25zsu25IsYqDAeD6Nf9BXpcEFV9rKqzPNxZ2LLvx04eWizygoMx8EUS13o+HAa7sIpneUcSk5ZMQirrPt47X6Ig/P2PmxRLtjMn6vLqFtLz/mX/8oDYd3hGn69O8O8uOchUIzO7KFyIKXNT5xYl+gXbOaDVICm94HhhMJJPr+Oc+nBTcBDbgMa4ZYC1qyE6KNHifG8kZIn5QwYyITMoeF4YnhdygiFQ+rUappgv6ipA5d3cY1li5ByNWfe/2q/2yROQcMm8a/tBDkfGAFldObYxQFdbgMeNXokPDWxTiiajriuTkQkUhJp8H/50NeRoYU5W9gECtOllC1rDzLvyOL9LmsLtFdRWk4de7wvFyHYe4Lek85HWodfbwv6Mc7Y7yKnd95hDXVXOR8hrH5y/mKJArXYacM8Ik/ZykoI0MVxynEAaCLBfISQZMmvbiQxsc1NrksxOLK3im87EjMm0hChhAY6AoY3L1snOpGRyRjEv0r0YEWDUhxFMZOpM4B5NTTBz/tgHWy05omRY8uEJrIPS+QSwNjFsY/O6KxG4WVcU5HB7ElI2pgTOUttengikU8Lwq72AXs+wXfR66S0juL3+tKs3WHIswKU6RwO5x6UhDSVF1Bix36oLo+/UE7ODHAkVUyeSinMrY6GujENNGmZsCJ5yKUXuPHx++/5ZYsrKhVhiIulucfpA8XhjfNiFmz3bP27HbKniYBzJwBa223TMeJe2NZmbw25tG2dKGluuNhupsFtvmkaOu63ibrwnxkSfmoN8azWcoQn0E8xPrztCfwb/ha47RLtO/Gtq+acytaD1frVsxrKepF5MCNrLUZ5TFQ/UTuah8OtuQHx4d6Myhces+oBFk/WzkDabVuJGWKNpdggTiwjApvkXiRA7OA==
+sidebar_class_name: "get api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Get a single list"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"get"}
+  path={"/lists/{listId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Retrieve a single list by its ID.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the list.","example":"ieidlxygmwj87oxz5hxttoc8","title":"ListId"},"required":true,"name":"listId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={undefined}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The requested list.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"},"description":{"type":"string","nullable":true},"icon":{"type":"string"},"parentId":{"type":"string","nullable":true},"type":{"type":"string","enum":["manual","smart"],"default":"manual"},"query":{"type":"string","nullable":true},"public":{"type":"boolean"},"hasCollaborators":{"type":"boolean"},"userRole":{"type":"string","enum":["owner","editor","viewer","public"]}},"required":["id","name","icon","parentId","public","hasCollaborators","userRole"],"title":"List"}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"List not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      
