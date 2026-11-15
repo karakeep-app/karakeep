@@ -1,5 +1,5 @@
 import type { ComponentType, RefObject } from "react";
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,7 +90,8 @@ interface ViewOption {
 /**
  * The one control for how a link is shown: which view, the copies that could add
  * another, and the settings that go with the reader. Having the reader's settings
- * and the full screen link in here is what keeps the bar above the preview short.
+ * and the immersive reader's link in here is what keeps the bar above the preview
+ * short.
  */
 export default function LinkViewMenu({
   bookmark,
@@ -209,7 +210,7 @@ export default function LinkViewMenu({
 
   return (
     <>
-      {/* Not modal: "Open full screen" leaves the page from inside the preview
+      {/* Not modal: "Immersive reader" leaves the page from inside the preview
           dialog, and a modal menu closing at the same time as the dialog leaves
           pointer-events: none on the body of the next page. */}
       <DropdownMenu modal={false}>
@@ -254,10 +255,21 @@ export default function LinkViewMenu({
             {views
               .filter((view) => view.available)
               .map(({ id, icon: Icon, label }) => (
-                <DropdownMenuRadioItem key={id} value={id}>
-                  <Icon className="size-4 shrink-0" />
-                  {label}
-                </DropdownMenuRadioItem>
+                <Fragment key={id}>
+                  <DropdownMenuRadioItem value={id}>
+                    <Icon className="size-4 shrink-0" />
+                    {label}
+                  </DropdownMenuRadioItem>
+                  {/* Listed as a view, though it opens the full-screen reader. */}
+                  {id === "cached" && (
+                    <DropdownMenuItem inset asChild>
+                      <Link href={`/reader/${bookmark.id}`}>
+                        <ExpandIcon className="size-4 shrink-0" />
+                        {t("preview.immersive_reader")}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                </Fragment>
               ))}
           </DropdownMenuRadioGroup>
           {missingCopies.length > 0 && (
@@ -297,12 +309,6 @@ export default function LinkViewMenu({
                   <Settings className="size-4" />
                   {t("preview.reading_settings")}
                   <span className="ml-auto">{settingsDot}</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem inset asChild>
-                  <Link href={`/reader/${bookmark.id}`}>
-                    <ExpandIcon className="size-4" />
-                    {t("preview.open_fullscreen")}
-                  </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </>

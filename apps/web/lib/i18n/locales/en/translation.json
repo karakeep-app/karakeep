@@ -1420,7 +1420,7 @@
     },
     "archived_status": "Archived",
     "restore_archived": "Restore",
-    "open_fullscreen": "Open full screen",
+    "immersive_reader": "Immersive reader",
     "archive_info_label": "About saved pages",
     "reading_time": "{{minutes}} min read",
     "toggle_highlights": "Toggle highlights",
