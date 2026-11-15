@@ -450,7 +450,7 @@ export interface OllamaInferenceConfig {
   outputSchema: "structured" | "json" | "plain";
 }
 
-class OllamaInferenceClient implements InferenceClient {
+export class OllamaInferenceClient implements InferenceClient {
   ollama: Ollama;
   private config: OllamaInferenceConfig;
 
@@ -484,6 +484,11 @@ class OllamaInferenceClient implements InferenceClient {
       ...defaultInferenceOptions,
       ..._opts,
     };
+
+    // The request is only cancelled through `onabort` below, which never fires
+    // for a signal that has already aborted (e.g. the job timed out before
+    // getting here), so check it up front.
+    optsWithDefaults.abortSignal?.throwIfAborted();
 
     let newAbortSignal = undefined;
     if (optsWithDefaults.abortSignal) {

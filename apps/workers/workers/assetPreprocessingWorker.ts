@@ -118,7 +118,7 @@ export class AssetPreprocessingWorker {
   }
 }
 
-async function readImageText(buffer: Buffer) {
+async function readImageText(buffer: Buffer, abortSignal: AbortSignal) {
   if (serverConfig.ocr.langs.length == 1 && serverConfig.ocr.langs[0] == "") {
     return null;
   }
@@ -126,13 +126,29 @@ async function readImageText(buffer: Buffer) {
   const worker = await createWorker(serverConfig.ocr.langs, undefined, {
     cachePath: serverConfig.ocr.cacheDir ?? os.tmpdir(),
   });
+  // OCR runs in a worker thread that keeps going after the job times out.
+  // terminate() (in the finally) stops it at once, but then recognize()'s
+  // promise never settles, so it's raced against the abort.
+  let onAbort: () => void = () => undefined;
+  const aborted = new Promise<never>((_, reject) => {
+    onAbort = () =>
+      reject(
+        abortSignal.reason instanceof Error
+          ? abortSignal.reason
+          : new Error("Image OCR aborted"),
+      );
+    abortSignal.addEventListener("abort", onAbort, { once: true });
+  });
   try {
-    const ret = await worker.recognize(buffer);
+    // The signal may have fired while the worker was starting up.
+    abortSignal.throwIfAborted();
+    const ret = await Promise.race([worker.recognize(buffer), aborted]);
     if (ret.data.confidence <= serverConfig.ocr.confidenceThreshold) {
       return null;
     }
     return ret.data.text;
   } finally {
+    abortSignal.removeEventListener("abort", onAbort);
     await worker.terminate();
   }
 }
@@ -140,13 +156,14 @@ async function readImageText(buffer: Buffer) {
 async function readImageTextWithLLM(
   buffer: Buffer,
   contentType: string,
+  abortSignal: AbortSignal,
 ): Promise<string | null> {
   const inferenceClient = InferenceClientFactory.build();
   if (!inferenceClient) {
     logger.warn(
       "[assetPreprocessing] LLM OCR is enabled but no inference client is configured. Falling back to Tesseract.",
     );
-    return readImageText(buffer);
+    return readImageText(buffer, abortSignal);
   }
 
   const base64 = buffer.toString("base64");
@@ -158,6 +175,7 @@ async function readImageTextWithLLM(
     base64,
     {
       schema: null,
+      abortSignal,
     },
   );
 
@@ -267,6 +285,7 @@ async function extractAndSaveImageText(
   contentType: string,
   bookmark: NonNullable<Awaited<ReturnType<typeof getBookmark>>>,
   isFixMode: boolean,
+  abortSignal: AbortSignal,
 ): Promise<boolean> {
   {
     const alreadyHasText = !!bookmark.asset.content;
@@ -284,8 +303,13 @@ async function extractAndSaveImageText(
       `[assetPreprocessing][${jobId}] Attempting to extract text from image using LLM OCR.`,
     );
     try {
-      imageText = await readImageTextWithLLM(asset, contentType);
+      imageText = await readImageTextWithLLM(asset, contentType, abortSignal);
     } catch (e) {
+      // A timed-out job must stop here, not carry on and enqueue follow-up
+      // work next to its own retry.
+      if (abortSignal.aborted) {
+        throw e;
+      }
       logger.error(
         `[assetPreprocessing][${jobId}] Failed to read image text with LLM: ${e}`,
       );
@@ -295,8 +319,11 @@ async function extractAndSaveImageText(
       `[assetPreprocessing][${jobId}] Attempting to extract text from image using Tesseract.`,
     );
     try {
-      imageText = await readImageText(asset);
+      imageText = await readImageText(asset, abortSignal);
     } catch (e) {
+      if (abortSignal.aborted) {
+        throw e;
+      }
       logger.error(
         `[assetPreprocessing][${jobId}] Failed to read image text: ${e}`,
       );
@@ -424,6 +451,7 @@ async function run(req: DequeuedJob<AssetPreprocessingRequest>) {
         metadata.contentType,
         bookmark,
         isFixMode,
+        req.abortSignal,
       );
       anythingChanged ||= extractedText;
       break;
