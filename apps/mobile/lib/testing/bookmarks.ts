@@ -11,6 +11,7 @@ function bareBookmark(id: string, createdAt: number) {
     favourited: false,
     taggingStatus: null,
     summarizationStatus: null,
+    ttsStatus: null,
     embeddingStatus: null,
     userId: "user",
     tags: [],

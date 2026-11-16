@@ -140,6 +140,11 @@
     "create": "Create",
     "fetch_now": "Fetch now",
     "summarize_with_ai": "Summarise with AI",
+    "listen": "Listen",
+    "generating_audio": "Generating audio…",
+    "audio_buffering": "Waiting for the next part…",
+    "audio_generation_failed": "Failed to generate audio",
+    "retry": "Retry",
     "edit_title": "Edit title",
     "sign_out": "Sign out",
     "close": "Close",
@@ -385,6 +390,9 @@
       "add_custom_prompt": "Add a custom prompt",
       "prompt_created": "Prompt created",
       "prompt_deleted": "Prompt deleted"
+    },
+    "tts": {
+      "tts_settings": "Text-to-Speech"
     },
     "feeds": {
       "rss_subscriptions": "RSS subscriptions",
@@ -677,6 +685,7 @@
         "video": "Video",
         "bookmarkAsset": "Bookmark file",
         "linkHtmlContent": "HTML content",
+        "ttsAudio": "Narration audio",
         "userUploaded": "Uploaded file",
         "avatar": "Avatar",
         "unknown": "Unknown"
@@ -1477,6 +1486,7 @@
         "video": "Video",
         "bookmarkAsset": "Original file",
         "linkHtmlContent": "Saved page text",
+        "ttsAudio": "Narration audio",
         "userUploaded": "Uploaded file",
         "avatar": "Avatar",
         "unknown": "Attachment"

@@ -45,11 +45,16 @@ export function isBookmarkStillSummarizing(bookmark: ZBookmark) {
   return bookmark.summarizationStatus == "pending";
 }
 
+export function isBookmarkStillGeneratingTts(bookmark: ZBookmark) {
+  return bookmark.ttsStatus == "pending" || bookmark.ttsStatus == "generating";
+}
+
 export function isBookmarkStillLoading(bookmark: ZBookmark) {
   return (
     isBookmarkStillTagging(bookmark) ||
     isBookmarkStillCrawling(bookmark) ||
-    isBookmarkStillSummarizing(bookmark)
+    isBookmarkStillSummarizing(bookmark) ||
+    isBookmarkStillGeneratingTts(bookmark)
   );
 }
 
@@ -60,6 +65,15 @@ export function getBookmarkRefreshInterval(
     return false;
   }
 
+  // TTS generation is triggered on-demand, often long after the bookmark
+  // was created (that's the point of "read later"), unlike crawling/
+  // tagging/summarization which all kick off around creation time. So it
+  // can't share the createdAt-anchored backoff below: for any bookmark
+  // older than a few hours, that backoff would resolve to `false` and the
+  // "Generating audio..." button would never learn the job finished.
+  if (isBookmarkStillGeneratingTts(bookmark)) {
+    return 1000;
+  }
   // Back off from when the bookmark last changed rather than when it was
   // created, so that reprocessing an old bookmark (e.g. a recrawl) is polled too.
   const lastChangedAt = Math.max(

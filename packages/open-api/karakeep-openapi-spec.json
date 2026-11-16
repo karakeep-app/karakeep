@@ -167,6 +167,25 @@
               null
             ]
           },
+          "ttsStatus": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "success",
+              "failure",
+              "pending",
+              "generating",
+              null
+            ]
+          },
+          "ttsTotalChunks": {
+            "type": "integer",
+            "nullable": true
+          },
+          "ttsVoice": {
+            "type": "string",
+            "nullable": true
+          },
           "embeddingStatus": {
             "type": "string",
             "nullable": true,
@@ -455,6 +474,7 @@
                     "bannerImage",
                     "fullPageArchive",
                     "video",
+                    "ttsAudio",
                     "bookmarkAsset",
                     "precrawledArchive",
                     "userUploaded",
@@ -486,6 +506,7 @@
           "favourited",
           "taggingStatus",
           "summarizationStatus",
+          "ttsStatus",
           "embeddingStatus",
           "userId",
           "tags",
@@ -1728,6 +1749,25 @@
                         null
                       ]
                     },
+                    "ttsStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending",
+                        "generating",
+                        null
+                      ]
+                    },
+                    "ttsTotalChunks": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "ttsVoice": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "embeddingStatus": {
                       "type": "string",
                       "nullable": true,
@@ -1773,6 +1813,7 @@
                     "favourited",
                     "taggingStatus",
                     "summarizationStatus",
+                    "ttsStatus",
                     "embeddingStatus",
                     "userId"
                   ]
@@ -1986,6 +2027,25 @@
                         null
                       ]
                     },
+                    "ttsStatus": {
+                      "type": "string",
+                      "nullable": true,
+                      "enum": [
+                        "success",
+                        "failure",
+                        "pending",
+                        "generating",
+                        null
+                      ]
+                    },
+                    "ttsTotalChunks": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "ttsVoice": {
+                      "type": "string",
+                      "nullable": true
+                    },
                     "embeddingStatus": {
                       "type": "string",
                       "nullable": true,
@@ -2031,6 +2091,7 @@
                     "favourited",
                     "taggingStatus",
                     "summarizationStatus",
+                    "ttsStatus",
                     "embeddingStatus",
                     "userId"
                   ]
@@ -2429,6 +2490,7 @@
                       "bannerImage",
                       "fullPageArchive",
                       "video",
+                      "ttsAudio",
                       "bookmarkAsset",
                       "precrawledArchive",
                       "userUploaded",
@@ -2467,6 +2529,7 @@
                         "bannerImage",
                         "fullPageArchive",
                         "video",
+                        "ttsAudio",
                         "bookmarkAsset",
                         "precrawledArchive",
                         "userUploaded",

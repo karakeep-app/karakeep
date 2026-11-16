@@ -103,6 +103,7 @@ export const zAssetTypesSchema = z.enum([
   "bannerImage",
   "fullPageArchive",
   "video",
+  "ttsAudio",
   "bookmarkAsset",
   "precrawledArchive",
   "userUploaded",
@@ -194,6 +195,11 @@ export const zBareBookmarkSchema = z.object({
   favourited: z.boolean(),
   taggingStatus: z.enum(["success", "failure", "pending"]).nullable(),
   summarizationStatus: z.enum(["success", "failure", "pending"]).nullable(),
+  // pending: queued, no audio yet. generating: some chunks are playable and
+  // the rest are still being synthesized. success: all ttsTotalChunks done.
+  ttsStatus: z.enum(["success", "failure", "pending", "generating"]).nullable(),
+  ttsTotalChunks: z.number().int().nullish(),
+  ttsVoice: z.string().nullish(),
   embeddingStatus: z.enum(["success", "failure", "pending"]).nullable(),
   note: z.string().nullish(),
   summary: z.string().nullish(),

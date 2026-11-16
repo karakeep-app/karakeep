@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
+import TtsBookmarkArea from "../bookmarks/TtsBookmarkArea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -232,6 +233,37 @@ function DetailsTitle({ bookmark }: { bookmark: ZBookmark }) {
       </p>
       <Separator />
     </>
+  );
+}
+
+/**
+ * Floats the TTS control over the reading area. Hidden (not unmounted) outside
+ * the reader view, which has no narration text, so playback never gets cut off.
+ */
+function FloatingTts({
+  bookmark,
+  isOwner,
+  visible = true,
+}: {
+  bookmark: ZBookmark;
+  isOwner: boolean;
+  visible?: boolean;
+}) {
+  const { section } = useLinkSection(bookmark);
+  const show =
+    visible &&
+    (bookmark.content.type !== BookmarkTypes.LINK || section === "cached");
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4",
+        !show && "hidden",
+      )}
+    >
+      <div className="pointer-events-auto">
+        <TtsBookmarkArea bookmark={bookmark} readOnly={!isOwner} />
+      </div>
+    </div>
   );
 }
 
@@ -610,6 +642,7 @@ export default function BookmarkPreview({
               toolbar: wideToolbarSlot,
               title: wideTitleSlot,
             })}
+            <FloatingTts bookmark={bookmark} isOwner={isOwner} />
           </div>
           {!sidebarCollapsed && (
             // Wide enough for the metadata, while leaving the article its measure.
@@ -625,7 +658,7 @@ export default function BookmarkPreview({
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <div className="z-10 flex shrink-0 items-center gap-1 border-b px-2 py-1">
             <CloseButton label={t("preview.close")} onClick={close} />
@@ -679,6 +712,12 @@ export default function BookmarkPreview({
               </div>
             )}
           </TabsContent>
+          {/* A sibling of the tab panels, so switching tabs never unmounts it. */}
+          <FloatingTts
+            bookmark={bookmark}
+            isOwner={isOwner}
+            visible={activeTab === "content"}
+          />
         </Tabs>
         {/* A sibling of the tabs, so it takes its height from them and never */}
         {/* covers the end of the article. */}
