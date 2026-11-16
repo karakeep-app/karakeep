@@ -174,6 +174,7 @@ const allEnv = z.object({
   CRAWLER_VIDEO_DOWNLOAD_ON_DEMAND: optionalStringBool(),
   CRAWLER_ENABLE_ADBLOCKER: stringBool("true"),
   CRAWLER_ENABLE_AUTOCONSENT: stringBool("true"),
+  CRAWLER_AUTOCONSENT_ACTION: z.enum(["optOut", "optIn"]).default("optOut"),
   CRAWLER_COLOR_SCHEME: z.enum(["system", "light", "dark"]).default("system"),
   CRAWLER_YTDLP_ARGS: z
     .string()
@@ -526,6 +527,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
         val.CRAWLER_VIDEO_DOWNLOAD_ON_DEMAND ?? val.CRAWLER_VIDEO_DOWNLOAD,
       enableAdblocker: val.CRAWLER_ENABLE_ADBLOCKER,
       enableAutoconsent: val.CRAWLER_ENABLE_AUTOCONSENT,
+      autoconsentAction: val.CRAWLER_AUTOCONSENT_ACTION,
       colorScheme: val.CRAWLER_COLOR_SCHEME,
       ytDlpArguments: val.CRAWLER_YTDLP_ARGS,
       monolithTimeoutSec: val.CRAWLER_MONOLITH_TIMEOUT_SEC,
