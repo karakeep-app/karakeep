@@ -414,6 +414,34 @@ describe.each([
     expect(
       bookmark.assets.find((a) => a.assetType === "screenshot"),
     ).toBeDefined();
+
+    const trpc = getTrpcClient(apiKey, String(port));
+    await trpc.bookmarks.recrawlBookmark.mutate({
+      bookmarkId: created.id,
+      storePdf: true,
+      storeScreenPdf: true,
+    });
+    const withCopies = await waitForBookmark(
+      created.id,
+      "PDFs are captured from the precrawled archive",
+      (b) =>
+        b.assets.some((a) => a.assetType === "pdf") &&
+        b.assets.some((a) => a.assetType === "screenPdf"),
+    );
+    const pdfAssetId = withCopies.assets.find((a) => a.assetType === "pdf")?.id;
+    const screenPdfAssetId = withCopies.assets.find(
+      (a) => a.assetType === "screenPdf",
+    )?.id;
+    assert(pdfAssetId);
+    assert(screenPdfAssetId);
+    expect(pdfAssetId).not.toBe(screenPdfAssetId);
+    for (const assetId of [pdfAssetId, screenPdfAssetId]) {
+      const bytes = await downloadAsset(assetId);
+      expect(bytes.subarray(0, 5).toString("latin1")).toBe("%PDF-");
+    }
+    expect(
+      withCopies.assets.find((a) => a.assetType === "precrawledArchive"),
+    ).toBeDefined();
   });
 
   it("should fail crawling a disallowed non-redirect URL", async () => {
