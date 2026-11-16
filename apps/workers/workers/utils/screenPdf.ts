@@ -440,19 +440,29 @@ async function prepareScreenPdfPage(
           continue;
         }
         remember(el);
+        const targetTop = Math.max(0, rect.top + window.scrollY);
+        const targetLeft = Math.max(0, rect.left + window.scrollX);
+        el.style.setProperty("transition", "none", "important");
         el.style.setProperty("position", "absolute", "important");
+        el.style.setProperty("top", "0px", "important");
+        el.style.setProperty("left", "0px", "important");
+        el.style.setProperty("right", "auto", "important");
+        el.style.setProperty("bottom", "auto", "important");
+        // An absolutely-positioned element is offset from its nearest
+        // positioned ancestor, which is not necessarily the page origin. Measure
+        // where it lands at top/left 0 and translate the fixed element's document
+        // coordinates into that containing block's coordinate space.
+        const anchoredRect = el.getBoundingClientRect();
         el.style.setProperty(
           "top",
-          `${Math.max(0, rect.top + window.scrollY)}px`,
+          `${targetTop - (anchoredRect.top + window.scrollY)}px`,
           "important",
         );
         el.style.setProperty(
           "left",
-          `${Math.max(0, rect.left + window.scrollX)}px`,
+          `${targetLeft - (anchoredRect.left + window.scrollX)}px`,
           "important",
         );
-        el.style.setProperty("right", "auto", "important");
-        el.style.setProperty("bottom", "auto", "important");
         // `right`/`bottom: auto` above removes the opposing inset that sized
         // elements like full-width headers (`left:0; right:0`) or full-height
         // sidebars (`top:X; bottom:0`). An absolutely-positioned box with only
