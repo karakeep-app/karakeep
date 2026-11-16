@@ -426,6 +426,12 @@ export default function BookmarkOptions({
     disabled: demoMode,
     onClick: () => crawlBookmarkMutator.mutate({ bookmarkId: bookmark.id }),
   };
+  // A themed recrawl should refresh an existing Screen PDF with the new
+  // color scheme. Without this flag, automatic Screen PDF capture being off
+  // leaves the old copy untouched.
+  const hasScreenPdf =
+    bookmark.content.type === BookmarkTypes.LINK &&
+    !!bookmark.content.screenPdfAssetId;
   const recrawlLightAction: ActionItem = {
     id: "recrawl-light",
     title: t("actions.recrawl_in_light_theme"),
@@ -436,6 +442,7 @@ export default function BookmarkOptions({
       crawlBookmarkMutator.mutate({
         bookmarkId: bookmark.id,
         colorScheme: "light",
+        storeScreenPdf: hasScreenPdf,
       }),
   };
   const recrawlDarkAction: ActionItem = {
@@ -448,6 +455,7 @@ export default function BookmarkOptions({
       crawlBookmarkMutator.mutate({
         bookmarkId: bookmark.id,
         colorScheme: "dark",
+        storeScreenPdf: hasScreenPdf,
       }),
   };
   // It's the first thing to try on a page that couldn't be fetched
