@@ -13,6 +13,7 @@ export function humanFriendlyNameForAssertType(type: ZAssetType) {
     precrawledArchive: "Precrawled Archive",
     bannerImage: "Banner Image",
     video: "Video",
+    ttsAudio: "Narration Audio",
     bookmarkAsset: "Bookmark Asset",
     linkHtmlContent: "HTML Content",
     userUploaded: "User Uploaded File",

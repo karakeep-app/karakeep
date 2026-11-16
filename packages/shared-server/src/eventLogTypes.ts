@@ -70,6 +70,12 @@ type EventLogInternal =
       "bookmark.id"?: string;
     }
   | {
+      ["event.name"]: "ttsWorker.run";
+      "bookmark.id"?: string;
+      "tts.chunk_count"?: number;
+      "tts.text_size"?: number;
+    }
+  | {
       ["event.name"]: "webhookWorker.run";
       "bookmark.id"?: string;
       "webhook.operation"?: string;

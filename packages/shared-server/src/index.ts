@@ -2,6 +2,8 @@ export { loadAllPlugins } from "./plugins";
 export * from "./assetdb";
 export * from "./bannerImages";
 export { QuotaService, StorageQuotaError } from "./services/quotaService";
+export { TtsProviderConfigService } from "./services/ttsProviderConfigService";
+export type { TtsProviderConfig } from "./services/ttsProviderConfigService";
 export * from "./queues";
 export * from "./eventLogger";
 export * from "./tracing";

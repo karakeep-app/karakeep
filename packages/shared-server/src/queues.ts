@@ -141,6 +141,21 @@ export const OpenAIQueue = createDeferredQueue<ZOpenAIRequest>("openai_queue", {
   keepFailedJobs: false,
 });
 
+// Text-to-Speech Worker
+export const zTtsRequestSchema = z.object({
+  bookmarkId: z.string(),
+  // One-off override of the configured voice (picked in the player).
+  voice: z.string().optional(),
+});
+export type ZTtsRequest = z.infer<typeof zTtsRequestSchema>;
+
+export const TtsQueue = createDeferredQueue<ZTtsRequest>("tts_queue", {
+  defaultJobArgs: {
+    numRetries: 3,
+  },
+  keepFailedJobs: false,
+});
+
 // Embeddings Worker
 //
 // - "embed": entry point. Generates the bookmark embedding, then dispatches the

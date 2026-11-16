@@ -107,6 +107,15 @@ const allEnv = z.object({
     .default("structured"),
   INFERENCE_ENABLE_AUTO_TAGGING: stringBool("true"),
   INFERENCE_ENABLE_AUTO_SUMMARIZATION: stringBool("false"),
+  // Text-to-speech worker tuning. The server connection itself (base URL,
+  // API key, voice, provider) is admin-configured in the DB via the
+  // Admin > Text-to-Speech settings page, not an env var.
+  TTS_TIMEOUT_SEC: z.coerce.number().positive().default(120),
+  TTS_NUM_WORKERS: z.coerce.number().default(1),
+  TTS_JOB_TIMEOUT_SEC: z.coerce.number().default(300),
+  TTS_RESPONSE_FORMAT: z
+    .enum(["mp3", "wav", "opus", "aac", "flac"])
+    .default("mp3"),
   OCR_CACHE_DIR: z.string().optional(),
   OCR_LANGS: z
     .string()
@@ -453,6 +462,12 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
           : val.INFERENCE_OUTPUT_SCHEMA,
       enableAutoTagging: val.INFERENCE_ENABLE_AUTO_TAGGING,
       enableAutoSummarization: val.INFERENCE_ENABLE_AUTO_SUMMARIZATION,
+    },
+    tts: {
+      timeoutSec: val.TTS_TIMEOUT_SEC,
+      numWorkers: val.TTS_NUM_WORKERS,
+      jobTimeoutSec: val.TTS_JOB_TIMEOUT_SEC,
+      responseFormat: val.TTS_RESPONSE_FORMAT,
     },
     chat: {
       enabled: val.CHAT_ENABLED,
