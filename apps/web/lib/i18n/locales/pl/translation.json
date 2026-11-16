@@ -1527,6 +1527,7 @@
     },
     "saved_copies": {
       "no_pdf": "Brak PDF — zapisz go",
+      "no_screen_pdf": "Brak PDF ekranu — zapisz go",
       "no_archive": "Brak zapisanej strony — zapisz ją",
       "no_video": "Brak wideo — zapisz je"
     },
@@ -1564,6 +1565,7 @@
       "types": {
         "screenshot": "Zrzut ekranu",
         "pdf": "Zapisany PDF",
+        "screenPdf": "PDF ekranu",
         "assetScreenshot": "Obraz podglądu",
         "fullPageArchive": "Zapisana strona",
         "precrawledArchive": "Zaimportowana zapisana strona",

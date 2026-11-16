@@ -1487,6 +1487,7 @@
     },
     "saved_copies": {
       "no_pdf": "Még nincs PDF — Ments egyet",
+      "no_screen_pdf": "Még nincs Képernyő-PDF — Ments egyet",
       "no_archive": "Még nincs mentett oldal — Ments egyet",
       "no_video": "Még nincs videó — Ments egyet"
     },
@@ -1524,6 +1525,7 @@
       "types": {
         "screenshot": "Képernyőkép",
         "pdf": "Mentett PDF",
+        "screenPdf": "Képernyő-PDF",
         "assetScreenshot": "Előnézeti kép",
         "fullPageArchive": "Mentett oldal",
         "precrawledArchive": "Importált mentett oldal",

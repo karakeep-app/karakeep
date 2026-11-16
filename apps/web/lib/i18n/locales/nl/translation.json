@@ -1181,6 +1181,7 @@
     },
     "saved_copies": {
       "no_pdf": "Nog geen PDF — Sla er een op",
+      "no_screen_pdf": "Nog geen Scherm-PDF — Sla er een op",
       "no_archive": "Nog geen opgeslagen pagina — Sla er een op",
       "no_video": "Nog geen video — Sla er een op"
     },
@@ -1218,6 +1219,7 @@
       "types": {
         "screenshot": "Schermafbeelding",
         "pdf": "Opgeslagen PDF",
+        "screenPdf": "Scherm-PDF",
         "assetScreenshot": "Voorbeeldafbeelding",
         "fullPageArchive": "Opgeslagen pagina",
         "precrawledArchive": "Geïmporteerde opgeslagen pagina",

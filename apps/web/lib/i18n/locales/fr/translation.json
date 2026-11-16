@@ -1362,6 +1362,7 @@
     },
     "saved_copies": {
       "no_pdf": "Pas encore de PDF — En enregistrer un",
+      "no_screen_pdf": "Pas encore de PDF d'écran — En enregistrer un",
       "no_archive": "Pas encore de page enregistrée — En enregistrer une",
       "no_video": "Pas encore de vidéo — En enregistrer une"
     },
@@ -1399,6 +1400,7 @@
       "types": {
         "screenshot": "Capture d'écran",
         "pdf": "PDF enregistré",
+        "screenPdf": "PDF d'écran",
         "assetScreenshot": "Image d'aperçu",
         "fullPageArchive": "Page enregistrée",
         "precrawledArchive": "Page enregistrée importée",

@@ -1474,6 +1474,7 @@
     },
     "saved_copies": {
       "no_pdf": "אין עדיין PDF — שמור אחד",
+      "no_screen_pdf": "אין עדיין PDF של תצוגת המסך — שמור אחד",
       "no_archive": "אין עדיין דף שמור — שמור אחד",
       "no_video": "אין עדיין וידאו — שמור אחד"
     },
@@ -1511,6 +1512,7 @@
       "types": {
         "screenshot": "צילום מסך",
         "pdf": "PDF שמור",
+        "screenPdf": "PDF של תצוגת המסך",
         "assetScreenshot": "תמונת תצוגה מקדימה",
         "fullPageArchive": "דף שמור",
         "precrawledArchive": "דף שמור מיובא",

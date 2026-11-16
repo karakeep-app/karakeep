@@ -1581,6 +1581,7 @@
     },
     "saved_copies": {
       "no_pdf": "Chưa có PDF — Lưu ngay",
+      "no_screen_pdf": "Chưa có PDF màn hình — Lưu ngay",
       "no_archive": "Chưa có trang đã lưu — Lưu ngay",
       "no_video": "Chưa có video — Lưu ngay"
     },
@@ -1618,6 +1619,7 @@
       "types": {
         "screenshot": "Ảnh chụp màn hình",
         "pdf": "PDF đã lưu",
+        "screenPdf": "PDF màn hình",
         "assetScreenshot": "Ảnh xem trước",
         "fullPageArchive": "Trang đã lưu",
         "precrawledArchive": "Trang đã lưu được nhập",

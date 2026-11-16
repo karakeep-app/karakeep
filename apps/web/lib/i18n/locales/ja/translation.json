@@ -1410,6 +1410,7 @@
     },
     "saved_copies": {
       "no_pdf": "PDF はまだありません — 保存する",
+      "no_screen_pdf": "画面PDF はまだありません — 保存する",
       "no_archive": "保存したページはまだありません — 保存する",
       "no_video": "動画はまだありません — 保存する"
     },
@@ -1447,6 +1448,7 @@
       "types": {
         "screenshot": "スクリーンショット",
         "pdf": "保存した PDF",
+        "screenPdf": "画面PDF",
         "assetScreenshot": "プレビュー画像",
         "fullPageArchive": "保存したページ",
         "precrawledArchive": "インポートした保存ページ",

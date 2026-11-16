@@ -1366,6 +1366,7 @@
     },
     "saved_copies": {
       "no_pdf": "Henüz PDF yok — Bir tane kaydet",
+      "no_screen_pdf": "Henüz Ekran PDF'i yok — Bir tane kaydet",
       "no_archive": "Henüz kaydedilmiş sayfa yok — Bir tane kaydet",
       "no_video": "Henüz video yok — Bir tane kaydet"
     },
@@ -1403,6 +1404,7 @@
       "types": {
         "screenshot": "Ekran görüntüsü",
         "pdf": "Kaydedilmiş PDF",
+        "screenPdf": "Ekran PDF'i",
         "assetScreenshot": "Önizleme görseli",
         "fullPageArchive": "Kaydedilmiş sayfa",
         "precrawledArchive": "İçe aktarılmış kaydedilmiş sayfa",

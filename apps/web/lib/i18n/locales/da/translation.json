@@ -1414,6 +1414,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ingen PDF endnu — Gem en",
+      "no_screen_pdf": "Ingen Skærm-PDF endnu — Gem en",
       "no_archive": "Ingen gemt side endnu — Gem en",
       "no_video": "Ingen video endnu — Gem en"
     },
@@ -1451,6 +1452,7 @@
       "types": {
         "screenshot": "Skærmbillede",
         "pdf": "Gemt PDF",
+        "screenPdf": "Skærm-PDF",
         "assetScreenshot": "Forhåndsvisningsbillede",
         "fullPageArchive": "Gemt side",
         "precrawledArchive": "Importeret gemt side",

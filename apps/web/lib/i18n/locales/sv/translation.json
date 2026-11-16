@@ -1489,6 +1489,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ingen PDF ännu — Spara en",
+      "no_screen_pdf": "Ingen Skärm-PDF ännu — Spara en",
       "no_archive": "Ingen sparad sida ännu — Spara en",
       "no_video": "Ingen video ännu — Spara en"
     },
@@ -1526,6 +1527,7 @@
       "types": {
         "screenshot": "Skärmdump",
         "pdf": "Sparad PDF",
+        "screenPdf": "Skärm-PDF",
         "assetScreenshot": "Förhandsvisningsbild",
         "fullPageArchive": "Sparad sida",
         "precrawledArchive": "Importerad sparad sida",

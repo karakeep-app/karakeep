@@ -1348,6 +1348,7 @@
     },
     "saved_copies": {
       "no_pdf": "Noch kein PDF — Jetzt speichern",
+      "no_screen_pdf": "Noch keine Bildschirm-PDF — Jetzt speichern",
       "no_archive": "Noch keine gespeicherte Seite — Jetzt speichern",
       "no_video": "Noch kein Video — Jetzt speichern"
     },
@@ -1385,6 +1386,7 @@
       "types": {
         "screenshot": "Screenshot",
         "pdf": "Gespeichertes PDF",
+        "screenPdf": "Bildschirm-PDF",
         "assetScreenshot": "Vorschaubild",
         "fullPageArchive": "Gespeicherte Seite",
         "precrawledArchive": "Importierte gespeicherte Seite",

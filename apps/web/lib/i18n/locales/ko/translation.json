@@ -299,6 +299,7 @@
     },
     "saved_copies": {
       "no_pdf": "아직 PDF가 없습니다 — 저장하기",
+      "no_screen_pdf": "아직 화면 PDF가 없습니다 — 저장하기",
       "no_archive": "아직 저장된 페이지가 없습니다 — 저장하기",
       "no_video": "아직 동영상이 없습니다 — 저장하기"
     },
@@ -336,6 +337,7 @@
       "types": {
         "screenshot": "스크린샷",
         "pdf": "저장된 PDF",
+        "screenPdf": "화면 PDF",
         "assetScreenshot": "미리 보기 이미지",
         "fullPageArchive": "저장된 페이지",
         "precrawledArchive": "가져온 저장 페이지",

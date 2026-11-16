@@ -1380,6 +1380,7 @@
     },
     "saved_copies": {
       "no_pdf": "Još nema PDF-a — spremi ga",
+      "no_screen_pdf": "Još nema PDF-a zaslona — spremi ga",
       "no_archive": "Još nema spremljene stranice — spremi je",
       "no_video": "Još nema videa — spremi ga"
     },
@@ -1417,6 +1418,7 @@
       "types": {
         "screenshot": "Snimka zaslona",
         "pdf": "Spremljeni PDF",
+        "screenPdf": "PDF zaslona",
         "assetScreenshot": "Slika pregleda",
         "fullPageArchive": "Spremljena stranica",
         "precrawledArchive": "Uvezena spremljena stranica",

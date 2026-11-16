@@ -1429,6 +1429,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ainda sem PDF — Guarde um",
+      "no_screen_pdf": "Ainda sem PDF de ecrã — Guarde um",
       "no_archive": "Ainda sem página guardada — Guarde uma",
       "no_video": "Ainda sem vídeo — Guarde um"
     },
@@ -1466,6 +1467,7 @@
       "types": {
         "screenshot": "Captura de ecrã",
         "pdf": "PDF guardado",
+        "screenPdf": "PDF de ecrã",
         "assetScreenshot": "Imagem de pré-visualização",
         "fullPageArchive": "Página guardada",
         "precrawledArchive": "Página guardada importada",

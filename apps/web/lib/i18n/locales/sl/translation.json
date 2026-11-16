@@ -1620,6 +1620,7 @@
     },
     "saved_copies": {
       "no_pdf": "Še ni PDF-ja — shrani ga",
+      "no_screen_pdf": "Še ni PDF-ja zaslona — shrani ga",
       "no_archive": "Še ni shranjene strani — shrani jo",
       "no_video": "Še ni videa — shrani ga"
     },
@@ -1657,6 +1658,7 @@
       "types": {
         "screenshot": "Posnetek zaslona",
         "pdf": "Shranjen PDF",
+        "screenPdf": "PDF zaslona",
         "assetScreenshot": "Slika predogleda",
         "fullPageArchive": "Shranjena stran",
         "precrawledArchive": "Uvožena shranjena stran",

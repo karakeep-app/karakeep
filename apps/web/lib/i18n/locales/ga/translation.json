@@ -1616,6 +1616,7 @@
     },
     "saved_copies": {
       "no_pdf": "Níl aon PDF fós — Sábháil ceann",
+      "no_screen_pdf": "Níl aon PDF Scáileáin fós — Sábháil ceann",
       "no_archive": "Níl aon leathanach sábháilte fós — Sábháil ceann",
       "no_video": "Níl aon fhíseán fós — Sábháil ceann"
     },
@@ -1653,6 +1654,7 @@
       "types": {
         "screenshot": "Gabháil scáileáin",
         "pdf": "PDF sábháilte",
+        "screenPdf": "PDF Scáileáin",
         "assetScreenshot": "Íomhá réamhamhairc",
         "fullPageArchive": "Leathanach sábháilte",
         "precrawledArchive": "Leathanach sábháilte iompórtáilte",

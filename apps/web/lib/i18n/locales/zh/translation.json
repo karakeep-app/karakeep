@@ -1337,6 +1337,7 @@
     },
     "saved_copies": {
       "no_pdf": "还没有 PDF — 保存一份",
+      "no_screen_pdf": "还没有屏幕 PDF — 保存一份",
       "no_archive": "还没有已保存的页面 — 保存一份",
       "no_video": "还没有视频 — 保存一份"
     },
@@ -1374,6 +1375,7 @@
       "types": {
         "screenshot": "截图",
         "pdf": "已保存的 PDF",
+        "screenPdf": "屏幕 PDF",
         "assetScreenshot": "预览图片",
         "fullPageArchive": "已保存的页面",
         "precrawledArchive": "导入的已保存页面",

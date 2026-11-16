@@ -1474,6 +1474,7 @@
     },
     "saved_copies": {
       "no_pdf": "Niciun PDF încă — Salvează unul",
+      "no_screen_pdf": "Niciun PDF de ecran încă — Salvează unul",
       "no_archive": "Nicio pagină salvată încă — Salvează una",
       "no_video": "Niciun videoclip încă — Salvează unul"
     },
@@ -1511,6 +1512,7 @@
       "types": {
         "screenshot": "Captură de ecran",
         "pdf": "PDF salvat",
+        "screenPdf": "PDF de ecran",
         "assetScreenshot": "Imagine de previzualizare",
         "fullPageArchive": "Pagină salvată",
         "precrawledArchive": "Pagină salvată importată",

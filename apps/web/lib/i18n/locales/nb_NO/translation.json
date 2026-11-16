@@ -1580,6 +1580,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ingen PDF ennå — Lagre en",
+      "no_screen_pdf": "Ingen Skjerm-PDF ennå — Lagre en",
       "no_archive": "Ingen lagret side ennå — Lagre en",
       "no_video": "Ingen video ennå — Lagre en"
     },
@@ -1617,6 +1618,7 @@
       "types": {
         "screenshot": "Skjermbilde",
         "pdf": "Lagret PDF",
+        "screenPdf": "Skjerm-PDF",
         "assetScreenshot": "Forhåndsvisningsbilde",
         "fullPageArchive": "Lagret side",
         "precrawledArchive": "Importert lagret side",

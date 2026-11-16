@@ -1453,6 +1453,7 @@
     },
     "saved_copies": {
       "no_pdf": "Nenhum PDF ainda — Salve um",
+      "no_screen_pdf": "Nenhum PDF de Tela ainda — Salve um",
       "no_archive": "Nenhuma página salva ainda — Salve uma",
       "no_video": "Nenhum vídeo ainda — Salve um"
     },
@@ -1490,6 +1491,7 @@
       "types": {
         "screenshot": "Captura de tela",
         "pdf": "PDF salvo",
+        "screenPdf": "PDF de Tela",
         "assetScreenshot": "Imagem de pré-visualização",
         "fullPageArchive": "Página salva",
         "precrawledArchive": "Página salva importada",

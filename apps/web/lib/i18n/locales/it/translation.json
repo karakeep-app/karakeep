@@ -1428,6 +1428,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ancora nessun PDF — Salvane uno",
+      "no_screen_pdf": "Ancora nessun PDF dello schermo — Salvane uno",
       "no_archive": "Ancora nessuna pagina salvata — Salvane una",
       "no_video": "Ancora nessun video — Salvane uno"
     },
@@ -1465,6 +1466,7 @@
       "types": {
         "screenshot": "Screenshot",
         "pdf": "PDF salvato",
+        "screenPdf": "PDF dello schermo",
         "assetScreenshot": "Immagine di anteprima",
         "fullPageArchive": "Pagina salvata",
         "precrawledArchive": "Pagina salvata importata",

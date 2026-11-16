@@ -1599,6 +1599,7 @@
     },
     "saved_copies": {
       "no_pdf": "Zatím žádné PDF — Uložit",
+      "no_screen_pdf": "Zatím žádné PDF obrazovky — Uložit",
       "no_archive": "Zatím žádná uložená stránka — Uložit",
       "no_video": "Zatím žádné video — Uložit"
     },
@@ -1636,6 +1637,7 @@
       "types": {
         "screenshot": "Snímek obrazovky",
         "pdf": "Uložené PDF",
+        "screenPdf": "PDF obrazovky",
         "assetScreenshot": "Náhledový obrázek",
         "fullPageArchive": "Uložená stránka",
         "precrawledArchive": "Importovaná uložená stránka",

@@ -1439,6 +1439,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ei vielä PDF:ää — Tallenna",
+      "no_screen_pdf": "Ei vielä Näyttö-PDF:ää — Tallenna",
       "no_archive": "Ei vielä tallennettua sivua — Tallenna",
       "no_video": "Ei vielä videota — Tallenna"
     },
@@ -1476,6 +1477,7 @@
       "types": {
         "screenshot": "Kuvakaappaus",
         "pdf": "Tallennettu PDF",
+        "screenPdf": "Näyttö-PDF",
         "assetScreenshot": "Esikatselukuva",
         "fullPageArchive": "Tallennettu sivu",
         "precrawledArchive": "Tuotu tallennettu sivu",

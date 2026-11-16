@@ -1337,6 +1337,7 @@
     },
     "saved_copies": {
       "no_pdf": "尚無 PDF — 立即儲存",
+      "no_screen_pdf": "尚無螢幕 PDF — 立即儲存",
       "no_archive": "尚無已儲存的網頁 — 立即儲存",
       "no_video": "尚無影片 — 立即儲存"
     },
@@ -1374,6 +1375,7 @@
       "types": {
         "screenshot": "螢幕截圖",
         "pdf": "已儲存的 PDF",
+        "screenPdf": "螢幕 PDF",
         "assetScreenshot": "預覽圖片",
         "fullPageArchive": "已儲存的網頁",
         "precrawledArchive": "匯入的已儲存網頁",

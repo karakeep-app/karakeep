@@ -1441,6 +1441,7 @@
     },
     "saved_copies": {
       "no_pdf": "Aínda non hai PDF — Garda un",
+      "no_screen_pdf": "Aínda non hai PDF de pantalla — Garda un",
       "no_archive": "Aínda non hai páxina gardada — Garda unha",
       "no_video": "Aínda non hai vídeo — Garda un"
     },
@@ -1478,6 +1479,7 @@
       "types": {
         "screenshot": "Captura de pantalla",
         "pdf": "PDF gardado",
+        "screenPdf": "PDF de pantalla",
         "assetScreenshot": "Imaxe de vista previa",
         "fullPageArchive": "Páxina gardada",
         "precrawledArchive": "Páxina gardada importada",

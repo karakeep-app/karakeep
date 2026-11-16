@@ -1495,6 +1495,7 @@
     },
     "saved_copies": {
       "no_pdf": "لا يوجد PDF بعد — احفظ واحدًا",
+      "no_screen_pdf": "لا يوجد PDF بمظهر الشاشة بعد — احفظ واحدًا",
       "no_archive": "لا توجد صفحة محفوظة بعد — احفظ واحدة",
       "no_video": "لا يوجد فيديو بعد — احفظ واحدًا"
     },
@@ -1532,6 +1533,7 @@
       "types": {
         "screenshot": "لقطة شاشة",
         "pdf": "PDF محفوظ",
+        "screenPdf": "PDF بمظهر الشاشة",
         "assetScreenshot": "صورة المعاينة",
         "fullPageArchive": "صفحة محفوظة",
         "precrawledArchive": "صفحة محفوظة مستوردة",
