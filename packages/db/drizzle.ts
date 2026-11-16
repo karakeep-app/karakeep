@@ -9,6 +9,10 @@ import serverConfig from "@karakeep/shared/config";
 
 import dbConfig from "./drizzle.config";
 import { instrumentDatabase } from "./instrumentation";
+import {
+  attachPendingHistoryStore,
+  PENDING_HISTORY_FILENAME,
+} from "./pendingHistory";
 import * as schema from "./schema";
 import { openSqliteDatabase } from "./sqlite";
 
@@ -17,6 +21,17 @@ const sqlite = openSqliteDatabase(dbConfig.dbCredentials.url, {
   walMode: serverConfig.database.walMode,
 });
 
+attachPendingHistoryStore(
+  sqlite,
+  serverConfig.dataDir
+    ? path.join(serverConfig.dataDir, PENDING_HISTORY_FILENAME)
+    : `./${PENDING_HISTORY_FILENAME}`,
+  {
+    readOnly: serverConfig.degradedMode,
+    walMode: serverConfig.database.walMode,
+  },
+);
+
 instrumentDatabase(sqlite);
 
 export const db = drizzle(sqlite, { schema });
@@ -24,6 +39,10 @@ export type DB = typeof db;
 
 export function getInMemoryDB(runMigrations: boolean) {
   const mem = new Database(":memory:");
+  attachPendingHistoryStore(mem, ":memory:", {
+    readOnly: false,
+    walMode: false,
+  });
   const db = drizzle(mem, { schema, logger: false });
   if (runMigrations) {
     migrate(db, { migrationsFolder: path.resolve(__dirname, "./drizzle") });

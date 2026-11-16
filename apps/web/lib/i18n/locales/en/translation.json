@@ -1459,6 +1459,30 @@
     "note_title_label": "Title (optional)",
     "collapse_section": "Collapse",
     "expand_section": "Expand",
+    "history": {
+      "title": "History",
+      "empty": "No edits yet",
+      "empty_value": "(empty)",
+      "edited_by": "by {{name}}",
+      "latest_edit": "Latest edit can be undone",
+      "undo": "Undo",
+      "undone": "Change undone",
+      "undo_failed": "Couldn't undo the change",
+      "yes": "Yes",
+      "no": "No",
+      "fields": {
+        "title": "Title",
+        "url": "URL",
+        "description": "Description",
+        "author": "Author",
+        "publisher": "Publisher",
+        "datePublished": "Published date",
+        "note": "Note",
+        "summary": "Summary",
+        "archived": "Archived",
+        "favourited": "Favourited"
+      }
+    },
     "attachments": {
       "add_banner": "Add banner image",
       "upload_file": "Upload file",

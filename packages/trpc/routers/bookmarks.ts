@@ -61,6 +61,7 @@ import {
   zSearchBookmarksRequestSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
+import { zGetBookmarkHistoryResponseSchema } from "@karakeep/shared/types/bookmarkHistory";
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
@@ -76,6 +77,13 @@ import {
   emitRateLimitedEvent,
   router,
 } from "../index";
+import {
+  diffBookmarkUpdate,
+  getBookmarkHistory,
+  readBookmarkHistorySnapshot,
+  recordBookmarkChanges,
+  rollbackPendingEdit,
+} from "../lib/bookmarkHistory";
 import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { reciprocalRankFusion } from "../lib/searchRanking";
@@ -585,6 +593,10 @@ export const bookmarksAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await ctx.db.transaction((tx) => {
         let somethingChanged = false;
+        const historySnapshot = readBookmarkHistorySnapshot(
+          tx,
+          input.bookmarkId,
+        );
 
         // Update link-specific fields if any are provided
         const linkUpdateData: Partial<{
@@ -710,6 +722,15 @@ export const bookmarksAppRouter = router({
             )
             .run();
         }
+
+        // Recorded last, so an update that throws above leaves no history.
+        if (historySnapshot) {
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: diffBookmarkUpdate(historySnapshot, input),
+          });
+        }
       });
 
       // Refetch the updated bookmark data to return the full object
@@ -752,6 +773,41 @@ export const bookmarksAppRouter = router({
           ctx.db,
         );
       }
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          updatedBookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
+      ]);
+
+      return updatedBookmark;
+    }),
+
+  // Undoes the bookmark's latest edit (its pending history entry), restoring
+  // the previous field values. Only the owner, who is the only one who can
+  // edit, can roll back.
+  rollbackBookmarkEdit: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .output(zBookmarkSchema)
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      ctx.db.transaction((tx) => rollbackPendingEdit(tx, input.bookmarkId));
+
+      const updatedBookmark = (
+        await Bookmark.fromId(
+          ctx,
+          input.bookmarkId,
+          /* includeContent: */ false,
+        )
+      ).asZBookmark();
+
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
           groupId: ctx.user.id,
@@ -1011,6 +1067,23 @@ export const bookmarksAppRouter = router({
         readingProgressAnchor: progress?.readingProgressAnchor ?? null,
         readingProgressPercent: progress?.readingProgressPercent ?? null,
       };
+    }),
+  getBookmarkHistory: bookmarksProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+      }),
+    )
+    .output(zGetBookmarkHistoryResponseSchema)
+    // Anyone who can view the bookmark (owner or list collaborator) can see
+    // its history. Changes to owner-only fields are hidden from
+    // collaborators, matching Bookmark.asZBookmark().
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      const entries = await getBookmarkHistory(ctx.db, input.bookmarkId, {
+        includeOwnerOnlyFields: ctx.bookmark.userId === ctx.user.id,
+      });
+      return { entries };
     }),
   getBookmark: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
