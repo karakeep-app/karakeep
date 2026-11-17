@@ -28,6 +28,10 @@ import { getTextDisplayTitle } from "@karakeep/shared/utils/bookmarkUtils";
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext, Context } from "..";
+import {
+  recordBookmarkChanges,
+  recordBookmarkChangesForMany,
+} from "../lib/bookmarkHistory";
 import { buildImpersonatingAuthedContext } from "../lib/impersonate";
 import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarksConditionFromMatcher } from "../lib/search";
@@ -47,6 +51,20 @@ export abstract class List {
 
   get id() {
     return this.list.id;
+  }
+
+  // How the list appears in a bookmark's history.
+  asItem() {
+    return { id: this.list.id, name: this.list.name };
+  }
+
+  protected bookmarkIdsInList(tx: KarakeepDBTransaction): string[] {
+    return tx
+      .select({ id: bookmarksInLists.bookmarkId })
+      .from(bookmarksInLists)
+      .where(eq(bookmarksInLists.listId, this.list.id))
+      .all()
+      .map(({ id }) => id);
   }
 
   asZBookmarkList() {
@@ -641,6 +659,8 @@ export abstract class List {
   async delete() {
     this.ensureCanManage();
     await this.ctx.db.transaction((tx) => {
+      // Deleting the list removes every bookmark from it.
+      const leaving = this.bookmarkIdsInList(tx);
       const res = tx
         .delete(bookmarkLists)
         .where(
@@ -654,6 +674,15 @@ export abstract class List {
         throw new TRPCError({ code: "NOT_FOUND" });
       }
       this.cleanupRulesAfterListDeletion(tx);
+      recordBookmarkChangesForMany(tx, {
+        userId: this.ctx.user.id,
+        entries: leaving.map((bookmarkId) => ({
+          bookmarkId,
+          changes: [
+            { field: "lists", oldValue: [this.asItem()], newValue: [] },
+          ],
+        })),
+      });
     });
   }
 
@@ -1241,10 +1270,21 @@ export class ManualList extends List {
     this.ensureCanEdit();
 
     try {
-      await this.ctx.db.insert(bookmarksInLists).values({
-        listId: this.list.id,
-        bookmarkId,
-        listMembershipId: this.collaboratorEntry?.membershipId,
+      this.ctx.db.transaction((tx) => {
+        tx.insert(bookmarksInLists)
+          .values({
+            listId: this.list.id,
+            bookmarkId,
+            listMembershipId: this.collaboratorEntry?.membershipId,
+          })
+          .run();
+        recordBookmarkChanges(tx, {
+          bookmarkId,
+          userId: this.ctx.user.id,
+          changes: [
+            { field: "lists", oldValue: [], newValue: [this.asItem()] },
+          ],
+        });
       });
       const bookmark = await this.ctx.db.query.bookmarks.findFirst({
         where: eq(bookmarks.id, bookmarkId),
@@ -1282,20 +1322,28 @@ export class ManualList extends List {
     // Check that the user can edit this list
     this.ensureCanEdit();
 
-    const deleted = await this.ctx.db
-      .delete(bookmarksInLists)
-      .where(
-        and(
-          eq(bookmarksInLists.listId, this.list.id),
-          eq(bookmarksInLists.bookmarkId, bookmarkId),
-        ),
-      );
-    if (deleted.changes == 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: `Bookmark ${bookmarkId} is already not in list ${this.list.id}`,
+    this.ctx.db.transaction((tx) => {
+      const deleted = tx
+        .delete(bookmarksInLists)
+        .where(
+          and(
+            eq(bookmarksInLists.listId, this.list.id),
+            eq(bookmarksInLists.bookmarkId, bookmarkId),
+          ),
+        )
+        .run();
+      if (deleted.changes == 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Bookmark ${bookmarkId} is already not in list ${this.list.id}`,
+        });
+      }
+      recordBookmarkChanges(tx, {
+        bookmarkId,
+        userId: this.ctx.user.id,
+        changes: [{ field: "lists", oldValue: [this.asItem()], newValue: [] }],
       });
-    }
+    });
     const bookmark = await this.ctx.db.query.bookmarks.findFirst({
       where: eq(bookmarks.id, bookmarkId),
       columns: { userId: true },
@@ -1353,6 +1401,30 @@ export class ManualList extends List {
       );
 
     await this.ctx.db.transaction((tx) => {
+      // For the history: what's already in the target, and everything that
+      // leaves the source when it's deleted.
+      const alreadyInTarget = new Set(
+        ownedBookmarks.length > 0
+          ? tx
+              .select({ id: bookmarksInLists.bookmarkId })
+              .from(bookmarksInLists)
+              .where(
+                and(
+                  eq(bookmarksInLists.listId, targetList.id),
+                  inArray(
+                    bookmarksInLists.bookmarkId,
+                    ownedBookmarks.map(({ id }) => id),
+                  ),
+                ),
+              )
+              .all()
+              .map(({ id }) => id)
+          : [],
+      );
+      const leavingSource = deleteSourceAfterMerge
+        ? this.bookmarkIdsInList(tx)
+        : [];
+
       if (ownedBookmarks.length > 0) {
         tx.insert(bookmarksInLists)
           .values(
@@ -1371,6 +1443,26 @@ export class ManualList extends List {
           .run();
         this.cleanupRulesAfterListDeletion(tx);
       }
+
+      const added = new Set(
+        ownedBookmarks
+          .map(({ id }) => id)
+          .filter((id) => !alreadyInTarget.has(id)),
+      );
+      const removed = new Set(leavingSource);
+      recordBookmarkChangesForMany(tx, {
+        userId: this.ctx.user.id,
+        entries: [...new Set([...added, ...removed])].map((bookmarkId) => ({
+          bookmarkId,
+          changes: [
+            {
+              field: "lists",
+              oldValue: removed.has(bookmarkId) ? [this.asItem()] : [],
+              newValue: added.has(bookmarkId) ? [targetList.asItem()] : [],
+            },
+          ],
+        })),
+      });
     });
   }
 }

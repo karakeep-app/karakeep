@@ -79,8 +79,11 @@ import {
 } from "../index";
 import {
   diffBookmarkUpdate,
+  diffCollection,
+  diffTextUpdate,
   getBookmarkHistory,
   readBookmarkHistorySnapshot,
+  readBookmarkTagItems,
   recordBookmarkChanges,
   rollbackPendingEdit,
 } from "../lib/bookmarkHistory";
@@ -477,6 +480,12 @@ export const bookmarksAppRouter = router({
             }
           }
 
+          recordBookmarkChanges(tx, {
+            bookmarkId: bookmark.id,
+            userId: ctx.user.id,
+            changes: [{ field: "created", oldValue: null, newValue: null }],
+          });
+
           return {
             alreadyExists: false,
             tags: [] as ZBookmarkTags[],
@@ -836,6 +845,10 @@ export const bookmarksAppRouter = router({
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
       await ctx.db.transaction((tx) => {
+        const historySnapshot = readBookmarkHistorySnapshot(
+          tx,
+          input.bookmarkId,
+        );
         const res = tx
           .update(bookmarkTexts)
           .set({
@@ -859,6 +872,13 @@ export const bookmarksAppRouter = router({
             ),
           )
           .run();
+        if (historySnapshot) {
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: diffTextUpdate(historySnapshot, input.text),
+          });
+        }
       });
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
@@ -1080,10 +1100,10 @@ export const bookmarksAppRouter = router({
     // collaborators, matching Bookmark.asZBookmark().
     .use(ensureBookmarkAccess)
     .query(async ({ input, ctx }) => {
-      const entries = await getBookmarkHistory(ctx.db, input.bookmarkId, {
+      const events = await getBookmarkHistory(ctx.db, input.bookmarkId, {
         includeOwnerOnlyFields: ctx.bookmark.userId === ctx.user.id,
       });
-      return { entries };
+      return { events };
     }),
   getBookmark: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
@@ -1531,6 +1551,7 @@ export const bookmarksAppRouter = router({
 
       const res = await ctx.db.transaction((tx) => {
         let numChanges = 0;
+        const tagsBefore = readBookmarkTagItems(tx, input.bookmarkId);
         // Detaches
         if (idsToRemove.length > 0) {
           const res = tx
@@ -1572,6 +1593,19 @@ export const bookmarksAppRouter = router({
               ),
             )
             .run();
+
+          const tagChange = diffCollection(
+            "tags",
+            tagsBefore,
+            readBookmarkTagItems(tx, input.bookmarkId),
+          );
+          if (tagChange) {
+            recordBookmarkChanges(tx, {
+              bookmarkId: input.bookmarkId,
+              userId: ctx.user.id,
+              changes: [tagChange],
+            });
+          }
         }
 
         return {
@@ -1807,13 +1841,30 @@ export const bookmarksAppRouter = router({
         "inference.total_tokens": summary.totalTokens,
       });
 
-      await ctx.db
-        .update(bookmarks)
-        .set({
-          summary: summary.response,
-          summarizationStatus: "success",
-        })
-        .where(eq(bookmarks.id, input.bookmarkId));
+      const newSummary = summary.response;
+      ctx.db.transaction((tx) => {
+        const historySnapshot = readBookmarkHistorySnapshot(
+          tx,
+          input.bookmarkId,
+        );
+        tx.update(bookmarks)
+          .set({
+            summary: newSummary,
+            summarizationStatus: "success",
+          })
+          .where(eq(bookmarks.id, input.bookmarkId))
+          .run();
+        if (historySnapshot) {
+          // The user asked for it, so it's their change (and can be undone).
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: diffBookmarkUpdate(historySnapshot, {
+              summary: newSummary,
+            }),
+          });
+        }
+      });
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
           groupId: ctx.user.id,

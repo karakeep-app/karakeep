@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, notInArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import type { DB, KarakeepDBTransaction } from "@karakeep/db";
 import {
@@ -12,22 +12,34 @@ import {
   bookmarkEditHistory,
   bookmarkLinks,
   bookmarks,
+  bookmarkTags,
+  bookmarkTexts,
+  tagsOnBookmarks,
   users,
 } from "@karakeep/db/schema";
 import type {
-  ZBookmarkHistoryEntry,
+  ZBookmarkHistoryEvent,
   ZBookmarkHistoryField,
+  ZBookmarkHistoryItem,
   ZBookmarkHistoryValue,
 } from "@karakeep/shared/types/bookmarkHistory";
-import { OWNER_ONLY_HISTORY_FIELDS } from "@karakeep/shared/types/bookmarkHistory";
+import {
+  isCollectionHistoryField,
+  isOwnerOnlyHistoryField,
+  isUndoableHistoryField,
+} from "@karakeep/shared/types/bookmarkHistory";
 import type { ZUpdateBookmarksRequest } from "@karakeep/shared/types/bookmarks";
+import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 // Consecutive note edits by the same user within this window are merged into
 // one pending edit. The note editor autosaves while typing, so without this
 // every pause would become its own history entry.
 export const NOTE_COALESCE_WINDOW_MS = 2 * 60 * 1000;
 
+// Number of events getBookmarkHistory returns by default.
 export const DEFAULT_HISTORY_LIMIT = 100;
+// Upper bound on the rows read to build those events.
+const MAX_HISTORY_ROWS = 1000;
 
 const pendingEdits = sql.raw(PENDING_EDITS_TABLE);
 
@@ -42,6 +54,8 @@ export interface BookmarkHistorySnapshot {
   summary: string | null;
   archived: boolean;
   favourited: boolean;
+  // The bookmark's "saved" date (bookmarks.createdAt).
+  createdAt: Date;
   // Null for non-link bookmarks.
   link: {
     url: string;
@@ -50,6 +64,8 @@ export interface BookmarkHistorySnapshot {
     publisher: string | null;
     datePublished: Date | null;
   } | null;
+  // Null for non-text bookmarks.
+  text: { text: string | null } | null;
 }
 
 export interface BookmarkFieldChange {
@@ -60,6 +76,7 @@ export interface BookmarkFieldChange {
 
 interface PendingEditRow {
   id: string;
+  eventId: string;
   bookmarkId: string;
   userId: string;
   field: ZBookmarkHistoryField;
@@ -82,7 +99,7 @@ function displayedTitle(
   return title ? title : fallbackTitle;
 }
 
-// datePublished is stored with second precision.
+// datePublished and createdAt are stored with second precision.
 function toSeconds(date: Date | null): number | null {
   return date === null ? null : Math.floor(date.getTime() / 1000);
 }
@@ -118,6 +135,21 @@ export function diffBookmarkUpdate(
     }
   };
 
+  const pushDate = (
+    field: ZBookmarkHistoryField,
+    oldValue: Date | null,
+    newValue: Date | null | undefined,
+  ) => {
+    if (newValue === undefined) {
+      return;
+    }
+    const oldDate = toIsoSeconds(oldValue);
+    const newDate = toIsoSeconds(newValue);
+    if (oldDate !== newDate) {
+      changes.push({ field, oldValue: oldDate, newValue: newDate });
+    }
+  };
+
   if (input.title !== undefined) {
     // Compare what the user sees: for a link without a custom title, the edit
     // dialog submits the crawled title, which isn't a visible change.
@@ -134,17 +166,14 @@ export function diffBookmarkUpdate(
     pushText("description", before.link.description, input.description);
     pushText("author", before.link.author, input.author);
     pushText("publisher", before.link.publisher, input.publisher);
-    if (input.datePublished !== undefined) {
-      const oldDate = toIsoSeconds(before.link.datePublished);
-      const newDate = toIsoSeconds(input.datePublished);
-      if (oldDate !== newDate) {
-        changes.push({
-          field: "datePublished",
-          oldValue: oldDate,
-          newValue: newDate,
-        });
-      }
-    }
+    pushDate("datePublished", before.link.datePublished, input.datePublished);
+  }
+
+  pushDate("createdAt", before.createdAt, input.createdAt);
+
+  // updateBookmark only writes the text when it's non-empty.
+  if (before.text && input.text) {
+    pushText("text", before.text.text, input.text);
   }
 
   pushText("note", before.note, input.note);
@@ -171,7 +200,62 @@ export function diffBookmarkUpdate(
   return changes;
 }
 
-// The value of a field as diffBookmarkUpdate() records it.
+/**
+ * The change the deprecated updateBookmarkText endpoint makes, which (unlike
+ * updateBookmark) also writes empty text.
+ */
+export function diffTextUpdate(
+  before: BookmarkHistorySnapshot,
+  text: string,
+): BookmarkFieldChange[] {
+  if (!before.text) {
+    return [];
+  }
+  const oldValue = normalizeText(before.text.text);
+  const newValue = normalizeText(text);
+  return oldValue === newValue ? [] : [{ field: "text", oldValue, newValue }];
+}
+
+/**
+ * The change between two states of a collection (tags, lists or
+ * attachments): the removed items as oldValue and the added ones as
+ * newValue. Returns null when nothing was added or removed.
+ */
+export function diffCollection(
+  field: ZBookmarkHistoryField,
+  before: ZBookmarkHistoryItem[],
+  after: ZBookmarkHistoryItem[],
+): BookmarkFieldChange | null {
+  const beforeIds = new Set(before.map((i) => i.id));
+  const afterIds = new Set(after.map((i) => i.id));
+  const byName = (a: ZBookmarkHistoryItem, b: ZBookmarkHistoryItem) =>
+    (a.name ?? "").localeCompare(b.name ?? "");
+  const removed = before.filter((i) => !afterIds.has(i.id)).sort(byName);
+  const added = after.filter((i) => !beforeIds.has(i.id)).sort(byName);
+  if (removed.length === 0 && added.length === 0) {
+    return null;
+  }
+  return { field, oldValue: removed, newValue: added };
+}
+
+/** The tags attached to a bookmark, as history items. */
+export function readBookmarkTagItems(
+  tx: KarakeepDBTransaction,
+  bookmarkId: string,
+): ZBookmarkHistoryItem[] {
+  return tx
+    .select({
+      id: tagsOnBookmarks.tagId,
+      name: bookmarkTags.name,
+      attachedBy: tagsOnBookmarks.attachedBy,
+    })
+    .from(tagsOnBookmarks)
+    .innerJoin(bookmarkTags, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
+    .where(eq(tagsOnBookmarks.bookmarkId, bookmarkId))
+    .all();
+}
+
+// The value of a scalar field as diffBookmarkUpdate() records it.
 function currentValue(
   snapshot: BookmarkHistorySnapshot,
   field: ZBookmarkHistoryField,
@@ -191,6 +275,10 @@ function currentValue(
       return normalizeText(snapshot.link?.publisher);
     case "datePublished":
       return toIsoSeconds(snapshot.link?.datePublished ?? null);
+    case "createdAt":
+      return toIsoSeconds(snapshot.createdAt);
+    case "text":
+      return normalizeText(snapshot.text?.text);
     case "note":
       return normalizeText(snapshot.note);
     case "summary":
@@ -199,6 +287,11 @@ function currentValue(
       return snapshot.archived;
     case "favourited":
       return snapshot.favourited;
+    case "created":
+    case "tags":
+    case "lists":
+    case "attachments":
+      return null;
   }
 }
 
@@ -212,11 +305,13 @@ export function readBookmarkHistorySnapshot(
 ): BookmarkHistorySnapshot | undefined {
   const row = tx
     .select({
+      type: bookmarks.type,
       title: bookmarks.title,
       note: bookmarks.note,
       summary: bookmarks.summary,
       archived: bookmarks.archived,
       favourited: bookmarks.favourited,
+      createdAt: bookmarks.createdAt,
       linkUrl: bookmarkLinks.url,
       linkTitle: bookmarkLinks.title,
       linkDescription: bookmarkLinks.description,
@@ -224,10 +319,12 @@ export function readBookmarkHistorySnapshot(
       linkPublisher: bookmarkLinks.publisher,
       linkDatePublished: bookmarkLinks.datePublished,
       assetFileName: bookmarkAssets.fileName,
+      text: bookmarkTexts.text,
     })
     .from(bookmarks)
     .leftJoin(bookmarkLinks, eq(bookmarkLinks.id, bookmarks.id))
     .leftJoin(bookmarkAssets, eq(bookmarkAssets.id, bookmarks.id))
+    .leftJoin(bookmarkTexts, eq(bookmarkTexts.id, bookmarks.id))
     .where(eq(bookmarks.id, bookmarkId))
     .get();
 
@@ -255,7 +352,9 @@ export function readBookmarkHistorySnapshot(
     summary: row.summary,
     archived: row.archived,
     favourited: row.favourited,
+    createdAt: row.createdAt,
     link,
+    text: row.type === BookmarkTypes.TEXT ? { text: row.text } : null,
   };
 }
 
@@ -276,6 +375,7 @@ function readPendingEdits(
   }
   const rows = tx.all<{
     id: string;
+    eventId: string;
     bookmarkId: string;
     userId: string;
     field: ZBookmarkHistoryField;
@@ -283,7 +383,7 @@ function readPendingEdits(
     newValue: string | null;
     createdAt: number;
   }>(
-    sql`SELECT id, bookmarkId, userId, field, oldValue, newValue, createdAt
+    sql`SELECT id, eventId, bookmarkId, userId, field, oldValue, newValue, createdAt
         FROM ${pendingEdits}
         WHERE bookmarkId = ${bookmarkId}
         ORDER BY rowid`,
@@ -306,35 +406,69 @@ export function deletePendingEdits(
   tx.run(sql`DELETE FROM ${pendingEdits} WHERE bookmarkId = ${bookmarkId}`);
 }
 
-function insertPendingEdits(
-  tx: KarakeepDBTransaction,
-  opts: {
-    bookmarkId: string;
-    userId: string;
-    changes: BookmarkFieldChange[];
-    now: Date;
-  },
-) {
-  for (const change of opts.changes) {
+interface NewEvent {
+  eventId: string;
+  bookmarkId: string;
+  userId: string;
+  changes: BookmarkFieldChange[];
+  now: Date;
+}
+
+function insertPendingEdits(tx: KarakeepDBTransaction, event: NewEvent) {
+  for (const change of event.changes) {
     tx.run(
       sql`INSERT INTO ${pendingEdits}
-            (id, bookmarkId, userId, field, oldValue, newValue, createdAt)
+            (id, eventId, bookmarkId, userId, field, oldValue, newValue, createdAt)
           VALUES (
-            ${randomUUID()}, ${opts.bookmarkId}, ${opts.userId}, ${change.field},
-            ${JSON.stringify(change.oldValue)}, ${JSON.stringify(change.newValue)},
-            ${opts.now.getTime()}
+            ${randomUUID()}, ${event.eventId}, ${event.bookmarkId}, ${event.userId},
+            ${change.field}, ${JSON.stringify(change.oldValue)},
+            ${JSON.stringify(change.newValue)}, ${event.now.getTime()}
           )`,
     );
   }
 }
 
+function insertCommittedEdits(tx: KarakeepDBTransaction, event: NewEvent) {
+  tx.insert(bookmarkEditHistory)
+    .values(
+      event.changes.map((change) => ({
+        eventId: event.eventId,
+        bookmarkId: event.bookmarkId,
+        userId: event.userId,
+        ...change,
+        createdAt: event.now,
+      })),
+    )
+    .run();
+}
+
+// Moves the pending edit, which is final now, into bookmarkEditHistory.
+function commitPendingEdits(
+  tx: KarakeepDBTransaction,
+  bookmarkId: string,
+  pending: PendingEditRow[],
+) {
+  if (pending.length === 0) {
+    return;
+  }
+  // Reusing the pending ids keeps this idempotent.
+  tx.insert(bookmarkEditHistory).values(pending).onConflictDoNothing().run();
+  deletePendingEdits(tx, bookmarkId);
+}
+
 /**
- * Records the changes of an edit. Must run inside the update transaction so a
- * failed update leaves no history behind.
+ * Records one user action on a bookmark. Must run inside the transaction that
+ * makes the change, so a failed change leaves no history behind.
  *
- * The edit becomes the bookmark's pending edit, which the user can roll back.
- * Whatever edit was pending before is final now and moves into the main
- * bookmarkEditHistory table.
+ * When the bookmark's owner makes a change, whatever edit was pending before
+ * is final now and moves into bookmarkEditHistory. The new change becomes
+ * the pending edit, which the owner can roll back, unless it can't be undone
+ * (see NON_UNDOABLE_HISTORY_FIELDS) or `undoable: false` is passed; those go
+ * straight into bookmarkEditHistory.
+ *
+ * Changes by other users (e.g. a collaborator removing the bookmark from a
+ * shared list) are recorded directly and leave the owner's pending edit
+ * alone.
  */
 export function recordBookmarkChanges(
   tx: KarakeepDBTransaction,
@@ -342,27 +476,34 @@ export function recordBookmarkChanges(
     bookmarkId: string;
     userId: string;
     changes: BookmarkFieldChange[];
+    undoable?: boolean;
     now?: Date;
   },
 ) {
-  const now = opts.now ?? new Date();
   const { bookmarkId, userId, changes } = opts;
   if (changes.length === 0) {
     return;
   }
+  const owner = tx
+    .select({ userId: bookmarks.userId })
+    .from(bookmarks)
+    .where(eq(bookmarks.id, bookmarkId))
+    .get();
+  if (!owner) {
+    return;
+  }
 
-  if (!pendingHistoryState.available) {
-    // No pending store: record directly, without rollback support.
-    tx.insert(bookmarkEditHistory)
-      .values(
-        changes.map((change) => ({
-          bookmarkId,
-          userId,
-          ...change,
-          createdAt: now,
-        })),
-      )
-      .run();
+  const event: NewEvent = {
+    eventId: randomUUID(),
+    bookmarkId,
+    userId,
+    changes,
+    now: opts.now ?? new Date(),
+  };
+
+  if (!pendingHistoryState.available || userId !== owner.userId) {
+    // No pending store (no rollback support), or not the owner's change.
+    insertCommittedEdits(tx, event);
     return;
   }
 
@@ -376,7 +517,8 @@ export function recordBookmarkChanges(
     isNoteOnly(changes) &&
     isNoteOnly(pending) &&
     pending[0].userId === userId &&
-    now.getTime() - pending[0].createdAt.getTime() < NOTE_COALESCE_WINDOW_MS
+    event.now.getTime() - pending[0].createdAt.getTime() <
+      NOTE_COALESCE_WINDOW_MS
   ) {
     if (pending[0].oldValue === changes[0].newValue) {
       // Typed back to what it was: nothing changed after all.
@@ -385,19 +527,50 @@ export function recordBookmarkChanges(
       tx.run(
         sql`UPDATE ${pendingEdits}
             SET newValue = ${JSON.stringify(changes[0].newValue)},
-                createdAt = ${now.getTime()}
+                createdAt = ${event.now.getTime()}
             WHERE id = ${pending[0].id}`,
       );
     }
     return;
   }
 
-  if (pending.length > 0) {
-    // Reusing the pending ids keeps this idempotent.
-    tx.insert(bookmarkEditHistory).values(pending).onConflictDoNothing().run();
-    deletePendingEdits(tx, bookmarkId);
+  commitPendingEdits(tx, bookmarkId, pending);
+
+  const undoable =
+    (opts.undoable ?? true) &&
+    changes.every((change) => isUndoableHistoryField(change.field));
+  if (undoable) {
+    insertPendingEdits(tx, event);
+  } else {
+    insertCommittedEdits(tx, event);
   }
-  insertPendingEdits(tx, { bookmarkId, userId, changes, now });
+}
+
+/**
+ * Records the same user action on many bookmarks at once (e.g. merging or
+ * deleting a tag). These changes can't be rolled back per bookmark.
+ */
+export function recordBookmarkChangesForMany(
+  tx: KarakeepDBTransaction,
+  opts: {
+    userId: string;
+    entries: { bookmarkId: string; changes: BookmarkFieldChange[] }[];
+    now?: Date;
+  },
+) {
+  const now = opts.now ?? new Date();
+  for (const entry of opts.entries) {
+    recordBookmarkChanges(tx, {
+      ...entry,
+      userId: opts.userId,
+      undoable: false,
+      now,
+    });
+  }
+}
+
+function itemsOf(value: ZBookmarkHistoryValue): ZBookmarkHistoryItem[] {
+  return Array.isArray(value) ? value : [];
 }
 
 /**
@@ -421,9 +594,13 @@ export function rollbackPendingEdit(
   }
 
   // Something else (e.g. a recrawl) may have changed these fields since. Don't
-  // silently overwrite that.
+  // silently overwrite that. Tags are restored item by item instead, so tags
+  // changed since by others are left as they are.
   for (const edit of pending) {
-    if (currentValue(snapshot, edit.field) !== edit.newValue) {
+    if (
+      !isCollectionHistoryField(edit.field) &&
+      currentValue(snapshot, edit.field) !== edit.newValue
+    ) {
       throw new TRPCError({
         code: "CONFLICT",
         message: `The ${edit.field} was changed again since this edit, so it can't be rolled back`,
@@ -433,7 +610,7 @@ export function rollbackPendingEdit(
 
   const bookmarkUpdate: Partial<typeof bookmarks.$inferInsert> = {};
   const linkUpdate: Partial<typeof bookmarkLinks.$inferInsert> = {};
-  for (const { field, oldValue } of pending) {
+  for (const { field, oldValue, newValue } of pending) {
     switch (field) {
       case "title":
         // The old value may be the fallback the UI showed, not a custom title.
@@ -450,6 +627,9 @@ export function rollbackPendingEdit(
       case "favourited":
         bookmarkUpdate[field] = oldValue as boolean;
         break;
+      case "createdAt":
+        bookmarkUpdate.createdAt = new Date(oldValue as string);
+        break;
       case "url":
         linkUpdate.url = oldValue as string;
         break;
@@ -461,6 +641,23 @@ export function rollbackPendingEdit(
       case "datePublished":
         linkUpdate.datePublished =
           oldValue === null ? null : new Date(oldValue as string);
+        break;
+      case "text":
+        tx.update(bookmarkTexts)
+          .set({ text: oldValue as string | null })
+          .where(eq(bookmarkTexts.id, bookmarkId))
+          .run();
+        break;
+      case "tags":
+        rollbackTagChange(tx, bookmarkId, {
+          removed: itemsOf(oldValue),
+          added: itemsOf(newValue),
+        });
+        break;
+      case "created":
+      case "lists":
+      case "attachments":
+        // Never pending (see recordBookmarkChanges).
         break;
     }
   }
@@ -484,25 +681,111 @@ export function rollbackPendingEdit(
   }));
 }
 
+function rollbackTagChange(
+  tx: KarakeepDBTransaction,
+  bookmarkId: string,
+  change: { removed: ZBookmarkHistoryItem[]; added: ZBookmarkHistoryItem[] },
+) {
+  if (change.added.length > 0) {
+    tx.delete(tagsOnBookmarks)
+      .where(
+        and(
+          eq(tagsOnBookmarks.bookmarkId, bookmarkId),
+          inArray(
+            tagsOnBookmarks.tagId,
+            change.added.map((t) => t.id),
+          ),
+        ),
+      )
+      .run();
+  }
+  if (change.removed.length > 0) {
+    // Only reattach tags that still exist.
+    const existing = new Set(
+      tx
+        .select({ id: bookmarkTags.id })
+        .from(bookmarkTags)
+        .where(
+          inArray(
+            bookmarkTags.id,
+            change.removed.map((t) => t.id),
+          ),
+        )
+        .all()
+        .map((t) => t.id),
+    );
+    const toAttach = change.removed.filter((t) => existing.has(t.id));
+    if (toAttach.length > 0) {
+      tx.insert(tagsOnBookmarks)
+        .values(
+          toAttach.map((t) => ({
+            bookmarkId,
+            tagId: t.id,
+            attachedBy: t.attachedBy ?? "human",
+          })),
+        )
+        .onConflictDoNothing()
+        .run();
+    }
+  }
+}
+
+interface HistoryRow {
+  id: string;
+  eventId: string;
+  field: ZBookmarkHistoryField;
+  oldValue: ZBookmarkHistoryValue;
+  newValue: ZBookmarkHistoryValue;
+  createdAt: Date;
+  editorId: string;
+  editorName: string;
+}
+
+// Groups rows (in the order their changes should be listed) into events.
+function groupIntoEvents(
+  rows: HistoryRow[],
+  pending: boolean,
+): ZBookmarkHistoryEvent[] {
+  const events = new Map<string, ZBookmarkHistoryEvent>();
+  for (const row of rows) {
+    let event = events.get(row.eventId);
+    if (!event) {
+      event = {
+        id: row.eventId,
+        createdAt: row.createdAt,
+        editor: { id: row.editorId, name: row.editorName },
+        pending,
+        changes: [],
+      };
+      events.set(row.eventId, event);
+    }
+    event.changes.push({
+      id: row.id,
+      field: row.field,
+      oldValue: row.oldValue ?? null,
+      newValue: row.newValue ?? null,
+    });
+  }
+  return [...events.values()];
+}
+
 /**
- * Returns a bookmark's edit history, newest first: the pending edit (if any)
- * followed by committed entries. Callers must have already checked that the
- * user can view the bookmark. Owner-only fields are left out unless
- * `includeOwnerOnlyFields` is set.
+ * Returns a bookmark's history as events, newest first, each listing the
+ * fields it changed in the order they were recorded. Callers must have
+ * already checked that the user can view the bookmark. Owner-only fields are
+ * left out unless `includeOwnerOnlyFields` is set.
  */
 export async function getBookmarkHistory(
   db: DB,
   bookmarkId: string,
   opts: { includeOwnerOnlyFields: boolean; limit?: number },
-): Promise<ZBookmarkHistoryEntry[]> {
-  const isVisible = (field: ZBookmarkHistoryField) =>
-    opts.includeOwnerOnlyFields ||
-    !(OWNER_ONLY_HISTORY_FIELDS as readonly string[]).includes(field);
+): Promise<ZBookmarkHistoryEvent[]> {
+  const isVisible = (row: { field: ZBookmarkHistoryField }) =>
+    opts.includeOwnerOnlyFields || !isOwnerOnlyHistoryField(row.field);
 
   const pending = db.transaction((tx) => readPendingEdits(tx, bookmarkId));
-  const pendingEditorIds = [...new Set(pending.map((p) => p.userId))];
   const editorNames = new Map<string, string>();
-  for (const id of pendingEditorIds) {
+  for (const id of new Set(pending.map((p) => p.userId))) {
     const user = await db.query.users.findFirst({
       columns: { name: true },
       where: eq(users.id, id),
@@ -510,9 +793,11 @@ export async function getBookmarkHistory(
     editorNames.set(id, user?.name ?? "");
   }
 
+  // Newest rows first, so the limit keeps the most recent events.
   const committed = await db
     .select({
       id: bookmarkEditHistory.id,
+      eventId: bookmarkEditHistory.eventId,
       field: bookmarkEditHistory.field,
       oldValue: bookmarkEditHistory.oldValue,
       newValue: bookmarkEditHistory.newValue,
@@ -522,47 +807,37 @@ export async function getBookmarkHistory(
     })
     .from(bookmarkEditHistory)
     .innerJoin(users, eq(users.id, bookmarkEditHistory.userId))
-    .where(
-      and(
-        eq(bookmarkEditHistory.bookmarkId, bookmarkId),
-        opts.includeOwnerOnlyFields
-          ? undefined
-          : notInArray(bookmarkEditHistory.field, [
-              ...OWNER_ONLY_HISTORY_FIELDS,
-            ]),
-      ),
-    )
+    .where(eq(bookmarkEditHistory.bookmarkId, bookmarkId))
     .orderBy(
       desc(bookmarkEditHistory.createdAt),
-      // Rows of one edit share a timestamp; keep insertion order stable.
       desc(sql`${bookmarkEditHistory}.rowid`),
     )
-    .limit(opts.limit ?? DEFAULT_HISTORY_LIMIT);
+    .limit(MAX_HISTORY_ROWS);
 
-  return [
-    // Pending rows are read in insertion order (the order they're committed
-    // in), so reverse them to match the newest-first rowid order used for
-    // committed rows; otherwise an edit's fields would reorder once committed.
-    ...[...pending]
-      .reverse()
-      .filter((row) => isVisible(row.field))
-      .map((row) => ({
-        id: row.id,
-        field: row.field,
-        oldValue: row.oldValue,
-        newValue: row.newValue,
-        createdAt: row.createdAt,
-        editor: { id: row.userId, name: editorNames.get(row.userId) ?? "" },
-        pending: true,
-      })),
-    ...committed.map((row) => ({
-      id: row.id,
-      field: row.field,
-      oldValue: row.oldValue ?? null,
-      newValue: row.newValue ?? null,
-      createdAt: row.createdAt,
-      editor: { id: row.editorId, name: row.editorName },
-      pending: false,
+  const pendingEvents = groupIntoEvents(
+    pending.filter(isVisible).map((row) => ({
+      ...row,
+      editorId: row.userId,
+      editorName: editorNames.get(row.userId) ?? "",
     })),
-  ];
+    /* pending: */ true,
+  );
+  // Reversed so each event lists its changes in the order they were recorded.
+  const committedEvents = groupIntoEvents(
+    committed
+      .filter(isVisible)
+      .reverse()
+      .map((row) => ({
+        ...row,
+        oldValue: row.oldValue ?? null,
+        newValue: row.newValue ?? null,
+      })),
+    /* pending: */ false,
+  ).reverse();
+
+  // A collaborator's change can be newer than the owner's pending edit. On a
+  // tie, the pending edit comes first.
+  return [...pendingEvents, ...committedEvents]
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, opts.limit ?? DEFAULT_HISTORY_LIMIT);
 }

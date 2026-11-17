@@ -1,5 +1,6 @@
 CREATE TABLE `bookmarkEditHistory` (
 	`id` text PRIMARY KEY NOT NULL,
+	`eventId` text NOT NULL,
 	`bookmarkId` text NOT NULL,
 	`userId` text NOT NULL,
 	`field` text NOT NULL,

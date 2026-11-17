@@ -1,7 +1,13 @@
 import { describe, expect, test } from "vitest";
 
 import type { BookmarkHistorySnapshot } from "../bookmarkHistory";
-import { diffBookmarkUpdate } from "../bookmarkHistory";
+import {
+  diffBookmarkUpdate,
+  diffCollection,
+  diffTextUpdate,
+} from "../bookmarkHistory";
+
+const SAVED_AT = new Date("2026-03-04T05:06:07.000Z");
 
 function linkSnapshot(
   overrides: Partial<BookmarkHistorySnapshot> = {},
@@ -14,6 +20,8 @@ function linkSnapshot(
     summary: null,
     archived: false,
     favourited: false,
+    createdAt: SAVED_AT,
+    text: null,
     link: {
       url: "https://example.com",
       description: null,
@@ -36,6 +44,8 @@ function textSnapshot(
     summary: null,
     archived: false,
     favourited: false,
+    createdAt: SAVED_AT,
+    text: { text: "Original text" },
     link: null,
     ...overrides,
   };
@@ -171,5 +181,76 @@ describe("diffBookmarkUpdate", () => {
       "description",
       "note",
     ]);
+  });
+});
+
+describe("diffBookmarkUpdate: saved date and text", () => {
+  test("records saved date changes at second precision", () => {
+    expect(
+      diffBookmarkUpdate(textSnapshot(), {
+        createdAt: new Date("2026-03-04T05:06:07.999Z"),
+      }),
+    ).toEqual([]);
+    expect(
+      diffBookmarkUpdate(textSnapshot(), {
+        createdAt: new Date("2025-01-02T03:04:05.678Z"),
+      }),
+    ).toEqual([
+      {
+        field: "createdAt",
+        oldValue: "2026-03-04T05:06:07.000Z",
+        newValue: "2025-01-02T03:04:05.000Z",
+      },
+    ]);
+  });
+
+  test("records text bookmark content, but not empty text it won't write", () => {
+    expect(diffBookmarkUpdate(textSnapshot(), { text: "New text" })).toEqual([
+      { field: "text", oldValue: "Original text", newValue: "New text" },
+    ]);
+    // updateBookmark ignores empty text, so it isn't a change.
+    expect(diffBookmarkUpdate(textSnapshot(), { text: "" })).toEqual([]);
+    expect(
+      diffBookmarkUpdate(textSnapshot(), { text: "Original text" }),
+    ).toEqual([]);
+  });
+
+  test("ignores text for non-text bookmarks", () => {
+    expect(diffBookmarkUpdate(linkSnapshot(), { text: "Text" })).toEqual([]);
+  });
+});
+
+describe("diffTextUpdate", () => {
+  test("records cleared text, which updateBookmarkText does write", () => {
+    expect(diffTextUpdate(textSnapshot(), "")).toEqual([
+      { field: "text", oldValue: "Original text", newValue: null },
+    ]);
+    expect(diffTextUpdate(textSnapshot(), "Original text")).toEqual([]);
+    expect(diffTextUpdate(linkSnapshot(), "Text")).toEqual([]);
+  });
+});
+
+describe("diffCollection", () => {
+  const tag = (id: string, name: string) => ({ id, name });
+
+  test("returns the removed items as old and the added ones as new", () => {
+    expect(
+      diffCollection(
+        "tags",
+        [tag("1", "b"), tag("2", "keep"), tag("3", "a")],
+        [tag("2", "keep"), tag("5", "z"), tag("4", "c")],
+      ),
+    ).toEqual({
+      field: "tags",
+      oldValue: [tag("3", "a"), tag("1", "b")],
+      newValue: [tag("4", "c"), tag("5", "z")],
+    });
+  });
+
+  test("compares by id, so a renamed item isn't a change", () => {
+    expect(
+      diffCollection("tags", [tag("1", "old")], [tag("1", "new")]),
+    ).toBeNull();
+    expect(diffCollection("lists", [], [])).toBeNull();
   });
 });

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActionButton } from "@/components/ui/action-button";
+import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,24 +18,40 @@ import { ArrowRight, ChevronRight, Undo2 } from "lucide-react";
 import { useRollbackBookmarkEdit } from "@karakeep/shared-react/hooks/bookmarks";
 
 import type {
-  ZBookmarkHistoryEntry,
+  ZBookmarkHistoryChange,
+  ZBookmarkHistoryEvent,
   ZBookmarkHistoryField,
+  ZBookmarkHistoryItem,
   ZBookmarkHistoryValue,
 } from "@karakeep/shared/types/bookmarkHistory";
+import type { ZAssetType } from "@karakeep/shared/types/bookmarks";
 import { useTRPC } from "@karakeep/shared-react/trpc";
+import { isCollectionHistoryField } from "@karakeep/shared/types/bookmarkHistory";
+import { humanFriendlyNameForAssertType } from "@karakeep/shared/utils/assetUtils";
 
 const FIELD_LABEL_KEYS = {
+  created: "preview.history.fields.created",
   title: "preview.history.fields.title",
   url: "preview.history.fields.url",
   description: "preview.history.fields.description",
   author: "preview.history.fields.author",
   publisher: "preview.history.fields.publisher",
   datePublished: "preview.history.fields.datePublished",
+  createdAt: "preview.history.fields.createdAt",
+  text: "preview.history.fields.text",
   note: "preview.history.fields.note",
   summary: "preview.history.fields.summary",
   archived: "preview.history.fields.archived",
   favourited: "preview.history.fields.favourited",
+  tags: "preview.history.fields.tags",
+  lists: "preview.history.fields.lists",
+  attachments: "preview.history.fields.attachments",
 } as const satisfies Record<ZBookmarkHistoryField, string>;
+
+const DATE_FIELDS: readonly ZBookmarkHistoryField[] = [
+  "datePublished",
+  "createdAt",
+];
 
 function HistoryValue({
   field,
@@ -49,12 +66,12 @@ function HistoryValue({
 
   let text: string;
   let isEmpty = false;
-  if (value === null || value === "") {
+  if (value === null || value === "" || Array.isArray(value)) {
     text = t("preview.history.empty_value");
     isEmpty = true;
   } else if (typeof value === "boolean") {
     text = value ? t("preview.history.yes") : t("preview.history.no");
-  } else if (field === "datePublished") {
+  } else if (DATE_FIELDS.includes(field)) {
     text = formatLocalDate(new Date(value), "PP", i18n.language);
   } else {
     text = value;
@@ -74,35 +91,120 @@ function HistoryValue({
   );
 }
 
-function HistoryRow({ entry }: { entry: ZBookmarkHistoryEntry }) {
+function itemLabel(item: ZBookmarkHistoryItem) {
+  if (item.name) {
+    return item.name;
+  }
+  return item.assetType
+    ? humanFriendlyNameForAssertType(item.assetType as ZAssetType)
+    : item.id;
+}
+
+function HistoryItems({
+  items,
+  removed,
+}: {
+  items: ZBookmarkHistoryItem[];
+  removed?: boolean;
+}) {
   const { t } = useTranslation();
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <span className="sr-only">
+        {removed ? t("preview.history.removed") : t("preview.history.added")}
+      </span>
+      {items.map((item) => (
+        <span
+          key={item.id}
+          className={cn(
+            "inline-flex max-w-full items-center gap-0.5 rounded-md border px-1.5 py-0.5 text-xs",
+            removed
+              ? "border-dashed text-muted-foreground line-through"
+              : "border-border bg-muted/50",
+          )}
+        >
+          <span aria-hidden className="no-underline">
+            {removed ? "−" : "+"}
+          </span>
+          <span className="truncate">{itemLabel(item)}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function HistoryChange({ change }: { change: ZBookmarkHistoryChange }) {
+  const { t } = useTranslation();
+  return (
+    <li className="flex flex-col gap-0.5" data-history-field={change.field}>
+      <span className="text-xs text-muted-foreground">
+        {t(FIELD_LABEL_KEYS[change.field])}
+      </span>
+      {isCollectionHistoryField(change.field) ? (
+        <div className="flex flex-col gap-1">
+          <HistoryItems
+            items={Array.isArray(change.oldValue) ? change.oldValue : []}
+            removed
+          />
+          <HistoryItems
+            items={Array.isArray(change.newValue) ? change.newValue : []}
+          />
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+          <HistoryValue field={change.field} value={change.oldValue} previous />
+          <ArrowRight
+            aria-hidden
+            className="size-3 shrink-0 text-muted-foreground"
+          />
+          <HistoryValue field={change.field} value={change.newValue} />
+        </div>
+      )}
+    </li>
+  );
+}
+
+function HistoryEvent({ event }: { event: ZBookmarkHistoryEvent }) {
+  const { t } = useTranslation();
+  const isCreation = event.changes.some((c) => c.field === "created");
+  const changes = event.changes.filter((c) => c.field !== "created");
   return (
     <li
       className={cn(
-        "flex flex-col gap-1 border-l-2 pl-3",
+        "flex flex-col gap-2 border-l-2 pl-3",
         // The latest edit, which can still be undone.
-        entry.pending ? "border-primary" : "border-border",
+        event.pending ? "border-primary" : "border-border",
       )}
-      data-history-field={entry.field}
-      data-history-pending={entry.pending}
+      data-history-event={event.id}
+      data-history-pending={event.pending}
     >
-      <div className="flex items-baseline justify-between gap-2 text-xs">
-        <span className="font-medium">{t(FIELD_LABEL_KEYS[entry.field])}</span>
-        <span className="shrink-0 text-muted-foreground">
-          <RelativeTime date={entry.createdAt} />
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate font-medium">{event.editor.name}</span>
+          <span className="shrink-0 text-muted-foreground">
+            <RelativeTime date={event.createdAt} />
+          </span>
         </span>
+        <Badge variant="secondary" className="shrink-0 px-2 font-medium">
+          {isCreation
+            ? t("preview.history.created_event")
+            : t("preview.history.updated_event")}
+        </Badge>
       </div>
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-        <HistoryValue field={entry.field} value={entry.oldValue} previous />
-        <ArrowRight
-          aria-hidden
-          className="size-3 shrink-0 text-muted-foreground"
-        />
-        <HistoryValue field={entry.field} value={entry.newValue} />
-      </div>
-      <span className="text-xs text-muted-foreground">
-        {t("preview.history.edited_by", { name: entry.editor.name })}
-      </span>
+      {isCreation && changes.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t("preview.history.bookmark_created")}
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-2 text-sm">
+          {changes.map((change) => (
+            <HistoryChange key={change.id} change={change} />
+          ))}
+        </ul>
+      )}
     </li>
   );
 }
@@ -158,8 +260,8 @@ export default function BookmarkHistoryBox({
     return null;
   }
 
-  const { entries } = data;
-  const hasPendingEdit = entries.some((entry) => entry.pending);
+  const { events } = data;
+  const hasPendingEdit = events.some((event) => event.pending);
 
   return (
     <>
@@ -168,7 +270,7 @@ export default function BookmarkHistoryBox({
         <CollapsibleTrigger className="flex min-h-8 w-full items-center justify-between gap-2 rounded-md text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:min-h-11 [@media(pointer:coarse)]:min-h-11">
           <span className="flex items-center gap-2">
             {t("preview.history.title")}
-            <span className="font-normal tabular-nums">{entries.length}</span>
+            <span className="font-normal tabular-nums">{events.length}</span>
           </span>
           <ChevronRight
             className={cn("size-4 transition-transform", isOpen && "rotate-90")}
@@ -178,17 +280,17 @@ export default function BookmarkHistoryBox({
           {canUndo && hasPendingEdit && (
             <UndoLatestEdit bookmarkId={bookmarkId} />
           )}
-          {entries.length === 0 ? (
+          {events.length === 0 ? (
             <p className="py-1 text-xs text-muted-foreground">
               {t("preview.history.empty")}
             </p>
           ) : (
             <ol
-              className="flex flex-col gap-3"
+              className="flex flex-col gap-4"
               aria-label={t("preview.history.title")}
             >
-              {entries.map((entry) => (
-                <HistoryRow key={entry.id} entry={entry} />
+              {events.map((event) => (
+                <HistoryEvent key={event.id} event={event} />
               ))}
             </ol>
           )}

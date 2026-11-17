@@ -128,6 +128,8 @@ export function useRollbackBookmarkEdit(
           }),
         );
         scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
+        // Undoing a tag change re-attaches or detaches tags.
+        scheduleInvalidateQueries(queryClient, api.tags.list.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -186,6 +188,11 @@ export function useSummarizeBookmark(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -241,6 +248,11 @@ export function useUpdateBookmarkTags(
       onSuccess: (res, req, meta, context) => {
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
         );
 
         [...res.attached, ...res.detached].forEach((id) => {

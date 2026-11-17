@@ -26,6 +26,7 @@ import {
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
+import { recordBookmarkChangesForMany } from "../lib/bookmarkHistory";
 
 export class Tag {
   constructor(
@@ -230,6 +231,7 @@ export class Tag {
       columns: {
         id: true,
         userId: true,
+        name: true,
       },
     });
 
@@ -254,6 +256,27 @@ export class Tag {
           .returning()
           .all();
 
+        // For the history: bookmarks that already had the target tag don't
+        // get it added.
+        const hadTarget = new Set(
+          unlinked.length > 0
+            ? trx
+                .select({ bookmarkId: tagsOnBookmarks.bookmarkId })
+                .from(tagsOnBookmarks)
+                .where(
+                  and(
+                    eq(tagsOnBookmarks.tagId, input.intoTagId),
+                    inArray(
+                      tagsOnBookmarks.bookmarkId,
+                      unlinked.map((u) => u.bookmarkId),
+                    ),
+                  ),
+                )
+                .all()
+                .map((r) => r.bookmarkId)
+            : [],
+        );
+
         if (unlinked.length > 0) {
           trx
             .insert(tagsOnBookmarks)
@@ -277,6 +300,34 @@ export class Tag {
           )
           .returning({ id: bookmarkTags.id })
           .all();
+
+        const tagItem = (id: string, attachedBy?: ZAttachedByEnum) => ({
+          id,
+          name: affectedTags.find((t) => t.id === id)?.name ?? null,
+          ...(attachedBy ? { attachedBy } : {}),
+        });
+        const removedByBookmark = new Map<string, typeof unlinked>();
+        for (const row of unlinked) {
+          removedByBookmark.set(row.bookmarkId, [
+            ...(removedByBookmark.get(row.bookmarkId) ?? []),
+            row,
+          ]);
+        }
+        recordBookmarkChangesForMany(trx, {
+          userId: ctx.user.id,
+          entries: [...removedByBookmark].map(([bookmarkId, rows]) => ({
+            bookmarkId,
+            changes: [
+              {
+                field: "tags",
+                oldValue: rows.map((r) => tagItem(r.tagId, r.attachedBy)),
+                newValue: hadTarget.has(bookmarkId)
+                  ? []
+                  : [tagItem(input.intoTagId, rows[0].attachedBy)],
+              },
+            ],
+          })),
+        });
 
         return {
           deletedTags,
@@ -304,25 +355,46 @@ export class Tag {
   }
 
   async delete(): Promise<void> {
-    const affectedBookmarks = await this.ctx.db
-      .select({
-        bookmarkId: tagsOnBookmarks.bookmarkId,
-      })
-      .from(tagsOnBookmarks)
-      .where(eq(tagsOnBookmarks.tagId, this.tag.id));
+    const affectedBookmarks = this.ctx.db.transaction((tx) => {
+      const affected = tx
+        .select({
+          bookmarkId: tagsOnBookmarks.bookmarkId,
+          attachedBy: tagsOnBookmarks.attachedBy,
+        })
+        .from(tagsOnBookmarks)
+        .where(eq(tagsOnBookmarks.tagId, this.tag.id))
+        .all();
 
-    const res = await this.ctx.db
-      .delete(bookmarkTags)
-      .where(
-        and(
-          eq(bookmarkTags.id, this.tag.id),
-          eq(bookmarkTags.userId, this.ctx.user.id),
-        ),
-      );
+      const res = tx
+        .delete(bookmarkTags)
+        .where(
+          and(
+            eq(bookmarkTags.id, this.tag.id),
+            eq(bookmarkTags.userId, this.ctx.user.id),
+          ),
+        )
+        .run();
 
-    if (res.changes === 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
+      if (res.changes === 0) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+
+      // Deleting the tag removes it from every bookmark.
+      recordBookmarkChangesForMany(tx, {
+        userId: this.ctx.user.id,
+        entries: affected.map(({ bookmarkId, attachedBy }) => ({
+          bookmarkId,
+          changes: [
+            {
+              field: "tags",
+              oldValue: [{ id: this.tag.id, name: this.tag.name, attachedBy }],
+              newValue: [],
+            },
+          ],
+        })),
+      });
+      return affected;
+    });
 
     await Promise.all(
       affectedBookmarks.map(({ bookmarkId }) =>

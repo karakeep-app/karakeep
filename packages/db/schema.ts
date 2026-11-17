@@ -485,7 +485,8 @@ export const userReadingProgress = sqliteTable(
   ],
 );
 
-// One row per changed field of a user edit (bookmarks.updateBookmark).
+// One row per changed field of a user's change to a bookmark. Rows of the same
+// action (e.g. one save of the edit dialog) share an eventId.
 export const bookmarkEditHistory = sqliteTable(
   "bookmarkEditHistory",
   {
@@ -493,12 +494,13 @@ export const bookmarkEditHistory = sqliteTable(
       .notNull()
       .primaryKey()
       .$defaultFn(() => createId()),
+    eventId: text("eventId").notNull(),
     bookmarkId: text("bookmarkId")
       .notNull()
       .references(() => bookmarks.id, {
         onDelete: "cascade",
       }),
-    // The user who made the edit.
+    // The user who made the change.
     userId: text("userId")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
