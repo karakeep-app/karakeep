@@ -1,4 +1,5 @@
 "use client";
+import BookmarkHistory from "./BookmarkHistory";
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -533,6 +534,7 @@ export default function BookmarkPreview({
       <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
       <Separator />
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
+      {isOwner && <BookmarkHistory bookmarkId={bookmark.id} />}
     </div>
   );
 

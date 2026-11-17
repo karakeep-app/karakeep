@@ -9,6 +9,9 @@ import {
 import { useTRPC } from "../trpc";
 import { scheduleInvalidateQueries } from "./query-invalidation";
 
+// Mutation success also invalidates history queries. Relationship operations
+// can affect multiple bookmarks, so invalidation covers cached history streams
+// rather than assuming that the currently open preview is the only affected item.
 type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function useCreateBookmarkList(
@@ -20,6 +23,12 @@ export function useCreateBookmarkList(
     api.lists.create.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.lists.list.pathFilter());
         queryClient.invalidateQueries(api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
@@ -37,6 +46,12 @@ export function useEditBookmarkList(
     api.lists.edit.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.lists.list.pathFilter());
         queryClient.invalidateQueries(
           api.lists.get.queryFilter({ listId: req.listId }),
@@ -67,6 +82,12 @@ export function useMergeLists(
     api.lists.merge.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.lists.list.pathFilter());
         queryClient.invalidateQueries(
           api.bookmarks.getBookmarks.queryFilter({ listId: req.targetId }),
@@ -92,6 +113,12 @@ export function useAddBookmarkToList(
     api.lists.addToList.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         scheduleInvalidateQueries(
           queryClient,
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
@@ -123,6 +150,12 @@ export function useRemoveBookmarkFromList(
     api.lists.removeFromList.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         scheduleInvalidateQueries(
           queryClient,
           api.bookmarks.getBookmarks.queryFilter({ listId: req.listId }),
@@ -154,6 +187,12 @@ export function useDeleteBookmarkList(
     api.lists.delete.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.lists.list.pathFilter());
         queryClient.removeQueries(
           api.lists.get.queryFilter({ listId: req.listId }),

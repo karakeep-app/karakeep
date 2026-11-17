@@ -1759,5 +1759,19 @@
     "go_back": "戻る",
     "go_home": "ホームへ",
     "try_again": "もう一度試す"
+  },
+  "item_history": {
+    "title": "変更履歴",
+    "retention": "変更履歴は90日間保存されます。削除されたファイルは復元できません。",
+    "loading": "履歴を読み込み中…",
+    "retry": "再試行",
+    "deleted": "削除されたアイテム",
+    "changed": "アイテムが更新されました",
+    "empty": "過去90日間に変更はありません。",
+    "more": "さらに読み込む",
+    "actor_user": "ユーザー",
+    "actor_system": "システム",
+    "previous": "変更前の値",
+    "current": "変更後の値"
   }
 }

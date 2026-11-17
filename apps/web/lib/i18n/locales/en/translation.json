@@ -1777,5 +1777,19 @@
     "go_back": "Go back",
     "go_home": "Go home",
     "try_again": "Try again"
+  },
+  "item_history": {
+    "title": "Change history",
+    "retention": "Changes are available for 90 days. Deleted files cannot be restored.",
+    "loading": "Loading history…",
+    "retry": "Retry",
+    "deleted": "Deleted items",
+    "changed": "Item updated",
+    "empty": "No changes in the last 90 days.",
+    "more": "Load more",
+    "actor_user": "User",
+    "actor_system": "System",
+    "previous": "Previous value",
+    "current": "New value"
   }
 }

@@ -1,3 +1,4 @@
+import { historyTransaction, listHistoryIds } from "../lib/bookmarkHistory";
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, inArray, or, SQL, sql } from "drizzle-orm";
@@ -640,21 +641,26 @@ export abstract class List {
 
   async delete() {
     this.ensureCanManage();
-    await this.ctx.db.transaction((tx) => {
-      const res = tx
-        .delete(bookmarkLists)
-        .where(
-          and(
-            eq(bookmarkLists.id, this.list.id),
-            eq(bookmarkLists.userId, this.ctx.user.id),
-          ),
-        )
-        .run();
-      if (res.changes == 0) {
-        throw new TRPCError({ code: "NOT_FOUND" });
-      }
-      this.cleanupRulesAfterListDeletion(tx);
-    });
+    // Capture memberships before the list deletion cascades remove them.
+    await historyTransaction(
+      this.ctx,
+      (tx) => listHistoryIds(tx, [this.list.id]),
+      (tx) => {
+        const res = tx
+          .delete(bookmarkLists)
+          .where(
+            and(
+              eq(bookmarkLists.id, this.list.id),
+              eq(bookmarkLists.userId, this.ctx.user.id),
+            ),
+          )
+          .run();
+        if (res.changes == 0) {
+          throw new TRPCError({ code: "NOT_FOUND" });
+        }
+        this.cleanupRulesAfterListDeletion(tx);
+      },
+    );
   }
 
   async getChildren(): Promise<(ManualList | SmartList)[]> {
@@ -705,7 +711,10 @@ export abstract class List {
     this.ensureCanManage();
     // The ancestry check and the write share an immediate transaction so
     // that concurrent moves can't both pass the check and form a cycle.
-    const result = await this.ctx.db.transaction(
+    // The same transaction records name changes on the list's existing bookmarks.
+    const result = await historyTransaction(
+      this.ctx,
+      (tx) => listHistoryIds(tx, [this.list.id]),
       (tx) => {
         if (input.parentId) {
           List.ensureValidParent(
@@ -734,7 +743,6 @@ export abstract class List {
           .returning()
           .all();
       },
-      { behavior: "immediate" },
     );
     if (result.length == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
@@ -829,14 +837,21 @@ export abstract class List {
   async removeCollaborator(userId: string): Promise<void> {
     this.ensureCanManage();
 
-    const result = await this.ctx.db
-      .delete(listCollaborators)
-      .where(
-        and(
-          eq(listCollaborators.listId, this.list.id),
-          eq(listCollaborators.userId, userId),
-        ),
-      );
+    // Removing a collaborator also cascades away the memberships they contributed.
+    const result = historyTransaction(
+      this.ctx,
+      (tx) => listHistoryIds(tx, [this.list.id]),
+      (tx) =>
+        tx
+          .delete(listCollaborators)
+          .where(
+            and(
+              eq(listCollaborators.listId, this.list.id),
+              eq(listCollaborators.userId, userId),
+            ),
+          )
+          .run(),
+    );
 
     if (result.changes === 0) {
       throw new TRPCError({
@@ -860,14 +875,21 @@ export abstract class List {
       });
     }
 
-    const result = await this.ctx.db
-      .delete(listCollaborators)
-      .where(
-        and(
-          eq(listCollaborators.listId, this.list.id),
-          eq(listCollaborators.userId, this.ctx.user.id),
-        ),
-      );
+    // Leaving a shared list can remove contributed items through the membership FK.
+    const result = historyTransaction(
+      this.ctx,
+      (tx) => listHistoryIds(tx, [this.list.id]),
+      (tx) =>
+        tx
+          .delete(listCollaborators)
+          .where(
+            and(
+              eq(listCollaborators.listId, this.list.id),
+              eq(listCollaborators.userId, this.ctx.user.id),
+            ),
+          )
+          .run(),
+    );
 
     if (result.changes === 0) {
       throw new TRPCError({
@@ -1241,11 +1263,20 @@ export class ManualList extends List {
     this.ensureCanEdit();
 
     try {
-      await this.ctx.db.insert(bookmarksInLists).values({
-        listId: this.list.id,
-        bookmarkId,
-        listMembershipId: this.collaboratorEntry?.membershipId,
-      });
+      // Commit a new membership and its item-history entry together.
+      historyTransaction(
+        this.ctx,
+        () => [bookmarkId],
+        (tx) =>
+          tx
+            .insert(bookmarksInLists)
+            .values({
+              listId: this.list.id,
+              bookmarkId,
+              listMembershipId: this.collaboratorEntry?.membershipId,
+            })
+            .run(),
+      );
       const bookmark = await this.ctx.db.query.bookmarks.findFirst({
         where: eq(bookmarks.id, bookmarkId),
         columns: { userId: true },
@@ -1282,14 +1313,21 @@ export class ManualList extends List {
     // Check that the user can edit this list
     this.ensureCanEdit();
 
-    const deleted = await this.ctx.db
-      .delete(bookmarksInLists)
-      .where(
-        and(
-          eq(bookmarksInLists.listId, this.list.id),
-          eq(bookmarksInLists.bookmarkId, bookmarkId),
-        ),
-      );
+    // Snapshot before removal so the old list name remains available in history.
+    const deleted = historyTransaction(
+      this.ctx,
+      () => [bookmarkId],
+      (tx) =>
+        tx
+          .delete(bookmarksInLists)
+          .where(
+            and(
+              eq(bookmarksInLists.listId, this.list.id),
+              eq(bookmarksInLists.bookmarkId, bookmarkId),
+            ),
+          )
+          .run(),
+    );
     if (deleted.changes == 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -1341,36 +1379,41 @@ export class ManualList extends List {
 
     // Only move the caller's own bookmarks, like addToList does. Bookmarks
     // added by collaborators stay tied to their membership of the source list.
-    const ownedBookmarks = await this.ctx.db
-      .select({ id: bookmarksInLists.bookmarkId })
-      .from(bookmarksInLists)
-      .innerJoin(bookmarks, eq(bookmarks.id, bookmarksInLists.bookmarkId))
-      .where(
-        and(
-          eq(bookmarksInLists.listId, this.list.id),
-          eq(bookmarks.userId, this.ctx.user.id),
-        ),
-      );
-
-    await this.ctx.db.transaction((tx) => {
-      if (ownedBookmarks.length > 0) {
-        tx.insert(bookmarksInLists)
-          .values(
-            ownedBookmarks.map(({ id }) => ({
-              bookmarkId: id,
-              listId: targetList.id,
-            })),
+    // Capture source memberships before adding target links or deleting the source.
+    await historyTransaction(
+      this.ctx,
+      (tx) => listHistoryIds(tx, [this.list.id]),
+      (tx) => {
+        const ownedBookmarks = tx
+          .select({ id: bookmarksInLists.bookmarkId })
+          .from(bookmarksInLists)
+          .innerJoin(bookmarks, eq(bookmarks.id, bookmarksInLists.bookmarkId))
+          .where(
+            and(
+              eq(bookmarksInLists.listId, this.list.id),
+              eq(bookmarks.userId, this.ctx.user.id),
+            ),
           )
-          .onConflictDoNothing()
-          .run();
-      }
+          .all();
+        if (ownedBookmarks.length > 0) {
+          tx.insert(bookmarksInLists)
+            .values(
+              ownedBookmarks.map(({ id }) => ({
+                bookmarkId: id,
+                listId: targetList.id,
+              })),
+            )
+            .onConflictDoNothing()
+            .run();
+        }
 
-      if (deleteSourceAfterMerge) {
-        tx.delete(bookmarkLists)
-          .where(eq(bookmarkLists.id, this.list.id))
-          .run();
-        this.cleanupRulesAfterListDeletion(tx);
-      }
-    });
+        if (deleteSourceAfterMerge) {
+          tx.delete(bookmarkLists)
+            .where(eq(bookmarkLists.id, this.list.id))
+            .run();
+          this.cleanupRulesAfterListDeletion(tx);
+        }
+      },
+    );
   }
 }

@@ -1819,5 +1819,19 @@
     "go_back": "Wróć",
     "go_home": "Przejdź do strony głównej",
     "try_again": "Spróbuj ponownie"
+  },
+  "item_history": {
+    "title": "Historia zmian",
+    "retention": "Zmiany są dostępne przez 90 dni. Usuniętych plików nie można przywrócić.",
+    "loading": "Wczytywanie historii…",
+    "retry": "Spróbuj ponownie",
+    "deleted": "Usunięte elementy",
+    "changed": "Element zaktualizowany",
+    "empty": "Brak zmian w ciągu ostatnich 90 dni.",
+    "more": "Wczytaj więcej",
+    "actor_user": "Użytkownik",
+    "actor_system": "System",
+    "previous": "Poprzednia wartość",
+    "current": "Nowa wartość"
   }
 }

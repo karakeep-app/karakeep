@@ -1,3 +1,4 @@
+import { historyTransaction } from "../lib/bookmarkHistory";
 import { TRPCError } from "@trpc/server";
 import {
   and,
@@ -243,14 +244,38 @@ export class Asset {
       });
     }
 
-    const [updatedAsset] = await ctx.db
-      .update(assets)
-      .set({
-        assetType: mapSchemaAssetTypeToDB(input.asset.assetType),
-        bookmarkId: input.bookmarkId,
-      })
-      .where(and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)))
-      .returning();
+    // Attaching can move an existing file; capture both the source and target items.
+    const [updatedAsset] = historyTransaction(
+      ctx,
+      (tx) => {
+        const current = tx
+          .select()
+          .from(assets)
+          .where(eq(assets.id, input.asset.id))
+          .get();
+        if (!current || current.userId !== ctx.user.id)
+          throw new TRPCError({ code: "NOT_FOUND" });
+        return [
+          ...new Set(
+            [input.bookmarkId, current.bookmarkId].filter(
+              (id): id is string => !!id,
+            ),
+          ),
+        ];
+      },
+      (tx) =>
+        tx
+          .update(assets)
+          .set({
+            assetType: mapSchemaAssetTypeToDB(input.asset.assetType),
+            bookmarkId: input.bookmarkId,
+          })
+          .where(
+            and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)),
+          )
+          .returning()
+          .all(),
+    );
 
     return {
       id: updatedAsset.id,
@@ -287,16 +312,58 @@ export class Asset {
       });
     }
 
-    await ctx.db.transaction((tx) => {
-      tx.delete(assets).where(eq(assets.id, input.oldAssetId)).run();
-      tx.update(assets)
-        .set({
-          bookmarkId: input.bookmarkId,
-          assetType: oldAsset.asset.assetType,
-        })
-        .where(eq(assets.id, input.newAssetId))
-        .run();
-    });
+    if (oldAsset.asset.bookmarkId !== input.bookmarkId)
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Asset does not belong to bookmark",
+      });
+    // Replacing a file with itself must not delete its row or its stored bytes.
+    if (input.oldAssetId === input.newAssetId) return;
+    await historyTransaction(
+      ctx,
+      (tx) => {
+        // Recheck associations under the write lock: the preflight asset reads
+        // may be stale if another request moved or deleted either attachment.
+        const old = tx
+          .select()
+          .from(assets)
+          .where(eq(assets.id, input.oldAssetId))
+          .get();
+        const next = tx
+          .select()
+          .from(assets)
+          .where(eq(assets.id, input.newAssetId))
+          .get();
+        if (!old || !next || old.bookmarkId !== input.bookmarkId)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Asset does not belong to bookmark",
+          });
+        return [
+          ...new Set(
+            [input.bookmarkId, next.bookmarkId].filter(
+              (id): id is string => !!id,
+            ),
+          ),
+        ];
+      },
+      (tx) => {
+        const current = tx
+          .select()
+          .from(assets)
+          .where(eq(assets.id, input.oldAssetId))
+          .get();
+        if (!current) throw new TRPCError({ code: "NOT_FOUND" });
+        tx.delete(assets).where(eq(assets.id, input.oldAssetId)).run();
+        tx.update(assets)
+          .set({
+            bookmarkId: input.bookmarkId,
+            assetType: current.assetType,
+          })
+          .where(eq(assets.id, input.newAssetId))
+          .run();
+      },
+    );
 
     await deleteAsset({
       userId: ctx.user.id,
@@ -325,14 +392,21 @@ export class Asset {
       });
     }
 
-    const result = await ctx.db
-      .delete(assets)
-      .where(
-        and(
-          eq(assets.id, input.assetId),
-          eq(assets.bookmarkId, input.bookmarkId),
-        ),
-      );
+    // Persist the relationship removal before deleting bytes outside the transaction.
+    const result = historyTransaction(
+      ctx,
+      () => [input.bookmarkId],
+      (tx) =>
+        tx
+          .delete(assets)
+          .where(
+            and(
+              eq(assets.id, input.assetId),
+              eq(assets.bookmarkId, input.bookmarkId),
+            ),
+          )
+          .run(),
+    );
     if (result.changes == 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }

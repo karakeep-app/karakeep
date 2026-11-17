@@ -1759,5 +1759,19 @@
     "go_back": "返回",
     "go_home": "返回主页",
     "try_again": "重试"
+  },
+  "item_history": {
+    "title": "更改历史",
+    "retention": "更改记录保留90天。已删除的文件无法恢复。",
+    "loading": "正在加载历史记录…",
+    "retry": "重试",
+    "deleted": "已删除的项目",
+    "changed": "项目已更新",
+    "empty": "过去90天内没有更改。",
+    "more": "加载更多",
+    "actor_user": "用户",
+    "actor_system": "系统",
+    "previous": "原值",
+    "current": "新值"
   }
 }
