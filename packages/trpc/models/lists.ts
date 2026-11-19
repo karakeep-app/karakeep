@@ -1,6 +1,16 @@
 import crypto from "node:crypto";
 import { TRPCError } from "@trpc/server";
-import { and, count, desc, eq, inArray, or, SQL, sql } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  or,
+  SQL,
+  sql,
+} from "drizzle-orm";
 import invariant from "tiny-invariant";
 import { z } from "zod";
 
@@ -366,7 +376,13 @@ export abstract class List {
               size: count(),
             })
             .from(bookmarksInLists)
-            .where(inArray(bookmarksInLists.listId, manualListIds))
+            .innerJoin(bookmarks, eq(bookmarks.id, bookmarksInLists.bookmarkId))
+            .where(
+              and(
+                inArray(bookmarksInLists.listId, manualListIds),
+                isNull(bookmarks.deleteAt),
+              ),
+            )
             .groupBy(bookmarksInLists.listId)
         : Promise.resolve([]),
       Promise.all(
@@ -1153,6 +1169,7 @@ export class SmartList extends List {
       .where(
         and(
           eq(bookmarks.userId, this.ctx.user.id),
+          isNull(bookmarks.deleteAt),
           await this.getBookmarksCondition(),
         ),
       );
@@ -1166,6 +1183,7 @@ export class SmartList extends List {
       .where(
         and(
           eq(bookmarks.userId, this.ctx.user.id),
+          isNull(bookmarks.deleteAt),
           await this.getBookmarksCondition(),
         ),
       );
@@ -1233,7 +1251,13 @@ export class ManualList extends List {
     const results = await this.ctx.db
       .select({ count: count() })
       .from(bookmarksInLists)
-      .where(eq(bookmarksInLists.listId, this.list.id));
+      .innerJoin(bookmarks, eq(bookmarks.id, bookmarksInLists.bookmarkId))
+      .where(
+        and(
+          eq(bookmarksInLists.listId, this.list.id),
+          isNull(bookmarks.deleteAt),
+        ),
+      );
     return results[0].count;
   }
 

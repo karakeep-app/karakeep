@@ -66,6 +66,7 @@ export default function BulkBookmarksAction() {
   const {
     updateBookmarkMutator,
     deleteBookmarkMutator,
+    permanentlyDeleteBookmarkMutator,
     recrawlBookmarkMutator,
     removeBookmarkFromListMutator,
     updateSelectedBookmarks,
@@ -316,6 +317,9 @@ export default function BulkBookmarksAction() {
     </div>
   );
 
+  // Bookmarks that are already in the trash get deleted permanently
+  const isPermanentDelete = selectedBookmarks.some((b) => b.deleteAt);
+
   const isModalOpen =
     isDeleteDialogOpen ||
     isRemoveFromListDialogOpen ||
@@ -346,15 +350,26 @@ export default function BulkBookmarksAction() {
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}
         title={t("dialogs.bookmarks.bulk_delete_title")}
-        description={<BulkDeleteDescription bookmarks={selectedBookmarks} />}
+        description={
+          isPermanentDelete ? (
+            <BulkDeleteDescription bookmarks={selectedBookmarks} />
+          ) : (
+            <p>Are you sure you want to delete these bookmarks?</p>
+          )
+        }
         actionButton={() => (
           <ActionButton
             type="button"
             variant="destructive"
-            loading={deleteBookmarkMutator.isPending}
+            loading={
+              deleteBookmarkMutator.isPending ||
+              permanentlyDeleteBookmarkMutator.isPending
+            }
             onClick={() => deleteBookmarks()}
           >
-            {t("actions.delete")}
+            {isPermanentDelete
+              ? t("actions.delete_permanently")
+              : t("actions.delete")}
           </ActionButton>
         )}
       />

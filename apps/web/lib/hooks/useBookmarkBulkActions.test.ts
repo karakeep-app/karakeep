@@ -8,6 +8,7 @@ import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 const mutators = vi.hoisted(() => ({
   updateMutateAsync: vi.fn(),
   deleteMutateAsync: vi.fn(),
+  permanentlyDeleteMutateAsync: vi.fn(),
   recrawlMutateAsync: vi.fn(),
   removeFromListMutateAsync: vi.fn(),
 }));
@@ -19,6 +20,10 @@ vi.mock("@karakeep/shared-react/hooks/bookmarks", () => ({
   }),
   useDeleteBookmark: () => ({
     mutateAsync: mutators.deleteMutateAsync,
+    isPending: false,
+  }),
+  usePermanentlyDeleteBookmark: () => ({
+    mutateAsync: mutators.permanentlyDeleteMutateAsync,
     isPending: false,
   }),
   useRecrawlBookmark: () => ({
@@ -56,6 +61,7 @@ describe("useBookmarkBulkMutations", () => {
       Promise.resolve({ id: input.bookmarkId }),
     );
     mutators.deleteMutateAsync.mockResolvedValue({});
+    mutators.permanentlyDeleteMutateAsync.mockResolvedValue({});
     mutators.recrawlMutateAsync.mockResolvedValue({});
     mutators.removeFromListMutateAsync.mockResolvedValue({});
   });
@@ -146,6 +152,26 @@ describe("useBookmarkBulkMutations", () => {
       "fulfilled",
       "rejected",
     ]);
+  });
+
+  it("permanently deletes bookmarks that are already in the trash", async () => {
+    const trashed = { ...bookmark("b"), deleteAt: new Date() };
+    const { result } = renderHook(() =>
+      useBookmarkBulkMutations({ selectedBookmarks: [bookmark("a"), trashed] }),
+    );
+
+    await act(async () => {
+      await result.current.deleteSelectedBookmarks();
+    });
+
+    expect(mutators.deleteMutateAsync).toHaveBeenCalledTimes(1);
+    expect(mutators.deleteMutateAsync).toHaveBeenCalledWith({
+      bookmarkId: "a",
+    });
+    expect(mutators.permanentlyDeleteMutateAsync).toHaveBeenCalledTimes(1);
+    expect(mutators.permanentlyDeleteMutateAsync).toHaveBeenCalledWith({
+      bookmarkId: "b",
+    });
   });
 
   it("recrawls only selected link bookmarks", async () => {

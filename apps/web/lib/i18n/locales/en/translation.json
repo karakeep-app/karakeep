@@ -35,6 +35,7 @@
     "pdf": "Saved PDF",
     "video": "Video",
     "archive": "Archive",
+    "trash": "Trash",
     "home": "Home",
     "title": "Title",
     "description": "Description",
@@ -108,6 +109,9 @@
     "favorite": "Favourite",
     "unfavorite": "Unfavourite",
     "delete": "Delete",
+    "delete_permanently": "Delete permanently",
+    "restore": "Restore",
+    "undo": "Undo",
     "toggle_show_archived": "Show archived",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
@@ -1564,8 +1568,13 @@
       "bulk_tags_none": "None of these bookmarks have tags yet.",
       "bulk_tag_count": "{{count}} of {{total}}",
       "bulk_tag_add_to_all": "Add {{name}} to all",
-      "bulk_edit_tags_title": "Edit tags of {{count}} bookmarks"
+      "bulk_edit_tags_title": "Edit tags of {{count}} bookmarks",
+      "permanent_delete_confirmation_description": "This bookmark will be permanently deleted. This can't be undone.",
+      "bulk_permanent_delete_confirmation_description": "{{count}} bookmarks will be permanently deleted. This can't be undone."
     }
+  },
+  "trash": {
+    "retention": "Bookmarks in the trash are permanently deleted after {{days}} days."
   },
   "toasts": {
     "highlights": {
@@ -1589,6 +1598,7 @@
       "clipboard_copied": "Link copied",
       "clipboard_failed": "Couldn't copy the link",
       "archived": "Bookmark archived",
+      "moved_to_trash": "Bookmark moved to the trash",
       "restored": "Bookmark restored",
       "note_updated": "Note updated",
       "bulk_added_to_list_one": "{{count}} bookmark added to the list",

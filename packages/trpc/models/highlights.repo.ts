@@ -1,5 +1,14 @@
 import type { SQL } from "drizzle-orm";
-import { and, desc, eq, like, or, sql } from "drizzle-orm";
+import {
+  and,
+  desc,
+  eq,
+  isNotNull,
+  like,
+  notInArray,
+  or,
+  sql,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import type { DB } from "@karakeep/db";
@@ -29,6 +38,16 @@ interface HighlightsPage {
 
 export class HighlightsRepo {
   constructor(private db: DB) {}
+
+  private notInTrash() {
+    return notInArray(
+      highlights.bookmarkId,
+      this.db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(isNotNull(bookmarks.deleteAt)),
+    );
+  }
 
   async get(id: string): Promise<Highlight | null> {
     const highlight = await this.db.query.highlights.findFirst({
@@ -75,6 +94,7 @@ export class HighlightsRepo {
     return await this.findPage(
       and(
         eq(highlights.userId, userId),
+        this.notInTrash(),
         color ? eq(highlights.color, color) : undefined,
       ),
       cursor,
@@ -93,6 +113,7 @@ export class HighlightsRepo {
     return await this.findPage(
       and(
         eq(highlights.userId, userId),
+        this.notInTrash(),
         color ? eq(highlights.color, color) : undefined,
         or(
           like(highlights.text, searchPattern),
