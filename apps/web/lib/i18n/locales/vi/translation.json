@@ -73,7 +73,11 @@
     "replace_banner": "Thay banner",
     "add_banner": "Thêm banner",
     "download": "Tải xuống",
-    "rename": "Đổi tên"
+    "rename": "Đổi tên",
+    "recrawl_in_light_theme": "Quét lại với giao diện sáng",
+    "recrawl_in_dark_theme": "Quét lại với giao diện tối",
+    "preserve_as_screen_pdf": "Lưu giữ dưới dạng PDF màn hình",
+    "download_screen_pdf_file": "Tải File PDF Màn Hình"
   },
   "layouts": {
     "list": "Danh sách",
@@ -288,7 +292,8 @@
             "label": "Quản trị: các gói đăng ký",
             "description": "Quản lý các cấp độ đăng ký của người dùng."
           }
-        }
+        },
+        "scope_details": "Chi tiết phạm vi {{scope}}"
       },
       "no_keys": "Chưa có khóa API nào",
       "page_description": "Cho phép các ứng dụng và script khác sử dụng tài khoản của bạn.",
@@ -379,6 +384,13 @@
           "title": "Dấu trang đã lưu trữ",
           "show": "Hiện trong thẻ và danh sách",
           "hide": "Ẩn trong thẻ và danh sách"
+        },
+        "crawler_color_scheme": {
+          "title": "Bảng màu trình thu thập dữ liệu",
+          "server_default": "Mặc định của máy chủ",
+          "system": "Hệ thống",
+          "light": "Sáng",
+          "dark": "Tối"
         }
       },
       "reader_settings": {
@@ -590,7 +602,15 @@
         "lists": "Danh sách",
         "highlights": "Điểm nổi bật",
         "storage_used": "Dung lượng đã dùng",
-        "bookmarks_added": "Đã thêm dấu trang"
+        "bookmarks_added": "Đã thêm dấu trang",
+        "all_saved_items": "Tất cả các mục đã lưu",
+        "starred_bookmarks": "Các dấu trang đã gắn dấu sao",
+        "archived_items": "Các mục đã lưu trữ",
+        "unique_tags_created": "Đã tạo các thẻ duy nhất",
+        "bookmark_collections": "Bộ sưu tập dấu trang",
+        "text_highlights": "Đánh dấu văn bản",
+        "total_asset_storage": "Tổng dung lượng lưu trữ tài sản",
+        "this_month": "Tháng này"
       },
       "bookmark_types": {
         "title": "Loại dấu trang",
@@ -601,7 +621,11 @@
       "recent_activity": {
         "period": "Khoảng thời gian",
         "days": "{{count}} ngày",
-        "days_short": "{{count}} ngày"
+        "days_short": "{{count}} ngày",
+        "title": "Hoạt động gần đây",
+        "this_week": "Tuần này",
+        "this_month": "Tháng này",
+        "this_year": "Năm nay"
       },
       "top_domains": {
         "title": "Tên miền hàng đầu",
@@ -754,7 +778,8 @@
           "weekly": "Hàng tuần"
         },
         "select_frequency": "Chọn tần suất",
-        "save_settings": "Lưu thay đổi"
+        "save_settings": "Lưu thay đổi",
+        "enable_automatic_backups_description": "Tự động tạo bản sao lưu dấu trang của bạn"
       },
       "list": {
         "title": "Các bản sao lưu của bạn",
@@ -776,7 +801,8 @@
           "download_backup": "Tải xuống bản sao lưu",
           "delete_backup": "Xóa bản sao lưu"
         },
-        "no_backups_title": "Chưa có bản sao lưu nào"
+        "no_backups_title": "Chưa có bản sao lưu nào",
+        "no_backups": "Bạn chưa có bản sao lưu nào. Bật sao lưu tự động hoặc tạo thủ công."
       },
       "dialogs": {
         "delete_backup_title": "Xóa bản sao lưu",
@@ -1057,7 +1083,8 @@
     "pdf": "PDF đã lưu",
     "default": "Mặc định",
     "id": "ID",
-    "last_used": "Lần cuối sử dụng"
+    "last_used": "Lần cuối sử dụng",
+    "screen_pdf": "PDF màn hình"
   },
   "form_errors": {
     "required": "Trường này là bắt buộc",
@@ -1500,7 +1527,8 @@
       "preserve_pdf": "Đang lưu bản PDF",
       "preserve_video": "Đã đưa yêu cầu tải video vào hàng đợi",
       "update_banner": "Đã cập nhật banner",
-      "uploading_banner": "Đang tải banner lên..."
+      "uploading_banner": "Đang tải banner lên...",
+      "preserve_screen_pdf": "Đã kích hoạt lưu giữ PDF màn hình"
     },
     "lists": {
       "created": "Đã tạo danh sách",
@@ -1553,6 +1581,7 @@
     },
     "saved_copies": {
       "no_pdf": "Chưa có PDF — Lưu ngay",
+      "no_screen_pdf": "Chưa có PDF màn hình — Lưu ngay",
       "no_archive": "Chưa có trang đã lưu — Lưu ngay",
       "no_video": "Chưa có video — Lưu ngay"
     },
@@ -1590,6 +1619,7 @@
       "types": {
         "screenshot": "Ảnh chụp màn hình",
         "pdf": "PDF đã lưu",
+        "screenPdf": "PDF màn hình",
         "assetScreenshot": "Ảnh xem trước",
         "fullPageArchive": "Trang đã lưu",
         "precrawledArchive": "Trang đã lưu được nhập",

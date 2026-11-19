@@ -52,7 +52,8 @@
     "pdf": "Tallennettu PDF",
     "default": "Oletus",
     "id": "Tunnus",
-    "last_used": "Viimeksi käytetty"
+    "last_used": "Viimeksi käytetty",
+    "screen_pdf": "Näyttö-PDF"
   },
   "form_errors": {
     "required": "Tämä kenttä on pakollinen",
@@ -148,7 +149,11 @@
     "replace_banner": "Korvaa banneri",
     "add_banner": "Lisää banneri",
     "download": "Lataa",
-    "rename": "Nimeä uudelleen"
+    "rename": "Nimeä uudelleen",
+    "recrawl_in_light_theme": "Uudelleenindeksoi vaaleassa tilassa",
+    "recrawl_in_dark_theme": "Uudelleenindeksoi tummassa tilassa",
+    "preserve_as_screen_pdf": "Säilytä näyttö-PDF-muodossa",
+    "download_screen_pdf_file": "Lataa näyttö-PDF-tiedosto"
   },
   "highlights": {
     "no_highlights": "Sinulla ei ole vielä yhtään korostusta.",
@@ -205,6 +210,13 @@
           "title": "Arkistoidut kirjanmerkit",
           "show": "Näytä tunnisteissa ja listoissa",
           "hide": "Piilota tunnisteista ja listoista"
+        },
+        "crawler_color_scheme": {
+          "title": "Indeksoinnin väriteema",
+          "server_default": "Palvelimen oletus",
+          "system": "Järjestelmä",
+          "light": "Vaalea",
+          "dark": "Tumma"
         }
       },
       "reader_settings": {
@@ -515,7 +527,8 @@
             "label": "Ylläpito: tilaukset",
             "description": "Hallinnoi käyttäjien tilaustasoja."
           }
-        }
+        },
+        "scope_details": "{{scope}}-käyttöalueen tiedot"
       },
       "no_keys": "Ei vielä API-avaimia",
       "page_description": "Anna muiden sovellusten ja skriptien käyttää tiliäsi.",
@@ -683,7 +696,15 @@
         "lists": "Listat",
         "highlights": "Kohokohdat",
         "storage_used": "Käytetty tallennustila",
-        "bookmarks_added": "Kirjanmerkit lisätty"
+        "bookmarks_added": "Kirjanmerkit lisätty",
+        "all_saved_items": "Kaikki tallennetut kohteet",
+        "starred_bookmarks": "Tähdellä merkityt kirjanmerkit",
+        "archived_items": "Arkistoidut kohteet",
+        "unique_tags_created": "Luotuja yksilöllisiä tunnisteita",
+        "bookmark_collections": "Kirjanmerkkikokoelmat",
+        "text_highlights": "Tekstin korostukset",
+        "total_asset_storage": "Omaisuuden kokonaistallennustila",
+        "this_month": "Tässä kuussa"
       },
       "bookmark_types": {
         "title": "Kirjanmerkkityypit",
@@ -694,7 +715,11 @@
       "recent_activity": {
         "period": "Ajanjakso",
         "days": "{{count}} päivää",
-        "days_short": "{{count}} pv"
+        "days_short": "{{count}} pv",
+        "title": "Viimeaikainen aktiivisuus",
+        "this_week": "Tällä viikolla",
+        "this_month": "Tässä kuussa",
+        "this_year": "Tänä vuonna"
       },
       "top_domains": {
         "title": "Suosituimmat verkkotunnukset",
@@ -848,7 +873,8 @@
           "weekly": "Viikoittain"
         },
         "select_frequency": "Valitse tiheys",
-        "save_settings": "Tallenna muutokset"
+        "save_settings": "Tallenna muutokset",
+        "enable_automatic_backups_description": "Luo kirjanmerkeistäsi automaattisesti varmuuskopiot"
       },
       "list": {
         "title": "Varmuuskopiosi",
@@ -870,7 +896,8 @@
           "download_backup": "Lataa varmuuskopio",
           "delete_backup": "Poista varmuuskopio"
         },
-        "no_backups_title": "Ei vielä varmuuskopioita"
+        "no_backups_title": "Ei vielä varmuuskopioita",
+        "no_backups": "Sinulla ei ole vielä varmuuskopioita. Ota automaattiset varmuuskopiot käyttöön tai luo sellainen manuaalisesti."
       },
       "dialogs": {
         "delete_backup_title": "Poista varmuuskopio",
@@ -1412,6 +1439,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ei vielä PDF:ää — Tallenna",
+      "no_screen_pdf": "Ei vielä Näyttö-PDF:ää — Tallenna",
       "no_archive": "Ei vielä tallennettua sivua — Tallenna",
       "no_video": "Ei vielä videota — Tallenna"
     },
@@ -1449,6 +1477,7 @@
       "types": {
         "screenshot": "Kuvakaappaus",
         "pdf": "Tallennettu PDF",
+        "screenPdf": "Näyttö-PDF",
         "assetScreenshot": "Esikatselukuva",
         "fullPageArchive": "Tallennettu sivu",
         "precrawledArchive": "Tuotu tallennettu sivu",
@@ -1585,7 +1614,8 @@
       "preserve_pdf": "Tallennetaan PDF:ää",
       "preserve_video": "Videon lataus lisätty jonoon",
       "update_banner": "Banneri päivitetty",
-      "uploading_banner": "Ladataan banneria..."
+      "uploading_banner": "Ladataan banneria...",
+      "preserve_screen_pdf": "Näyttö-PDF:nä säilytys on käynnistetty"
     },
     "lists": {
       "created": "Lista luotu",

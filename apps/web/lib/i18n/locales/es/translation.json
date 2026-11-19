@@ -52,7 +52,8 @@
     "pdf": "PDF guardado",
     "default": "Predeterminado",
     "id": "ID",
-    "last_used": "Último uso"
+    "last_used": "Último uso",
+    "screen_pdf": "PDF de pantalla"
   },
   "form_errors": {
     "required": "Este campo es obligatorio",
@@ -106,6 +107,13 @@
           "title": "Marcadores archivados",
           "show": "Mostrar en etiquetas y listas",
           "hide": "Ocultar en etiquetas y listas"
+        },
+        "crawler_color_scheme": {
+          "title": "Esquema de colores del rastreador",
+          "server_default": "Predeterminado del servidor",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Oscuro"
         }
       },
       "reader_settings": {
@@ -384,7 +392,8 @@
             "label": "Administrador: suscripciones",
             "description": "Gestionar los niveles de suscripción de los usuarios."
           }
-        }
+        },
+        "scope_details": "Detalles del ámbito {{scope}}"
       },
       "no_keys": "Aún no hay claves de API",
       "page_description": "Permite que otras aplicaciones y scripts usen tu cuenta.",
@@ -592,7 +601,15 @@
         "lists": "Listas",
         "highlights": "Resaltados",
         "storage_used": "Almacenamiento utilizado",
-        "bookmarks_added": "Marcadores añadidos"
+        "bookmarks_added": "Marcadores añadidos",
+        "all_saved_items": "Todos los elementos guardados",
+        "starred_bookmarks": "Marcadores destacados",
+        "archived_items": "Elementos archivados",
+        "unique_tags_created": "Etiquetas únicas creadas",
+        "bookmark_collections": "Colecciones de marcadores",
+        "text_highlights": "Resaltados de texto",
+        "total_asset_storage": "Almacenamiento total de activos",
+        "this_month": "Este mes"
       },
       "bookmark_types": {
         "title": "Tipos de marcadores",
@@ -603,7 +620,11 @@
       "recent_activity": {
         "period": "Periodo",
         "days": "{{count}} días",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Actividad reciente",
+        "this_week": "Esta semana",
+        "this_month": "Este mes",
+        "this_year": "Este año"
       },
       "top_domains": {
         "title": "Dominios principales",
@@ -758,7 +779,8 @@
           "weekly": "Semanalmente"
         },
         "select_frequency": "Seleccionar frecuencia",
-        "save_settings": "Guardar cambios"
+        "save_settings": "Guardar cambios",
+        "enable_automatic_backups_description": "Crear automáticamente copias de seguridad de tus marcadores"
       },
       "list": {
         "title": "Tus copias de seguridad",
@@ -780,7 +802,8 @@
           "download_backup": "Descargar copia de seguridad",
           "delete_backup": "Eliminar copia de seguridad"
         },
-        "no_backups_title": "Aún no hay copias de seguridad"
+        "no_backups_title": "Aún no hay copias de seguridad",
+        "no_backups": "Aún no tienes ninguna copia de seguridad. Activa las copias de seguridad automáticas o crea una manualmente."
       },
       "dialogs": {
         "delete_backup_title": "Eliminar copia de seguridad",
@@ -908,7 +931,11 @@
     "replace_banner": "Reemplazar portada",
     "add_banner": "Añadir portada",
     "download": "Descargar",
-    "rename": "Cambiar nombre"
+    "rename": "Cambiar nombre",
+    "recrawl_in_light_theme": "Volver a crawlear en tema claro",
+    "recrawl_in_dark_theme": "Volver a crawlear en tema oscuro",
+    "preserve_as_screen_pdf": "Conservar como PDF de pantalla",
+    "download_screen_pdf_file": "Descargar archivo PDF de pantalla"
   },
   "layouts": {
     "compact": "Compacto",
@@ -1335,6 +1362,7 @@
     },
     "saved_copies": {
       "no_pdf": "Aún no hay PDF — Guarda uno",
+      "no_screen_pdf": "Aún no hay PDF de pantalla — Guarda uno",
       "no_archive": "Aún no hay página guardada — Guarda una",
       "no_video": "Aún no hay vídeo — Guarda uno"
     },
@@ -1372,6 +1400,7 @@
       "types": {
         "screenshot": "Captura de pantalla",
         "pdf": "PDF guardado",
+        "screenPdf": "PDF de pantalla",
         "assetScreenshot": "Imagen de vista previa",
         "fullPageArchive": "Página guardada",
         "precrawledArchive": "Página guardada importada",
@@ -1493,7 +1522,8 @@
       "preserve_pdf": "Guardando un PDF",
       "preserve_video": "Descarga del vídeo en cola",
       "update_banner": "Portada actualizada",
-      "uploading_banner": "Subiendo banner..."
+      "uploading_banner": "Subiendo banner...",
+      "preserve_screen_pdf": "Se ha activado la preservación del PDF de pantalla"
     },
     "lists": {
       "created": "Lista creada",

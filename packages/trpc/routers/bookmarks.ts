@@ -841,6 +841,8 @@ export const bookmarksAppRouter = router({
         bookmarkId: z.string(),
         archiveFullPage: z.boolean().optional().default(false),
         storePdf: z.boolean().optional().default(false),
+        storeScreenPdf: z.boolean().optional().default(false),
+        colorScheme: z.enum(["system", "light", "dark"]).optional(),
       }),
     )
     .use(ensureBookmarkOwnership)
@@ -849,6 +851,8 @@ export const bookmarksAppRouter = router({
         bookmarkId: input.bookmarkId,
         archiveFullPage: input.archiveFullPage,
         storePdf: input.storePdf,
+        storeScreenPdf: input.storeScreenPdf,
+        colorScheme: input.colorScheme,
       };
       await LowPriorityCrawlerQueue.enqueue(payload, {
         groupId: ctx.user.id,
@@ -868,8 +872,9 @@ export const bookmarksAppRouter = router({
           .run();
       });
     }),
-  // Captures an offline copy (a PDF or a full-page archive) of a link without
-  // recrawling it: the bookmark's content, metadata and crawl status are kept.
+  // Captures an offline copy (a PDF, a Screen PDF or a full-page archive) of a
+  // link without recrawling it: the bookmark's content, metadata and crawl
+  // status are kept.
   preserveOfflineCopy: bookmarksProcedure
     .use(
       createRateLimitMiddleware({
@@ -881,7 +886,7 @@ export const bookmarksAppRouter = router({
     .input(
       z.object({
         bookmarkId: z.string(),
-        kind: z.enum(["fullPageArchive", "pdf"]),
+        kind: z.enum(["fullPageArchive", "pdf", "screenPdf"]),
       }),
     )
     .use(ensureBookmarkOwnership)
@@ -900,6 +905,7 @@ export const bookmarksAppRouter = router({
         bookmarkId: input.bookmarkId,
         archiveFullPage: input.kind === "fullPageArchive",
         storePdf: input.kind === "pdf",
+        storeScreenPdf: input.kind === "screenPdf",
         offlineCopiesOnly: true,
       };
       await LowPriorityCrawlerQueue.enqueue(payload, {

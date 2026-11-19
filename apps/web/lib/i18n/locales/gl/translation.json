@@ -52,7 +52,8 @@
     "pdf": "PDF gardado",
     "default": "Predeterminado",
     "id": "ID",
-    "last_used": "Último uso"
+    "last_used": "Último uso",
+    "screen_pdf": "PDF de pantalla"
   },
   "form_errors": {
     "required": "Este campo é obrigatorio",
@@ -142,7 +143,11 @@
     "replace_banner": "Substituír o banner",
     "add_banner": "Engadir banner",
     "download": "Descargar",
-    "rename": "Renomear"
+    "rename": "Renomear",
+    "recrawl_in_light_theme": "Volver a facer un crawl no tema claro",
+    "recrawl_in_dark_theme": "Volver a facer un crawl no tema escuro",
+    "preserve_as_screen_pdf": "Gardar como PDF de pantalla",
+    "download_screen_pdf_file": "Descargar ficheiro PDF de pantalla"
   },
   "tags": {
     "drag_and_drop_merging_info": "Arrastra e solta etiquetas sobre outras para fusionalas.",
@@ -211,7 +216,8 @@
       "preserve_pdf": "Gardando un PDF",
       "preserve_video": "Descarga do vídeo en cola",
       "update_banner": "Banner actualizado",
-      "uploading_banner": "Cargando o banner..."
+      "uploading_banner": "Cargando o banner...",
+      "preserve_screen_pdf": "Activouse a preservación do PDF de pantalla"
     },
     "lists": {
       "updated": "Lista actualizada",
@@ -331,6 +337,13 @@
           "title": "Marcadores arquivados",
           "show": "Mostrar en etiquetas e listas",
           "hide": "Ocultar en etiquetas e listas"
+        },
+        "crawler_color_scheme": {
+          "title": "Esquema de cores do rastreador",
+          "server_default": "Predeterminado do servidor",
+          "system": "Sistema",
+          "light": "Claro",
+          "dark": "Escuro"
         }
       },
       "reader_settings": {
@@ -572,7 +585,8 @@
             "label": "Admin: subscricións",
             "description": "Xestionar os niveis de subscrición dos usuarios."
           }
-        }
+        },
+        "scope_details": "Detalles do ámbito {{scope}}"
       },
       "no_keys": "Aínda non hai chaves API",
       "page_description": "Permite que outras aplicacións e scripts usen a túa conta.",
@@ -775,7 +789,15 @@
         "lists": "Listas",
         "highlights": "Destacados",
         "storage_used": "Almacenamento usado",
-        "bookmarks_added": "Marcadores engadidos"
+        "bookmarks_added": "Marcadores engadidos",
+        "all_saved_items": "Todos os elementos gardados",
+        "starred_bookmarks": "Marcadores destacados",
+        "archived_items": "Elementos arquivados",
+        "unique_tags_created": "Etiquetas únicas creadas",
+        "bookmark_collections": "Coleccións de marcadores",
+        "text_highlights": "Resaltados de texto",
+        "total_asset_storage": "Almacenamento total de recursos",
+        "this_month": "Este mes"
       },
       "bookmark_types": {
         "title": "Tipos de marcadores",
@@ -786,7 +808,11 @@
       "recent_activity": {
         "period": "Período",
         "days": "{{count}} días",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Actividade recente",
+        "this_week": "Esta semana",
+        "this_month": "Este mes",
+        "this_year": "Este ano"
       },
       "top_domains": {
         "title": "Dominios principais",
@@ -940,7 +966,8 @@
           "weekly": "Semanalmente"
         },
         "select_frequency": "Selecciona a frecuencia",
-        "save_settings": "Gardar os cambios"
+        "save_settings": "Gardar os cambios",
+        "enable_automatic_backups_description": "Crear automaticamente copias de seguridade dos teus marcadores"
       },
       "list": {
         "title": "As túas copias de seguridade",
@@ -962,7 +989,8 @@
           "download_backup": "Descargar a copia de seguridade",
           "delete_backup": "Eliminar a copia de seguridade"
         },
-        "no_backups_title": "Aínda non hai copias de seguridade"
+        "no_backups_title": "Aínda non hai copias de seguridade",
+        "no_backups": "Aínda non tes ningunha copia de seguridade. Activa as copias de seguridade automáticas ou crea unha manualmente."
       },
       "dialogs": {
         "delete_backup_title": "Eliminar a copia de seguridade",
@@ -1413,6 +1441,7 @@
     },
     "saved_copies": {
       "no_pdf": "Aínda non hai PDF — Garda un",
+      "no_screen_pdf": "Aínda non hai PDF de pantalla — Garda un",
       "no_archive": "Aínda non hai páxina gardada — Garda unha",
       "no_video": "Aínda non hai vídeo — Garda un"
     },
@@ -1450,6 +1479,7 @@
       "types": {
         "screenshot": "Captura de pantalla",
         "pdf": "PDF gardado",
+        "screenPdf": "PDF de pantalla",
         "assetScreenshot": "Imaxe de vista previa",
         "fullPageArchive": "Páxina gardada",
         "precrawledArchive": "Páxina gardada importada",

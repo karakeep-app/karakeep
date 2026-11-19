@@ -7,6 +7,7 @@
 import type { RunProxyConfig } from "../../network";
 
 import { getTracer, withSpan } from "@karakeep/shared-server";
+import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 import type { ParseSubprocessOutput } from "../utils/parseHtmlSubprocessIpc";
@@ -46,6 +47,8 @@ export interface CrawlContext {
    * are fetched over plain HTTP instead of with the browser.
    */
   browserCrawlingEnabled: boolean;
+  /** Color scheme emulated in the crawler browser for this run. */
+  colorScheme: "system" | "light" | "dark";
   log: CrawlLogger;
 }
 
@@ -75,6 +78,7 @@ export interface CrawlPageResult {
   htmlContent: string;
   screenshot: Buffer | undefined;
   pdf: Buffer | undefined;
+  screenPdf: Buffer | undefined;
   statusCode: number;
   url: string;
 }
@@ -87,6 +91,8 @@ export const CAPTURED_ASSETS = {
     // Must match the format capturePageAssets takes the screenshot in.
     contentType: "image/jpeg",
     fileName: "screenshot.jpeg",
+    timeoutSec: () => serverConfig.crawler.screenshotTimeoutSec,
+    timeoutEnvVar: "CRAWLER_SCREENSHOT_TIMEOUT_SEC",
   },
   pdf: {
     captureSpanName: "crawlPage.capturePdf",
@@ -94,11 +100,23 @@ export const CAPTURED_ASSETS = {
     label: "PDF",
     contentType: "application/pdf",
     fileName: "page.pdf",
+    timeoutSec: () => serverConfig.crawler.screenshotTimeoutSec,
+    timeoutEnvVar: "CRAWLER_SCREENSHOT_TIMEOUT_SEC",
+  },
+  screenPdf: {
+    captureSpanName: "crawlPage.captureScreenPdf",
+    storeSpanName: "storeScreenPdf",
+    label: "screen PDF",
+    contentType: "application/pdf",
+    fileName: "page-screen.pdf",
+    timeoutSec: () => serverConfig.crawler.screenPdfTimeoutSec,
+    timeoutEnvVar: "CRAWLER_SCREEN_PDF_TIMEOUT_SEC",
   },
 } as const;
 
 export interface FetchPageOptions {
   forceStorePdf: boolean;
+  forceStoreScreenPdf: boolean;
   /**
    * Use this precrawled archive instead of fetching the URL. It's only
    * screenshotted (offline) and parsed.
@@ -113,6 +131,8 @@ export interface FetchPageOptions {
   skipScreenshot?: boolean;
   /** Don't capture a PDF, even when PDFs are enabled (or forced). */
   skipPdf?: boolean;
+  /** Don't capture a Screen PDF, even when Screen PDFs are enabled (or forced). */
+  skipScreenPdf?: boolean;
   /** Don't parse the page at all (parsed comes back null). */
   skipParse?: boolean;
 }

@@ -52,7 +52,8 @@
     "pdf": "Kaydedilmiş PDF",
     "default": "Varsayılan",
     "id": "Kimlik",
-    "last_used": "Son kullanım"
+    "last_used": "Son kullanım",
+    "screen_pdf": "Ekran PDF'i"
   },
   "form_errors": {
     "required": "Bu alan zorunludur",
@@ -148,7 +149,11 @@
     "replace_banner": "Banner'ı değiştir",
     "add_banner": "Banner ekle",
     "download": "İndir",
-    "rename": "Yeniden Adlandır"
+    "rename": "Yeniden Adlandır",
+    "recrawl_in_light_theme": "Açık Temada Tekrar Tara",
+    "recrawl_in_dark_theme": "Koyu Temada Tekrar Tara",
+    "preserve_as_screen_pdf": "Ekran PDF'i olarak sakla",
+    "download_screen_pdf_file": "Ekran PDF Dosyasını İndir"
   },
   "highlights": {
     "no_highlights": "Henüz hiçbir öne çıkarılmış içeriğiniz yok.",
@@ -205,6 +210,13 @@
           "title": "Arşivlenmiş yer işaretleri",
           "show": "Etiketlerde ve listelerde göster",
           "hide": "Etiketlerde ve listelerde gizle"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler Renk Şeması",
+          "server_default": "Sunucu varsayılanı",
+          "system": "Sistem",
+          "light": "Açık",
+          "dark": "Koyu"
         }
       },
       "reader_settings": {
@@ -480,7 +492,8 @@
             "label": "Yönetici: abonelikler",
             "description": "Kullanıcı abonelik katmanlarını yönetin."
           }
-        }
+        },
+        "scope_details": "{{scope}} kapsam detayları"
       },
       "no_keys": "Henüz API anahtarı yok",
       "page_description": "Diğer uygulamaların ve betiklerin hesabını kullanmasına izin ver.",
@@ -683,7 +696,15 @@
         "lists": "Listeler",
         "highlights": "Öne Çıkanlar",
         "storage_used": "Kullanılan depolama",
-        "bookmarks_added": "Yer imleri eklendi"
+        "bookmarks_added": "Yer imleri eklendi",
+        "all_saved_items": "Kaydedilen tüm öğeler",
+        "starred_bookmarks": "Yıldızlı yer imleri",
+        "archived_items": "Arşivlenmiş öğeler",
+        "unique_tags_created": "Benzersiz etiketler oluşturuldu",
+        "bookmark_collections": "Yer imi koleksiyonları",
+        "text_highlights": "Metin vurguları",
+        "total_asset_storage": "Toplam varlık depolama",
+        "this_month": "Bu Ay"
       },
       "bookmark_types": {
         "title": "Yer işareti türleri",
@@ -694,7 +715,11 @@
       "recent_activity": {
         "period": "Dönem",
         "days": "{{count}} gün",
-        "days_short": "{{count}} g"
+        "days_short": "{{count}} g",
+        "title": "Son Etkinlik",
+        "this_week": "Bu Hafta",
+        "this_month": "Bu Ay",
+        "this_year": "Bu Yıl"
       },
       "top_domains": {
         "title": "En sık alan adları",
@@ -848,7 +873,8 @@
           "weekly": "Haftalık"
         },
         "select_frequency": "Sıklık seçin",
-        "save_settings": "Değişiklikleri kaydet"
+        "save_settings": "Değişiklikleri kaydet",
+        "enable_automatic_backups_description": "Yer işaretlerinizin otomatik olarak yedeklerini oluştur."
       },
       "list": {
         "title": "Yedeklerin",
@@ -870,7 +896,8 @@
           "download_backup": "Yedeği indir",
           "delete_backup": "Yedeği sil"
         },
-        "no_backups_title": "Henüz yedek yok"
+        "no_backups_title": "Henüz yedek yok",
+        "no_backups": "Henüz herhangi bir yedeğiniz yok. Otomatik yedeklemeyi etkinleştirin veya manuel olarak bir tane oluşturun."
       },
       "dialogs": {
         "delete_backup_title": "Yedeği sil",
@@ -1339,6 +1366,7 @@
     },
     "saved_copies": {
       "no_pdf": "Henüz PDF yok — Bir tane kaydet",
+      "no_screen_pdf": "Henüz Ekran PDF'i yok — Bir tane kaydet",
       "no_archive": "Henüz kaydedilmiş sayfa yok — Bir tane kaydet",
       "no_video": "Henüz video yok — Bir tane kaydet"
     },
@@ -1376,6 +1404,7 @@
       "types": {
         "screenshot": "Ekran görüntüsü",
         "pdf": "Kaydedilmiş PDF",
+        "screenPdf": "Ekran PDF'i",
         "assetScreenshot": "Önizleme görseli",
         "fullPageArchive": "Kaydedilmiş sayfa",
         "precrawledArchive": "İçe aktarılmış kaydedilmiş sayfa",
@@ -1494,7 +1523,8 @@
       "preserve_pdf": "PDF kaydediliyor",
       "preserve_video": "Video indirme sıraya alındı",
       "update_banner": "Banner güncellendi",
-      "uploading_banner": "Başlık yükleniyor..."
+      "uploading_banner": "Başlık yükleniyor...",
+      "preserve_screen_pdf": "Ekran PDF'i olarak saklama tetiklendi"
     },
     "lists": {
       "created": "Liste oluşturuldu",

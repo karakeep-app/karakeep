@@ -272,6 +272,7 @@ describe("User Routes", () => {
       curatedTagIds: null,
       inferredTagLang: null,
       tagStyle: "titlecase-spaces",
+      crawlerColorScheme: null,
     });
 
     // Update settings
@@ -291,6 +292,7 @@ describe("User Routes", () => {
       autoTaggingEnabled: true,
       inferredTagLang: "en",
       tagStyle: "lowercase-underscores",
+      crawlerColorScheme: "dark",
     });
 
     // Verify updated settings
@@ -314,6 +316,7 @@ describe("User Routes", () => {
       curatedTagIds: null,
       inferredTagLang: "en",
       tagStyle: "lowercase-underscores",
+      crawlerColorScheme: "dark",
     });
 
     // Test invalid update (e.g., empty input, if schema enforces it)

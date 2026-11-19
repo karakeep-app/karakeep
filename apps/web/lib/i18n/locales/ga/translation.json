@@ -52,7 +52,8 @@
     "pdf": "PDF sábháilte",
     "default": "Réamhshocrú",
     "id": "ID",
-    "last_used": "Úsáidte go deireanach"
+    "last_used": "Úsáidte go deireanach",
+    "screen_pdf": "PDF Scáileáin"
   },
   "form_errors": {
     "required": "Tá an réimse seo riachtanach",
@@ -151,7 +152,11 @@
     "replace_banner": "Ionadaigh an meirge",
     "add_banner": "Cuir meirge leis",
     "download": "Íoslódáil",
-    "rename": "Athainmnigh"
+    "rename": "Athainmnigh",
+    "recrawl_in_light_theme": "Athchrawláil i Mód Solais",
+    "recrawl_in_dark_theme": "Athchrawláil i Mód Dorcha",
+    "preserve_as_screen_pdf": "Caomhnaigh mar PDF Scáileáin",
+    "download_screen_pdf_file": "Íoslódáil Comhad PDF Scáileáin"
   },
   "settings": {
     "ai": {
@@ -342,7 +347,8 @@
             "label": "Riarthóir: síntiúis",
             "description": "Bainistigh sraitheanna síntiúis úsáideoirí."
           }
-        }
+        },
+        "scope_details": "Sonraí scóipe {{scope}}"
       },
       "no_keys": "Níl aon eochracha API fós",
       "page_description": "Lig d'aipeanna agus do scripteanna eile do chuntas a úsáid.",
@@ -486,6 +492,13 @@
           "title": "Leabharmharcanna cartlannaithe",
           "show": "Taispeáin i gclibeanna agus i liostaí",
           "hide": "Folaigh i gclibeanna agus i liostaí"
+        },
+        "crawler_color_scheme": {
+          "title": "Scéim Dathanna Crawlála",
+          "server_default": "Réamhshocrú an fhreastalaí",
+          "system": "Mód an Chórais",
+          "light": "Mód Solais",
+          "dark": "Mód Dorcha"
         }
       },
       "reader_settings": {
@@ -686,7 +699,15 @@
         "lists": "Liostaí",
         "highlights": "Aibhsithe",
         "storage_used": "Stóráil úsáidte",
-        "bookmarks_added": "Leabharmharcanna curtha leis"
+        "bookmarks_added": "Leabharmharcanna curtha leis",
+        "all_saved_items": "Gach mír shábháilte",
+        "starred_bookmarks": "Leabharmharcanna le réalta",
+        "archived_items": "Míreanna cartlannaithe",
+        "unique_tags_created": "Clibeanna uathúla cruthaithe",
+        "bookmark_collections": "Bailiúcháin leabharmharcanna",
+        "text_highlights": "Aibhsithe téacs",
+        "total_asset_storage": "Stóráil iomlán sócmhainní",
+        "this_month": "An Mhí Seo"
       },
       "bookmark_types": {
         "title": "Cineálacha leabharmharcanna",
@@ -697,7 +718,11 @@
       "recent_activity": {
         "period": "Tréimhse",
         "days": "{{count}} lá",
-        "days_short": "{{count}}l"
+        "days_short": "{{count}}l",
+        "title": "Gníomhaíocht le Déanaí",
+        "this_week": "An tSeachtain Seo",
+        "this_month": "An Mhí Seo",
+        "this_year": "An Bhliain Seo"
       },
       "top_domains": {
         "title": "Príomhfhearainn",
@@ -854,7 +879,8 @@
           "weekly": "Seachtainiúil"
         },
         "select_frequency": "Roghnaigh minicíocht",
-        "save_settings": "Sábháil athruithe"
+        "save_settings": "Sábháil athruithe",
+        "enable_automatic_backups_description": "Cruthaigh cúltacaí de do leabharmharcanna go huathoibríoch"
       },
       "list": {
         "title": "Do chúltacaí",
@@ -876,7 +902,8 @@
           "download_backup": "Íoslódáil an cúltaca",
           "delete_backup": "Scrios an cúltaca"
         },
-        "no_backups_title": "Níl aon chúltacaí fós"
+        "no_backups_title": "Níl aon chúltacaí fós",
+        "no_backups": "Níl aon chúltacaí agat fós. Cumasaigh cúltacaí uathoibríocha nó cruthaigh ceann de láimh."
       },
       "dialogs": {
         "delete_backup_title": "Scrios an cúltaca",
@@ -1314,7 +1341,8 @@
       "preserve_pdf": "PDF á shábháil",
       "preserve_video": "Cuireadh íoslódáil an fhíseáin sa scuaine",
       "update_banner": "Nuashonraíodh an meirge",
-      "uploading_banner": "Ag uaslódáil an mheirge..."
+      "uploading_banner": "Ag uaslódáil an mheirge...",
+      "preserve_screen_pdf": "Tosaíodh caomhnú PDF Scáileáin"
     },
     "lists": {
       "created": "Cruthaíodh an liosta",
@@ -1588,6 +1616,7 @@
     },
     "saved_copies": {
       "no_pdf": "Níl aon PDF fós — Sábháil ceann",
+      "no_screen_pdf": "Níl aon PDF Scáileáin fós — Sábháil ceann",
       "no_archive": "Níl aon leathanach sábháilte fós — Sábháil ceann",
       "no_video": "Níl aon fhíseán fós — Sábháil ceann"
     },
@@ -1625,6 +1654,7 @@
       "types": {
         "screenshot": "Gabháil scáileáin",
         "pdf": "PDF sábháilte",
+        "screenPdf": "PDF Scáileáin",
         "assetScreenshot": "Íomhá réamhamhairc",
         "fullPageArchive": "Leathanach sábháilte",
         "precrawledArchive": "Leathanach sábháilte iompórtáilte",

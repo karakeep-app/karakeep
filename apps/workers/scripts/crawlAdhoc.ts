@@ -102,7 +102,9 @@ async function main() {
       arm: { type: "string", default: "unlabeled" },
       out: { type: "string" },
       pdf: { type: "boolean", default: false },
+      "screen-pdf": { type: "boolean", default: false },
       "screenshot-dir": { type: "string" },
+      "screen-pdf-dir": { type: "string" },
       "timeout-sec": { type: "string", default: "60" },
     },
   });
@@ -120,9 +122,14 @@ async function main() {
   if (screenshotDir) {
     mkdirSync(screenshotDir, { recursive: true });
   }
+  const screenPdfDir = values["screen-pdf-dir"];
+  if (screenPdfDir) {
+    mkdirSync(screenPdfDir, { recursive: true });
+  }
 
   console.error(
     `[adhoc] arm=${values.arm} browser=${serverConfig.crawler.browserWebUrl ?? "(browserless)"} ` +
+      `scheme=${serverConfig.crawler.colorScheme} ` +
       `rebrowserFix=${process.env.REBROWSER_PATCHES_RUNTIME_FIX_MODE === "0" ? "off" : "on"} ` +
       `db=${process.env.KARAKEEP_ADHOC_USE_REAL_DB === "1" ? "REAL" : "scratch"}`,
   );
@@ -153,15 +160,25 @@ async function main() {
             runProxy,
             // Force the full browser path.
             browserCrawlingEnabled: true,
+            colorScheme: serverConfig.crawler.colorScheme,
             log: crawlLogger(jobId),
           },
-          { forceStorePdf: values.pdf },
+          {
+            forceStorePdf: values.pdf,
+            forceStoreScreenPdf: values["screen-pdf"],
+          },
         );
         const { blocked, marker } = scoreHtml(res.statusCode, res.htmlContent);
         if (screenshotDir && res.screenshot) {
           writeFileSync(
             path.join(screenshotDir, `${values.arm}-${safeUrl}-${rep}.jpg`),
             res.screenshot,
+          );
+        }
+        if (screenPdfDir && res.screenPdf) {
+          writeFileSync(
+            path.join(screenPdfDir, `${values.arm}-${safeUrl}-${rep}.pdf`),
+            res.screenPdf,
           );
         }
         record = {
@@ -175,6 +192,7 @@ async function main() {
           htmlLen: res.htmlContent.length,
           hasScreenshot: res.screenshot !== undefined,
           hasPdf: res.pdf !== undefined,
+          hasScreenPdf: res.screenPdf !== undefined,
           latencyMs: Date.now() - startedAt,
           error: null,
         };
@@ -190,6 +208,7 @@ async function main() {
           htmlLen: 0,
           hasScreenshot: false,
           hasPdf: false,
+          hasScreenPdf: false,
           latencyMs: Date.now() - startedAt,
           error: e instanceof Error ? e.message : String(e),
         };

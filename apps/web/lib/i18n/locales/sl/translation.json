@@ -110,7 +110,8 @@
             "label": "Skrbnik: naročnine",
             "description": "Upravljanje nivojev naročnin uporabnikov."
           }
-        }
+        },
+        "scope_details": "Podrobnosti obsega {{scope}}"
       },
       "no_keys": "Še ni API ključev",
       "page_description": "Dovoli drugim aplikacijam in skriptam uporabo tvojega računa.",
@@ -192,6 +193,13 @@
           "title": "Arhivirani zaznamki",
           "show": "Prikaži v oznakah in seznamih",
           "hide": "Skrij v oznakah in seznamih"
+        },
+        "crawler_color_scheme": {
+          "title": "Barvna shema prebiranja",
+          "server_default": "Privzeta vrednost strežnika",
+          "system": "Sistemski",
+          "light": "Svetli",
+          "dark": "Temni"
         }
       },
       "reader_settings": {
@@ -526,7 +534,15 @@
         "lists": "Seznami",
         "highlights": "Označbe",
         "storage_used": "Porabljen prostor",
-        "bookmarks_added": "Zaznamki dodani"
+        "bookmarks_added": "Zaznamki dodani",
+        "all_saved_items": "Vsi shranjeni elementi",
+        "starred_bookmarks": "Zaznamki z zvezdicami",
+        "archived_items": "Arhivirani elementi",
+        "unique_tags_created": "Ustvarjene edinstvene oznake",
+        "bookmark_collections": "Zbirke zaznamkov",
+        "text_highlights": "Označena besedila",
+        "total_asset_storage": "Skupna shramba sredstev",
+        "this_month": "Ta mesec"
       },
       "bookmark_types": {
         "title": "Vrste zaznamkov",
@@ -537,7 +553,11 @@
       "recent_activity": {
         "period": "Obdobje",
         "days": "{{count}} dni",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Nedavna dejavnost",
+        "this_week": "Ta teden",
+        "this_month": "Ta mesec",
+        "this_year": "Letos"
       },
       "top_domains": {
         "title": "Najpogostejše domene",
@@ -693,7 +713,8 @@
           "weekly": "Tedensko"
         },
         "select_frequency": "Izberi pogostost",
-        "save_settings": "Shrani spremembe"
+        "save_settings": "Shrani spremembe",
+        "enable_automatic_backups_description": "Samodejno ustvari varnostne kopije zaznamkov"
       },
       "list": {
         "title": "Tvoje varnostne kopije",
@@ -715,7 +736,8 @@
           "download_backup": "Prenesi varnostno kopijo",
           "delete_backup": "Izbriši varnostno kopijo"
         },
-        "no_backups_title": "Še ni varnostnih kopij"
+        "no_backups_title": "Še ni varnostnih kopij",
+        "no_backups": "Še nimaš varnostnih kopij. Omogoči samodejno varnostno kopiranje ali ustvari ročno."
       },
       "dialogs": {
         "delete_backup_title": "Izbriši varnostno kopijo",
@@ -1105,7 +1127,8 @@
     "pdf": "Shranjen PDF",
     "default": "Privzeto",
     "id": "ID",
-    "last_used": "Zadnja uporaba"
+    "last_used": "Zadnja uporaba",
+    "screen_pdf": "PDF zaslona"
   },
   "form_errors": {
     "required": "To polje je obvezno",
@@ -1201,7 +1224,11 @@
     "replace_banner": "Zamenjaj pasico",
     "add_banner": "Dodaj pasico",
     "download": "Prenesi",
-    "rename": "Preimenuj"
+    "rename": "Preimenuj",
+    "recrawl_in_light_theme": "Ponovno prebrskaj v svetlem načinu",
+    "recrawl_in_dark_theme": "Ponovno prebrskaj v temnem načinu",
+    "preserve_as_screen_pdf": "Shrani kot PDF zaslona",
+    "download_screen_pdf_file": "Prenesi datoteko PDF zaslona"
   },
   "layouts": {
     "compact": "Kompaktno",
@@ -1487,7 +1514,8 @@
       "preserve_pdf": "Shranjevanje PDF-ja",
       "preserve_video": "Prenos videa je v čakalni vrsti",
       "update_banner": "Pasica je posodobljena",
-      "uploading_banner": "Nalaganje pasice ..."
+      "uploading_banner": "Nalaganje pasice ...",
+      "preserve_screen_pdf": "Ohranjanje PDF zaslona je bilo sproženo"
     },
     "lists": {
       "created": "Seznam je ustvarjen",
@@ -1592,6 +1620,7 @@
     },
     "saved_copies": {
       "no_pdf": "Še ni PDF-ja — shrani ga",
+      "no_screen_pdf": "Še ni PDF-ja zaslona — shrani ga",
       "no_archive": "Še ni shranjene strani — shrani jo",
       "no_video": "Še ni videa — shrani ga"
     },
@@ -1629,6 +1658,7 @@
       "types": {
         "screenshot": "Posnetek zaslona",
         "pdf": "Shranjen PDF",
+        "screenPdf": "PDF zaslona",
         "assetScreenshot": "Slika predogleda",
         "fullPageArchive": "Shranjena stran",
         "precrawledArchive": "Uvožena shranjena stran",

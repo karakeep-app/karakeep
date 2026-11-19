@@ -289,6 +289,13 @@ export function buildSandboxRoutes(token: string) {
             data: page.pdf,
           });
         }
+        if (page.screenPdf) {
+          await write({
+            name: "screenPdf",
+            contentType: CAPTURED_ASSETS.screenPdf.contentType,
+            data: page.screenPdf,
+          });
+        }
         return jsonPart("parsed", await parsePage(ctx, page, opts));
       }),
     )

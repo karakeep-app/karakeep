@@ -52,7 +52,8 @@
     "pdf": "Lagret PDF",
     "default": "Standard",
     "id": "ID",
-    "last_used": "Sist brukt"
+    "last_used": "Sist brukt",
+    "screen_pdf": "Skjerm-PDF"
   },
   "form_errors": {
     "required": "Dette feltet er påkrevd",
@@ -316,7 +317,11 @@
     "replace_banner": "Erstatt banner",
     "add_banner": "Legg til banner",
     "download": "Last ned",
-    "rename": "Gi nytt navn"
+    "rename": "Gi nytt navn",
+    "recrawl_in_light_theme": "Gjennomsøk på nytt i lys modus",
+    "recrawl_in_dark_theme": "Gjennomsøk på nytt i mørk modus",
+    "preserve_as_screen_pdf": "Bevar som skjerm-PDF",
+    "download_screen_pdf_file": "Last ned skjerm-PDF-fil"
   },
   "settings": {
     "info": {
@@ -353,6 +358,13 @@
           "title": "Arkiverte bokmerker",
           "show": "Vis i merker og lister",
           "hide": "Skjul i merker og lister"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler-fargeskjema",
+          "server_default": "Serverstandard",
+          "system": "System",
+          "light": "Lys",
+          "dark": "Mørk"
         }
       },
       "reader_settings": {
@@ -601,7 +613,8 @@
             "label": "Admin: abonnementer",
             "description": "Administrer abonnementnivåer for brukere."
           }
-        }
+        },
+        "scope_details": "{{scope}} detaljer om omfang"
       },
       "no_keys": "Ingen API-nøkler ennå",
       "page_description": "La andre apper og skript bruke kontoen din.",
@@ -833,7 +846,15 @@
         "lists": "Lister",
         "highlights": "Uthevinger",
         "storage_used": "Lagringsplass brukt",
-        "bookmarks_added": "Bokmerker lagt til"
+        "bookmarks_added": "Bokmerker lagt til",
+        "all_saved_items": "Alle lagrede elementer",
+        "starred_bookmarks": "Stjernemerkede bokmerker",
+        "archived_items": "Arkiverte elementer",
+        "unique_tags_created": "Unike tagger opprettet",
+        "bookmark_collections": "Bokmerkesamlinger",
+        "text_highlights": "Tekstuthevinger",
+        "total_asset_storage": "Total lagringsplass for ressurser",
+        "this_month": "Denne måneden"
       },
       "bookmark_types": {
         "title": "Bokmerketyper",
@@ -844,7 +865,11 @@
       "recent_activity": {
         "period": "Periode",
         "days": "{{count}} dager",
-        "days_short": "{{count}}d"
+        "days_short": "{{count}}d",
+        "title": "Nylig aktivitet",
+        "this_week": "Denne uken",
+        "this_month": "Denne måneden",
+        "this_year": "Dette året"
       },
       "top_domains": {
         "title": "Toppdomener",
@@ -998,7 +1023,8 @@
           "weekly": "Ukentlig"
         },
         "select_frequency": "Velg frekvens",
-        "save_settings": "Lagre endringer"
+        "save_settings": "Lagre endringer",
+        "enable_automatic_backups_description": "Lag sikkerhetskopieringer av bokmerkene dine automatisk"
       },
       "list": {
         "title": "Dine sikkerhetskopier",
@@ -1020,7 +1046,8 @@
           "download_backup": "Last ned sikkerhetskopi",
           "delete_backup": "Slett sikkerhetskopi"
         },
-        "no_backups_title": "Ingen sikkerhetskopier ennå"
+        "no_backups_title": "Ingen sikkerhetskopier ennå",
+        "no_backups": "Du har ingen sikkerhetskopieringer ennå. Aktiver automatiske sikkerhetskopieringer eller lag en manuelt."
       },
       "dialogs": {
         "delete_backup_title": "Slett sikkerhetskopi",
@@ -1447,7 +1474,8 @@
       "preserve_pdf": "Lagrer en PDF",
       "preserve_video": "Videonedlasting er satt i kø",
       "update_banner": "Banneret er oppdatert",
-      "uploading_banner": "Laster opp banner..."
+      "uploading_banner": "Laster opp banner...",
+      "preserve_screen_pdf": "Skjerm-PDF-bevaring er utløst"
     },
     "lists": {
       "created": "Listen er opprettet",
@@ -1552,6 +1580,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ingen PDF ennå — Lagre en",
+      "no_screen_pdf": "Ingen Skjerm-PDF ennå — Lagre en",
       "no_archive": "Ingen lagret side ennå — Lagre en",
       "no_video": "Ingen video ennå — Lagre en"
     },
@@ -1589,6 +1618,7 @@
       "types": {
         "screenshot": "Skjermbilde",
         "pdf": "Lagret PDF",
+        "screenPdf": "Skjerm-PDF",
         "assetScreenshot": "Forhåndsvisningsbilde",
         "fullPageArchive": "Lagret side",
         "precrawledArchive": "Importert lagret side",

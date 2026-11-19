@@ -140,6 +140,7 @@ describe("the sandbox's error statuses", () => {
           url: "https://example.com/",
           runProxy: videoRequest.runProxy,
           browserCrawlingEnabled: false,
+          colorScheme: "system",
         },
         url: "https://example.com/image.png",
         fileType: "image",

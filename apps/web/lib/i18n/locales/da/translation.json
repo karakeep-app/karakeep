@@ -73,7 +73,11 @@
     "replace_banner": "Udskift banner",
     "add_banner": "Tilføj banner",
     "download": "Hent",
-    "rename": "Omdøb"
+    "rename": "Omdøb",
+    "recrawl_in_light_theme": "Gennemsøg igen i lys tilstand",
+    "recrawl_in_dark_theme": "Gennemsøg igen i mørk tilstand",
+    "preserve_as_screen_pdf": "Bevar som skærm-PDF",
+    "download_screen_pdf_file": "Download skærm-PDF-fil"
   },
   "settings": {
     "import": {
@@ -145,6 +149,13 @@
           "title": "Arkiverede bogmærker",
           "show": "Vis i tags og lister",
           "hide": "Skjul i tags og lister"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler-farveskema",
+          "server_default": "Serverstandard",
+          "system": "System",
+          "light": "Lys",
+          "dark": "Mørk"
         }
       },
       "reader_settings": {
@@ -434,7 +445,8 @@
             "label": "Admin: abonnementer",
             "description": "Administrer abonnementstyper for brugere."
           }
-        }
+        },
+        "scope_details": "{{scope}} omfangsdetaljer"
       },
       "no_keys": "Ingen API-nøgler endnu",
       "page_description": "Lad andre apps og scripts bruge din konto.",
@@ -590,7 +602,15 @@
         "lists": "Lister",
         "highlights": "Fremhævelser",
         "storage_used": "Brugt lagerplads",
-        "bookmarks_added": "Bogmærker tilføjet"
+        "bookmarks_added": "Bogmærker tilføjet",
+        "all_saved_items": "Alle gemte elementer",
+        "starred_bookmarks": "Stjerne-markerede bogmærker",
+        "archived_items": "Arkiverede elementer",
+        "unique_tags_created": "Unikke tags oprettet",
+        "bookmark_collections": "Bogmærkesamlinger",
+        "text_highlights": "Tekstfremhævelser",
+        "total_asset_storage": "Samlet lagerplads til aktiver",
+        "this_month": "Denne måned"
       },
       "bookmark_types": {
         "title": "Bogmærketyper",
@@ -601,7 +621,11 @@
       "recent_activity": {
         "period": "Periode",
         "days": "{{count}} dage",
-        "days_short": "{{count}}d"
+        "days_short": "{{count}}d",
+        "title": "Seneste aktivitet",
+        "this_week": "Denne uge",
+        "this_month": "Denne måned",
+        "this_year": "I år"
       },
       "top_domains": {
         "title": "Topdomæner",
@@ -755,7 +779,8 @@
           "weekly": "Ugentligt"
         },
         "select_frequency": "Vælg frekvens",
-        "save_settings": "Gem ændringer"
+        "save_settings": "Gem ændringer",
+        "enable_automatic_backups_description": "Opret sikkerhedskopier af dine bogmærker automatisk"
       },
       "list": {
         "title": "Dine sikkerhedskopier",
@@ -777,7 +802,8 @@
           "download_backup": "Download sikkerhedskopi",
           "delete_backup": "Slet sikkerhedskopi"
         },
-        "no_backups_title": "Ingen sikkerhedskopier endnu"
+        "no_backups_title": "Ingen sikkerhedskopier endnu",
+        "no_backups": "Du har endnu ingen sikkerhedskopier. Aktivér automatiske sikkerhedskopier, eller opret en manuelt."
       },
       "dialogs": {
         "delete_backup_title": "Slet sikkerhedskopi",
@@ -1170,7 +1196,8 @@
     "pdf": "Gemt PDF",
     "default": "Standard",
     "id": "ID",
-    "last_used": "Sidst brugt"
+    "last_used": "Sidst brugt",
+    "screen_pdf": "Skærm-PDF"
   },
   "form_errors": {
     "required": "Dette felt er påkrævet",
@@ -1387,6 +1414,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ingen PDF endnu — Gem en",
+      "no_screen_pdf": "Ingen Skærm-PDF endnu — Gem en",
       "no_archive": "Ingen gemt side endnu — Gem en",
       "no_video": "Ingen video endnu — Gem en"
     },
@@ -1424,6 +1452,7 @@
       "types": {
         "screenshot": "Skærmbillede",
         "pdf": "Gemt PDF",
+        "screenPdf": "Skærm-PDF",
         "assetScreenshot": "Forhåndsvisningsbillede",
         "fullPageArchive": "Gemt side",
         "precrawledArchive": "Importeret gemt side",
@@ -1476,7 +1505,8 @@
       "preserve_pdf": "Gemmer en PDF",
       "preserve_video": "Videodownload sat i kø",
       "update_banner": "Banner opdateret",
-      "uploading_banner": "Uploader banner..."
+      "uploading_banner": "Uploader banner...",
+      "preserve_screen_pdf": "Skærm-PDF-bevaring er blevet udløst"
     },
     "lists": {
       "created": "Liste oprettet",
