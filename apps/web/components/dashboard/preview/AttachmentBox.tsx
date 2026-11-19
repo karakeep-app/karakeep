@@ -158,6 +158,18 @@ export default function AttachmentBox({
     },
   });
 
+  const { mutate: uploadAttachment, isPending: isUploadingAttachment } =
+    useUpload({
+      purpose: "attachment",
+      onSuccess: async (resp) => {
+        attachAsset({
+          bookmarkId: bookmark.id,
+          asset: { id: resp.assetId, assetType: "userUploaded" },
+        });
+      },
+      onError: (e) => toast({ description: e.error, variant: "destructive" }),
+    });
+
   bookmark.assets.sort((a, b) => a.assetType.localeCompare(b.assetType));
 
   const hasAssets = bookmark.assets.length > 0;
@@ -221,25 +233,13 @@ export default function AttachmentBox({
                 <span className="inline-flex">
                   <FilePickerButton
                     aria-label={t("preview.attachments.upload_file")}
-                    loading={isAttaching}
+                    loading={isAttaching || isUploadingAttachment}
                     spinner={SPINNER}
-                    multiple={false}
+                    multiple={true}
                     variant="ghost"
                     size="none"
                     className={ICON_CONTROL_CLASS}
-                    onFileSelect={(file) =>
-                      uploadAsset(file, {
-                        onSuccess: (resp) => {
-                          attachAsset({
-                            bookmarkId: bookmark.id,
-                            asset: {
-                              id: resp.assetId,
-                              assetType: "userUploaded",
-                            },
-                          });
-                        },
-                      })
-                    }
+                    onFileSelect={(file) => uploadAttachment(file)}
                   >
                     <Paperclip className="size-4" />
                   </FilePickerButton>

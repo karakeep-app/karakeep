@@ -28,7 +28,8 @@ const app = new Hono()
       "form",
       z
         .object({ file: z.instanceof(File) })
-        .or(z.object({ image: z.instanceof(File) })),
+        .or(z.object({ image: z.instanceof(File) }))
+        .and(z.object({ purpose: z.literal("attachment").optional() })),
     ),
     async (c) => {
       const body = c.req.valid("form");
@@ -69,7 +70,12 @@ const app = new Hono()
     const asset = await Asset.fromId(c.var.ctx, assetId);
     await asset.ensureCanView();
 
-    return await serveAsset(c, assetId, asset.asset.userId);
+    return await serveAsset(
+      c,
+      assetId,
+      asset.asset.userId,
+      asset.asset.assetType,
+    );
   });
 
 export default app;
