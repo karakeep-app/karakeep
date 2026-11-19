@@ -334,6 +334,13 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
 
 const SWIPE_ACTION_WIDTH = 84;
 const SWIPE_TAP_GUARD_MS = 700;
+// Horizontal travel before the swipe claims the touch. At the default 10pt an
+// arcing thumb scroll could still start a swipe; at 30pt only a near-horizontal
+// drag does.
+const SWIPE_ACTIVATION_OFFSET = 30;
+// Release past three quarters of the action to trigger it, so a short drag
+// that slips past activation snaps back instead of starring or archiving.
+const SWIPE_TRIGGER_THRESHOLD = SWIPE_ACTION_WIDTH * 0.75;
 // Cards sit 16pt from the screen edge; ignoring their first 24pt leaves the
 // iOS edge-swipe-back zone to the navigator.
 const SWIPE_LEFT_EDGE_INSET = 24;
@@ -492,8 +499,10 @@ function CardGestures({
       hitSlop={{ left: -SWIPE_LEFT_EDGE_INSET }}
       overshootLeft={false}
       overshootRight={false}
-      leftThreshold={SWIPE_ACTION_WIDTH / 2}
-      rightThreshold={SWIPE_ACTION_WIDTH / 2}
+      dragOffsetFromLeft={SWIPE_ACTIVATION_OFFSET}
+      dragOffsetFromRight={-SWIPE_ACTIVATION_OFFSET}
+      leftThreshold={SWIPE_TRIGGER_THRESHOLD}
+      rightThreshold={SWIPE_TRIGGER_THRESHOLD}
       renderLeftActions={() => (
         <SwipeAction
           icon={Star}

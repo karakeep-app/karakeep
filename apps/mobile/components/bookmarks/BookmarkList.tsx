@@ -6,7 +6,10 @@ import {
   Platform,
   View,
 } from "react-native";
-import Animated from "react-native-reanimated";
+import {
+  FlatList as GestureFlatList,
+  RefreshControl,
+} from "react-native-gesture-handler";
 import EmptyState from "@/components/ui/EmptyState";
 import { useTranslation } from "@/lib/i18n/hooks";
 import { getGridColumns, useContainerWidth } from "@/lib/responsive";
@@ -98,7 +101,10 @@ export default function BookmarkList({
 
   return (
     <View className="flex-1" onLayout={onLayout}>
-      <Animated.FlatList
+      {/* A gesture-handler list, so a scroll cancels the cards' swipe gesture.
+          Gesture-handler 3 no longer does that for a plain FlatList on Android,
+          and swipes kept taking over scrolls. */}
+      <GestureFlatList
         ref={flatListRef}
         // FlatList doesn't support changing numColumns on the fly.
         key={numColumns}
@@ -132,8 +138,9 @@ export default function BookmarkList({
           />
         }
         data={bookmarks}
-        refreshing={isRefreshing}
-        onRefresh={onRefresh}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
         onScrollBeginDrag={Keyboard.dismiss}
         keyExtractor={(b) => b.id}
         onEndReached={fetchNextPage}
