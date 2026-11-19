@@ -29,6 +29,7 @@ const HORIZONTAL_MARGIN = 16;
 const GAP = 10;
 // Leaves the last card's actions clear of the Android add button.
 const BOTTOM_PADDING = Platform.OS === "android" ? 96 : 24;
+const NO_SCROLL_TARGET = { current: null };
 
 export interface BookmarkListEmptyState {
   icon?: LucideIcon;
@@ -59,7 +60,10 @@ export default function BookmarkList({
 }) {
   const flatListRef = useRef<FlatList<ZBookmark>>(null);
   const { t } = useTranslation();
-  useScrollToTop(flatListRef);
+  // On iOS, native tabs already scroll to the inset-adjusted top on re-tap, and
+  // the hook would then scroll to 0, hiding the first card under the header. On
+  // Android the native re-tap doesn't find this list, so the hook does it.
+  useScrollToTop(Platform.OS === "android" ? flatListRef : NO_SCROLL_TARGET);
   const { settings } = useAppSettings();
   // A bookmark saved from this device lands at the top (re-saving an existing
   // link bumps it there too), which may be out of sight, leaving people to
