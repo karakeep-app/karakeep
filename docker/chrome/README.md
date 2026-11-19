@@ -16,21 +16,43 @@ Chrome runs as `nobody` with `no_new_privs` set, and the image has no setuid or
 setgid binaries. Chrome's own sandbox (which isolates every renderer) is off by
 default because it needs unprivileged user namespaces, which Docker's default
 seccomp profile blocks. To turn it on, set `KARAKEEP_CHROME_SANDBOX=true` and
-run the container where user namespaces are allowed, e.g. on Docker:
+give the container a seccomp profile that allows them.
+[`seccomp.json`](seccomp.json) is Docker's default profile with only that
+added. Download it next to your compose file and point the container at it:
 
 ```yaml
 chrome:
   environment:
     KARAKEEP_CHROME_SANDBOX: "true"
   security_opt:
-    - seccomp=unconfined
+    - seccomp=./seccomp.json
 ```
+
+The profile is Docker's default
+([moby/profiles](https://github.com/moby/profiles) `seccomp/v0.2.4`, Apache
+2.0) with two changes, both for processes without `CAP_SYS_ADMIN`, which
+Chrome doesn't have:
+
+- `clone` may create new user, PID and network namespaces. Docker's default
+  allows it no new namespaces.
+- `unshare` may create a new user namespace. Docker's default doesn't allow
+  `unshare` at all.
+
+Everything else Docker's default refuses, the profile still refuses. The
+trade-off is that every process in the container can now create user
+namespaces, which is kernel attack surface Docker keeps closed by default.
+Here that's Chrome alone, running as `nobody` with `no_new_privs`, and it's
+what lets Chrome put each renderer in its own namespaces under its seccomp-bpf
+filter. `seccomp=unconfined` also works, but it lifts every seccomp
+restriction, not just these two.
 
 Some hosts also restrict user namespaces themselves. Lifting that is a
 host-wide change: `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`
 on Ubuntu 23.10+, or `kernel.unprivileged_userns_clone=1` on older Debian.
 
-If the sandbox can't start, Chrome exits instead of running without it.
+If the sandbox can't start, Chrome exits instead of running without it. To
+check it's on, open `chrome://sandbox` through the DevTools endpoint: it should
+end with "You are adequately sandboxed."
 
 ## Testing locally
 
