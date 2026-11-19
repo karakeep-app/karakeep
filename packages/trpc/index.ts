@@ -98,6 +98,7 @@ const t = initTRPC.context<Context>().create({
 export const createCallerFactory = t.createCallerFactory;
 // Base router and procedure helpers
 export const router = t.router;
+export const mergeRouters = t.mergeRouters;
 export const procedure = t.procedure
   .use(function rejectMutationsInReadOnlyModes(opts) {
     if (opts.type !== "mutation") {

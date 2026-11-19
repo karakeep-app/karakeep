@@ -2,6 +2,9 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useTRPC } from "../trpc";
 
+// Mutation success also invalidates history queries. Relationship operations
+// can affect multiple bookmarks, so invalidation covers cached history streams
+// rather than assuming that the currently open preview is the only affected item.
 type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function useAttachBookmarkAsset(
@@ -13,6 +16,12 @@ export function useAttachBookmarkAsset(
     api.assets.attachAsset.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
         queryClient.invalidateQueries(
           api.bookmarks.searchBookmarks.pathFilter(),
@@ -36,6 +45,12 @@ export function useReplaceBookmarkAsset(
     api.assets.replaceAsset.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
         queryClient.invalidateQueries(
           api.bookmarks.searchBookmarks.pathFilter(),
@@ -59,6 +74,12 @@ export function useDetachBookmarkAsset(
     api.assets.detachAsset.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
         queryClient.invalidateQueries(
           api.bookmarks.searchBookmarks.pathFilter(),

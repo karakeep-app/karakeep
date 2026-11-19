@@ -12,6 +12,9 @@ import { ZTagListResponse } from "@karakeep/shared/types/tags";
 import { useTRPC } from "../trpc";
 import { scheduleInvalidateQueries } from "./query-invalidation";
 
+// Mutation success also invalidates history queries. Relationship operations
+// can affect multiple bookmarks, so invalidation covers cached history streams
+// rather than assuming that the currently open preview is the only affected item.
 type TRPCApi = ReturnType<typeof useTRPC>;
 
 export function usePaginatedSearchTags(
@@ -69,6 +72,12 @@ export function useCreateTag(
     api.tags.create.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.tags.list.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -86,6 +95,12 @@ export function useUpdateTag(
     api.tags.update.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.tags.list.pathFilter());
         queryClient.invalidateQueries(
           api.tags.get.queryFilter({ tagId: res.id }),
@@ -115,6 +130,12 @@ export function useMergeTag(
     api.tags.merge.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.tags.list.pathFilter());
         [res.mergedIntoTagId, ...res.deletedTags].forEach((tagId) => {
           queryClient.invalidateQueries(api.tags.get.queryFilter({ tagId }));
@@ -143,6 +164,12 @@ export function useDeleteTag(
     api.tags.delete.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         scheduleInvalidateQueries(queryClient, api.tags.list.pathFilter());
         scheduleInvalidateQueries(
           queryClient,
@@ -164,6 +191,12 @@ export function useDeleteUnusedTags(
     api.tags.deleteUnused.mutationOptions({
       ...opts,
       onSuccess: (res, req, meta, context) => {
+        void queryClient.invalidateQueries(
+          api.bookmarks.getHistory.pathFilter(),
+        );
+        void queryClient.invalidateQueries(
+          api.bookmarks.getDeletedHistory.pathFilter(),
+        );
         queryClient.invalidateQueries(api.tags.list.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },

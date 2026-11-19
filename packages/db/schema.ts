@@ -1416,3 +1416,45 @@ export const userReadingProgressRelations = relations(
     }),
   }),
 );
+
+/**
+ * Retain grouped bookmark changes independently of the live bookmark row.
+ * History is private owner data and expires through the maintenance worker.
+ */
+export const bookmarkHistory = sqliteTable(
+  "bookmarkHistory",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => createId()),
+    // Deliberately no bookmark FK: permanent item deletion retains its audit.
+    bookmarkId: text("bookmarkId").notNull(),
+    ownerId: text("ownerId")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    actorKind: text("actorKind", { enum: ["user", "apiKey", "system"] })
+      .notNull()
+      .default("user"),
+    // Removing an actor anonymizes attribution without erasing another owner's events.
+    actorId: text("actorId").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: createdAtMsField(),
+    type: text("type", { enum: ["edit", "deleted"] }).notNull(),
+    title: text("title"),
+    changes: text("changes", { mode: "json" })
+      .$type<{ field: string; oldValue: unknown; newValue: unknown }[]>()
+      .notNull(),
+  },
+  (t) => [
+    // Match owner-scoped cursor queries; the separate timestamp index serves expiry.
+    index("history_bookmark_page").on(
+      t.ownerId,
+      t.bookmarkId,
+      t.createdAt,
+      t.id,
+    ),
+    index("history_deleted_page").on(t.ownerId, t.type, t.createdAt, t.id),
+    index("history_expiry").on(t.createdAt),
+  ],
+);

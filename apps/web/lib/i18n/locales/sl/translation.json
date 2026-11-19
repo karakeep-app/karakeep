@@ -1819,5 +1819,19 @@
     "go_back": "Nazaj",
     "go_home": "Na domačo stran",
     "try_again": "Poskusi znova"
+  },
+  "item_history": {
+    "title": "Zgodovina sprememb",
+    "retention": "Spremembe so na voljo 90 dni. Izbrisanih datotek ni mogoče obnoviti.",
+    "loading": "Nalaganje zgodovine…",
+    "retry": "Poskusi znova",
+    "deleted": "Izbrisani elementi",
+    "changed": "Element posodobljen",
+    "empty": "V zadnjih 90 dneh ni bilo sprememb.",
+    "more": "Naloži več",
+    "actor_user": "Uporabnik",
+    "actor_system": "Sistem",
+    "previous": "Prejšnja vrednost",
+    "current": "Nova vrednost"
   }
 }

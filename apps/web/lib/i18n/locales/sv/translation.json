@@ -1777,5 +1777,19 @@
     "go_back": "Gå tillbaka",
     "go_home": "Gå till startsidan",
     "try_again": "Försök igen"
+  },
+  "item_history": {
+    "title": "Ändringshistorik",
+    "retention": "Ändringar är tillgängliga i 90 dagar. Raderade filer kan inte återställas.",
+    "loading": "Läser in historik…",
+    "retry": "Försök igen",
+    "deleted": "Raderade objekt",
+    "changed": "Objekt uppdaterat",
+    "empty": "Inga ändringar under de senaste 90 dagarna.",
+    "more": "Läs in fler",
+    "actor_user": "Användare",
+    "actor_system": "System",
+    "previous": "Tidigare värde",
+    "current": "Nytt värde"
   }
 }

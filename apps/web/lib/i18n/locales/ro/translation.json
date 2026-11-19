@@ -1798,5 +1798,19 @@
     "go_back": "Înapoi",
     "go_home": "Mergi la pagina principală",
     "try_again": "Încearcă din nou"
+  },
+  "item_history": {
+    "title": "Istoricul modificărilor",
+    "retention": "Modificările sunt disponibile timp de 90 de zile. Fișierele șterse nu pot fi restaurate.",
+    "loading": "Se încarcă istoricul…",
+    "retry": "Reîncearcă",
+    "deleted": "Elemente șterse",
+    "changed": "Element actualizat",
+    "empty": "Nicio modificare în ultimele 90 de zile.",
+    "more": "Încarcă mai multe",
+    "actor_user": "Utilizator",
+    "actor_system": "Sistem",
+    "previous": "Valoarea anterioară",
+    "current": "Valoarea nouă"
   }
 }

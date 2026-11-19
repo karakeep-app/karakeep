@@ -1777,5 +1777,19 @@
     "go_back": "Gå tilbake",
     "go_home": "Gå til Hjem",
     "try_again": "Prøv igjen"
+  },
+  "item_history": {
+    "title": "Endringshistorikk",
+    "retention": "Endringer er tilgjengelige i 90 dager. Slettede filer kan ikke gjenopprettes.",
+    "loading": "Laster historikk…",
+    "retry": "Prøv igjen",
+    "deleted": "Slettede elementer",
+    "changed": "Element oppdatert",
+    "empty": "Ingen endringer de siste 90 dagene.",
+    "more": "Last inn flere",
+    "actor_user": "Bruker",
+    "actor_system": "System",
+    "previous": "Tidligere verdi",
+    "current": "Ny verdi"
   }
 }

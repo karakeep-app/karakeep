@@ -30,6 +30,11 @@ export function settingsNavGroups(t: TFunction): SectionNavGroup[] {
       label: t("settings.groups.account"),
       items: [
         {
+          name: t("item_history.title"),
+          icon: <BookOpen className="size-4" />,
+          path: "/settings/history",
+        },
+        {
           name: t("settings.info.user_info"),
           icon: <User className="size-4" />,
           path: "/settings/info",

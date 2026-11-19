@@ -1840,5 +1840,19 @@
     "go_back": "Téigh siar",
     "go_home": "Téigh abhaile",
     "try_again": "Bain triail eile as"
+  },
+  "item_history": {
+    "title": "Stair na n-athruithe",
+    "retention": "Tá athruithe ar fáil ar feadh 90 lá. Ní féidir comhaid scriosta a athchóiriú.",
+    "loading": "Stair á lódáil…",
+    "retry": "Bain triail eile as",
+    "deleted": "Míreanna scriosta",
+    "changed": "Mír nuashonraithe",
+    "empty": "Gan aon athruithe le 90 lá anuas.",
+    "more": "Lódáil tuilleadh",
+    "actor_user": "Úsáideoir",
+    "actor_system": "Córas",
+    "previous": "Luach roimhe seo",
+    "current": "Luach nua"
   }
 }

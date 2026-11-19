@@ -1759,5 +1759,19 @@
     "go_back": "返回",
     "go_home": "回到首頁",
     "try_again": "再試一次"
+  },
+  "item_history": {
+    "title": "變更歷史",
+    "retention": "變更記錄保留90天。已刪除的檔案無法還原。",
+    "loading": "正在載入歷史記錄…",
+    "retry": "重試",
+    "deleted": "已刪除的項目",
+    "changed": "項目已更新",
+    "empty": "過去90天內沒有變更。",
+    "more": "載入更多",
+    "actor_user": "使用者",
+    "actor_system": "系統",
+    "previous": "原值",
+    "current": "新值"
   }
 }

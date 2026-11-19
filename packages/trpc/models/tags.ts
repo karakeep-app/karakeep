@@ -1,3 +1,4 @@
+import { historyTransaction, tagHistoryIds } from "../lib/bookmarkHistory";
 import { TRPCError } from "@trpc/server";
 import {
   and,
@@ -246,7 +247,10 @@ export class Tag {
       });
     }
 
-    const { deletedTags, affectedBookmarks } = await ctx.db.transaction(
+    // Preserve old names and membership sets before merging away the source tags.
+    const { deletedTags, affectedBookmarks } = await historyTransaction(
+      ctx,
+      (tx) => tagHistoryIds(tx, [...requestedTags]),
       (trx) => {
         const unlinked = trx
           .delete(tagsOnBookmarks)
@@ -311,14 +315,21 @@ export class Tag {
       .from(tagsOnBookmarks)
       .where(eq(tagsOnBookmarks.tagId, this.tag.id));
 
-    const res = await this.ctx.db
-      .delete(bookmarkTags)
-      .where(
-        and(
-          eq(bookmarkTags.id, this.tag.id),
-          eq(bookmarkTags.userId, this.ctx.user.id),
-        ),
-      );
+    // Snapshot affected items before deleting the tag cascades through its assignments.
+    const res = historyTransaction(
+      this.ctx,
+      (tx) => tagHistoryIds(tx, [this.tag.id]),
+      (tx) =>
+        tx
+          .delete(bookmarkTags)
+          .where(
+            and(
+              eq(bookmarkTags.id, this.tag.id),
+              eq(bookmarkTags.userId, this.ctx.user.id),
+            ),
+          )
+          .run(),
+    );
 
     if (res.changes === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });
@@ -335,18 +346,25 @@ export class Tag {
 
   async update(input: z.infer<typeof zUpdateTagRequestSchema>): Promise<void> {
     try {
-      const result = await this.ctx.db
-        .update(bookmarkTags)
-        .set({
-          name: input.name,
-        })
-        .where(
-          and(
-            eq(bookmarkTags.id, this.tag.id),
-            eq(bookmarkTags.userId, this.ctx.user.id),
-          ),
-        )
-        .returning();
+      // Renaming a tag definition changes the displayed tag on each associated bookmark.
+      const result = historyTransaction(
+        this.ctx,
+        (tx) => tagHistoryIds(tx, [this.tag.id]),
+        (tx) =>
+          tx
+            .update(bookmarkTags)
+            .set({
+              name: input.name,
+            })
+            .where(
+              and(
+                eq(bookmarkTags.id, this.tag.id),
+                eq(bookmarkTags.userId, this.ctx.user.id),
+              ),
+            )
+            .returning()
+            .all(),
+      );
 
       if (result.length === 0) {
         throw new TRPCError({ code: "NOT_FOUND" });

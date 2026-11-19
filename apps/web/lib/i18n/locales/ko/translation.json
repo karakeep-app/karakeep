@@ -1759,5 +1759,19 @@
     "go_back": "뒤로 가기",
     "go_home": "홈으로 가기",
     "try_again": "다시 시도"
+  },
+  "item_history": {
+    "title": "변경 내역",
+    "retention": "변경 내역은 90일 동안 제공됩니다. 삭제된 파일은 복원할 수 없습니다.",
+    "loading": "내역 불러오는 중…",
+    "retry": "다시 시도",
+    "deleted": "삭제된 항목",
+    "changed": "항목이 업데이트되었습니다",
+    "empty": "지난 90일 동안 변경 사항이 없습니다.",
+    "more": "더 불러오기",
+    "actor_user": "사용자",
+    "actor_system": "시스템",
+    "previous": "이전 값",
+    "current": "새 값"
   }
 }

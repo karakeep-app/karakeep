@@ -1777,5 +1777,19 @@
     "go_back": "Geri dön",
     "go_home": "Ana sayfaya git",
     "try_again": "Tekrar dene"
+  },
+  "item_history": {
+    "title": "Değişiklik geçmişi",
+    "retention": "Değişiklikler 90 gün boyunca kullanılabilir. Silinen dosyalar geri yüklenemez.",
+    "loading": "Geçmiş yükleniyor…",
+    "retry": "Yeniden dene",
+    "deleted": "Silinen öğeler",
+    "changed": "Öğe güncellendi",
+    "empty": "Son 90 günde değişiklik yok.",
+    "more": "Daha fazla yükle",
+    "actor_user": "Kullanıcı",
+    "actor_system": "Sistem",
+    "previous": "Önceki değer",
+    "current": "Yeni değer"
   }
 }
