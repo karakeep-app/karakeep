@@ -28,6 +28,10 @@ import logger from "@karakeep/shared/logger";
 import { buildImagePrompt } from "@karakeep/shared/prompts";
 import { buildTextPrompt } from "@karakeep/shared/prompts.server";
 import { DequeuedJob, EnqueueOptions } from "@karakeep/shared/queueing";
+import {
+  filterToCuratedTags,
+  normalizeTagForMatching,
+} from "@karakeep/shared/utils/tag";
 import { RuleEngine } from "@karakeep/trpc/lib/ruleEngine";
 import { Bookmark } from "@karakeep/trpc/models/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
@@ -81,13 +85,8 @@ function parseJsonFromLLMResponse(response: string): unknown {
 }
 
 function tagNormalizer() {
-  // This function needs to be in sync with the generated normalizedName column in bookmarkTags
-  function normalizeTag(tag: string) {
-    return tag.toLowerCase().replace(/[ \-_]/g, "");
-  }
-
   return {
-    normalizeTag,
+    normalizeTag: normalizeTagForMatching,
   };
 }
 async function buildPrompt(
@@ -398,6 +397,18 @@ async function inferTags(
       }
       return tag.trim();
     });
+
+    // The prompt asks the model to stay on the curated list; enforce it, so
+    // an off-list tag is never created.
+    if (curatedTags && curatedTags.length > 0) {
+      const { kept, dropped } = filterToCuratedTags(tags, curatedTags);
+      if (dropped.length > 0) {
+        logger.info(
+          `[inference][${jobId}] Dropped tags not on the curated list for bookmark "${bookmark.id}": ${dropped}`,
+        );
+      }
+      tags = kept;
+    }
     addLogFields<"inferenceWorker.run">({
       "inference.tagging.num_generated_tags": tags.length,
       "inference.total_tokens": response.totalTokens,
@@ -412,12 +423,19 @@ async function inferTags(
   }
 }
 
-async function connectTags(
+/**
+ * Replaces the bookmark's AI-attached tags with the inferred ones; human tags
+ * are left alone. An empty list is a no-op unless `replaceWhenEmpty` is set,
+ * in which case it clears the AI tags. With a curated list, an empty result
+ * means nothing on the list fits, so stale off-list AI tags must still go.
+ */
+export async function connectTags(
   bookmarkId: string,
   inferredTags: string[],
   userId: string,
+  { replaceWhenEmpty = false }: { replaceWhenEmpty?: boolean } = {},
 ) {
-  if (inferredTags.length == 0) {
+  if (inferredTags.length == 0 && !replaceWhenEmpty) {
     return;
   }
 
@@ -715,7 +733,9 @@ export async function runTagging(
     return;
   }
 
-  await connectTags(bookmarkId, tags, bookmark.userId);
+  await connectTags(bookmarkId, tags, bookmark.userId, {
+    replaceWhenEmpty: (curatedTagNames?.length ?? 0) > 0,
+  });
 
   // Propagate priority to child jobs
   const enqueueOpts: EnqueueOptions = {
