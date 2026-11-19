@@ -1457,7 +1457,10 @@
     "crawl_failed": "Impossibile recuperare questa pagina",
     "continue_reading": "Continua da dove hai lasciato",
     "continue_reading_percent": "Continua da dove hai lasciato ({{percent}}%)",
-    "continue_button": "Continua"
+    "continue_button": "Continua",
+    "similar_articles": "Articoli simili",
+    "similar_articles_show_all": "Mostra tutto",
+    "similar_articles_show_less": "Mostra meno"
   },
   "toasts": {
     "highlights": {

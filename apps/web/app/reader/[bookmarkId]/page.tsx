@@ -22,6 +22,7 @@ import ReaderBarActions, {
 import ReaderView from "@/components/dashboard/preview/ReaderView";
 import { hostname } from "@/components/dashboard/preview/SavedPageOverview";
 import { readerColumnWidth } from "@/components/dashboard/preview/readerColumn";
+import SimilarBookmarksBox from "@/components/dashboard/preview/SimilarBookmarksBox";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -98,11 +99,11 @@ export default function ReaderViewPage() {
   }, [isNotLink, bookmarkId, router]);
 
   const onClose = () => {
-    if (window.history.length > 1) {
-      router.back();
-    } else {
-      router.push("/dashboard");
-    }
+    // Closing the reader returns to the bookmark's regular view — even when
+    // the user browsed through several articles via the related-articles
+    // grid first. `replace` keeps the closed reader out of the history so
+    // the browser's back button skips it.
+    router.replace(`/dashboard/preview/${bookmarkId}`);
   };
 
   const handlePrint = () => {
@@ -288,6 +289,14 @@ export default function ReaderViewPage() {
               <FullPageSpinner />
             )}
           </article>
+
+          {bookmark && isOwner && (
+            <SimilarBookmarksBox
+              bookmarkId={bookmarkId}
+              isOwner={isOwner}
+              variant="grid"
+            />
+          )}
         </main>
 
         {/* Highlights Sidebar */}

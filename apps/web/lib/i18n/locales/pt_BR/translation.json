@@ -1482,7 +1482,10 @@
     "crawl_failed": "Não foi possível obter esta página",
     "continue_reading": "Continue de onde parou",
     "continue_reading_percent": "Continue de onde parou ({{percent}}%)",
-    "continue_button": "Continuar"
+    "continue_button": "Continuar",
+    "similar_articles": "Artigos semelhantes",
+    "similar_articles_show_all": "Mostrar tudo",
+    "similar_articles_show_less": "Mostrar menos"
   },
   "editor": {
     "multiple_urls_dialog_title": "Importar URLs como favoritos separados?",

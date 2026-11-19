@@ -1366,7 +1366,10 @@
     "crawl_failed": "無法抓取此頁面",
     "continue_reading": "從上次中斷的地方繼續",
     "continue_reading_percent": "從上次中斷的地方繼續（{{percent}}%）",
-    "continue_button": "繼續"
+    "continue_button": "繼續",
+    "similar_articles": "相似文章",
+    "similar_articles_show_all": "顯示全部",
+    "similar_articles_show_less": "收合"
   },
   "editor": {
     "multiple_urls_dialog_title": "要將網址匯入為個別的書籤嗎？",
