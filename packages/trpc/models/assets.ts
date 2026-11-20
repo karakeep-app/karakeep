@@ -32,7 +32,21 @@ import {
   mapDBAssetTypeToUserType,
   mapSchemaAssetTypeToDB,
 } from "../lib/attachments";
+import { recordBookmarkChanges } from "../lib/bookmarkHistory";
 import { BareBookmark } from "./bookmarks";
+
+// How an attachment appears in a bookmark's history.
+function assetHistoryItem(asset: {
+  id: string;
+  fileName: string | null;
+  assetType: (typeof assets.$inferSelect)["assetType"];
+}) {
+  return {
+    id: asset.id,
+    name: asset.fileName,
+    assetType: mapDBAssetTypeToUserType(asset.assetType),
+  };
+}
 
 const listColumns = {
   ...getTableColumns(assets),
@@ -243,14 +257,66 @@ export class Asset {
       });
     }
 
-    const [updatedAsset] = await ctx.db
-      .update(assets)
-      .set({
-        assetType: mapSchemaAssetTypeToDB(input.asset.assetType),
+    const updatedAsset = ctx.db.transaction((tx) => {
+      const ownAsset = and(
+        eq(assets.id, input.asset.id),
+        eq(assets.userId, ctx.user.id),
+      );
+      const before = tx.select().from(assets).where(ownAsset).get();
+      const [updated] = tx
+        .update(assets)
+        .set({
+          assetType: mapSchemaAssetTypeToDB(input.asset.assetType),
+          bookmarkId: input.bookmarkId,
+        })
+        .where(ownAsset)
+        .returning()
+        .all();
+
+      if (before?.bookmarkId === input.bookmarkId) {
+        // Attaching it again changes nothing, unless its type changed.
+        if (before.assetType !== updated.assetType) {
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: [
+              {
+                field: "attachments",
+                oldValue: [assetHistoryItem(before)],
+                newValue: [assetHistoryItem(updated)],
+              },
+            ],
+          });
+        }
+        return updated;
+      }
+      if (before?.bookmarkId) {
+        // It moves here from another bookmark.
+        recordBookmarkChanges(tx, {
+          bookmarkId: before.bookmarkId,
+          userId: ctx.user.id,
+          changes: [
+            {
+              field: "attachments",
+              oldValue: [assetHistoryItem(before)],
+              newValue: [],
+            },
+          ],
+        });
+      }
+      recordBookmarkChanges(tx, {
         bookmarkId: input.bookmarkId,
-      })
-      .where(and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)))
-      .returning();
+        userId: ctx.user.id,
+        changes: [
+          {
+            field: "attachments",
+            oldValue: [],
+            newValue: [assetHistoryItem(updated)],
+          },
+        ],
+      });
+      return updated;
+    });
 
     return {
       id: updatedAsset.id,
@@ -296,6 +362,22 @@ export class Asset {
         })
         .where(eq(assets.id, input.newAssetId))
         .run();
+      recordBookmarkChanges(tx, {
+        bookmarkId: input.bookmarkId,
+        userId: ctx.user.id,
+        changes: [
+          {
+            field: "attachments",
+            oldValue: [assetHistoryItem(oldAsset.asset)],
+            newValue: [
+              assetHistoryItem({
+                ...newAsset.asset,
+                assetType: oldAsset.asset.assetType,
+              }),
+            ],
+          },
+        ],
+      });
     });
 
     await deleteAsset({
@@ -325,17 +407,31 @@ export class Asset {
       });
     }
 
-    const result = await ctx.db
-      .delete(assets)
-      .where(
-        and(
-          eq(assets.id, input.assetId),
-          eq(assets.bookmarkId, input.bookmarkId),
-        ),
-      );
-    if (result.changes == 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
+    ctx.db.transaction((tx) => {
+      const result = tx
+        .delete(assets)
+        .where(
+          and(
+            eq(assets.id, input.assetId),
+            eq(assets.bookmarkId, input.bookmarkId),
+          ),
+        )
+        .run();
+      if (result.changes == 0) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      recordBookmarkChanges(tx, {
+        bookmarkId: input.bookmarkId,
+        userId: ctx.user.id,
+        changes: [
+          {
+            field: "attachments",
+            oldValue: [assetHistoryItem(asset.asset)],
+            newValue: [],
+          },
+        ],
+      });
+    });
     await deleteAsset({ userId: ctx.user.id, assetId: input.assetId }).catch(
       () => ({}),
     );

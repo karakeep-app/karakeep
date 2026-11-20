@@ -77,6 +77,9 @@ export function useMergeLists(
           }),
         );
         queryClient.invalidateQueries(api.lists.stats.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.pathFilter(),
+        );
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -104,6 +107,11 @@ export function useAddBookmarkToList(
         );
         queryClient.invalidateQueries(
           api.lists.getListsOfBookmark.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.queryFilter({
             bookmarkId: req.bookmarkId,
           }),
         );
@@ -138,6 +146,11 @@ export function useRemoveBookmarkFromList(
             bookmarkId: req.bookmarkId,
           }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
         scheduleInvalidateQueries(queryClient, api.lists.stats.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -157,6 +170,9 @@ export function useDeleteBookmarkList(
         queryClient.invalidateQueries(api.lists.list.pathFilter());
         queryClient.removeQueries(
           api.lists.get.queryFilter({ listId: req.listId }),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.pathFilter(),
         );
         return opts?.onSuccess?.(res, req, meta, context);
       },

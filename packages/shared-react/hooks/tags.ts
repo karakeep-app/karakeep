@@ -127,6 +127,9 @@ export function useMergeTag(
         });
         // TODO: Maybe we can only look at the cache and invalidate only affected bookmarks
         queryClient.invalidateQueries(api.bookmarks.getBookmark.pathFilter());
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.pathFilter(),
+        );
         return opts?.onSuccess?.(res, req, meta, context);
       },
     }),
@@ -147,6 +150,10 @@ export function useDeleteTag(
         scheduleInvalidateQueries(
           queryClient,
           api.bookmarks.getBookmark.pathFilter(),
+        );
+        scheduleInvalidateQueries(
+          queryClient,
+          api.bookmarks.getBookmarkHistory.pathFilter(),
         );
         return opts?.onSuccess?.(res, req, meta, context);
       },

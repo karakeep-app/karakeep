@@ -63,6 +63,7 @@ import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
+import { deletePendingEdits } from "../lib/bookmarkHistory";
 import { getPreferredLinkPreview } from "../lib/linkPreview";
 import { Asset } from "./assets";
 import { List } from "./lists";
@@ -1052,14 +1053,23 @@ export class Bookmark extends BareBookmark {
 
   async delete() {
     this.ensureOwnership();
-    const deleted = await this.ctx.db
-      .delete(bookmarks)
-      .where(
-        and(
-          eq(bookmarks.userId, this.ctx.user.id),
-          eq(bookmarks.id, this.bookmark.id),
-        ),
-      );
+    const deleted = await this.ctx.db.transaction((tx) => {
+      const res = tx
+        .delete(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.ctx.user.id),
+            eq(bookmarks.id, this.bookmark.id),
+          ),
+        )
+        .run();
+      if (res.changes > 0) {
+        // The pending edit lives in another database file, so the
+        // foreign-key cascade that removes committed history doesn't reach it.
+        deletePendingEdits(tx, this.bookmark.id);
+      }
+      return res;
+    });
 
     await SearchIndexingQueue.enqueue(
       {
