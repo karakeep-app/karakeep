@@ -1053,14 +1053,23 @@ export class Bookmark extends BareBookmark {
 
   async delete() {
     this.ensureOwnership();
-    const deleted = await this.ctx.db
-      .delete(bookmarks)
-      .where(
-        and(
-          eq(bookmarks.userId, this.ctx.user.id),
-          eq(bookmarks.id, this.bookmark.id),
-        ),
-      );
+    const deleted = await this.ctx.db.transaction((tx) => {
+      const res = tx
+        .delete(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.userId, this.ctx.user.id),
+            eq(bookmarks.id, this.bookmark.id),
+          ),
+        )
+        .run();
+      if (res.changes > 0) {
+        // The pending edit lives in another database file, so the
+        // foreign-key cascade that removes committed history doesn't reach it.
+        deletePendingEdits(tx, this.bookmark.id);
+      }
+      return res;
+    });
 
     await SearchIndexingQueue.enqueue(
       {
@@ -1091,9 +1100,6 @@ export class Bookmark extends BareBookmark {
       },
     );
     if (deleted.changes > 0) {
-      // The pending edit lives in another database file, so the foreign-key
-      // cascade that removes committed history doesn't reach it.
-      this.ctx.db.transaction((tx) => deletePendingEdits(tx, this.bookmark.id));
       await this.cleanupAssets();
     }
   }

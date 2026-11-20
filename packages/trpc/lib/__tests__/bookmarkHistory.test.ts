@@ -16,7 +16,7 @@ import type { ZBookmark } from "@karakeep/shared/types/bookmarks";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 
 import type { APICallerType, CustomTestContext } from "../../testUtils";
-import { defaultBeforeEach } from "../../testUtils";
+import { defaultBeforeEach, getApiCaller } from "../../testUtils";
 import { NOTE_COALESCE_WINDOW_MS } from "../bookmarkHistory";
 
 beforeEach<CustomTestContext>(defaultBeforeEach(true));
@@ -509,6 +509,40 @@ describe("Bookmark edit history", () => {
         sql`SELECT id FROM ${sql.raw(PENDING_EDITS_TABLE)} WHERE bookmarkId = ${bookmark.id}`,
       );
       expect(pendingRows).toHaveLength(0);
+    });
+
+    test<CustomTestContext>("deleting an account deletes its pending edits", async ({
+      apiCallers,
+      db,
+    }) => {
+      const pendingRowsOf = (bookmarkId: string) =>
+        db.all(
+          sql`SELECT id FROM ${sql.raw(PENDING_EDITS_TABLE)} WHERE bookmarkId = ${bookmarkId}`,
+        );
+      // Every user leaves a pending note edit on their own bookmark.
+      const bookmarkIds: string[] = [];
+      for (const api of apiCallers) {
+        const bookmark = await createTextBookmark(api);
+        await api.bookmarks.updateBookmark({
+          bookmarkId: bookmark.id,
+          note: "Private note",
+        });
+        expect(pendingRowsOf(bookmark.id)).toHaveLength(1);
+        bookmarkIds.push(bookmark.id);
+      }
+
+      // Both ways an account is deleted: by its user, and by an admin.
+      await apiCallers[0].users.deleteAccount({});
+      const user = await apiCallers[1].users.whoami();
+      const admin = await apiCallers[2].users.whoami();
+      await getApiCaller(db, admin.id, admin.email!, "admin").users.delete({
+        userId: user.id,
+      });
+
+      expect(pendingRowsOf(bookmarkIds[0])).toHaveLength(0);
+      expect(pendingRowsOf(bookmarkIds[1])).toHaveLength(0);
+      // Other users' pending edits are kept.
+      expect(pendingRowsOf(bookmarkIds[2])).toHaveLength(1);
     });
   });
 

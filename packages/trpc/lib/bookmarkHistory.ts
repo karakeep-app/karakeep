@@ -406,6 +406,30 @@ export function deletePendingEdits(
   tx.run(sql`DELETE FROM ${pendingEdits} WHERE bookmarkId = ${bookmarkId}`);
 }
 
+/**
+ * Deletes the pending edits on a user's bookmarks and those the user made.
+ * The pending store is a separate file without foreign keys, so deleting the
+ * user doesn't cascade to it the way it does to bookmarkEditHistory. Must run
+ * in the transaction that deletes the user, before the delete, while the
+ * user's bookmarks still exist.
+ */
+export function deletePendingEditsOfUser(
+  tx: KarakeepDBTransaction,
+  userId: string,
+) {
+  if (!pendingHistoryState.available) {
+    return;
+  }
+  tx.run(
+    sql`DELETE FROM ${pendingEdits}
+        WHERE userId = ${userId}
+           OR bookmarkId IN (
+             SELECT ${bookmarks.id} FROM ${bookmarks}
+             WHERE ${bookmarks.userId} = ${userId}
+           )`,
+  );
+}
+
 interface NewEvent {
   eventId: string;
   bookmarkId: string;
