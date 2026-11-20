@@ -805,6 +805,11 @@ export const adminAppRouter = router({
         try {
           if (serverConfig.crawler.browserWebUrl) {
             const webUrl = new URL(serverConfig.crawler.browserWebUrl);
+            if (webUrl.protocol === "ws:") {
+              webUrl.protocol = "http:";
+            } else if (webUrl.protocol === "wss:") {
+              webUrl.protocol = "https:";
+            }
             const { address } = await dns.promises.lookup(webUrl.hostname);
             setUrlHostnameFromResolvedAddress(webUrl, address);
             webUrl.pathname = "/json/version";
