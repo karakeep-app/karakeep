@@ -95,16 +95,27 @@ describe("diffBookmarkUpdate", () => {
     ).toEqual([{ field: "note", oldValue: "Old note", newValue: null }]);
   });
 
-  test("diffs the title against what the user sees", () => {
-    // No custom title: the crawled title is displayed and used as old value.
+  test("diffs the title against what the user sees, keeping the stored one", () => {
+    // No custom title: the crawled title is displayed and used as old value,
+    // while undo needs to know the stored title was empty.
     expect(diffBookmarkUpdate(linkSnapshot(), { title: "My title" })).toEqual([
-      { field: "title", oldValue: "Crawled title", newValue: "My title" },
+      {
+        field: "title",
+        oldValue: "Crawled title",
+        newValue: "My title",
+        stored: { oldValue: null, newValue: "My title" },
+      },
     ]);
     // Clearing a custom title falls back to the crawled title.
     expect(
       diffBookmarkUpdate(linkSnapshot({ title: "My title" }), { title: null }),
     ).toEqual([
-      { field: "title", oldValue: "My title", newValue: "Crawled title" },
+      {
+        field: "title",
+        oldValue: "My title",
+        newValue: "Crawled title",
+        stored: { oldValue: "My title", newValue: null },
+      },
     ]);
     // Clearing a title that was never set changes nothing visible.
     expect(diffBookmarkUpdate(linkSnapshot(), { title: "" })).toEqual([]);
@@ -112,7 +123,12 @@ describe("diffBookmarkUpdate", () => {
 
   test("records text bookmark titles from empty", () => {
     expect(diffBookmarkUpdate(textSnapshot(), { title: "Hello" })).toEqual([
-      { field: "title", oldValue: null, newValue: "Hello" },
+      {
+        field: "title",
+        oldValue: null,
+        newValue: "Hello",
+        stored: { oldValue: null, newValue: "Hello" },
+      },
     ]);
   });
 

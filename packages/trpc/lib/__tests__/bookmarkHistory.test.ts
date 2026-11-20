@@ -6,6 +6,7 @@ import {
   assets,
   AssetTypes,
   bookmarkEditHistory,
+  bookmarkLinks,
   bookmarks,
 } from "@karakeep/db/schema";
 import type {
@@ -399,6 +400,100 @@ describe("Bookmark edit history", () => {
       expect(edits.every((e) => !e.pending)).toBe(true);
     });
 
+    test<CustomTestContext>("re-attaching an asset records nothing, moving it records both bookmarks", async ({
+      apiCallers,
+      db,
+    }) => {
+      const api = apiCallers[0];
+      const userId = (await api.users.whoami()).id;
+      const first = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com",
+      });
+      const second = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.org",
+      });
+      await db.insert(assets).values({
+        id: "upload1",
+        assetType: AssetTypes.UNKNOWN,
+        bookmarkId: null,
+        userId,
+        fileName: "cover.png",
+      });
+      const attach = (bookmarkId: string) =>
+        api.assets.attachAsset({
+          bookmarkId,
+          asset: { id: "upload1", assetType: "bannerImage" },
+        });
+
+      await attach(first.id);
+      await api.bookmarks.updateBookmark({
+        bookmarkId: first.id,
+        title: "Mine",
+      });
+      // The same request again: no entry, and the title edit stays undoable.
+      await attach(first.id);
+      const firstEdits = await editsOf(api, first.id);
+      expect(changesOf(firstEdits)).toEqual([
+        [["title", "https://example.com", "Mine"]],
+        [["attachments", [], ["cover.png"]]],
+      ]);
+      expect(firstEdits[0].pending).toBe(true);
+
+      await attach(second.id);
+      expect(changesOf(await editsOf(api, first.id))[0]).toEqual([
+        ["attachments", ["cover.png"], []],
+      ]);
+      expect(changesOf(await editsOf(api, second.id))).toEqual([
+        [["attachments", [], ["cover.png"]]],
+      ]);
+    });
+
+    test<CustomTestContext>("re-saving a link records the changes and replaces the pending edit", async ({
+      apiCallers,
+    }) => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date("2026-01-01T10:00:00.000Z"));
+      const api = apiCallers[0];
+      const bookmark = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com",
+      });
+      await api.bookmarks.updateBookmark({
+        bookmarkId: bookmark.id,
+        title: "First",
+      });
+
+      vi.setSystemTime(new Date("2026-01-02T10:00:00.000Z"));
+      const resaved = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com",
+        title: "Re-saved",
+        note: "Saved again",
+      });
+      expect(resaved.alreadyExists).toBe(true);
+
+      const edits = await editsOf(api, bookmark.id);
+      expect(changesOf(edits)).toEqual([
+        [
+          ["title", "First", "Re-saved"],
+          ["createdAt", "2026-01-01T10:00:00.000Z", "2026-01-02T10:00:00.000Z"],
+          ["note", null, "Saved again"],
+        ],
+        [["title", "https://example.com", "First"]],
+      ]);
+      expect(edits.map((e) => e.pending)).toEqual([true, false]);
+
+      // Undo puts back what the re-save changed.
+      const restored = await api.bookmarks.rollbackBookmarkEdit({
+        bookmarkId: bookmark.id,
+      });
+      expect(restored.title).toEqual("First");
+      expect(restored.note).toBeNull();
+      expect(restored.createdAt).toEqual(new Date("2026-01-01T10:00:00.000Z"));
+    });
+
     test<CustomTestContext>("records tags merged or deleted on every affected bookmark", async ({
       apiCallers,
     }) => {
@@ -635,6 +730,86 @@ describe("Bookmark edit history", () => {
       });
       // Back to no custom title, not the url the UI was showing as one.
       expect(restored.title).toBeNull();
+    });
+
+    test<CustomTestContext>("rolling back a title restores the stored title when the fallback changed", async ({
+      apiCallers,
+      db,
+    }) => {
+      const api = apiCallers[0];
+      const setCrawledTitle = (bookmarkId: string, title: string) =>
+        db
+          .update(bookmarkLinks)
+          .set({ title })
+          .where(eq(bookmarkLinks.id, bookmarkId));
+
+      // Nothing crawled, so the url is shown as the title, and the same edit
+      // changes the url.
+      const uncrawled = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com",
+      });
+      await api.bookmarks.updateBookmark({
+        bookmarkId: uncrawled.id,
+        url: "https://example.org",
+        title: "Custom",
+      });
+      const restoredUncrawled = await api.bookmarks.rollbackBookmarkEdit({
+        bookmarkId: uncrawled.id,
+      });
+      // Untitled again, not the old url saved as a custom title.
+      expect(restoredUncrawled.title).toBeNull();
+
+      // A recrawl finds a new title between the edit and the undo.
+      const recrawled = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.net",
+      });
+      await setCrawledTitle(recrawled.id, "Crawled title");
+      await api.bookmarks.updateBookmark({
+        bookmarkId: recrawled.id,
+        title: "Custom",
+      });
+      await setCrawledTitle(recrawled.id, "Recrawled title");
+      const restoredRecrawled = await api.bookmarks.rollbackBookmarkEdit({
+        bookmarkId: recrawled.id,
+      });
+      // Untitled, so the new crawled title shows, rather than the old one
+      // pinned as a custom title.
+      expect(restoredRecrawled.title).toBeNull();
+      if (restoredRecrawled.content.type !== BookmarkTypes.LINK) {
+        throw new Error("Expected a link bookmark");
+      }
+      expect(restoredRecrawled.content.title).toEqual("Recrawled title");
+    });
+
+    test<CustomTestContext>("a recrawl doesn't block undoing a cleared title", async ({
+      apiCallers,
+      db,
+    }) => {
+      const api = apiCallers[0];
+      const bookmark = await api.bookmarks.createBookmark({
+        type: BookmarkTypes.LINK,
+        url: "https://example.com",
+      });
+      await api.bookmarks.updateBookmark({
+        bookmarkId: bookmark.id,
+        title: "Custom",
+      });
+      await api.bookmarks.updateBookmark({
+        bookmarkId: bookmark.id,
+        title: null,
+      });
+      // The displayed title changes, but the cleared title is still cleared.
+      await db
+        .update(bookmarkLinks)
+        .set({ title: "Recrawled title" })
+        .where(eq(bookmarkLinks.id, bookmark.id));
+
+      const restored = await api.bookmarks.rollbackBookmarkEdit({
+        bookmarkId: bookmark.id,
+      });
+      expect(restored.title).toEqual("Custom");
     });
 
     test<CustomTestContext>("rolling back restores text content and the saved date", async ({

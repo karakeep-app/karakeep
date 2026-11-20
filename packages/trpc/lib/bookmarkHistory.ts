@@ -68,10 +68,21 @@ export interface BookmarkHistorySnapshot {
   text: { text: string | null } | null;
 }
 
+// The values a field's database column held before and after a change.
+export interface StoredValues {
+  oldValue: string | null;
+  newValue: string | null;
+}
+
 export interface BookmarkFieldChange {
   field: ZBookmarkHistoryField;
   oldValue: ZBookmarkHistoryValue;
   newValue: ZBookmarkHistoryValue;
+  // Only for the title. History shows the displayed title, which falls back
+  // to the crawled title or the url, and that fallback can change before an
+  // undo (a url edit, a recrawl). Undo checks and restores bookmarks.title
+  // from these instead. Kept with the pending edit, not in the history.
+  stored?: StoredValues;
 }
 
 interface PendingEditRow {
@@ -82,6 +93,8 @@ interface PendingEditRow {
   field: ZBookmarkHistoryField;
   oldValue: ZBookmarkHistoryValue;
   newValue: ZBookmarkHistoryValue;
+  // Null for other fields, and for title edits made before it existed.
+  stored: StoredValues | null;
   createdAt: Date;
 }
 
@@ -153,9 +166,21 @@ export function diffBookmarkUpdate(
   if (input.title !== undefined) {
     // Compare what the user sees: for a link without a custom title, the edit
     // dialog submits the crawled title, which isn't a visible change.
-    const oldTitle = displayedTitle(before.title, before.fallbackTitle);
-    const newTitle = displayedTitle(input.title, before.fallbackTitle);
-    pushText("title", oldTitle, newTitle);
+    const oldTitle = normalizeText(
+      displayedTitle(before.title, before.fallbackTitle),
+    );
+    const newTitle = normalizeText(
+      displayedTitle(input.title, before.fallbackTitle),
+    );
+    if (oldTitle !== newTitle) {
+      changes.push({
+        field: "title",
+        oldValue: oldTitle,
+        newValue: newTitle,
+        // updateBookmark writes input.title as is.
+        stored: { oldValue: before.title, newValue: input.title },
+      });
+    }
   }
 
   if (before.link) {
@@ -381,9 +406,10 @@ function readPendingEdits(
     field: ZBookmarkHistoryField;
     oldValue: string | null;
     newValue: string | null;
+    stored: string | null;
     createdAt: number;
   }>(
-    sql`SELECT id, eventId, bookmarkId, userId, field, oldValue, newValue, createdAt
+    sql`SELECT id, eventId, bookmarkId, userId, field, oldValue, newValue, stored, createdAt
         FROM ${pendingEdits}
         WHERE bookmarkId = ${bookmarkId}
         ORDER BY rowid`,
@@ -392,6 +418,8 @@ function readPendingEdits(
     ...row,
     oldValue: parseJson(row.oldValue),
     newValue: parseJson(row.newValue),
+    stored:
+      row.stored === null ? null : (JSON.parse(row.stored) as StoredValues),
     createdAt: new Date(row.createdAt),
   }));
 }
@@ -442,11 +470,13 @@ function insertPendingEdits(tx: KarakeepDBTransaction, event: NewEvent) {
   for (const change of event.changes) {
     tx.run(
       sql`INSERT INTO ${pendingEdits}
-            (id, eventId, bookmarkId, userId, field, oldValue, newValue, createdAt)
+            (id, eventId, bookmarkId, userId, field, oldValue, newValue, stored, createdAt)
           VALUES (
             ${randomUUID()}, ${event.eventId}, ${event.bookmarkId}, ${event.userId},
             ${change.field}, ${JSON.stringify(change.oldValue)},
-            ${JSON.stringify(change.newValue)}, ${event.now.getTime()}
+            ${JSON.stringify(change.newValue)},
+            ${change.stored ? JSON.stringify(change.stored) : null},
+            ${event.now.getTime()}
           )`,
     );
   }
@@ -459,7 +489,9 @@ function insertCommittedEdits(tx: KarakeepDBTransaction, event: NewEvent) {
         eventId: event.eventId,
         bookmarkId: event.bookmarkId,
         userId: event.userId,
-        ...change,
+        field: change.field,
+        oldValue: change.oldValue,
+        newValue: change.newValue,
         createdAt: event.now,
       })),
     )
@@ -475,8 +507,12 @@ function commitPendingEdits(
   if (pending.length === 0) {
     return;
   }
-  // Reusing the pending ids keeps this idempotent.
-  tx.insert(bookmarkEditHistory).values(pending).onConflictDoNothing().run();
+  // Reusing the pending ids keeps this idempotent. The stored values are only
+  // needed for undo, so they stay behind.
+  tx.insert(bookmarkEditHistory)
+    .values(pending.map(({ stored: _stored, ...row }) => row))
+    .onConflictDoNothing()
+    .run();
   deletePendingEdits(tx, bookmarkId);
 }
 
@@ -621,10 +657,13 @@ export function rollbackPendingEdit(
   // silently overwrite that. Tags are restored item by item instead, so tags
   // changed since by others are left as they are.
   for (const edit of pending) {
-    if (
-      !isCollectionHistoryField(edit.field) &&
-      currentValue(snapshot, edit.field) !== edit.newValue
-    ) {
+    if (isCollectionHistoryField(edit.field)) {
+      continue;
+    }
+    const changedSince = edit.stored
+      ? snapshot.title !== edit.stored.newValue
+      : currentValue(snapshot, edit.field) !== edit.newValue;
+    if (changedSince) {
       throw new TRPCError({
         code: "CONFLICT",
         message: `The ${edit.field} was changed again since this edit, so it can't be rolled back`,
@@ -634,14 +673,19 @@ export function rollbackPendingEdit(
 
   const bookmarkUpdate: Partial<typeof bookmarks.$inferInsert> = {};
   const linkUpdate: Partial<typeof bookmarkLinks.$inferInsert> = {};
-  for (const { field, oldValue, newValue } of pending) {
+  for (const { field, oldValue, newValue, stored } of pending) {
     switch (field) {
       case "title":
-        // The old value may be the fallback the UI showed, not a custom title.
-        bookmarkUpdate.title =
-          oldValue === null || oldValue === snapshot.fallbackTitle
-            ? null
-            : (oldValue as string);
+        if (stored) {
+          bookmarkUpdate.title = stored.oldValue;
+        } else {
+          // Pending files from before `stored` existed: the old value may be
+          // the fallback the UI showed, not a custom title.
+          bookmarkUpdate.title =
+            oldValue === null || oldValue === snapshot.fallbackTitle
+              ? null
+              : (oldValue as string);
+        }
         break;
       case "note":
       case "summary":

@@ -310,15 +310,30 @@ export const bookmarksAppRouter = router({
             ...(input.note !== undefined ? { note: input.note } : {}),
             ...(input.summary !== undefined ? { summary: input.summary } : {}),
           };
-          await ctx.db
-            .update(bookmarks)
-            .set({ ...resaved, modifiedAt: now })
-            .where(
-              and(
-                eq(bookmarks.userId, ctx.user.id),
-                eq(bookmarks.id, alreadyExists.id),
-              ),
+          await ctx.db.transaction((tx) => {
+            const historySnapshot = readBookmarkHistorySnapshot(
+              tx,
+              alreadyExists.id,
             );
+            tx.update(bookmarks)
+              .set({ ...resaved, modifiedAt: now })
+              .where(
+                and(
+                  eq(bookmarks.userId, ctx.user.id),
+                  eq(bookmarks.id, alreadyExists.id),
+                ),
+              )
+              .run();
+            // A re-save is an edit like any other: it's recorded, and it
+            // replaces the pending edit.
+            if (historySnapshot) {
+              recordBookmarkChanges(tx, {
+                bookmarkId: alreadyExists.id,
+                userId: ctx.user.id,
+                changes: diffBookmarkUpdate(historySnapshot, resaved),
+              });
+            }
+          });
           await Promise.all([
             triggerSearchReindex(alreadyExists.id, {
               groupId: ctx.user.id,

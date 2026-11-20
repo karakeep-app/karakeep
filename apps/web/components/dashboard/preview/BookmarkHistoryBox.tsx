@@ -9,6 +9,7 @@ import {
 import RelativeTime from "@/components/ui/relative-time";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/sonner";
+import LoadingSpinner from "@/components/ui/spinner";
 import { formatLocalDate } from "@/lib/date-format";
 import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
@@ -252,50 +253,72 @@ export default function BookmarkHistoryBox({
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data, isPending } = useQuery(
-    api.bookmarks.getBookmarkHistory.queryOptions({ bookmarkId }),
-  );
-
-  if (isPending || !data) {
-    return null;
-  }
-
-  const { events } = data;
-  const hasPendingEdit = events.some((event) => event.pending);
+  // History can be long and holds full old and new values (e.g. notes), so
+  // it's only fetched once the section is opened.
+  const { data, isError } = useQuery({
+    ...api.bookmarks.getBookmarkHistory.queryOptions({ bookmarkId }),
+    enabled: isOpen,
+  });
 
   return (
     <>
       <Separator />
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CollapsibleTrigger className="flex min-h-8 w-full items-center justify-between gap-2 rounded-md text-xs font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50 max-sm:min-h-11 [@media(pointer:coarse)]:min-h-11">
-          <span className="flex items-center gap-2">
-            {t("preview.history.title")}
-            <span className="font-normal tabular-nums">{events.length}</span>
-          </span>
+          {t("preview.history.title")}
           <ChevronRight
             className={cn("size-4 transition-transform", isOpen && "rotate-90")}
           />
         </CollapsibleTrigger>
         <CollapsibleContent className="flex flex-col gap-3 py-3 text-sm">
-          {canUndo && hasPendingEdit && (
-            <UndoLatestEdit bookmarkId={bookmarkId} />
-          )}
-          {events.length === 0 ? (
+          {data ? (
+            <HistoryEvents
+              bookmarkId={bookmarkId}
+              events={data.events}
+              canUndo={canUndo}
+            />
+          ) : isError ? (
             <p className="py-1 text-xs text-muted-foreground">
-              {t("preview.history.empty")}
+              {t("common.something_went_wrong")}
             </p>
           ) : (
-            <ol
-              className="flex flex-col gap-4"
-              aria-label={t("preview.history.title")}
-            >
-              {events.map((event) => (
-                <HistoryEvent key={event.id} event={event} />
-              ))}
-            </ol>
+            <LoadingSpinner className="size-4 self-center" />
           )}
         </CollapsibleContent>
       </Collapsible>
+    </>
+  );
+}
+
+function HistoryEvents({
+  bookmarkId,
+  events,
+  canUndo,
+}: {
+  bookmarkId: string;
+  events: ZBookmarkHistoryEvent[];
+  canUndo: boolean;
+}) {
+  const { t } = useTranslation();
+  const hasPendingEdit = events.some((event) => event.pending);
+
+  return (
+    <>
+      {canUndo && hasPendingEdit && <UndoLatestEdit bookmarkId={bookmarkId} />}
+      {events.length === 0 ? (
+        <p className="py-1 text-xs text-muted-foreground">
+          {t("preview.history.empty")}
+        </p>
+      ) : (
+        <ol
+          className="flex flex-col gap-4"
+          aria-label={t("preview.history.title")}
+        >
+          {events.map((event) => (
+            <HistoryEvent key={event.id} event={event} />
+          ))}
+        </ol>
+      )}
     </>
   );
 }

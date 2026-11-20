@@ -258,17 +258,52 @@ export class Asset {
     }
 
     const updatedAsset = ctx.db.transaction((tx) => {
+      const ownAsset = and(
+        eq(assets.id, input.asset.id),
+        eq(assets.userId, ctx.user.id),
+      );
+      const before = tx.select().from(assets).where(ownAsset).get();
       const [updated] = tx
         .update(assets)
         .set({
           assetType: mapSchemaAssetTypeToDB(input.asset.assetType),
           bookmarkId: input.bookmarkId,
         })
-        .where(
-          and(eq(assets.id, input.asset.id), eq(assets.userId, ctx.user.id)),
-        )
+        .where(ownAsset)
         .returning()
         .all();
+
+      if (before?.bookmarkId === input.bookmarkId) {
+        // Attaching it again changes nothing, unless its type changed.
+        if (before.assetType !== updated.assetType) {
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: [
+              {
+                field: "attachments",
+                oldValue: [assetHistoryItem(before)],
+                newValue: [assetHistoryItem(updated)],
+              },
+            ],
+          });
+        }
+        return updated;
+      }
+      if (before?.bookmarkId) {
+        // It moves here from another bookmark.
+        recordBookmarkChanges(tx, {
+          bookmarkId: before.bookmarkId,
+          userId: ctx.user.id,
+          changes: [
+            {
+              field: "attachments",
+              oldValue: [assetHistoryItem(before)],
+              newValue: [],
+            },
+          ],
+        });
+      }
       recordBookmarkChanges(tx, {
         bookmarkId: input.bookmarkId,
         userId: ctx.user.id,

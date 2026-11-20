@@ -40,7 +40,9 @@ export function attachPendingHistoryStore(
     // Self-managed schema: this file isn't covered by drizzle migrations.
     // oldValue/newValue are JSON, createdAt is in milliseconds. Every row of
     // one edit shares eventId and createdAt, and a bookmark has at most one
-    // pending edit.
+    // pending edit. stored is JSON too: the stored values that undo restores
+    // when they differ from the displayed ones (the title, see
+    // BookmarkFieldChange in packages/trpc/lib/bookmarkHistory.ts).
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS ${PENDING_EDITS_TABLE} (
         id TEXT PRIMARY KEY NOT NULL,
@@ -50,23 +52,31 @@ export function attachPendingHistoryStore(
         field TEXT NOT NULL,
         oldValue TEXT,
         newValue TEXT,
+        stored TEXT,
         createdAt INTEGER NOT NULL
       );
       CREATE INDEX IF NOT EXISTS ${PENDING_HISTORY_SCHEMA}.pendingBookmarkEdits_bookmarkId_idx
         ON pendingBookmarkEdits (bookmarkId);
     `);
+    const columns = new Set(
+      (
+        sqlite
+          .prepare(
+            `PRAGMA ${PENDING_HISTORY_SCHEMA}.table_info(pendingBookmarkEdits)`,
+          )
+          .all() as { name: string }[]
+      ).map((c) => c.name),
+    );
     // Files created before eventId existed: a pending edit's rows share
     // createdAt, so that's a stable stand-in for its event id.
-    const columns = sqlite
-      .prepare(
-        `PRAGMA ${PENDING_HISTORY_SCHEMA}.table_info(pendingBookmarkEdits)`,
-      )
-      .all() as { name: string }[];
-    if (!columns.some((c) => c.name === "eventId")) {
+    if (!columns.has("eventId")) {
       sqlite.exec(`
         ALTER TABLE ${PENDING_EDITS_TABLE} ADD COLUMN eventId TEXT NOT NULL DEFAULT '';
         UPDATE ${PENDING_EDITS_TABLE} SET eventId = bookmarkId || ':' || createdAt;
       `);
+    }
+    if (!columns.has("stored")) {
+      sqlite.exec(`ALTER TABLE ${PENDING_EDITS_TABLE} ADD COLUMN stored TEXT;`);
     }
     pendingHistoryState.available = true;
     return true;
