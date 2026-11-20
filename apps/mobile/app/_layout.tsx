@@ -31,6 +31,12 @@ Sentry.init({
 
   // Enable Logs
   enableLogs: false,
+
+  // Expo's DOM component wrapper re-sends props to the reader's webview on
+  // every render without catching the result, so once Android drops the view
+  // each render reports an unhandled rejection. Harmless, but it used up the
+  // whole Sentry quota.
+  ignoreErrors: [/DomWebView\.injectJavaScript/],
 });
 
 export default Sentry.wrap(function RootLayout() {
