@@ -224,6 +224,7 @@ const getContentTypeAndMetadata = traced(
               probeAbort.signal,
             ]),
             size: PROBE_MAX_BODY_BYTES,
+            ignoreHttpsErrors: serverConfig.crawler.ignoreHttpsErrors,
             headers: serverConfig.crawler.preflightUserAgent
               ? { "User-Agent": serverConfig.crawler.preflightUserAgent }
               : undefined,
@@ -372,6 +373,7 @@ export const crawlPage = traced(
       timezoneId: serverConfig.crawler.browserTimezone,
       proxy: proxyConfig,
       serviceWorkers: "block",
+      ignoreHTTPSErrors: serverConfig.crawler.ignoreHttpsErrors,
     });
 
     trackContext(jobId, context);
@@ -854,6 +856,7 @@ const browserlessCrawlPage = traced(
       url,
       {
         signal: AbortSignal.any([AbortSignal.timeout(5000), abortSignal]),
+        ignoreHttpsErrors: serverConfig.crawler.ignoreHttpsErrors,
       },
       runProxy,
     );
@@ -876,6 +879,7 @@ async function fetchAsset(ctx: CrawlContext, url: string, fileType: string) {
     url,
     {
       signal: ctx.abortSignal,
+      ignoreHttpsErrors: serverConfig.crawler.ignoreHttpsErrors,
     },
     ctx.runProxy,
   );
