@@ -165,6 +165,8 @@ async function archivePage(
     "-Ije",
     "-t",
     String(serverConfig.crawler.monolithTimeoutSec),
+    // -k: accept invalid certificates, like the rest of the crawl does.
+    ...(serverConfig.crawler.ignoreHttpsErrors ? ["-k"] : []),
     ...serverConfig.crawler.monolithArguments,
     "-b",
     url,
