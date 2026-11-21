@@ -75,6 +75,8 @@ docker compose up -d
 
 Then visit `http://localhost:3000` and you should be greeted with the Sign In page.
 
+If you plan to expose Karakeep to the internet, read [Exposing Karakeep to the internet](../06-administration/01-security-considerations.md#exposing-karakeep-to-the-internet) first.
+
 ### [Optional] 6. Enable optional features
 
 Check the [configuration docs](../03-configuration/01-environment-variables.md) for extra features to enable such as full page archival, full page screenshots, inference languages, etc.
