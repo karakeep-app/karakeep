@@ -204,6 +204,7 @@
     "note_title": "Jegyzet",
     "edit_notes": "Jegyzetek szerkesztése",
     "asset_no_pdf": "Ehhez az elemhez nincs PDF",
+    "asset_no_screen_pdf": "Ehhez az elemhez nincs Képernyő-PDF",
     "asset_no_archive": "Ehhez az elemhez nincs offline archívum",
     "asset_no_screenshot": "Ehhez az elemhez nincs képernyőkép",
     "downloading_pdf": "PDF letöltése…",

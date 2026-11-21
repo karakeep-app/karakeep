@@ -204,6 +204,7 @@
     "note_title": "Notiz",
     "edit_notes": "Notizen bearbeiten",
     "asset_no_pdf": "Kein PDF vorhanden",
+    "asset_no_screen_pdf": "Kein Bildschirm-PDF vorhanden",
     "asset_no_archive": "Kein Offline-Archiv vorhanden",
     "asset_no_screenshot": "Kein Screenshot vorhanden",
     "downloading_pdf": "PDF wird heruntergeladen…",

@@ -202,6 +202,7 @@
     "note_title": "ノート",
     "edit_notes": "メモを編集",
     "asset_no_pdf": "このアセットにはPDFがありません",
+    "asset_no_screen_pdf": "このアセットには画面PDFがありません",
     "asset_no_archive": "このアセットにはオフラインアーカイブがありません",
     "asset_no_screenshot": "このアセットにはスクリーンショットがありません",
     "downloading_pdf": "PDFをダウンロード中…",

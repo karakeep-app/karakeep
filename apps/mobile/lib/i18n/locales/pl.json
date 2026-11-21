@@ -208,6 +208,7 @@
     "note_title": "Notatka",
     "edit_notes": "Edytuj notatki",
     "asset_no_pdf": "Zasób nie zawiera pliku PDF",
+    "asset_no_screen_pdf": "Zasób nie zawiera PDF ekranu",
     "asset_no_archive": "Zasób nie zawiera archiwum offline",
     "asset_no_screenshot": "Zasób nie zawiera zrzutu ekranu",
     "downloading_pdf": "Pobieranie pliku PDF...",

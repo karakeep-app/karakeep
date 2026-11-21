@@ -206,6 +206,7 @@
     "note_title": "Bilješka",
     "edit_notes": "Uredi bilješke",
     "asset_no_pdf": "Privitak nema PDF",
+    "asset_no_screen_pdf": "Privitak nema PDF zaslona",
     "asset_no_archive": "Privitak nema izvanmrežnu arhivu",
     "asset_no_screenshot": "Privitak nema snimku ekrana",
     "downloading_pdf": "Preuzimanje PDF-a…",

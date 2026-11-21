@@ -204,6 +204,7 @@
     "note_title": "Note",
     "edit_notes": "Edit Notes",
     "asset_no_pdf": "Asset has no PDF",
+    "asset_no_screen_pdf": "Asset has no Screen PDF",
     "asset_no_archive": "Asset has no offline archive",
     "asset_no_screenshot": "Asset has no screenshot",
     "downloading_pdf": "Downloading PDF...",

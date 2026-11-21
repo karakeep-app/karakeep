@@ -208,6 +208,7 @@
     "note_title": "Opomba",
     "edit_notes": "Uredi opombe",
     "asset_no_pdf": "Priponka nima PDF-ja",
+    "asset_no_screen_pdf": "Priponka nima PDF zaslona",
     "asset_no_archive": "Priponka nima arhiva brez povezave",
     "asset_no_screenshot": "Priponka nima posnetka zaslona",
     "downloading_pdf": "Prenašanje PDF-ja …",

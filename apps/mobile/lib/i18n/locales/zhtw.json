@@ -202,6 +202,7 @@
     "note_title": "筆記",
     "edit_notes": "編輯筆記",
     "asset_no_pdf": "此資產沒有 PDF",
+    "asset_no_screen_pdf": "此資產沒有螢幕 PDF",
     "asset_no_archive": "此資產沒有離線封存檔",
     "asset_no_screenshot": "此資產沒有螢幕截圖",
     "downloading_pdf": "正在下載 PDF…",

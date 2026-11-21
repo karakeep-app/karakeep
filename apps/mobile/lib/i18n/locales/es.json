@@ -206,6 +206,7 @@
     "note_title": "Nota",
     "edit_notes": "Editar notas",
     "asset_no_pdf": "El recurso no tiene PDF",
+    "asset_no_screen_pdf": "El recurso no tiene PDF de pantalla",
     "asset_no_archive": "El recurso no tiene archivo sin conexión",
     "asset_no_screenshot": "El recurso no tiene captura de pantalla",
     "downloading_pdf": "Descargando PDF…",

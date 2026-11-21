@@ -210,6 +210,7 @@
     "note_title": "Nóta",
     "edit_notes": "Cuir Nótaí in Eagar",
     "asset_no_pdf": "Níl PDF ag an tsócmhainn seo",
+    "asset_no_screen_pdf": "Níl PDF Scáileáin ag an tsócmhainn seo",
     "asset_no_archive": "Níl cartlann as líne ag an tsócmhainn seo",
     "asset_no_screenshot": "Níl gabháil scáileáin ag an tsócmhainn seo",
     "downloading_pdf": "Ag íoslódáil an PDF…",

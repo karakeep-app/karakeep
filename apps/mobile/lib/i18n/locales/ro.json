@@ -206,6 +206,7 @@
     "note_title": "Notă",
     "edit_notes": "Editează notele",
     "asset_no_pdf": "Fișierul nu are PDF",
+    "asset_no_screen_pdf": "Fișierul nu are PDF de ecran",
     "asset_no_archive": "Fișierul nu are arhivă offline",
     "asset_no_screenshot": "Fișierul nu are captură de ecran",
     "downloading_pdf": "Se descarcă PDF-ul…",

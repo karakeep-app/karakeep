@@ -202,6 +202,7 @@
     "note_title": "笔记",
     "edit_notes": "编辑笔记",
     "asset_no_pdf": "此资源没有 PDF",
+    "asset_no_screen_pdf": "此资源没有屏幕 PDF",
     "asset_no_archive": "此资源没有离线存档",
     "asset_no_screenshot": "此资源没有截图",
     "downloading_pdf": "正在下载 PDF…",

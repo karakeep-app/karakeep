@@ -141,7 +141,7 @@ export function BookmarkLinkPdfPreview({
       <View className="flex-1 bg-background">
         <Text>
           {assetType === "screenPdf"
-            ? "Asset has no Screen PDF"
+            ? t("bookmarks.asset_no_screen_pdf")
             : t("bookmarks.asset_no_pdf")}
         </Text>
       </View>

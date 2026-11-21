@@ -204,6 +204,7 @@
     "note_title": "Not",
     "edit_notes": "Notları Düzenle",
     "asset_no_pdf": "Bu varlığın PDF'i yok",
+    "asset_no_screen_pdf": "Bu varlığın Ekran PDF'i yok",
     "asset_no_archive": "Bu varlığın çevrimdışı arşivi yok",
     "asset_no_screenshot": "Bu varlığın ekran görüntüsü yok",
     "downloading_pdf": "PDF indiriliyor…",

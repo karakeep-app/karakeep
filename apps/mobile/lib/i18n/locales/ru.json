@@ -208,6 +208,7 @@
     "note_title": "Заметка",
     "edit_notes": "Редактировать заметки",
     "asset_no_pdf": "У вложения нет PDF",
+    "asset_no_screen_pdf": "У вложения нет PDF экрана",
     "asset_no_archive": "У вложения нет офлайн-архива",
     "asset_no_screenshot": "У вложения нет снимка экрана",
     "downloading_pdf": "Загрузка PDF…",

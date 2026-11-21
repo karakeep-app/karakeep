@@ -204,6 +204,7 @@
     "note_title": "Notat",
     "edit_notes": "Rediger notater",
     "asset_no_pdf": "Filen har ingen PDF",
+    "asset_no_screen_pdf": "Filen har ingen Skjerm-PDF",
     "asset_no_archive": "Filen har ikke noe frakoblet arkiv",
     "asset_no_screenshot": "Filen har ikke noe skjermbilde",
     "downloading_pdf": "Laster ned PDF…",

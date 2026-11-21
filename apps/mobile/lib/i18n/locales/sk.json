@@ -208,6 +208,7 @@
     "note_title": "Poznámka",
     "edit_notes": "Upraviť poznámky",
     "asset_no_pdf": "Príloha nemá PDF",
+    "asset_no_screen_pdf": "Príloha nemá PDF obrazovky",
     "asset_no_archive": "Príloha nemá offline archív",
     "asset_no_screenshot": "Príloha nemá snímku obrazovky",
     "downloading_pdf": "Sťahuje sa PDF…",
