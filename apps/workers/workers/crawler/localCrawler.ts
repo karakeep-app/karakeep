@@ -495,10 +495,16 @@ type PrecrawledArchiveAssets = Pick<
 
 /**
  * Renders a precrawled archive (e.g. a SingleFile capture uploaded by the
- * browser extension) offline and captures the requested assets from it. The
- * archive is untrusted user-provided HTML, so JavaScript is disabled and every
- * network request is blocked; SingleFile archives inline their resources so
- * they render fine without the network.
+ * browser extension) offline and captures the requested assets from it.
+ * The archive is untrusted user-provided HTML, so the browser context stays
+ * offline and every non-data request is blocked; SingleFile archives inline
+ * their resources so they render fine without the network.
+ *
+ * Assets are captured in two passes (see renderPrecrawledArchiveAssets):
+ * the static pass (screenshot and print PDF) disables JavaScript entirely,
+ * while the Screen PDF pass enables it because the screen layout needs page
+ * timers and DOM mutations. Untrusted archive scripts therefore only ever
+ * run in that second, network-blocked pass.
  *
  * Capture is best-effort: processing the archive itself doesn't need a browser,
  * so browser failures are logged and skipped rather than failing the crawl.
