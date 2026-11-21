@@ -209,10 +209,10 @@ docker compose -f docker/docker-compose.dev.yml up
 3. Tail the dev logs when needed:
 
 ```bash
-docker compose logs -f web workers
+docker compose -f docker/docker-compose.dev.yml logs -f web workers
 ```
 
-4. Stop everything with `docker compose down`. Re-run with `--build` if you change Node dependencies or the Dockerfile.
+4. Stop everything with `docker compose -f docker/docker-compose.dev.yml down`. Re-run with `docker compose -f docker/docker-compose.dev.yml up --build` if you change Node dependencies or the Dockerfile.
 
 This setup exposes:
 - Web app: http://localhost:3000
