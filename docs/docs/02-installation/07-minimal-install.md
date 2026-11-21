@@ -48,4 +48,6 @@ docker run -d \
 You **MUST** change the `super_random_string` to a true random string which you can generate with `openssl rand -hex 32`.
 :::
 
+If you plan to expose Karakeep to the internet, read [Exposing Karakeep to the internet](../06-administration/01-security-considerations.md#exposing-karakeep-to-the-internet) first. With `docker run`, the loopback-only form is `-p 127.0.0.1:3000:3000`.
+
 Check the [configuration docs](../03-configuration/01-environment-variables.md) for extra features to enable such as full page archival, full page screenshots, inference languages, etc.
