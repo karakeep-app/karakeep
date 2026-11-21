@@ -34,7 +34,7 @@ volumes:
 
 Or just with the following docker command:
 
-```base
+```bash
 docker run -d \
   --restart unless-stopped \
   -v data:/data \
