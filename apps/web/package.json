@@ -115,6 +115,7 @@
     "portless": "^0.10.3",
     "postcss": "^8.5.28",
     "tailwindcss": "^3.4.1",
+    "typescript": "^7.0.2",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
   }
