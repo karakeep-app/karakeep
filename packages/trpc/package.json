@@ -33,6 +33,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/nodemailer": "^6.4.17",
     "@types/turndown": "^5.0.5",
+    "typescript": "^7.0.2",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
   }

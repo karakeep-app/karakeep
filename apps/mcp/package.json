@@ -19,6 +19,7 @@
     "@tsconfig/node22": "^22.0.0",
     "@types/turndown": "^5.0.5",
     "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"

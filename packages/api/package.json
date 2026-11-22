@@ -33,6 +33,7 @@
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/rss": "^0.0.32",
+    "typescript": "^7.0.2",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
   }

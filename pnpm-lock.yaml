@@ -18,7 +18,7 @@ overrides:
   '@types/react': 19.3.0
   '@types/react-dom': 19.3.0
 
-pnpmfileChecksum: sha256-D5bvOnGS3R4bafpZl7TfnVN3Ww1yRaN2fRPriGXz/yI=
+pnpmfileChecksum: sha256-li5QSvbyxAAdY3nW3pVPsEA5oTvyakT0VRVO0VjFfhw=
 
 patchedDependencies:
   '@react-native-menu/menu@2.0.0': 6dd0aa63e24fcd6cbc3e458eb8dc7e82a2a9a2ba426b6ce9b9ecd84542ff600d
@@ -207,12 +207,15 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       zod:
         specifier: ^4.2.0
         version: 4.6.7
@@ -323,12 +326,15 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -707,7 +713,7 @@ importers:
         version: 1.2.3(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@svgr/webpack':
         specifier: ^8.1.0
-        version: 8.1.0(supports-color@8.1.1)(typescript@5.9.3)
+        version: 8.1.0(supports-color@8.1.1)(typescript@7.0.2)
       '@tanstack/react-query':
         specifier: 5.90.2
         version: 5.90.2(react@19.3.0)
@@ -883,9 +889,12 @@ importers:
       tailwindcss:
         specifier: ^3.4.1
         version: 3.4.1
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@24.1.3(supports-color@8.1.1))(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -1186,9 +1195,12 @@ importers:
       '@types/rss':
         specifier: ^0.0.32
         version: 0.0.32
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -1226,6 +1238,9 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
   packages/db:
     dependencies:
@@ -1263,6 +1278,9 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
   packages/e2e_tests:
     dependencies:
@@ -1303,9 +1321,12 @@ importers:
       playwright:
         specifier: ^1.59.1
         version: 1.59.1
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -1328,6 +1349,9 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
   packages/plugins:
     dependencies:
@@ -1362,9 +1386,12 @@ importers:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
         version: link:../../tooling/typescript
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -1384,12 +1411,15 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite:
         specifier: ^8.3.0
         version: 8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
 
   packages/shared:
     dependencies:
@@ -1433,9 +1463,12 @@ importers:
       '@types/html-to-text':
         specifier: ^9.0.4
         version: 9.0.4
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -1494,6 +1527,9 @@ importers:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
         version: link:../../tooling/typescript
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
   packages/shared-server:
     dependencies:
@@ -1555,9 +1591,12 @@ importers:
       '@karakeep/tsconfig':
         specifier: workspace:^0.1.0
         version: link:../../tooling/typescript
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -1619,9 +1658,12 @@ importers:
       '@types/turndown':
         specifier: ^5.0.5
         version: 5.0.5
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
       vite-tsconfig-paths:
         specifier: ^6.1.1
-        version: 6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
+        version: 6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
       vitest:
         specifier: ^4.1.11
         version: 4.1.11(@opentelemetry/api@1.9.0)(@types/node@26.6.1)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3))
@@ -1710,6 +1752,9 @@ importers:
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
 packages:
 
@@ -14812,11 +14857,6 @@ packages:
   typescript-parsec@0.3.4:
     resolution: {integrity: sha512-6RD4xOxp26BTZLopNbqT2iErqNhQZZWb5m5F07/UwGhldGvOAKOl41pZ3fxsFp04bNL+PbgMjNfb6IvJAC/uYQ==}
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
-    engines: {node: '>=14.17'}
-    hasBin: true
-
   typescript@7.0.2:
     resolution: {integrity: sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==}
     engines: {node: '>=16.20.0'}
@@ -22037,17 +22077,6 @@ snapshots:
       '@svgr/babel-plugin-transform-react-native-svg': 8.1.0(@babel/core@7.29.7(supports-color@8.1.1))
       '@svgr/babel-plugin-transform-svg-component': 8.0.0(@babel/core@7.29.7(supports-color@8.1.1))
 
-  '@svgr/core@8.1.0(supports-color@8.1.1)(typescript@5.9.3)':
-    dependencies:
-      '@babel/core': 7.29.7(supports-color@8.1.1)
-      '@svgr/babel-preset': 8.1.0(@babel/core@7.29.7(supports-color@8.1.1))
-      camelcase: 6.3.0
-      cosmiconfig: 8.3.6(typescript@5.9.3)
-      snake-case: 3.0.4
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
-
   '@svgr/core@8.1.0(supports-color@8.1.1)(typescript@7.0.2)':
     dependencies:
       '@babel/core': 7.29.7(supports-color@8.1.1)
@@ -22064,16 +22093,6 @@ snapshots:
       '@babel/types': 7.29.8
       entities: 4.5.0
 
-  '@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@5.9.3))(supports-color@8.1.1)':
-    dependencies:
-      '@babel/core': 7.29.7(supports-color@8.1.1)
-      '@svgr/babel-preset': 8.1.0(@babel/core@7.29.7(supports-color@8.1.1))
-      '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@5.9.3)
-      '@svgr/hast-util-to-babel-ast': 8.0.0
-      svg-parser: 2.0.4
-    transitivePeerDependencies:
-      - supports-color
-
   '@svgr/plugin-jsx@8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@7.0.2))(supports-color@8.1.1)':
     dependencies:
       '@babel/core': 7.29.7(supports-color@8.1.1)
@@ -22084,15 +22103,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@svgr/plugin-svgo@8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@5.9.3))(typescript@5.9.3)':
-    dependencies:
-      '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@5.9.3)
-      cosmiconfig: 8.3.6(typescript@5.9.3)
-      deepmerge: 4.3.1
-      svgo: 3.3.5
-    transitivePeerDependencies:
-      - typescript
-
   '@svgr/plugin-svgo@8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@7.0.2))(typescript@7.0.2)':
     dependencies:
       '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@7.0.2)
@@ -22100,20 +22110,6 @@ snapshots:
       deepmerge: 4.3.1
       svgo: 3.3.5
     transitivePeerDependencies:
-      - typescript
-
-  '@svgr/webpack@8.1.0(supports-color@8.1.1)(typescript@5.9.3)':
-    dependencies:
-      '@babel/core': 7.29.7(supports-color@8.1.1)
-      '@babel/plugin-transform-react-constant-elements': 7.27.1(@babel/core@7.29.7(supports-color@8.1.1))
-      '@babel/preset-env': 7.27.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1)
-      '@babel/preset-react': 7.27.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1)
-      '@babel/preset-typescript': 7.27.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1)
-      '@svgr/core': 8.1.0(supports-color@8.1.1)(typescript@5.9.3)
-      '@svgr/plugin-jsx': 8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@5.9.3))(supports-color@8.1.1)
-      '@svgr/plugin-svgo': 8.1.0(@svgr/core@8.1.0(supports-color@8.1.1)(typescript@5.9.3))(typescript@5.9.3)
-    transitivePeerDependencies:
-      - supports-color
       - typescript
 
   '@svgr/webpack@8.1.0(supports-color@8.1.1)(typescript@7.0.2)':
@@ -23924,15 +23920,6 @@ snapshots:
   core-js@3.49.0: {}
 
   core-util-is@1.0.3: {}
-
-  cosmiconfig@8.3.6(typescript@5.9.3):
-    dependencies:
-      import-fresh: 3.3.1
-      js-yaml: 4.3.2
-      parse-json: 5.2.0
-      path-type: 4.0.0
-    optionalDependencies:
-      typescript: 5.9.3
 
   cosmiconfig@8.3.6(typescript@7.0.2):
     dependencies:
@@ -31014,9 +31001,9 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  tsconfck@3.1.6(typescript@5.9.3):
+  tsconfck@3.1.6(typescript@7.0.2):
     optionalDependencies:
-      typescript: 5.9.3
+      typescript: 7.0.2
 
   tsdown@0.12.9(supports-color@8.1.1)(typescript@7.0.2):
     dependencies:
@@ -31086,9 +31073,6 @@ snapshots:
       is-typedarray: 1.0.0
 
   typescript-parsec@0.3.4: {}
-
-  typescript@5.9.3:
-    optional: true
 
   typescript@7.0.2:
     optionalDependencies:
@@ -31383,21 +31367,21 @@ snapshots:
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)):
+  vite-tsconfig-paths@6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       globrex: 0.1.2
-      tsconfck: 3.1.6(typescript@5.9.3)
+      tsconfck: 3.1.6(typescript@7.0.2)
       vite: 8.3.0(@types/node@24.10.3)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)
     transitivePeerDependencies:
       - supports-color
       - typescript
 
-  vite-tsconfig-paths@6.1.1(supports-color@8.1.1)(typescript@5.9.3)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)):
+  vite-tsconfig-paths@6.1.1(supports-color@8.1.1)(typescript@7.0.2)(vite@8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)):
     dependencies:
       debug: 4.4.3(supports-color@8.1.1)
       globrex: 0.1.2
-      tsconfck: 3.1.6(typescript@5.9.3)
+      tsconfck: 3.1.6(typescript@7.0.2)
       vite: 8.3.0(@types/node@26.6.1)(esbuild@0.28.2)(jiti@2.4.2)(sass@1.102.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.8.3)
     transitivePeerDependencies:
       - supports-color

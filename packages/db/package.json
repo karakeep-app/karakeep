@@ -28,6 +28,7 @@
     "@types/better-sqlite3": "^7.6.11",
     "drizzle-kit": "^0.31.10",
     "rolldown": "^1.2.16",
-    "tsx": "^4.23.13"
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
   }
 }
