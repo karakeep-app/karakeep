@@ -1,0 +1,68 @@
+---
+import { render } from "astro:content";
+
+import type { Release } from "../../../blog/content";
+import {
+  getReleases,
+  isHoarderEraRelease,
+  isPatchRelease,
+  readingTime,
+  releaseUrl,
+} from "../../../blog/content";
+import { GITHUB_LINK } from "../../../constants";
+import BlogPostLayout from "../../../layouts/BlogPostLayout.astro";
+
+export async function getStaticPaths() {
+  const releases = await getReleases();
+  return releases.map((release, i) => ({
+    params: { version: `v${release.data.version}` },
+    props: { release, newer: releases[i - 1], older: releases[i + 1] },
+  }));
+}
+
+interface Props {
+  release: Release;
+  newer?: Release;
+  older?: Release;
+}
+
+const { release, newer, older } = Astro.props;
+const { title, version, date, description, noindex } = release.data;
+const { Content } = await render(release);
+const toLink = (r?: Release) =>
+  r && { href: releaseUrl(r), title: r.data.title };
+---
+
+<BlogPostLayout
+  title={title}
+  metaTitle={`Karakeep ${version} Release Notes`}
+  description={description}
+  date={date}
+  eyebrow={isPatchRelease(release) ? "Patch release" : "Release notes"}
+  meta={[readingTime(release.body)]}
+  author="The Karakeep Team"
+  authorType="Organization"
+  back={{ href: "/blog/releases/", title: "Release notes" }}
+  newer={toLink(newer)}
+  older={toLink(older)}
+  noindex={noindex}
+>
+  <div slot="header" class="mt-6 flex flex-wrap items-center gap-3 text-sm">
+    <a
+      href={`${GITHUB_LINK}/releases/tag/v${version}`}
+      target="_blank"
+      rel="noreferrer"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-neutral-700 transition-colors hover:border-neutral-300 hover:text-neutral-900"
+    >
+      View v{version} on GitHub ↗
+    </a>
+    {
+      isHoarderEraRelease(release) && (
+        <span class="text-neutral-500">
+          Karakeep was called Hoarder when this version shipped.
+        </span>
+      )
+    }
+  </div>
+  <Content />
+</BlogPostLayout>

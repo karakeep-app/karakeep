@@ -4,9 +4,16 @@ import "@karakeep/tailwind-config/globals.css";
 
 import { BASE_URL } from "../constants";
 
-interface Props {
+export interface Props {
   title?: string;
   description?: string;
+  /** `article` for blog posts and release notes. */
+  ogType?: "website" | "article";
+  /** Absolute URL of a page-specific link preview image. */
+  image?: string;
+  imageAlt?: string;
+  /** Keep the page out of search results (links on it are still followed). */
+  noindex?: boolean;
 }
 
 const DEFAULT_TITLE =
@@ -14,15 +21,24 @@ const DEFAULT_TITLE =
 const DEFAULT_DESCRIPTION =
   "Karakeep is the open-source bookmark manager for links, notes, and images. Automatically organize and tag your bookmarks with AI. Self-hostable, with apps for iOS, Android, Chrome, and Firefox.";
 
-const { title, description = DEFAULT_DESCRIPTION } = Astro.props;
+const {
+  title,
+  description = DEFAULT_DESCRIPTION,
+  ogType = "website",
+  noindex = false,
+} = Astro.props;
 const fullTitle = title ? `${title} | Karakeep` : DEFAULT_TITLE;
 const canonicalPath = `${Astro.url.pathname.replace(/\/+$/, "")}/`;
 const url = `${BASE_URL}${canonicalPath}`;
 
-const OG_IMAGE = `${BASE_URL}/og-image.jpg`;
+const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.jpg`;
 const OG_IMAGE_SQUARE = `${BASE_URL}/og-image-square.jpg`;
-const OG_IMAGE_ALT =
+const DEFAULT_OG_IMAGE_ALT =
   "Karakeep, the Bookmark Everything App, with bookmarks tagged by AI";
+const OG_IMAGE = Astro.props.image ?? DEFAULT_OG_IMAGE;
+const OG_IMAGE_ALT = Astro.props.image
+  ? (Astro.props.imageAlt ?? fullTitle)
+  : DEFAULT_OG_IMAGE_ALT;
 ---
 
 <!doctype html>
@@ -33,19 +49,25 @@ const OG_IMAGE_ALT =
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="canonical" href={url} />
-    <meta name="robots" content="index, follow" />
+    <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
     <meta name="theme-color" content="#171717" />
 
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Karakeep" />
     <meta property="og:url" content={url} />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:image" content={OG_IMAGE} />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="2400" />
-    <meta property="og:image:height" content="1260" />
+    {
+      !Astro.props.image && (
+        <>
+          <meta property="og:image:type" content="image/jpeg" />
+          <meta property="og:image:width" content="2400" />
+          <meta property="og:image:height" content="1260" />
+        </>
+      )
+    }
     <meta property="og:image:alt" content={OG_IMAGE_ALT} />
 
     <!-- Twitter Card -->
@@ -84,6 +106,12 @@ const OG_IMAGE_ALT =
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/apple-icon.png" />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Karakeep Blog"
+      href={`${BASE_URL}/blog/rss.xml`}
+    />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

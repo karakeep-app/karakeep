@@ -1,0 +1,75 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { render } from "astro:content";
+import { getImage, Image } from "astro:assets";
+
+import { getPosts, readingTime } from "../../blog/content";
+import { BASE_URL } from "../../constants";
+import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1], older: posts[i + 1] },
+  }));
+}
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  newer?: CollectionEntry<"blog">;
+  older?: CollectionEntry<"blog">;
+}
+
+const { post, newer, older } = Astro.props;
+const {
+  title,
+  description,
+  date,
+  updated,
+  author,
+  cover,
+  coverAlt,
+  tags,
+  noindex,
+} = post.data;
+const { Content } = await render(post);
+
+const ogImage = cover
+  ? (await getImage({ src: cover, width: 1200, format: "jpg" })).src
+  : undefined;
+const toLink = (p?: CollectionEntry<"blog">) =>
+  p && { href: `/blog/${p.id}/`, title: p.data.title };
+---
+
+<BlogPostLayout
+  title={title}
+  description={description}
+  date={date}
+  updated={updated}
+  eyebrow={tags[0] ?? "Article"}
+  meta={[readingTime(post.body)]}
+  author={author}
+  authorType={author === "The Karakeep Team" ? "Organization" : "Person"}
+  back={{ href: "/blog/", title: "Blog" }}
+  image={ogImage && new URL(ogImage, BASE_URL).toString()}
+  imageAlt={coverAlt}
+  newer={toLink(newer)}
+  older={toLink(older)}
+  noindex={noindex}
+>
+  {
+    cover && (
+      <Image
+        slot="header"
+        src={cover}
+        alt={coverAlt ?? ""}
+        widths={[720, 1440]}
+        sizes="(min-width: 752px) 720px, 100vw"
+        loading="eager"
+        class="mt-10 aspect-[1.91/1] w-full rounded-2xl border border-neutral-200 object-cover"
+      />
+    )
+  }
+  <Content />
+</BlogPostLayout>

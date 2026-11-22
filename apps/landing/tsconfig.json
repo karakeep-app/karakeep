@@ -9,6 +9,12 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react"
   },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.astro", "src/env.d.ts"],
+  "include": [
+    ".astro/types.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.astro",
+    "src/env.d.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

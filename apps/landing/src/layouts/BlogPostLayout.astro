@@ -1,0 +1,210 @@
+---
+import { ArrowLeft, ArrowRight } from "lucide-react";
+
+import BlogCta from "../components/blog/BlogCta.astro";
+import { formatDate } from "../blog/content";
+import { BASE_URL } from "../constants";
+import Layout from "./Layout.astro";
+
+interface NavLink {
+  href: string;
+  title: string;
+}
+
+interface Props {
+  title: string;
+  /** The <title> tag, when it should differ from the visible heading. */
+  metaTitle?: string;
+  description: string;
+  date: Date;
+  updated?: Date;
+  /** Small label above the title, e.g. "Release notes" or a post's tag. */
+  eyebrow: string;
+  /** Extra bits for the meta line, e.g. the reading time. */
+  meta?: string[];
+  author: string;
+  authorType: "Person" | "Organization";
+  back: NavLink;
+  /** Absolute URL of the link preview image. */
+  image?: string;
+  imageAlt?: string;
+  newer?: NavLink;
+  older?: NavLink;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  metaTitle = title,
+  description,
+  date,
+  updated,
+  eyebrow,
+  meta = [],
+  author,
+  authorType,
+  back,
+  image,
+  imageAlt,
+  newer,
+  older,
+  noindex,
+} = Astro.props;
+
+const url = `${BASE_URL}${Astro.url.pathname}`;
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": `${url}#article`,
+    headline: title,
+    description,
+    datePublished: date.toISOString(),
+    dateModified: (updated ?? date).toISOString(),
+    mainEntityOfPage: url,
+    image: image ?? `${BASE_URL}/og-image.jpg`,
+    author: {
+      "@type": authorType,
+      name: author,
+      ...(authorType === "Organization" ? { url: BASE_URL } : {}),
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Karakeep",
+      url: BASE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${BASE_URL}/icons/apple-icon.png`,
+      },
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${BASE_URL}/` },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: back.title,
+        item: `${BASE_URL}${back.href}`,
+      },
+      { "@type": "ListItem", position: 3, name: title, item: url },
+    ],
+  },
+];
+---
+
+<Layout
+  title={metaTitle}
+  description={description}
+  ogType="article"
+  image={image}
+  imageAlt={imageAlt}
+  noindex={noindex}
+>
+  <Fragment slot="head">
+    <meta property="article:published_time" content={date.toISOString()} />
+    {
+      updated && (
+        <meta property="article:modified_time" content={updated.toISOString()} />
+      )
+    }
+    <script
+      is:inline
+      type="application/ld+json"
+      set:html={JSON.stringify(jsonLd)}
+    />
+  </Fragment>
+
+  <article class="px-4 pb-16 pt-10 sm:pt-16">
+    <div class="mx-auto max-w-[720px]">
+      <a
+        href={back.href}
+        class="inline-flex items-center gap-1.5 text-sm text-neutral-500 transition-colors hover:text-neutral-900"
+      >
+        <ArrowLeft className="size-4" />
+        {back.title}
+      </a>
+
+      <header class="mt-8">
+        <span class="text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
+          {eyebrow}
+        </span>
+        <h1
+          class="font-display mt-3 text-balance text-4xl font-bold leading-[1.1] tracking-[-0.02em] text-neutral-900 sm:text-[48px]"
+        >
+          {title}
+        </h1>
+        <p class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-500">
+          <span>{author}</span>
+          <span aria-hidden="true">·</span>
+          <time datetime={date.toISOString()}>{formatDate(date)}</time>
+          {
+            meta.map((item) => (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>{item}</span>
+              </>
+            ))
+          }
+        </p>
+        <slot name="header" />
+      </header>
+
+      <div
+        class:list={[
+          "prose prose-neutral mt-10 max-w-none sm:prose-lg",
+          "prose-headings:font-display prose-headings:tracking-tight",
+          "prose-a:font-medium prose-a:text-neutral-900 prose-a:decoration-yellow-400 prose-a:decoration-2 prose-a:underline-offset-[3px] hover:prose-a:decoration-neutral-900",
+          "prose-code:font-normal prose-code:before:content-none prose-code:after:content-none",
+          "[&_:not(pre)>code]:rounded [&_:not(pre)>code]:bg-neutral-100 [&_:not(pre)>code]:px-1.5 [&_:not(pre)>code]:py-0.5 [&_:not(pre)>code]:text-[0.85em]",
+          "prose-pre:rounded-xl prose-img:rounded-xl prose-blockquote:font-normal prose-blockquote:not-italic prose-blockquote:text-neutral-600",
+          "[&_blockquote_p]:before:content-none [&_blockquote_p]:after:content-none",
+        ]}
+      >
+        <slot />
+      </div>
+
+      {
+        (newer || older) && (
+          <nav
+            aria-label="More posts"
+            class="mt-14 grid gap-4 border-t border-neutral-200 pt-8 sm:grid-cols-2"
+          >
+            {older ? (
+              <a
+                href={older.href}
+                class="group rounded-xl border border-neutral-200 bg-white p-4 transition-colors hover:border-neutral-300"
+              >
+                <span class="flex items-center gap-1 text-xs text-neutral-500">
+                  <ArrowLeft className="size-3.5" /> Older
+                </span>
+                <span class="mt-1 block font-medium text-neutral-900 group-hover:underline">
+                  {older.title}
+                </span>
+              </a>
+            ) : (
+              <span class="hidden sm:block" />
+            )}
+            {newer && (
+              <a
+                href={newer.href}
+                class="group rounded-xl border border-neutral-200 bg-white p-4 text-right transition-colors hover:border-neutral-300"
+              >
+                <span class="flex items-center justify-end gap-1 text-xs text-neutral-500">
+                  Newer <ArrowRight className="size-3.5" />
+                </span>
+                <span class="mt-1 block font-medium text-neutral-900 group-hover:underline">
+                  {newer.title}
+                </span>
+              </a>
+            )}
+          </nav>
+        )
+      }
+
+      <BlogCta />
+    </div>
+  </article>
+</Layout>
