@@ -21,13 +21,13 @@
     "@paralleldrive/cuid2": "^2.2.2",
     "better-sqlite3": "^13.0.3",
     "dotenv": "^16.4.1",
-    "drizzle-kit": "^0.31.10",
-    "drizzle-orm": "^0.45.4",
-    "tsx": "^4.23.13"
+    "drizzle-orm": "^0.45.4"
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@types/better-sqlite3": "^7.6.11",
-    "rolldown": "^1.2.16"
+    "drizzle-kit": "^0.31.10",
+    "rolldown": "^1.2.16",
+    "tsx": "^4.23.13"
   }
 }
