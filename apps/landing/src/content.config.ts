@@ -39,6 +39,7 @@ const blog = defineCollection({
  *   description: "One or two sentences for search results and link previews."
  *   noindex: true # for hotfixes and other thin notes
  *   draft: true # don't publish this note at all (still shown in dev)
+ *   patch: false # override the patch label (default: version doesn't end in .0)
  *   ---
  *
  * Paste only the part after the frontmatter into the GitHub release.
@@ -52,6 +53,7 @@ const releases = defineCollection({
     description: z.string().max(200),
     noindex: z.boolean().default(false),
     draft: z.boolean().default(false),
+    patch: z.boolean().optional(),
   }),
 });
 

@@ -35,7 +35,7 @@ const toLink = (r?: Release) =>
 
 <BlogPostLayout
   title={title}
-  metaTitle={`Karakeep ${version} Release Notes`}
+  metaTitle={`v${version} Release Notes`}
   description={description}
   date={date}
   eyebrow={isPatchRelease(release) ? "Patch release" : "Release notes"}
@@ -59,7 +59,7 @@ const toLink = (r?: Release) =>
     {
       isHoarderEraRelease(release) && (
         <span class="text-neutral-500">
-          Karakeep was called Hoarder when this version shipped.
+          Karakeep was called Hoarder when this version shipped (renamed in <a href="/blog/releases/v0.23.1/" class="underline">v0.23.1</a>).
         </span>
       )
     }

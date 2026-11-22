@@ -12,7 +12,7 @@ const byYear = Map.groupBy(releases, (r) => r.data.date.getUTCFullYear());
 
 <Layout
   title="Release Notes"
-  description="What's new in each Karakeep release: new features, fixes, security updates and upgrade notes for the open-source bookmark manager."
+  description="What's new in each Karakeep release: features, bug fixes, security updates, and upgrade notes for the open-source bookmark manager."
 >
   <main class="px-4 pb-20 pt-10 sm:pt-16">
     <div class="mx-auto max-w-[880px]">
@@ -33,8 +33,9 @@ const byYear = Map.groupBy(releases, (r) => r.data.date.getUTCFullYear());
           Release notes
         </h1>
         <p class="mt-5 max-w-2xl text-lg leading-[1.6] text-neutral-600">
-          What's new in every Karakeep release. Self-hosters can upgrade by
-          pulling the latest Docker image. Karakeep Cloud is updated for you.
+          What's new in Karakeep since v0.11.0. Self-hosting? Check each
+          release's upgrade notes before updating. Karakeep Cloud updates
+          automatically.
         </p>
         <div class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
           <a

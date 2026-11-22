@@ -19,15 +19,15 @@ import { CLOUD_SIGNUP_LINK, DOCS_LINK } from "../../constants";
       Bookmark everything with Karakeep
     </h2>
     <p class="mt-2 max-w-md text-neutral-600">
-      Save links, notes and images, and let AI tag them for you. Free to try in
-      the cloud, or self-host it with Docker.
+      Save links, notes, images, and PDFs, and let AI tag them for you. Try
+      Karakeep Cloud for free, or self-host it with Docker.
     </p>
     <div class="mt-6 flex flex-col gap-3 sm:flex-row">
       <a
         href={CLOUD_SIGNUP_LINK}
         class={cn(buttonVariants({ variant: "brand" }), "px-6")}
       >
-        Get started
+        Try Karakeep Cloud
       </a>
       <a
         href={`${DOCS_LINK}/installation/docker`}
@@ -35,7 +35,7 @@ import { CLOUD_SIGNUP_LINK, DOCS_LINK } from "../../constants";
         rel="noreferrer"
         class={cn(buttonVariants({ variant: "outline" }), "px-6")}
       >
-        Self-host it
+        Self-host with Docker
       </a>
     </div>
   </div>

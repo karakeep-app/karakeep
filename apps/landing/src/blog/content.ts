@@ -16,9 +16,13 @@ export function releaseUrl(release: Release) {
   return `/blog/releases/v${release.data.version}/`;
 }
 
-/** Patch releases (x.y.z, z > 0) are hotfixes and get less visual weight. */
+/**
+ * Patch releases (x.y.z, z > 0) are hotfixes and get less visual weight.
+ * Set `patch` in the frontmatter to override, e.g. when x.y.0 was never
+ * published on its own.
+ */
 export function isPatchRelease(release: Release) {
-  return !release.data.version.endsWith(".0");
+  return release.data.patch ?? !release.data.version.endsWith(".0");
 }
 
 /** Karakeep was called Hoarder until the 0.23.1 rebrand. */

@@ -29,7 +29,7 @@ export const GET: APIRoute = async () => {
   return rss({
     title: "Karakeep Blog",
     description:
-      "Release announcements, guides and stories from the team building Karakeep, the open-source bookmark everything app.",
+      "Release notes, guides, and stories from building Karakeep, the open-source, self-hostable bookmark manager with AI tagging.",
     site: BASE_URL,
     trailingSlash: true,
     items,
