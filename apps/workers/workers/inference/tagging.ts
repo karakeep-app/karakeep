@@ -220,11 +220,11 @@ async function replaceTagsPlaceholders(
   const tags = (await api.tags.list({})).tags;
   const tagsString = `[${tags.map((tag) => tag.name).join(", ")}]`;
   const aiTagsString = `[${tags
-    .filter((tag) => tag.numBookmarksByAttachedType.human ?? true)
+    .filter((tag) => (tag.numBookmarksByAttachedType.ai ?? 0) > 0)
     .map((tag) => tag.name)
     .join(", ")}]`;
   const userTagsString = `[${tags
-    .filter((tag) => tag.numBookmarksByAttachedType.human ?? false)
+    .filter((tag) => (tag.numBookmarksByAttachedType.human ?? 0) > 0)
     .map((tag) => tag.name)
     .join(", ")}]`;
 
