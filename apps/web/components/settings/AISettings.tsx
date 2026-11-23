@@ -795,11 +795,11 @@ function expandTagPlaceholders(
 ): string[] {
   const tagsStr = `[${tags.map((t) => t.name).join(", ")}]`;
   const aiTagsStr = `[${tags
-    .filter((t) => t.numBookmarksByAttachedType["human"] ?? true)
+    .filter((t) => (t.numBookmarksByAttachedType["ai"] ?? 0) > 0)
     .map((t) => t.name)
     .join(", ")}]`;
   const userTagsStr = `[${tags
-    .filter((t) => t.numBookmarksByAttachedType["human"] ?? false)
+    .filter((t) => (t.numBookmarksByAttachedType["human"] ?? 0) > 0)
     .map((t) => t.name)
     .join(", ")}]`;
 
