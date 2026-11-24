@@ -15,7 +15,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
 import { useTRPC } from "@karakeep/shared-react/trpc";
-import { BookmarkTypes, ZBookmark } from "@karakeep/shared/types/bookmarks";
+import {
+  BookmarkTypes,
+  MAX_BOOKMARK_TITLE_LENGTH,
+  ZBookmark,
+} from "@karakeep/shared/types/bookmarks";
 
 type Mode =
   | { type: "idle" }
@@ -49,10 +53,22 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
     if (isLoading) {
       return;
     }
+    // Prefer the title reported by the sharing app (e.g. the browser) over
+    // the crawled one, as many sites block the crawler. Bound it so an
+    // overlong title can't fail the whole save (the server caps titles at
+    // MAX_BOOKMARK_TITLE_LENGTH).
+    const titleFromShare = (url: string | null | undefined) => {
+      const title = shareIntent.meta?.title?.trim();
+      if (!title || title === url) {
+        return undefined;
+      }
+      return title.slice(0, MAX_BOOKMARK_TITLE_LENGTH);
+    };
     if (!isPending && shareIntent.webUrl) {
       mutate({
         type: BookmarkTypes.LINK,
         url: shareIntent.webUrl,
+        title: titleFromShare(shareIntent.webUrl),
         source: "mobile",
       });
     } else if (!isPending && shareIntent?.text) {
@@ -62,6 +78,7 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
         mutate({
           type: BookmarkTypes.LINK,
           url: shareIntent.text,
+          title: titleFromShare(shareIntent.text),
           source: "mobile",
         });
       } else {
