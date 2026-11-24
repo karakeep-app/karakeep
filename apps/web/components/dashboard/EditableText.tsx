@@ -54,7 +54,8 @@ function EditMode({
     <div className="flex gap-3">
       <div
         ref={ref}
-        role="presentation"
+        role="textbox"
+        aria-label={t("actions.edit_title")}
         className={className}
         contentEditable={true}
         onKeyDown={(e) => {
