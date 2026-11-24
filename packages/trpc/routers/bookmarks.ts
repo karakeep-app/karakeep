@@ -289,10 +289,14 @@ export const bookmarksAppRouter = router({
           // of the list. The rest of the metadata is only overwritten when the
           // caller actually supplied it, so a bare re-save doesn't wipe the
           // title or the note that are already on the existing bookmark.
+          // A supplied title only fills in a missing one: re-sharing a link
+          // must not silently replace a title the user set earlier (#3223).
           const resaved = {
             createdAt: input.createdAt ?? now,
             archived: input.archived ?? false,
-            ...(input.title !== undefined ? { title: input.title } : {}),
+            ...(input.title !== undefined && !alreadyExists.title
+              ? { title: input.title }
+              : {}),
             ...(input.favourited !== undefined
               ? { favourited: input.favourited }
               : {}),
