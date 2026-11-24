@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "@/components/ui/sonner";
+import { useTranslation } from "@/lib/i18n/client";
 import { cn } from "@/lib/utils";
 
 import { useUpdateTag } from "@karakeep/shared-react/hooks/tags";
@@ -15,6 +16,7 @@ export default function EditableTagName({
   tag: { id: string; name: string };
   className?: string;
 }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const currentPath = usePathname();
   const { mutate: updateTag, isPending } = useUpdateTag({
@@ -32,6 +34,7 @@ export default function EditableTagName({
       viewClassName={className}
       editClassName={cn("p-2", className)}
       originalText={tag.name}
+      ariaLabel={t("tags.tag_name")}
       onSave={(newName) => {
         if (!newName || newName == "") {
           toast({

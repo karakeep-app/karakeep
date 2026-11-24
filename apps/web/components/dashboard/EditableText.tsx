@@ -18,6 +18,7 @@ interface Props {
   isSaving: boolean;
   originalText: string | null;
   setEditable: (editable: boolean) => void;
+  ariaLabel?: string;
 }
 
 function EditMode({
@@ -26,6 +27,7 @@ function EditMode({
   isSaving,
   originalText,
   setEditable,
+  ariaLabel,
 }: Props) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ function EditMode({
       <div
         ref={ref}
         role="textbox"
-        aria-label={t("actions.edit_title")}
+        aria-label={ariaLabel ?? t("actions.edit_title")}
         className={className}
         contentEditable={true}
         onKeyDown={(e) => {
@@ -140,6 +142,7 @@ export function EditableText(props: {
   originalText: string | null;
   onSave: (title: string | null) => void;
   isSaving: boolean;
+  ariaLabel?: string;
 }) {
   const [editable, setEditable] = useState(false);
 
