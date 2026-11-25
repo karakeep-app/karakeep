@@ -58,6 +58,7 @@
     "rss-parser": "^3.13.0",
     "sharp": "^0.35.5",
     "tesseract.js": "^7.0.0",
+    "tiktoken": "^1.0.22",
     "winston": "^3.11.0",
     "zod": "^4.2.0"
   },

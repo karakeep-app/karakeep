@@ -7,6 +7,8 @@ const withBundleAnalyzer = bundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
+  // tiktoken loads its WASM file relative to its own directory.
+  serverExternalPackages: ["tiktoken"],
   turbopack: {
     rules: {
       "*.svg": {

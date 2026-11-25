@@ -1066,6 +1066,9 @@ importers:
       tesseract.js:
         specifier: ^7.0.0
         version: 7.0.0
+      tiktoken:
+        specifier: ^1.0.22
+        version: 1.0.22
       winston:
         specifier: ^3.11.0
         version: 3.17.0
@@ -1441,15 +1444,15 @@ importers:
       html-to-text:
         specifier: ^9.0.5
         version: 9.0.5
-      js-tiktoken:
-        specifier: ^1.0.20
-        version: 1.0.20
       ollama:
         specifier: ^0.5.14
         version: 0.5.17
       openai:
         specifier: ^6.34.0
         version: 6.34.0(ws@8.21.3)(zod@4.6.7)
+      tiktoken:
+        specifier: ^1.0.22
+        version: 1.0.22
       typescript-parsec:
         specifier: ^0.3.4
         version: 0.3.4
@@ -10947,9 +10950,6 @@ packages:
     resolution: {integrity: sha512-X2BB11YZtrRqY4EnQcLX5Rh373zbK4alC1FW7D7MBhL2gtcC17cTnr6DmfHZeS0s2rTHjUTMMHfG7gO8SSdw+g==}
     engines: {node: '>=0.10.0'}
 
-  js-tiktoken@1.0.20:
-    resolution: {integrity: sha512-Xlaqhhs8VfCd6Sh7a1cFkZHQbYTLCwVJJWiHVxBYzLPxW0XsoxBy1hitmjkdIjD3Aon5BXLHFwU5O8WUx6HH+A==}
-
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -14674,6 +14674,9 @@ packages:
 
   thunky@1.1.0:
     resolution: {integrity: sha512-eHY7nBftgThBqOyHGVN+l8gF0BucP09fMo0oO/Lb0w1OF80dJv+lDVpXG60WMQvkcxAkNybKsrEIE3ZtKGmPrA==}
+
+  tiktoken@1.0.22:
+    resolution: {integrity: sha512-PKvy1rVF1RibfF3JlXBSP0Jrcw2uq3yXdgcEXtKTYn3QJ/cBRBHDnrJ5jHky+MENZ6DIPwNUGWpkVx+7joCpNA==}
 
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
@@ -26333,10 +26336,6 @@ snapshots:
 
   js-levenshtein@1.1.6: {}
 
-  js-tiktoken@1.0.20:
-    dependencies:
-      base64-js: 1.5.1
-
   js-tokens@4.0.0: {}
 
   js-yaml@4.3.2:
@@ -30963,6 +30962,8 @@ snapshots:
   throat@5.0.0: {}
 
   thunky@1.1.0: {}
+
+  tiktoken@1.0.22: {}
 
   tiny-inflate@1.0.3: {}
 
