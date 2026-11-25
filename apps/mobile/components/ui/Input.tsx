@@ -1,4 +1,4 @@
-import type { TextInputProps } from "react-native";
+import type { TextInputInstance, TextInputProps } from "react-native";
 import { forwardRef } from "react";
 import { ActivityIndicator, Platform, TextInput, View } from "react-native";
 import { Text } from "@/components/ui/Text";
@@ -12,7 +12,7 @@ export interface InputProps extends TextInputProps {
   loading?: boolean;
 }
 
-export const Input = forwardRef<TextInput, InputProps>(
+export const Input = forwardRef<TextInputInstance, InputProps>(
   (
     { className, label, labelClasses, inputClasses, loading, ...props },
     ref,

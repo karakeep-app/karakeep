@@ -233,8 +233,6 @@
     "reader_continue_plain": "Kaldığın yerden devam et",
     "couldnt_open_link": "Bu bağlantı açılamadı",
     "photo_title": "Fotoğraf",
-    "more_tags_label_one": "ve {{count}} etiket daha",
-    "more_tags_label_other": "ve {{count}} etiket daha",
     "archive_empty_title": "Arşivlenen Bir Şey Yok",
     "archive_empty_subtitle": "Bir yer imini arşivlemek ve Ana Sayfa'dan kaldırmak için sola kaydır.",
     "favourites_empty_title": "Henüz Favori Yok",
@@ -338,6 +336,7 @@
   "lists": {
     "type_manual": "Manuel",
     "type_smart": "Akıllı",
+    "all_lists": "Tüm Listeler",
     "parent_label": "Üst Liste",
     "no_parent": "Üst liste yok",
     "parent_unavailable": "Üst liste kullanılamıyor",

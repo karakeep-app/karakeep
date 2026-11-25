@@ -235,9 +235,6 @@
     "reader_continue_plain": "Riprendi da dove eri rimasto",
     "couldnt_open_link": "Impossibile aprire questo link",
     "photo_title": "Foto",
-    "more_tags_label_one": "e altro {{count}} tag",
-    "more_tags_label_other": "e altri {{count}} tag",
-    "more_tags_label_many": "e altri {{count}} tag",
     "archive_empty_title": "Nulla di archiviato",
     "archive_empty_subtitle": "Scorri a sinistra su un segnalibro per archiviarlo e toglierlo dalla Home.",
     "favourites_empty_title": "Ancora nessun preferito",
@@ -341,6 +338,7 @@
   "lists": {
     "type_manual": "Manuale",
     "type_smart": "Intelligente",
+    "all_lists": "Tutte le liste",
     "parent_label": "Lista principale",
     "no_parent": "Nessuna",
     "parent_unavailable": "Lista principale non disponibile",

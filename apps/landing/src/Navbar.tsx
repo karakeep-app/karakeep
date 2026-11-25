@@ -25,6 +25,12 @@ export default function NavBar() {
             Pricing
           </a>
           <a
+            href="/blog/"
+            className="text-sm text-neutral-600 transition-colors hover:text-neutral-900"
+          >
+            Blog
+          </a>
+          <a
             href={DOCS_LINK}
             target="_blank"
             className="text-sm text-neutral-600 transition-colors hover:text-neutral-900"
@@ -84,6 +90,13 @@ export default function NavBar() {
               onClick={() => setMobileOpen(false)}
             >
               Pricing
+            </a>
+            <a
+              href="/blog/"
+              className="text-sm text-neutral-600 hover:text-neutral-900"
+              onClick={() => setMobileOpen(false)}
+            >
+              Blog
             </a>
             <a
               href={DOCS_LINK}

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import type { TextInput } from "react-native";
+import type { TextInputInstance } from "react-native";
 import { Pressable, View } from "react-native";
 import { ListParentField } from "@/components/lists/list-parent-field";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
@@ -56,7 +56,7 @@ export function ListFormFields({
   autoFocus?: boolean;
 }) {
   const { t } = useTranslation();
-  const queryInputRef = useRef<TextInput>(null);
+  const queryInputRef = useRef<TextInputInstance>(null);
   // Plain-language starting points that write the query syntax for you.
   const queryShortcuts = [
     { label: t("lists.shortcut_tag"), insert: "#" },

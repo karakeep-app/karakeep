@@ -1,5 +1,6 @@
 import { Stack } from "expo-router/stack";
 import { router } from "expo-router";
+import { horizontalSafeAreaLayout } from "@/components/navigation/screen-layout";
 import { HeaderTextButton } from "@/components/ui/SheetHeader";
 import { useTranslation } from "@/lib/i18n/hooks";
 import { useColorScheme } from "@/lib/useColorScheme";
@@ -14,6 +15,7 @@ export default function SettingsLayout() {
 
   return (
     <Stack
+      screenLayout={horizontalSafeAreaLayout()}
       screenOptions={({ navigation, route }) => ({
         contentStyle: { backgroundColor: colors.sheet },
         headerStyle: { backgroundColor: colors.sheet },

@@ -1,0 +1,42 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+import { CLOUD_SIGNUP_LINK, DOCS_LINK } from "../../constants";
+---
+
+<aside
+  class="relative mt-14 overflow-hidden rounded-2xl border border-neutral-200 bg-white px-6 py-8 sm:px-10"
+>
+  <div
+    class="pointer-events-none absolute -right-24 -top-24 h-64 w-64 bg-[radial-gradient(closest-side,rgba(250,204,21,0.18),transparent)]"
+  >
+  </div>
+  <div class="relative">
+    <h2
+      class="font-display text-2xl font-bold tracking-tight text-neutral-900"
+    >
+      Bookmark everything with Karakeep
+    </h2>
+    <p class="mt-2 max-w-md text-neutral-600">
+      Save links, notes, images, and PDFs, and let AI tag them for you. Try
+      Karakeep Cloud for free, or self-host it with Docker.
+    </p>
+    <div class="mt-6 flex flex-col gap-3 sm:flex-row">
+      <a
+        href={CLOUD_SIGNUP_LINK}
+        class={cn(buttonVariants({ variant: "brand" }), "px-6")}
+      >
+        Try Karakeep Cloud
+      </a>
+      <a
+        href={`${DOCS_LINK}/installation/docker`}
+        target="_blank"
+        rel="noreferrer"
+        class={cn(buttonVariants({ variant: "outline" }), "px-6")}
+      >
+        Self-host with Docker
+      </a>
+    </div>
+  </div>
+</aside>

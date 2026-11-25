@@ -82,6 +82,7 @@
     "show_note_previews": "Show notes",
     "show_tags": "Show tags",
     "show_title": "Show title",
+    "show_new_item_card": "Show new item card",
     "image_options": "Image options",
     "image_fit_cover": "Cover (fill)",
     "image_fit_contain": "Contain (fit)"
@@ -1420,7 +1421,7 @@
     },
     "archived_status": "Archived",
     "restore_archived": "Restore",
-    "open_fullscreen": "Open full screen",
+    "immersive_reader": "Immersive reader",
     "archive_info_label": "About saved pages",
     "reading_time": "{{minutes}} min read",
     "toggle_highlights": "Toggle highlights",

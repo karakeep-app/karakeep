@@ -1,0 +1,41 @@
+---
+import type { Release } from "../../blog/content";
+import { formatDate, isPatchRelease, releaseUrl } from "../../blog/content";
+
+interface Props {
+  release: Release;
+}
+
+const { release } = Astro.props;
+const { title, version, date, description } = release.data;
+const isPatch = isPatchRelease(release);
+---
+
+<a href={releaseUrl(release)} class="group flex flex-col gap-1 py-5 sm:flex-row sm:gap-6">
+  <div class="flex shrink-0 items-center gap-3 sm:w-40 sm:flex-col sm:items-start sm:gap-1.5">
+    <span
+      class:list={[
+        "inline-flex rounded-md px-2 py-0.5 font-mono text-xs font-semibold",
+        isPatch ? "bg-neutral-100 text-neutral-600" : "bg-yellow-100 text-yellow-900",
+      ]}
+    >
+      v{version}
+    </span>
+    <time datetime={date.toISOString()} class="text-sm text-neutral-500">
+      {formatDate(date)}
+    </time>
+  </div>
+  <div class="min-w-0">
+    <h3
+      class:list={[
+        "font-medium text-neutral-900 group-hover:underline",
+        !isPatch && "font-display text-lg font-bold tracking-tight",
+      ]}
+    >
+      {title}
+    </h3>
+    <p class="mt-1 line-clamp-2 text-sm leading-relaxed text-neutral-600">
+      {description}
+    </p>
+  </div>
+</a>

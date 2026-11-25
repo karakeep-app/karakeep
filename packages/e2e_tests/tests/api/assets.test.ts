@@ -257,6 +257,7 @@ describe("Assets API", () => {
       id: uploadResponse1.assetId,
       assetType: "bannerImage",
       fileName: "test.pdf",
+      size: uploadResponse1.size,
     });
 
     // Attach second asset
@@ -280,6 +281,7 @@ describe("Assets API", () => {
       id: uploadResponse2.assetId,
       assetType: "bannerImage",
       fileName: "test.pdf",
+      size: uploadResponse2.size,
     });
 
     // Get bookmark and verify assets
@@ -300,11 +302,13 @@ describe("Assets API", () => {
           id: uploadResponse1.assetId,
           assetType: "bannerImage",
           fileName: "test.pdf",
+          size: uploadResponse1.size,
         },
         {
           id: uploadResponse2.assetId,
           assetType: "bannerImage",
           fileName: "test.pdf",
+          size: uploadResponse2.size,
         },
       ]),
     );
@@ -345,11 +349,13 @@ describe("Assets API", () => {
           id: uploadResponse3.assetId,
           assetType: "bannerImage",
           fileName: "test.pdf",
+          size: uploadResponse3.size,
         },
         {
           id: uploadResponse2.assetId,
           assetType: "bannerImage",
           fileName: "test.pdf",
+          size: uploadResponse2.size,
         },
       ]),
     );
@@ -386,6 +392,7 @@ describe("Assets API", () => {
         id: uploadResponse3.assetId,
         assetType: "bannerImage",
         fileName: "test.pdf",
+        size: uploadResponse3.size,
       },
     ]);
   });

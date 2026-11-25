@@ -50,6 +50,7 @@ jobs:
           source: .
           files: docker/docker-bake.hcl
           push: true
+          sbom: true
 
   manifest:
     needs: build

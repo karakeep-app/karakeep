@@ -236,7 +236,7 @@ export default function AddBookmarksToListPage() {
             <View className="py-4">
               <ActivityIndicator />
             </View>
-          ) : null
+          ) : undefined
         }
         ListEmptyComponent={
           <EmptyState

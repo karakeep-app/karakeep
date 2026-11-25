@@ -1,0 +1,71 @@
+---
+id: update-tag
+title: "Update a tag"
+description: "Rename a tag. The new name will be normalized and trimmed."
+sidebar_label: "Update a tag"
+hide_title: true
+hide_table_of_contents: true
+api: eJytVttuGzcQ/ZUB85IIa8kpUiTYhwJKmqBu8mA4MorCEaDRcrTLiEsyJNeSIizQj+gX9kuK4a4ulpWgQOoHSyKHwzNnZs5wK6wjj1FZcyVFLhonMdIES5EJSaHwyvGeyMUNGawJECKWQ5hUBIZWkNZWSmuYExjra9TqK0lAIyF6VdckhyITEcsg8jsx4c9pJgIVjVdxI/K7rZgTevLjJlYiv5u200w49FhTJB+SQSgqqlHkWxE3jkQuQvTKPIbIoBqjvjQESpKJaqHIg11ArCjBFpmgNdZOsxNFSur1pqxXn1+9tOuvP1frGG3xiuGqmEwmWF5J0WbC05dGeZIij76hTHDYIuewrqTIhOLbHcZKMHo2phBfW7lhzI8xMnERy0QeYyqsiWQiG6NzWhUpH6PPgU+cCd/OP1MRRSac5+xFRYF3O1CnJLXpj1EFZ03oTH+6vDwPrcu/3LH1PyFT8gyu7JuAj/m+48O96bSL5MXl88fgbw02sbI+Vd8/f/2dcv46VRZEuyQDKkCtQlCmzECZe9RKZmA90NrxVSfhRlrHkdOozge6r8BDPR0jEDukL87QzJm3ERa2Mae3/gjJhZVn2DztkTHUWFTK0IUnlDjXBOS99cDHh5yVmkLA8j+5qpoazamj/vzwUSITwIP/6aHP3vJB0RdqTbGysmuoouIwubFyMWIRGW1Tz7WCNcTf7xSi8VrkYotSegqhHaFTo/vnIhP36BVjSwz1211KFtjoKHJRxehCPhpFvxku0eOSyA3RubPq0nvYacr73h46LBzBkbh95MR1Nx9L3J5WvpnjSGYi741E1n95x2rKCH//Y5K45IK4OWjL213l7Tr/qLOUWVjeYII69M+Hl8PLI2nbQx9fXz0Kdb+pAiAE0ouLyoaYkjy3dlmjXypTJpXn7F+oeKExkk9EqIJ4QKjAvgG1tqsAG9tAtFCjwfLgJGSgVYghY8EJGVSqrLQqK17BECh9GglzLJaNC+C8LT3WNUZVoNab4SfzyTx5AswsC37XOrw41hrISGeViQH6MgR8KAmO75CgTMrmbNz3b3Iyg4pQkh/Cn7aBAg2UZHhUEqBJkS1pAwtv64elsKI53F5BYyR5GAw+UozKlAF+SWfe0yYMBjvY11gqs4f8QYV4hDk0zlkfoWh8sP5ijgzV7U/AvUKYdZuzRNJMq1rFGXxpyG/gMEO7ab3Tf1Cm0I0kzuzM0Dq+6V0sFOlOOpkWUBEwdLzsLtm75EwuKBZV2mcnDIyGMIaZabSewT3qhmBh/cM7lJGcI0qOOR+eXw1QW58ANjqGHTev+xKBycZR4MXdSkjZmBNYQ10neiLgpgr5J3MBg4FWZjkYpFjGcHvzYV9vsFKxApvqHDUUHleaJNQUUWLEYXectX9/PM0A4CVWbepNUnHubAw0TluUJGGhNMFTVXORWw/Xv757lkTV2RBrNEfNepsmbfeeOm3A7WEm/OC7q1Oao2HWZp1YbntZveveZpnIu8fMNBPc6ryx3XLN3XrdtrycyopfaAdVTdorVeDvUuQL1IG+E8rTm34aPINvYesX0WySeOuGf4lMLGmzf2+10zYTXXMmAN3em+6aCy6Xo7OPJmqb7U6Mi4Jc/K7t9GgcXY8nb35jde7fdXWat8LjSmTpfwLa1VYS/bS2FRpN2aSBKjqnrOX4cBScSH8K6ywV221nMWH9atsDM/ybmWnbfwG89Bx+
+sidebar_class_name: "patch api-method"
+info_path: api/karakeep-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Update a tag"}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"patch"}
+  path={"/tags/{tagId}"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Rename a tag. The new name will be normalized and trimmed.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+  children={"Request"}
+>
+</Heading>
+
+<ParamsDetails
+  parameters={[{"schema":{"type":"string","description":"The unique identifier of the tag.","example":"ieidlxygmwj87oxz5hxttoc8","title":"TagId"},"required":true,"name":"tagId","in":"path"}]}
+>
+  
+</ParamsDetails>
+
+<RequestSchema
+  title={"Body"}
+  body={{"description":"The new tag name.","content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string"}}}}}}}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  id={undefined}
+  label={undefined}
+  responses={{"200":{"description":"The updated tag.","content":{"application/json":{"schema":{"type":"object","properties":{"id":{"type":"string"},"name":{"type":"string"}},"required":["id","name"]}}}},"401":{"description":"Unauthorized — the Bearer token is missing, invalid, or expired.","content":{"text/plain":{"schema":{"type":"string","example":"Unauthorized"}}}},"404":{"description":"Tag not found.","content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","description":"A machine-readable error code."},"message":{"type":"string","description":"A human-readable error message."}},"required":["code","message"],"title":"Error"}}}}}}
+>
+  
+</StatusCodes>
+
+
+      

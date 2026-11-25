@@ -1,0 +1,85 @@
+---
+import { ArrowRight, Rss } from "lucide-react";
+
+import PostCard from "../../components/blog/PostCard.astro";
+import ReleaseRow from "../../components/blog/ReleaseRow.astro";
+import { getPosts, getReleases } from "../../blog/content";
+import Layout from "../../layouts/Layout.astro";
+
+const posts = await getPosts();
+const [featured, ...rest] = posts;
+const releases = (await getReleases()).slice(0, 6);
+---
+
+<Layout
+  title="Blog"
+  description="Release notes, guides, and stories from building Karakeep, the open-source, self-hostable bookmark manager with AI tagging."
+>
+  <main class="px-4 pb-20 pt-12 sm:pt-20">
+    <div class="mx-auto max-w-[1080px]">
+      <header class="flex flex-col items-start gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div class="max-w-2xl">
+          <span class="text-xs font-bold tracking-[0.14em] text-neutral-500">
+            BLOG
+          </span>
+          <h1
+            class="font-display mt-4 text-4xl font-bold leading-[1.1] tracking-[-0.02em] text-neutral-900 sm:text-[52px]"
+          >
+            The{" "}
+            <span
+              class="bg-[linear-gradient(transparent_58%,#fde047_58%,#fde047_92%,transparent_92%)] [box-decoration-break:clone]"
+            >
+              Karakeep
+            </span>{" "}
+            blog
+          </h1>
+          <p class="mt-5 text-lg leading-[1.6] text-neutral-600">
+            Release notes, guides, and stories from building the
+            bookmark-everything app.
+          </p>
+        </div>
+        <a
+          href="/blog/rss.xml"
+          class="inline-flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-700 transition-colors hover:border-neutral-300 hover:text-neutral-900"
+        >
+          <Rss className="size-4 text-orange-500" />
+          RSS feed
+        </a>
+      </header>
+
+      {
+        featured && (
+          <section aria-label="Articles" class="mt-14">
+            <PostCard post={featured} featured />
+            {rest.length > 0 && (
+              <div class="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {rest.map((post) => (
+                  <PostCard post={post} />
+                ))}
+              </div>
+            )}
+          </section>
+        )
+      }
+
+      <section class="mt-16">
+        <div class="flex items-baseline justify-between gap-4">
+          <h2
+            class="font-display text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl"
+          >
+            Latest releases
+          </h2>
+          <a
+            href="/blog/releases/"
+            class="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-neutral-700 hover:text-neutral-900"
+          >
+            All releases <ArrowRight className="size-4" />
+          </a>
+        </div>
+        <div class="mt-4 divide-y divide-neutral-200 border-y border-neutral-200">
+          {releases.map((release) => <ReleaseRow release={release} />)}
+        </div>
+      </section>
+    </div>
+  </main>
+</Layout>

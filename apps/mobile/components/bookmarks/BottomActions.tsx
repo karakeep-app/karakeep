@@ -1,14 +1,10 @@
 import type { ToolbarActionId } from "@/lib/settings";
 import type { LucideIcon } from "lucide-react-native";
+import { Alert, Linking, Platform, Pressable, View } from "react-native";
 import {
-  Alert,
-  Linking,
-  Platform,
-  Pressable,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+  useSafeAreaFrame,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
 import { GlassView } from "expo-glass-effect";
 import * as Haptics from "expo-haptics";
@@ -56,8 +52,8 @@ const TOOLBAR_HIT_SLOP = { top: 8, bottom: 8 };
 // Past this the row wouldn't fit a small phone with labels, so icons go alone.
 const MAX_LABELED_TOOLBAR_ITEMS = 6;
 // iPads (and wide split views) get a bigger toolbar, labeled whenever the row
-// fits the window.
-const LARGE_TOOLBAR_MIN_WINDOW_WIDTH = 600;
+// fits the reader.
+const LARGE_TOOLBAR_MIN_WIDTH = 600;
 // Pill padding plus its horizontal margins.
 const LARGE_TOOLBAR_CHROME_WIDTH = 64;
 
@@ -514,12 +510,15 @@ interface BottomActionsProps {
 }
 
 export default function BottomActions({ bookmark }: BottomActionsProps) {
-  const { width: windowWidth } = useWindowDimensions();
-  const large = windowWidth >= LARGE_TOOLBAR_MIN_WINDOW_WIDTH;
+  const insets = useSafeAreaInsets();
+  // The reader's own width: the safe-area frame is the dashboard's content
+  // column, which is narrower than the window next to the sidebar, and the
+  // insets take out iPhone Duo's rail.
+  const readerWidth = useSafeAreaFrame().width - insets.left - insets.right;
+  const large = readerWidth >= LARGE_TOOLBAR_MIN_WIDTH;
   const size = large ? TOOLBAR_SIZES.large : TOOLBAR_SIZES.regular;
   const { barActions, overflowActions, allActions, offline } =
     useToolbarActions(bookmark, size.iconSize);
-  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { toast } = useToast();
   const { t } = useTranslation();
@@ -529,7 +528,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
   const itemCount = barActions.filter((a) => a.shouldRender).length + 1;
   const showLabels = large
     ? itemCount * (size.itemWidth + size.gap) + LARGE_TOOLBAR_CHROME_WIDTH <=
-      windowWidth
+      readerWidth
     : itemCount <= MAX_LABELED_TOOLBAR_ITEMS;
   const bottomMargin = shouldUseGlassPill ? Math.max(insets.bottom - 8, 4) : 8;
 

@@ -8,11 +8,13 @@ import {
   ActionButtonWithTooltip,
 } from "@/components/ui/action-button";
 import ActionConfirmingDialog from "@/components/ui/action-confirming-dialog";
+import { ButtonWithTooltip } from "@/components/ui/button";
 import { toast } from "@/components/ui/sonner";
 import useBulkActionsStore from "@/lib/bulkActions";
 import { useBookmarkBulkMutations } from "@/lib/hooks/useBookmarkBulkActions";
 import type { UpdateBookmarkProps } from "@/lib/hooks/useBookmarkBulkActions";
 import { useTranslation } from "@/lib/i18n/client";
+import { cn } from "@/lib/utils";
 import {
   CheckCheck,
   FileDown,
@@ -21,6 +23,7 @@ import {
   List,
   ListMinus,
   RotateCw,
+  SquareCheck,
   Trash2,
   X,
 } from "lucide-react";
@@ -321,6 +324,24 @@ export default function BulkBookmarksAction() {
 
   return (
     <div>
+      <ButtonWithTooltip
+        variant="ghost"
+        aria-label={t("actions.bulk_edit")}
+        aria-pressed={isBulkEditEnabled}
+        tooltip={
+          isBulkEditEnabled
+            ? t("actions.close_bulk_edit")
+            : t("actions.bulk_edit")
+        }
+        delayDuration={100}
+        className={cn(
+          isBulkEditEnabled &&
+            "bg-accent text-accent-foreground dark:bg-accent/50",
+        )}
+        onClick={() => setIsBulkEditEnabled(!isBulkEditEnabled)}
+      >
+        <SquareCheck size={18} className="size-[18px]" />
+      </ButtonWithTooltip>
       <ActionConfirmingDialog
         open={isDeleteDialogOpen}
         setOpen={setIsDeleteDialogOpen}

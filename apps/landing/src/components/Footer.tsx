@@ -12,6 +12,8 @@ const footerLinks = {
     { label: "Cloud Status Page", href: "https://status.karakeep.dev" },
   ],
   Resources: [
+    { label: "Blog", href: "/blog/", internal: true },
+    { label: "Release Notes", href: "/blog/releases/", internal: true },
     { label: "Documentation", href: DOCS_LINK },
     { label: "GitHub", href: GITHUB_LINK },
     { label: "Self-hosting Guide", href: `${DOCS_LINK}/installation/docker` },

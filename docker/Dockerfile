@@ -1,7 +1,6 @@
-# Pinned to an exact release so security fixes land deliberately instead of
-# depending on whether a floating tag was re-pulled. Bump on every Node.js
-# security release: https://nodejs.org/en/blog/vulnerability
-ARG NODE_VERSION=24.22.3
+# Tracks the latest Node.js 24 release so security fixes land on the next
+# build. Pass --build-arg NODE_VERSION=<x.y.z> to pin an exact release.
+ARG NODE_VERSION=24
 
 ################# Monolith Builder ##############
 FROM rust:1-bookworm AS monolith_builder
@@ -37,7 +36,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files for dependency installation
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .pnpmfile.cjs ./
 COPY apps/cli/package.json ./apps/cli/
 COPY apps/mcp/package.json ./apps/mcp/
 COPY apps/web/package.json ./apps/web/
@@ -115,6 +114,12 @@ RUN (cd apps/mcp && pnpm build)
 FROM node:${NODE_VERSION}-slim AS aio_builder
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
+
+# The runtime only needs node. The package managers bundled in the base image
+# (npm, corepack, yarn) carry their own dependencies, which vulnerability
+# scanners flag in the image although nothing here runs them.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-v* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 
 ARG SERVER_VERSION=nightly
 ENV SERVER_VERSION=${SERVER_VERSION}
@@ -266,6 +271,10 @@ FROM node:${NODE_VERSION}-slim AS cli
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
 
+# See aio_builder.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-v* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
+
 COPY --from=cli_builder /app/apps/cli/dist/index.mjs apps/cli/index.mjs
 
 WORKDIR /app/apps/cli
@@ -279,6 +288,10 @@ ENTRYPOINT ["node", "index.mjs"]
 FROM node:${NODE_VERSION}-slim AS mcp
 LABEL org.opencontainers.image.source="https://github.com/karakeep-app/karakeep"
 WORKDIR /app
+
+# See aio_builder.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-v* \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/yarn /usr/local/bin/yarnpkg
 
 COPY --from=mcp_builder /app/apps/mcp/dist/index.js apps/mcp/index.js
 

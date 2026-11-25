@@ -124,37 +124,36 @@ function isWorkerEnabled(name: WorkerName) {
 }
 
 /**
- * Runs the worker as a stateless remote crawler (CRAWLER_REMOTE_SERVER_ENABLED):
- * no queues, database or asset store, just the crawler's HTTP API that other
- * crawler workers (configured with CRAWLER_REMOTE_URL) talk to.
+ * Runs the worker as a stateless remote sandbox (SANDBOX_REMOTE_SERVER_ENABLED):
+ * no queues, database or asset store, just the HTTP API that other workers
+ * (configured with SANDBOX_REMOTE_URL) hand their untrusted work to: the
+ * crawling, the video downloads and the asset preprocessing.
  */
-async function runAsRemoteCrawler(token: string) {
+async function runAsSandbox(token: string) {
   const { localCrawler } = await import("./workers/crawler/localCrawler");
-  const { buildRemoteCrawlerRoutes } =
-    await import("./workers/crawler/remoteCrawlerServer");
-  const { REMOTE_CRAWLER_BASE_PATH } =
-    await import("./workers/crawler/protocol");
+  const { buildSandboxRoutes } = await import("./workers/sandbox/server");
+  const { SANDBOX_BASE_PATH } = await import("./workers/sandbox/protocol");
 
   await initTracing("workers");
   await initEventLogger("workers");
   logger.info(`Workers version: ${serverConfig.serverVersion ?? "not set"}`);
-  logger.info("Starting as a stateless remote crawler ...");
+  logger.info("Starting as a stateless remote sandbox ...");
   await localCrawler.init();
 
   const httpServer = buildServer({
-    [REMOTE_CRAWLER_BASE_PATH]: buildRemoteCrawlerRoutes(token),
+    [SANDBOX_BASE_PATH]: buildSandboxRoutes(token),
   });
 
   let exitCode = 0;
   await Promise.race([
     httpServer.serve().catch((err: unknown) => {
       exitCode = 1;
-      logger.error(`The remote crawler server failed, shutting down: ${err}`);
+      logger.error(`The remote sandbox server failed, shutting down: ${err}`);
     }),
     shutdownPromise,
   ]);
 
-  logger.info("Shutting down the remote crawler ...");
+  logger.info("Shutting down the remote sandbox ...");
   await httpServer.stop();
   await shutdownEventLogger();
   await shutdownTracing();
@@ -162,9 +161,9 @@ async function runAsRemoteCrawler(token: string) {
 }
 
 async function main() {
-  const { serverEnabled, token } = serverConfig.crawler.remote;
+  const { serverEnabled, token } = serverConfig.sandbox;
   if (serverEnabled && token) {
-    return runAsRemoteCrawler(token);
+    return runAsSandbox(token);
   }
 
   await loadAllPlugins();

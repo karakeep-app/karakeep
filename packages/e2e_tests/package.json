@@ -30,6 +30,7 @@
     "@types/adm-zip": "^0.5.7",
     "adm-zip": "^0.6.1",
     "playwright": "^1.59.1",
+    "typescript": "^7.0.2",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
   }

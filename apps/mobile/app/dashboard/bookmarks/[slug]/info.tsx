@@ -261,7 +261,9 @@ function AISummarySection({
       },
     });
 
-  if (bookmark.content.type !== BookmarkTypes.LINK) {
+  // Unknown bookmarks carry no content relation, so there is nothing to
+  // summarize and the action would always fail.
+  if (bookmark.content.type === BookmarkTypes.UNKNOWN) {
     return null;
   }
 
@@ -553,7 +555,7 @@ const ViewBookmarkPage = () => {
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("dashboard");
+        router.replace("/dashboard/(home)");
       }
     },
     onError: () => {
@@ -568,7 +570,7 @@ const ViewBookmarkPage = () => {
     useDeleteBookmark({
       onSuccess: () => {
         allowLeave();
-        router.replace("dashboard");
+        router.replace("/dashboard/(home)");
         toast({
           message: t("bookmarks.bookmark_deleted_toast"),
           showProgress: false,
@@ -591,7 +593,7 @@ const ViewBookmarkPage = () => {
       if (router.canGoBack()) {
         router.back();
       } else {
-        router.replace("dashboard");
+        router.replace("/dashboard/(home)");
       }
     };
 

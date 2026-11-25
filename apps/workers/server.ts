@@ -19,7 +19,7 @@ const app = new Hono()
   );
 
 /**
- * Starts the workers' HTTP server. Extra routes (e.g. the remote crawler's)
+ * Starts the workers' HTTP server. Extra routes (e.g. the remote sandbox's)
  * are mounted at their given base paths.
  */
 export function buildServer(

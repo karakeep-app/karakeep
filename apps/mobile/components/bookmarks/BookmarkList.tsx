@@ -6,7 +6,10 @@ import {
   Platform,
   View,
 } from "react-native";
-import Animated from "react-native-reanimated";
+import {
+  FlatList as GestureFlatList,
+  RefreshControl,
+} from "react-native-gesture-handler";
 import EmptyState from "@/components/ui/EmptyState";
 import { useTranslation } from "@/lib/i18n/hooks";
 import { getGridColumns, useContainerWidth } from "@/lib/responsive";
@@ -26,6 +29,7 @@ const HORIZONTAL_MARGIN = 16;
 const GAP = 10;
 // Leaves the last card's actions clear of the Android add button.
 const BOTTOM_PADDING = Platform.OS === "android" ? 96 : 24;
+const NO_SCROLL_TARGET = { current: null };
 
 export interface BookmarkListEmptyState {
   icon?: LucideIcon;
@@ -56,7 +60,10 @@ export default function BookmarkList({
 }) {
   const flatListRef = useRef<FlatList<ZBookmark>>(null);
   const { t } = useTranslation();
-  useScrollToTop(flatListRef);
+  // On iOS, native tabs already scroll to the inset-adjusted top on re-tap, and
+  // the hook would then scroll to 0, hiding the first card under the header. On
+  // Android the native re-tap doesn't find this list, so the hook does it.
+  useScrollToTop(Platform.OS === "android" ? flatListRef : NO_SCROLL_TARGET);
   const { settings } = useAppSettings();
   // A bookmark saved from this device lands at the top (re-saving an existing
   // link bumps it there too), which may be out of sight, leaving people to
@@ -98,7 +105,10 @@ export default function BookmarkList({
 
   return (
     <View className="flex-1" onLayout={onLayout}>
-      <Animated.FlatList
+      {/* A gesture-handler list, so a scroll cancels the cards' swipe gesture.
+          Gesture-handler 3 no longer does that for a plain FlatList on Android,
+          and swipes kept taking over scrolls. */}
+      <GestureFlatList
         ref={flatListRef}
         // FlatList doesn't support changing numColumns on the fly.
         key={numColumns}
@@ -132,8 +142,9 @@ export default function BookmarkList({
           />
         }
         data={bookmarks}
-        refreshing={isRefreshing}
-        onRefresh={onRefresh}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
         onScrollBeginDrag={Keyboard.dismiss}
         keyExtractor={(b) => b.id}
         onEndReached={fetchNextPage}

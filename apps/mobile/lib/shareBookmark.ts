@@ -1,4 +1,4 @@
-import { Share } from "react-native";
+import { Platform, Share } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -20,10 +20,13 @@ export async function shareBookmark(
   try {
     switch (bookmark.content.type) {
       case BookmarkTypes.LINK:
-        await Share.share({
-          url: bookmark.content.url,
-          message: bookmark.content.url,
-        });
+        // On iOS, `url` and `message` are shared as separate items, so passing
+        // both makes targets like Messages receive the link twice.
+        await Share.share(
+          Platform.OS === "ios"
+            ? { url: bookmark.content.url }
+            : { message: bookmark.content.url },
+        );
         break;
 
       case BookmarkTypes.TEXT:

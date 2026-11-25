@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import type { TextInputInstance } from "react-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BookmarkSearchResults from "@/components/search/BookmarkSearchResults";
 import {
@@ -23,7 +24,7 @@ export default function InlineSearch({
 }: InlineSearchProps) {
   const [search, setSearch] = useState("");
   const [isInputFocused, setIsInputFocused] = useState(true);
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const state = useBookmarkSearchState(search);

@@ -31,10 +31,13 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   getBookmarkLinkImageUrl,
   getBookmarkRefreshInterval,
+  isBookmarkStillCrawling,
+  isBookmarkStillTagging,
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import { getIntlLocale } from "@/lib/i18n";
 import { useTranslation } from "@/lib/i18n/hooks";
+import { Skeleton } from "../ui/Skeleton";
 import { useToast } from "../ui/Toast";
 import BookmarkAssetImage from "./BookmarkAssetImage";
 import BookmarkTextMarkdown from "./BookmarkTextMarkdown";
@@ -143,9 +146,16 @@ function useLinkCardContext({
       : { uri: imageUrl.url }
     : undefined;
 
+  // Hold the image's spot while the crawler may still find one.
+  const isCrawling = !source && isBookmarkStillCrawling(bookmark);
+
   return {
     // A page with no image just leads with its title in the expanded layout.
-    media: source ? <ExpandedLinkImage source={source} /> : undefined,
+    media: source ? (
+      <ExpandedLinkImage source={source} />
+    ) : isCrawling ? (
+      <Skeleton className="h-44 w-full rounded-none" />
+    ) : undefined,
     compactMedia: (
       <View
         className="h-[72px] w-[72px] overflow-hidden rounded-lg"
@@ -157,6 +167,8 @@ function useLinkCardContext({
             style={{ width: "100%", height: "100%" }}
             contentFit="cover"
           />
+        ) : isCrawling ? (
+          <Skeleton className="h-full w-full rounded-none" />
         ) : (
           <LinkPlaceholder iconSize={24} />
         )}
@@ -242,7 +254,8 @@ function CardActions({
   itemName?: string;
 }) {
   return (
-    <View className="absolute bottom-3 right-3">
+    // Same height as the tag row, so the icons share its centre line.
+    <View className="absolute bottom-3 right-3 h-[22px] justify-center">
       <ActionBar actions={actions} compact={compact} itemName={itemName} />
     </View>
   );
@@ -263,7 +276,7 @@ function CardLayout({ ctx }: { ctx: BookmarkCardContext }) {
           className="min-h-[22px] justify-center"
           style={{ paddingRight: EXPANDED_ACTIONS_CLEARANCE }}
         >
-          <TagList bookmark={ctx.bookmark} maxVisible={3} />
+          <TagList bookmark={ctx.bookmark} />
         </View>
       </View>
     </BookmarkCardContainer.Provider>
@@ -275,7 +288,10 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
   const { settings } = useAppSettings();
   const showsNote = settings.showNotes && Boolean(ctx.bookmark.note?.trim());
   const hasRowBelowMeta =
-    ctx.bookmark.tags.length > 0 || Boolean(ctx.compactBody) || showsNote;
+    ctx.bookmark.tags.length > 0 ||
+    isBookmarkStillTagging(ctx.bookmark) ||
+    Boolean(ctx.compactBody) ||
+    showsNote;
 
   return (
     <BookmarkCardContainer.Provider value={ctx}>
@@ -318,6 +334,16 @@ function ListLayout({ ctx }: { ctx: BookmarkCardContext }) {
 
 const SWIPE_ACTION_WIDTH = 84;
 const SWIPE_TAP_GUARD_MS = 700;
+// Horizontal travel before the swipe claims the touch. At the default 10pt an
+// arcing thumb scroll could still start a swipe; at 30pt only a near-horizontal
+// drag does.
+const SWIPE_ACTIVATION_OFFSET = 30;
+// Release past three quarters of the action to trigger it, so a short drag
+// that slips past activation snaps back instead of starring or archiving.
+const SWIPE_TRIGGER_THRESHOLD = SWIPE_ACTION_WIDTH * 0.75;
+// Cards sit 16pt from the screen edge; ignoring their first 24pt leaves the
+// iOS edge-swipe-back zone to the navigator.
+const SWIPE_LEFT_EDGE_INSET = 24;
 
 function SwipeAction({
   icon: Icon,
@@ -470,10 +496,13 @@ function CardGestures({
     <ReanimatedSwipeable
       ref={swipeableRef}
       friction={1.6}
+      hitSlop={{ left: -SWIPE_LEFT_EDGE_INSET }}
       overshootLeft={false}
       overshootRight={false}
-      leftThreshold={SWIPE_ACTION_WIDTH / 2}
-      rightThreshold={SWIPE_ACTION_WIDTH / 2}
+      dragOffsetFromLeft={SWIPE_ACTIVATION_OFFSET}
+      dragOffsetFromRight={-SWIPE_ACTIVATION_OFFSET}
+      leftThreshold={SWIPE_TRIGGER_THRESHOLD}
+      rightThreshold={SWIPE_TRIGGER_THRESHOLD}
       renderLeftActions={() => (
         <SwipeAction
           icon={Star}

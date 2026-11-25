@@ -15,6 +15,7 @@ import type {
   ParseSubprocessError,
   ParseSubprocessOutput,
 } from "./parseHtmlSubprocessIpc";
+import { getScriptCommand } from "./subprocessScript";
 import type { RunProxyConfig } from "../../network";
 import { getBookmarkDomain } from "../../network";
 import { truncateUrl } from "./crawlerUtils";
@@ -24,34 +25,6 @@ import {
 } from "./parseHtmlSubprocessIpc";
 
 const tracer = getTracer("@karakeep/workers");
-
-function getSubprocessScriptPath(): string {
-  const currentUrl = import.meta.url;
-  if (currentUrl.includes("/dist/")) {
-    // Production: running from built output
-    return new URL("./scripts/parseHtmlSubprocess.js", currentUrl).pathname;
-  }
-  // Dev mode: running via tsx
-  return new URL("../../scripts/parseHtmlSubprocess.ts", currentUrl).pathname;
-}
-
-function getSubprocessCommand(): { cmd: string; args: string[] } {
-  const scriptPath = getSubprocessScriptPath();
-  const maxOldSpaceSize = serverConfig.crawler.parserMemLimitMb;
-
-  if (scriptPath.endsWith(".ts")) {
-    // Dev mode: use tsx to run TypeScript directly
-    return {
-      cmd: "tsx",
-      args: [`--max-old-space-size=${maxOldSpaceSize}`, scriptPath],
-    };
-  }
-
-  return {
-    cmd: process.execPath,
-    args: [`--max-old-space-size=${maxOldSpaceSize}`, scriptPath],
-  };
-}
 
 export async function runParseSubprocess(
   htmlContent: string,
@@ -80,7 +53,10 @@ export async function runParseSubprocess(
         `[Crawler][${jobId}] Spawning parse subprocess for "${truncateUrl(url)}" ...`,
       );
 
-      const { cmd, args } = getSubprocessCommand();
+      const { cmd, args } = getScriptCommand(
+        "parseHtmlSubprocess",
+        serverConfig.crawler.parserMemLimitMb,
+      );
       const timeoutMs = serverConfig.crawler.parseTimeoutSec * 1000;
 
       // Hand the HTML to the subprocess via a temp file instead of stdin. The

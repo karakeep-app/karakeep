@@ -1,10 +1,8 @@
-// The client of a remote crawler (see remoteCrawlerServer.ts): a Crawler that
-// has the remote crawler do the work and streams back the results. Used by
-// the crawler worker when CRAWLER_REMOTE_URL is set.
+// The client of a remote sandbox (see ../sandbox/server.ts): a Crawler that
+// has the remote sandbox do the work and streams back the results. Used by
+// the crawler worker when SANDBOX_REMOTE_URL is set.
 
 import { createWriteStream } from "fs";
-import { Readable } from "stream";
-import type { ReadableStream as WebReadableStream } from "stream/web";
 import { pipeline } from "stream/promises";
 import type { MultipartPart } from "@remix-run/multipart-parser";
 
@@ -17,17 +15,13 @@ import type {
   Crawler,
   FetchedPage,
 } from "./common";
-import {
-  encodeRequest,
-  readJsonPart,
-  readParts,
-  REMOTE_CRAWLER_BASE_PATH,
-  unexpectedPart,
-} from "./protocol";
+import type { SandboxEndpoint } from "../sandbox/client";
+import { readJsonPart, readParts, unexpectedPart } from "../sandbox/protocol";
+import { bodyStream, postToSandbox } from "../sandbox/client";
 
-/** POSTs the request to the remote crawler. Throws on an error status. */
+/** POSTs the request to the remote sandbox. Throws on an error status. */
 async function request(
-  path: "probe" | "page" | "asset" | "archive",
+  endpoint: SandboxEndpoint,
   ctx: CrawlContext,
   params: Record<string, unknown>,
   {
@@ -35,9 +29,9 @@ async function request(
     signal = ctx.abortSignal,
   }: { html?: string; signal?: AbortSignal } = {},
 ): Promise<Response> {
-  const { url, token } = serverConfig.crawler.remote;
   const { jobId, bookmarkId, userId, runProxy, browserCrawlingEnabled } = ctx;
-  const { contentType, body } = encodeRequest(
+  return postToSandbox(
+    endpoint,
     {
       ctx: {
         jobId,
@@ -49,31 +43,8 @@ async function request(
       },
       ...params,
     },
-    html,
+    { html, signal },
   );
-  const response = await fetch(
-    `${url?.replace(/\/+$/, "")}${REMOTE_CRAWLER_BASE_PATH}/${path}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": contentType,
-        Authorization: `Bearer ${token}`,
-      },
-      body,
-      signal,
-    },
-  );
-  if (!response.ok || !response.body) {
-    throw new Error(
-      `The remote crawler responded with status ${response.status}: ${await response.text()}`,
-    );
-  }
-  return response;
-}
-
-/** The response body as a node stream. */
-function bodyStream(response: Response): Readable {
-  return Readable.fromWeb(response.body as WebReadableStream<Uint8Array>);
 }
 
 /** Returns the next part, throwing if there's none. */
@@ -82,7 +53,7 @@ async function nextPart(
 ): Promise<MultipartPart> {
   const { value, done } = await parts.next();
   if (done) {
-    throw new Error("The remote crawler's response ended unexpectedly");
+    throw new Error("The remote sandbox's response ended unexpectedly");
   }
   return value;
 }
@@ -90,7 +61,7 @@ async function nextPart(
 export const remoteCrawler: Crawler = {
   init: async () => {
     logger.info(
-      `[Crawler] Using the remote crawler at ${serverConfig.crawler.remote.url}`,
+      `[Crawler] Using the remote sandbox at ${serverConfig.sandbox.url}`,
     );
   },
 
@@ -101,7 +72,7 @@ export const remoteCrawler: Crawler = {
     try {
       const parts = readParts(
         await request(
-          "probe",
+          "probe-url",
           ctx,
           { skipMetadataExtraction: opts?.skipMetadataExtraction },
           { signal: AbortSignal.any([ctx.abortSignal, requestAbort.signal]) },
@@ -112,7 +83,7 @@ export const remoteCrawler: Crawler = {
         "contentType",
       );
       log.info(
-        `Content-type for the url as determined by the remote crawler is "${contentType}"`,
+        `Content-type for the url as determined by the remote sandbox is "${contentType}"`,
       );
       // Like the local probe, the metadata promise never rejects.
       const metadata = (async () => {
@@ -120,7 +91,7 @@ export const remoteCrawler: Crawler = {
           return readJsonPart(await nextPart(parts), "metadata");
         } catch (e) {
           log.warn(
-            `Failed to get the page metadata from the remote crawler: ${e}`,
+            `Failed to get the page metadata from the remote sandbox: ${e}`,
           );
           return null;
         } finally {
@@ -131,7 +102,7 @@ export const remoteCrawler: Crawler = {
     } catch (e) {
       requestAbort.abort();
       log.error(
-        `Failed to determine the content-type using the remote crawler: ${e}`,
+        `Failed to determine the content-type using the remote sandbox: ${e}`,
       );
       return { contentType: null, metadata: Promise.resolve(null) };
     }
@@ -142,7 +113,7 @@ export const remoteCrawler: Crawler = {
     let page: CrawlPageResult | undefined;
     let parsed: FetchedPage["parsed"] | undefined;
     for await (const part of readParts(
-      await request("page", ctx, params, { html: precrawledHtml }),
+      await request("fetch-page", ctx, params, { html: precrawledHtml }),
     )) {
       if (part.name === "page") {
         page = {
@@ -162,13 +133,13 @@ export const remoteCrawler: Crawler = {
       }
     }
     if (!page || parsed === undefined) {
-      throw new Error("The remote crawler's response was incomplete");
+      throw new Error("The remote sandbox's response was incomplete");
     }
     return { ...page, parsed };
   },
 
   fetchAsset: async (ctx, url, fileType) => {
-    const response = await request("asset", ctx, { url, fileType });
+    const response = await request("fetch-asset", ctx, { url, fileType });
     return {
       contentType: response.headers.get("content-type") ?? "",
       body: bodyStream(response),
@@ -177,7 +148,7 @@ export const remoteCrawler: Crawler = {
 
   archivePage: async (ctx, html, url, assetPath) => {
     try {
-      const response = await request("archive", ctx, { url }, { html });
+      const response = await request("archive-page", ctx, { url }, { html });
       await pipeline(bodyStream(response), createWriteStream(assetPath));
       return { failed: false };
     } catch (e) {

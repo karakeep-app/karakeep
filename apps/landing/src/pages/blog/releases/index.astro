@@ -1,0 +1,77 @@
+---
+import { ArrowLeft, Rss } from "lucide-react";
+
+import ReleaseRow from "../../../components/blog/ReleaseRow.astro";
+import { getReleases } from "../../../blog/content";
+import { GITHUB_LINK } from "../../../constants";
+import Layout from "../../../layouts/Layout.astro";
+
+const releases = await getReleases();
+const byYear = Map.groupBy(releases, (r) => r.data.date.getUTCFullYear());
+---
+
+<Layout
+  title="Release Notes"
+  description="What's new in each Karakeep release: features, bug fixes, security updates, and upgrade notes for the open-source bookmark manager."
+>
+  <main class="px-4 pb-20 pt-10 sm:pt-16">
+    <div class="mx-auto max-w-[880px]">
+      <a
+        href="/blog/"
+        class="inline-flex items-center gap-1.5 text-sm text-neutral-500 transition-colors hover:text-neutral-900"
+      >
+        <ArrowLeft className="size-4" />
+        Blog
+      </a>
+      <header class="mt-8">
+        <span class="text-xs font-bold tracking-[0.14em] text-neutral-500">
+          CHANGELOG
+        </span>
+        <h1
+          class="font-display mt-4 text-4xl font-bold leading-[1.1] tracking-[-0.02em] text-neutral-900 sm:text-[52px]"
+        >
+          Release notes
+        </h1>
+        <p class="mt-5 max-w-2xl text-lg leading-[1.6] text-neutral-600">
+          What's new in Karakeep since v0.11.0. Self-hosting? Check each
+          release's upgrade notes before updating. Karakeep Cloud updates
+          automatically.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+          <a
+            href="/blog/rss.xml"
+            class="inline-flex items-center gap-1.5 text-neutral-700 hover:text-neutral-900"
+          >
+            <Rss className="size-4 text-orange-500" /> Subscribe via RSS
+          </a>
+          <a
+            href={`${GITHUB_LINK}/releases`}
+            target="_blank"
+            rel="noreferrer"
+            class="text-neutral-700 hover:text-neutral-900"
+          >
+            GitHub releases ↗
+          </a>
+        </div>
+      </header>
+
+      {
+        [...byYear].map(([year, items]) => (
+          <section class="mt-14" aria-labelledby={`year-${year}`}>
+            <h2
+              id={`year-${year}`}
+              class="font-display sticky top-[61px] z-10 -mx-4 bg-gray-50/90 px-4 py-2 text-xl font-bold tracking-tight text-neutral-900 backdrop-blur"
+            >
+              {year}
+            </h2>
+            <div class="divide-y divide-neutral-200 border-b border-neutral-200">
+              {items.map((release) => (
+                <ReleaseRow release={release} />
+              ))}
+            </div>
+          </section>
+        ))
+      }
+    </div>
+  </main>
+</Layout>

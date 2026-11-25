@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@karakeep/sdk",
-  "version": "0.34.0",
+  "version": "0.35.0",
   "description": "Typescript SDK for Karakeep",
   "license": "GNU Affero General Public License version 3",
   "keywords": [
@@ -13,14 +13,19 @@
   "type": "module",
   "publishConfig": {
     "main": "./dist/index.js",
-    "exports": "./dist/index.js",
-    "module": "./dist/index.mjs",
-    "types": "./dist/index.d.ts"
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
   },
   "devDependencies": {
     "@karakeep/tsconfig": "workspace:^0.1.0",
     "@tsconfig/node22": "^22.0.0",
     "tsx": "^4.23.13",
+    "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vite-tsconfig-paths": "^6.1.1"
   },

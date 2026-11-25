@@ -168,7 +168,7 @@ export default function Tags() {
                 {t("tags_tab.loading_more")}
               </Text>
             </View>
-          ) : null
+          ) : undefined
         }
         ListEmptyComponent={
           !isPending ? (
@@ -185,7 +185,7 @@ export default function Tags() {
                   : t("tags_tab.no_tags_yet_subtitle")
               }
             />
-          ) : null
+          ) : undefined
         }
       />
       {Platform.OS === "android" && (

@@ -1,7 +1,7 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable } from "react-native";
 import { router, Stack } from "expo-router";
-import { useNavigation, usePreventRemove } from "expo-router/react-navigation";
+import { usePreventRemove } from "expo-router/react-navigation";
 import { Text } from "@/components/ui/Text";
 import { useCommonActions, useTranslation } from "@/lib/i18n/hooks";
 
@@ -47,28 +47,33 @@ function HeaderTextButton({
  */
 function useDiscardGuard(isDirty: boolean) {
   const { t } = useTranslation();
-  const navigation = useNavigation();
-  const allowLeaveRef = useRef(false);
-  usePreventRemove(isDirty, ({ data }) => {
-    if (allowLeaveRef.current) {
-      navigation.dispatch(data.action);
-      return;
-    }
-    Alert.alert(
-      t("app.discard_changes_title"),
-      t("app.discard_changes_message"),
-      [
-        { text: t("actions.keep_editing"), style: "cancel" },
-        {
-          text: t("actions.discard"),
-          style: "destructive",
-          onPress: () => navigation.dispatch(data.action),
-        },
-      ],
-    );
-  });
+  const [leaving, setLeaving] = useState(false);
+  // Re-dispatching the blocked action gets blocked again (and loops until
+  // React gives up and the app crashes). Leave through `repeat` or the
+  // returned `disablePrevention` instead.
+  const disablePrevention = usePreventRemove(
+    isDirty && !leaving,
+    ({ repeat }) => {
+      Alert.alert(
+        t("app.discard_changes_title"),
+        t("app.discard_changes_message"),
+        [
+          { text: t("actions.keep_editing"), style: "cancel" },
+          {
+            text: t("actions.discard"),
+            style: "destructive",
+            onPress: () => {
+              setLeaving(true);
+              repeat();
+            },
+          },
+        ],
+      );
+    },
+  );
   return () => {
-    allowLeaveRef.current = true;
+    setLeaving(true);
+    disablePrevention();
   };
 }
 

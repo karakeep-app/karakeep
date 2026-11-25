@@ -1,0 +1,59 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
+
+import { formatDate, readingTime } from "../../blog/content";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+  featured?: boolean;
+}
+
+const { post, featured = false } = Astro.props;
+const { title, description, date, cover, coverAlt, tags, draft } = post.data;
+---
+
+<a
+  href={`/blog/${post.id}/`}
+  class:list={[
+    "group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition-all hover:border-neutral-300 hover:shadow-[0_8px_24px_-12px_rgba(23,23,23,0.18)]",
+    featured && "md:flex-row",
+  ]}
+>
+  {
+    cover && (
+      <Image
+        src={cover}
+        alt={coverAlt ?? ""}
+        widths={[480, 960]}
+        sizes={featured ? "(min-width: 768px) 50vw, 100vw" : "(min-width: 768px) 33vw, 100vw"}
+        class:list={[
+          "aspect-[1.91/1] w-full object-cover",
+          featured && "md:w-1/2",
+        ]}
+      />
+    )
+  }
+  <div class:list={["flex flex-1 flex-col p-6", featured && "sm:p-8"]}>
+    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-neutral-500">
+      <span>{tags[0] ?? "Article"}</span>
+      {draft && <span class="rounded bg-red-100 px-1.5 text-red-700">Draft</span>}
+    </div>
+    <h3
+      class:list={[
+        "font-display mt-3 font-bold tracking-tight text-neutral-900 group-hover:underline",
+        featured ? "text-2xl sm:text-3xl" : "text-xl",
+      ]}
+    >
+      {title}
+    </h3>
+    <p class="mt-2 line-clamp-3 leading-relaxed text-neutral-600">
+      {description}
+    </p>
+    <p class="mt-auto pt-5 text-sm text-neutral-500">
+      <time datetime={date.toISOString()}>{formatDate(date)}</time>
+      <span aria-hidden="true"> · </span>
+      {readingTime(post.body)}
+    </p>
+  </div>
+</a>

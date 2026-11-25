@@ -231,7 +231,6 @@
     "reader_continue_plain": "从上次的位置继续",
     "couldnt_open_link": "无法打开此链接",
     "photo_title": "照片",
-    "more_tags_label_other": "另有 {{count}} 个标签",
     "archive_empty_title": "没有归档内容",
     "archive_empty_subtitle": "向左滑动书签即可归档，并从主页中移除。",
     "favourites_empty_title": "还没有收藏",
@@ -335,6 +334,7 @@
   "lists": {
     "type_manual": "手动",
     "type_smart": "智能",
+    "all_lists": "所有列表",
     "parent_label": "父级列表",
     "no_parent": "没有父级",
     "parent_unavailable": "父级列表不可用",

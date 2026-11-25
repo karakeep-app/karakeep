@@ -248,7 +248,7 @@ export default function BookmarksGrid({
         masonry: (
           <Masonry
             className="-ml-4 flex w-auto"
-            columnClassName="pl-4"
+            columnClassName="pl-4 [container-type:inline-size]"
             breakpointCols={breakpointConfig}
           >
             {children}
@@ -257,7 +257,7 @@ export default function BookmarksGrid({
         grid: (
           <Masonry
             className="-ml-4 flex w-auto"
-            columnClassName="pl-4"
+            columnClassName="pl-4 [container-type:inline-size]"
             breakpointCols={breakpointConfig}
           >
             {children}

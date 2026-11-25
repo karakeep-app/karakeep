@@ -10,6 +10,7 @@ import { ThemeProvider as NavThemeProvider, useRouter } from "expo-router";
 import { Stack } from "expo-router/stack";
 import { ShareIntentProvider, useShareIntent } from "expo-share-intent";
 import { StatusBar } from "expo-status-bar";
+import { horizontalSafeAreaLayout } from "@/components/navigation/screen-layout";
 import { StyledStack } from "@/components/navigation/stack";
 import SplashScreenController from "@/components/SplashScreenController";
 import { getFormSheetSurfaceOptions } from "@/lib/form-sheet-options";
@@ -30,6 +31,12 @@ Sentry.init({
 
   // Enable Logs
   enableLogs: false,
+
+  // Expo's DOM component wrapper re-sends props to the reader's webview on
+  // every render without catching the result, so once Android drops the view
+  // each render reports an unhandled rejection. Harmless, but it used up the
+  // whole Sentry quota.
+  ignoreErrors: [/DomWebView\.injectJavaScript/],
 });
 
 export default Sentry.wrap(function RootLayout() {
@@ -69,6 +76,7 @@ export default Sentry.wrap(function RootLayout() {
                 </GestureHandlerRootView>
               );
             }}
+            screenLayout={horizontalSafeAreaLayout(["dashboard"])}
             contentClassName={cn(
               "w-full flex-1 bg-gray-100 text-foreground dark:bg-background",
               colorScheme == "dark" ? "dark" : "light",

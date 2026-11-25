@@ -143,6 +143,7 @@ const allEnv = z.object({
   WEBHOOK_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_NUM_WORKERS: z.coerce.number().default(1),
   ASSET_PREPROCESSING_JOB_TIMEOUT_SEC: z.coerce.number().default(60),
+  ASSET_PREPROCESSING_PDF_PARSER_MEM_LIMIT_MB: z.coerce.number().default(1024),
   RULE_ENGINE_NUM_WORKERS: z.coerce.number().default(1),
   CRAWLER_DOWNLOAD_BANNER_IMAGE: stringBool("true"),
   CRAWLER_STORE_SCREENSHOT: stringBool("true"),
@@ -172,14 +173,14 @@ const allEnv = z.object({
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   CRAWLER_PREFLIGHT_USER_AGENT: z.string().optional(),
-  CRAWLER_REMOTE_SERVER_ENABLED: stringBool("false"),
-  CRAWLER_REMOTE_URL: z.string().url().optional(),
-  CRAWLER_REMOTE_TOKEN: z
+  SANDBOX_REMOTE_SERVER_ENABLED: stringBool("false"),
+  SANDBOX_REMOTE_URL: z.string().url().optional(),
+  SANDBOX_REMOTE_TOKEN: z
     .string()
     // It's sent as a bearer token, so it must use the bearer token alphabet.
     .regex(
       /^[A-Za-z0-9._~+/-]+=*$/,
-      "CRAWLER_REMOTE_TOKEN can only contain letters, digits and . _ ~ + / - (optionally followed by =)",
+      "SANDBOX_REMOTE_TOKEN can only contain letters, digits and . _ ~ + / - (optionally followed by =)",
     )
     .optional(),
   LOG_LEVEL: z.string().default("debug"),
@@ -235,6 +236,37 @@ const allEnv = z.object({
 
   // Rate limiting configuration
   RATE_LIMITING_ENABLED: stringBool("false"),
+  // Comma-separated IPs/CIDRs of reverse proxies whose X-Forwarded-For entries
+  // are trusted when working out a request's client IP. "private" expands to
+  // the loopback and private-network ranges; "none" trusts nothing. Only
+  // needed for chains of proxies: the one connecting to Karakeep never shows
+  // up in the header. Defaults to "none" because trusting private ranges lets
+  // clients on them pick their own IP.
+  TRUSTED_PROXIES: z
+    .string()
+    .default("none")
+    .transform((val) =>
+      val
+        .split(",")
+        .map((p) => p.trim())
+        .filter((p) => p),
+    )
+    .pipe(
+      z.array(
+        z.union([
+          z.literal("private"),
+          z.literal("none"),
+          z.ipv4(),
+          z.ipv6(),
+          z.cidrv4(),
+          z.cidrv6(),
+        ]),
+        {
+          error:
+            'TRUSTED_PROXIES must be a comma-separated list of IPs, CIDR ranges, "private" or "none"',
+        },
+      ),
+    ),
 
   // Redis configuration
   REDIS_URL: z.string().url().optional(),
@@ -491,11 +523,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
             }
           : null,
       preflightUserAgent: val.CRAWLER_PREFLIGHT_USER_AGENT,
-      remote: {
-        serverEnabled: val.CRAWLER_REMOTE_SERVER_ENABLED,
-        url: val.CRAWLER_REMOTE_URL,
-        token: val.CRAWLER_REMOTE_TOKEN,
-      },
+    },
+    sandbox: {
+      serverEnabled: val.SANDBOX_REMOTE_SERVER_ENABLED,
+      url: val.SANDBOX_REMOTE_URL,
+      token: val.SANDBOX_REMOTE_TOKEN,
     },
     ocr: {
       langs: val.OCR_LANGS,
@@ -545,6 +577,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     assetPreprocessing: {
       numWorkers: val.ASSET_PREPROCESSING_NUM_WORKERS,
       jobTimeoutSec: val.ASSET_PREPROCESSING_JOB_TIMEOUT_SEC,
+      pdfParserMemLimitMb: val.ASSET_PREPROCESSING_PDF_PARSER_MEM_LIMIT_MB,
     },
     ruleEngine: {
       numWorkers: val.RULE_ENGINE_NUM_WORKERS,
@@ -570,6 +603,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     rateLimiting: {
       enabled: val.RATE_LIMITING_ENABLED,
     },
+    trustedProxies: val.TRUSTED_PROXIES,
     redis: {
       url: val.REDIS_URL,
     },
@@ -657,14 +691,11 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
     });
     return z.NEVER;
   }
-  if (
-    (obj.crawler.remote.serverEnabled || obj.crawler.remote.url) &&
-    !obj.crawler.remote.token
-  ) {
+  if ((obj.sandbox.serverEnabled || obj.sandbox.url) && !obj.sandbox.token) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message:
-        "CRAWLER_REMOTE_TOKEN is required when CRAWLER_REMOTE_SERVER_ENABLED or CRAWLER_REMOTE_URL is set",
+        "SANDBOX_REMOTE_TOKEN is required when SANDBOX_REMOTE_SERVER_ENABLED or SANDBOX_REMOTE_URL is set",
       fatal: true,
     });
     return z.NEVER;

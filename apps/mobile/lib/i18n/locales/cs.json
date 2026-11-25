@@ -237,10 +237,6 @@
     "reader_continue_plain": "Pokračuj tam, kde jsi skončil",
     "couldnt_open_link": "Tento odkaz se nepodařilo otevřít",
     "photo_title": "Fotka",
-    "more_tags_label_one": "a {{count}} další štítek",
-    "more_tags_label_other": "a {{count}} dalších štítků",
-    "more_tags_label_few": "a {{count}} další štítky",
-    "more_tags_label_many": "a {{count}} dalšího štítku",
     "archive_empty_title": "Nic v archivu",
     "archive_empty_subtitle": "Přejetím záložky doleva ji archivuješ a odstraníš z Domů.",
     "favourites_empty_title": "Zatím žádné oblíbené",
@@ -344,6 +340,7 @@
   "lists": {
     "type_manual": "Ruční",
     "type_smart": "Chytrý",
+    "all_lists": "Všechny seznamy",
     "parent_label": "Nadřazený seznam",
     "no_parent": "Bez nadřazeného",
     "parent_unavailable": "Nadřazený seznam není dostupný",
