@@ -105,6 +105,8 @@ export default {
             usesCleartextTraffic: true,
             targetSdkVersion: 36,
             ndkVersion: "27.1.12297006",
+            enableMinifyInReleaseBuilds: true,
+            enableShrinkResourcesInReleaseBuilds: true,
           },
         },
       ],
@@ -118,6 +120,9 @@ export default {
           url: "https://sentry.io/",
           project: "react-native",
           organization: "localhost-labs-ltd",
+          experimental_android: {
+            enableAndroidGradlePlugin: true,
+          },
         },
       ],
     ],
