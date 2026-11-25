@@ -7,9 +7,14 @@ import {
   expect,
   inject,
   it,
+  vi,
 } from "vitest";
 
-import type { Queue, QueueClient } from "@karakeep/shared/queueing";
+import type {
+  EnqueueOptions,
+  Queue,
+  QueueClient,
+} from "@karakeep/shared/queueing";
 import { QueueRetryAfterError } from "@karakeep/shared/queueing";
 
 import { RestateQueueProvider } from "../../index";
@@ -96,6 +101,22 @@ describe("Restate Queue Provider", () => {
       "Queue to be empty",
       60000,
     );
+  }
+
+  // `enqueue` returns before the job reaches the semaphore, so jobs enqueued back
+  // to back can arrive out of order. This waits for each job to be queued before
+  // enqueueing the next one. It must be used while the queue is hogged.
+  async function enqueueInOrder(
+    jobs: { val: number; options: EnqueueOptions }[],
+  ) {
+    for (const [i, { val, options }] of jobs.entries()) {
+      await queue.enqueue({ type: "val", val }, options);
+      await vi.waitFor(
+        async () => expect((await queue.stats()).pending).toBe(i + 1),
+        // The jobs hogging the queue time out after 2s, so poll aggressively
+        { timeout: 2000, interval: 10 },
+      );
+    }
   }
 
   beforeEach(async () => {
@@ -366,43 +387,19 @@ describe("Restate Queue Provider", () => {
       ]);
       await testState.baton.waitUntilCountWaiting(3);
 
-      // Enqueue jobs from two different groups with same priority
+      // Enqueue jobs from three different groups with same priority
       // Group A has more jobs
-      await queue.enqueue(
-        { type: "val", val: 200 },
-        { priority: 0, groupId: "B" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 201 },
-        { priority: 0, groupId: "B" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 100 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 101 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 102 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 103 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 300 },
-        { priority: 0, groupId: "C" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 301 },
-        { priority: 0, groupId: "C" },
-      );
+      await enqueueInOrder([
+        { val: 200, options: { priority: 0, groupId: "B" } },
+        { val: 201, options: { priority: 0, groupId: "B" } },
+        { val: 100, options: { priority: 0, groupId: "A" } },
+        { val: 101, options: { priority: 0, groupId: "A" } },
+        { val: 102, options: { priority: 0, groupId: "A" } },
+        { val: 103, options: { priority: 0, groupId: "A" } },
+        { val: 300, options: { priority: 0, groupId: "C" } },
+        { val: 301, options: { priority: 0, groupId: "C" } },
+      ]);
 
-      // Wait for all jobs to be enqueued
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       testState.baton.release();
 
       await waitUntilQueueEmpty();
@@ -430,25 +427,13 @@ describe("Restate Queue Provider", () => {
       ]);
       await testState.baton.waitUntilCountWaiting(3);
 
-      await queue.enqueue(
-        { type: "val", val: 100 },
-        { priority: 1, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 101 },
-        { priority: 1, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 200 },
-        { priority: 0, groupId: "B" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 201 },
-        { priority: 0, groupId: "B" },
-      );
+      await enqueueInOrder([
+        { val: 100, options: { priority: 1, groupId: "A" } },
+        { val: 101, options: { priority: 1, groupId: "A" } },
+        { val: 200, options: { priority: 0, groupId: "B" } },
+        { val: 201, options: { priority: 0, groupId: "B" } },
+      ]);
 
-      // Wait for all jobs to be enqueued
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       testState.baton.release();
 
       await waitUntilQueueEmpty();
@@ -476,19 +461,13 @@ describe("Restate Queue Provider", () => {
       await testState.baton.waitUntilCountWaiting(3);
 
       // Mix of grouped and ungrouped jobs
-      await queue.enqueue({ type: "val", val: 100 }, { priority: 0 }); // ungrouped
-      await queue.enqueue({ type: "val", val: 101 }, { priority: 0 }); // ungrouped
-      await queue.enqueue(
-        { type: "val", val: 200 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 201 },
-        { priority: 0, groupId: "A" },
-      );
+      await enqueueInOrder([
+        { val: 100, options: { priority: 0 } },
+        { val: 101, options: { priority: 0 } },
+        { val: 200, options: { priority: 0, groupId: "A" } },
+        { val: 201, options: { priority: 0, groupId: "A" } },
+      ]);
 
-      // Wait for all jobs to be enqueued
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       testState.baton.release();
 
       await waitUntilQueueEmpty();
