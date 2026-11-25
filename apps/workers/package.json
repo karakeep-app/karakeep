@@ -34,7 +34,7 @@
     "http-proxy-agent": "^7.0.2",
     "https-proxy-agent": "^7.0.6",
     "ipaddr.js": "^2.2.0",
-    "jsdom": "^24.0.0",
+    "jsdom": "^31.0.1",
     "liteque": "^0.10.0",
     "lru-cache": "^11.2.2",
     "metascraper": "^5.58.1",
@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@types/archiver": "^7.0.0",
-    "@types/jsdom": "^21.1.6",
+    "@types/jsdom": "^30.0.0",
     "@types/node-cron": "^3.0.11",
     "tsdown": "^0.12.9",
     "tsx": "^4.23.13",
