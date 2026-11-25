@@ -12,11 +12,12 @@ import {
   silentDeleteAsset,
   TtsProviderConfig,
   TtsProviderConfigService,
+  ttsErrorBody,
+  ttsFetch,
   TtsQueue,
   ZTtsRequest,
   zTtsRequestSchema,
 } from "@karakeep/shared-server";
-import { limitConcurrency } from "@karakeep/shared/concurrency";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { DequeuedJob, getQueueClient } from "@karakeep/shared/queueing";
@@ -31,7 +32,8 @@ import {
 
 // Kept modest: most self-hosted OpenAI-compatible TTS servers run on a
 // single GPU/CPU box, so piling on more concurrent requests just queues up
-// on their side.
+// on their side. Also bounds how many synthesized-but-unsaved chunks are
+// held in memory at once.
 const SYNTHESIS_CONCURRENCY = 4;
 
 async function attemptMarkStatus(
@@ -90,9 +92,10 @@ export class TtsWorker {
 export async function synthesizeChunk(
   text: string,
   provider: TtsProviderConfig,
+  signal: AbortSignal,
 ): Promise<Buffer> {
   const { baseUrl, apiKey, model, voice } = provider;
-  const response = await fetch(`${baseUrl}/audio/speech`, {
+  const response = await ttsFetch(`${baseUrl}/audio/speech`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -104,11 +107,14 @@ export async function synthesizeChunk(
       voice,
       response_format: serverConfig.tts.responseFormat,
     }),
-    signal: AbortSignal.timeout(serverConfig.tts.timeoutSec * 1000),
+    signal: AbortSignal.any([
+      signal,
+      AbortSignal.timeout(serverConfig.tts.timeoutSec * 1000),
+    ]),
   });
   if (!response.ok) {
     throw new Error(
-      `TTS server returned ${response.status}: ${await response.text()}`,
+      `TTS server returned ${response.status}: ${await ttsErrorBody(response)}`,
     );
   }
   return Buffer.from(await response.arrayBuffer());
@@ -140,7 +146,13 @@ export async function runTts(job: DequeuedJob<ZTtsRequest>) {
   // config that's used here, not necessarily whoever enqueued the job.
   const providerConfig = await TtsProviderConfigService.get(db, userId);
   if (!providerConfig) {
-    logger.debug(`[tts][${jobId}] No TTS server configured, nothing to do`);
+    // E.g. the server was removed after the job was queued. Leave a terminal
+    // status so the client offers a retry instead of polling forever.
+    logger.info(`[tts][${jobId}] No TTS server configured, giving up`);
+    await db
+      .update(bookmarks)
+      .set({ ttsStatus: "failure" })
+      .where(eq(bookmarks.id, bookmarkId));
     return;
   }
   // Narrowed to a local so the nested synthesizeAndSaveBatch closure below
@@ -162,7 +174,7 @@ export async function runTts(job: DequeuedJob<ZTtsRequest>) {
     return;
   }
 
-  const chunks = narrationChunks(text);
+  const { chunks } = narrationChunks(text);
   addLogFields<"ttsWorker.run">({
     "tts.chunk_count": chunks.length,
     "tts.text_size": text.length,
@@ -208,25 +220,34 @@ export async function runTts(job: DequeuedJob<ZTtsRequest>) {
   // Synthesis runs concurrently, but chunks are saved (and their rows
   // inserted) strictly in order, one at a time. Every chunk becomes visible
   // to clients the moment it is stored, instead of only once the whole
-  // article is done.
-  let cancelled = false;
-  const synthesized = limitConcurrency(
-    chunks.map((chunk) => async () => {
-      if (cancelled) {
-        throw new Error("cancelled");
-      }
-      return synthesizeChunk(chunk, provider);
-    }),
-    SYNTHESIS_CONCURRENCY,
-  );
-  // Rejections are surfaced when the ordered loop below awaits them; this
-  // just stops the not-yet-awaited ones from becoming unhandled.
-  synthesized.forEach((p) => p.catch(() => undefined));
+  // article is done. Only a small window of upcoming chunks is requested at
+  // a time, and each buffer is dropped once saved, so memory stays bounded
+  // for long narrations.
+  //
+  // `job.abortSignal` fires when the job times out; aborting stops in-flight
+  // requests, and the checks below stop this attempt from writing anything
+  // more, so it can't interleave with the retry that replaces it.
+  const controller = new AbortController();
+  const abortSignal = AbortSignal.any([job.abortSignal, controller.signal]);
+  const inFlight = new Map<number, Promise<Buffer>>();
+  let nextToStart = 0;
+  const fillWindow = (upTo: number) => {
+    for (; nextToStart < Math.min(upTo, total); nextToStart++) {
+      const p = synthesizeChunk(chunks[nextToStart], provider, abortSignal);
+      // Rejections surface when the ordered loop below awaits them; this
+      // just stops not-yet-awaited ones from becoming unhandled.
+      p.catch(() => undefined);
+      inFlight.set(nextToStart, p);
+    }
+  };
 
   let saved = 0;
   try {
     for (let index = 0; index < total; index++) {
-      const buffer = await synthesized[index];
+      fillWindow(index + SYNTHESIS_CONCURRENCY);
+      const buffer = await inFlight.get(index)!;
+      inFlight.delete(index);
+      job.abortSignal.throwIfAborted();
       const quotaApproved = await QuotaService.checkStorageQuota(
         db,
         userId,
@@ -242,6 +263,7 @@ export async function runTts(job: DequeuedJob<ZTtsRequest>) {
         quotaApproved,
       });
       try {
+        job.abortSignal.throwIfAborted();
         await db.insert(assets).values({
           id: assetId,
           bookmarkId,
@@ -263,11 +285,12 @@ export async function runTts(job: DequeuedJob<ZTtsRequest>) {
         .where(eq(bookmarks.id, bookmarkId));
     }
   } catch (e) {
-    cancelled = true;
-    if (saved > 0) {
+    controller.abort();
+    if (saved > 0 && !job.abortSignal.aborted) {
       // Keep the chunks that did make it so they stay playable, but say
       // clearly that the narration is incomplete. A retry of the job starts
-      // over from scratch.
+      // over from scratch. (A timed-out attempt writes nothing: its retry
+      // owns the status now.)
       await db
         .update(bookmarks)
         .set({ ttsStatus: "failure" })

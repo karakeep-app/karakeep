@@ -482,6 +482,7 @@ function TtsPlayer({
   autoPlay,
   onClose,
   onChangeVoice,
+  onRetry,
 }: {
   bookmarkId: string;
   title: string;
@@ -491,6 +492,8 @@ function TtsPlayer({
   autoPlay: boolean;
   onClose: () => void;
   onChangeVoice?: (voice: string) => void;
+  // Regenerates the narration after a (possibly partial) failure.
+  onRetry?: () => void;
 }) {
   const { t } = useTranslation();
   const api = useTRPC();
@@ -540,7 +543,9 @@ function TtsPlayer({
     <Button
       size="icon"
       className="shrink-0 rounded-full"
-      aria-label={isPlaying ? "Pause" : "Play"}
+      aria-label={t(
+        isPlaying ? "settings.tts.player.pause" : "settings.tts.player.play",
+      )}
       onClick={() => (isPlaying ? player.pause() : player.play())}
     >
       {isPlaying ? <Pause size={16} /> : <Play size={16} />}
@@ -553,7 +558,11 @@ function TtsPlayer({
         {playButton}
         <button
           className="min-w-0 flex-1 text-left"
-          aria-label={expanded ? "Collapse player" : "Expand player"}
+          aria-label={t(
+            expanded
+              ? "settings.tts.player.collapse"
+              : "settings.tts.player.expand",
+          )}
           onClick={() => setExpanded(!expanded)}
         >
           <div className="truncate text-sm font-medium">{title}</div>
@@ -564,7 +573,11 @@ function TtsPlayer({
         <Button
           variant="ghost"
           size="icon"
-          aria-label={expanded ? "Collapse player" : "Expand player"}
+          aria-label={t(
+            expanded
+              ? "settings.tts.player.collapse"
+              : "settings.tts.player.expand",
+          )}
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
@@ -572,7 +585,7 @@ function TtsPlayer({
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Close"
+          aria-label={t("settings.tts.player.close")}
           onClick={() => {
             player.stop();
             onClose();
@@ -589,7 +602,7 @@ function TtsPlayer({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Previous paragraph"
+            aria-label={t("settings.tts.player.previous")}
             disabled={player.index <= 0}
             onClick={() => player.skip(-1)}
           >
@@ -598,7 +611,7 @@ function TtsPlayer({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Next paragraph"
+            aria-label={t("settings.tts.player.next")}
             disabled={player.index + 1 >= snapshot.totalChunks}
             onClick={() => player.skip(1)}
           >
@@ -610,7 +623,7 @@ function TtsPlayer({
                 variant="ghost"
                 size="sm"
                 className="ml-auto gap-1 tabular-nums"
-                aria-label="Playback speed"
+                aria-label={t("settings.tts.player.speed")}
               >
                 <Gauge size={14} />
                 {player.speed}x
@@ -636,7 +649,7 @@ function TtsPlayer({
                   variant="ghost"
                   size="sm"
                   className="max-w-36 gap-1"
-                  aria-label="Voice"
+                  aria-label={t("settings.tts.player.voice")}
                   disabled={!discovered}
                 >
                   <Mic size={14} className="shrink-0" />
@@ -654,7 +667,9 @@ function TtsPlayer({
                     if (
                       v !== currentVoice &&
                       window.confirm(
-                        `Regenerate this narration with voice "${v}"?`,
+                        t("settings.tts.player.regenerate_confirm", {
+                          voice: v,
+                        }),
                       )
                     ) {
                       setVoice(v);
@@ -675,17 +690,40 @@ function TtsPlayer({
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Text-to-speech settings"
+              aria-label={t("settings.tts.player.settings")}
             >
               <Settings size={16} />
             </Button>
           </Link>
         </div>
       )}
-      {failed && (
-        <p className="px-3 pb-2 text-xs text-destructive">
-          {t("actions.audio_generation_failed")}
+      {chunkTexts?.truncated && (
+        <p className="px-3 pb-2 text-xs text-muted-foreground">
+          {t("settings.tts.player.truncated", {
+            count: chunkTexts.chunks.length,
+          })}
         </p>
+      )}
+      {failed && (
+        <div className="flex items-center justify-between gap-2 px-3 pb-2">
+          <p className="text-xs text-destructive">
+            {t("actions.audio_generation_failed")}
+          </p>
+          {/* The chunks that made it stay playable; this queues the rest. */}
+          {snapshot.status === "failure" && onRetry && (
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label={t("settings.tts.player.retry_generation")}
+              onClick={() => {
+                player.stop();
+                onRetry();
+              }}
+            >
+              {t("actions.retry")}
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -707,7 +745,7 @@ export default function TtsBookmarkArea({
   const { mutate, isPending } = useGenerateTts({
     onError: () => {
       toast({
-        description: "Something went wrong",
+        description: t("common.something_went_wrong"),
         variant: "destructive",
       });
     },
@@ -773,6 +811,18 @@ export default function TtsBookmarkArea({
                 setOpen(true);
                 savePos(bookmark.id, 0);
                 mutate({ bookmarkId: bookmark.id, voice });
+              }
+        }
+        onRetry={
+          readOnly
+            ? undefined
+            : () => {
+                setOpen(true);
+                savePos(bookmark.id, 0);
+                mutate({
+                  bookmarkId: bookmark.id,
+                  voice: bookmark.ttsVoice ?? undefined,
+                });
               }
         }
       />

@@ -108,8 +108,8 @@ const allEnv = z.object({
   INFERENCE_ENABLE_AUTO_TAGGING: stringBool("true"),
   INFERENCE_ENABLE_AUTO_SUMMARIZATION: stringBool("false"),
   // Text-to-speech worker tuning. The server connection itself (base URL,
-  // API key, voice, provider) is admin-configured in the DB via the
-  // Admin > Text-to-Speech settings page, not an env var.
+  // API key, voice, provider) is configured per user in the DB via
+  // Settings > Text-to-Speech, not an env var.
   TTS_TIMEOUT_SEC: z.coerce.number().positive().default(120),
   TTS_NUM_WORKERS: z.coerce.number().default(1),
   TTS_JOB_TIMEOUT_SEC: z.coerce.number().default(300),

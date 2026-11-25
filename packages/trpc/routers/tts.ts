@@ -3,7 +3,13 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { bookmarks } from "@karakeep/db/schema";
-import { TtsProviderConfigService } from "@karakeep/shared-server";
+import {
+  assertTtsUrlAllowed,
+  TtsProviderConfigService,
+  ttsErrorBody,
+  ttsFetch,
+  TtsUrlNotAllowedError,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import { ttsContentType } from "@karakeep/shared/utils/ttsUtils";
 
@@ -19,24 +25,20 @@ const ttsProcedure = createScopedAuthedProcedure("users");
 const PREVIEW_SAMPLE_TEXT =
   "This is a preview of the selected voice for narrating your bookmarks.";
 
-// Cloud provider instance-metadata endpoints: no legitimate TTS server would
-// live here, and they're the classic SSRF exfiltration target (AWS/GCP/Azure
-// credentials). Deliberately doesn't block private/LAN IPs since those are
-// exactly where self-hosted TTS servers normally live, and any signed-in
-// user (not just an admin) can now point the worker at an arbitrary URL.
-const BLOCKED_METADATA_HOSTNAMES = new Set([
-  "169.254.169.254",
-  "169.254.170.2",
-  "fd00:ec2::254",
-  "metadata.google.internal",
-]);
-
-function assertNotCloudMetadataUrl(url: string) {
-  const hostname = new URL(url).hostname.toLowerCase();
-  if (BLOCKED_METADATA_HOSTNAMES.has(hostname)) {
+// Any signed-in user can point the server at an arbitrary URL (self-hosted
+// TTS servers usually live on a private LAN, so private IPs stay allowed).
+// ttsFetch blocks cloud instance-metadata addresses after DNS resolution and
+// refuses redirects; this maps its errors onto tRPC errors.
+async function fetchTtsServer(url: string, init: RequestInit) {
+  try {
+    return await ttsFetch(url, init);
+  } catch (e) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "This host is not allowed as a TTS server address",
+      message:
+        e instanceof TtsUrlNotAllowedError
+          ? e.message
+          : `Failed to reach the TTS server: ${e}`,
     });
   }
 }
@@ -60,7 +62,7 @@ export const ttsAppRouter = router({
   // being read. Same extraction as the worker, so index i == audio chunk i.
   getChunkTexts: ttsProcedure
     .input(z.object({ bookmarkId: z.string() }))
-    .output(z.object({ chunks: z.array(z.string()) }))
+    .output(z.object({ chunks: z.array(z.string()), truncated: z.boolean() }))
     .query(async ({ input, ctx }) => {
       const bookmark = await ctx.db.query.bookmarks.findFirst({
         where: eq(bookmarks.id, input.bookmarkId),
@@ -68,14 +70,14 @@ export const ttsAppRouter = router({
       });
       if (!bookmark || bookmark.userId !== ctx.user.id) {
         // ponytail: owner only; shared-bookmark viewers get no highlight.
-        return { chunks: [] };
+        return { chunks: [], truncated: false };
       }
       const text = await getNarrationText(
         ctx.db,
         input.bookmarkId,
         ctx.user.id,
       );
-      return { chunks: text ? narrationChunks(text) : [] };
+      return text ? narrationChunks(text) : { chunks: [], truncated: false };
     }),
   getSettings: ttsProcedure
     .output(
@@ -115,8 +117,15 @@ export const ttsAppRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       // The worker fetches this URL unattended on every future TTS job, so
-      // block cloud metadata endpoints here too, not just on discovery.
-      assertNotCloudMetadataUrl(input.baseUrl);
+      // reject metadata endpoints at save time too. DNS failures are let
+      // through: the worker re-checks on every request anyway.
+      try {
+        await assertTtsUrlAllowed(input.baseUrl);
+      } catch (e) {
+        if (e instanceof TtsUrlNotAllowedError) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: e.message });
+        }
+      }
       await TtsProviderConfigService.set(ctx.db, ctx.user.id, input);
     }),
   discoverVoices: ttsProcedure
@@ -128,12 +137,6 @@ export const ttsAppRouter = router({
     )
     .output(z.object({ voices: z.array(zVoiceSchema) }))
     .mutation(async ({ input, ctx }) => {
-      // OpenAI-compatible servers are almost always self-hosted on a private
-      // LAN/localhost, so we can't block private IPs the way the crawler
-      // does. We can still block the one target with no legitimate TTS use
-      // case: cloud provider instance-metadata endpoints, a classic SSRF
-      // exfiltration vector.
-      assertNotCloudMetadataUrl(input.baseUrl);
       // getSettings never echoes the stored key back to the client, so the
       // form field is empty on every load. Without this fallback,
       // discovering voices against an already-configured, auth-required
@@ -146,18 +149,10 @@ export const ttsAppRouter = router({
         );
         apiKey = existing?.apiKey ?? undefined;
       }
-      let response: Response;
-      try {
-        response = await fetch(`${input.baseUrl}/audio/voices`, {
-          headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
-          signal: AbortSignal.timeout(10_000),
-        });
-      } catch (e) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Failed to reach the TTS server: ${e}`,
-        });
-      }
+      const response = await fetchTtsServer(`${input.baseUrl}/audio/voices`, {
+        headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
+        signal: AbortSignal.timeout(10_000),
+      });
       if (!response.ok) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -229,7 +224,6 @@ export const ttsAppRouter = router({
     )
     .output(z.object({ models: z.array(z.string()) }))
     .mutation(async ({ input, ctx }) => {
-      assertNotCloudMetadataUrl(input.baseUrl);
       let apiKey = input.apiKey;
       if (!apiKey) {
         const existing = await TtsProviderConfigService.get(
@@ -238,18 +232,10 @@ export const ttsAppRouter = router({
         );
         apiKey = existing?.apiKey ?? undefined;
       }
-      let response: Response;
-      try {
-        response = await fetch(`${input.baseUrl}/models`, {
-          headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
-          signal: AbortSignal.timeout(10_000),
-        });
-      } catch (e) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Failed to reach the TTS server: ${e}`,
-        });
-      }
+      const response = await fetchTtsServer(`${input.baseUrl}/models`, {
+        headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
+        signal: AbortSignal.timeout(10_000),
+      });
       if (!response.ok) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -288,7 +274,6 @@ export const ttsAppRouter = router({
     )
     .output(z.object({ audio: z.string(), contentType: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      assertNotCloudMetadataUrl(input.baseUrl);
       let apiKey = input.apiKey;
       if (!apiKey) {
         const existing = await TtsProviderConfigService.get(
@@ -297,32 +282,24 @@ export const ttsAppRouter = router({
         );
         apiKey = existing?.apiKey ?? undefined;
       }
-      let response: Response;
-      try {
-        response = await fetch(`${input.baseUrl}/audio/speech`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
-          },
-          body: JSON.stringify({
-            model: input.model,
-            input: PREVIEW_SAMPLE_TEXT,
-            voice: input.voice,
-            response_format: serverConfig.tts.responseFormat,
-          }),
-          signal: AbortSignal.timeout(serverConfig.tts.timeoutSec * 1000),
-        });
-      } catch (e) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: `Failed to reach the TTS server: ${e}`,
-        });
-      }
+      const response = await fetchTtsServer(`${input.baseUrl}/audio/speech`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        },
+        body: JSON.stringify({
+          model: input.model,
+          input: PREVIEW_SAMPLE_TEXT,
+          voice: input.voice,
+          response_format: serverConfig.tts.responseFormat,
+        }),
+        signal: AbortSignal.timeout(serverConfig.tts.timeoutSec * 1000),
+      });
       if (!response.ok) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: `TTS server returned ${response.status}: ${await response.text()}`,
+          message: `TTS server returned ${response.status}: ${await ttsErrorBody(response)}`,
         });
       }
       const buffer = Buffer.from(await response.arrayBuffer());

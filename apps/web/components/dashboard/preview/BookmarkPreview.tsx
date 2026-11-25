@@ -239,24 +239,26 @@ function DetailsTitle({ bookmark }: { bookmark: ZBookmark }) {
 /**
  * Floats the TTS control over the reading area. Hidden (not unmounted) outside
  * the reader view, which has no narration text, so playback never gets cut off.
+ * Mounted once for both the wide and narrow layouts, so resizing across the
+ * breakpoint keeps the same player (and its audio) instead of a second one.
  */
 function FloatingTts({
   bookmark,
   isOwner,
-  visible = true,
+  className,
 }: {
   bookmark: ZBookmark;
   isOwner: boolean;
-  visible?: boolean;
+  className?: string;
 }) {
   const { section } = useLinkSection(bookmark);
   const show =
-    visible &&
-    (bookmark.content.type !== BookmarkTypes.LINK || section === "cached");
+    bookmark.content.type !== BookmarkTypes.LINK || section === "cached";
   return (
     <div
       className={cn(
         "pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4",
+        className,
         !show && "hidden",
       )}
     >
@@ -569,7 +571,7 @@ export default function BookmarkPreview({
   );
 
   return (
-    <>
+    <div className="relative h-full w-full">
       {/* Render original layout for wide screens */}
       <div className="relative hidden h-full flex-col overflow-hidden bg-card lg:flex">
         {/* The same spot for every control, whether or not the panel is showing: */}
@@ -642,7 +644,6 @@ export default function BookmarkPreview({
               toolbar: wideToolbarSlot,
               title: wideTitleSlot,
             })}
-            <FloatingTts bookmark={bookmark} isOwner={isOwner} />
           </div>
           {!sidebarCollapsed && (
             // Wide enough for the metadata, while leaving the article its measure.
@@ -712,12 +713,6 @@ export default function BookmarkPreview({
               </div>
             )}
           </TabsContent>
-          {/* A sibling of the tab panels, so switching tabs never unmounts it. */}
-          <FloatingTts
-            bookmark={bookmark}
-            isOwner={isOwner}
-            visible={activeTab === "content"}
-          />
         </Tabs>
         {/* A sibling of the tabs, so it takes its height from them and never */}
         {/* covers the end of the article. */}
@@ -737,6 +732,20 @@ export default function BookmarkPreview({
           </div>
         )}
       </div>
-    </>
+      {/* One player for both layouts; positioned over whichever reading */}
+      {/* area is showing. */}
+      <FloatingTts
+        bookmark={bookmark}
+        isOwner={isOwner}
+        className={cn(
+          // Wide: keep clear of the details sidebar (same width as below).
+          !sidebarCollapsed && "lg:right-[clamp(16rem,38%,26rem)]",
+          // Narrow: only on the content tab, above the bottom action bar.
+          activeTab !== "content" && "max-lg:hidden",
+          (isOwner || navigation) &&
+            "max-sm:bottom-[calc(4rem+env(safe-area-inset-bottom))]",
+        )}
+      />
+    </div>
   );
 }

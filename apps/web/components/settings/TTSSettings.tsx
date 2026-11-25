@@ -51,13 +51,13 @@ function TTSProviderSettings() {
   const { mutate: updateConfig, isPending: isSaving } = useMutation(
     api.tts.updateSettings.mutationOptions({
       onSuccess: () => {
-        toast.success("TTS settings saved");
+        toast.success(t("settings.tts.saved"));
         setApiKey("");
         queryClient.invalidateQueries(api.tts.getSettings.pathFilter());
         queryClient.invalidateQueries(api.tts.isConfigured.pathFilter());
       },
       onError: (error) => {
-        toast.error(`Failed to save TTS settings: ${error.message}`);
+        toast.error(t("settings.tts.save_failed", { error: error.message }));
       },
     }),
   );
@@ -71,12 +71,14 @@ function TTSProviderSettings() {
       onSuccess: (data) => {
         setDiscoveredModels(data.models);
         if (data.models.length === 0 && !quiet.current) {
-          toast.error("The server didn't return any models");
+          toast.error(t("settings.tts.no_models"));
         }
       },
       onError: (error) => {
         if (!quiet.current)
-          toast.error(`Failed to discover models: ${error.message}`);
+          toast.error(
+            t("settings.tts.discover_models_failed", { error: error.message }),
+          );
       },
     }),
   );
@@ -90,12 +92,14 @@ function TTSProviderSettings() {
       onSuccess: (data) => {
         setDiscoveredVoices(data.voices);
         if (data.voices.length === 0 && !quiet.current) {
-          toast.error("The server didn't return any voices");
+          toast.error(t("settings.tts.no_voices"));
         }
       },
       onError: (error) => {
         if (!quiet.current)
-          toast.error(`Failed to discover voices: ${error.message}`);
+          toast.error(
+            t("settings.tts.discover_voices_failed", { error: error.message }),
+          );
       },
     }),
   );
@@ -132,14 +136,17 @@ function TTSProviderSettings() {
     ]);
     setIsTesting(false);
     if (m.status === "rejected" && v.status === "rejected") {
-      setTestResult({ ok: false, text: m.reason?.message ?? "Unreachable" });
+      setTestResult({
+        ok: false,
+        text: m.reason?.message ?? t("settings.tts.unreachable"),
+      });
       return;
     }
     const models = m.status === "fulfilled" ? m.value.models.length : 0;
     const voices = v.status === "fulfilled" ? v.value.voices.length : 0;
     setTestResult({
       ok: true,
-      text: `Connected · ${models} models · ${voices} voices`,
+      text: t("settings.tts.connected", { models, voices }),
     });
   };
 
@@ -162,7 +169,7 @@ function TTSProviderSettings() {
         void audio.play();
       },
       onError: (error) => {
-        toast.error(`Failed to preview voice: ${error.message}`);
+        toast.error(t("settings.tts.preview_failed", { error: error.message }));
       },
     }),
   );
@@ -178,13 +185,14 @@ function TTSProviderSettings() {
   return (
     <SettingsSection
       title={t("settings.tts.tts_settings")}
-      description="Configure the OpenAI-compatible text-to-speech server used to narrate your bookmarks."
+      description={t("settings.tts.section_description")}
     >
       <Field className="rounded-lg border p-3">
-        <FieldLabel htmlFor="tts-base-url">Base URL</FieldLabel>
+        <FieldLabel htmlFor="tts-base-url">
+          {t("settings.tts.base_url")}
+        </FieldLabel>
         <FieldDescription>
-          e.g. http://localhost:8880/v1 (an OpenAI-compatible endpoint, such as
-          Kokoro-FastAPI&apos;s)
+          {t("settings.tts.base_url_description")}
         </FieldDescription>
         <Input
           id="tts-base-url"
@@ -196,11 +204,13 @@ function TTSProviderSettings() {
       </Field>
 
       <Field className="rounded-lg border p-3">
-        <FieldLabel htmlFor="tts-api-key">API Key</FieldLabel>
+        <FieldLabel htmlFor="tts-api-key">
+          {t("settings.tts.api_key")}
+        </FieldLabel>
         <FieldDescription>
           {config?.hasApiKey
-            ? "A key is already set. Leave blank to keep it unchanged."
-            : "Optional, only needed if your server requires one."}
+            ? t("settings.tts.api_key_set")
+            : t("settings.tts.api_key_optional")}
         </FieldDescription>
         <Input
           id="tts-api-key"
@@ -212,9 +222,9 @@ function TTSProviderSettings() {
       </Field>
 
       <Field className="rounded-lg border p-3">
-        <FieldLabel htmlFor="tts-model">Model</FieldLabel>
+        <FieldLabel htmlFor="tts-model">{t("settings.tts.model")}</FieldLabel>
         <FieldDescription>
-          Discover the models your server offers, or type one manually.
+          {t("settings.tts.model_description")}
         </FieldDescription>
         <div className="flex gap-2">
           {discoveredModels.length > 0 ? (
@@ -251,17 +261,15 @@ function TTSProviderSettings() {
             }}
           >
             <Search className="mr-2 size-4" />
-            Discover
+            {t("settings.tts.discover")}
           </ActionButton>
         </div>
       </Field>
 
       <Field className="rounded-lg border p-3">
-        <FieldLabel htmlFor="tts-voice">Voice</FieldLabel>
+        <FieldLabel htmlFor="tts-voice">{t("settings.tts.voice")}</FieldLabel>
         <FieldDescription>
-          Discover the voices your server offers, or type one manually (e.g.
-          af_heart). When your server reports voice quality, the highest quality
-          voices are listed first.
+          {t("settings.tts.voice_description")}
         </FieldDescription>
         <div className="flex gap-2">
           {discoveredVoices.length > 0 ? (
@@ -303,7 +311,7 @@ function TTSProviderSettings() {
             }}
           >
             <Search className="mr-2 size-4" />
-            Discover
+            {t("settings.tts.discover")}
           </ActionButton>
           <ActionButton
             type="button"
@@ -320,7 +328,7 @@ function TTSProviderSettings() {
             }
           >
             <Play className="mr-2 size-4" />
-            Play sample
+            {t("settings.tts.play_sample")}
           </ActionButton>
         </div>
       </Field>
@@ -341,7 +349,7 @@ function TTSProviderSettings() {
           onClick={testConnection}
         >
           <Plug className="mr-2 size-4" />
-          Test connection
+          {t("settings.tts.test_connection")}
         </ActionButton>
         <ActionButton
           loading={isSaving}
@@ -369,7 +377,7 @@ export default function TTSSettings() {
   return (
     <SettingsPage
       title={t("settings.tts.tts_settings")}
-      description="Karakeep can narrate your bookmarks using any OpenAI-compatible text-to-speech server (e.g. a self-hosted Kokoro-FastAPI instance)."
+      description={t("settings.tts.page_description")}
     >
       <TTSProviderSettings />
     </SettingsPage>

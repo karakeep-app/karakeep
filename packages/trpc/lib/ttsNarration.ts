@@ -37,7 +37,18 @@ export async function getNarrationText(
   return null;
 }
 
-/** The exact chunks the worker synthesizes, so the client can map audio to text. */
-export function narrationChunks(text: string): string[] {
-  return chunkTextForTts(text).slice(0, MAX_TTS_CHUNKS);
+/**
+ * The exact chunks the worker synthesizes, so the client can map audio to
+ * text. Narration is capped at MAX_TTS_CHUNKS; `truncated` tells the client
+ * the audio stops before the end of the article.
+ */
+export function narrationChunks(text: string): {
+  chunks: string[];
+  truncated: boolean;
+} {
+  const all = chunkTextForTts(text);
+  return {
+    chunks: all.slice(0, MAX_TTS_CHUNKS),
+    truncated: all.length > MAX_TTS_CHUNKS,
+  };
 }

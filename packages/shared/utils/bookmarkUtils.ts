@@ -66,13 +66,28 @@ export function getBookmarkRefreshInterval(
   }
 
   // TTS generation is triggered on-demand, often long after the bookmark
-  // was created (that's the point of "read later"), unlike crawling/
-  // tagging/summarization which all kick off around creation time. So it
-  // can't share the createdAt-anchored backoff below: for any bookmark
-  // older than a few hours, that backoff would resolve to `false` and the
-  // "Generating audio..." button would never learn the job finished.
+  // was created, and the player wants to pick up each chunk as it lands.
+  // Every saved chunk bumps modifiedAt, so poll fast while it keeps moving
+  // and back off (then stop) once it stalls, e.g. when the tts worker isn't
+  // running at all.
   if (isBookmarkStillGeneratingTts(bookmark)) {
-    return 1000;
+    const sinceProgress =
+      Date.now() - (bookmark.modifiedAt ?? bookmark.createdAt).valueOf();
+    if (sinceProgress < 5 * 60 * 1000) {
+      return 1000;
+    }
+    if (sinceProgress < 30 * 60 * 1000) {
+      return 10_000;
+    }
+    // Stalled: only keep polling (with the regular backoff below) if other
+    // processing is still underway.
+    if (
+      !isBookmarkStillTagging(bookmark) &&
+      !isBookmarkStillCrawling(bookmark) &&
+      !isBookmarkStillSummarizing(bookmark)
+    ) {
+      return false;
+    }
   }
   // Back off from when the bookmark last changed rather than when it was
   // created, so that reprocessing an old bookmark (e.g. a recrawl) is polled too.

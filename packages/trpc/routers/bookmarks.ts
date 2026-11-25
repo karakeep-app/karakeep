@@ -1,5 +1,15 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, like, lt, or } from "drizzle-orm";
+import {
+  and,
+  eq,
+  gt,
+  inArray,
+  isNull,
+  like,
+  lt,
+  notInArray,
+  or,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -1809,14 +1819,40 @@ export const bookmarksAppRouter = router({
         });
       }
 
-      await ctx.db
+      // Claim the bookmark atomically: only one generation may be queued or
+      // running at a time, otherwise two jobs (two tabs, web + mobile) would
+      // each delete and re-insert chunks and interleave their audio. A
+      // request while one is in flight is a no-op; the client is already
+      // polling that one.
+      const claimed = await ctx.db
         .update(bookmarks)
         .set({ ttsStatus: "pending", ttsTotalChunks: null })
-        .where(eq(bookmarks.id, input.bookmarkId));
-      await TtsQueue.enqueue({
-        bookmarkId: input.bookmarkId,
-        voice: input.voice,
-      });
+        .where(
+          and(
+            eq(bookmarks.id, input.bookmarkId),
+            or(
+              isNull(bookmarks.ttsStatus),
+              notInArray(bookmarks.ttsStatus, ["pending", "generating"]),
+            ),
+          ),
+        )
+        .returning({ id: bookmarks.id });
+      if (claimed.length === 0) {
+        return { bookmarkId: input.bookmarkId };
+      }
+      try {
+        await TtsQueue.enqueue({
+          bookmarkId: input.bookmarkId,
+          voice: input.voice,
+        });
+      } catch (e) {
+        // Don't leave the claim behind, or the bookmark could never retry.
+        await ctx.db
+          .update(bookmarks)
+          .set({ ttsStatus: "failure" })
+          .where(eq(bookmarks.id, input.bookmarkId));
+        throw e;
+      }
 
       return { bookmarkId: input.bookmarkId };
     }),

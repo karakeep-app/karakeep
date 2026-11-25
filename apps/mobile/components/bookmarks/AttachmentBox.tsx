@@ -49,9 +49,10 @@ export default function AttachmentBox({ bookmark }: { bookmark: ZBookmark }) {
   const { t: tShared } = useSharedTranslation();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const downloadInProgress = useRef(false);
-  const assets = [...bookmark.assets].sort((a, b) =>
-    a.assetType.localeCompare(b.assetType),
-  );
+  // Narration chunks belong to the player, not the attachment list.
+  const assets = bookmark.assets
+    .filter((a) => a.assetType !== "ttsAudio")
+    .sort((a, b) => a.assetType.localeCompare(b.assetType));
 
   const download = async (asset: ZBookmark["assets"][number]) => {
     if (downloadInProgress.current) return;

@@ -37,6 +37,8 @@ vi.mock("@karakeep/shared-server", async (original) => ({
     checkStorageQuota: vi.fn().mockResolvedValue({ approved: true }),
   },
   TtsProviderConfigService: { get: mocks.getProvider },
+  // Skips the DNS-based host check, which can't resolve the fake host.
+  ttsFetch: (url: string, init: RequestInit) => fetch(url, init),
 }));
 
 // Bare-specifier imports that only resolve through the app's tsconfig paths.
@@ -50,13 +52,16 @@ vi.mock("../workerTracing", () => ({
 
 const db = mocks.db;
 
-function buildJob(bookmarkId: string): DequeuedJob<ZTtsRequest> {
+function buildJob(
+  bookmarkId: string,
+  abortSignal = new AbortController().signal,
+): DequeuedJob<ZTtsRequest> {
   return {
     id: "job",
     data: { bookmarkId },
     priority: 0,
     runNumber: 0,
-    abortSignal: new AbortController().signal,
+    abortSignal,
   };
 }
 
@@ -174,6 +179,46 @@ describe("runTts", () => {
       "tts-00000.mp3",
       "tts-00001.mp3",
     ]);
+  });
+
+  test("marks failure when no TTS server is configured", async () => {
+    const { bookmarkId } = await createTextBookmark(2);
+    mocks.getProvider.mockResolvedValue(null);
+    await runTts(buildJob(bookmarkId));
+    expect((await readBookmark(bookmarkId)).ttsStatus).toBe("failure");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  test("a timed-out attempt stops writing chunks and status", async () => {
+    const { bookmarkId } = await createTextBookmark(3);
+    const controller = new AbortController();
+    mocks.saveAsset.mockImplementation(async () => {
+      // The job times out while the first chunk is being stored.
+      controller.abort(new Error("timed out"));
+    });
+
+    await expect(
+      runTts(buildJob(bookmarkId, controller.signal)),
+    ).rejects.toThrow(/timed out/);
+
+    expect(await readChunks(bookmarkId)).toEqual([]);
+    // The retry owns the status now, so this attempt leaves it alone.
+    expect((await readBookmark(bookmarkId)).ttsStatus).toBe("pending");
+  });
+
+  test("keeps at most a small window of chunks in flight", async () => {
+    const { bookmarkId } = await createTextBookmark(10);
+    let inFlight = 0;
+    let maxInFlight = 0;
+    fetchMock.mockImplementation(async () => {
+      maxInFlight = Math.max(maxInFlight, ++inFlight);
+      await new Promise((r) => setTimeout(r, 1));
+      inFlight--;
+      return new Response(new Uint8Array([1]), { status: 200 });
+    });
+    await runTts(buildJob(bookmarkId));
+    expect(maxInFlight).toBeLessThanOrEqual(4);
+    expect(await readChunks(bookmarkId)).toHaveLength(10);
   });
 
   test("regenerating replaces old chunks instead of mixing", async () => {
