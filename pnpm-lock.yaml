@@ -1367,11 +1367,11 @@ importers:
         specifier: workspace:*
         version: link:../shared
       '@restatedev/restate-sdk':
-        specifier: ^1.16.2
-        version: 1.16.2
+        specifier: ^1.18.4
+        version: 1.18.4
       '@restatedev/restate-sdk-clients':
-        specifier: ^1.16.2
-        version: 1.16.2
+        specifier: ^1.18.4
+        version: 1.18.4
       async-mutex:
         specifier: ^0.4.1
         version: 0.4.1
@@ -6590,14 +6590,14 @@ packages:
   '@remusao/trie@2.1.0':
     resolution: {integrity: sha512-Er3Q8q0/2OcCJPQYJOPLmCuqO0wu7cav3SPtpjlxSbjFi1x+A1pZkkLD6c9q2rGEkGW/tkrRzfrhNMt8VQjzXg==}
 
-  '@restatedev/restate-sdk-clients@1.16.2':
-    resolution: {integrity: sha512-LWieGNx0nhY1lmQP3V5gtZIvdYBdHIBWwwz+zK+aY8T1Oyl5KrCdY+8ku0P5v85Sc8MBC1GzdHURM5mZRbAxcA==}
+  '@restatedev/restate-sdk-clients@1.18.4':
+    resolution: {integrity: sha512-nVhzTcG/oIWRUlaWcg3ylRaF2lab64KGgQ4aiwrVlIruolaqwKMUesxqxtp/n+LTCBAz8Xc7QBir2S7bajKNDQ==}
 
-  '@restatedev/restate-sdk-core@1.16.2':
-    resolution: {integrity: sha512-dytd78+c7x24NFhfj7XpziqYJCY5E4DE2Qd0N6la/hXoF2SbhhM5/Iey82MCwELCEnN7RPfN3+/Th58LQezTQw==}
+  '@restatedev/restate-sdk-core@1.18.4':
+    resolution: {integrity: sha512-HOveTHC9cKYBXfbkZm5C6Swm2P8Pzn+hFZRAJcFHvTRbrxrdk0eTEdJK1CgO8n8+sidLf0TjXzE9UMf4LAnhsg==}
 
-  '@restatedev/restate-sdk@1.16.2':
-    resolution: {integrity: sha512-L2XqUukvdGYmqCqsFvJzTsaU3JiuFzsYSh6nK19Q1yKNOr/bBBZKdic0o0hza5P5QdiiFC5jLHJ5wCWt77IO0Q==}
+  '@restatedev/restate-sdk@1.18.4':
+    resolution: {integrity: sha512-zdKPdJv/eHfvlyau6gP318s0iiIGjkFzCzZ0++ljmDMZco63etbfVeAj2G+0egrnHHW/3LoJ+k6C0FLJYaW2dA==}
 
   '@revenuecat/purchases-js-hybrid-mappings@19.10.0':
     resolution: {integrity: sha512-oHS+x18B2Q6dtaZJPuicJorhR+xUaAdt/tpLE1wQQHngkHksKN6AwbZDdt3x3rHHmEDjqgircORCbe5EwLF4hA==}
@@ -21845,15 +21845,15 @@ snapshots:
 
   '@remusao/trie@2.1.0': {}
 
-  '@restatedev/restate-sdk-clients@1.16.2':
+  '@restatedev/restate-sdk-clients@1.18.4':
     dependencies:
-      '@restatedev/restate-sdk-core': 1.16.2
+      '@restatedev/restate-sdk-core': 1.18.4
 
-  '@restatedev/restate-sdk-core@1.16.2': {}
+  '@restatedev/restate-sdk-core@1.18.4': {}
 
-  '@restatedev/restate-sdk@1.16.2':
+  '@restatedev/restate-sdk@1.18.4':
     dependencies:
-      '@restatedev/restate-sdk-core': 1.16.2
+      '@restatedev/restate-sdk-core': 1.18.4
 
   '@revenuecat/purchases-js-hybrid-mappings@19.10.0':
     dependencies:

@@ -37,13 +37,6 @@ interface SemaphoreMetadata {
   groups: Record<string, GroupMeta>;
 }
 
-// Legacy types for migration
-interface LegacyGroupState {
-  id: string;
-  items: QueueItem[];
-  lastServedTimestamp: number;
-}
-
 // --- Key helpers ---
 
 function itemKey(groupId: string, priority: number, slot: number): string {
@@ -80,70 +73,6 @@ function computeBestPriority(
     }
   }
   return best;
-}
-
-// --- Migration ---
-
-async function migrateIfNeeded(ctx: ObjectContext): Promise<void> {
-  const legacyGroups =
-    await ctx.get<Record<string, LegacyGroupState>>("itemsv2");
-  if (legacyGroups === null) {
-    return;
-  }
-
-  const legacyLeases = (await ctx.get<Record<string, number>>("leases")) ?? {};
-  const legacyPaused = (await ctx.get<boolean>("paused")) ?? false;
-
-  const metadata: SemaphoreMetadata = {
-    paused: legacyPaused,
-    leases: legacyLeases,
-    groups: {},
-  };
-
-  for (const [groupId, group] of Object.entries(legacyGroups)) {
-    if (group.items.length === 0) continue;
-
-    const priorities: Record<number, PriorityQueueMeta> = {};
-
-    // Group items by priority, preserving insertion order within each priority
-    const itemsByPriority: Record<number, QueueItem[]> = {};
-    for (const item of group.items) {
-      if (!itemsByPriority[item.priority]) {
-        itemsByPriority[item.priority] = [];
-      }
-      itemsByPriority[item.priority].push(item);
-    }
-
-    for (const [p, items] of Object.entries(itemsByPriority)) {
-      const priority = Number(p);
-      priorities[priority] = {
-        head: 0,
-        tail: items.length,
-        count: items.length,
-      };
-      for (let slot = 0; slot < items.length; slot++) {
-        ctx.set(itemKey(groupId, priority, slot), items[slot]);
-        if (items[slot].idempotencyKey) {
-          ctx.set(idemKey(items[slot].idempotencyKey!), true);
-        }
-      }
-    }
-
-    metadata.groups[groupId] = {
-      bestPriority: computeBestPriority(priorities),
-      lastServedTimestamp: group.lastServedTimestamp,
-      totalItemCount: group.items.length,
-      priorities,
-    };
-  }
-
-  setMetadata(ctx, metadata);
-
-  // Clear legacy keys
-  ctx.clear("itemsv2");
-  ctx.clear("leases");
-  ctx.clear("paused");
-  ctx.clear("inFlight");
 }
 
 // --- Core scheduling ---
@@ -273,7 +202,6 @@ export const semaphore = object({
           idempotencyKey?: string;
         },
       ): Promise<boolean> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
 
         // Idempotency check
@@ -349,7 +277,6 @@ export const semaphore = object({
           capacity: number;
         },
       ): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         delete metadata.leases[req.leaseId];
         await tick(ctx, metadata, req.capacity);
@@ -360,7 +287,6 @@ export const semaphore = object({
     pause: restate.handlers.object.exclusive(
       {},
       async (ctx: ObjectContext): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         metadata.paused = true;
         setMetadata(ctx, metadata);
@@ -370,7 +296,6 @@ export const semaphore = object({
     resume: restate.handlers.object.exclusive(
       {},
       async (ctx: ObjectContext): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         metadata.paused = false;
         await tick(ctx, metadata, 1);
@@ -381,7 +306,6 @@ export const semaphore = object({
     resetInflight: restate.handlers.object.exclusive(
       {},
       async (ctx: ObjectContext): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         metadata.leases = {};
         setMetadata(ctx, metadata);
@@ -391,7 +315,6 @@ export const semaphore = object({
     tick: restate.handlers.object.exclusive(
       {},
       async (ctx: ObjectContext, req?: { count?: number }): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         await tickUnlimited(ctx, metadata, req?.count ?? 1);
         setMetadata(ctx, metadata);
@@ -401,7 +324,6 @@ export const semaphore = object({
     forceReenqueue: restate.handlers.object.exclusive(
       {},
       async (ctx: ObjectContext, req?: { count?: number }): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         let dequeued = 0;
         const count = req?.count ?? 1;
@@ -421,7 +343,6 @@ export const semaphore = object({
         ctx: ObjectContext,
         req?: { count?: number; reason?: string },
       ): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         let rejected = 0;
         const count = req?.count ?? 1;
@@ -446,7 +367,6 @@ export const semaphore = object({
     clearGroupId: restate.handlers.object.exclusive(
       {},
       async (ctx: ObjectContext, req: { groupId: string }): Promise<void> => {
-        await migrateIfNeeded(ctx);
         const metadata = await getMetadata(ctx);
         const groupMeta = metadata.groups[req.groupId];
         if (!groupMeta) {
@@ -479,37 +399,16 @@ export const semaphore = object({
         pending: number;
         running: number;
       }> => {
-        // Try new format first
-        const metadata = await ctx.get<SemaphoreMetadata>("metadata");
-        if (metadata) {
-          let pending = 0;
-          for (const group of Object.values(metadata.groups)) {
-            pending += group.totalItemCount;
-          }
-
-          const now = Date.now();
-          let running = 0;
-          for (const expiry of Object.values(metadata.leases)) {
-            if (expiry > now) {
-              running++;
-            }
-          }
-          return { pending, running };
-        }
-
-        // Fall back to legacy format
-        const legacyGroups =
-          await ctx.get<Record<string, LegacyGroupState>>("itemsv2");
-        const legacyLeases = await ctx.get<Record<string, number>>("leases");
+        const metadata = await getMetadata(ctx);
 
         let pending = 0;
-        for (const group of Object.values(legacyGroups ?? {})) {
-          pending += group.items.length;
+        for (const group of Object.values(metadata.groups)) {
+          pending += group.totalItemCount;
         }
 
         const now = Date.now();
         let running = 0;
-        for (const expiry of Object.values(legacyLeases ?? {})) {
+        for (const expiry of Object.values(metadata.leases)) {
           if (expiry > now) {
             running++;
           }
@@ -521,7 +420,10 @@ export const semaphore = object({
   },
   options: {
     journalRetention: 0,
-    enableLazyState: true,
+    // There's a key for every queued item, so load the state lazily except for
+    // the metadata which almost every handler needs.
+    // Requires restate-server >= 1.8.
+    state: { preload: ["metadata"] },
   },
 });
 

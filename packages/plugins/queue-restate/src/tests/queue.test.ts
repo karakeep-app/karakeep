@@ -7,9 +7,15 @@ import {
   expect,
   inject,
   it,
+  vi,
 } from "vitest";
 
-import type { Queue, QueueClient } from "@karakeep/shared/queueing";
+import type {
+  EnqueueOptions,
+  Queue,
+  QueueClient,
+  RunnerFuncs,
+} from "@karakeep/shared/queueing";
 import { QueueRetryAfterError } from "@karakeep/shared/queueing";
 
 import { RestateQueueProvider } from "../../index";
@@ -67,6 +73,9 @@ type TestAction =
 describe("Restate Queue Provider", () => {
   let queueClient: QueueClient;
   let queue: Queue<TestAction>;
+  // Has a short job timeout. It's separate so that the jobs hogging the main
+  // queue can't time out and release their slots in the middle of a test.
+  let timeoutQueue: Queue<TestAction>;
   let adminClient: AdminClient;
 
   const testState = {
@@ -79,10 +88,10 @@ describe("Restate Queue Provider", () => {
     timeoutAttempts: new Map<string, number>(),
   };
 
-  async function waitUntilQueueEmpty() {
+  async function waitUntilQueueEmpty(q: Queue<TestAction> = queue) {
     await waitUntil(
       async () => {
-        const stats = await adminClient.getStats(queue.name());
+        const stats = await adminClient.getStats(q.name());
         return (
           stats.pending +
             stats.ready +
@@ -98,6 +107,21 @@ describe("Restate Queue Provider", () => {
     );
   }
 
+  // `enqueue` returns before the job reaches the semaphore, so jobs enqueued back
+  // to back can arrive out of order. This waits for each job to be queued before
+  // enqueueing the next one. It must be used while the queue is hogged.
+  async function enqueueInOrder(
+    jobs: { val: number; options: EnqueueOptions }[],
+  ) {
+    for (const [i, { val, options }] of jobs.entries()) {
+      await queue.enqueue({ type: "val", val }, options);
+      await vi.waitFor(
+        async () => expect((await queue.stats()).pending).toBe(i + 1),
+        { timeout: 10000, interval: 10 },
+      );
+    }
+  }
+
   beforeEach(async () => {
     testState.results = [];
     testState.errors = [];
@@ -108,7 +132,10 @@ describe("Restate Queue Provider", () => {
     testState.timeoutAttempts = new Map<string, number>();
   });
   afterEach(async () => {
+    // If the test failed midway, don't leave the queue hogged for the next one
+    testState.baton.release();
     await waitUntilQueueEmpty();
+    await waitUntilQueueEmpty(timeoutQueue);
   });
 
   beforeAll(async () => {
@@ -129,88 +156,95 @@ describe("Restate Queue Provider", () => {
     queueClient = client;
     adminClient = new AdminClient(process.env.RESTATE_ADMIN_ADDR);
 
-    queue = queueClient.createQueue<TestAction>("test-queue", {
+    const queueOpts = {
       defaultJobArgs: {
         numRetries: 3,
       },
       keepFailedJobs: false,
-    });
-
-    queueClient.createRunner(
-      queue,
-      {
-        run: async (job) => {
-          testState.inFlight++;
-          testState.maxInFlight = Math.max(
-            testState.maxInFlight,
-            testState.inFlight,
-          );
-          const jobData = job.data;
-          switch (jobData.type) {
-            case "val":
-              return jobData.val;
-            case "err":
-              throw new Error(jobData.err);
-            case "stall":
-              await new Promise((resolve) =>
-                setTimeout(resolve, jobData.durSec * 1000),
-              );
-              break;
-            case "semaphore-acquire":
-              await testState.baton.acquire();
-              break;
-            case "rate-limit": {
-              const attemptKey = `${job.id}`;
-              const currentAttempts =
-                testState.rateLimitAttempts.get(attemptKey) || 0;
-              testState.rateLimitAttempts.set(attemptKey, currentAttempts + 1);
-
-              if (currentAttempts < jobData.attemptsBeforeSuccess) {
-                throw new QueueRetryAfterError(
-                  `Rate limited (attempt ${currentAttempts + 1})`,
-                  jobData.delayMs,
-                );
-              }
-              return jobData.val;
-            }
-            case "timeout-then-succeed": {
-              const attemptKey = `${job.id}`;
-              const currentAttempts =
-                testState.timeoutAttempts.get(attemptKey) || 0;
-              testState.timeoutAttempts.set(attemptKey, currentAttempts + 1);
-
-              if (currentAttempts < jobData.attemptsBeforeSuccess) {
-                // Stall longer than the timeout to trigger a timeout
-                await new Promise((resolve) =>
-                  setTimeout(resolve, jobData.timeoutDurSec * 1000),
-                );
-                // This should not be reached if timeout works correctly
-                throw new Error("Should have timed out");
-              }
-              return jobData.val;
-            }
-          }
-        },
-        onError: async (job) => {
-          testState.inFlight--;
-          const jobData = job.data;
-          if (jobData && jobData.type === "err") {
-            testState.errors.push(jobData.err);
-          }
-        },
-        onComplete: async (_j, res) => {
-          testState.inFlight--;
-          if (res) {
-            testState.results.push(res);
-          }
-        },
-      },
-      {
-        concurrency: 3,
-        timeoutSecs: 2,
-        pollIntervalMs: 0 /* Doesn't matter */,
-      },
+    };
+    queue = queueClient.createQueue<TestAction>("test-queue", queueOpts);
+    timeoutQueue = queueClient.createQueue<TestAction>(
+      "test-timeout-queue",
+      queueOpts,
     );
+
+    const funcs: RunnerFuncs<TestAction, number | undefined> = {
+      run: async (job) => {
+        testState.inFlight++;
+        testState.maxInFlight = Math.max(
+          testState.maxInFlight,
+          testState.inFlight,
+        );
+        const jobData = job.data;
+        switch (jobData.type) {
+          case "val":
+            return jobData.val;
+          case "err":
+            throw new Error(jobData.err);
+          case "stall":
+            await new Promise((resolve) =>
+              setTimeout(resolve, jobData.durSec * 1000),
+            );
+            break;
+          case "semaphore-acquire":
+            await testState.baton.acquire();
+            break;
+          case "rate-limit": {
+            const attemptKey = `${job.id}`;
+            const currentAttempts =
+              testState.rateLimitAttempts.get(attemptKey) || 0;
+            testState.rateLimitAttempts.set(attemptKey, currentAttempts + 1);
+
+            if (currentAttempts < jobData.attemptsBeforeSuccess) {
+              throw new QueueRetryAfterError(
+                `Rate limited (attempt ${currentAttempts + 1})`,
+                jobData.delayMs,
+              );
+            }
+            return jobData.val;
+          }
+          case "timeout-then-succeed": {
+            const attemptKey = `${job.id}`;
+            const currentAttempts =
+              testState.timeoutAttempts.get(attemptKey) || 0;
+            testState.timeoutAttempts.set(attemptKey, currentAttempts + 1);
+
+            if (currentAttempts < jobData.attemptsBeforeSuccess) {
+              // Stall longer than the timeout to trigger a timeout
+              await new Promise((resolve) =>
+                setTimeout(resolve, jobData.timeoutDurSec * 1000),
+              );
+              // This should not be reached if timeout works correctly
+              throw new Error("Should have timed out");
+            }
+            return jobData.val;
+          }
+        }
+      },
+      onError: async (job) => {
+        testState.inFlight--;
+        const jobData = job.data;
+        if (jobData && jobData.type === "err") {
+          testState.errors.push(jobData.err);
+        }
+      },
+      onComplete: async (_j, res) => {
+        testState.inFlight--;
+        if (res) {
+          testState.results.push(res);
+        }
+      },
+    };
+
+    const runnerOpts = {
+      concurrency: 3,
+      pollIntervalMs: 0 /* Doesn't matter */,
+    };
+    queueClient.createRunner(queue, funcs, { ...runnerOpts, timeoutSecs: 120 });
+    queueClient.createRunner(timeoutQueue, funcs, {
+      ...runnerOpts,
+      timeoutSecs: 2,
+    });
 
     await queueClient.prepare();
     await queueClient.start();
@@ -366,43 +400,19 @@ describe("Restate Queue Provider", () => {
       ]);
       await testState.baton.waitUntilCountWaiting(3);
 
-      // Enqueue jobs from two different groups with same priority
+      // Enqueue jobs from three different groups with same priority
       // Group A has more jobs
-      await queue.enqueue(
-        { type: "val", val: 200 },
-        { priority: 0, groupId: "B" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 201 },
-        { priority: 0, groupId: "B" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 100 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 101 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 102 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 103 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 300 },
-        { priority: 0, groupId: "C" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 301 },
-        { priority: 0, groupId: "C" },
-      );
+      await enqueueInOrder([
+        { val: 200, options: { priority: 0, groupId: "B" } },
+        { val: 201, options: { priority: 0, groupId: "B" } },
+        { val: 100, options: { priority: 0, groupId: "A" } },
+        { val: 101, options: { priority: 0, groupId: "A" } },
+        { val: 102, options: { priority: 0, groupId: "A" } },
+        { val: 103, options: { priority: 0, groupId: "A" } },
+        { val: 300, options: { priority: 0, groupId: "C" } },
+        { val: 301, options: { priority: 0, groupId: "C" } },
+      ]);
 
-      // Wait for all jobs to be enqueued
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       testState.baton.release();
 
       await waitUntilQueueEmpty();
@@ -430,25 +440,13 @@ describe("Restate Queue Provider", () => {
       ]);
       await testState.baton.waitUntilCountWaiting(3);
 
-      await queue.enqueue(
-        { type: "val", val: 100 },
-        { priority: 1, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 101 },
-        { priority: 1, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 200 },
-        { priority: 0, groupId: "B" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 201 },
-        { priority: 0, groupId: "B" },
-      );
+      await enqueueInOrder([
+        { val: 100, options: { priority: 1, groupId: "A" } },
+        { val: 101, options: { priority: 1, groupId: "A" } },
+        { val: 200, options: { priority: 0, groupId: "B" } },
+        { val: 201, options: { priority: 0, groupId: "B" } },
+      ]);
 
-      // Wait for all jobs to be enqueued
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       testState.baton.release();
 
       await waitUntilQueueEmpty();
@@ -476,19 +474,13 @@ describe("Restate Queue Provider", () => {
       await testState.baton.waitUntilCountWaiting(3);
 
       // Mix of grouped and ungrouped jobs
-      await queue.enqueue({ type: "val", val: 100 }, { priority: 0 }); // ungrouped
-      await queue.enqueue({ type: "val", val: 101 }, { priority: 0 }); // ungrouped
-      await queue.enqueue(
-        { type: "val", val: 200 },
-        { priority: 0, groupId: "A" },
-      );
-      await queue.enqueue(
-        { type: "val", val: 201 },
-        { priority: 0, groupId: "A" },
-      );
+      await enqueueInOrder([
+        { val: 100, options: { priority: 0 } },
+        { val: 101, options: { priority: 0 } },
+        { val: 200, options: { priority: 0, groupId: "A" } },
+        { val: 201, options: { priority: 0, groupId: "A" } },
+      ]);
 
-      // Wait for all jobs to be enqueued
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       testState.baton.release();
 
       await waitUntilQueueEmpty();
@@ -654,7 +646,7 @@ describe("Restate Queue Provider", () => {
 
       // Enqueue a job that will timeout on first attempt, succeed on second
       // timeoutSecs is 2, so we stall for 5 seconds to ensure timeout
-      await queue.enqueue({
+      await timeoutQueue.enqueue({
         type: "timeout-then-succeed",
         val: 42,
         timeoutDurSec: 5,
@@ -666,11 +658,11 @@ describe("Restate Queue Provider", () => {
 
       // Enqueue more jobs to verify semaphore slots are eventually freed
       // With concurrency=3, these should be able to run after the timeout
-      await queue.enqueue({ type: "val", val: 100 });
-      await queue.enqueue({ type: "val", val: 101 });
-      await queue.enqueue({ type: "val", val: 102 });
+      await timeoutQueue.enqueue({ type: "val", val: 100 });
+      await timeoutQueue.enqueue({ type: "val", val: 101 });
+      await timeoutQueue.enqueue({ type: "val", val: 102 });
 
-      await waitUntilQueueEmpty();
+      await waitUntilQueueEmpty(timeoutQueue);
 
       // The timeout job should have succeeded after retry
       expect(testState.results).toContain(42);
@@ -691,14 +683,14 @@ describe("Restate Queue Provider", () => {
     it("should handle job that times out multiple times before succeeding", async () => {
       // Enqueue a single job that times out twice before succeeding
       // This tests that the retry mechanism works correctly for timeouts
-      await queue.enqueue({
+      await timeoutQueue.enqueue({
         type: "timeout-then-succeed",
         val: 99,
         timeoutDurSec: 5,
         attemptsBeforeSuccess: 2, // Timeout twice, then succeed
       });
 
-      await waitUntilQueueEmpty();
+      await waitUntilQueueEmpty(timeoutQueue);
 
       // Job should eventually succeed
       expect(testState.results).toEqual([99]);
