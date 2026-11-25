@@ -58,4 +58,5 @@ export function printError(message: string) {
 export function printErrorMessageWithReason(message: string, error: object) {
   const errorMessage = "message" in error ? error.message : error;
   printStatusMessage(false, `${message}. Reason: ${errorMessage}`);
+  process.exitCode = 1;
 }
