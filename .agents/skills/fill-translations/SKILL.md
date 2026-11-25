@@ -18,7 +18,7 @@ The web app's strings live in `apps/web/lib/i18n/locales/<locale>/translation.js
 The mobile app reuses the web files above for shared strings, and keeps its own mobile-only strings in `apps/mobile/lib/i18n/locales/<locale>.json` (same nested format, `en.json` is the source). Pass `--app mobile` to `report` and `apply` to work on those instead. Everything else in this guide applies unchanged, except:
 
 - Rewrite the placeholder check in step 4 for `apps/mobile/lib/i18n/locales/<locale>.json`.
-- A new mobile locale also needs a `LANGUAGES` entry in `apps/mobile/lib/i18n/index.ts` (see `apps/mobile/lib/i18n/README.md`). Then run `pnpm test --filter=@karakeep/mobile`, which checks key parity and plural forms.
+- A new mobile locale also needs a `LANGUAGES` entry in `apps/mobile/lib/i18n/index.ts` (see `apps/mobile/lib/i18n/README.md`). Then run `pnpm test --filter=@karakeep/mobile`, which checks plural forms, empty strings and keys that `en` lacks. It doesn't check for missing keys, so use `report` for those.
 - The mobile app has no `en_US` file.
 
 Plurals follow i18next's `_one`/`_other` suffixes. For each plural group in `en`, the script expects the locale's own CLDR categories (from `Intl.PluralRules`). Arabic, for example, needs `_zero`, `_one`, `_two`, `_few`, `_many` and `_other`, and Japanese needs only `_other`.

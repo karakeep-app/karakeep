@@ -215,14 +215,12 @@ describe.each(TRANSLATIONS)("%s translation", (lang) => {
   const strings = mobileStrings(lang);
   const translated = splitPlurals(Object.keys(strings));
 
-  it("has the same keys as English", () => {
-    const missing = [...source.plain, ...source.plurals.keys()].filter(
-      (key) => !translated.plain.has(key) && !translated.plurals.has(key),
-    );
+  // Missing keys are fine, they fall back to English.
+  it("has no keys that English lacks", () => {
     const extra = [...translated.plain, ...translated.plurals.keys()].filter(
       (key) => !source.plain.has(key) && !source.plurals.has(key),
     );
-    expect({ missing, extra }).toEqual({ missing: [], extra: [] });
+    expect(extra).toEqual([]);
   });
 
   it("has no empty strings", () => {

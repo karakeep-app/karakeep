@@ -95,9 +95,9 @@ const { somethingWentWrong } = useCommonStrings();
 
 Rules:
 
-- **New user-visible string?** Add it to `locales/en.json` and to every
-  other `locales/<lang>.json` (CI checks key parity), then use
-  `t("section.key")`. Plural keys use the categories each language needs:
+- **New user-visible string?** Add it to `locales/en.json`, then use
+  `t("section.key")`. The other languages show the English string until
+  they're translated. Plural keys use the categories each language needs:
   `_one`/`_other` in English, whatever `Intl.PluralRules` reports elsewhere.
 - **String already exists on web?** Reuse it via `useSharedTranslation()` /
   `useCommonActions()` / `useCommonStrings()` instead of duplicating it —
@@ -129,7 +129,7 @@ Rules:
 ## Checks
 
 `apps/mobile/lib/i18n/__tests__/language.test.ts` runs the same checks on
-every language in `LANGUAGES`: the same keys as `en.json`, exactly the plural
+every language in `LANGUAGES`: no keys that `en.json` lacks, exactly the plural
 forms the language uses, no empty strings, and matching date and number
 locales. It runs with the other mobile unit tests in CI (`pnpm test` in
 `apps/mobile`).

@@ -511,9 +511,6 @@ importers:
       react-native-css-interop:
         specifier: 0.2.6
         version: 0.2.6(8c743662b1ad99eb488a9473357a34df)
-      react-native-draggable-flatlist:
-        specifier: 4.0.3
-        version: 4.0.3(f1fda147f16907a8d0dbe7cd5b7b3c19)
       react-native-gesture-handler:
         specifier: ~3.3.0
         version: 3.3.0(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
@@ -13526,13 +13523,6 @@ packages:
         optional: true
       react-native-svg:
         optional: true
-
-  react-native-draggable-flatlist@4.0.3:
-    resolution: {integrity: sha512-2F4x5BFieWdGq9SetD2nSAR7s7oQCSgNllYgERRXXtNfSOuAGAVbDb/3H3lP0y5f7rEyNwabKorZAD/SyyNbDw==}
-    peerDependencies:
-      react-native: '>=0.64.0'
-      react-native-gesture-handler: '>=2.0.0'
-      react-native-reanimated: '>=2.8.0'
 
   react-native-drawer-layout@4.2.12:
     resolution: {integrity: sha512-qYmntEctkMSodN7pnC2llV21nswImLFPHJeT3PJXSJqZdU4jzDATR8iVi66sXkrtoOLJ2+EvXxgd7sMMpV4ViA==}
@@ -29565,16 +29555,6 @@ snapshots:
       react-native-safe-area-context: 5.11.1(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
       react-native-svg: 15.16.0(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
     transitivePeerDependencies:
-      - supports-color
-
-  react-native-draggable-flatlist@4.0.3(f1fda147f16907a8d0dbe7cd5b7b3c19):
-    dependencies:
-      '@babel/preset-typescript': 7.27.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1)
-      react-native: 0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
-      react-native-gesture-handler: 3.3.0(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
-      react-native-reanimated: 4.7.1(react-native-worklets@0.13.0(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)(supports-color@8.1.1))(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))(react@19.3.0)
-    transitivePeerDependencies:
-      - '@babel/core'
       - supports-color
 
   react-native-drawer-layout@4.2.12(04f6fa85987f8ff5ec5f8837689e6bb0):
