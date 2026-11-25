@@ -131,6 +131,7 @@ jobs:
           file: docker/chrome/Dockerfile
           platforms: ${{ matrix.platform }}
           push: true
+          sbom: true
           tags: ${{ env.IMAGE }}:${{ env.GOOGLE_CHROME_VERSION }}-${{ env.IMAGE_REVISION }}-${{ matrix.suffix }}
 
   publish-manifest:
