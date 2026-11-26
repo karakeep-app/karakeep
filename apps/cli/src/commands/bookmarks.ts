@@ -660,6 +660,7 @@ bookmarkCmd
       }
     } catch {
       printStatusMessage(false, "Failed to query bookmarks");
+      process.exitCode = 1;
     }
   });
 
@@ -753,6 +754,7 @@ bookmarkCmd
       }
     } catch (error) {
       printStatusMessage(false, "Failed to search bookmarks");
+      process.exitCode = 1;
       if (error instanceof Error) {
         printStatusMessage(false, error.message);
       }
