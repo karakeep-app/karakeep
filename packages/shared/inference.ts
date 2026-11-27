@@ -179,6 +179,15 @@ export interface OpenAIInferenceConfig {
   maxOutputTokens: number;
   useMaxCompletionTokens: boolean;
   reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
+  // Separate from reasoningEffort: the image model is often a different model,
+  // and non-reasoning models (e.g. the default gpt-4o-mini) reject the field.
+  imageReasoningEffort?:
+    | "none"
+    | "minimal"
+    | "low"
+    | "medium"
+    | "high"
+    | "xhigh";
   outputSchema: "structured" | "json" | "plain";
 }
 
@@ -328,6 +337,7 @@ export class OpenAIInferenceClient implements InferenceClient {
       useMaxCompletionTokens: serverConfig.inference.useMaxCompletionTokens,
       outputSchema: serverConfig.inference.outputSchema,
       reasoningEffort: serverConfig.inference.openAIReasoningEffort,
+      imageReasoningEffort: serverConfig.inference.openAIImageReasoningEffort,
     });
   }
 
@@ -389,7 +399,7 @@ export class OpenAIInferenceClient implements InferenceClient {
           optsWithDefaults.schema,
           this.config.outputSchema,
         ),
-        reasoning_effort: this.config.reasoningEffort,
+        reasoning_effort: this.config.imageReasoningEffort,
         messages: [
           {
             role: "user",

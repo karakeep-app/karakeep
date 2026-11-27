@@ -113,7 +113,7 @@ describe("OpenAIInferenceClient reasoning_effort", () => {
     capturedBodies.length = 0;
   });
 
-  it("sends the configured reasoning_effort for text inference", async () => {
+  it("sends reasoningEffort for text inference", async () => {
     const client = new OpenAIInferenceClient({
       ...makeConfig("structured"),
       reasoningEffort: "none",
@@ -124,10 +124,11 @@ describe("OpenAIInferenceClient reasoning_effort", () => {
     expect(capturedBodies[0].reasoning_effort).toBe("none");
   });
 
-  it("sends the configured reasoning_effort for image inference", async () => {
+  it("sends imageReasoningEffort for image inference", async () => {
     const client = new OpenAIInferenceClient({
       ...makeConfig("structured"),
-      reasoningEffort: "high",
+      reasoningEffort: "none",
+      imageReasoningEffort: "high",
     });
 
     await client.inferFromImage("tag this image", "image/png", "BASE64", {
@@ -137,8 +138,11 @@ describe("OpenAIInferenceClient reasoning_effort", () => {
     expect(capturedBodies[0].reasoning_effort).toBe("high");
   });
 
-  it("leaves reasoning_effort unset when it isn't configured", async () => {
-    const client = new OpenAIInferenceClient(makeConfig("structured"));
+  it("doesn't apply the text reasoningEffort to image inference", async () => {
+    const client = new OpenAIInferenceClient({
+      ...makeConfig("structured"),
+      reasoningEffort: "high",
+    });
 
     await client.inferFromImage("tag this image", "image/png", "BASE64", {
       schema: tagSchema,
