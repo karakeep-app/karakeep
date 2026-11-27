@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { createHash } from "node:crypto";
+import { and, eq } from "drizzle-orm";
 
 import type { ZEmbeddingsRequest } from "@karakeep/shared-server";
 import { db } from "@karakeep/db";
@@ -7,6 +8,7 @@ import {
   addLogFields,
   EmbeddingsQueue,
   OpenAIQueue,
+  triggerEmbeddingRefresh,
   zEmbeddingsRequestSchema,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
@@ -77,6 +79,36 @@ export class EmbeddingsWorker {
   }
 }
 
+/**
+ * Pure decision for how a job outcome updates the bookmark's embedding
+ * status, which tracks whether a usable vector is indexed:
+ *
+ * - "success" is only confirmed by a completed index job. It is never
+ *   downgraded: when a later embed (e.g. an embedding refresh after an edit)
+ *   fails permanently, the previously indexed — possibly stale — vector
+ *   remains usable for similarity results.
+ * - "failure" means vector generation or persistence permanently failed while
+ *   no usable vector is known to exist, so it only applies to bookmarks that
+ *   are still "pending". Those are picked up again by the admin
+ *   "regenerate embeddings (status: failure)" action.
+ */
+export function embeddingStatusUpdate(
+  request: ZEmbeddingsRequest,
+  status: "success" | "failure",
+): { value: "success" | "failure"; onlyWhenPending: boolean } | null {
+  if (status === "success") {
+    // Only a completed index job confirms that a vector is persisted.
+    return request.type === "index"
+      ? { value: "success", onlyWhenPending: false }
+      : null;
+  }
+  // Delete jobs don't track a status, and failures must not downgrade
+  // bookmarks that already have a usable (indexed) vector.
+  return request.type === "delete"
+    ? null
+    : { value: "failure", onlyWhenPending: true };
+}
+
 async function attemptMarkEmbeddingStatus(
   jobData: object | undefined,
   status: "success" | "failure",
@@ -86,16 +118,21 @@ async function attemptMarkEmbeddingStatus(
   }
   try {
     const request = zEmbeddingsRequestSchema.parse(jobData);
-    if (
-      request.type !== "index" &&
-      !(request.type === "embed" && status === "failure")
-    ) {
+    const update = embeddingStatusUpdate(request, status);
+    if (!update) {
       return;
     }
     await db
       .update(bookmarks)
-      .set({ embeddingStatus: status })
-      .where(eq(bookmarks.id, request.bookmarkId));
+      .set({ embeddingStatus: update.value })
+      .where(
+        update.onlyWhenPending
+          ? and(
+              eq(bookmarks.id, request.bookmarkId),
+              eq(bookmarks.embeddingStatus, "pending"),
+            )
+          : eq(bookmarks.id, request.bookmarkId),
+      );
   } catch (e) {
     logger.error(
       `Something went wrong when marking the embedding status: ${e}`,
@@ -163,6 +200,10 @@ async function fetchBookmark(bookmarkId: string) {
   });
 }
 
+export type EmbeddableBookmark = NonNullable<
+  Awaited<ReturnType<typeof fetchBookmark>>
+>;
+
 function normalizeEmbeddingText(text: string | null | undefined) {
   const normalized = text?.replace(/\s+/g, " ").trim();
   return normalized && normalized.length > 0 ? normalized : null;
@@ -173,6 +214,17 @@ function truncateText(text: string, maxLength: number) {
     return text;
   }
   return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function appendEmbeddingField(
+  parts: string[],
+  label: string,
+  value: string | null | undefined,
+) {
+  const normalized = normalizeEmbeddingText(value);
+  if (normalized) {
+    parts.push(`${label}: ${normalized}`);
+  }
 }
 
 function hostnameFromUrl(url: string | null | undefined) {
@@ -254,9 +306,77 @@ function contentBudget(maxTextLength: number) {
   );
 }
 
-async function buildEmbeddingText(
-  bookmark: NonNullable<Awaited<ReturnType<typeof fetchBookmark>>>,
+export interface EmbeddingTexts {
+  search: string | null;
+  similar: string | null;
+}
+
+/**
+ * Builds the lean text that gets embedded for similar-article lookups.
+ *
+ * - When a summary exists, similarity is based on `Title` + `Summary`. The
+ *   summary is the distilled signal, so URL/metadata/tags are intentionally
+ *   left out.
+ * - Before a summary exists (or for bookmark types that aren't summarized),
+ *   fall back to `Title` + the readable `Content excerpt`.
+ */
+function buildSimilarEmbeddingTextFromContent(
+  bookmark: EmbeddableBookmark,
+  rawContent: string | null,
+): string | null {
+  const parts: string[] = [];
+
+  // Prefer the user-provided title, then fall back to the crawled page title
+  // or the asset file name.
+  const title = bookmark.title?.trim()
+    ? bookmark.title
+    : (bookmark.link?.title ?? bookmark.asset?.fileName ?? null);
+  appendEmbeddingField(parts, "Title", title);
+
+  const summary = normalizeEmbeddingText(bookmark.summary);
+  if (summary) {
+    parts.push(`Summary: ${summary}`);
+  } else {
+    const normalizedContent = normalizeEmbeddingText(rawContent);
+    if (normalizedContent) {
+      parts.push(
+        `Content excerpt: ${truncateText(
+          normalizedContent,
+          contentBudget(serverConfig.embedding.contextLength),
+        )}`,
+      );
+    }
+  }
+
+  if (parts.length === 0) {
+    return null;
+  }
+
+  return truncateToContextLength(parts.join("\n\n"));
+}
+
+/**
+ * Builds the lean similar-articles embedding text for a bookmark.
+ */
+export async function buildSimilarEmbeddingText(
+  bookmark: EmbeddableBookmark,
 ): Promise<string | null> {
+  return buildSimilarEmbeddingTextFromContent(
+    bookmark,
+    await getRawContent(bookmark),
+  );
+}
+
+/**
+ * Builds the rich search-profile text that gets embedded for semantic search
+ * and tag suggestions. Deliberately much broader than the similar-articles
+ * text: those two features need to match on tags, domains, notes, and
+ * metadata — which would only add noise to similarity ranking.
+ */
+function buildSearchEmbeddingTextFromContent(
+  bookmark: EmbeddableBookmark,
+  rawContent: string | null,
+): string | null {
   const parts: string[] = [];
 
   appendProfileField(parts, "Title", bookmark.title);
@@ -269,8 +389,6 @@ async function buildEmbeddingText(
 
   appendProfileField(parts, "Summary", bookmark.summary);
   appendProfileField(parts, "Note", bookmark.note);
-
-  let rawContent: string | null = null;
 
   if (bookmark.link) {
     appendProfileField(parts, "Domain", hostnameFromUrl(bookmark.link.url));
@@ -286,10 +404,6 @@ async function buildEmbeddingText(
     appendProfileField(parts, "Author", bookmark.link.author);
     appendProfileField(parts, "Publisher", bookmark.link.publisher);
     appendProfileField(parts, "Published", bookmark.link.datePublished);
-    rawContent = await Bookmark.getBookmarkPlainTextContent(
-      bookmark.link,
-      bookmark.userId,
-    );
   } else if (bookmark.text) {
     appendProfileField(
       parts,
@@ -301,7 +415,6 @@ async function buildEmbeddingText(
       "Source domain",
       hostnameFromUrl(bookmark.text.sourceUrl),
     );
-    rawContent = bookmark.text.text;
   } else if (bookmark.asset) {
     appendProfileField(
       parts,
@@ -320,7 +433,6 @@ async function buildEmbeddingText(
       "Metadata",
       metadataForEmbedding(bookmark.asset.metadata),
     );
-    rawContent = bookmark.asset.content;
   }
 
   const normalizedContent = normalizeEmbeddingText(rawContent);
@@ -337,16 +449,67 @@ async function buildEmbeddingText(
     return null;
   }
 
-  const fullText = parts.join("\n\n");
+  return truncateToContextLength(parts.join("\n\n"));
+}
+
+/**
+ * Builds the rich semantic-search / tag-suggestion embedding text for a
+ * bookmark.
+ */
+export async function buildSearchEmbeddingText(
+  bookmark: EmbeddableBookmark,
+): Promise<string | null> {
+  return buildSearchEmbeddingTextFromContent(
+    bookmark,
+    await getRawContent(bookmark),
+  );
+}
+
+/**
+ * Builds both embedding texts for a bookmark: the lean similar-articles text
+ * and the rich semantic-search profile text. The (potentially expensive)
+ * content read is shared between the two.
+ */
+export async function buildEmbeddingTexts(
+  bookmark: EmbeddableBookmark,
+): Promise<EmbeddingTexts> {
+  const rawContent = await getRawContent(bookmark);
+  return {
+    similar: buildSimilarEmbeddingTextFromContent(bookmark, rawContent),
+    search: buildSearchEmbeddingTextFromContent(bookmark, rawContent),
+  };
+}
+
+async function getRawContent(
+  bookmark: EmbeddableBookmark,
+): Promise<string | null> {
+  if (bookmark.link) {
+    return await Bookmark.getBookmarkPlainTextContent(
+      bookmark.link,
+      bookmark.userId,
+    );
+  } else if (bookmark.text) {
+    return bookmark.text.text;
+  } else if (bookmark.asset) {
+    return bookmark.asset.content;
+  }
+  return null;
+}
+
+function truncateToContextLength(fullText: string): string {
   const maxTextLength = serverConfig.embedding.contextLength;
   return fullText.length > maxTextLength
     ? fullText.substring(0, maxTextLength)
     : fullText;
 }
 
+function fingerprint(text: string): string {
+  return createHash("sha256").update(text).digest("hex");
+}
+
 type EmbedRequest = Extract<ZEmbeddingsRequest, { type: "embed" }>;
 
-async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
+export async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
   const jobId = job.id;
   const data = job.data;
   const bookmarkId = data.bookmarkId;
@@ -374,14 +537,50 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
       return;
     }
     case "index": {
+      // Guard against stale generations: the bookmark may have changed (or
+      // been deleted) between the vector generation and this run. Re-derive
+      // the texts and only index when they still match what the vectors were
+      // computed from; otherwise enqueue a fresh embed job, which regenerates
+      // from the current state.
+      const bookmark = await fetchBookmark(bookmarkId);
+      if (!bookmark) {
+        logger.info(
+          `[embeddings][${jobId}] Bookmark ${bookmarkId} not found anymore, skipping vector indexing`,
+        );
+        return;
+      }
+      if (data.fingerprints) {
+        const fingerprints = data.fingerprints;
+        const current = await buildEmbeddingTexts(bookmark);
+        const isStale = (["search", "similar"] as const).some((slot) => {
+          const expected = fingerprints[slot];
+          if (!expected) {
+            return false;
+          }
+          return !current[slot] || fingerprint(current[slot]!) !== expected;
+        });
+        if (isStale) {
+          logger.info(
+            `[embeddings][${jobId}] Bookmark text changed since the vectors were generated, skipping stale indexing and re-enqueueing an embed`,
+          );
+          await triggerEmbeddingRefresh(bookmarkId, {
+            priority: job.priority,
+            groupId: bookmark.userId,
+          });
+          return;
+        }
+      }
       const document: BookmarkVectorDocument = {
         id: bookmarkId,
         userId: data.userId,
-        vector: data.embedding,
+        vectors: {
+          search: data.embedding,
+          similar: data.similarEmbedding ?? null,
+        },
       };
       await vectorStoreClient.addVectors([document]);
       logger.info(
-        `[embeddings][${jobId}] Indexed embedding for bookmark ${bookmarkId} with ${data.embedding.length} dimensions`,
+        `[embeddings][${jobId}] Indexed embedding for bookmark ${bookmarkId} with ${data.embedding.length} dimensions${data.similarEmbedding ? ` (and a ${data.similarEmbedding.length}-dimensional similar-articles vector)` : ""}`,
       );
       return;
     }
@@ -437,8 +636,15 @@ async function runEmbed(
     return;
   }
 
-  const embeddingText = await buildEmbeddingText(bookmark);
-  if (!embeddingText) {
+  const embeddingTexts = await buildEmbeddingTexts(bookmark);
+  const slots = ["search", "similar"] as const;
+  const inputs: string[] = [];
+  for (const slot of slots) {
+    if (embeddingTexts[slot]) {
+      inputs.push(embeddingTexts[slot]!);
+    }
+  }
+  if (inputs.length === 0) {
     logger.info(
       `[embeddings][${jobId}] No content found for bookmark ${bookmarkId}, skipping embedding generation`,
     );
@@ -448,27 +654,33 @@ async function runEmbed(
     return;
   }
 
-  addLogFields<"embeddingsWorker.run">({
-    "embedding.text_size": embeddingText.length,
-  });
-  logger.debug(
-    `[embeddings][${jobId}] Embedding text length: ${embeddingText.length} characters`,
-  );
+  for (const slot of slots) {
+    if (embeddingTexts[slot]) {
+      logger.debug(
+        `[embeddings][${jobId}] Embedding text length (${slot === "search" ? "search profile" : "similar articles"}): ${embeddingTexts[slot]!.length} characters`,
+      );
+    }
+  }
 
-  const embeddingResponse = await embeddingClient.generateEmbeddingFromText([
-    embeddingText,
-  ]);
+  // One inference call generates all requested vectors (one per slot). The
+  // client validates each returned embedding against EMBEDDING_DIMENSIONS.
+  const embeddingResponse =
+    await embeddingClient.generateEmbeddingFromText(inputs);
 
   if (
     !embeddingResponse.embeddings ||
-    embeddingResponse.embeddings.length === 0
+    embeddingResponse.embeddings.length !== inputs.length
   ) {
     throw new Error(
       `[embeddings][${jobId}] No embeddings returned from inference client`,
     );
   }
 
-  const embedding = embeddingResponse.embeddings[0]!;
+  const vectors = Object.fromEntries(
+    slots
+      .filter((slot) => embeddingTexts[slot])
+      .map((slot, i) => [slot, embeddingResponse.embeddings[i]!]),
+  ) as { search: number[]; similar?: number[] };
   addLogFields<"embeddingsWorker.run">({
     "embedding.prompt_tokens": embeddingResponse.promptTokens,
     "embedding.total_tokens": embeddingResponse.totalTokens,
@@ -476,13 +688,21 @@ async function runEmbed(
 
   // Hand off persistence to a separate "index" job whose retries are isolated
   // from tagging, then dispatch tagging last so nothing after it can throw and
-  // cause this run to retry (and double-enqueue tagging).
+  // cause this run to retry (and double-enqueue tagging). Tagging gets the
+  // search-profile vector, matching what semantic search ranks against.
   await EmbeddingsQueue.enqueue(
     {
       type: "index",
       bookmarkId,
       userId: bookmark.userId,
-      embedding,
+      embedding: vectors.search,
+      similarEmbedding: vectors.similar,
+      fingerprints: {
+        search: fingerprint(embeddingTexts.search!),
+        ...(embeddingTexts.similar
+          ? { similar: fingerprint(embeddingTexts.similar) }
+          : {}),
+      },
     },
     {
       priority: job.priority,
@@ -490,10 +710,15 @@ async function runEmbed(
     },
   );
   if (shouldTag) {
-    await enqueueTagging(bookmarkId, bookmark.userId, job.priority, embedding);
+    await enqueueTagging(
+      bookmarkId,
+      bookmark.userId,
+      job.priority,
+      vectors.search,
+    );
   }
 
   logger.info(
-    `[embeddings][${jobId}] Generated embedding for bookmark ${bookmarkId} with ${embedding.length} dimensions using ${embeddingResponse.totalTokens ?? "unknown"} tokens; dispatched indexing${shouldTag ? " + tagging" : ""}`,
+    `[embeddings][${jobId}] Generated ${inputs.length} embeddings for bookmark ${bookmarkId} (${inputs.map((t) => `${t.length} chars`).join(", ")}) using ${embeddingResponse.totalTokens ?? "unknown"} tokens; dispatched indexing${shouldTag ? " + tagging" : ""}`,
   );
 }

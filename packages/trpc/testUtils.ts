@@ -174,6 +174,7 @@ export function defaultBeforeEach(seedDB = true) {
           enqueue: testQueueMocks.videoWorkerEnqueue,
         },
         triggerSearchReindex: testQueueMocks.triggerSearchReindex,
+        triggerEmbeddingRefresh: testQueueMocks.embeddingsEnqueue,
       };
     });
     Object.assign(context, await buildTestContext(seedDB));

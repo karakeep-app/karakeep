@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { normalizeBrowserUserAgent } from "./crawlerUtils";
+import {
+  normalizeBrowserUserAgent,
+  shouldEmbedAfterCrawl,
+} from "./crawlerUtils";
 
 describe("normalizeBrowserUserAgent", () => {
   it("drops the headless marker and reduces the version", () => {
@@ -27,5 +30,23 @@ describe("normalizeBrowserUserAgent", () => {
     const ua =
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36";
     expect(normalizeBrowserUserAgent(ua)).toBe(ua);
+  });
+});
+
+describe("shouldEmbedAfterCrawl", () => {
+  it("embeds successful and unknown-status crawls", () => {
+    expect(shouldEmbedAfterCrawl(200, false)).toBe(true);
+    expect(shouldEmbedAfterCrawl(302, false)).toBe(true);
+    expect(shouldEmbedAfterCrawl(null, false)).toBe(true);
+  });
+
+  it("skips error pages", () => {
+    expect(shouldEmbedAfterCrawl(404, false)).toBe(false);
+    expect(shouldEmbedAfterCrawl(500, false)).toBe(false);
+  });
+
+  it("skips bot-challenge pages even when they return 200", () => {
+    expect(shouldEmbedAfterCrawl(200, true)).toBe(false);
+    expect(shouldEmbedAfterCrawl(null, true)).toBe(false);
   });
 });

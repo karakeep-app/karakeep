@@ -90,6 +90,7 @@ import { getGlobalBrowser } from "./utils/browser";
 import {
   normalizeContentType,
   redactUrlCredentials,
+  shouldEmbedAfterCrawl,
   shouldRetryCrawlStatusCode,
   truncateUrl,
 } from "./utils/crawlerUtils";
@@ -401,7 +402,10 @@ async function runCrawler(
       probeMetadataPromise,
     });
 
-    await enqueuePostCrawlJobs(ctx, job);
+    await enqueuePostCrawlJobs(ctx, job, {
+      statusCode: page.statusCode,
+      renderIsChallengePage: page.renderIsChallengePage,
+    });
 
     // Do the archival as a separate last step as it has the potential for failure
     if (
@@ -674,7 +678,12 @@ const crawlAndParseUrl = traced(
   async (
     ctx: CrawlContext,
     args: CrawlAndParseUrlArgs,
-  ): Promise<{ htmlContent: string; url: string }> => {
+  ): Promise<{
+    htmlContent: string;
+    url: string;
+    statusCode: number | null;
+    renderIsChallengePage: boolean;
+  }> => {
     const { userId, jobId, bookmarkId, abortSignal, runProxy, log } = ctx;
     const {
       oldAssets,
@@ -936,7 +945,12 @@ const crawlAndParseUrl = traced(
       assetIdsToDelete.map((assetId) => silentDeleteAsset(userId, assetId)),
     );
 
-    return { htmlContent, url: browserUrl };
+    return {
+      htmlContent,
+      url: browserUrl,
+      statusCode,
+      renderIsChallengePage,
+    };
   },
 );
 
@@ -1095,6 +1109,10 @@ const storeOfflineCopies = traced(
 async function enqueuePostCrawlJobs(
   ctx: CrawlContext,
   job: DequeuedJob<ZCrawlLinkRequest>,
+  crawlResult: {
+    statusCode: number | null;
+    renderIsChallengePage: boolean;
+  },
 ): Promise<void> {
   const { bookmarkId, userId, url } = ctx;
   // Propagate priority to child jobs
@@ -1103,9 +1121,17 @@ async function enqueuePostCrawlJobs(
     groupId: userId,
   };
 
+  // Error pages (e.g. a plain 404 body) and bot-challenge pages don't carry
+  // real content: skip embedding and summarization for them, but keep tagging
+  // so the bookmark isn't left untagged.
+  const hasEmbeddableContent = shouldEmbedAfterCrawl(
+    crawlResult.statusCode,
+    crawlResult.renderIsChallengePage,
+  );
+
   // Enqueue openai job (if not set, assume it's true for backward compatibility)
   if (job.data.runInference !== false) {
-    if (serverConfig.embedding.enableAutoIndexing) {
+    if (serverConfig.embedding.enableAutoIndexing && hasEmbeddableContent) {
       await EmbeddingsQueue.enqueue(
         {
           bookmarkId,
@@ -1123,13 +1149,15 @@ async function enqueuePostCrawlJobs(
         enqueueOpts,
       );
     }
-    await OpenAIQueue.enqueue(
-      {
-        bookmarkId,
-        type: "summarize",
-      },
-      enqueueOpts,
-    );
+    if (hasEmbeddableContent) {
+      await OpenAIQueue.enqueue(
+        {
+          bookmarkId,
+          type: "summarize",
+        },
+        enqueueOpts,
+      );
+    }
   }
 
   // Update the search index

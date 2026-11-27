@@ -1417,6 +1417,9 @@
     "continue_reading": "המשך מאיפה שהפסקת",
     "continue_reading_percent": "המשך מאיפה שהפסקת ({{percent}}%)",
     "continue_button": "המשך",
+    "similar_articles": "מאמרים דומים",
+    "similar_articles_show_all": "הצג הכול",
+    "similar_articles_show_less": "הצג פחות",
     "tabs": {
       "content": "תוכן",
       "details": "פרטים"

@@ -146,7 +146,8 @@ export const OpenAIQueue = createDeferredQueue<ZOpenAIRequest>("openai_queue", {
 // - "embed": entry point. Generates the bookmark embedding, then dispatches the
 //   tagging job (carrying the vector) and an "index" job. Does NOT persist the
 //   vector itself, so it never retries on indexing failures.
-// - "index": persists a precomputed vector in the vector store. Its retries (the
+// - "index": persists the precomputed vectors (the search profile and the
+//   optional lean similar-articles vector) in the vector store. Its retries (the
 //   slow Meilisearch index build) are isolated and never re-trigger tagging.
 // - "delete": removes the vector from the store.
 export const zEmbeddingsRequestSchema = z.discriminatedUnion("type", [
@@ -161,6 +162,20 @@ export const zEmbeddingsRequestSchema = z.discriminatedUnion("type", [
     bookmarkId: z.string(),
     userId: z.string(),
     embedding: z.array(z.number()),
+    // Lean similar-articles vector. Optional for backward compatibility with
+    // index jobs enqueued before the split into search/similar vectors.
+    similarEmbedding: z.array(z.number()).optional(),
+    // Fingerprints of the embedding texts the vectors were computed from.
+    // The index job re-derives the texts and skips itself when they changed
+    // in the meantime (a fresh embed job is enqueued instead), so a stale
+    // generation can never overwrite a newer one. Optional for backward
+    // compatibility with jobs enqueued by older versions.
+    fingerprints: z
+      .object({
+        search: z.string(),
+        similar: z.string().optional(),
+      })
+      .optional(),
   }),
   z.object({
     type: z.literal("delete"),
@@ -178,6 +193,33 @@ export const EmbeddingsQueue = createDeferredQueue<ZEmbeddingsRequest>(
     keepFailedJobs: false,
   },
 );
+
+/**
+ * Re-generates a bookmark's embedding after the text it's derived from changed
+ * (e.g. a new or edited summary). Tagging is intentionally not re-run: the
+ * embedding is only refreshed so similarity results stay up to date.
+ *
+ * The idempotency key is derived from the bookmark, so refreshes enqueued
+ * while an identical one is still pending coalesce instead of piling up. The
+ * pending job re-reads the bookmark state at run time, so the last enqueued
+ * refresh always works on the newest text.
+ */
+export async function triggerEmbeddingRefresh(
+  bookmarkId: string,
+  opts?: Omit<EnqueueOptions, "idempotencyKey">,
+) {
+  await EmbeddingsQueue.enqueue(
+    {
+      bookmarkId,
+      type: "embed",
+      runTaggingOnComplete: false,
+    },
+    {
+      ...opts,
+      idempotencyKey: `embed-refresh:${bookmarkId}`,
+    },
+  );
+}
 
 // Search Indexing Worker
 export const zSearchIndexingRequestSchema = z.object({

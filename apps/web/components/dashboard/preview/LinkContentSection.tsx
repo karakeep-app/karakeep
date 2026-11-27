@@ -106,8 +106,11 @@ function PDFSection({ link }: { link: ZBookmarkedLink }) {
   );
 }
 
-/** Which view of a link is showing. Also read by the details panel beside it. */
-export function useLinkSection(bookmark: ZBookmark) {
+/**
+ * The content section a link bookmark opens with (preferred preview or the
+ * first available custom renderer).
+ */
+function getDefaultLinkSection(bookmark: ZBookmark): string {
   const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
   let defaultSection = availableRenderers[0]?.id ?? "cached";
   if (
@@ -120,6 +123,13 @@ export function useLinkSection(bookmark: ZBookmark) {
       defaultSection = "overview";
     }
   }
+  return defaultSection;
+}
+
+/** Which view of a link is showing. Also read by the details panel beside it. */
+export function useLinkSection(bookmark: ZBookmark) {
+  const availableRenderers = contentRendererRegistry.getRenderers(bookmark);
+  const defaultSection = getDefaultLinkSection(bookmark);
   const [section, setSection] = useQueryState("section", {
     defaultValue: defaultSection,
   });

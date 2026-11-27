@@ -22,7 +22,10 @@ export function mapDBAssetTypeToUserType(assetType: AssetTypes): ZAssetType {
     [AssetTypes.BACKUP]: "unknown", // Backups are not displayed as regular assets
     [AssetTypes.UNKNOWN]: "unknown",
   };
-  return map[assetType];
+  // The assets table stores plain strings, so it can hold types written by a
+  // newer version (e.g. before a downgrade). Map those to "unknown" instead
+  // of returning undefined, which would fail response validation.
+  return map[assetType] ?? "unknown";
 }
 
 export function mapSchemaAssetTypeToDB(

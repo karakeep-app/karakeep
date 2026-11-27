@@ -1468,7 +1468,10 @@
     "crawl_failed": "Tämän sivun hakeminen epäonnistui",
     "continue_reading": "Jatka siitä, mihin jäit",
     "continue_reading_percent": "Jatka siitä, mihin jäit ({{percent}} %)",
-    "continue_button": "Jatka"
+    "continue_button": "Jatka",
+    "similar_articles": "Samankaltaiset artikkelit",
+    "similar_articles_show_all": "Näytä kaikki",
+    "similar_articles_show_less": "Näytä vähemmän"
   },
   "editor": {
     "multiple_urls_dialog_title": "Tuodaanko URL-osoitteet erillisinä kirjanmerkkeinä?",

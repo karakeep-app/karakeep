@@ -1210,7 +1210,10 @@
     "crawl_failed": "Deze pagina kon niet worden opgehaald",
     "continue_reading": "Ga verder waar je was gebleven",
     "continue_reading_percent": "Ga verder waar je was gebleven ({{percent}}%)",
-    "continue_button": "Ga door"
+    "continue_button": "Ga door",
+    "similar_articles": "Vergelijkbare artikelen",
+    "similar_articles_show_all": "Alles tonen",
+    "similar_articles_show_less": "Minder tonen"
   },
   "editor": {
     "text_toolbar": {

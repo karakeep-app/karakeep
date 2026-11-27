@@ -5,6 +5,7 @@ import { bookmarks, customPrompts, users } from "@karakeep/db/schema";
 import {
   addLogFields,
   setSpanAttributes,
+  triggerEmbeddingRefresh,
   triggerSearchReindex,
   ZOpenAIRequest,
 } from "@karakeep/shared-server";
@@ -188,10 +189,18 @@ export async function runSummarization(
     })
     .where(eq(bookmarks.id, bookmarkId));
 
-  await triggerSearchReindex(bookmarkId, {
-    priority: job.priority,
-    groupId: bookmarkData.userId,
-  });
+  await Promise.all([
+    triggerSearchReindex(bookmarkId, {
+      priority: job.priority,
+      groupId: bookmarkData.userId,
+    }),
+    // The embedding is derived from Title + Summary, so refresh it now that the
+    // summary exists (or changed).
+    triggerEmbeddingRefresh(bookmarkId, {
+      priority: job.priority,
+      groupId: bookmarkData.userId,
+    }),
+  ]);
 
   return "summarized";
 }

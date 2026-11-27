@@ -42,6 +42,21 @@ export function shouldRetryCrawlStatusCode(statusCode: number | null): boolean {
 }
 
 /**
+ * Whether the crawled page contains real content that's worth embedding
+ * (and summarizing). Error pages (e.g. a plain 404 body) and bot-challenge
+ * pages would otherwise pollute similarity results with junk text.
+ */
+export function shouldEmbedAfterCrawl(
+  statusCode: number | null,
+  isChallengePage: boolean,
+): boolean {
+  if (isChallengePage) {
+    return false;
+  }
+  return statusCode === null || statusCode < 400;
+}
+
+/**
  * Turns the browser's own user agent into the one a regular (non-headless)
  * Chrome of the same version and platform would send: drops the "Headless"
  * marker and applies Chrome's user-agent reduction (minor version zeroed).

@@ -49,6 +49,7 @@ import {
 } from "@karakeep/shared/utils/bookmarkUtils";
 
 import SummarizeBookmarkArea from "../bookmarks/SummarizeBookmarkArea";
+
 import ActionBar from "./ActionBar";
 import type { PreviewViewState } from "./PreviewDialogContext";
 import type { PreviewNavigation } from "./usePreviewNavigation";
@@ -65,6 +66,7 @@ import LinkContentSection, {
 } from "./LinkContentSection";
 import { NoteEditor } from "./NoteEditor";
 import { hostname } from "./SavedPageOverview";
+import SimilarBookmarksBox from "./SimilarBookmarksBox";
 import { TextContentSection } from "./TextContentSection";
 
 const NARROW_TAB_CLASS =
@@ -447,6 +449,7 @@ export default function BookmarkPreview({
 
   // Check if the current user owns this bookmark
   const isOwner = session?.user?.id === bookmark.userId;
+
   const sourceUrl = getSourceUrl(bookmark);
   const hasViewControls =
     !!sourceUrl || bookmark.content.type !== BookmarkTypes.TEXT;
@@ -531,6 +534,11 @@ export default function BookmarkPreview({
       <Separator />
       <NoteEditor key={bookmark.id} bookmark={bookmark} disabled={!isOwner} />
       <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
+      <SimilarBookmarksBox
+        bookmarkId={bookmark.id}
+        isOwner={isOwner}
+        variant="list"
+      />
       <Separator />
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
     </div>
