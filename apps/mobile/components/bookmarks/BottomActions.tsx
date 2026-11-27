@@ -56,17 +56,25 @@ const MAX_LABELED_TOOLBAR_ITEMS = 6;
 const LARGE_TOOLBAR_MIN_WIDTH = 600;
 // Pill padding plus its horizontal margins.
 const LARGE_TOOLBAR_CHROME_WIDTH = 64;
+const REGULAR_TOOLBAR_CHROME_WIDTH = 56;
+// The full-width bar used without the glass pill.
+const FALLBACK_TOOLBAR_CHROME_WIDTH = 80;
 
 const TOOLBAR_SIZES = {
   regular: {
     iconSize: 21,
     itemWidth: 52,
+    iconOnlyWidth: 44,
+    // Icon, gap and label: icon-only items keep it so the pill doesn't shrink.
+    itemHeight: 35,
     gap: 2,
     labelClassName: "text-[10px] leading-3",
   },
   large: {
     iconSize: 26,
     itemWidth: 72,
+    iconOnlyWidth: 56,
+    itemHeight: 44,
     gap: 6,
     labelClassName: "text-xs leading-4",
   },
@@ -78,16 +86,22 @@ function ToolbarItem({
   label,
   showLabel,
   size,
+  iconOnlyWidth,
 }: {
   icon: React.ReactNode;
   label: string;
   showLabel: boolean;
   size: ToolbarSize;
+  iconOnlyWidth: number;
 }) {
   return (
     <View
-      className="items-center gap-0.5"
-      style={{ width: showLabel ? size.itemWidth : undefined }}
+      className="items-center justify-center gap-0.5"
+      style={
+        showLabel
+          ? { width: size.itemWidth }
+          : { width: iconOnlyWidth, minHeight: size.itemHeight }
+      }
     >
       {icon}
       {showLabel && (
@@ -526,10 +540,21 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
   const { menuIconColor, destructiveMenuIconColor } = useMenuIconColors();
 
   const itemCount = barActions.filter((a) => a.shouldRender).length + 1;
-  const showLabels = large
-    ? itemCount * (size.itemWidth + size.gap) + LARGE_TOOLBAR_CHROME_WIDTH <=
-      readerWidth
-    : itemCount <= MAX_LABELED_TOOLBAR_ITEMS;
+  const chromeWidth = !shouldUseGlassPill
+    ? FALLBACK_TOOLBAR_CHROME_WIDTH
+    : large
+      ? LARGE_TOOLBAR_CHROME_WIDTH
+      : REGULAR_TOOLBAR_CHROME_WIDTH;
+  // Phones keep labels up to the item cap; anything wider (like an iPad reader
+  // next to the sidebar) keeps them whenever the labeled row fits.
+  const showLabels =
+    (!large && itemCount <= MAX_LABELED_TOOLBAR_ITEMS) ||
+    itemCount * (size.itemWidth + size.gap) + chromeWidth <= readerWidth;
+  // Tap-target-sized slots, narrowed when that many don't fit the reader.
+  const iconOnlyWidth = Math.min(
+    size.iconOnlyWidth,
+    Math.floor((readerWidth - chromeWidth) / itemCount) - size.gap,
+  );
   const bottomMargin = shouldUseGlassPill ? Math.max(insets.bottom - 8, 4) : 8;
 
   // Build native menu actions for the overflow ellipsis
@@ -620,6 +645,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
                   }
                   showLabel={showLabels}
                   size={size}
+                  iconOnlyWidth={iconOnlyWidth}
                 />
               </Pressable>
             ),
@@ -654,6 +680,7 @@ export default function BottomActions({ bookmark }: BottomActionsProps) {
               label={more}
               showLabel={showLabels}
               size={size}
+              iconOnlyWidth={iconOnlyWidth}
             />
           </Pressable>
         </MenuView>
