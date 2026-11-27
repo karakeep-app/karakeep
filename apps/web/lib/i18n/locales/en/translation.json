@@ -1141,6 +1141,7 @@
     "no_destination": "No destination",
     "parent_list": "Parent list",
     "no_parent": "No parent",
+    "unavailable_parent": "A list you can no longer see",
     "list_type": "List type",
     "manual_list": "Manual list",
     "smart_list": "Smart list",

@@ -23,7 +23,11 @@ import { listNameFromPath } from "@karakeep/shared/utils/listUtils";
 
 interface DataProps {
   isPending: boolean;
+  // The lists that can be picked.
   allPaths?: ZBookmarkList[][];
+  // Looks up any of the user's lists, including ones that are filtered out of
+  // the options, so that an already selected list keeps its name.
+  getPathById?: (id: string) => ZBookmarkList[] | undefined;
 }
 
 interface ListSelectorComponentProps extends DataProps {
@@ -39,6 +43,8 @@ interface SingleSelectionProps {
   value?: string | null;
   onChange: (value: string) => void;
   placeholder?: string;
+  // Shown when the selected list isn't one of the user's lists anymore.
+  unavailablePlaceholder?: string;
   className?: string;
   multiSelect?: false;
   disabled?: boolean;
@@ -131,11 +137,13 @@ function ListSelectorComponent({
 
 function BookmarkListSingleSelector({
   placeholder = "Select a list",
+  unavailablePlaceholder,
   className,
   onChange,
   value,
   isPending,
   allPaths,
+  getPathById,
   disabled,
 }: SingleSelectionProps & DataProps) {
   const [open, setOpen] = useState(false);
@@ -147,12 +155,12 @@ function BookmarkListSingleSelector({
   const isItemSelected = (id: string) => id === value;
 
   // Find the selected list's display name
-  const selectedListPath = allPaths?.find(
-    (path) => path[path.length - 1].id === value,
-  );
+  const selectedListPath = value ? getPathById?.(value) : undefined;
   const selectedListName = selectedListPath
     ? listNameFromPath(selectedListPath)
-    : null;
+    : value
+      ? unavailablePlaceholder
+      : null;
   return (
     <ListSelectorComponent
       onSelect={onSelect}
@@ -183,6 +191,7 @@ function BookmarkListMultiSelector({
   value,
   isPending,
   allPaths,
+  getPathById,
   className,
   disabled,
 }: MultiSelectionProps & DataProps & { disabled?: boolean }) {
@@ -204,9 +213,9 @@ function BookmarkListMultiSelector({
 
   const isItemSelected = (id: string) => !!value?.includes(id);
 
-  const selectedListsPaths = allPaths?.filter((path) =>
-    value?.includes(path[path.length - 1].id),
-  );
+  const selectedListsPaths = value
+    ?.map((id) => getPathById?.(id))
+    .filter((path) => path !== undefined);
   return (
     <ListSelectorComponent
       onSelect={onSelect}
@@ -309,12 +318,14 @@ export function BookmarkListSelector(props: BookmarkListSelectorProps) {
       {...selectorProps}
       isPending={isPending}
       allPaths={allPaths}
+      getPathById={data?.getPathById}
     />
   ) : (
     <BookmarkListSingleSelector
       {...selectorProps}
       isPending={isPending}
       allPaths={allPaths}
+      getPathById={data?.getPathById}
     />
   );
 }
