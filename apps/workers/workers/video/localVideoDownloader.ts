@@ -11,9 +11,20 @@ import logger from "@karakeep/shared/logger";
 
 import type { VideoDownloader } from "./common";
 import { getProxyAgent, resolveValidatedRedirectUrl } from "../../network";
-import { deleteVideoFile, findVideoFile, VIDEO_TMP_FOLDER } from "./common";
+import {
+  deleteVideoFile,
+  detectVideoContentType,
+  findVideoFile,
+  VIDEO_TMP_FOLDER,
+} from "./common";
 
-function prepareYtDlpArguments(
+function hasCliFlag(args: string[], flags: string[]): boolean {
+  return args.some((arg) =>
+    flags.some((flag) => arg === flag || arg.startsWith(`${flag}=`)),
+  );
+}
+
+export function prepareYtDlpArguments(
   url: string,
   proxy: string | undefined,
   assetPath: string,
@@ -29,7 +40,17 @@ function prepareYtDlpArguments(
     );
   }
 
-  ytDlpArguments.push(...serverConfig.crawler.ytDlpArguments);
+  const userArgs = serverConfig.crawler.ytDlpArguments;
+  // Prefer Safari-compatible H.264/MP4 streams and merge into MP4 unless the
+  // user explicitly overrides format sorting or merge container.
+  if (!hasCliFlag(userArgs, ["-S", "--format-sort"])) {
+    ytDlpArguments.push("-S", "vcodec:h264,ext:mp4:m4a");
+  }
+  if (!hasCliFlag(userArgs, ["--merge-output-format"])) {
+    ytDlpArguments.push("--merge-output-format", "mp4");
+  }
+
+  ytDlpArguments.push(...userArgs);
   ytDlpArguments.push("-o", assetPath);
   ytDlpArguments.push("--no-playlist");
   if (proxy) {
@@ -93,9 +114,10 @@ export const localVideoDownloader: VideoDownloader = {
     if (!downloadPath) {
       return { status: "skipped", reason: "yt-dlp didn't download anything" };
     }
+    const contentType = await detectVideoContentType(downloadPath);
     logger.info(
-      `[VideoCrawler][${jobId}] Finished downloading a file from "${normalizedUrl}" to "${downloadPath}"`,
+      `[VideoCrawler][${jobId}] Finished downloading a file from "${normalizedUrl}" to "${downloadPath}" (${contentType})`,
     );
-    return { status: "downloaded", path: downloadPath };
+    return { status: "downloaded", path: downloadPath, contentType };
   },
 };

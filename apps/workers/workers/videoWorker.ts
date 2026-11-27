@@ -4,7 +4,6 @@ import { db } from "@karakeep/db";
 import { AssetTypes } from "@karakeep/db/schema";
 import {
   addLogFields,
-  ASSET_TYPES,
   newAssetId,
   QuotaService,
   saveAssetFromFile,
@@ -72,7 +71,7 @@ export class VideoWorker {
   }
 }
 
-async function runWorker(job: DequeuedJob<ZVideoRequest>) {
+export async function runWorker(job: DequeuedJob<ZVideoRequest>) {
   const jobId = job.id;
   const { bookmarkId, onDemand } = job.data;
   addLogFields<"videoWorker.run">({ "bookmark.id": bookmarkId });
@@ -113,7 +112,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
     );
     return;
   }
-  const assetPath = result.path;
+  const { path: assetPath, contentType } = result;
 
   // Get file size and check quota before saving
   const stats = await fs.promises.stat(assetPath);
@@ -130,7 +129,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
       userId,
       assetId: videoAssetId,
       assetPath,
-      metadata: { contentType: ASSET_TYPES.VIDEO_MP4 },
+      metadata: { contentType },
       quotaApproved,
     });
 
@@ -142,7 +141,7 @@ async function runWorker(job: DequeuedJob<ZVideoRequest>) {
           bookmarkId,
           userId,
           assetType: AssetTypes.LINK_VIDEO,
-          contentType: ASSET_TYPES.VIDEO_MP4,
+          contentType,
           size: fileSize,
         },
         txn,

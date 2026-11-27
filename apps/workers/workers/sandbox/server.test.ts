@@ -5,6 +5,9 @@
 // (which isn't retried, or is a skipped step) must stay distinguishable from
 // the sandbox being unable to do the work (which is retried).
 
+import fs from "fs";
+import * as os from "os";
+import path from "path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@karakeep/shared/config", () => ({
@@ -160,6 +163,29 @@ describe("the sandbox's error statuses", () => {
     });
   });
 
+  it("streams downloaded videos with their detected content type", async () => {
+    const tmpFile = path.join(os.tmpdir(), `sandbox-video-${Date.now()}.webm`);
+    await fs.promises.writeFile(
+      tmpFile,
+      Buffer.from([
+        0x1a, 0x45, 0xdf, 0xa3, 0x93, 0x42, 0x82, 0x84, 0x77, 0x65, 0x62, 0x6d,
+      ]),
+    );
+    try {
+      vi.mocked(localVideoDownloader.download).mockResolvedValueOnce({
+        status: "downloaded",
+        path: tmpFile,
+        contentType: "video/webm",
+      });
+      const res = await callSandbox("download-video", videoRequest);
+      expect(res.status).toBe(200);
+      expect(res.headers.get("content-type")).toBe("video/webm");
+      await res.arrayBuffer();
+    } finally {
+      await fs.promises.rm(tmpFile, { force: true });
+    }
+  });
+
   it("rejects a /process-pdf request that asks for no steps", async () => {
     const res = await callSandbox(
       "process-pdf",
@@ -197,6 +223,26 @@ describe("the clients' handling of the sandbox's errors", () => {
   it("doesn't retry a video that yt-dlp failed to download", async () => {
     respondWith(WORK_FAILED_STATUS);
     await expect(download()).resolves.toMatchObject({ status: "failed" });
+  });
+
+  it("preserves video/webm content type returned by the sandbox", async () => {
+    const webmBytes = Buffer.from([
+      0x1a, 0x45, 0xdf, 0xa3, 0x93, 0x42, 0x82, 0x84, 0x77, 0x65, 0x62, 0x6d,
+    ]);
+    fetchMock.mockResolvedValueOnce(
+      new Response(webmBytes, {
+        status: 200,
+        headers: { "Content-Type": "video/webm" },
+      }),
+    );
+    const result = await download();
+    expect(result).toMatchObject({
+      status: "downloaded",
+      contentType: "video/webm",
+    });
+    if (result.status === "downloaded") {
+      await fs.promises.rm(result.path, { force: true });
+    }
   });
 
   it.each([500, 502, 503])(
