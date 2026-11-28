@@ -1,7 +1,7 @@
 const EMBEDDED_MEDIA_DATA_URI_PATTERN = /data:(?:audio|video)\/[^"'\s<>)]*/gi;
 
 const PRESERVED_SCRIPT_TYPE_PATTERN =
-  /(?:^|\s)type\s*=\s*(?:"(?:application\/(?:ld\+)?json|math\/[^"]*)"|'(?:application\/(?:ld\+)?json|math\/[^']*)'|(?:application\/(?:ld\+)?json|math\/\S*))/i;
+  /(?:^|\s)type\s*=\s*(?:"\s*(?:application\/(?:ld\+)?json(?:\s*;[^"]*)?|math\/[^"]*)\s*"|'\s*(?:application\/(?:ld\+)?json(?:\s*;[^']*)?|math\/[^']*)\s*'|(?:application\/(?:ld\+)?json(?:;\S*)?|math\/\S*)(?=\s|$))/i;
 
 const PRESERVED_SCRIPT_ID_PATTERN =
   /(?:^|\s)id\s*=\s*(?:"(?:initial-state|preloads-json)"|'(?:initial-state|preloads-json)'|(?:initial-state|preloads-json)(?=\s|$))/i;
@@ -26,8 +26,8 @@ const RAW_TEXT_SKIP_TAGS = new Set([
   "noframes",
 ]);
 
-const MIN_TRACKED_TAG_LENGTH = 3; // "xmp"
-const MAX_TRACKED_TAG_LENGTH = 8; // "textarea", "noframes"
+const MIN_TRACKED_TAG_LENGTH = 3; // "xmp", "svg"
+const MAX_TRACKED_TAG_LENGTH = 9; // "plaintext"
 
 function isAsciiAlpha(code: number): boolean {
   return (
@@ -36,12 +36,13 @@ function isAsciiAlpha(code: number): boolean {
   );
 }
 
-function isTagNameChar(code: number): boolean {
-  return (
-    isAsciiAlpha(code) ||
-    (code >= 48 && code <= 57) || // 0-9
-    code === 45 // -
-  );
+function isAsciiAlphaRange(html: string, start: number, end: number): boolean {
+  for (let i = start; i < end; i++) {
+    if (!isAsciiAlpha(html.charCodeAt(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function isTagBoundaryChar(code: number): boolean {
@@ -161,6 +162,7 @@ export function stripHtmlElements(
   const out: string[] = [];
   let copyFrom = 0;
   let pos = 0;
+  let foreignDepth = 0;
 
   while (pos < len) {
     const lt = html.indexOf("<", pos);
@@ -184,20 +186,60 @@ export function stripHtmlElements(
       continue;
     }
 
+    // CDATA section (e.g. inside SVG/MathML foreign content): skip verbatim to `]]>`
+    if (lt + 8 < len && html.startsWith("<![CDATA[", lt)) {
+      const cdataEnd = html.indexOf("]]>", lt + 9);
+      if (cdataEnd === -1) {
+        break;
+      }
+      pos = cdataEnd + 3;
+      continue;
+    }
+
+    // Closing tag: track exiting `<svg>` / `<math>` foreign content.
+    if (
+      lt + 2 < len &&
+      html.charCodeAt(lt + 1) === 47 && // /
+      isAsciiAlpha(html.charCodeAt(lt + 2))
+    ) {
+      let closeNameEnd = lt + 3;
+      while (
+        closeNameEnd < len &&
+        !isTagBoundaryChar(html.charCodeAt(closeNameEnd))
+      ) {
+        closeNameEnd++;
+      }
+      if (foreignDepth > 0) {
+        const closeNameLen = closeNameEnd - (lt + 2);
+        if (
+          (closeNameLen === 3 || closeNameLen === 4) &&
+          isAsciiAlphaRange(html, lt + 2, closeNameEnd)
+        ) {
+          const closeName = html.slice(lt + 2, closeNameEnd).toLowerCase();
+          if (closeName === "svg" || closeName === "math") {
+            foreignDepth--;
+          }
+        }
+      }
+      const closeEnd = html.indexOf(">", closeNameEnd);
+      if (closeEnd === -1) {
+        break;
+      }
+      pos = closeEnd + 1;
+      continue;
+    }
+
     // HTML tag names must begin with an ASCII letter (e.g. `<3` is plain text).
     if (lt + 1 >= len || !isAsciiAlpha(html.charCodeAt(lt + 1))) {
       pos = lt + 1;
       continue;
     }
 
-    // Read ASCII tag name starting at lt + 1
+    // Read full HTML tag name up to whitespace, `/`, or `>` (includes
+    // namespaced/custom names like `o:p` or `foo_bar`).
     let nameEnd = lt + 2;
-    while (nameEnd < len && isTagNameChar(html.charCodeAt(nameEnd))) {
+    while (nameEnd < len && !isTagBoundaryChar(html.charCodeAt(nameEnd))) {
       nameEnd++;
-    }
-    if (nameEnd < len && !isTagBoundaryChar(html.charCodeAt(nameEnd))) {
-      pos = nameEnd;
-      continue;
     }
 
     const startTagEnd = findStartTagEnd(html, nameEnd);
@@ -207,13 +249,32 @@ export function stripHtmlElements(
     }
 
     const nameLen = nameEnd - (lt + 1);
-    if (nameLen < MIN_TRACKED_TAG_LENGTH || nameLen > MAX_TRACKED_TAG_LENGTH) {
+    if (
+      nameLen < MIN_TRACKED_TAG_LENGTH ||
+      nameLen > MAX_TRACKED_TAG_LENGTH ||
+      !isAsciiAlphaRange(html, lt + 1, nameEnd)
+    ) {
       pos = startTagEnd + 1;
       continue;
     }
 
-    // Safe to call `.toLowerCase()` here: `isTagNameChar` guarantees pure ASCII.
+    // Safe to call `.toLowerCase()` here: `isAsciiAlphaRange` guarantees pure ASCII.
     const tagName = html.slice(lt + 1, nameEnd).toLowerCase();
+    const isSelfClosing = html.charCodeAt(startTagEnd - 1) === 47; // /
+
+    if (tagName === "svg" || tagName === "math") {
+      if (!isSelfClosing) {
+        foreignDepth++;
+      }
+      pos = startTagEnd + 1;
+      continue;
+    }
+
+    if (tagName === "plaintext") {
+      // HTML tokenizer switches permanently to PLAINTEXT state until EOF.
+      break;
+    }
+
     const isStyle = tagName === "style";
     const isScript = tagName === "script";
     if (!isStyle && !isScript && !RAW_TEXT_SKIP_TAGS.has(tagName)) {
@@ -222,6 +283,27 @@ export function stripHtmlElements(
       pos = startTagEnd + 1;
       continue;
     }
+
+    // In foreign content (`<svg>` / `<math>`), self-closing `<style/>` or
+    // `<script/>` closes immediately with no matching end tag.
+    if (foreignDepth > 0 && isSelfClosing) {
+      let shouldStrip = false;
+      if (isStyle && opts.stripStyles) {
+        shouldStrip = true;
+      } else if (isScript && opts.stripNonDataScripts) {
+        const attrs = html.slice(nameEnd, startTagEnd - 1);
+        shouldStrip = !shouldKeepScript(attrs, "");
+      }
+      if (shouldStrip) {
+        if (lt > copyFrom) {
+          out.push(html.slice(copyFrom, lt));
+        }
+        copyFrom = startTagEnd + 1;
+      }
+      pos = startTagEnd + 1;
+      continue;
+    }
+
     const contentStart = startTagEnd + 1;
     const closeTag = findCloseTag(html, tagName, contentStart);
     if (!closeTag) {

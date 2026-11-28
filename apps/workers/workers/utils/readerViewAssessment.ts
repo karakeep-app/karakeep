@@ -158,7 +158,7 @@ export function assessReaderView(
   // blocks so long essays aren't misclassified as link collections.
   if (
     substantiveBlocks < 4 &&
-    linkDensity <= 0.4 &&
+    linkDensity <= 0.2 &&
     extractedDocument.querySelectorAll("p").length === 0
   ) {
     const bodyHtml = extractedDocument.body?.innerHTML ?? "";

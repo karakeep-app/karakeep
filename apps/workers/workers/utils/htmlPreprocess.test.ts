@@ -114,6 +114,36 @@ describe("stripNonContentMarkupForDom", () => {
     const stripped = stripNonContentMarkupForDom(html);
     expect(stripped).toBe("<div data-single='a > b <style>'><p>Kept</p></div>");
   });
+
+  test("handles namespaced tags, CDATA, plaintext, foreign self-closing tags, and MIME parameters", () => {
+    const namespaced =
+      '<o:p data-x="<style>">Hello</o:p><style>.a{}</style><p>After</p>';
+    expect(stripNonContentMarkupForDom(namespaced)).toBe(
+      '<o:p data-x="<style>">Hello</o:p><p>After</p>',
+    );
+
+    const cdata = "<svg><![CDATA[ <style>.x{}</style> text ]]></svg>";
+    expect(stripNonContentMarkupForDom(cdata)).toBe(cdata);
+
+    const plaintext = "<plaintext>Visible <style>not css</style> after";
+    expect(stripNonContentMarkupForDom(plaintext)).toBe(plaintext);
+
+    const foreignSelfClosing =
+      "<svg><style/><script/></svg><p>Visible</p><style>x{}</style><script>bad()</script>";
+    expect(stripNonContentMarkupForDom(foreignSelfClosing)).toBe(
+      "<svg></svg><p>Visible</p>",
+    );
+
+    const jsonMimeParams = [
+      '<script type="application/ld+json; charset=utf-8">{"@type":"Article"}</script>',
+      "<script type='application/json;charset=utf-8'>{\"ok\":true}</script>",
+      '<script type="application/json5">dropMe()</script>',
+    ].join("");
+    const strippedJson = stripNonContentMarkupForDom(jsonMimeParams);
+    expect(strippedJson).toContain('"@type":"Article"');
+    expect(strippedJson).toContain('{"ok":true}');
+    expect(strippedJson).not.toContain("dropMe()");
+  });
 });
 
 describe("preprocessHtmlForMetadata", () => {

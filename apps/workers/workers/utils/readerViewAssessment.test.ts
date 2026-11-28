@@ -140,7 +140,7 @@ describe("reader view assessment", () => {
     expect(result.reasons).not.toContain("link_collection");
   });
 
-  test("does not count link-only br-delimited lists as substantive prose blocks", () => {
+  test("does not count link-only or link-heavy br-delimited archive lists as substantive prose blocks", () => {
     const linkList = Array.from(
       { length: 12 },
       (_, i) =>
@@ -152,6 +152,24 @@ describe("reader view assessment", () => {
 
     expect(result.status).toBe("not_readable");
     expect(result.reasons).toContain("no_substantive_blocks");
+
+    // Archive/index page with elevated link density (~0.30) and ~90 chars of
+    // unlinked date/summary text per row should still be treated as a link collection.
+    const annotatedArchive = Array.from(
+      { length: 10 },
+      (_, i) =>
+        `2026-01-${String(i + 1).padStart(2, "0")} — <a href="/archive/${i}">Detailed post title about systems engineering #${i}</a> — Short summary blurb describing the linked release notes, migration caveats, and benchmarks.`,
+    ).join("<br><br>");
+    const archiveHtml = `<html><body><div>${annotatedArchive}</div></body></html>`;
+    const archiveResult = assess(
+      archiveHtml,
+      archiveHtml,
+      "https://example.com/archive",
+    );
+
+    expect(archiveResult.status).not.toBe("readable");
+    expect(archiveResult.reasons).toContain("no_substantive_blocks");
+    expect(archiveResult.reasons).toContain("link_collection");
   });
 
   test("represents a missing extraction separately", () => {
