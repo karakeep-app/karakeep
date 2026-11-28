@@ -28,11 +28,12 @@ export function isXHost(url: string): boolean {
   return X_HOST_PATTERN.test(getHostname(url));
 }
 
-// Invisible Unicode bidi / zero-width formatting characters (e.g. Apple App
-// Store prepends U+200E LEFT-TO-RIGHT MARK to page titles, and Amazon UK
-// sometimes emits a lone U+200E as meta description).
+// Leading/trailing whitespace and invisible Unicode bidi / zero-width
+// formatting characters (e.g. Apple App Store prepends U+200E LEFT-TO-RIGHT
+// MARK to page titles, and Amazon UK sometimes emits a lone U+200E as meta
+// description).
 const INVISIBLE_FORMAT_CHARS_PATTERN =
-  /^[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+|[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+$/g;
+  /^[\s\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+|[\s\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+$/g;
 
 // Purely numeric author values (e.g. Facebook page/profile IDs in
 // `article:author`, such as GitHub Gist's `262588213843476`) are not human
@@ -52,7 +53,7 @@ const TEXT_METADATA_PROPS = new Set([
 ]);
 
 export function stripInvisibleFormatChars(value: string): string {
-  return value.replace(INVISIBLE_FORMAT_CHARS_PATTERN, "").trim();
+  return value.replace(INVISIBLE_FORMAT_CHARS_PATTERN, "");
 }
 
 /**

@@ -27,10 +27,11 @@ describe("stripNonContentMarkupForDom", () => {
       "<title>How &lt;style&gt; and <script> tags work</title>",
       "<!-- <style>unclosed comment style <script>unclosed -->",
       "</head><body>",
-      '<div data-label="a > b"><p>Visible text</p></div>',
+      '<div data-example="<style>" data-label="a > b"><p>Visible text</p></div>',
       "<textarea><style>.in-textarea{}</style><script>inTextarea()</script></textarea>",
       '<script data-expr="a > b">dropMe()</script>',
-      "<style>.drop{}</style>",
+      "<style>/* İ */.drop{}</style>",
+      "<article>Keep after Unicode</article>",
       "</body></html>",
     ].join("");
 
@@ -38,10 +39,13 @@ describe("stripNonContentMarkupForDom", () => {
     expect(stripped).toContain(
       "<title>How &lt;style&gt; and <script> tags work</title>",
     );
-    expect(stripped).toContain("<p>Visible text</p>");
+    expect(stripped).toContain(
+      '<div data-example="<style>" data-label="a > b"><p>Visible text</p></div>',
+    );
     expect(stripped).toContain(
       "<textarea><style>.in-textarea{}</style><script>inTextarea()</script></textarea>",
     );
+    expect(stripped).toContain("<article>Keep after Unicode</article>");
     expect(stripped).not.toContain("dropMe()");
     expect(stripped).not.toContain(".drop{}");
   });

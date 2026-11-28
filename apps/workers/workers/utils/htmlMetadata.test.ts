@@ -51,6 +51,9 @@ describe("htmlMetadata", () => {
     expect(isValidMetadataValue("\u200e", { propName: "description" })).toBe(
       false,
     );
+    expect(isValidMetadataValue(" \u200e ", { propName: "description" })).toBe(
+      false,
+    );
     expect(
       isValidMetadataValue("\u200eInstagram App", { propName: "title" }),
     ).toBe(true);
