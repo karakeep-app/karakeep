@@ -23,10 +23,105 @@ const REGEX_AMAZON_URL =
 
 const test = ({ url }: { url: string }): boolean => REGEX_AMAZON_URL.test(url);
 
+const STOREFRONT_PATTERNS = [
+  /^visit the (.+?)\s+store$/i,
+  /^besuche den (.+?)(?:\s+|-)+store$/i,
+  /^visiter la boutique\s+(.+)$/i,
+  /^visita la tienda de\s+(.+)$/i,
+  /^visita lo store di\s+(.+)$/i,
+  /^bezoek de (.+?)(?:\s+|-)+(?:winkel|store)$/i,
+  /^visite a loja\s+(.+)$/i,
+  /^(.+?)\s+mağazasını ziyaret edin$/i,
+  /^(.+?)のストアを表示$/,
+  /^(?:brand|marke|marque|marca|merk|ブランド)\s*[:：]\s*(.+)$/i,
+];
+
+const PRIMARY_AUTHOR_ROLE_PATTERN = /\((?:author|autor|auteur|autore|著)\)/i;
+
+function cleanAmazonByline(raw: string): string | undefined {
+  let text = raw.replace(/\s+/g, " ").trim();
+  if (!text) {
+    return undefined;
+  }
+
+  for (const pattern of STOREFRONT_PATTERNS) {
+    const match = pattern.exec(text);
+    if (match?.[1]) {
+      text = match[1].trim();
+      break;
+    }
+  }
+
+  // Book bylines often look like "by Jane Doe (Author) Format: Hardcover"
+  text = text
+    .replace(/^(?:by|von|par|por|di)\s+/i, "")
+    .replace(/\s*\((?:Author|Autor|Auteur|Autore|著)\)[\s\S]*$/i, "")
+    .replace(/\s*(?:Format|Formato|形式)\s*[:：][\s\S]*$/i, "")
+    .trim();
+
+  return text || undefined;
+}
+
 const metascraperAmazonImproved = () => {
   const rules: Rules = {
     pkgName: "metascraper-amazon-improved",
     test,
+    author: ({ htmlDom }) => {
+      // Book pages put clean author names inside `#bylineInfo .author` spans
+      // (or `.contributorNameID` on older markup), while `#bylineInfo`'s full
+      // text includes "(Author) Format: Hardcover". When multiple contributors
+      // have explicit role labels (e.g. Author + Translator), prefer primary
+      // authors.
+      const authorSpans = htmlDom("#bylineInfo .author");
+      if (authorSpans.length > 0) {
+        const primary: string[] = [];
+        const all: string[] = [];
+        authorSpans.each((_, span) => {
+          const spanEl = htmlDom(span);
+          const name = spanEl
+            .find("a, .contributorNameID")
+            .first()
+            .text()
+            .replace(/\s+/g, " ")
+            .trim();
+          if (
+            !name ||
+            /^visit amazon/i.test(name) ||
+            /^search learn more$/i.test(name)
+          ) {
+            return;
+          }
+          all.push(name);
+          if (PRIMARY_AUTHOR_ROLE_PATTERN.test(spanEl.text())) {
+            primary.push(name);
+          }
+        });
+        const picked = primary.length > 0 ? primary : all;
+        if (picked.length > 0) {
+          return [...new Set(picked)].join(", ");
+        }
+      }
+
+      const contributorLinks = htmlDom(
+        "#bylineInfo .contributorNameID, .contributorNameID",
+      )
+        .map((_, el) => htmlDom(el).text().replace(/\s+/g, " ").trim())
+        .get()
+        .filter(
+          (name) =>
+            name.length > 0 &&
+            !/^visit amazon/i.test(name) &&
+            !/^search learn more$/i.test(name),
+        );
+      if (contributorLinks.length > 0) {
+        return [...new Set(contributorLinks)].join(", ");
+      }
+
+      const bylineText =
+        htmlDom("#bylineInfo").first().text() ||
+        htmlDom("#brand").first().text();
+      return cleanAmazonByline(bylineText);
+    },
     image: ({ htmlDom }) => {
       // Try the main product image ID first (most reliable)
       // Prefer data-old-hires attribute for high-resolution images

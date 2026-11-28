@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   extractHtmlTitle,
+  isHumanOnlyInterstitial,
   isLikelyChallengePage,
   isWaitableChallenge,
   resolveMetadata,
@@ -86,6 +87,16 @@ describe("isLikelyChallengePage", () => {
     expect(isLikelyChallengePage({ title: "Access Denied" })).toBe(true);
     expect(isLikelyChallengePage({ title: "Robot Check" })).toBe(true);
     expect(isLikelyChallengePage({ title: "Robot or human?" })).toBe(true);
+    expect(
+      isLikelyChallengePage({ title: "Reddit - Prove your humanity" }),
+    ).toBe(true);
+    expect(
+      isLikelyChallengePage({ title: "Before you continue to YouTube" }),
+    ).toBe(true);
+    expect(
+      isLikelyChallengePage({ title: "Before you continue to Google" }),
+    ).toBe(true);
+    expect(isLikelyChallengePage({ title: "安全验证 - 知乎" })).toBe(true);
   });
 
   it("does not match challenge titles as substrings of real titles", () => {
@@ -197,6 +208,20 @@ describe("isWaitableChallenge", () => {
         "<html><body><script>var dd={'rt':'c','cid':'x','host':'geo.captcha-delivery.com'}</script></body></html>",
       ),
     ).toBe(false);
+  });
+
+  it("doesn't wait on human-solved verification or consent interstitials", () => {
+    for (const title of [
+      "Reddit - Prove your humanity",
+      "Before you continue to YouTube",
+      "安全验证 - 知乎",
+    ]) {
+      expect(isHumanOnlyInterstitial(title)).toBe(true);
+      expect(
+        isWaitableChallenge(title, `<html><title>${title}</title></html>`),
+      ).toBe(false);
+    }
+    expect(isHumanOnlyInterstitial("Just a moment...")).toBe(false);
   });
 
   it("doesn't wait on regular pages", () => {

@@ -1,9 +1,7 @@
 import { readFile } from "node:fs/promises";
 
-import { HttpProxyAgent } from "http-proxy-agent";
-import { HttpsProxyAgent } from "https-proxy-agent";
+import type { Rules } from "metascraper";
 import metascraper from "metascraper";
-import metascraperAmazon from "metascraper-amazon";
 import metascraperAuthor from "metascraper-author";
 import metascraperDate from "metascraper-date";
 import metascraperDescription from "metascraper-description";
@@ -11,17 +9,21 @@ import metascraperImage from "metascraper-image";
 import metascraperPublisher from "metascraper-publisher";
 import metascraperTitle from "metascraper-title";
 import metascraperUrl from "metascraper-url";
-import metascraperX from "metascraper-x";
-import metascraperYoutube from "metascraper-youtube";
 import winston from "winston";
 
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
-import metascraperAmazonImproved from "../metascraper-plugins/metascraper-amazon-improved";
-import metascraperReddit from "../metascraper-plugins/metascraper-reddit";
 import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
-import { getRandomProxy } from "../network";
+import {
+  isAmazonHost,
+  isRedditHost,
+  isValidMetadataValue,
+  isXHost,
+  isYoutubeHost,
+  normalizeMetadata,
+} from "../workers/utils/htmlMetadata";
+import { preprocessHtmlForMetadata } from "../workers/utils/htmlPreprocess";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
@@ -33,68 +35,80 @@ import type { ReaderViewAssessment } from "../workers/utils/readerViewAssessment
 logger.clear();
 logger.add(new winston.transports.Stream({ stream: process.stderr }));
 
-const metascraperParser = metascraper([
-  metascraperDate({
-    dateModified: true,
-    datePublished: true,
-  }),
-  metascraperAmazonImproved(),
-  metascraperAmazon(),
-  metascraperYoutube({
-    gotOpts: {
-      agent: {
-        http: serverConfig.proxy.httpProxy
-          ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
-          : undefined,
-        https: serverConfig.proxy.httpsProxy
-          ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
-          : undefined,
-      },
-    },
-  }),
-  metascraperReddit(),
-  metascraperAuthor(),
-  metascraperPublisher(),
-  metascraperTitle(),
-  metascraperDescription(),
-  metascraperX(),
-  metascraperImage(),
-  metascraperSafeFavicon(),
-  metascraperUrl(),
-]);
-
-const EMBEDDED_MEDIA_DATA_URI_PATTERN = /data:(?:audio|video)\/[^"'\s<>)]*/gi;
-
 /**
- * Full-page archives can contain large audio and video files embedded directly
- * in src attributes. Those payloads are useful in the stored archive, but they
- * are irrelevant to metadata and readable-content extraction and cause large
- * memory amplification when parsed into a DOM.
- *
- * Replace them only in the parser's in-memory copy. The original HTML file
- * remains untouched for full-page archival.
+ * Builds the metascraper rule list for `url`, loading domain-specific plugins
+ * (and their heavy network/proxy dependencies) only when the URL matches.
  */
-function replaceEmbeddedMediaDataUris(htmlContent: string): {
-  htmlContent: string;
-  replacedBytes: number;
-  replacementCount: number;
-} {
-  let replacedBytes = 0;
-  let replacementCount = 0;
-  const parserHtmlContent = htmlContent.replace(
-    EMBEDDED_MEDIA_DATA_URI_PATTERN,
-    (dataUri) => {
-      replacedBytes += dataUri.length;
-      replacementCount += 1;
-      return "about:blank";
-    },
+async function buildMetascraperParser(url: string) {
+  const rules: Rules[] = [
+    metascraperDate({
+      dateModified: true,
+      datePublished: true,
+    }),
+  ];
+
+  if (isAmazonHost(url)) {
+    const [
+      { default: metascraperAmazonImproved },
+      { default: metascraperAmazon },
+    ] = await Promise.all([
+      import("../metascraper-plugins/metascraper-amazon-improved"),
+      import("metascraper-amazon"),
+    ]);
+    rules.push(metascraperAmazonImproved(), metascraperAmazon());
+  }
+
+  if (isYoutubeHost(url)) {
+    const { default: metascraperYoutube } = await import("metascraper-youtube");
+    let httpAgent;
+    let httpsAgent;
+    if (serverConfig.proxy.httpProxy || serverConfig.proxy.httpsProxy) {
+      const [{ HttpProxyAgent }, { HttpsProxyAgent }, { getRandomProxy }] =
+        await Promise.all([
+          import("http-proxy-agent"),
+          import("https-proxy-agent"),
+          import("../network"),
+        ]);
+      httpAgent = serverConfig.proxy.httpProxy
+        ? new HttpProxyAgent(getRandomProxy(serverConfig.proxy.httpProxy))
+        : undefined;
+      httpsAgent = serverConfig.proxy.httpsProxy
+        ? new HttpsProxyAgent(getRandomProxy(serverConfig.proxy.httpsProxy))
+        : undefined;
+    }
+    rules.push(
+      metascraperYoutube({
+        gotOpts: {
+          agent: {
+            http: httpAgent,
+            https: httpsAgent,
+          },
+        },
+      }),
+    );
+  }
+
+  if (isRedditHost(url)) {
+    const { default: metascraperReddit } =
+      await import("../metascraper-plugins/metascraper-reddit");
+    rules.push(metascraperReddit());
+  }
+
+  rules.push(
+    metascraperAuthor(),
+    metascraperPublisher(),
+    metascraperTitle(),
+    metascraperDescription(),
   );
 
-  return {
-    htmlContent: parserHtmlContent,
-    replacedBytes,
-    replacementCount,
-  };
+  if (isXHost(url)) {
+    const { default: metascraperX } = await import("metascraper-x");
+    rules.push(metascraperX());
+  }
+
+  rules.push(metascraperImage(), metascraperSafeFavicon(), metascraperUrl());
+
+  return metascraper(rules);
 }
 
 async function main() {
@@ -107,26 +121,31 @@ async function main() {
     JSON.parse(Buffer.concat(chunks).toString()),
   );
   const { htmlPath, url, jobId, metadataOnly } = input;
-  const parserInput = replaceEmbeddedMediaDataUris(
-    await readFile(htmlPath, "utf8"),
-  );
-  if (parserInput.replacementCount > 0) {
+  const [{ htmlContent, replacementCount, replacedBytes }, metascraperParser] =
+    await Promise.all([
+      readFile(htmlPath, "utf8").then((rawHtml) =>
+        preprocessHtmlForMetadata(rawHtml),
+      ),
+      buildMetascraperParser(url),
+    ]);
+  if (replacementCount > 0) {
     logger.info(
-      `[Crawler][${jobId}] Replaced ${parserInput.replacementCount} embedded audio/video data URIs (${parserInput.replacedBytes} bytes) before parsing.`,
+      `[Crawler][${jobId}] Replaced ${replacementCount} embedded audio/video data URIs (${replacedBytes} bytes) before parsing.`,
     );
   }
-  const { htmlContent } = parserInput;
 
   logger.info(
     `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,
   );
 
   // Run metascraper
-  const meta = await metascraperParser({
+  const rawMeta = await metascraperParser({
     url,
     html: htmlContent,
     validateUrl: false,
+    validate: isValidMetadataValue,
   });
+  const meta = normalizeMetadata(rawMeta);
 
   logger.info(`[Crawler][${jobId}] Done extracting metadata from the page.`);
 
@@ -145,6 +164,7 @@ async function main() {
         meta.readableContentHtml,
         htmlContent,
         url,
+        { alreadyPreprocessed: true },
       ));
     } else {
       logger.info(
@@ -153,6 +173,7 @@ async function main() {
       ({ readableContent, readerViewAssessment } = extractReadableContent(
         meta.contentHtml ?? htmlContent,
         url,
+        { alreadyPreprocessed: !meta.contentHtml },
       ));
       logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
     }

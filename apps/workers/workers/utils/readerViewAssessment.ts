@@ -5,7 +5,7 @@ import type {
   ZReaderViewStatus,
 } from "@karakeep/shared/types/bookmarks";
 
-export const READER_VIEW_CLASSIFIER_VERSION = 3;
+export const READER_VIEW_CLASSIFIER_VERSION = 4;
 
 export interface ReaderViewAssessment {
   status: ZReaderViewStatus;
@@ -142,9 +142,39 @@ export function assessReaderView(
     reasons.push("useful_content_length");
   }
 
-  const substantiveBlocks = [
+  const linkTextLength = [...extractedDocument.querySelectorAll("a")].reduce(
+    (total, link) => total + (link.textContent?.trim().length ?? 0),
+    0,
+  );
+  const linkDensity = linkTextLength / Math.max(textLength, 1);
+
+  let substantiveBlocks = [
     ...extractedDocument.querySelectorAll("p, pre, blockquote"),
   ].filter((node) => (node.textContent?.trim().length ?? 0) >= 80).length;
+  // Classic HTML essays separate paragraphs with `<br><br>` inside
+  // `<font>`/`<td>` rather than `<p>` elements. When the extracted HTML has no
+  // `<p>` tags and isn't a link-heavy index, count `<br><br>`-delimited prose
+  // chunks (excluding link text) as substantive blocks so long essays aren't
+  // misclassified as link collections.
+  if (
+    substantiveBlocks < 4 &&
+    linkDensity <= 0.2 &&
+    extractedDocument.querySelectorAll("p").length === 0
+  ) {
+    const bodyHtml = extractedDocument.body?.innerHTML ?? "";
+    const brChunks = bodyHtml.split(/<br\s*\/?>\s*<br\s*\/?>/i);
+    if (brChunks.length >= 2) {
+      const brBlocks = brChunks.filter(
+        (chunk) =>
+          chunk
+            .replace(/<a\b[^>]*>[\s\S]*?<\/a\s*>/gi, " ")
+            .replace(/<[^>]+>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim().length >= 80,
+      ).length;
+      substantiveBlocks = Math.max(substantiveBlocks, brBlocks);
+    }
+  }
   const hasLongPreformattedBlock = [
     ...extractedDocument.querySelectorAll("pre"),
   ].some((node) => (node.textContent?.trim().length ?? 0) >= 300);
@@ -168,11 +198,6 @@ export function assessReaderView(
     reasons.push("long_preformatted_content");
   }
 
-  const linkTextLength = [...extractedDocument.querySelectorAll("a")].reduce(
-    (total, link) => total + (link.textContent?.trim().length ?? 0),
-    0,
-  );
-  const linkDensity = linkTextLength / Math.max(textLength, 1);
   if (linkDensity > 0.65) {
     score -= 35;
     reasons.push("very_high_link_density");

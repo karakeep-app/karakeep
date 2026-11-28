@@ -1,15 +1,5 @@
 import metascraper from "metascraper";
-import { describe, expect, test, vi } from "vitest";
-
-vi.mock("../network", () => ({
-  getRandomProxy: vi.fn((proxies: string[]) => proxies[0]),
-}));
-
-vi.mock("@karakeep/shared/config", () => ({
-  default: {
-    proxy: {},
-  },
-}));
+import { describe, expect, test } from "vitest";
 
 import metascraperSafeFavicon from "./metascraper-safe-favicon";
 
