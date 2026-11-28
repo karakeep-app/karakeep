@@ -74,6 +74,10 @@ export interface SearchIndexClient {
     options?: IndexingOptions,
   ): Promise<void>;
   deleteDocuments(ids: string[], options?: IndexingOptions): Promise<void>;
+  /**
+   * Delete every document belonging to the given user from the index.
+   */
+  deleteUserDocuments(userId: string): Promise<void>;
   search(options: SearchOptions): Promise<SearchResponse>;
   clearIndex(): Promise<void>;
 }

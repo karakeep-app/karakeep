@@ -166,10 +166,23 @@ async function runSearchIndexing(job: DequeuedJob<ZSearchIndexingRequest>) {
     return;
   }
 
+  addLogFields<"searchWorker.run">({
+    "search.op": request.data.type,
+  });
+
+  if (request.data.type === "delete_user") {
+    const userId = request.data.userId;
+    addLogFields<"searchWorker.run">({ "user.id": userId });
+    logger.info(
+      `[search][${jobId}] Attempting to delete all documents of user ${userId} (run ${job.runNumber}) ...`,
+    );
+    await searchClient.deleteUserDocuments(userId);
+    return;
+  }
+
   const bookmarkId = request.data.bookmarkId;
   addLogFields<"searchWorker.run">({
     "bookmark.id": bookmarkId,
-    "search.op": request.data.type,
   });
   // Disable batching on retries (runNumber > 0) for improved reliability
   const batch = job.runNumber === 0;

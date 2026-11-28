@@ -28,7 +28,12 @@ import {
   setUserPassword,
   verifyPasswordHash,
 } from "../auth";
-import { createTestUser, defaultBeforeEach, getApiCaller } from "../testUtils";
+import {
+  createTestUser,
+  defaultBeforeEach,
+  getApiCaller,
+  getTestQueueMocks,
+} from "../testUtils";
 
 // Mock server config with email settings
 vi.mock("@karakeep/shared/config", async (original) => {
@@ -728,6 +733,9 @@ describe("User Routes", () => {
         password: "pass1234",
       });
       const caller = getApiCaller(db, user.id, user.email, user.role || "user");
+      const { searchIndexingEnqueue, embeddingsEnqueue } = getTestQueueMocks();
+      searchIndexingEnqueue.mockClear();
+      embeddingsEnqueue.mockClear();
 
       await caller.users.deleteAccount({
         password: "pass1234",
@@ -739,6 +747,17 @@ describe("User Routes", () => {
         .from(users)
         .where(eq(users.id, user.id));
       expect(deletedUser).toHaveLength(0);
+
+      // Verify the user's documents get purged from the search index and
+      // the vector store
+      expect(searchIndexingEnqueue).toHaveBeenCalledWith(
+        { userId: user.id, type: "delete_user" },
+        expect.anything(),
+      );
+      expect(embeddingsEnqueue).toHaveBeenCalledWith(
+        { userId: user.id, type: "delete_user" },
+        expect.anything(),
+      );
     });
 
     test<CustomTestContext>("deleteAccount refuses active Stripe subscription", async ({

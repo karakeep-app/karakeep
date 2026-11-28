@@ -149,6 +149,8 @@ export const OpenAIQueue = createDeferredQueue<ZOpenAIRequest>("openai_queue", {
 // - "index": persists a precomputed vector in the vector store. Its retries (the
 //   slow Meilisearch index build) are isolated and never re-trigger tagging.
 // - "delete": removes the vector from the store.
+// - "delete_user": removes every vector of the user from the store (e.g. on
+//   account deletion, where the bookmarks are cascade deleted from the DB).
 export const zEmbeddingsRequestSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("embed"),
@@ -166,6 +168,10 @@ export const zEmbeddingsRequestSchema = z.discriminatedUnion("type", [
     type: z.literal("delete"),
     bookmarkId: z.string(),
   }),
+  z.object({
+    type: z.literal("delete_user"),
+    userId: z.string(),
+  }),
 ]);
 export type ZEmbeddingsRequest = z.infer<typeof zEmbeddingsRequestSchema>;
 
@@ -180,10 +186,18 @@ export const EmbeddingsQueue = createDeferredQueue<ZEmbeddingsRequest>(
 );
 
 // Search Indexing Worker
-export const zSearchIndexingRequestSchema = z.object({
-  bookmarkId: z.string(),
-  type: z.enum(["index", "delete"]),
-});
+export const zSearchIndexingRequestSchema = z.union([
+  z.object({
+    bookmarkId: z.string(),
+    type: z.enum(["index", "delete"]),
+  }),
+  z.object({
+    // Removes every document of the user from the index (e.g. on account
+    // deletion, where the bookmarks are cascade deleted from the DB).
+    userId: z.string(),
+    type: z.literal("delete_user"),
+  }),
+]);
 export type ZSearchIndexingRequest = z.infer<
   typeof zSearchIndexingRequestSchema
 >;
