@@ -35,6 +35,7 @@
     "https-proxy-agent": "^7.0.6",
     "ipaddr.js": "^2.2.0",
     "jsdom": "^31.0.1",
+    "linkedom": "^0.18.15",
     "liteque": "^0.10.0",
     "lru-cache": "^11.2.2",
     "metascraper": "^5.58.1",

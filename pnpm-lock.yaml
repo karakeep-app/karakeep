@@ -996,6 +996,9 @@ importers:
       jsdom:
         specifier: ^31.0.1
         version: 31.0.1(@noble/hashes@2.4.0)
+      linkedom:
+        specifier: ^0.18.15
+        version: 0.18.15
       liteque:
         specifier: ^0.10.0
         version: 0.10.0(@opentelemetry/api@1.9.0)(@types/better-sqlite3@7.6.13)(better-sqlite3@13.0.3)(kysely@0.29.6)
@@ -23594,8 +23597,7 @@ snapshots:
 
   boolbase@1.0.0: {}
 
-  boolbase@2.0.0:
-    optional: true
+  boolbase@2.0.0: {}
 
   bowser@2.14.1: {}
 
@@ -24239,7 +24241,6 @@ snapshots:
       domhandler: 6.0.1
       domutils: 4.0.2
       nth-check: 3.0.1
-    optional: true
 
   css-to-react-native@3.2.0:
     dependencies:
@@ -24273,8 +24274,7 @@ snapshots:
 
   css-what@7.0.0: {}
 
-  css-what@8.0.0:
-    optional: true
+  css-what@8.0.0: {}
 
   cssdb@8.9.0: {}
 
@@ -24339,8 +24339,7 @@ snapshots:
     dependencies:
       css-tree: 2.2.1
 
-  cssomnom@0.1.11:
-    optional: true
+  cssomnom@0.1.11: {}
 
   csstype@3.2.3: {}
 
@@ -24625,12 +24624,10 @@ snapshots:
       domelementtype: 3.0.0
       domhandler: 6.0.1
       entities: 8.0.0
-    optional: true
 
   domelementtype@2.3.0: {}
 
-  domelementtype@3.0.0:
-    optional: true
+  domelementtype@3.0.0: {}
 
   domhandler@4.3.1:
     dependencies:
@@ -24643,7 +24640,6 @@ snapshots:
   domhandler@6.0.1:
     dependencies:
       domelementtype: 3.0.0
-    optional: true
 
   dompurify@3.4.17:
     optionalDependencies:
@@ -24666,7 +24662,6 @@ snapshots:
       dom-serializer: 3.1.1
       domelementtype: 3.0.0
       domhandler: 6.0.1
-    optional: true
 
   dot-case@3.0.4:
     dependencies:
@@ -26705,7 +26700,6 @@ snapshots:
       html-escaper: 3.0.3
       htmlparser2: 10.1.0
       uhyphen: 0.2.0
-    optional: true
 
   linkify-it@5.0.2:
     dependencies:
@@ -28191,7 +28185,6 @@ snapshots:
   nth-check@3.0.1:
     dependencies:
       boolbase: 2.0.0
-    optional: true
 
   null-loader@4.0.1(webpack@5.109.2(@swc/core@1.16.2(@swc/helpers@0.5.23))(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.28))(csso@5.0.5)(esbuild@0.28.2)(html-minifier-terser@7.2.0)(lightningcss@1.33.0)(postcss@8.5.28)):
     dependencies:
@@ -31300,8 +31293,7 @@ snapshots:
 
   ufo@1.6.4: {}
 
-  uhyphen@0.2.0:
-    optional: true
+  uhyphen@0.2.0: {}
 
   uint8array-extras@1.5.0: {}
 

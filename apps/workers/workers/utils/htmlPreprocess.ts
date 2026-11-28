@@ -340,11 +340,12 @@ export function stripHtmlElements(
 }
 
 /**
- * Prepares an in-memory copy of HTML for metadata extraction:
+ * Prepares an in-memory copy of HTML for metadata and content extraction:
  * - Replaces embedded `data:audio/` and `data:video/` URIs (from full-page
  *   archives) to avoid DOM memory amplification.
- * - Strips `<style>` blocks (including the adblocker's cosmetic filter sheet),
- *   which are unused by metadata and content extraction.
+ * - Strips `<style>` blocks (including the adblocker's cosmetic filter sheet)
+ *   and non-data `<script>` blocks, while preserving JSON-LD, JSON data, math,
+ *   and site-extractor scripts needed by metascraper and Defuddle.
  *
  * The original HTML file on disk remains untouched for full-page archival.
  */
@@ -367,7 +368,7 @@ export function preprocessHtmlForMetadata(htmlContent: string): {
   return {
     htmlContent: stripHtmlElements(withoutMedia, {
       stripStyles: true,
-      stripNonDataScripts: false,
+      stripNonDataScripts: true,
     }),
     replacedBytes,
     replacementCount,

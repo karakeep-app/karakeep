@@ -164,6 +164,7 @@ async function main() {
         meta.readableContentHtml,
         htmlContent,
         url,
+        { alreadyPreprocessed: true },
       ));
     } else {
       logger.info(
@@ -172,6 +173,7 @@ async function main() {
       ({ readableContent, readerViewAssessment } = extractReadableContent(
         meta.contentHtml ?? htmlContent,
         url,
+        { alreadyPreprocessed: !meta.contentHtml },
       ));
       logger.info(`[Crawler][${jobId}] Done extracting readable content.`);
     }

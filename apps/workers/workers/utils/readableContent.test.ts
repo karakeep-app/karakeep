@@ -79,6 +79,21 @@ describe("extractReadableContent", () => {
     expect(result.readableContent?.content).toContain("Only a heading");
   });
 
+  test("handles HTML fragments, empty input, and relative URLs with base href", () => {
+    const emptyResult = extractReadableContent("", "https://example.com/empty");
+    expect(emptyResult.readableContent).toBeNull();
+    expect(emptyResult.readerViewAssessment.status).toBe("unavailable");
+
+    const fragment = `<article><h1>Fragment</h1><p>${paragraph}</p><p>${paragraph}</p><a href="next.html">Next</a></article>`;
+    const fragResult = extractReadableContent(
+      fragment,
+      "https://example.com/posts/first.html",
+    );
+    expect(fragResult.readableContent?.content).toContain(
+      'href="https://example.com/posts/next.html"',
+    );
+  });
+
   test("sanitizes provided HTML and assesses reader view", () => {
     const provided = `<script>alert(1)</script>${Array.from({ length: 5 }, () => `<p>${paragraph}</p>`).join("")}`;
     const source = `<html><head><meta property="og:type" content="article"></head><body><article>${provided}</article></body></html>`;

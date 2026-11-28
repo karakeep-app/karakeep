@@ -1,10 +1,11 @@
 // Readable content extraction and sanitization for the HTML parsing subprocess.
 // Kept apart from the subprocess script so that it can load this module (with
-// jsdom and Defuddle, which are slow to load) only when it needs it.
+// linkedom, jsdom, and Defuddle, which are slow to load) only when it needs it.
 import { Readability } from "@mozilla/readability";
 import { DefuddleClass } from "defuddle/node";
 import DOMPurify from "dompurify";
-import { JSDOM, VirtualConsole } from "jsdom";
+import { JSDOM } from "jsdom";
+import { parseHTML } from "linkedom";
 
 import { isAmazonHost } from "./htmlMetadata";
 import { stripNonContentMarkupForDom } from "./htmlPreprocess";
@@ -13,6 +14,69 @@ import {
   assessReaderView,
   unavailableReaderViewAssessment,
 } from "./readerViewAssessment";
+
+interface MutableDocumentShim {
+  styleSheets?: unknown[];
+  URL?: string;
+  defaultView?: {
+    getComputedStyle?: () => { display: string };
+  } | null;
+}
+
+function attachDocumentUrls(
+  document: Document,
+  url: string,
+  baseUri: string,
+): void {
+  const shim = document as unknown as MutableDocumentShim;
+  shim.URL = url;
+  Object.defineProperty(document, "documentURI", {
+    value: url,
+    configurable: true,
+  });
+  Object.defineProperty(document, "baseURI", {
+    value: baseUri,
+    configurable: true,
+  });
+}
+
+/**
+ * Parses HTML with linkedom (Defuddle's default Node DOM — significantly
+ * faster and lighter than JSDOM on large pages) and applies the minimal DOM
+ * shims expected by Defuddle and Readability.
+ */
+function parseSourceDocument(html: string, url: string): Document {
+  let { document } = parseHTML(html);
+  // Unlike JSDOM, linkedom doesn't synthesize `<html>`/`<body>` wrappers for
+  // fragments or empty strings, which Readability and `document.body` expect.
+  if (document.documentElement?.tagName !== "HTML") {
+    const wrapped = /<body[\s>/]/i.test(html)
+      ? `<!doctype html><html>${html}</html>`
+      : `<!doctype html><html><head></head><body>${html}</body></html>`;
+    ({ document } = parseHTML(wrapped));
+  }
+
+  const doc = document as unknown as Document;
+  const shim = document as unknown as MutableDocumentShim;
+  if (!shim.styleSheets) {
+    shim.styleSheets = [];
+  }
+  if (shim.defaultView && !shim.defaultView.getComputedStyle) {
+    shim.defaultView.getComputedStyle = () => ({ display: "" });
+  }
+
+  let baseUri = url;
+  const baseHref = doc.querySelector("base[href]")?.getAttribute("href");
+  if (baseHref) {
+    try {
+      baseUri = new URL(baseHref, url).href;
+    } catch {
+      // Ignore invalid <base href> values and keep the page URL.
+    }
+  }
+  attachDocumentUrls(doc, url, baseUri);
+  return doc;
+}
 
 /**
  * Many sites use custom data-* attributes for lazy loading images instead of the
@@ -113,8 +177,10 @@ function runDefuddle(document: Document, url: string): string | null {
   return result.content || null;
 }
 
-function runReadability(document: Document): string | null {
-  const result = new Readability(document).parse();
+function runReadability(document: Document, url: string): string | null {
+  const clone = document.cloneNode(true) as Document;
+  attachDocumentUrls(clone, url, document.baseURI || url);
+  const result = new Readability(clone).parse();
   return typeof result?.content === "string" ? result.content : null;
 }
 
@@ -135,28 +201,30 @@ function hasVisibleContent(root: HTMLElement): boolean {
 export function extractReadableContent(
   htmlContent: string,
   url: string,
+  opts?: { alreadyPreprocessed?: boolean },
 ): {
   readableContent: { content: string } | null;
   readerViewAssessment: ReaderViewAssessment;
 } {
-  const virtualConsole = new VirtualConsole();
-  const dom = new JSDOM(stripNonContentMarkupForDom(htmlContent), {
-    url,
-    virtualConsole,
-  });
+  const domHtml = opts?.alreadyPreprocessed
+    ? htmlContent
+    : stripNonContentMarkupForDom(htmlContent);
+  const sourceDocument = parseSourceDocument(domHtml, url);
+  // Keep JSDOM for DOMPurify sanitization so mXSS defenses rely on a full
+  // HTML5 parser (only the smaller extracted article HTML passes through it).
   const purifyWindow = new JSDOM("").window;
   try {
-    normalizeLazyLoadImages(dom.window.document);
+    normalizeLazyLoadImages(sourceDocument);
     if (isAmazonHost(url)) {
-      removeAmazonHiddenElements(dom.window.document);
+      removeAmazonHiddenElements(sourceDocument);
     }
     const purify = DOMPurify(purifyWindow);
-    // Defuddle clones internally and leaves `dom.window.document` intact;
+    // Defuddle clones internally and leaves `sourceDocument` intact;
     // Readability mutates its input, so only the fallback clones the document.
     const extractors = [
-      () => runDefuddle(dom.window.document, url),
+      () => runDefuddle(sourceDocument, url),
       // Fallback for the rare pages where Defuddle extracts nothing.
-      () => runReadability(dom.window.document.cloneNode(true) as Document),
+      () => runReadability(sourceDocument, url),
     ];
 
     let purifiedHTML: string | null = null;
@@ -183,14 +251,13 @@ export function extractReadableContent(
     return {
       readableContent: { content: purifiedHTML },
       readerViewAssessment: assessReaderView(
-        dom.window.document,
+        sourceDocument,
         purifyWindow.document,
         url,
       ),
     };
   } finally {
     purifyWindow.close();
-    dom.window.close();
   }
 }
 
@@ -202,31 +269,27 @@ export function sanitizeProvidedContent(
   contentHtml: string,
   sourceHtml: string,
   url: string,
+  opts?: { alreadyPreprocessed?: boolean },
 ): {
   readableContent: { content: string };
   readerViewAssessment: ReaderViewAssessment;
 } {
-  const virtualConsole = new VirtualConsole();
   const purifyWindow = new JSDOM("").window;
   try {
     const purifiedHTML = DOMPurify(purifyWindow).sanitize(contentHtml);
     purifyWindow.document.body.innerHTML = purifiedHTML;
-    const sourceDom = new JSDOM(stripNonContentMarkupForDom(sourceHtml), {
-      url,
-      virtualConsole,
-    });
-    try {
-      return {
-        readableContent: { content: purifiedHTML },
-        readerViewAssessment: assessReaderView(
-          sourceDom.window.document,
-          purifyWindow.document,
-          url,
-        ),
-      };
-    } finally {
-      sourceDom.window.close();
-    }
+    const domHtml = opts?.alreadyPreprocessed
+      ? sourceHtml
+      : stripNonContentMarkupForDom(sourceHtml);
+    const sourceDocument = parseSourceDocument(domHtml, url);
+    return {
+      readableContent: { content: purifiedHTML },
+      readerViewAssessment: assessReaderView(
+        sourceDocument,
+        purifyWindow.document,
+        url,
+      ),
+    };
   } finally {
     purifyWindow.close();
   }

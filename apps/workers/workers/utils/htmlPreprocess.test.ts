@@ -147,13 +147,14 @@ describe("stripNonContentMarkupForDom", () => {
 });
 
 describe("preprocessHtmlForMetadata", () => {
-  test("replaces embedded audio/video data URIs and strips styles while keeping scripts", () => {
-    const html = `<html><head><style>body{}</style><script>keep()</script></head><body><video src="data:video/mp4;base64,AAAA"></video></body></html>`;
+  test("replaces embedded audio/video data URIs and strips styles and executable scripts while keeping data scripts", () => {
+    const html = `<html><head><style>body{}</style><script>dropMe()</script><script type="application/ld+json">{"@type":"Article"}</script></head><body><video src="data:video/mp4;base64,AAAA"></video></body></html>`;
     const result = preprocessHtmlForMetadata(html);
     expect(result.replacementCount).toBe(1);
     expect(result.replacedBytes).toBeGreaterThan(0);
     expect(result.htmlContent).toContain('src="about:blank"');
     expect(result.htmlContent).not.toContain("body{}");
-    expect(result.htmlContent).toContain("<script>keep()</script>");
+    expect(result.htmlContent).not.toContain("dropMe()");
+    expect(result.htmlContent).toContain('"@type":"Article"');
   });
 });
