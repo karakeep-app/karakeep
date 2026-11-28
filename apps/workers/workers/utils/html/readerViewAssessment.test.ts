@@ -187,6 +187,15 @@ describe("reader view assessment", () => {
     expect(homeResult.status).toBe("uncertain");
     expect(homeResult.score).toBeLessThanOrEqual(60);
 
+    // Hash-routed SPA articles on `/` are not root homepages.
+    const hashArticleResult = assess(
+      controlHeavyArticleHome,
+      controlHeavyArticleHome,
+      "https://example.com/#/posts/42",
+    );
+    expect(hashArticleResult.reasons).not.toContain("root_page");
+    expect(hashArticleResult.status).toBe("readable");
+
     const searchHtml = `<article>${Array.from({ length: 6 }, () => `<p>${paragraph}</p>`).join("")}</article>`;
     const searchResult = assess(
       searchHtml,

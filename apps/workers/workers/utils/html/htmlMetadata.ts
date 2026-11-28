@@ -1,5 +1,7 @@
 import type { Rules } from "metascraper";
 
+import { isChallengePageTitle } from "./metadataResolver";
+
 const AMAZON_HOST_PATTERN = /(?:^|\.)(?:amazon|amzn)\.|(?:^|\.)a\.co$/i;
 const YOUTUBE_HOST_PATTERN =
   /(?:^|\.)(?:youtube\.com|youtu\.be|youtube-nocookie\.com)$/i;
@@ -52,8 +54,6 @@ const INVISIBLE_FORMAT_CHARS_PATTERN =
 // author names; rejecting them lets metascraper fall through to DOM rules.
 const NUMERIC_ONLY_PATTERN = /^\d+$/;
 const NON_AUTHOR_UI_LABEL_PATTERN = /^changes\s+by$/i;
-const NON_PUBLISHER_INTERSTITIAL_PATTERN =
-  /^(?:prove your humanity|just a moment\.{0,3}|attention required!?|access denied|robot check|are you a robot\??|robot or human\??|security check|human verification|log in or sign up to view)$/i;
 
 // Obvious non-banner placeholder / tracking-pixel / favicon image URLs that
 // metascraper-image's generic `img[src]` fallback can pick up on SPAs.
@@ -94,10 +94,7 @@ export function isValidMetadataValue(
   ) {
     return false;
   }
-  if (
-    propName === "publisher" &&
-    NON_PUBLISHER_INTERSTITIAL_PATTERN.test(cleaned)
-  ) {
+  if (propName === "publisher" && isChallengePageTitle(cleaned)) {
     return false;
   }
   if (propName === "image" && PLACEHOLDER_OR_ICON_IMAGE_PATTERN.test(cleaned)) {

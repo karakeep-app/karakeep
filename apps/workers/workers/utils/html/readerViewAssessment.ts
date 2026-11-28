@@ -77,7 +77,9 @@ function isRootUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     return (
-      (parsed.pathname === "/" || parsed.pathname === "") && !parsed.search
+      (parsed.pathname === "/" || parsed.pathname === "") &&
+      !parsed.search &&
+      !parsed.hash
     );
   } catch {
     return false;

@@ -13,6 +13,9 @@ describe("isValidMetadataValue", () => {
     for (const bad of [
       "Prove your humanity",
       "Just a moment...",
+      "One moment, please...",
+      "Pardon Our Interruption",
+      "Vercel Security Checkpoint",
       "Access Denied",
       "Are you a robot?",
       "Log in or sign up to view",
