@@ -57,7 +57,9 @@ import {
   untrackContext,
 } from "../utils/browser";
 import {
+  decodeHtmlResponse,
   normalizeContentType,
+  normalizeHtmlCharset,
   shouldRetryCrawlStatusCode,
   truncateUrl,
 } from "../utils/crawlerUtils";
@@ -150,7 +152,11 @@ async function archivePage(
 ) {
   const { abortSignal, runProxy } = ctx;
   return await execa({
-    input: html,
+    // The HTML is UTF-8, but it may still declare the original page's
+    // legacy encoding (e.g. shift_jis); monolith passes the document
+    // through as-is, so viewers would decode the archive with the wrong
+    // encoding. Rewrite the declaration to match the actual bytes.
+    input: normalizeHtmlCharset(html),
     cancelSignal: abortSignal,
     // Report failures through the result instead of throwing, so that the
     // caller can handle them and clean up the temp file.
@@ -290,7 +296,7 @@ const getContentTypeAndMetadata = traced(
     // that would regress the asset-vs-webpage routing decision.
     const metadata = (async () => {
       try {
-        const htmlContent = await response.text();
+        const htmlContent = await decodeHtmlResponse(response);
         const { metadata: parsedMetadata } = await runParseSubprocess(
           htmlContent,
           response.url,
@@ -861,7 +867,7 @@ const browserlessCrawlPage = traced(
       `Successfully fetched the content of "${truncateUrl(url)}". Status: ${response.status}, Size: ${response.size}`,
     );
     return {
-      htmlContent: await response.text(),
+      htmlContent: await decodeHtmlResponse(response),
       statusCode: response.status,
       screenshot: undefined,
       pdf: undefined,
