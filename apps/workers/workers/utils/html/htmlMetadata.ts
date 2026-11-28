@@ -3,6 +3,8 @@ const YOUTUBE_HOST_PATTERN =
   /(?:^|\.)(?:youtube\.com|youtu\.be|youtube-nocookie\.com)$/i;
 const REDDIT_HOST_PATTERN = /(?:^|\.)reddit\.[^.]+$/i;
 const X_HOST_PATTERN = /(?:^|\.)(?:twitter\.com|x\.com)$/i;
+const FACEBOOK_HOST_PATTERN = /(?:^|\.)(?:facebook\.com|fb\.com)$/i;
+const THREADS_HOST_PATTERN = /(?:^|\.)(?:threads\.net|threads\.com)$/i;
 
 export function getHostname(url: string): string {
   try {
@@ -28,6 +30,14 @@ export function isXHost(url: string): boolean {
   return X_HOST_PATTERN.test(getHostname(url));
 }
 
+export function isFacebookHost(url: string): boolean {
+  return FACEBOOK_HOST_PATTERN.test(getHostname(url));
+}
+
+export function isThreadsHost(url: string): boolean {
+  return THREADS_HOST_PATTERN.test(getHostname(url));
+}
+
 // Leading/trailing whitespace and invisible Unicode bidi / zero-width
 // formatting characters (e.g. U+200E LEFT-TO-RIGHT MARK emitted in titles or
 // as lone placeholder meta descriptions).
@@ -35,9 +45,11 @@ const INVISIBLE_FORMAT_CHARS_PATTERN =
   /^[\s\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+|[\s\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+$/g;
 
 // Purely numeric author values (e.g. Facebook page/profile IDs in
-// `article:author`) are not human author names; rejecting them lets
-// metascraper fall through to DOM rules.
+// `article:author`) and hidden UI labels matched by `[class*="author"]` (e.g.
+// Google Docs' `docs-revisions-authorwidget-hat` "Changes by") are not human
+// author names; rejecting them lets metascraper fall through to DOM rules.
 const NUMERIC_ONLY_PATTERN = /^\d+$/;
+const NON_AUTHOR_UI_LABEL_PATTERN = /^changes\s+by$/i;
 
 // Obvious non-banner placeholder / tracking-pixel / favicon image URLs that
 // metascraper-image's generic `img[src]` fallback can pick up on SPAs.
@@ -71,7 +83,11 @@ export function isValidMetadataValue(
   if (propName && TEXT_METADATA_PROPS.has(propName) && cleaned.length === 0) {
     return false;
   }
-  if (propName === "author" && NUMERIC_ONLY_PATTERN.test(cleaned)) {
+  if (
+    propName === "author" &&
+    (NUMERIC_ONLY_PATTERN.test(cleaned) ||
+      NON_AUTHOR_UI_LABEL_PATTERN.test(cleaned))
+  ) {
     return false;
   }
   if (propName === "image" && PLACEHOLDER_OR_ICON_IMAGE_PATTERN.test(cleaned)) {

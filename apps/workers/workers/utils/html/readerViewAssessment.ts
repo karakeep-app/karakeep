@@ -5,7 +5,7 @@ import type {
   ZReaderViewStatus,
 } from "@karakeep/shared/types/bookmarks";
 
-export const READER_VIEW_CLASSIFIER_VERSION = 4;
+export const READER_VIEW_CLASSIFIER_VERSION = 5;
 
 export interface ReaderViewAssessment {
   status: ZReaderViewStatus;
@@ -223,7 +223,12 @@ export function assessReaderView(
   }
 
   const extractedLinks = extractedDocument.querySelectorAll("a").length;
-  if (extractedLinks >= 8 && substantiveBlocks <= 1) {
+  // Don't penalize single-block abstracts (e.g. academic paper pages) that
+  // have low link density alongside author/citation links.
+  if (
+    extractedLinks >= 8 &&
+    (substantiveBlocks === 0 || (substantiveBlocks === 1 && linkDensity > 0.12))
+  ) {
     score -= 20;
     reasons.push("link_collection");
   }

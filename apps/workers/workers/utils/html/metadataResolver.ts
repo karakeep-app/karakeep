@@ -9,6 +9,9 @@ import type { ParseSubprocessOutput } from "./parseHtmlSubprocessIpc";
 const NON_WAITABLE_CHALLENGE_TITLES = new Set([
   // Reddit
   "reddit - prove your humanity",
+  // Facebook login wall
+  "log in or sign up to view",
+  "log into facebook",
   // Google / YouTube EU/UK consent wall
   "before you continue to youtube",
   "before you continue to google",
@@ -16,6 +19,15 @@ const NON_WAITABLE_CHALLENGE_TITLES = new Set([
   "安全验证 - 知乎",
   "安全验证",
 ]);
+
+/**
+ * Body markers for human-solved verification interstitials (e.g. WeChat
+ * environment verification) that will not clear by waiting or retrying.
+ */
+const NON_WAITABLE_BODY_MARKERS = [
+  "当前环境异常，完成验证后即可继续访问",
+  "wappoc_appmsgcaptcha",
+];
 
 /**
  * Exact (lowercased, trimmed) page titles used by common bot-protection
@@ -68,6 +80,7 @@ const CHALLENGE_PAGE_BODY_MARKERS = [
   "captcha-delivery.com",
   // Akamai / Apache-style forbidden pages
   "you don't have permission to access",
+  ...NON_WAITABLE_BODY_MARKERS,
 ];
 
 /**
@@ -118,14 +131,22 @@ export function isLikelyChallengePage({
 const DATADOME_HARD_CAPTCHA = /['"]rt['"]\s*:\s*['"]c['"]/;
 
 /**
- * Whether the page title matches a deterministic human-only interstitial
- * (consent wall or interactive verification) that will not clear on its own
- * by waiting or retrying.
+ * Whether the page matches a deterministic human-only interstitial (consent
+ * wall, login wall, or interactive verification) that will not clear on its
+ * own by waiting or retrying.
  */
-export function isHumanOnlyInterstitial(title?: string | null): boolean {
-  return (
-    !!title && NON_WAITABLE_CHALLENGE_TITLES.has(title.trim().toLowerCase())
-  );
+export function isHumanOnlyInterstitial(
+  title?: string | null,
+  htmlContent?: string | null,
+): boolean {
+  if (title && NON_WAITABLE_CHALLENGE_TITLES.has(title.trim().toLowerCase())) {
+    return true;
+  }
+  if (!htmlContent || htmlContent.length > CHALLENGE_PAGE_MAX_HTML_LENGTH) {
+    return false;
+  }
+  const lowered = htmlContent.toLowerCase();
+  return NON_WAITABLE_BODY_MARKERS.some((marker) => lowered.includes(marker));
 }
 
 /**
@@ -136,7 +157,7 @@ export function isWaitableChallenge(
   title: string,
   htmlContent: string,
 ): boolean {
-  if (isHumanOnlyInterstitial(title)) {
+  if (isHumanOnlyInterstitial(title, htmlContent)) {
     return false;
   }
   return (

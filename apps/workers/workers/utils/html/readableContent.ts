@@ -7,7 +7,7 @@ import DOMPurify from "dompurify";
 import { JSDOM } from "jsdom";
 import { parseHTML } from "linkedom";
 
-import { isAmazonHost } from "./htmlMetadata";
+import { isAmazonHost, isFacebookHost, isThreadsHost } from "./htmlMetadata";
 import { stripNonContentMarkupForDom } from "./htmlPreprocess";
 import type { ReaderViewAssessment } from "./readerViewAssessment";
 import {
@@ -196,6 +196,32 @@ function removeAmazonHiddenElements(document: Document): void {
 }
 
 /**
+ * Un-hides Facebook/Threads main content containers that Meta marks with
+ * `aria-hidden="true"` when displaying a logged-out login/cookie modal, and
+ * unwraps Facebook post `[role="dialog"]` containers that wrap `[role="article"]`
+ * so Defuddle doesn't strip the post itself as a popup overlay.
+ */
+function unwrapMetaModalContainers(document: Document, url: string): void {
+  const scrollview = document.querySelector('#scrollview[aria-hidden="true"]');
+  if (scrollview) {
+    scrollview.removeAttribute("aria-hidden");
+  }
+  if (!isFacebookHost(url)) {
+    return;
+  }
+  for (const dialog of document.querySelectorAll('[role="dialog"]')) {
+    if (dialog.querySelector('[role="article"]')) {
+      dialog.removeAttribute("role");
+      dialog.removeAttribute("aria-modal");
+    } else if (
+      /log in|sign up|create new account/i.test(dialog.textContent ?? "")
+    ) {
+      dialog.remove();
+    }
+  }
+}
+
+/**
  * Extracts the main content with Defuddle. Its async extractors (YouTube
  * transcripts, Reddit/X/Bilibili APIs, ...) stay disabled: they make their own
  * HTTP requests, which would bypass the crawler's proxy settings. The sync
@@ -255,6 +281,8 @@ export function extractReadableContent(
     normalizeLazyLoadImages(sourceDocument);
     if (isAmazonHost(url)) {
       removeAmazonHiddenElements(sourceDocument);
+    } else if (isFacebookHost(url) || isThreadsHost(url)) {
+      unwrapMetaModalContainers(sourceDocument, url);
     }
     const purify = DOMPurify(purifyWindow);
     // Defuddle clones internally and leaves `sourceDocument` intact;
