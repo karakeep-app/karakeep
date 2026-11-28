@@ -173,6 +173,7 @@ const allEnv = z.object({
   CRAWLER_DOMAIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().min(1).optional(),
   CRAWLER_DOMAIN_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().min(1).optional(),
   CRAWLER_PREFLIGHT_USER_AGENT: z.string().optional(),
+  CRAWLER_IGNORE_HTTPS_ERRORS: stringBool("false"),
   SANDBOX_REMOTE_SERVER_ENABLED: stringBool("false"),
   SANDBOX_REMOTE_URL: z.string().url().optional(),
   SANDBOX_REMOTE_TOKEN: z
@@ -523,6 +524,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
             }
           : null,
       preflightUserAgent: val.CRAWLER_PREFLIGHT_USER_AGENT,
+      ignoreHttpsErrors: val.CRAWLER_IGNORE_HTTPS_ERRORS,
     },
     sandbox: {
       serverEnabled: val.SANDBOX_REMOTE_SERVER_ENABLED,

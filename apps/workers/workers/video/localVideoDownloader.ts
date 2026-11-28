@@ -32,6 +32,9 @@ function prepareYtDlpArguments(
   ytDlpArguments.push(...serverConfig.crawler.ytDlpArguments);
   ytDlpArguments.push("-o", assetPath);
   ytDlpArguments.push("--no-playlist");
+  if (serverConfig.crawler.ignoreHttpsErrors) {
+    ytDlpArguments.push("--no-check-certificates");
+  }
   if (proxy) {
     ytDlpArguments.push("--proxy", proxy);
   }
@@ -44,7 +47,10 @@ export const localVideoDownloader: VideoDownloader = {
     try {
       const resolvedUrl = await resolveValidatedRedirectUrl(
         url,
-        { signal: abortSignal },
+        {
+          signal: abortSignal,
+          ignoreHttpsErrors: serverConfig.crawler.ignoreHttpsErrors,
+        },
         runProxy,
       );
       normalizedUrl = resolvedUrl.toString();

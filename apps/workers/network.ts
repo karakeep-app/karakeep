@@ -279,11 +279,22 @@ export function createPinnedLookup(addresses: string[]): LookupFunction {
   };
 }
 
-function getPinnedDnsAgent(url: URL, addresses: string[]) {
-  const options = { lookup: createPinnedLookup(addresses) };
-  return url.protocol === "https:"
-    ? new https.Agent(options)
-    : new http.Agent(options);
+function getDirectAgent(
+  url: URL,
+  addresses: string[] | undefined,
+  ignoreHttpsErrors: boolean,
+) {
+  const lookup = addresses ? createPinnedLookup(addresses) : undefined;
+  if (url.protocol === "https:") {
+    if (!lookup && !ignoreHttpsErrors) {
+      return undefined;
+    }
+    return new https.Agent({
+      lookup,
+      rejectUnauthorized: !ignoreHttpsErrors,
+    });
+  }
+  return lookup ? new http.Agent({ lookup }) : undefined;
 }
 
 export function getRandomProxy(proxyList: string[]): string {
@@ -324,7 +335,11 @@ export function selectRunProxies(): RunProxyConfig {
   };
 }
 
-export function getProxyAgent(url: string, runProxy?: RunProxyConfig) {
+export function getProxyAgent(
+  url: string,
+  runProxy?: RunProxyConfig,
+  { ignoreHttpsErrors = false }: { ignoreHttpsErrors?: boolean } = {},
+) {
   const httpProxy = runProxy
     ? runProxy.httpProxy
     : serverConfig.proxy.httpProxy
@@ -350,7 +365,14 @@ export function getProxyAgent(url: string, runProxy?: RunProxyConfig) {
   }
 
   if (protocol === "https:" && httpsProxy) {
-    return new HttpsProxyAgent(httpsProxy);
+    const agent = new HttpsProxyAgent(httpsProxy);
+    if (ignoreHttpsErrors) {
+      // The constructor options only apply to the connection to the proxy.
+      // The agent's own options are merged into each request's options, which
+      // are what the TLS connection to the target site is made with.
+      agent.options.rejectUnauthorized = false;
+    }
+    return agent;
   } else if (protocol === "http:" && httpProxy) {
     return new HttpProxyAgent(httpProxy);
   } else if (httpProxy) {
@@ -439,12 +461,17 @@ function closeResponseBody(response: Response): void {
 export type FetchWithProxyOptions = Omit<
   RequestInit & {
     maxRedirects?: number;
+    // Skip TLS certificate verification (e.g. expired or self-signed
+    // certificates). Off by default; the crawler opts in through
+    // CRAWLER_IGNORE_HTTPS_ERRORS.
+    ignoreHttpsErrors?: boolean;
   },
   "agent"
 >;
 
 interface PreparedFetchOptions {
   maxRedirects: number;
+  ignoreHttpsErrors: boolean;
   baseHeaders: Headers;
   method: string;
   body?: RequestInit["body"];
@@ -456,6 +483,7 @@ export function prepareFetchOptions(
 ): PreparedFetchOptions {
   const {
     maxRedirects = 5,
+    ignoreHttpsErrors = false,
     headers: initHeaders,
     method: initMethod,
     body: initBody,
@@ -467,6 +495,7 @@ export function prepareFetchOptions(
 
   return {
     maxRedirects,
+    ignoreHttpsErrors,
     baseHeaders: cloneHeaders(initHeaders),
     method: initMethod?.toUpperCase?.() ?? "GET",
     body: initBody,
@@ -506,6 +535,7 @@ export const fetchWithProxy = async (
 ) => {
   const {
     maxRedirects,
+    ignoreHttpsErrors,
     baseHeaders,
     method: preparedMethod,
     body: preparedBody,
@@ -518,7 +548,9 @@ export const fetchWithProxy = async (
   let currentBody = preparedBody;
 
   while (true) {
-    const proxyAgent = getProxyAgent(currentUrl, runProxy);
+    const proxyAgent = getProxyAgent(currentUrl, runProxy, {
+      ignoreHttpsErrors,
+    });
 
     const validation = await validateUrl(currentUrl, !!proxyAgent);
     if (!validation.ok) {
@@ -528,9 +560,11 @@ export const fetchWithProxy = async (
     currentUrl = requestUrl.toString();
     const agent =
       proxyAgent ??
-      (validation.resolvedAddresses
-        ? getPinnedDnsAgent(requestUrl, validation.resolvedAddresses)
-        : undefined);
+      getDirectAgent(
+        requestUrl,
+        validation.resolvedAddresses,
+        ignoreHttpsErrors,
+      );
 
     const response = await fetch(
       currentUrl,
@@ -581,14 +615,15 @@ export async function resolveValidatedRedirectUrl(
   url: string,
   options: Pick<
     FetchWithProxyOptions,
-    "headers" | "maxRedirects" | "signal"
+    "headers" | "maxRedirects" | "signal" | "ignoreHttpsErrors"
   > = {},
   runProxy?: RunProxyConfig,
 ): Promise<URL> {
-  const { maxRedirects, baseHeaders, baseOptions } = prepareFetchOptions({
-    ...options,
-    method: "GET",
-  });
+  const { maxRedirects, ignoreHttpsErrors, baseHeaders, baseOptions } =
+    prepareFetchOptions({
+      ...options,
+      method: "GET",
+    });
 
   let redirectsRemaining = maxRedirects;
   let currentUrl = url;
@@ -600,7 +635,9 @@ export async function resolveValidatedRedirectUrl(
           options.signal as globalThis.AbortSignal,
         ])
       : AbortSignal.timeout(5000);
-    const proxyAgent = getProxyAgent(currentUrl, runProxy);
+    const proxyAgent = getProxyAgent(currentUrl, runProxy, {
+      ignoreHttpsErrors,
+    });
     const validation = await validateUrl(currentUrl, !!proxyAgent);
     if (!validation.ok) {
       throw new Error(validation.reason);
@@ -610,9 +647,11 @@ export async function resolveValidatedRedirectUrl(
     currentUrl = requestUrl.toString();
     const agent =
       proxyAgent ??
-      (validation.resolvedAddresses
-        ? getPinnedDnsAgent(requestUrl, validation.resolvedAddresses)
-        : undefined);
+      getDirectAgent(
+        requestUrl,
+        validation.resolvedAddresses,
+        ignoreHttpsErrors,
+      );
 
     const response = await fetch(
       currentUrl,
