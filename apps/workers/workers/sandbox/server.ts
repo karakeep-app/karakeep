@@ -16,7 +16,7 @@ import { bearerAuth } from "hono/bearer-auth";
 import { stream } from "hono/streaming";
 import type { z } from "zod";
 
-import { ASSET_TYPES, newAssetId } from "@karakeep/shared-server";
+import { newAssetId } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 import { tryCatch } from "@karakeep/shared/tryCatch";
@@ -358,7 +358,7 @@ export function buildSandboxRoutes(token: string) {
           return sendFile(
             c,
             logError,
-            tempFile(result.path, ASSET_TYPES.VIDEO_MP4),
+            tempFile(result.path, result.contentType),
           );
       }
     })

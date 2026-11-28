@@ -5,12 +5,13 @@ import fs, { createWriteStream } from "fs";
 import path from "path";
 import { pipeline } from "stream/promises";
 
+import { VIDEO_ASSET_TYPES } from "@karakeep/shared-server";
 import { tryCatch } from "@karakeep/shared/tryCatch";
 
 import type { VideoDownloader } from "./common";
 import { SKIP_REASON_HEADER, WORK_FAILED_STATUS } from "../sandbox/protocol";
 import { bodyStream, postToSandbox, SandboxError } from "../sandbox/client";
-import { VIDEO_TMP_FOLDER } from "./common";
+import { detectVideoContentType, VIDEO_TMP_FOLDER } from "./common";
 
 export const remoteVideoDownloader: VideoDownloader = {
   download: async ({ jobId, url, runProxy, assetId, abortSignal }) => {
@@ -47,6 +48,15 @@ export const remoteVideoDownloader: VideoDownloader = {
       await tryCatch(fs.promises.rm(assetPath, { force: true }));
       throw e;
     }
-    return { status: "downloaded", path: assetPath };
+    const rawContentType = response.headers
+      .get("content-type")
+      ?.split(";")[0]
+      ?.trim()
+      .toLowerCase();
+    const contentType =
+      rawContentType && VIDEO_ASSET_TYPES.has(rawContentType)
+        ? rawContentType
+        : await detectVideoContentType(assetPath);
+    return { status: "downloaded", path: assetPath, contentType };
   },
 };

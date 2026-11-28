@@ -10,6 +10,7 @@ import path from "path";
 
 import type { RunProxyConfig } from "../../network";
 
+import { ASSET_TYPES } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 
 /** Where the videos are downloaded to before they're saved as assets. */
@@ -28,11 +29,69 @@ export interface VideoDownloadRequest {
 
 export type VideoDownloadResult =
   /** The video is at path. */
-  | { status: "downloaded"; path: string }
+  | { status: "downloaded"; path: string; contentType: string }
   /** There's nothing to download, e.g. the URL isn't one yt-dlp supports. */
   | { status: "skipped"; reason: string }
   /** yt-dlp failed. Retrying the job isn't expected to help. */
   | { status: "failed"; reason: string };
+
+const EXTENSION_CONTENT_TYPES: Record<string, ASSET_TYPES> = {
+  ".mp4": ASSET_TYPES.VIDEO_MP4,
+  ".m4v": ASSET_TYPES.VIDEO_MP4,
+  ".webm": ASSET_TYPES.VIDEO_WEBM,
+  ".mkv": ASSET_TYPES.VIDEO_MKV,
+};
+
+/**
+ * Detects the video MIME type from container magic bytes, falling back to the
+ * file extension and finally `video/mp4` so AssetStore validation always passes.
+ */
+export async function detectVideoContentType(
+  filePath: string,
+): Promise<string> {
+  try {
+    const fh = await fs.promises.open(filePath, "r");
+    try {
+      const buf = Buffer.alloc(64);
+      const { bytesRead } = await fh.read(buf, 0, buf.length, 0);
+      const header = buf.subarray(0, bytesRead);
+
+      // ISO Base Media File Format (MP4): "ftyp" box at bytes 4..8
+      if (
+        bytesRead >= 8 &&
+        header.subarray(4, 8).toString("ascii") === "ftyp"
+      ) {
+        return ASSET_TYPES.VIDEO_MP4;
+      }
+
+      // EBML container (WebM / Matroska): magic 0x1A 0x45 0xDF 0xA3
+      if (
+        bytesRead >= 4 &&
+        header[0] === 0x1a &&
+        header[1] === 0x45 &&
+        header[2] === 0xdf &&
+        header[3] === 0xa3
+      ) {
+        const headerStr = header.toString("ascii");
+        if (headerStr.includes("webm")) {
+          return ASSET_TYPES.VIDEO_WEBM;
+        }
+        if (headerStr.includes("matroska")) {
+          return ASSET_TYPES.VIDEO_MKV;
+        }
+        const ext = path.extname(filePath).toLowerCase();
+        return ext === ".mkv" ? ASSET_TYPES.VIDEO_MKV : ASSET_TYPES.VIDEO_WEBM;
+      }
+    } finally {
+      await fh.close();
+    }
+  } catch {
+    // Fall back to file extension below.
+  }
+
+  const ext = path.extname(filePath).toLowerCase();
+  return EXTENSION_CONTENT_TYPES[ext] ?? ASSET_TYPES.VIDEO_MP4;
+}
 
 export interface VideoDownloader {
   /**
