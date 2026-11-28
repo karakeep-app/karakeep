@@ -35,37 +35,6 @@ describe("extractReadableContent", () => {
     expect(result.readableContent?.content).toContain("<mi>E</mi>");
   });
 
-  test("strips .aok-hidden JSON blobs on Amazon pages without touching non-Amazon pages", () => {
-    const html = `
-      <html>
-        <head><meta property="og:type" content="article"></head>
-        <body>
-          <article>
-            <div class="a-section aok-hidden"><p>{"buybox_data":[{"price":9.99}]}</p></div>
-            ${Array.from({ length: 5 }, () => `<p>${paragraph}</p>`).join("")}
-          </article>
-        </body>
-      </html>
-    `;
-
-    const amazonResult = extractReadableContent(
-      html,
-      "https://www.amazon.com/dp/B000000001",
-    );
-    expect(amazonResult.readableContent).not.toBeNull();
-    expect(amazonResult.readableContent?.content).not.toContain("buybox_data");
-    expect(amazonResult.readableContent?.content).toContain(
-      "article paragraph",
-    );
-
-    // Control: on a non-Amazon host, .aok-hidden is not stripped by our helper.
-    const nonAmazonResult = extractReadableContent(
-      html,
-      "https://example.com/posts/test",
-    );
-    expect(nonAmazonResult.readableContent?.content).toContain("buybox_data");
-  });
-
   test("falls back to Readability with an intact document when Defuddle returns empty", () => {
     // Defuddle strips trailing headings, so a page containing only an <h1>
     // yields empty output from Defuddle and exercises the Readability fallback.

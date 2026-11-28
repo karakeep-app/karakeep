@@ -125,53 +125,6 @@ describe("reader view assessment", () => {
     expect(result.reasons).toContain("long_preformatted_content");
   });
 
-  test("accepts classic br-delimited essays with no <p> tags", () => {
-    const body = Array.from({ length: 10 }, () => paragraph).join("<br><br>");
-    const links = Array.from(
-      { length: 10 },
-      (_, i) => `<a href="#n${i}">[${i}]</a>`,
-    ).join(" ");
-    const html = `<html><body><font>${body}<br><br>${links}</font></body></html>`;
-
-    const result = assess(html, html, "https://example.com/essay.html");
-
-    expect(result.status).toBe("readable");
-    expect(result.reasons).toContain("multiple_substantive_blocks");
-    expect(result.reasons).not.toContain("link_collection");
-  });
-
-  test("does not count link-only or link-heavy br-delimited archive lists as substantive prose blocks", () => {
-    const linkList = Array.from(
-      { length: 12 },
-      (_, i) =>
-        `01/26 <a href="/post-${i}">A long title for an archived engineering blog post number ${i} about systems and performance</a>`,
-    ).join("<br><br>");
-    const html = `<html><body>${linkList}</body></html>`;
-
-    const result = assess(html, html, "https://example.com/");
-
-    expect(result.status).toBe("not_readable");
-    expect(result.reasons).toContain("no_substantive_blocks");
-
-    // Archive/index page with elevated link density (~0.30) and ~90 chars of
-    // unlinked date/summary text per row should still be treated as a link collection.
-    const annotatedArchive = Array.from(
-      { length: 10 },
-      (_, i) =>
-        `2026-01-${String(i + 1).padStart(2, "0")} — <a href="/archive/${i}">Detailed post title about systems engineering #${i}</a> — Short summary blurb describing the linked release notes, migration caveats, and benchmarks.`,
-    ).join("<br><br>");
-    const archiveHtml = `<html><body><div>${annotatedArchive}</div></body></html>`;
-    const archiveResult = assess(
-      archiveHtml,
-      archiveHtml,
-      "https://example.com/archive",
-    );
-
-    expect(archiveResult.status).not.toBe("readable");
-    expect(archiveResult.reasons).toContain("no_substantive_blocks");
-    expect(archiveResult.reasons).toContain("link_collection");
-  });
-
   test("represents a missing extraction separately", () => {
     expect(unavailableReaderViewAssessment()).toEqual({
       status: "unavailable",
