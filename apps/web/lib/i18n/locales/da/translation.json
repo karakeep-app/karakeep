@@ -1777,5 +1777,19 @@
     "go_back": "Gå tilbage",
     "go_home": "Gå til forsiden",
     "try_again": "Prøv igen"
+  },
+  "item_history": {
+    "title": "Ændringshistorik",
+    "retention": "Ændringer er tilgængelige i 90 dage. Slettede filer kan ikke gendannes.",
+    "loading": "Indlæser historik…",
+    "retry": "Prøv igen",
+    "deleted": "Slettede elementer",
+    "changed": "Element opdateret",
+    "empty": "Ingen ændringer inden for de seneste 90 dage.",
+    "more": "Indlæs flere",
+    "actor_user": "Bruger",
+    "actor_system": "System",
+    "previous": "Tidligere værdi",
+    "current": "Ny værdi"
   }
 }

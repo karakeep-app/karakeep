@@ -1759,5 +1759,19 @@
     "go_back": "Quay lại",
     "go_home": "Về trang chủ",
     "try_again": "Thử lại"
+  },
+  "item_history": {
+    "title": "Lịch sử thay đổi",
+    "retention": "Các thay đổi được lưu trong 90 ngày. Không thể khôi phục tệp đã xóa.",
+    "loading": "Đang tải lịch sử…",
+    "retry": "Thử lại",
+    "deleted": "Các mục đã xóa",
+    "changed": "Đã cập nhật mục",
+    "empty": "Không có thay đổi nào trong 90 ngày qua.",
+    "more": "Tải thêm",
+    "actor_user": "Người dùng",
+    "actor_system": "Hệ thống",
+    "previous": "Giá trị trước",
+    "current": "Giá trị mới"
   }
 }

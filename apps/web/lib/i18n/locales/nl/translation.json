@@ -1777,5 +1777,19 @@
     "go_back": "Ga terug",
     "go_home": "Naar home",
     "try_again": "Probeer opnieuw"
+  },
+  "item_history": {
+    "title": "Wijzigingsgeschiedenis",
+    "retention": "Wijzigingen zijn 90 dagen beschikbaar. Verwijderde bestanden kunnen niet worden hersteld.",
+    "loading": "Geschiedenis laden…",
+    "retry": "Opnieuw proberen",
+    "deleted": "Verwijderde items",
+    "changed": "Item bijgewerkt",
+    "empty": "Geen wijzigingen in de afgelopen 90 dagen.",
+    "more": "Meer laden",
+    "actor_user": "Gebruiker",
+    "actor_system": "Systeem",
+    "previous": "Vorige waarde",
+    "current": "Nieuwe waarde"
   }
 }

@@ -1798,5 +1798,19 @@
     "go_back": "Retour",
     "go_home": "Aller à l'accueil",
     "try_again": "Réessayer"
+  },
+  "item_history": {
+    "title": "Historique des modifications",
+    "retention": "Les modifications sont disponibles pendant 90 jours. Les fichiers supprimés ne peuvent pas être restaurés.",
+    "loading": "Chargement de l’historique…",
+    "retry": "Réessayer",
+    "deleted": "Éléments supprimés",
+    "changed": "Élément mis à jour",
+    "empty": "Aucune modification au cours des 90 derniers jours.",
+    "more": "Charger plus",
+    "actor_user": "Utilisateur",
+    "actor_system": "Système",
+    "previous": "Valeur précédente",
+    "current": "Nouvelle valeur"
   }
 }

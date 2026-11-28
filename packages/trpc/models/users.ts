@@ -1,3 +1,8 @@
+import {
+  historySnapshot,
+  recordHistory,
+  listHistoryIds,
+} from "../lib/bookmarkHistory";
 import { TRPCError } from "@trpc/server";
 import { and, count, desc, eq, gte, lte, sql } from "drizzle-orm";
 import invariant from "tiny-invariant";
@@ -10,6 +15,7 @@ import {
   AssetTypes,
   bookmarkLinks,
   bookmarkLists,
+  listCollaborators,
   bookmarks,
   bookmarkTags,
   highlights,
@@ -180,7 +186,37 @@ export class User {
   private static async deleteInternal(db: Context["db"], userId: string) {
     await User.assertNoActiveStripeSubscriptionForUser(db, userId);
 
-    const res = await db.delete(users).where(eq(users.id, userId));
+    // Account deletion can remove shared-list memberships from surviving users' items.
+    const res = db.transaction(
+      (tx) => {
+        const lists = tx
+          .select({ id: bookmarkLists.id })
+          .from(bookmarkLists)
+          .where(eq(bookmarkLists.userId, userId))
+          .all();
+        const memberships = tx
+          .select({ id: listCollaborators.listId })
+          .from(listCollaborators)
+          .where(eq(listCollaborators.userId, userId))
+          .all();
+        // Snapshot those surviving items before FK cascades. The deleted user's
+        // own history is erased by its owner FK and must not be recreated.
+        const before = [
+          ...new Set(
+            listHistoryIds(
+              tx,
+              [...lists, ...memberships].map((l) => l.id),
+            ),
+          ),
+        ]
+          .map((id) => historySnapshot(tx, id))
+          .filter((s) => s.item.userId !== userId);
+        const result = tx.delete(users).where(eq(users.id, userId)).run();
+        for (const snapshot of before) recordHistory(tx, snapshot, null);
+        return result;
+      },
+      { behavior: "immediate" },
+    );
 
     if (res.changes === 0) {
       throw new TRPCError({ code: "NOT_FOUND" });

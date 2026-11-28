@@ -246,6 +246,8 @@ export const zAdminMaintenanceTaskSchema = z.discriminatedUnion("type", [
   zTidyAssetsTaskSchema,
   zMigrateLargeLinkHtmlTaskSchema,
   zPurgeBookmarksOverQuotaTaskSchema,
+  // Scheduled internally at maintenance startup and daily; cleanup is safe to retry.
+  z.object({ type: z.literal("expire_bookmark_history") }),
 ]);
 
 export type ZAdminMaintenanceTask = z.infer<typeof zAdminMaintenanceTaskSchema>;

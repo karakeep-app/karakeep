@@ -1798,5 +1798,19 @@
     "go_back": "Natrag",
     "go_home": "Na početnu",
     "try_again": "Pokušaj ponovno"
+  },
+  "item_history": {
+    "title": "Povijest promjena",
+    "retention": "Promjene su dostupne 90 dana. Izbrisane datoteke nije moguće vratiti.",
+    "loading": "Učitavanje povijesti…",
+    "retry": "Pokušaj ponovno",
+    "deleted": "Izbrisane stavke",
+    "changed": "Stavka je ažurirana",
+    "empty": "Nema promjena u posljednjih 90 dana.",
+    "more": "Učitaj više",
+    "actor_user": "Korisnik",
+    "actor_system": "Sustav",
+    "previous": "Prethodna vrijednost",
+    "current": "Nova vrijednost"
   }
 }

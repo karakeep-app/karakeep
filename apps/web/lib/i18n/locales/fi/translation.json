@@ -1777,5 +1777,19 @@
     "go_back": "Palaa takaisin",
     "go_home": "Siirry etusivulle",
     "try_again": "Yritä uudelleen"
+  },
+  "item_history": {
+    "title": "Muutoshistoria",
+    "retention": "Muutokset ovat saatavilla 90 päivän ajan. Poistettuja tiedostoja ei voi palauttaa.",
+    "loading": "Ladataan historiaa…",
+    "retry": "Yritä uudelleen",
+    "deleted": "Poistetut kohteet",
+    "changed": "Kohde päivitetty",
+    "empty": "Ei muutoksia viimeisten 90 päivän aikana.",
+    "more": "Lataa lisää",
+    "actor_user": "Käyttäjä",
+    "actor_system": "Järjestelmä",
+    "previous": "Edellinen arvo",
+    "current": "Uusi arvo"
   }
 }

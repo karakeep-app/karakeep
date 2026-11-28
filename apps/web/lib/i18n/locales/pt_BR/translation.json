@@ -1798,5 +1798,19 @@
     "go_back": "Voltar",
     "go_home": "Ir para o início",
     "try_again": "Tentar novamente"
+  },
+  "item_history": {
+    "title": "Histórico de alterações",
+    "retention": "As alterações ficam disponíveis por 90 dias. Os arquivos excluídos não podem ser restaurados.",
+    "loading": "Carregando histórico…",
+    "retry": "Tentar novamente",
+    "deleted": "Itens excluídos",
+    "changed": "Item atualizado",
+    "empty": "Nenhuma alteração nos últimos 90 dias.",
+    "more": "Carregar mais",
+    "actor_user": "Usuário",
+    "actor_system": "Sistema",
+    "previous": "Valor anterior",
+    "current": "Novo valor"
   }
 }

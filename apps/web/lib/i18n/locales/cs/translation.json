@@ -1819,5 +1819,19 @@
     "go_back": "Zpět",
     "go_home": "Přejít domů",
     "try_again": "Zkusit znovu"
+  },
+  "item_history": {
+    "title": "Historie změn",
+    "retention": "Změny jsou k dispozici po dobu 90 dnů. Smazané soubory nelze obnovit.",
+    "loading": "Načítání historie…",
+    "retry": "Zkusit znovu",
+    "deleted": "Smazané položky",
+    "changed": "Položka aktualizována",
+    "empty": "Za posledních 90 dnů nebyly provedeny žádné změny.",
+    "more": "Načíst další",
+    "actor_user": "Uživatel",
+    "actor_system": "Systém",
+    "previous": "Předchozí hodnota",
+    "current": "Nová hodnota"
   }
 }

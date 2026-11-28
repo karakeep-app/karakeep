@@ -1777,5 +1777,19 @@
     "go_back": "Vissza",
     "go_home": "Ugrás a kezdőlapra",
     "try_again": "Próbáld újra"
+  },
+  "item_history": {
+    "title": "Változástörténet",
+    "retention": "A változások 90 napig érhetők el. A törölt fájlok nem állíthatók vissza.",
+    "loading": "Előzmények betöltése…",
+    "retry": "Újrapróbálkozás",
+    "deleted": "Törölt elemek",
+    "changed": "Elem frissítve",
+    "empty": "Nem történt változás az elmúlt 90 napban.",
+    "more": "Továbbiak betöltése",
+    "actor_user": "Felhasználó",
+    "actor_system": "Rendszer",
+    "previous": "Korábbi érték",
+    "current": "Új érték"
   }
 }

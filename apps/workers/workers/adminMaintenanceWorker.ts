@@ -1,3 +1,5 @@
+import { expireHistory } from "./adminMaintenance/tasks/expireBookmarkHistory";
+import cron from "node-cron";
 import {
   AdminMaintenanceQueue,
   ZAdminMaintenanceMigrateLargeLinkHtmlTask,
@@ -59,7 +61,27 @@ export class AdminMaintenanceWorker {
         },
       );
 
-    return worker;
+    // Use the existing queue for retries and metrics. Startup catches up after
+    // downtime; the daily UTC schedule keeps cleanup tied to this worker's lifecycle.
+    const cleanup = () =>
+      AdminMaintenanceQueue.enqueue({ type: "expire_bookmark_history" }).catch(
+        (error) => logger.error(`History cleanup failed: ${error}`),
+      );
+    const schedule = cron.schedule("0 3 * * *", cleanup, {
+      scheduled: false,
+      timezone: "UTC",
+    });
+    return {
+      run: async () => {
+        schedule.start();
+        void cleanup();
+        return worker.run();
+      },
+      stop: async () => {
+        schedule.stop();
+        return worker.stop();
+      },
+    };
   }
 }
 
@@ -75,6 +97,8 @@ async function runAdminMaintenance(job: DequeuedJob<ZAdminMaintenanceTask>) {
   const task = parsed.data;
 
   switch (task.type) {
+    case "expire_bookmark_history":
+      return expireHistory();
     case "tidy_assets":
       return runTidyAssetsTask(
         job as DequeuedJob<ZAdminMaintenanceTidyAssetsTask>,

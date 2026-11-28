@@ -1,3 +1,4 @@
+import { historySnapshot, recordHistory } from "../lib/bookmarkHistory";
 import { createHash } from "node:crypto";
 
 import { TRPCError } from "@trpc/server";
@@ -1052,14 +1053,35 @@ export class Bookmark extends BareBookmark {
 
   async delete() {
     this.ensureOwnership();
-    const deleted = await this.ctx.db
-      .delete(bookmarks)
-      .where(
-        and(
-          eq(bookmarks.userId, this.ctx.user.id),
-          eq(bookmarks.id, this.bookmark.id),
-        ),
-      );
+    // Retain the deletion event atomically before downstream index/file cleanup.
+    const deleted = this.ctx.db.transaction(
+      (tx) => {
+        const before = historySnapshot(tx, this.bookmark.id);
+        const result = tx
+          .delete(bookmarks)
+          .where(
+            and(
+              eq(bookmarks.userId, this.ctx.user.id),
+              eq(bookmarks.id, this.bookmark.id),
+            ),
+          )
+          .run();
+        if (result.changes)
+          recordHistory(
+            tx,
+            before,
+            this.ctx.auth?.type === "internal" ? null : this.ctx.user.id,
+            true,
+            this.ctx.auth?.type === "apiKey"
+              ? "apiKey"
+              : this.ctx.auth?.type === "internal"
+                ? "system"
+                : "user",
+          );
+        return result;
+      },
+      { behavior: "immediate" },
+    );
 
     await SearchIndexingQueue.enqueue(
       {

@@ -1,0 +1,1 @@
+ALTER TABLE `bookmarkHistory` ADD `actorKind` text DEFAULT 'user' NOT NULL;

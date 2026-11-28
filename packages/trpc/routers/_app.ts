@@ -1,4 +1,5 @@
-import { router } from "../index";
+import { bookmarkHistoryRouter } from "./bookmarkHistory";
+import { router, mergeRouters } from "../index";
 import { adminAppRouter } from "./admin";
 import { apiKeysAppRouter } from "./apiKeys";
 import { assetsAppRouter } from "./assets";
@@ -20,7 +21,7 @@ import { usersAppRouter } from "./users";
 import { webhooksAppRouter } from "./webhooks";
 
 export const appRouter = router({
-  bookmarks: bookmarksAppRouter,
+  bookmarks: mergeRouters(bookmarksAppRouter, bookmarkHistoryRouter),
   apiKeys: apiKeysAppRouter,
   users: usersAppRouter,
   lists: listsAppRouter,

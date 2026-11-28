@@ -1777,5 +1777,19 @@
     "go_back": "Zurück",
     "go_home": "Zur Startseite",
     "try_again": "Erneut versuchen"
+  },
+  "item_history": {
+    "title": "Änderungsverlauf",
+    "retention": "Änderungen sind 90 Tage lang verfügbar. Gelöschte Dateien können nicht wiederhergestellt werden.",
+    "loading": "Verlauf wird geladen…",
+    "retry": "Erneut versuchen",
+    "deleted": "Gelöschte Einträge",
+    "changed": "Eintrag aktualisiert",
+    "empty": "Keine Änderungen in den letzten 90 Tagen.",
+    "more": "Mehr laden",
+    "actor_user": "Benutzer",
+    "actor_system": "System",
+    "previous": "Vorheriger Wert",
+    "current": "Neuer Wert"
   }
 }

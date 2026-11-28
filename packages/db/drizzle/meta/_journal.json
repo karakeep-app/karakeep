@@ -687,6 +687,20 @@
       "when": 1794141285242,
       "tag": "0097_assets_highlights_pagination_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "6",
+      "when": 1794939878076,
+      "tag": "0098_bookmark_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "6",
+      "when": 1794940267305,
+      "tag": "0099_history_actor_kind",
+      "breakpoints": true
     }
   ]
 }

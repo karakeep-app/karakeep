@@ -1819,5 +1819,19 @@
     "go_back": "Späť",
     "go_home": "Prejsť domov",
     "try_again": "Skúsiť znova"
+  },
+  "item_history": {
+    "title": "História zmien",
+    "retention": "Zmeny sú k dispozícii 90 dní. Odstránené súbory sa nedajú obnoviť.",
+    "loading": "Načítava sa história…",
+    "retry": "Skúsiť znova",
+    "deleted": "Odstránené položky",
+    "changed": "Položka aktualizovaná",
+    "empty": "Žiadne zmeny za posledných 90 dní.",
+    "more": "Načítať ďalšie",
+    "actor_user": "Používateľ",
+    "actor_system": "Systém",
+    "previous": "Predchádzajúca hodnota",
+    "current": "Nová hodnota"
   }
 }
