@@ -14,6 +14,7 @@ export const zUserLocalSettings = z.object({
   showTitle: z.boolean().optional().default(true),
   showNewItemCard: z.boolean().optional().default(true),
   imageFit: z.enum(["cover", "contain"]).optional().default("cover"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 export type UserLocalSettings = z.infer<typeof zUserLocalSettings>;
