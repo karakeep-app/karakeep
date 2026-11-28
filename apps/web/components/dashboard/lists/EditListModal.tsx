@@ -332,6 +332,9 @@ export function EditListModal({
                             value={field.value}
                             onChange={field.onChange}
                             placeholder={t("lists.no_parent")}
+                            unavailablePlaceholder={t(
+                              "lists.unavailable_parent",
+                            )}
                           />
                         </FormControl>
                         {field.value && (

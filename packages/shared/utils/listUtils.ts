@@ -30,8 +30,11 @@ export function listsToTree(lists: ZBookmarkList[]) {
   // Build the tree
   lists.forEach((list) => {
     const node = refIdx[list.id];
-    if (list.parentId) {
-      refIdx[list.parentId].children.push(node);
+    // The parent can be missing when it belongs to someone else who no
+    // longer shares it with the user. Show the list at the top level then.
+    const parent = list.parentId ? refIdx[list.parentId] : undefined;
+    if (parent) {
+      parent.children.push(node);
     } else {
       root[list.id] = node;
     }
