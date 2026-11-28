@@ -186,12 +186,13 @@ export class User {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
 
-    await deleteUserAssets({ userId: userId });
-
     // The user's bookmarks are cascade deleted from the DB, so no per-bookmark
     // delete jobs get enqueued for them. Purge their documents from the
-    // search index and the vector store explicitly.
-    await Promise.all([
+    // search index and the vector store explicitly. The user row is already
+    // gone, so a retry would hit NOT_FOUND: run every cleanup step even if
+    // another one fails, then surface the first failure.
+    const results = await Promise.allSettled([
+      deleteUserAssets({ userId: userId }),
       SearchIndexingQueue.enqueue(
         {
           userId,
@@ -211,6 +212,12 @@ export class User {
         },
       ),
     ]);
+    const failure = results.find(
+      (r): r is PromiseRejectedResult => r.status === "rejected",
+    );
+    if (failure) {
+      throw failure.reason;
+    }
   }
 
   static async deleteAsAdmin(

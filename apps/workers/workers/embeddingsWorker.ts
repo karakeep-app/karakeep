@@ -390,6 +390,22 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
         vector: data.embedding,
       };
       await vectorStoreClient.addVectors([document]);
+
+      // The bookmark (or its whole user) might have been deleted after the
+      // "embed" job read it, and the delete could have reached the store
+      // before this add. If it's gone now, remove the vector again.
+      const stillExists = await db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, bookmarkId),
+        columns: { id: true },
+      });
+      if (!stillExists) {
+        logger.info(
+          `[embeddings][${jobId}] Bookmark ${bookmarkId} was deleted while indexing, removing its embedding ...`,
+        );
+        await vectorStoreClient.deleteVectors([bookmarkId]);
+        return;
+      }
+
       logger.info(
         `[embeddings][${jobId}] Indexed embedding for bookmark ${bookmarkId} with ${data.embedding.length} dimensions`,
       );
