@@ -93,18 +93,20 @@ describe("extractReadableContent", () => {
       'href="https://example.com/posts/next.html"',
     );
 
-    // Valid HTML5 that omits the optional <body> tag.
-    const omittedBody = `<html><head><title>No Body Tag</title></head><main><article><h1>Omitted Body</h1><p>${paragraph}</p><p>${paragraph}</p></article></main></html>`;
-    const omittedBodyResult = extractReadableContent(
-      omittedBody,
-      "https://example.com/posts/omitted-body",
-    );
-    expect(omittedBodyResult.readableContent?.content).toContain(
-      "Omitted Body",
-    );
-    expect(omittedBodyResult.readableContent?.content).toContain(
-      "article paragraph",
-    );
+    // Valid HTML5 that omits <body>, and malformed HTML with content after </body>.
+    const bodyContent = `<div id="root"><h1>Omitted Body</h1>${Array.from({ length: 6 }, () => `<p>${paragraph}</p>`).join("")}</div>`;
+    for (const html of [
+      `<html><head><title>No Body Tag</title></head>${bodyContent}</html>`,
+      `<html><head><title>After Body</title></head><body></body>${bodyContent}</html>`,
+    ]) {
+      const result = extractReadableContent(
+        html,
+        "https://example.com/posts/body-reparent",
+      );
+      expect(result.readableContent?.content).toContain("Omitted Body");
+      expect(result.readableContent?.content).toContain("article paragraph");
+      expect(result.readerViewAssessment.status).toBe("readable");
+    }
   });
 
   test("sanitizes provided HTML and assesses reader view", () => {

@@ -48,28 +48,42 @@ function attachDocumentUrls(
 function parseSourceDocument(html: string, url: string): Document {
   let { document } = parseHTML(html);
   // Unlike JSDOM, linkedom doesn't synthesize `<html>`/`<body>` wrappers for
-  // fragments or empty strings, and leaves omitted `<body>` content as direct
-  // children of `<html>` (making `document.body` empty). Ensure we always have
-  // an `<html>` root with a `<body>` containing any non-`<head>` children.
+  // fragments or empty strings, and leaves omitted-`<body>` or post-`</body>`
+  // content as direct children of `<html>` (which breaks Defuddle and causes
+  // Readability's `BODY` ancestor walk to throw). Ensure we always have an
+  // `<html>` root with every non-`<head>` child inside `<body>`.
   if (document.documentElement?.tagName !== "HTML") {
     const wrapped = /<body[\s>/]/i.test(html)
       ? `<!doctype html><html>${html}</html>`
       : `<!doctype html><html><head></head><body>${html}</body></html>`;
     ({ document } = parseHTML(wrapped));
-  } else {
-    const root = document.documentElement;
-    const hasBody = Array.from(root.children).some(
+  }
+  const root = document.documentElement;
+  if (root) {
+    const existingContainer = Array.from(root.children).find(
       (el) => el.tagName === "BODY" || el.tagName === "FRAMESET",
     );
-    if (!hasBody) {
-      const body = document.createElement("body");
+    if (!existingContainer || existingContainer.tagName === "BODY") {
+      let body = existingContainer ?? null;
       for (const child of Array.from(root.childNodes)) {
-        if (child.nodeType === 1 && (child as Element).tagName === "HEAD") {
+        if (
+          child === body ||
+          (child.nodeType === 1 && (child as Element).tagName === "HEAD")
+        ) {
           continue;
+        }
+        if (body && child.nodeType === 3 && !(child.textContent ?? "").trim()) {
+          continue;
+        }
+        if (!body) {
+          body = document.createElement("body");
+          root.appendChild(body);
         }
         body.appendChild(child);
       }
-      root.appendChild(body);
+      if (!body) {
+        root.appendChild(document.createElement("body"));
+      }
     }
   }
 
