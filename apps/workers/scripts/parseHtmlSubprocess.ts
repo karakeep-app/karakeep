@@ -121,17 +121,18 @@ async function main() {
     JSON.parse(Buffer.concat(chunks).toString()),
   );
   const { htmlPath, url, jobId, metadataOnly } = input;
-  const [rawHtml, metascraperParser] = await Promise.all([
-    readFile(htmlPath, "utf8"),
-    buildMetascraperParser(url),
-  ]);
-  const parserInput = preprocessHtmlForMetadata(rawHtml);
-  if (parserInput.replacementCount > 0) {
+  const [{ htmlContent, replacementCount, replacedBytes }, metascraperParser] =
+    await Promise.all([
+      readFile(htmlPath, "utf8").then((rawHtml) =>
+        preprocessHtmlForMetadata(rawHtml),
+      ),
+      buildMetascraperParser(url),
+    ]);
+  if (replacementCount > 0) {
     logger.info(
-      `[Crawler][${jobId}] Replaced ${parserInput.replacementCount} embedded audio/video data URIs (${parserInput.replacedBytes} bytes) before parsing.`,
+      `[Crawler][${jobId}] Replaced ${replacementCount} embedded audio/video data URIs (${replacedBytes} bytes) before parsing.`,
     );
   }
-  const { htmlContent } = parserInput;
 
   logger.info(
     `[Crawler][${jobId}] Will attempt to extract metadata from page ...`,

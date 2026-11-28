@@ -103,6 +103,17 @@ describe("stripNonContentMarkupForDom", () => {
       "<p>Trailing content</p>",
     );
   });
+
+  test("handles mixed-case tags and skips non-matching close-tag prefixes", () => {
+    const html = [
+      "<STYLE>/* </stylesheet> */ .a{color:red}</StYlE>",
+      "<ScRiPt>var s = '</scripting>';</SCRIPT>",
+      "<div data-single='a > b <style>'><p>Kept</p></div>",
+    ].join("");
+
+    const stripped = stripNonContentMarkupForDom(html);
+    expect(stripped).toBe("<div data-single='a > b <style>'><p>Kept</p></div>");
+  });
 });
 
 describe("preprocessHtmlForMetadata", () => {

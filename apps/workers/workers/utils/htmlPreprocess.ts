@@ -26,6 +26,9 @@ const RAW_TEXT_SKIP_TAGS = new Set([
   "noframes",
 ]);
 
+const MIN_TRACKED_TAG_LENGTH = 3; // "xmp"
+const MAX_TRACKED_TAG_LENGTH = 8; // "textarea", "noframes"
+
 function isAsciiAlpha(code: number): boolean {
   return (
     (code >= 97 && code <= 122) || // a-z
@@ -39,13 +42,6 @@ function isTagNameChar(code: number): boolean {
     (code >= 48 && code <= 57) || // 0-9
     code === 45 // -
   );
-}
-
-function asciiLowerCase(input: string): string {
-  // Only fold ASCII A-Z so UTF-16 code-unit indices stay 1:1 with `input`
-  // (String.prototype.toLowerCase can expand characters like U+0130 'İ' from
-  // 1 code unit to 2, shifting all subsequent slice offsets).
-  return input.replace(/[A-Z]+/g, (run) => run.toLowerCase());
 }
 
 function isTagBoundaryChar(code: number): boolean {
@@ -67,16 +63,16 @@ function isTagBoundaryChar(code: number): boolean {
  */
 function findStartTagEnd(html: string, start: number): number {
   const len = html.length;
-  let quote = 0;
   for (let i = start; i < len; i++) {
     const code = html.charCodeAt(i);
-    if (quote !== 0) {
-      if (code === quote) {
-        quote = 0;
+    if (code === 34 || code === 39) {
+      // " or ' — skip quoted attribute values with native indexOf so large
+      // data-URI attributes don't scan character by character.
+      const closeQuote = html.indexOf(code === 34 ? '"' : "'", i + 1);
+      if (closeQuote === -1) {
+        return -1;
       }
-    } else if (code === 34 || code === 39) {
-      // " or '
-      quote = code;
+      i = closeQuote;
     } else if (code === 62) {
       // >
       return i;
@@ -86,32 +82,42 @@ function findStartTagEnd(html: string, start: number): number {
 }
 
 /**
- * Finds the end index (exclusive) of a matching closing tag `</tagName...>`
- * using a pre-lowercased copy of the HTML. Strictly linear across the document.
- * Returns -1 if no closing tag exists.
+ * Finds the start and end (exclusive) indices of a matching closing tag
+ * `</tagName...>` directly in `html` without allocating a lowercased copy.
+ * `tagName` must consist strictly of lowercase ASCII letters (`a-z`), so
+ * `(code | 32) === tagName.charCodeAt(j)` matches only that ASCII letter
+ * case-insensitively. Strictly linear across the document.
  */
-function findCloseTagEnd(
-  lower: string,
+function findCloseTag(
+  html: string,
   tagName: string,
   contentStart: number,
-): number {
-  const needle = `</${tagName}`;
-  const needleLen = needle.length;
-  const len = lower.length;
+): { start: number; end: number } | null {
+  const nameLen = tagName.length;
+  const len = html.length;
   let searchFrom = contentStart;
   while (searchFrom < len) {
-    const idx = lower.indexOf(needle, searchFrom);
+    const idx = html.indexOf("</", searchFrom);
     if (idx === -1) {
-      return -1;
+      return null;
     }
-    const afterName = idx + needleLen;
-    if (afterName < len && isTagBoundaryChar(lower.charCodeAt(afterName))) {
-      const gt = lower.indexOf(">", afterName);
-      return gt === -1 ? -1 : gt + 1;
+    const afterName = idx + 2 + nameLen;
+    if (afterName < len && isTagBoundaryChar(html.charCodeAt(afterName))) {
+      let matched = true;
+      for (let j = 0; j < nameLen; j++) {
+        if ((html.charCodeAt(idx + 2 + j) | 32) !== tagName.charCodeAt(j)) {
+          matched = false;
+          break;
+        }
+      }
+      if (matched) {
+        const gt = html.indexOf(">", afterName);
+        return gt === -1 ? null : { start: idx, end: gt + 1 };
+      }
     }
-    searchFrom = afterName;
+    searchFrom = idx + 2;
   }
-  return -1;
+  return null;
 }
 
 function shouldKeepScript(attrs: string, body: string): boolean {
@@ -152,13 +158,12 @@ export function stripHtmlElements(
     return html;
   }
 
-  const lower = asciiLowerCase(html);
   const out: string[] = [];
   let copyFrom = 0;
   let pos = 0;
 
   while (pos < len) {
-    const lt = lower.indexOf("<", pos);
+    const lt = html.indexOf("<", pos);
     if (lt === -1) {
       break;
     }
@@ -166,11 +171,11 @@ export function stripHtmlElements(
     // HTML comment: skip verbatim to `-->`
     if (
       lt + 3 < len &&
-      lower.charCodeAt(lt + 1) === 33 && // !
-      lower.charCodeAt(lt + 2) === 45 && // -
-      lower.charCodeAt(lt + 3) === 45 // -
+      html.charCodeAt(lt + 1) === 33 && // !
+      html.charCodeAt(lt + 2) === 45 && // -
+      html.charCodeAt(lt + 3) === 45 // -
     ) {
-      const commentEnd = lower.indexOf("-->", lt + 4);
+      const commentEnd = html.indexOf("-->", lt + 4);
       if (commentEnd === -1) {
         // Unclosed comment: keep the remainder untouched.
         break;
@@ -180,17 +185,17 @@ export function stripHtmlElements(
     }
 
     // HTML tag names must begin with an ASCII letter (e.g. `<3` is plain text).
-    if (lt + 1 >= len || !isAsciiAlpha(lower.charCodeAt(lt + 1))) {
+    if (lt + 1 >= len || !isAsciiAlpha(html.charCodeAt(lt + 1))) {
       pos = lt + 1;
       continue;
     }
 
     // Read ASCII tag name starting at lt + 1
     let nameEnd = lt + 2;
-    while (nameEnd < len && isTagNameChar(lower.charCodeAt(nameEnd))) {
+    while (nameEnd < len && isTagNameChar(html.charCodeAt(nameEnd))) {
       nameEnd++;
     }
-    if (nameEnd < len && !isTagBoundaryChar(lower.charCodeAt(nameEnd))) {
+    if (nameEnd < len && !isTagBoundaryChar(html.charCodeAt(nameEnd))) {
       pos = nameEnd;
       continue;
     }
@@ -201,7 +206,14 @@ export function stripHtmlElements(
       break;
     }
 
-    const tagName = lower.slice(lt + 1, nameEnd);
+    const nameLen = nameEnd - (lt + 1);
+    if (nameLen < MIN_TRACKED_TAG_LENGTH || nameLen > MAX_TRACKED_TAG_LENGTH) {
+      pos = startTagEnd + 1;
+      continue;
+    }
+
+    // Safe to call `.toLowerCase()` here: `isTagNameChar` guarantees pure ASCII.
+    const tagName = html.slice(lt + 1, nameEnd).toLowerCase();
     const isStyle = tagName === "style";
     const isScript = tagName === "script";
     if (!isStyle && !isScript && !RAW_TEXT_SKIP_TAGS.has(tagName)) {
@@ -211,8 +223,8 @@ export function stripHtmlElements(
       continue;
     }
     const contentStart = startTagEnd + 1;
-    const closeTagEnd = findCloseTagEnd(lower, tagName, contentStart);
-    if (closeTagEnd === -1) {
+    const closeTag = findCloseTag(html, tagName, contentStart);
+    if (!closeTag) {
       // Unclosed raw-text element: stop stripping so we stay O(n) and never
       // delete trailing content.
       break;
@@ -223,8 +235,7 @@ export function stripHtmlElements(
       shouldStrip = true;
     } else if (isScript && opts.stripNonDataScripts) {
       const attrs = html.slice(nameEnd, startTagEnd);
-      const closeTagStart = lower.lastIndexOf("</", closeTagEnd);
-      const body = html.slice(contentStart, closeTagStart);
+      const body = html.slice(contentStart, closeTag.start);
       shouldStrip = !shouldKeepScript(attrs, body);
     }
 
@@ -232,9 +243,9 @@ export function stripHtmlElements(
       if (lt > copyFrom) {
         out.push(html.slice(copyFrom, lt));
       }
-      copyFrom = closeTagEnd;
+      copyFrom = closeTag.end;
     }
-    pos = closeTagEnd;
+    pos = closeTag.end;
   }
 
   if (copyFrom === 0) {
