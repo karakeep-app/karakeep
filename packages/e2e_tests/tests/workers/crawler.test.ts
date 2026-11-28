@@ -155,6 +155,30 @@ describe.each([
     expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(0);
   });
 
+  it("should skip a banner image that never finishes downloading", async () => {
+    const created = await createLinkBookmark(
+      "http://nginx:80/slow-banner.html",
+    );
+    // The banner gets its own budget (10s by default), well inside the job
+    // timeout, so the crawl completes instead of timing out on the image.
+    // Wait for the final status, so a failed crawl fails the assertion below.
+    const bookmark = await waitForBookmark(
+      created.id,
+      "Bookmark crawl finished",
+      (b) =>
+        b.content.type === "link" &&
+        (b.content.crawlStatus === "success" ||
+          b.content.crawlStatus === "failure"),
+    );
+    assert(bookmark.content.type === "link");
+    expect(bookmark.content.crawlStatus).toBe("success");
+    expect(bookmark.content.title).toBe("Slow banner");
+    expect(bookmark.content.imageUrl).toBe("http://nginx:80/slow-banner.png");
+    expect(
+      bookmark.assets.find((a) => a.assetType === "bannerImage"),
+    ).toBeUndefined();
+  });
+
   it("should store a full-page archive", async () => {
     const created = await createLinkBookmark("http://nginx:80/article.html");
     await waitForBookmark(
