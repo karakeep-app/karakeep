@@ -653,6 +653,13 @@ describe("Bookmarks API", () => {
       const bookmarkId = data?.id;
       if (!bookmarkId) throw new Error("Bookmark ID not found");
 
+      // Set an older createdAt to reliably catch date resets on re-upload
+      const olderDate = "2020-01-01T00:00:00.000Z";
+      await client.PATCH("/bookmarks/{bookmarkId}", {
+        params: { path: { bookmarkId } },
+        body: { createdAt: olderDate },
+      });
+
       // Get the bookmark and record the precrawled asset id
       const { data: bookmark, response: getResponse1 } = await client.GET(
         "/bookmarks/{bookmarkId}",
@@ -684,6 +691,7 @@ describe("Bookmarks API", () => {
         .filter((a) => a.assetType === "precrawledArchive")
         .map((a) => a.id);
       expect(assetIds2).toEqual([firstAssetId]); // same asset
+      expect(bookmark2!.createdAt).toEqual(bookmark!.createdAt);
     });
 
     it("should support precrawling via singlefile with ifexists=overwrite", async () => {
@@ -692,6 +700,13 @@ describe("Bookmarks API", () => {
       expect(response?.status).toBe(201);
       const bookmarkId = data?.id;
       if (!bookmarkId) throw new Error("Bookmark ID not found");
+
+      // Set an older createdAt to reliably catch date resets on re-upload
+      const olderDate = "2020-01-01T00:00:00.000Z";
+      await client.PATCH("/bookmarks/{bookmarkId}", {
+        params: { path: { bookmarkId } },
+        body: { createdAt: olderDate },
+      });
 
       // Record the asset
       const { data: bookmark, response: getResponse1 } = await client.GET(
@@ -729,6 +744,7 @@ describe("Bookmarks API", () => {
         (a) => a.assetType === "precrawledArchive",
       );
       expect(precrawledAssets.length).toBe(1);
+      expect(bookmark2!.createdAt).toEqual(bookmark!.createdAt);
     });
 
     it("should support precrawling via singlefile with ifexists=overwrite-recrawl", async () => {
@@ -784,6 +800,13 @@ describe("Bookmarks API", () => {
       const bookmarkId = data?.id;
       if (!bookmarkId) throw new Error("Bookmark ID not found");
 
+      // Set an older createdAt to reliably catch date resets on re-upload
+      const olderDate = "2020-01-01T00:00:00.000Z";
+      await client.PATCH("/bookmarks/{bookmarkId}", {
+        params: { path: { bookmarkId } },
+        body: { createdAt: olderDate },
+      });
+
       // Record the first asset
       const { data: bookmark, response: getResponse1 } = await client.GET(
         "/bookmarks/{bookmarkId}",
@@ -820,6 +843,7 @@ describe("Bookmarks API", () => {
         (asset) => asset.id !== firstAssetId,
       )?.id;
       expect(secondAssetId).toBeDefined();
+      expect(bookmark2!.createdAt).toEqual(bookmark!.createdAt);
     });
 
     it("should support precrawling via singlefile with ifexists=append-recrawl", async () => {
