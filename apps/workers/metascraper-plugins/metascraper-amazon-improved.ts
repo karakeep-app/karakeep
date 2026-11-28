@@ -52,7 +52,7 @@ function cleanAmazonByline(raw: string): string | undefined {
     }
   }
 
-  // Book bylines often look like "by James Clear (Author) Format: Hardcover"
+  // Book bylines often look like "by Jane Doe (Author) Format: Hardcover"
   text = text
     .replace(/^(?:by|von|par|por|di)\s+/i, "")
     .replace(/\s*\((?:Author|Autor|Auteur|Autore|著)\)[\s\S]*$/i, "")
