@@ -142,6 +142,13 @@ export default function Settings() {
         email={data?.email}
       />
 
+      <SettingsGroup>
+        <SettingsNavigationRow
+          label={t("share_sheet.title")}
+          onPress={() => router.push("/dashboard/settings/share-sheet")}
+        />
+      </SettingsGroup>
+
       <SettingsGroup header={t("settings.preferences")}>
         <SettingsNavigationRow
           label={t("settings.language")}

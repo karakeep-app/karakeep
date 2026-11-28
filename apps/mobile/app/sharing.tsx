@@ -29,6 +29,10 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
 
   const onSaved = (d: ZBookmark & { alreadyExists: boolean }) => {
     queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+    // They've found the share sheet, so the home tip has nothing left to say.
+    if (!settings.shareSheetTipSeen) {
+      void setSettings({ ...settings, shareSheetTipSeen: true });
+    }
     setMode({
       type: d.alreadyExists ? "alreadyExists" : "success",
       bookmarkId: d.id,
@@ -37,7 +41,7 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
 
   const { hasShareIntent, shareIntent, resetShareIntent } =
     useShareIntentContext();
-  const { settings, isLoading } = useAppSettings();
+  const { settings, setSettings, isLoading } = useAppSettings();
   const { uploadAsset } = useUploadAsset(settings, {
     onSuccess: onSaved,
     onError: (message) => {
