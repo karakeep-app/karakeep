@@ -125,6 +125,47 @@ describe("reader view assessment", () => {
     expect(result.reasons).toContain("long_preformatted_content");
   });
 
+  test("does not penalize a single substantive block with low link density as a link collection", () => {
+    const authors = Array.from(
+      { length: 8 },
+      (_, i) => `<a href="/author/${i}">A. ${i}</a>`,
+    ).join(", ");
+    const longAbstract = `${paragraph} ${paragraph} ${paragraph} ${paragraph}`;
+    const lowDensityHtml = `<article><h1>Paper Title</h1><div>${authors}</div><blockquote>${longAbstract}</blockquote></article>`;
+
+    const lowDensityResult = assess(
+      lowDensityHtml,
+      lowDensityHtml,
+      "https://example.com/abs/1234.5678",
+    );
+    expect(lowDensityResult.reasons).not.toContain("link_collection");
+    expect(lowDensityResult.status).toBe("readable");
+
+    // Above the 0.12 link-density threshold, a single substantive block with
+    // >= 8 links still receives the link_collection penalty.
+    const verboseLinks = Array.from(
+      { length: 8 },
+      (_, i) => `<a href="/ref/${i}">Reference item number ${i}</a>`,
+    ).join(", ");
+    const higherDensityHtml = `<article><div>${verboseLinks}</div><p>${paragraph}</p></article>`;
+    const higherDensityResult = assess(
+      higherDensityHtml,
+      higherDensityHtml,
+      "https://example.com/abs/1234.5678",
+    );
+    expect(higherDensityResult.reasons).toContain("link_collection");
+
+    // With zero substantive blocks, >= 8 links still receives link_collection
+    // even when total link density is low.
+    const noBlockHtml = `<article><div>${authors}</div><div>${longAbstract}</div></article>`;
+    const noBlockResult = assess(
+      noBlockHtml,
+      noBlockHtml,
+      "https://example.com/abs/1234.5678",
+    );
+    expect(noBlockResult.reasons).toContain("link_collection");
+  });
+
   test("represents a missing extraction separately", () => {
     expect(unavailableReaderViewAssessment()).toEqual({
       status: "unavailable",

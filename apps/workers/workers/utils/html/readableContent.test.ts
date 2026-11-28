@@ -86,6 +86,73 @@ describe("extractReadableContent", () => {
     );
   });
 
+  test("unwraps hidden modal wrappers on Facebook and Threads without dropping non-login dialogs", () => {
+    const fbHtml = `
+      <html>
+        <body>
+          <div id="scrollview" aria-hidden="true">
+            <div role="dialog" aria-modal="true">
+              <div role="article">
+                <p>POST_BODY ${paragraph}</p>
+                <p>${paragraph}</p>
+              </div>
+            </div>
+          </div>
+          <div role="dialog" aria-modal="true">
+            <form action="/login">
+              <input type="text" name="email" />
+              <input type="password" name="pass" />
+              <button>Log in</button>
+            </form>
+          </div>
+        </body>
+      </html>
+    `;
+    const fbResult = extractReadableContent(
+      fbHtml,
+      "https://www.facebook.com/example/posts/123",
+    );
+    expect(fbResult.readableContent?.content).toContain("POST_BODY");
+    expect(fbResult.readableContent?.content).not.toContain("Log in");
+
+    // A non-login dialog whose text contains "log in" as a substring (e.g.
+    // "Catalog information") must not be deleted as a login overlay.
+    const fbCatalogHtml = `
+      <html>
+        <body>
+          <div role="dialog">
+            <p>Catalog information: ${paragraph} ${paragraph}</p>
+          </div>
+        </body>
+      </html>
+    `;
+    const fbCatalogResult = extractReadableContent(
+      fbCatalogHtml,
+      "https://www.facebook.com/photo/?fbid=123",
+    );
+    expect(fbCatalogResult.readableContent?.content).toContain(
+      "Catalog information",
+    );
+
+    const threadsHtml = `
+      <html>
+        <body>
+          <div id="scrollview" aria-hidden="true">
+            <article>
+              <p>THREADS_POST ${paragraph}</p>
+              <p>${paragraph}</p>
+            </article>
+          </div>
+        </body>
+      </html>
+    `;
+    const threadsResult = extractReadableContent(
+      threadsHtml,
+      "https://www.threads.com/@user/post/123",
+    );
+    expect(threadsResult.readableContent?.content).toContain("THREADS_POST");
+  });
+
   test("sanitizes provided HTML and assesses reader view", () => {
     const provided = `<script>alert(1)</script>${Array.from({ length: 5 }, () => `<p>${paragraph}</p>`).join("")}`;
     const source = `<html><head><meta property="og:type" content="article"></head><body><article>${provided}</article></body></html>`;

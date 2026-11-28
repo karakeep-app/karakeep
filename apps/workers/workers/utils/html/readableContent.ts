@@ -214,7 +214,7 @@ function unwrapMetaModalContainers(document: Document, url: string): void {
       dialog.removeAttribute("role");
       dialog.removeAttribute("aria-modal");
     } else if (
-      /log in|sign up|create new account/i.test(dialog.textContent ?? "")
+      dialog.querySelector('input[type="password"], form[action*="login"]')
     ) {
       dialog.remove();
     }
