@@ -517,7 +517,7 @@ export const bookmarkTags = sqliteTable(
     name: text("name").notNull(),
     normalizedName: text("normalizedName").generatedAlwaysAs(
       (): SQL =>
-        // This function needs to be in sync with the tagNormalizer function in tagging.ts
+        // This needs to be in sync with normalizeTagForMatching in packages/shared/utils/tag.ts
         sql`lower(replace(replace(replace(${bookmarkTags.name}, ' ', ''), '-', ''), '_', ''))`,
       {
         mode: "virtual",
