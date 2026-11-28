@@ -52,7 +52,8 @@
     "pdf": "Uložené PDF",
     "default": "Predvolené",
     "id": "ID",
-    "last_used": "Posledné použitie"
+    "last_used": "Posledné použitie",
+    "screen_pdf": "PDF obrazovky"
   },
   "form_errors": {
     "required": "Toto pole je povinné",
@@ -148,7 +149,11 @@
     "replace_banner": "Nahradiť banner",
     "add_banner": "Pridať banner",
     "download": "Sťahovanie",
-    "rename": "Premenovať"
+    "rename": "Premenovať",
+    "recrawl_in_light_theme": "Znova prehľadať vo svetlom motíve",
+    "recrawl_in_dark_theme": "Znova prehľadať v tmavom motíve",
+    "preserve_as_screen_pdf": "Uložiť ako PDF obrazovky",
+    "download_screen_pdf_file": "Stiahni súbor PDF obrazovky"
   },
   "lists": {
     "favourites": "Obľúbené",
@@ -386,6 +391,13 @@
           "title": "Archivované záložky",
           "hide": "Skryť v značkách a zoznamoch",
           "show": "Zobraziť v značkách a zoznamoch"
+        },
+        "crawler_color_scheme": {
+          "title": "Farebná schéma prehľadávania",
+          "server_default": "Predvolená hodnota servera",
+          "system": "Systém",
+          "light": "Svetlý",
+          "dark": "Tmavý"
         }
       },
       "reader_settings": {
@@ -637,7 +649,8 @@
             "label": "Administrácia: odbery",
             "description": "Spravovať úrovne predplatného používateľov."
           }
-        }
+        },
+        "scope_details": "Podrobnosti rozsahu {{scope}}"
       },
       "no_keys": "Zatiaľ žiadne API kľúče",
       "page_description": "Umožni iným aplikáciám a skriptom používať tvoj účet.",
@@ -842,7 +855,15 @@
         "lists": "Zoznamy",
         "highlights": "Zvýraznenia",
         "storage_used": "Použité úložisko",
-        "bookmarks_added": "Pridané záložky"
+        "bookmarks_added": "Pridané záložky",
+        "all_saved_items": "Všetky uložené položky",
+        "starred_bookmarks": "Označené záložky hviezdičkou",
+        "archived_items": "Archivované položky",
+        "unique_tags_created": "Vytvorené jedinečné štítky",
+        "bookmark_collections": "Zbierky záložiek",
+        "text_highlights": "Zvýraznenia textu",
+        "total_asset_storage": "Celkové úložisko aktív",
+        "this_month": "Tento mesiac"
       },
       "bookmark_types": {
         "title": "Typy záložiek",
@@ -853,7 +874,11 @@
       "recent_activity": {
         "period": "Obdobie",
         "days": "{{count}} dní",
-        "days_short": "{{count}} d"
+        "days_short": "{{count}} d",
+        "title": "Nedávna aktivita",
+        "this_week": "Tento týždeň",
+        "this_month": "Tento mesiac",
+        "this_year": "Tento rok"
       },
       "top_domains": {
         "title": "Najčastejšie domény",
@@ -1009,7 +1034,8 @@
           "weekly": "Týždenne"
         },
         "select_frequency": "Vyber frekvenciu",
-        "save_settings": "Uložiť zmeny"
+        "save_settings": "Uložiť zmeny",
+        "enable_automatic_backups_description": "Automaticky vytvárať zálohy tvojich záložiek"
       },
       "list": {
         "title": "Tvoje zálohy",
@@ -1031,7 +1057,8 @@
           "download_backup": "Stiahnuť zálohu",
           "delete_backup": "Odstrániť zálohu"
         },
-        "no_backups_title": "Zatiaľ žiadne zálohy"
+        "no_backups_title": "Zatiaľ žiadne zálohy",
+        "no_backups": "Zatiaľ nemáš žiadne zálohy. Povoľ automatické zálohovanie alebo vytvor manuálne."
       },
       "dialogs": {
         "delete_backup_title": "Odstrániť zálohu",
@@ -1488,6 +1515,7 @@
     },
     "saved_copies": {
       "no_pdf": "Zatiaľ žiadne PDF — ulož ho",
+      "no_screen_pdf": "Zatiaľ žiadne PDF obrazovky — ulož ho",
       "no_archive": "Zatiaľ žiadna uložená stránka — ulož ju",
       "no_video": "Zatiaľ žiadne video — ulož ho"
     },
@@ -1525,6 +1553,7 @@
       "types": {
         "screenshot": "Snímka obrazovky",
         "pdf": "Uložené PDF",
+        "screenPdf": "PDF obrazovky",
         "assetScreenshot": "Náhľadový obrázok",
         "fullPageArchive": "Uložená stránka",
         "precrawledArchive": "Importovaná uložená stránka",
@@ -1583,7 +1612,8 @@
       "preserve_pdf": "Ukladá sa PDF",
       "preserve_video": "Sťahovanie videa bolo zaradené do frontu",
       "update_banner": "Banner bol aktualizovaný",
-      "uploading_banner": "Nahrávanie bannera..."
+      "uploading_banner": "Nahrávanie bannera...",
+      "preserve_screen_pdf": "Ukladanie PDF obrazovky bolo spustené"
     },
     "lists": {
       "updated": "Zoznam bol aktualizovaný",

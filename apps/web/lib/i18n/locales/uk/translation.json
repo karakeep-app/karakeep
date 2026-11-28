@@ -52,7 +52,8 @@
     "pdf": "Збережений PDF",
     "default": "За замовчуванням",
     "id": "ID",
-    "last_used": "Востаннє використано"
+    "last_used": "Востаннє використано",
+    "screen_pdf": "PDF екрана"
   },
   "form_errors": {
     "required": "Це поле обов'язкове",
@@ -148,7 +149,11 @@
     "replace_banner": "Замінити банер",
     "add_banner": "Додати банер",
     "download": "Завантажити",
-    "rename": "Перейменувати"
+    "rename": "Перейменувати",
+    "recrawl_in_light_theme": "Повторне сканування у світлій темі",
+    "recrawl_in_dark_theme": "Повторне сканування в темній темі",
+    "preserve_as_screen_pdf": "Зберегти як PDF екрана",
+    "download_screen_pdf_file": "Завантажити PDF-файл екрана"
   },
   "settings": {
     "webhooks": {
@@ -222,6 +227,13 @@
           "title": "Заархівовані закладки",
           "show": "Показувати в тегах і списках",
           "hide": "Приховувати в тегах і списках"
+        },
+        "crawler_color_scheme": {
+          "title": "Кольорова схема сканування",
+          "server_default": "Серверне значення за замовчуванням",
+          "system": "Системний",
+          "light": "Світлий",
+          "dark": "Темний"
         }
       },
       "reader_settings": {
@@ -499,7 +511,8 @@
             "label": "Адмін: підписки",
             "description": "Керування рівнями підписки користувачів."
           }
-        }
+        },
+        "scope_details": "Деталі області доступу {{scope}}"
       },
       "no_keys": "Ключів API ще немає",
       "page_description": "Дозвольте іншим застосункам і скриптам використовувати ваш обліковий запис.",
@@ -677,7 +690,15 @@
         "lists": "Списки",
         "highlights": "Виділення",
         "storage_used": "Використано сховища",
-        "bookmarks_added": "Закладки додано"
+        "bookmarks_added": "Закладки додано",
+        "all_saved_items": "Усі збережені елементи",
+        "starred_bookmarks": "Відмічені закладки",
+        "archived_items": "Архівні елементи",
+        "unique_tags_created": "Створено унікальних тегів",
+        "bookmark_collections": "Колекції закладок",
+        "text_highlights": "Текстові виділення",
+        "total_asset_storage": "Загальний обсяг сховища активів",
+        "this_month": "Цього місяця"
       },
       "bookmark_types": {
         "title": "Типи закладок",
@@ -688,7 +709,11 @@
       "recent_activity": {
         "period": "Період",
         "days": "{{count}} дн.",
-        "days_short": "{{count}} д"
+        "days_short": "{{count}} д",
+        "title": "Остання активність",
+        "this_week": "Цього тижня",
+        "this_month": "Цього місяця",
+        "this_year": "Цього року"
       },
       "top_domains": {
         "title": "Топ доменів",
@@ -844,7 +869,8 @@
           "weekly": "Щотижня"
         },
         "select_frequency": "Виберіть періодичність",
-        "save_settings": "Зберегти зміни"
+        "save_settings": "Зберегти зміни",
+        "enable_automatic_backups_description": "Автоматично створювати резервні копії ваших закладок"
       },
       "list": {
         "title": "Ваші резервні копії",
@@ -866,7 +892,8 @@
           "download_backup": "Завантажити резервну копію",
           "delete_backup": "Видалити резервну копію"
         },
-        "no_backups_title": "Резервних копій ще немає"
+        "no_backups_title": "Резервних копій ще немає",
+        "no_backups": "У вас ще немає жодних резервних копій. Увімкніть автоматичне резервне копіювання або створіть її вручну."
       },
       "dialogs": {
         "delete_backup_title": "Видалити резервну копію",
@@ -1031,6 +1058,7 @@
     },
     "saved_copies": {
       "no_pdf": "PDF ще немає — Збережіть його",
+      "no_screen_pdf": "PDF екрана ще немає — Збережіть його",
       "no_archive": "Збереженої сторінки ще немає — Збережіть її",
       "no_video": "Відео ще немає — Збережіть його"
     },
@@ -1068,6 +1096,7 @@
       "types": {
         "screenshot": "Скріншот",
         "pdf": "Збережений PDF",
+        "screenPdf": "PDF екрана",
         "assetScreenshot": "Зображення попереднього перегляду",
         "fullPageArchive": "Збережена сторінка",
         "precrawledArchive": "Імпортована збережена сторінка",
@@ -1621,7 +1650,8 @@
       "preserve_pdf": "Збереження PDF",
       "preserve_video": "Завантаження відео поставлено в чергу",
       "update_banner": "Банер оновлено",
-      "uploading_banner": "Завантаження банера..."
+      "uploading_banner": "Завантаження банера...",
+      "preserve_screen_pdf": "Збереження PDF екрана ініційовано"
     },
     "lists": {
       "created": "Список створено",

@@ -33,6 +33,7 @@
     "source": "Source",
     "screenshot": "Screenshot",
     "pdf": "Saved PDF",
+    "screen_pdf": "Screen PDF",
     "video": "Video",
     "archive": "Archive",
     "home": "Home",
@@ -111,12 +112,16 @@
     "toggle_show_archived": "Show archived",
     "refresh": "Refresh",
     "recrawl": "Recrawl",
+    "recrawl_in_light_theme": "Recrawl in light theme",
+    "recrawl_in_dark_theme": "Recrawl in dark theme",
     "offline_copies": "Saved copies",
     "preserve_offline_archive": "Save a copy",
     "download_full_page_archive_file": "Download saved page",
     "preserve_as_pdf": "Save a PDF",
+    "preserve_as_screen_pdf": "Save a Screen PDF",
     "preserve_video": "Save the video",
     "download_pdf_file": "Download saved PDF",
+    "download_screen_pdf_file": "Download saved Screen PDF",
     "edit_tags": "Edit tags",
     "edit_notes": "Edit notes",
     "add_to_list": "Add to list",
@@ -229,6 +234,13 @@
           "title": "Archived bookmarks",
           "show": "Show in tags and lists",
           "hide": "Hide in tags and lists"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler color scheme",
+          "server_default": "Server default",
+          "system": "System",
+          "light": "Light",
+          "dark": "Dark"
         }
       },
       "reader_settings": {
@@ -1433,6 +1445,7 @@
     },
     "saved_copies": {
       "no_pdf": "No PDF yet — Save one",
+      "no_screen_pdf": "No Screen PDF yet — Save one",
       "no_archive": "No saved page yet — Save one",
       "no_video": "No video yet — Save one"
     },
@@ -1470,6 +1483,7 @@
       "types": {
         "screenshot": "Screenshot",
         "pdf": "Saved PDF",
+        "screenPdf": "Screen PDF",
         "assetScreenshot": "Preview image",
         "fullPageArchive": "Saved page",
         "precrawledArchive": "Imported saved page",
@@ -1584,6 +1598,7 @@
       "refetch": "Recrawl queued",
       "full_page_archive": "Saving a copy",
       "preserve_pdf": "Saving a PDF",
+      "preserve_screen_pdf": "Saving a Screen PDF",
       "preserve_video": "Video download queued",
       "delete_from_list": "Bookmark removed from list",
       "clipboard_copied": "Link copied",

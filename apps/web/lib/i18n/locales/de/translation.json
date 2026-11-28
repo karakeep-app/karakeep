@@ -52,7 +52,8 @@
     "pdf": "Gespeichertes PDF",
     "default": "Standard",
     "id": "ID",
-    "last_used": "Zuletzt verwendet"
+    "last_used": "Zuletzt verwendet",
+    "screen_pdf": "Bildschirm-PDF"
   },
   "form_errors": {
     "required": "Dieses Feld ist erforderlich",
@@ -148,7 +149,11 @@
     "replace_banner": "Banner ersetzen",
     "add_banner": "Banner hinzufügen",
     "download": "Herunterladen",
-    "rename": "Umbenennen"
+    "rename": "Umbenennen",
+    "recrawl_in_light_theme": "Im Hellmodus erneut abrufen",
+    "recrawl_in_dark_theme": "Im Dunkelmodus erneut abrufen",
+    "preserve_as_screen_pdf": "Als Bildschirm-PDF speichern",
+    "download_screen_pdf_file": "Bildschirm-PDF-Datei herunterladen"
   },
   "settings": {
     "back_to_app": "Zurück zur App",
@@ -187,6 +192,13 @@
           "title": "Archivierte Lesezeichen",
           "show": "In Tags und Listen anzeigen",
           "hide": "In Tags und Listen ausblenden"
+        },
+        "crawler_color_scheme": {
+          "title": "Crawler-Farbschema",
+          "server_default": "Server-Standard",
+          "system": "System",
+          "light": "Hell",
+          "dark": "Dunkel"
         }
       },
       "reader_settings": {
@@ -462,7 +474,8 @@
         "limited_scopes": {
           "label": "Eingeschränkte Berechtigungen",
           "description": "Wählen Sie die Ressourcentypen aus, auf die dieser Schlüssel zugreifen kann."
-        }
+        },
+        "scope_details": "Details zur Berechtigung {{scope}}"
       },
       "no_keys": "Noch keine API-Schlüssel",
       "page_description": "Erlaube anderen Apps und Skripten, dein Konto zu nutzen.",
@@ -665,7 +678,15 @@
         "lists": "Listen",
         "highlights": "Markierungen",
         "storage_used": "Belegter Speicherplatz",
-        "bookmarks_added": "Lesezeichen hinzugefügt"
+        "bookmarks_added": "Lesezeichen hinzugefügt",
+        "all_saved_items": "Alle gespeicherten Elemente",
+        "starred_bookmarks": "Markierte Lesezeichen",
+        "archived_items": "Archivierte Elemente",
+        "unique_tags_created": "Eindeutige Tags erstellt",
+        "bookmark_collections": "Lesezeichen-Sammlungen",
+        "text_highlights": "Texthervorhebungen",
+        "total_asset_storage": "Gesamter Assetspeicher",
+        "this_month": "Diesen Monat"
       },
       "bookmark_types": {
         "title": "Lesezeichentypen",
@@ -676,7 +697,11 @@
       "recent_activity": {
         "period": "Zeitraum",
         "days": "{{count}} Tage",
-        "days_short": "{{count}} T."
+        "days_short": "{{count}} T.",
+        "title": "Letzte Aktivität",
+        "this_week": "Diese Woche",
+        "this_month": "Diesen Monat",
+        "this_year": "Dieses Jahr"
       },
       "top_domains": {
         "title": "Top-Domains",
@@ -830,7 +855,8 @@
           "weekly": "Wöchentlich"
         },
         "select_frequency": "Frequenz auswählen",
-        "save_settings": "Änderungen speichern"
+        "save_settings": "Änderungen speichern",
+        "enable_automatic_backups_description": "Automatische Backups deiner Lesezeichen erstellen"
       },
       "list": {
         "title": "Deine Backups",
@@ -852,7 +878,8 @@
           "download_backup": "Backup herunterladen",
           "delete_backup": "Backup löschen"
         },
-        "no_backups_title": "Noch keine Backups"
+        "no_backups_title": "Noch keine Backups",
+        "no_backups": "Du hast noch keine Backups. Aktiviere automatische Backups oder erstelle manuell eins."
       },
       "dialogs": {
         "delete_backup_title": "Backup löschen",
@@ -1321,6 +1348,7 @@
     },
     "saved_copies": {
       "no_pdf": "Noch kein PDF — Jetzt speichern",
+      "no_screen_pdf": "Noch keine Bildschirm-PDF — Jetzt speichern",
       "no_archive": "Noch keine gespeicherte Seite — Jetzt speichern",
       "no_video": "Noch kein Video — Jetzt speichern"
     },
@@ -1358,6 +1386,7 @@
       "types": {
         "screenshot": "Screenshot",
         "pdf": "Gespeichertes PDF",
+        "screenPdf": "Bildschirm-PDF",
         "assetScreenshot": "Vorschaubild",
         "fullPageArchive": "Gespeicherte Seite",
         "precrawledArchive": "Importierte gespeicherte Seite",
@@ -1476,7 +1505,8 @@
       "preserve_pdf": "PDF wird gespeichert",
       "preserve_video": "Video-Download in die Warteschlange gestellt",
       "update_banner": "Banner aktualisiert",
-      "uploading_banner": "Banner wird hochgeladen ..."
+      "uploading_banner": "Banner wird hochgeladen ...",
+      "preserve_screen_pdf": "Die Bildschirm-PDF-Speicherung wurde ausgelöst"
     },
     "lists": {
       "created": "Liste erstellt",

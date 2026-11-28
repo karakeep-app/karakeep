@@ -42,5 +42,9 @@ export default function BookmarkLinkView({
       return <BookmarkLinkArchivePreview bookmark={bookmark} />;
     case "pdf":
       return <BookmarkLinkPdfPreview bookmark={bookmark} />;
+    case "screenPdf":
+      return (
+        <BookmarkLinkPdfPreview bookmark={bookmark} assetType="screenPdf" />
+      );
   }
 }

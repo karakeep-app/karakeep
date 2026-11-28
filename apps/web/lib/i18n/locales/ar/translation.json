@@ -52,7 +52,8 @@
     "pdf": "PDF محفوظ",
     "default": "افتراضي",
     "id": "معرف",
-    "last_used": "آخر استخدام"
+    "last_used": "آخر استخدام",
+    "screen_pdf": "PDF بمظهر الشاشة"
   },
   "form_errors": {
     "required": "هذا الحقل مطلوب",
@@ -160,7 +161,11 @@
     "replace_banner": "استبدال صورة الغلاف",
     "add_banner": "إضافة صورة غلاف",
     "download": "تنزيل",
-    "rename": "تغيير الاسم"
+    "rename": "تغيير الاسم",
+    "recrawl_in_light_theme": "إعادة الاستكشاف في الوضع الفاتح",
+    "recrawl_in_dark_theme": "إعادة الاستكشاف في الوضع الداكن",
+    "preserve_as_screen_pdf": "حفظ كملف PDF بمظهر الشاشة",
+    "download_screen_pdf_file": "تنزيل ملف PDF بمظهر الشاشة"
   },
   "highlights": {
     "no_highlights": "ليس لديك أي تمييزات بعد.",
@@ -217,6 +222,13 @@
           "title": "الإشارات المرجعية المؤرشفة",
           "show": "إظهار في الوسوم والقوائم",
           "hide": "إخفاء من الوسوم والقوائم"
+        },
+        "crawler_color_scheme": {
+          "title": "نظام ألوان الزاحف",
+          "server_default": "الافتراضي من الخادم",
+          "system": "النظام",
+          "light": "فاتح",
+          "dark": "داكن"
         }
       },
       "reader_settings": {
@@ -531,7 +543,8 @@
             "label": "المسؤول: الاشتراكات",
             "description": "إدارة فئات اشتراك المستخدمين."
           }
-        }
+        },
+        "scope_details": "تفاصيل نطاق {{scope}}"
       },
       "no_keys": "لا توجد مفاتيح API بعد",
       "page_description": "اسمح للتطبيقات والبرامج النصية الأخرى باستخدام حسابك.",
@@ -719,7 +732,15 @@
         "lists": "قوائم",
         "highlights": "أبرز النقاط",
         "storage_used": "التخزين المستخدم",
-        "bookmarks_added": "تمت إضافة الإشارات المرجعية"
+        "bookmarks_added": "تمت إضافة الإشارات المرجعية",
+        "all_saved_items": "جميع العناصر المحفوظة",
+        "starred_bookmarks": "الإشارات المرجعية المميزة بنجمة",
+        "archived_items": "العناصر المؤرشفة",
+        "unique_tags_created": "تم إنشاء علامات فريدة",
+        "bookmark_collections": "مجموعات الإشارات المرجعية",
+        "text_highlights": "أبرز النقاط النصية",
+        "total_asset_storage": "إجمالي مساحة تخزين الأصول",
+        "this_month": "هذا الشهر"
       },
       "bookmark_types": {
         "title": "أنواع الإشارات المرجعية",
@@ -730,7 +751,11 @@
       "recent_activity": {
         "period": "الفترة",
         "days": "{{count}} يوم",
-        "days_short": "{{count}} ي"
+        "days_short": "{{count}} ي",
+        "title": "النشاط الأخير",
+        "this_week": "هذا الأسبوع",
+        "this_month": "هذا الشهر",
+        "this_year": "هذا العام"
       },
       "top_domains": {
         "title": "أهم النطاقات",
@@ -888,7 +913,8 @@
           "weekly": "أسبوعيًا"
         },
         "select_frequency": "اختر التكرار",
-        "save_settings": "حفظ التغييرات"
+        "save_settings": "حفظ التغييرات",
+        "enable_automatic_backups_description": "أنشئ نُسخًا احتياطية لعلاماتك المرجعية تلقائيًا"
       },
       "list": {
         "title": "نُسخك الاحتياطية",
@@ -910,7 +936,8 @@
           "download_backup": "تنزيل النسخة الاحتياطية",
           "delete_backup": "حذف النسخة الاحتياطية"
         },
-        "no_backups_title": "لا توجد نسخ احتياطية بعد"
+        "no_backups_title": "لا توجد نسخ احتياطية بعد",
+        "no_backups": "ليس لديك أي نُسخ احتياطية حتى الآن. قم بتمكين النُسخ الاحتياطية التلقائية أو أنشئ واحدة يدويًا."
       },
       "dialogs": {
         "delete_backup_title": "حذف النسخة الاحتياطية",
@@ -1468,6 +1495,7 @@
     },
     "saved_copies": {
       "no_pdf": "لا يوجد PDF بعد — احفظ واحدًا",
+      "no_screen_pdf": "لا يوجد PDF بمظهر الشاشة بعد — احفظ واحدًا",
       "no_archive": "لا توجد صفحة محفوظة بعد — احفظ واحدة",
       "no_video": "لا يوجد فيديو بعد — احفظ واحدًا"
     },
@@ -1505,6 +1533,7 @@
       "types": {
         "screenshot": "لقطة شاشة",
         "pdf": "PDF محفوظ",
+        "screenPdf": "PDF بمظهر الشاشة",
         "assetScreenshot": "صورة المعاينة",
         "fullPageArchive": "صفحة محفوظة",
         "precrawledArchive": "صفحة محفوظة مستوردة",
@@ -1657,7 +1686,8 @@
       "bulk_tag_removed_zero": "لم يُزل الوسم \"{{tag}}\" من أي إشارة مرجعية",
       "bulk_tag_removed_two": "تمت إزالة الوسم \"{{tag}}\" من إشارتين مرجعيتين",
       "bulk_tag_removed_few": "تمت إزالة الوسم \"{{tag}}\" من {{count}} إشارات مرجعية",
-      "bulk_tag_removed_many": "تمت إزالة الوسم \"{{tag}}\" من {{count}} إشارة مرجعية"
+      "bulk_tag_removed_many": "تمت إزالة الوسم \"{{tag}}\" من {{count}} إشارة مرجعية",
+      "preserve_screen_pdf": "تم تشغيل حفظ PDF بمظهر الشاشة"
     },
     "lists": {
       "created": "تم إنشاء القائمة",

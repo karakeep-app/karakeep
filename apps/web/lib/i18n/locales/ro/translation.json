@@ -52,7 +52,8 @@
     "delete_named": "Ștergi {{name}}?",
     "optional_field": "{{label}} (opțional)",
     "show_password": "Afișează parola",
-    "hide_password": "Ascunde parola"
+    "hide_password": "Ascunde parola",
+    "screen_pdf": "PDF de ecran"
   },
   "form_errors": {
     "required": "Acest câmp este obligatoriu",
@@ -164,7 +165,11 @@
     "load_more": "Încarcă mai multe",
     "copy": "Copiază",
     "copied": "Copiat",
-    "expand": "Extinde"
+    "expand": "Extinde",
+    "recrawl_in_light_theme": "Reindexare în tema luminoasă",
+    "recrawl_in_dark_theme": "Reindexare în tema întunecată",
+    "preserve_as_screen_pdf": "Păstrează ca PDF de ecran",
+    "download_screen_pdf_file": "Descarcă fișierul PDF de ecran"
   },
   "highlights": {
     "no_highlights": "Nu ai încă nicio evidențiere.",
@@ -232,6 +237,13 @@
           "title": "Semne de carte arhivate",
           "show": "Afișează în etichete și liste",
           "hide": "Ascunde în etichete și liste"
+        },
+        "crawler_color_scheme": {
+          "title": "Schema de culori a crawlerului",
+          "server_default": "Valoare implicită a serverului",
+          "system": "Sistem",
+          "light": "Luminos",
+          "dark": "Întunecat"
         }
       },
       "reader_settings": {
@@ -298,7 +310,15 @@
         "lists": "Liste",
         "highlights": "Sublinieri",
         "storage_used": "Spațiu de stocare utilizat",
-        "bookmarks_added": "Semne de carte adăugate"
+        "bookmarks_added": "Semne de carte adăugate",
+        "all_saved_items": "Toate elementele salvate",
+        "starred_bookmarks": "Semne de carte cu stea",
+        "archived_items": "Elemente arhivate",
+        "unique_tags_created": "Etichete unice create",
+        "bookmark_collections": "Colecții de semne de carte",
+        "text_highlights": "Sublinieri de text",
+        "total_asset_storage": "Total stocare fișiere",
+        "this_month": "Luna aceasta"
       },
       "bookmark_types": {
         "title": "Tipuri de semne de carte",
@@ -309,7 +329,11 @@
       "recent_activity": {
         "period": "Perioadă",
         "days": "{{count}} zile",
-        "days_short": "{{count}}z"
+        "days_short": "{{count}}z",
+        "title": "Activitate recentă",
+        "this_week": "Săptămâna aceasta",
+        "this_month": "Luna aceasta",
+        "this_year": "Anul acesta"
       },
       "top_domains": {
         "title": "Domenii de top",
@@ -597,7 +621,8 @@
             "label": "Admin: utilizatori",
             "description": "Accesează gestionarea administrativă a utilizatorilor."
           }
-        }
+        },
+        "scope_details": "Detalii domeniu {{scope}}"
       },
       "no_keys": "Nicio cheie API încă",
       "page_description": "Permite altor aplicații și scripturi să-ți folosească contul.",
@@ -871,7 +896,8 @@
           "weekly": "Săptămânal"
         },
         "select_frequency": "Selectați frecvența",
-        "save_settings": "Salvează modificările"
+        "save_settings": "Salvează modificările",
+        "enable_automatic_backups_description": "Creează automat copii de rezervă ale semnelor tale de carte"
       },
       "list": {
         "title": "Copiile tale de rezervă",
@@ -893,7 +919,8 @@
           "download_backup": "Descarcă copia de rezervă",
           "delete_backup": "Șterge copia de rezervă"
         },
-        "no_backups_title": "Nicio copie de rezervă încă"
+        "no_backups_title": "Nicio copie de rezervă încă",
+        "no_backups": "Nu aveți încă nicio copie de rezervă. Activați copiile de rezervă automate sau creați una manual."
       },
       "dialogs": {
         "delete_backup_title": "Șterge copia de rezervă",
@@ -1447,6 +1474,7 @@
     },
     "saved_copies": {
       "no_pdf": "Niciun PDF încă — Salvează unul",
+      "no_screen_pdf": "Niciun PDF de ecran încă — Salvează unul",
       "no_archive": "Nicio pagină salvată încă — Salvează una",
       "no_video": "Niciun videoclip încă — Salvează unul"
     },
@@ -1484,6 +1512,7 @@
       "types": {
         "screenshot": "Captură de ecran",
         "pdf": "PDF salvat",
+        "screenPdf": "PDF de ecran",
         "assetScreenshot": "Imagine de previzualizare",
         "fullPageArchive": "Pagină salvată",
         "precrawledArchive": "Pagină salvată importată",
@@ -1597,7 +1626,8 @@
       "refetch": "Re-indexarea a fost pusă în coadă",
       "full_page_archive": "Se salvează o copie",
       "preserve_pdf": "Se salvează un PDF",
-      "preserve_video": "Descărcarea videoclipului a fost pusă în coadă"
+      "preserve_video": "Descărcarea videoclipului a fost pusă în coadă",
+      "preserve_screen_pdf": "Păstrarea PDF de ecran a fost declanșată"
     },
     "lists": {
       "created": "Lista a fost creată",

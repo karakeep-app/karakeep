@@ -73,7 +73,11 @@
     "replace_banner": "Sostituisci banner",
     "add_banner": "Aggiungi banner",
     "download": "Scarica",
-    "rename": "Rinomina"
+    "rename": "Rinomina",
+    "recrawl_in_light_theme": "Ricontrolla in tema chiaro",
+    "recrawl_in_dark_theme": "Ricontrolla in tema scuro",
+    "preserve_as_screen_pdf": "Salva come PDF dello schermo",
+    "download_screen_pdf_file": "Scarica il file PDF dello schermo"
   },
   "common": {
     "attachments": "Allegati",
@@ -128,7 +132,8 @@
     "pdf": "PDF salvato",
     "default": "Predefinito",
     "id": "ID",
-    "last_used": "Ultimo utilizzo"
+    "last_used": "Ultimo utilizzo",
+    "screen_pdf": "PDF dello schermo"
   },
   "form_errors": {
     "required": "Questo campo è obbligatorio",
@@ -234,6 +239,13 @@
           "title": "Segnalibri archiviati",
           "show": "Mostra in tag e liste",
           "hide": "Nascondi in tag e liste"
+        },
+        "crawler_color_scheme": {
+          "title": "Schema colori del crawler",
+          "server_default": "Predefinito del server",
+          "system": "Sistema",
+          "light": "Chiaro",
+          "dark": "Scuro"
         }
       },
       "reader_settings": {
@@ -512,7 +524,8 @@
             "label": "Amministratore: abbonamenti",
             "description": "Gestisci i livelli di abbonamento degli utenti."
           }
-        }
+        },
+        "scope_details": "Dettagli dell'ambito {{scope}}"
       },
       "no_keys": "Ancora nessuna chiave API",
       "page_description": "Consenti ad altre app e script di usare il tuo account.",
@@ -668,7 +681,15 @@
         "lists": "Liste",
         "highlights": "Evidenziazioni",
         "storage_used": "Spazio utilizzato",
-        "bookmarks_added": "Segnalibri aggiunti"
+        "bookmarks_added": "Segnalibri aggiunti",
+        "all_saved_items": "Tutti gli elementi salvati",
+        "starred_bookmarks": "Segnalibri preferiti",
+        "archived_items": "Elementi archiviati",
+        "unique_tags_created": "Tag univoci creati",
+        "bookmark_collections": "Raccolte di segnalibri",
+        "text_highlights": "Evidenziazioni di testo",
+        "total_asset_storage": "Archiviazione totale degli asset",
+        "this_month": "Questo mese"
       },
       "bookmark_types": {
         "title": "Tipi di segnalibri",
@@ -679,7 +700,11 @@
       "recent_activity": {
         "period": "Periodo",
         "days": "{{count}} giorni",
-        "days_short": "{{count}} g"
+        "days_short": "{{count}} g",
+        "title": "Attività recente",
+        "this_week": "Questa settimana",
+        "this_month": "Questo mese",
+        "this_year": "Quest'anno"
       },
       "top_domains": {
         "title": "Domini principali",
@@ -834,7 +859,8 @@
           "weekly": "Settimanalmente"
         },
         "select_frequency": "Seleziona frequenza",
-        "save_settings": "Salva modifiche"
+        "save_settings": "Salva modifiche",
+        "enable_automatic_backups_description": "Crea automaticamente backup dei tuoi segnalibri"
       },
       "list": {
         "title": "I tuoi backup",
@@ -856,7 +882,8 @@
           "download_backup": "Scarica backup",
           "delete_backup": "Elimina backup"
         },
-        "no_backups_title": "Ancora nessun backup"
+        "no_backups_title": "Ancora nessun backup",
+        "no_backups": "Non hai ancora nessun backup. Abilita i backup automatici o creane uno manualmente."
       },
       "dialogs": {
         "delete_backup_title": "Elimina backup",
@@ -1401,6 +1428,7 @@
     },
     "saved_copies": {
       "no_pdf": "Ancora nessun PDF — Salvane uno",
+      "no_screen_pdf": "Ancora nessun PDF dello schermo — Salvane uno",
       "no_archive": "Ancora nessuna pagina salvata — Salvane una",
       "no_video": "Ancora nessun video — Salvane uno"
     },
@@ -1438,6 +1466,7 @@
       "types": {
         "screenshot": "Screenshot",
         "pdf": "PDF salvato",
+        "screenPdf": "PDF dello schermo",
         "assetScreenshot": "Immagine di anteprima",
         "fullPageArchive": "Pagina salvata",
         "precrawledArchive": "Pagina salvata importata",
@@ -1493,7 +1522,8 @@
       "preserve_pdf": "Salvataggio del PDF in corso",
       "preserve_video": "Download del video messo in coda",
       "update_banner": "Banner aggiornato",
-      "uploading_banner": "Caricamento del banner..."
+      "uploading_banner": "Caricamento del banner...",
+      "preserve_screen_pdf": "È stato attivato il salvataggio in PDF dello schermo"
     },
     "lists": {
       "created": "Lista creata",

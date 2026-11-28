@@ -39,6 +39,9 @@ export async function getBookmarkDetails(bookmarkId: string) {
     )?.id,
     pdfAssetId: bookmark.assets.find((a) => a.assetType == AssetTypes.LINK_PDF)
       ?.id,
+    screenPdfAssetId: bookmark.assets.find(
+      (a) => a.assetType == AssetTypes.LINK_SCREEN_PDF,
+    )?.id,
     imageAssetId: bookmark.assets.find(
       (a) => a.assetType == AssetTypes.LINK_BANNER_IMAGE,
     )?.id,

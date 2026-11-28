@@ -259,8 +259,14 @@ async function runCrawler(
     return { status: "completed" };
   }
 
-  const { bookmarkId, archiveFullPage, storePdf, offlineCopiesOnly } =
-    request.data;
+  const {
+    bookmarkId,
+    archiveFullPage,
+    storePdf,
+    storeScreenPdf,
+    offlineCopiesOnly,
+  } = request.data;
+  const requestedColorScheme = request.data.colorScheme;
   // Add the bookmark id before any database or network work so failed and
   // aborted crawler events remain discoverable by bookmark id.
   addLogFields<"crawlerWorker.run">({
@@ -273,6 +279,7 @@ async function runCrawler(
     crawledAt,
     screenshotAssetId: oldScreenshotAssetId,
     pdfAssetId: oldPdfAssetId,
+    screenPdfAssetId: oldScreenPdfAssetId,
     imageAssetId: oldImageAssetId,
     fullPageArchiveAssetId: oldFullPageArchiveAssetId,
     contentAssetId: oldContentAssetId,
@@ -282,12 +289,21 @@ async function runCrawler(
 
   const userData = await db.query.users.findFirst({
     where: eq(users.id, userId),
-    columns: { browserCrawlingEnabled: true },
+    columns: {
+      browserCrawlingEnabled: true,
+      crawlerColorScheme: true,
+    },
   });
   if (!userData) {
     log.error(`User ${userId} not found`);
     throw new Error(`User ${userId} not found`);
   }
+
+  // Priority: per-crawl override > user preference > server default.
+  const colorScheme =
+    requestedColorScheme ??
+    userData.crawlerColorScheme ??
+    serverConfig.crawler.colorScheme;
 
   const runProxy = selectRunProxies();
   const ctx: CrawlContext = {
@@ -299,6 +315,7 @@ async function runCrawler(
     runProxy,
     // null means the user has no explicit setting, which defaults to enabled.
     browserCrawlingEnabled: userData.browserCrawlingEnabled !== false,
+    colorScheme,
     log,
   };
 
@@ -306,6 +323,7 @@ async function runCrawler(
     "user.id": userId,
     "crawler.url": url,
     "crawler.domain": getBookmarkDomain(url),
+    "crawler.colorScheme": colorScheme,
     "crawler.proxy": redactUrlCredentials(
       runProxy.httpsProxy ?? runProxy.httpProxy ?? "",
     ),
@@ -313,6 +331,7 @@ async function runCrawler(
   setSpanAttributes({
     "crawler.archiveFullPage": archiveFullPage,
     "crawler.offlineCopiesOnly": offlineCopiesOnly,
+    "crawler.colorScheme": colorScheme,
     "bookmark.id": bookmarkId,
     "bookmark.url": url,
     "bookmark.domain": getBookmarkDomain(url),
@@ -329,8 +348,10 @@ async function runCrawler(
     await storeOfflineCopies(ctx, {
       archiveFullPage,
       storePdf,
+      storeScreenPdf,
       precrawledArchiveAssetId,
       oldPdfAssetId,
+      oldScreenPdfAssetId,
       oldFullPageArchiveAssetId,
       numRetriesLeft,
     });
@@ -392,11 +413,13 @@ async function runCrawler(
       oldAssets: {
         screenshotAssetId: oldScreenshotAssetId,
         pdfAssetId: oldPdfAssetId,
+        screenPdfAssetId: oldScreenPdfAssetId,
         imageAssetId: oldImageAssetId,
         contentAssetId: oldContentAssetId,
       },
       precrawledArchiveAssetId,
       forceStorePdf: storePdf ?? false,
+      forceStoreScreenPdf: storeScreenPdf ?? false,
       numRetriesLeft,
       probeMetadataPromise,
     });
@@ -655,11 +678,13 @@ interface CrawlAndParseUrlArgs {
   oldAssets: {
     screenshotAssetId: string | undefined;
     pdfAssetId: string | undefined;
+    screenPdfAssetId: string | undefined;
     imageAssetId: string | undefined;
     contentAssetId: string | undefined;
   };
   precrawledArchiveAssetId: string | undefined;
   forceStorePdf: boolean;
+  forceStoreScreenPdf: boolean;
   numRetriesLeft: number;
   probeMetadataPromise: Promise<ParseSubprocessOutput["metadata"] | null>;
 }
@@ -680,6 +705,7 @@ const crawlAndParseUrl = traced(
       oldAssets,
       precrawledArchiveAssetId,
       forceStorePdf,
+      forceStoreScreenPdf,
       numRetriesLeft,
       probeMetadataPromise,
     } = args;
@@ -689,6 +715,7 @@ const crawlAndParseUrl = traced(
 
     setSpanAttributes({
       "crawler.forceStorePdf": forceStorePdf,
+      "crawler.forceStoreScreenPdf": forceStoreScreenPdf,
       "crawler.hasPrecrawledArchive": !!precrawledArchiveAssetId,
     });
     let precrawledHtml: string | undefined;
@@ -704,6 +731,7 @@ const crawlAndParseUrl = traced(
     }
     const result = await crawler.fetchPage(ctx, {
       forceStorePdf,
+      forceStoreScreenPdf,
       precrawledHtml,
       skipParseOnRetryableStatus: numRetriesLeft > 0,
     });
@@ -713,6 +741,7 @@ const crawlAndParseUrl = traced(
       htmlContent,
       screenshot,
       pdf,
+      screenPdf,
       statusCode,
       url: browserUrl,
       parsed,
@@ -825,6 +854,12 @@ const crawlAndParseUrl = traced(
     );
     abortSignal.throwIfAborted();
 
+    const screenPdfAssetInfo = await raceWith(
+      storeCapturedAsset(ctx, "screenPdf", screenPdf),
+      abortRace(abortSignal),
+    );
+    abortSignal.throwIfAborted();
+
     const htmlContentAssetInfo = await storeHtmlContent(
       ctx,
       readableContent?.content,
@@ -905,6 +940,22 @@ const crawlAndParseUrl = traced(
         );
         assetIdsToDelete.push(oldAssets.pdfAssetId);
       }
+      if (screenPdfAssetInfo) {
+        updateAsset(
+          oldAssets.screenPdfAssetId,
+          {
+            id: screenPdfAssetInfo.assetId,
+            bookmarkId,
+            userId,
+            assetType: AssetTypes.LINK_SCREEN_PDF,
+            contentType: screenPdfAssetInfo.contentType,
+            size: screenPdfAssetInfo.size,
+            fileName: screenPdfAssetInfo.fileName,
+          },
+          txn,
+        );
+        assetIdsToDelete.push(oldAssets.screenPdfAssetId);
+      }
       if (imageAssetInfo) {
         updateAsset(oldAssets.imageAssetId, imageAssetInfo, txn);
         assetIdsToDelete.push(oldAssets.imageAssetId);
@@ -979,9 +1030,11 @@ async function storeFullPageArchive(
 interface StoreOfflineCopiesArgs {
   archiveFullPage: boolean;
   storePdf: boolean;
+  storeScreenPdf: boolean;
   precrawledArchiveAssetId: string | undefined;
   /** Replaced (and deleted) when a new copy is stored. */
   oldPdfAssetId: string | undefined;
+  oldScreenPdfAssetId: string | undefined;
   oldFullPageArchiveAssetId: string | undefined;
   numRetriesLeft: number;
 }
@@ -997,6 +1050,7 @@ const storeOfflineCopies = traced(
   async (ctx: CrawlContext, args: StoreOfflineCopiesArgs): Promise<void> => {
     const { bookmarkId, userId, jobId, abortSignal, runProxy, log } = ctx;
     const storePdf = args.storePdf;
+    const storeScreenPdf = args.storeScreenPdf;
     // A precrawled archive is already the bookmark's offline archive, and the
     // regular crawl doesn't archive those bookmarks either.
     const archiveFullPage =
@@ -1006,15 +1060,17 @@ const storeOfflineCopies = traced(
         `Skipping the full page archive as the bookmark has a precrawled archive.`,
       );
     }
-    if (!storePdf && !archiveFullPage) {
+    if (!storePdf && !storeScreenPdf && !archiveFullPage) {
       return;
     }
 
     const page = await crawler.fetchPage(ctx, {
       forceStorePdf: storePdf,
+      forceStoreScreenPdf: storeScreenPdf,
       skipParseOnRetryableStatus: true,
       skipScreenshot: true,
       skipPdf: !storePdf,
+      skipScreenPdf: !storeScreenPdf,
       skipParse: true,
     });
     abortSignal.throwIfAborted();
@@ -1068,6 +1124,34 @@ const storeOfflineCopies = traced(
         });
         if (args.oldPdfAssetId) {
           await silentDeleteAsset(userId, args.oldPdfAssetId);
+        }
+      }
+    }
+
+    if (storeScreenPdf) {
+      const screenPdfAssetInfo = await raceWith(
+        storeCapturedAsset(ctx, "screenPdf", page.screenPdf),
+        abortRace(abortSignal),
+      );
+      abortSignal.throwIfAborted();
+      if (screenPdfAssetInfo) {
+        await db.transaction((txn) => {
+          updateAsset(
+            args.oldScreenPdfAssetId,
+            {
+              id: screenPdfAssetInfo.assetId,
+              bookmarkId,
+              userId,
+              assetType: AssetTypes.LINK_SCREEN_PDF,
+              contentType: screenPdfAssetInfo.contentType,
+              size: screenPdfAssetInfo.size,
+              fileName: screenPdfAssetInfo.fileName,
+            },
+            txn,
+          );
+        });
+        if (args.oldScreenPdfAssetId) {
+          await silentDeleteAsset(userId, args.oldScreenPdfAssetId);
         }
       }
     }

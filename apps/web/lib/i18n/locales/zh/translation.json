@@ -52,7 +52,8 @@
     "pdf": "已保存的 PDF",
     "default": "默认",
     "id": "ID",
-    "last_used": "上次使用"
+    "last_used": "上次使用",
+    "screen_pdf": "屏幕 PDF"
   },
   "form_errors": {
     "required": "此字段为必填项",
@@ -145,7 +146,11 @@
     "replace_banner": "替换横幅",
     "add_banner": "添加横幅",
     "download": "下载",
-    "rename": "重命名"
+    "rename": "重命名",
+    "recrawl_in_light_theme": "以亮色主题重新抓取",
+    "recrawl_in_dark_theme": "以暗色主题重新抓取",
+    "preserve_as_screen_pdf": "另存为屏幕 PDF",
+    "download_screen_pdf_file": "下载屏幕 PDF 文件"
   },
   "settings": {
     "back_to_app": "返回应用",
@@ -184,6 +189,13 @@
           "title": "已归档的书签",
           "show": "在标签和列表中显示",
           "hide": "在标签和列表中隐藏"
+        },
+        "crawler_color_scheme": {
+          "title": "爬虫配色方案",
+          "server_default": "服务器默认值",
+          "system": "跟随系统",
+          "light": "亮模式",
+          "dark": "暗模式"
         }
       },
       "reader_settings": {
@@ -458,7 +470,8 @@
             "label": "管理：订阅",
             "description": "管理用户订阅层级。"
           }
-        }
+        },
+        "scope_details": "{{scope}} 作用域详情"
       },
       "no_keys": "还没有 API 密钥",
       "page_description": "允许其他应用和脚本使用您的账户。",
@@ -656,7 +669,15 @@
         "lists": "列表",
         "highlights": "高亮",
         "storage_used": "已用存储",
-        "bookmarks_added": "已添加书签"
+        "bookmarks_added": "已添加书签",
+        "all_saved_items": "所有已保存项目",
+        "starred_bookmarks": "已加星标的书签",
+        "archived_items": "已归档的项目",
+        "unique_tags_created": "已创建唯一标签",
+        "bookmark_collections": "书签集合",
+        "text_highlights": "文本高亮",
+        "total_asset_storage": "总资产存储",
+        "this_month": "本月"
       },
       "bookmark_types": {
         "title": "书签类型",
@@ -667,7 +688,11 @@
       "recent_activity": {
         "period": "时间段",
         "days": "{{count}} 天",
-        "days_short": "{{count}}天"
+        "days_short": "{{count}}天",
+        "title": "最近的活动",
+        "this_week": "本周",
+        "this_month": "本月",
+        "this_year": "今年"
       },
       "top_domains": {
         "title": "热门域名",
@@ -820,7 +845,8 @@
           "weekly": "每周"
         },
         "select_frequency": "选择频率",
-        "save_settings": "保存更改"
+        "save_settings": "保存更改",
+        "enable_automatic_backups_description": "自动创建您的书签备份"
       },
       "list": {
         "title": "您的备份",
@@ -842,7 +868,8 @@
           "download_backup": "下载备份",
           "delete_backup": "删除备份"
         },
-        "no_backups_title": "还没有备份"
+        "no_backups_title": "还没有备份",
+        "no_backups": "您还没有任何备份。启用自动备份或手动创建一个。"
       },
       "dialogs": {
         "delete_backup_title": "删除备份",
@@ -1310,6 +1337,7 @@
     },
     "saved_copies": {
       "no_pdf": "还没有 PDF — 保存一份",
+      "no_screen_pdf": "还没有屏幕 PDF — 保存一份",
       "no_archive": "还没有已保存的页面 — 保存一份",
       "no_video": "还没有视频 — 保存一份"
     },
@@ -1347,6 +1375,7 @@
       "types": {
         "screenshot": "截图",
         "pdf": "已保存的 PDF",
+        "screenPdf": "屏幕 PDF",
         "assetScreenshot": "预览图片",
         "fullPageArchive": "已保存的页面",
         "precrawledArchive": "导入的已保存页面",
@@ -1462,7 +1491,8 @@
       "preserve_pdf": "正在保存 PDF",
       "preserve_video": "视频下载已加入队列",
       "update_banner": "横幅已更新",
-      "uploading_banner": "正在上传横幅..."
+      "uploading_banner": "正在上传横幅...",
+      "preserve_screen_pdf": "已触发屏幕 PDF 保存"
     },
     "lists": {
       "created": "列表已创建",

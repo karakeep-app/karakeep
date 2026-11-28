@@ -267,6 +267,10 @@
                     "type": "string",
                     "nullable": true
                   },
+                  "screenPdfAssetId": {
+                    "type": "string",
+                    "nullable": true
+                  },
                   "fullPageArchiveAssetId": {
                     "type": "string",
                     "nullable": true
@@ -451,6 +455,7 @@
                     "linkHtmlContent",
                     "screenshot",
                     "pdf",
+                    "screenPdf",
                     "assetScreenshot",
                     "bannerImage",
                     "fullPageArchive",
@@ -2425,6 +2430,7 @@
                       "linkHtmlContent",
                       "screenshot",
                       "pdf",
+                      "screenPdf",
                       "assetScreenshot",
                       "bannerImage",
                       "fullPageArchive",
@@ -2463,6 +2469,7 @@
                         "linkHtmlContent",
                         "screenshot",
                         "pdf",
+                        "screenPdf",
                         "assetScreenshot",
                         "bannerImage",
                         "fullPageArchive",

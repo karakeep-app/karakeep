@@ -52,7 +52,8 @@
     "pdf": "Opgeslagen PDF",
     "default": "Standaard",
     "id": "ID",
-    "last_used": "Laatst gebruikt"
+    "last_used": "Laatst gebruikt",
+    "screen_pdf": "Scherm-PDF"
   },
   "form_errors": {
     "required": "Dit veld is verplicht",
@@ -148,7 +149,11 @@
     "download_full_page_archive_file": "Opgeslagen pagina downloaden",
     "download_pdf_file": "Opgeslagen PDF downloaden",
     "download": "Downloaden",
-    "rename": "Hernoemen"
+    "rename": "Hernoemen",
+    "recrawl_in_light_theme": "Opnieuw doorzoeken in lichte modus",
+    "recrawl_in_dark_theme": "Opnieuw doorzoeken in donkere modus",
+    "preserve_as_screen_pdf": "Opslaan als scherm-PDF",
+    "download_screen_pdf_file": "Scherm-PDF-bestand downloaden"
   },
   "settings": {
     "ai": {
@@ -386,7 +391,8 @@
             "label": "Beheer: abonnementen",
             "description": "Beheer abonnementsvormen van gebruikers."
           }
-        }
+        },
+        "scope_details": "{{scope}} scope details"
       },
       "no_keys": "Nog geen API-sleutels",
       "page_description": "Laat andere apps en scripts je account gebruiken.",
@@ -434,6 +440,13 @@
           "title": "Gearchiveerde bladwijzers",
           "show": "Tonen in tags en lijsten",
           "hide": "Verbergen in tags en lijsten"
+        },
+        "crawler_color_scheme": {
+          "title": "Kleurschema van de crawler",
+          "server_default": "Serverstandaard",
+          "system": "Systeem",
+          "light": "Licht",
+          "dark": "Donker"
         }
       },
       "reader_settings": {
@@ -665,7 +678,15 @@
         "lists": "Lijsten",
         "highlights": "Markeringen",
         "storage_used": "Gebruikte opslag",
-        "bookmarks_added": "Bladwijzers toegevoegd"
+        "bookmarks_added": "Bladwijzers toegevoegd",
+        "all_saved_items": "Alle opgeslagen items",
+        "starred_bookmarks": "Bladwijzers met ster",
+        "archived_items": "Gearchiveerde items",
+        "unique_tags_created": "Unieke tags aangemaakt",
+        "bookmark_collections": "Bladwijzerverzamelingen",
+        "text_highlights": "Tekstmarkeringen",
+        "total_asset_storage": "Totale opslag van activa",
+        "this_month": "Deze maand"
       },
       "bookmark_types": {
         "title": "Bladwijzertypen",
@@ -676,7 +697,11 @@
       "recent_activity": {
         "period": "Periode",
         "days": "{{count}} dagen",
-        "days_short": "{{count}}d"
+        "days_short": "{{count}}d",
+        "title": "Recente activiteit",
+        "this_week": "Deze week",
+        "this_month": "Deze maand",
+        "this_year": "Dit jaar"
       },
       "top_domains": {
         "title": "Topdomeinen",
@@ -830,7 +855,8 @@
           "weekly": "Wekelijks"
         },
         "select_frequency": "Selecteer frequentie",
-        "save_settings": "Wijzigingen opslaan"
+        "save_settings": "Wijzigingen opslaan",
+        "enable_automatic_backups_description": "Maak automatisch back-ups van je bladwijzers"
       },
       "list": {
         "title": "Je back-ups",
@@ -852,7 +878,8 @@
           "download_backup": "Back-up downloaden",
           "delete_backup": "Back-up verwijderen"
         },
-        "no_backups_title": "Nog geen back-ups"
+        "no_backups_title": "Nog geen back-ups",
+        "no_backups": "Je hebt nog geen back-ups. Schakel automatische back-ups in of maak er handmatig een."
       },
       "dialogs": {
         "delete_backup_title": "Back-up verwijderen",
@@ -1154,6 +1181,7 @@
     },
     "saved_copies": {
       "no_pdf": "Nog geen PDF — Sla er een op",
+      "no_screen_pdf": "Nog geen Scherm-PDF — Sla er een op",
       "no_archive": "Nog geen opgeslagen pagina — Sla er een op",
       "no_video": "Nog geen video — Sla er een op"
     },
@@ -1191,6 +1219,7 @@
       "types": {
         "screenshot": "Schermafbeelding",
         "pdf": "Opgeslagen PDF",
+        "screenPdf": "Scherm-PDF",
         "assetScreenshot": "Voorbeeldafbeelding",
         "fullPageArchive": "Opgeslagen pagina",
         "precrawledArchive": "Geïmporteerde opgeslagen pagina",
@@ -1567,7 +1596,8 @@
       "preserve_pdf": "PDF wordt opgeslagen",
       "preserve_video": "Videodownload in de wachtrij geplaatst",
       "update_banner": "Banner bijgewerkt",
-      "uploading_banner": "Banner uploaden..."
+      "uploading_banner": "Banner uploaden...",
+      "preserve_screen_pdf": "Scherm-PDF-opslag is geactiveerd"
     },
     "lists": {
       "updated": "Lijst bijgewerkt",

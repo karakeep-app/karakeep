@@ -10,6 +10,7 @@ export function mapDBAssetTypeToUserType(assetType: AssetTypes): ZAssetType {
   const map: Record<AssetTypes, z.infer<typeof zAssetTypesSchema>> = {
     [AssetTypes.LINK_SCREENSHOT]: "screenshot",
     [AssetTypes.LINK_PDF]: "pdf",
+    [AssetTypes.LINK_SCREEN_PDF]: "screenPdf",
     [AssetTypes.ASSET_SCREENSHOT]: "assetScreenshot",
     [AssetTypes.LINK_FULL_PAGE_ARCHIVE]: "fullPageArchive",
     [AssetTypes.LINK_PRECRAWLED_ARCHIVE]: "precrawledArchive",
@@ -31,6 +32,7 @@ export function mapSchemaAssetTypeToDB(
   const map: Record<ZAssetType, AssetTypes> = {
     screenshot: AssetTypes.LINK_SCREENSHOT,
     pdf: AssetTypes.LINK_PDF,
+    screenPdf: AssetTypes.LINK_SCREEN_PDF,
     assetScreenshot: AssetTypes.ASSET_SCREENSHOT,
     fullPageArchive: AssetTypes.LINK_FULL_PAGE_ARCHIVE,
     precrawledArchive: AssetTypes.LINK_PRECRAWLED_ARCHIVE,
@@ -51,6 +53,7 @@ export function isAllowedToAttachAsset(type: ZAssetType) {
   const map: Record<ZAssetType, boolean> = {
     screenshot: true,
     pdf: true,
+    screenPdf: true,
     assetScreenshot: true,
     fullPageArchive: false,
     precrawledArchive: true,
@@ -69,6 +72,7 @@ export function isAllowedToDetachAsset(type: ZAssetType) {
   const map: Record<ZAssetType, boolean> = {
     screenshot: true,
     pdf: true,
+    screenPdf: true,
     assetScreenshot: true,
     fullPageArchive: true,
     precrawledArchive: true,
