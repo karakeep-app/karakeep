@@ -108,6 +108,50 @@ describe("OpenAIInferenceClient response_format", () => {
   });
 });
 
+describe("OpenAIInferenceClient reasoning_effort", () => {
+  beforeEach(() => {
+    capturedBodies.length = 0;
+  });
+
+  it("sends reasoningEffort for text inference", async () => {
+    const client = new OpenAIInferenceClient({
+      ...makeConfig("structured"),
+      reasoningEffort: "none",
+    });
+
+    await client.inferFromText("infer tags", { schema: tagSchema });
+
+    expect(capturedBodies[0].reasoning_effort).toBe("none");
+  });
+
+  it("sends imageReasoningEffort for image inference", async () => {
+    const client = new OpenAIInferenceClient({
+      ...makeConfig("structured"),
+      reasoningEffort: "none",
+      imageReasoningEffort: "high",
+    });
+
+    await client.inferFromImage("tag this image", "image/png", "BASE64", {
+      schema: tagSchema,
+    });
+
+    expect(capturedBodies[0].reasoning_effort).toBe("high");
+  });
+
+  it("doesn't apply the text reasoningEffort to image inference", async () => {
+    const client = new OpenAIInferenceClient({
+      ...makeConfig("structured"),
+      reasoningEffort: "high",
+    });
+
+    await client.inferFromImage("tag this image", "image/png", "BASE64", {
+      schema: tagSchema,
+    });
+
+    expect(capturedBodies[0].reasoning_effort).toBeUndefined();
+  });
+});
+
 function completionWith(
   message: { content: string | null; refusal?: string | null },
   finishReason: string,
