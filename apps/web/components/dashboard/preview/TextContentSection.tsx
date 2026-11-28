@@ -44,7 +44,7 @@ export function TextContentSection({
           />
         </div>
       )}
-      <div className="mx-auto max-w-3xl px-4 py-4">
+      <div className="tts-reader mx-auto max-w-3xl px-4 py-4">
         {/* Without a title of its own, a note just starts with its first line. */}
         {bookmark.title && (
           <ArticleTitleBlock bookmark={bookmark} compactOnPhone />

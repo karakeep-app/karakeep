@@ -158,9 +158,13 @@ export default function AttachmentBox({
     },
   });
 
-  bookmark.assets.sort((a, b) => a.assetType.localeCompare(b.assetType));
+  // Narration chunks belong to the player, not the attachment list (a long
+  // article has hundreds of them).
+  const assets = bookmark.assets
+    .filter((a) => a.assetType !== "ttsAudio")
+    .sort((a, b) => a.assetType.localeCompare(b.assetType));
 
-  const hasAssets = bookmark.assets.length > 0;
+  const hasAssets = assets.length > 0;
 
   return (
     // With nothing to hide there's no toggle, just the line saying so.
@@ -173,9 +177,7 @@ export default function AttachmentBox({
             className="flex min-h-8 min-w-0 flex-1 items-center gap-2 text-left outline-none hover:text-foreground max-sm:min-h-11 [@media(pointer:coarse)]:min-h-11"
           >
             {t("common.attachments")}
-            <span className="font-normal tabular-nums">
-              {bookmark.assets.length}
-            </span>
+            <span className="font-normal tabular-nums">{assets.length}</span>
           </CollapsibleTrigger>
         ) : (
           t("common.attachments")
@@ -278,7 +280,7 @@ export default function AttachmentBox({
         </div>
       </div>
       <CollapsibleContent className="flex flex-col py-2 text-sm">
-        {bookmark.assets.map((asset) => (
+        {assets.map((asset) => (
           <div
             key={asset.id}
             className="flex items-center justify-between gap-2"

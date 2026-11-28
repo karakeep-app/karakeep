@@ -136,11 +136,13 @@ describe("getBookmarkRefreshInterval", () => {
     createdAt: Date;
     modifiedAt: Date | null;
     crawlStatus: "pending" | "success";
+    ttsStatus?: "pending" | "generating" | "success";
   }) =>
     ({
       id: "bookmark",
       createdAt: opts.createdAt,
       modifiedAt: opts.modifiedAt,
+      ttsStatus: opts.ttsStatus ?? null,
       taggingStatus: "success",
       summarizationStatus: "success",
       content: {
@@ -185,6 +187,33 @@ describe("getBookmarkRefreshInterval", () => {
     expect(
       getBookmarkRefreshInterval(
         link({ createdAt: now, modifiedAt: now, crawlStatus: "success" }),
+      ),
+    ).toBe(false);
+  });
+
+  it("polls TTS generation on an old bookmark while it makes progress", () => {
+    expect(
+      getBookmarkRefreshInterval(
+        link({
+          createdAt: new Date(Date.now() - WEEK),
+          modifiedAt: new Date(),
+          crawlStatus: "success",
+          ttsStatus: "generating",
+        }),
+      ),
+    ).toBe(1000);
+  });
+
+  it("stops polling TTS generation that has stalled", () => {
+    const anHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    expect(
+      getBookmarkRefreshInterval(
+        link({
+          createdAt: anHourAgo,
+          modifiedAt: anHourAgo,
+          crawlStatus: "success",
+          ttsStatus: "pending",
+        }),
       ),
     ).toBe(false);
   });

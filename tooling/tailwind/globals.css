@@ -116,3 +116,11 @@
     scrollbar-color: hsl(var(--muted-foreground) / 0.15) transparent;
   }
 }
+
+/* Paragraph currently being read aloud by the TTS player. */
+.tts-active {
+  background-color: hsl(48 96% 53% / 0.22);
+  box-shadow: 0 0 0 4px hsl(48 96% 53% / 0.22);
+  border-radius: 0.25rem;
+  transition: background-color 0.2s;
+}

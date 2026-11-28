@@ -13,6 +13,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   User,
+  Volume2,
   Webhook,
   Workflow,
 } from "lucide-react";
@@ -73,6 +74,11 @@ export function settingsNavGroups(t: TFunction): SectionNavGroup[] {
               },
             ]
           : []),
+        {
+          name: t("settings.tts.tts_settings"),
+          icon: <Volume2 className="size-4" />,
+          path: "/settings/tts",
+        },
       ],
     },
     {

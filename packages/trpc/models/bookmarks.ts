@@ -64,6 +64,8 @@ import { htmlToPlainText } from "@karakeep/shared/utils/htmlUtils";
 import { AuthedContext } from "..";
 import { mapDBAssetTypeToUserType } from "../lib/attachments";
 import { getPreferredLinkPreview } from "../lib/linkPreview";
+import { sortTtsChunks } from "@karakeep/shared/utils/ttsChunkUtils";
+
 import { Asset } from "./assets";
 import { List } from "./lists";
 
@@ -248,7 +250,14 @@ export class Bookmark extends BareBookmark {
           a.attachedBy === "ai" ? 1 : b.attachedBy === "ai" ? -1 : 0,
         ),
       content,
-      assets: assets.map((a) => ({
+      // TTS chunks are returned last and ordered by chunk index, since
+      // playback order is encoded only in their file names.
+      assets: [
+        ...assets.filter((a) => a.assetType !== AssetTypes.TTS_AUDIO),
+        ...sortTtsChunks(
+          assets.filter((a) => a.assetType === AssetTypes.TTS_AUDIO),
+        ),
+      ].map((a) => ({
         id: a.id,
         assetType: mapDBAssetTypeToUserType(a.assetType),
         fileName: a.fileName,

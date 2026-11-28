@@ -153,6 +153,24 @@ export function useSummarizeBookmark(
   );
 }
 
+export function useGenerateTts(
+  opts?: Parameters<TRPCApi["bookmarks"]["generateTts"]["mutationOptions"]>[0],
+) {
+  const api = useTRPC();
+  const queryClient = useQueryClient();
+  return useMutation(
+    api.bookmarks.generateTts.mutationOptions({
+      ...opts,
+      onSuccess: (res, req, meta, context) => {
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        return opts?.onSuccess?.(res, req, meta, context);
+      },
+    }),
+  );
+}
+
 export function useRecrawlBookmark(
   opts?: Parameters<
     TRPCApi["bookmarks"]["recrawlBookmark"]["mutationOptions"]

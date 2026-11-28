@@ -135,6 +135,19 @@ Either `OPENAI_API_KEY` or `OLLAMA_BASE_URL` need to be set for automatic taggin
 - You can use the placeholders `$tags`, `$aiTags`, `$userTags` in the prompt. These placeholders will be replaced with all tags, ai generated tags or human created tags when automatic tagging is performed (e.g. `[karakeep, computer, ai]`)
   :::
 
+## Text-to-Speech Configs
+
+The TTS server connection (base URL, API key, model, voice) is configured per-user at **Settings > Text-to-Speech** in the app, not via environment variables, since each user can point at their own server. It enables a "Listen" button on bookmarks that generates narration audio using an OpenAI-compatible text-to-speech server, such as [Kokoro-FastAPI](https://github.com/remsky/Kokoro-FastAPI).
+
+The env vars below only tune the background worker that talks to whatever server each user has configured:
+
+| Name               | Required | Default    | Description                                                                                              |
+| ------------------ | -------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| TTS_TIMEOUT_SEC     | No       | 120        | How long to wait for each chunk synthesis request before timing out.                                       |
+| TTS_NUM_WORKERS     | No       | 1          | Number of concurrent workers for text-to-speech generation.                                                |
+| TTS_RESPONSE_FORMAT | No       | mp3        | Audio format requested from the TTS server (`mp3`, `wav`, `opus`, `aac` or `flac`). Chunks already generated in another format keep playing. |
+| TTS_JOB_TIMEOUT_SEC | No       | 300        | How long to wait for a full text-to-speech job (all chunks of an article) to finish before timing out.      |
+
 ## Crawler Configs
 
 | Name                                     | Required | Default   | Description                                                                                                                                                                                                                                                                                                                                                                   |

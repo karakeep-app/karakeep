@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FullPageSpinner } from "@/components/ui/full-page-spinner";
 import { Separator } from "@/components/ui/separator";
+import TtsBookmarkArea from "../bookmarks/TtsBookmarkArea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
@@ -232,6 +233,39 @@ function DetailsTitle({ bookmark }: { bookmark: ZBookmark }) {
       </p>
       <Separator />
     </>
+  );
+}
+
+/**
+ * Floats the TTS control over the reading area. Hidden (not unmounted) outside
+ * the reader view, which has no narration text, so playback never gets cut off.
+ * Mounted once for both the wide and narrow layouts, so resizing across the
+ * breakpoint keeps the same player (and its audio) instead of a second one.
+ */
+function FloatingTts({
+  bookmark,
+  isOwner,
+  className,
+}: {
+  bookmark: ZBookmark;
+  isOwner: boolean;
+  className?: string;
+}) {
+  const { section } = useLinkSection(bookmark);
+  const show =
+    bookmark.content.type !== BookmarkTypes.LINK || section === "cached";
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4",
+        className,
+        !show && "hidden",
+      )}
+    >
+      <div className="pointer-events-auto">
+        <TtsBookmarkArea bookmark={bookmark} readOnly={!isOwner} />
+      </div>
+    </div>
   );
 }
 
@@ -537,7 +571,7 @@ export default function BookmarkPreview({
   );
 
   return (
-    <>
+    <div className="relative h-full w-full">
       {/* Render original layout for wide screens */}
       <div className="relative hidden h-full flex-col overflow-hidden bg-card lg:flex">
         {/* The same spot for every control, whether or not the panel is showing: */}
@@ -625,7 +659,7 @@ export default function BookmarkPreview({
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
         >
           <div className="z-10 flex shrink-0 items-center gap-1 border-b px-2 py-1">
             <CloseButton label={t("preview.close")} onClick={close} />
@@ -698,6 +732,20 @@ export default function BookmarkPreview({
           </div>
         )}
       </div>
-    </>
+      {/* One player for both layouts; positioned over whichever reading */}
+      {/* area is showing. */}
+      <FloatingTts
+        bookmark={bookmark}
+        isOwner={isOwner}
+        className={cn(
+          // Wide: keep clear of the details sidebar (same width as below).
+          !sidebarCollapsed && "lg:right-[clamp(16rem,38%,26rem)]",
+          // Narrow: only on the content tab, above the bottom action bar.
+          activeTab !== "content" && "max-lg:hidden",
+          (isOwner || navigation) &&
+            "max-sm:bottom-[calc(4rem+env(safe-area-inset-bottom))]",
+        )}
+      />
+    </div>
   );
 }

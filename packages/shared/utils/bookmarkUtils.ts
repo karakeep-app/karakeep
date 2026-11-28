@@ -45,11 +45,16 @@ export function isBookmarkStillSummarizing(bookmark: ZBookmark) {
   return bookmark.summarizationStatus == "pending";
 }
 
+export function isBookmarkStillGeneratingTts(bookmark: ZBookmark) {
+  return bookmark.ttsStatus == "pending" || bookmark.ttsStatus == "generating";
+}
+
 export function isBookmarkStillLoading(bookmark: ZBookmark) {
   return (
     isBookmarkStillTagging(bookmark) ||
     isBookmarkStillCrawling(bookmark) ||
-    isBookmarkStillSummarizing(bookmark)
+    isBookmarkStillSummarizing(bookmark) ||
+    isBookmarkStillGeneratingTts(bookmark)
   );
 }
 
@@ -60,6 +65,30 @@ export function getBookmarkRefreshInterval(
     return false;
   }
 
+  // TTS generation is triggered on-demand, often long after the bookmark
+  // was created, and the player wants to pick up each chunk as it lands.
+  // Every saved chunk bumps modifiedAt, so poll fast while it keeps moving
+  // and back off (then stop) once it stalls, e.g. when the tts worker isn't
+  // running at all.
+  if (isBookmarkStillGeneratingTts(bookmark)) {
+    const sinceProgress =
+      Date.now() - (bookmark.modifiedAt ?? bookmark.createdAt).valueOf();
+    if (sinceProgress < 5 * 60 * 1000) {
+      return 1000;
+    }
+    if (sinceProgress < 30 * 60 * 1000) {
+      return 10_000;
+    }
+    // Stalled: only keep polling (with the regular backoff below) if other
+    // processing is still underway.
+    if (
+      !isBookmarkStillTagging(bookmark) &&
+      !isBookmarkStillCrawling(bookmark) &&
+      !isBookmarkStillSummarizing(bookmark)
+    ) {
+      return false;
+    }
+  }
   // Back off from when the bookmark last changed rather than when it was
   // created, so that reprocessing an old bookmark (e.g. a recrawl) is polled too.
   const lastChangedAt = Math.max(

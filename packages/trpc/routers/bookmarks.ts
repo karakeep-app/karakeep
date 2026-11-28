@@ -1,5 +1,15 @@
 import { experimental_trpcMiddleware, TRPCError } from "@trpc/server";
-import { and, eq, gt, inArray, like, lt, or } from "drizzle-orm";
+import {
+  and,
+  eq,
+  gt,
+  inArray,
+  isNull,
+  like,
+  lt,
+  notInArray,
+  or,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -29,6 +39,8 @@ import {
   SUPPORTED_BOOKMARK_ASSET_TYPES,
   triggerSearchReindex,
   VideoWorkerQueue,
+  TtsProviderConfigService,
+  TtsQueue,
 } from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import {
@@ -1759,5 +1771,89 @@ export const bookmarksAppRouter = router({
         bookmarkId: input.bookmarkId,
         summary: summary.response,
       };
+    }),
+  generateTts: bookmarksProcedure
+    .use(
+      createRateLimitMiddleware({
+        name: "bookmarks.generateTts",
+        windowMs: 30 * 60 * 1000,
+        maxRequests: 20,
+      }),
+    )
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+        voice: z.string().min(1).max(200).optional(),
+      }),
+    )
+    .output(
+      z.object({
+        bookmarkId: z.string(),
+      }),
+    )
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      const ttsProvider = await TtsProviderConfigService.get(
+        ctx.db,
+        ctx.user.id,
+      );
+      if (!ttsProvider) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "No TTS server configured",
+        });
+      }
+      const bookmark = await ctx.db.query.bookmarks.findFirst({
+        where: eq(bookmarks.id, input.bookmarkId),
+        columns: { type: true },
+      });
+      if (
+        !bookmark ||
+        (bookmark.type !== BookmarkTypes.LINK &&
+          bookmark.type !== BookmarkTypes.TEXT)
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "Text-to-speech is only supported for links and text bookmarks",
+        });
+      }
+
+      // Claim the bookmark atomically: only one generation may be queued or
+      // running at a time, otherwise two jobs (two tabs, web + mobile) would
+      // each delete and re-insert chunks and interleave their audio. A
+      // request while one is in flight is a no-op; the client is already
+      // polling that one.
+      const claimed = await ctx.db
+        .update(bookmarks)
+        .set({ ttsStatus: "pending", ttsTotalChunks: null })
+        .where(
+          and(
+            eq(bookmarks.id, input.bookmarkId),
+            or(
+              isNull(bookmarks.ttsStatus),
+              notInArray(bookmarks.ttsStatus, ["pending", "generating"]),
+            ),
+          ),
+        )
+        .returning({ id: bookmarks.id });
+      if (claimed.length === 0) {
+        return { bookmarkId: input.bookmarkId };
+      }
+      try {
+        await TtsQueue.enqueue({
+          bookmarkId: input.bookmarkId,
+          voice: input.voice,
+        });
+      } catch (e) {
+        // Don't leave the claim behind, or the bookmark could never retry.
+        await ctx.db
+          .update(bookmarks)
+          .set({ ttsStatus: "failure" })
+          .where(eq(bookmarks.id, input.bookmarkId));
+        throw e;
+      }
+
+      return { bookmarkId: input.bookmarkId };
     }),
 });
