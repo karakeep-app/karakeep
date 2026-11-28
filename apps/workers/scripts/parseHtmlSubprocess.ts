@@ -16,6 +16,7 @@ import logger from "@karakeep/shared/logger";
 
 import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
 import {
+  createYoutubeDatePublishedRule,
   isAmazonHost,
   isRedditHost,
   isValidMetadataValue,
@@ -40,12 +41,18 @@ logger.add(new winston.transports.Stream({ stream: process.stderr }));
  * (and their heavy network/proxy dependencies) only when the URL matches.
  */
 async function buildMetascraperParser(url: string) {
-  const rules: Rules[] = [
+  const rules: Rules[] = [];
+
+  if (isYoutubeHost(url)) {
+    rules.push(createYoutubeDatePublishedRule());
+  }
+
+  rules.push(
     metascraperDate({
       dateModified: true,
       datePublished: true,
     }),
-  ];
+  );
 
   if (isAmazonHost(url)) {
     const [

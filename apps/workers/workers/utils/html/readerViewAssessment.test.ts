@@ -2,6 +2,7 @@ import { JSDOM } from "jsdom";
 import { describe, expect, test } from "vitest";
 
 import {
+  applyChallengePageAssessment,
   assessReaderView,
   unavailableReaderViewAssessment,
 } from "./readerViewAssessment";
@@ -166,12 +167,87 @@ describe("reader view assessment", () => {
     expect(noBlockResult.reasons).toContain("link_collection");
   });
 
+  test("caps control-heavy homepages even with og:type=article, search URLs, and blockless non-readerable pages", () => {
+    const controlHeavyArticleHome = `
+      <html>
+        <head><meta property="og:type" content="article"></head>
+        <body>
+          <main>
+            <form><input><button>Sign in</button><button>Join</button><button>Menu</button><button>Search</button><button>Filter</button><button>Topics</button></form>
+            ${Array.from({ length: 5 }, () => `<p>${paragraph}</p>`).join("")}
+          </main>
+        </body>
+      </html>`;
+    const homeResult = assess(
+      controlHeavyArticleHome,
+      controlHeavyArticleHome,
+      "https://example.com/",
+    );
+    expect(homeResult.reasons).toContain("root_page");
+    expect(homeResult.status).toBe("uncertain");
+    expect(homeResult.score).toBeLessThanOrEqual(60);
+
+    // Hash-routed SPA articles on `/` are not root homepages.
+    const hashArticleResult = assess(
+      controlHeavyArticleHome,
+      controlHeavyArticleHome,
+      "https://example.com/#/posts/42",
+    );
+    expect(hashArticleResult.reasons).not.toContain("root_page");
+    expect(hashArticleResult.status).toBe("readable");
+
+    const searchHtml = `<article>${Array.from({ length: 6 }, () => `<p>${paragraph}</p>`).join("")}</article>`;
+    const searchResult = assess(
+      searchHtml,
+      searchHtml,
+      "https://example.com/?q=bookmarks",
+    );
+    expect(searchResult.reasons).toContain("search_url");
+    expect(searchResult.status).not.toBe("readable");
+    expect(searchResult.score).toBeLessThanOrEqual(50);
+
+    const blocklessCards = `<article>${Array.from({ length: 12 }, (_, i) => `<div>Short headline card ${i}. Another brief note.</div>`).join("")}</article>`;
+    const blocklessResult = assess(
+      blocklessCards,
+      blocklessCards,
+      "https://example.com/news",
+    );
+    expect(blocklessResult.reasons).toContain("no_substantive_blocks");
+    expect(blocklessResult.status).not.toBe("readable");
+    expect(blocklessResult.score).toBeLessThanOrEqual(60);
+  });
+
+  test("downgrades challenge pages via applyChallengePageAssessment", () => {
+    const readable = {
+      status: "readable" as const,
+      score: 90,
+      reasons: ["useful_content_length" as const],
+      classifierVersion: 6,
+    };
+    expect(applyChallengePageAssessment(readable, false)).toBe(readable);
+    expect(applyChallengePageAssessment(readable, true)).toEqual({
+      status: "not_readable",
+      score: 0,
+      reasons: ["useful_content_length", "challenge_page"],
+      classifierVersion: 6,
+    });
+    expect(
+      applyChallengePageAssessment(unavailableReaderViewAssessment(), true),
+    ).toEqual({
+      status: "unavailable",
+      score: 0,
+      reasons: ["no_extracted_content", "challenge_page"],
+      classifierVersion: 6,
+    });
+    expect(applyChallengePageAssessment(null, true)).toBeNull();
+  });
+
   test("represents a missing extraction separately", () => {
     expect(unavailableReaderViewAssessment()).toEqual({
       status: "unavailable",
       score: 0,
       reasons: ["no_extracted_content"],
-      classifierVersion: 5,
+      classifierVersion: 6,
     });
   });
 });

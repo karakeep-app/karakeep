@@ -1,3 +1,7 @@
+import type { Rules } from "metascraper";
+
+import { isChallengePageTitle } from "./metadataResolver";
+
 const AMAZON_HOST_PATTERN = /(?:^|\.)(?:amazon|amzn)\.|(?:^|\.)a\.co$/i;
 const YOUTUBE_HOST_PATTERN =
   /(?:^|\.)(?:youtube\.com|youtu\.be|youtube-nocookie\.com)$/i;
@@ -90,10 +94,40 @@ export function isValidMetadataValue(
   ) {
     return false;
   }
+  if (propName === "publisher" && isChallengePageTitle(cleaned)) {
+    return false;
+  }
   if (propName === "image" && PLACEHOLDER_OR_ICON_IMAGE_PATTERN.test(cleaned)) {
     return false;
   }
   return true;
+}
+
+export function parseIsoDateValue(
+  raw: string | null | undefined,
+): string | undefined {
+  if (!raw) {
+    return undefined;
+  }
+  const parsed = new Date(raw.trim());
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
+/**
+ * YouTube embeds comments with `dateCreated` inside VideoObject JSON-LD, which
+ * otherwise beats `<meta itemprop="datePublished">` in `metascraper-date`'s
+ * rule order. Run this rule before `metascraper-date` on YouTube hosts so the
+ * video's own publish/upload date wins.
+ */
+export function createYoutubeDatePublishedRule(): Rules {
+  return {
+    datePublished: [
+      ({ htmlDom: $ }) =>
+        parseIsoDateValue($('[itemprop="datePublished" i]').attr("content")),
+      ({ htmlDom: $ }) =>
+        parseIsoDateValue($('[itemprop="uploadDate" i]').attr("content")),
+    ],
+  };
 }
 
 function cleanTextField(value: unknown): string | null | undefined {

@@ -26,7 +26,6 @@ import type { MimeBuffer } from "data-uri-to-buffer";
 import { and, eq, sql } from "drizzle-orm";
 
 import type { AssetMetadata, ZCrawlLinkRequest } from "@karakeep/shared-server";
-import type { ZReaderViewReason } from "@karakeep/shared/types/bookmarks";
 import { db } from "@karakeep/db";
 import {
   assets,
@@ -95,10 +94,12 @@ import {
 } from "./utils/crawlerUtils";
 import {
   extractHtmlTitle,
+  isDeepPathRedirectedToRoot,
   isHumanOnlyInterstitial,
   isLikelyChallengePage,
   resolveMetadata,
 } from "./utils/html/metadataResolver";
+import { applyChallengePageAssessment } from "./utils/html/readerViewAssessment";
 
 const crawler: Crawler = serverConfig.sandbox.url
   ? remoteCrawler
@@ -769,6 +770,10 @@ const crawlAndParseUrl = traced(
     });
     const renderBlocked =
       shouldRetryCrawlStatusCode(statusCode) || renderIsChallengePage;
+    const renderRedirectedToRoot = isDeepPathRedirectedToRoot(
+      ctx.url,
+      browserUrl,
+    );
     addLogFields<"crawlerWorker.run">({
       "crawler.render_blocked": renderBlocked,
     });
@@ -776,14 +781,20 @@ const crawlAndParseUrl = traced(
       log.info(
         `The rendered page looks blocked (status ${statusCode}); preferring preflight probe metadata.`,
       );
+    } else if (renderRedirectedToRoot && probeMetadata) {
+      log.info(
+        `The rendered page redirected to the site root; preferring preflight probe metadata.`,
+      );
     }
-    const meta = resolveMetadata(renderMeta, probeMetadata, renderBlocked);
-    const readerViewReasons: ZReaderViewReason[] | null = readerViewAssessment
-      ? renderIsChallengePage &&
-        !readerViewAssessment.reasons.includes("challenge_page")
-        ? [...readerViewAssessment.reasons, "challenge_page"]
-        : readerViewAssessment.reasons
-      : null;
+    const meta = resolveMetadata(
+      renderMeta,
+      probeMetadata,
+      renderBlocked || renderRedirectedToRoot,
+    );
+    const finalReaderViewAssessment = applyChallengePageAssessment(
+      readerViewAssessment,
+      renderIsChallengePage,
+    );
 
     const parseDate = (date: string | null | undefined) => {
       if (!date) {
@@ -865,11 +876,11 @@ const crawlAndParseUrl = traced(
             htmlContentAssetInfo.result === "stored"
               ? htmlContentAssetInfo.assetId
               : null,
-          readerViewStatus: readerViewAssessment?.status ?? null,
-          readerViewScore: readerViewAssessment?.score ?? null,
-          readerViewReasons,
+          readerViewStatus: finalReaderViewAssessment?.status ?? null,
+          readerViewScore: finalReaderViewAssessment?.score ?? null,
+          readerViewReasons: finalReaderViewAssessment?.reasons ?? null,
           readerViewClassifierVersion:
-            readerViewAssessment?.classifierVersion ?? null,
+            finalReaderViewAssessment?.classifierVersion ?? null,
         })
         .where(eq(bookmarkLinks.id, bookmarkId))
         .run();

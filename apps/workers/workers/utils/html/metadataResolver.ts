@@ -52,6 +52,7 @@ const CHALLENGE_PAGE_TITLES = new Set([
   "pardon our interruption",
   // Generic captcha interstitials
   "human verification",
+  "prove your humanity",
   "verify you are human",
   "verifying you are human",
   "bot verification",
@@ -59,6 +60,14 @@ const CHALLENGE_PAGE_TITLES = new Set([
   "vercel security checkpoint",
   ...NON_WAITABLE_CHALLENGE_TITLES,
 ]);
+
+/**
+ * Whether `title` exactly matches (case-insensitively, ignoring outer
+ * whitespace) a known bot-protection or human-verification interstitial title.
+ */
+export function isChallengePageTitle(title?: string | null): boolean {
+  return !!title && CHALLENGE_PAGE_TITLES.has(title.trim().toLowerCase());
+}
 
 /**
  * High-confidence markers that only appear in the markup of an actual
@@ -166,18 +175,55 @@ export function isWaitableChallenge(
   );
 }
 
+function normalizeHostForRedirectCheck(hostname: string): string {
+  return hostname.toLowerCase().replace(/^(?:www|m)\./, "");
+}
+
+/**
+ * Whether a deep bookmark URL was redirected by the browser to the bare root
+ * homepage of the same site (for example, an unauthenticated share link that
+ * bounced to `/`). In that case the preflight probe often still holds the
+ * specific page's metadata while the render only reflects the generic homepage.
+ */
+export function isDeepPathRedirectedToRoot(
+  requestedUrl: string,
+  finalUrl: string,
+): boolean {
+  if (!requestedUrl || !finalUrl || requestedUrl === finalUrl) {
+    return false;
+  }
+  try {
+    const requested = new URL(requestedUrl);
+    const final = new URL(finalUrl);
+    if (
+      normalizeHostForRedirectCheck(requested.hostname) !==
+      normalizeHostForRedirectCheck(final.hostname)
+    ) {
+      return false;
+    }
+    const requestedIsDeep =
+      requested.pathname !== "/" && requested.pathname !== "";
+    const finalIsBareRoot =
+      (final.pathname === "/" || final.pathname === "") &&
+      !final.search &&
+      !final.hash;
+    return requestedIsDeep && finalIsBareRoot;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Merges the browser render's metadata with the preflight probe's, per field.
  * The render normally wins (it sees the post-JS DOM), with the probe filling
- * gaps. But when the render was blocked (retryable status code on the last
- * retry attempt, or a challenge page served with a 200), its metadata is
- * likely from a challenge or error page, so the probe's values take
- * precedence instead and the render only fills gaps.
+ * gaps. When `preferProbe` is true (e.g. a blocked/challenge render or a
+ * deep-path URL that bounced to the site's bare root homepage), the probe's
+ * values take precedence instead and the render only fills gaps.
  */
 export function resolveMetadata(
   renderMeta: ParseSubprocessOutput["metadata"],
   probeMeta: ParseSubprocessOutput["metadata"] | null,
-  renderBlocked: boolean,
+  preferProbe: boolean,
 ): ParseSubprocessOutput["metadata"] {
   if (!probeMeta) {
     return renderMeta;
@@ -185,8 +231,7 @@ export function resolveMetadata(
   const pick = (
     render: string | null | undefined,
     probe: string | null | undefined,
-  ): string | null =>
-    (renderBlocked ? probe || render : render || probe) || null;
+  ): string | null => (preferProbe ? probe || render : render || probe) || null;
   return {
     ...renderMeta,
     title: pick(renderMeta.title, probeMeta.title),
