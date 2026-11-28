@@ -86,7 +86,7 @@ const NoteEditorPage = () => {
   return (
     <ScrollView
       keyboardShouldPersistTaps="handled"
-      contentContainerClassName="gap-2 px-4 pt-2"
+      contentContainerClassName="flex-grow gap-2 px-4 pb-4 pt-2"
     >
       <SheetHeader
         onCancel={dismiss}
@@ -99,6 +99,8 @@ const NoteEditorPage = () => {
           setText(value);
           setError(undefined);
         }}
+        className="flex-1"
+        inputClasses="flex-1"
         multiline
         placeholder={t("bookmarks.new_placeholder")}
         autoFocus
