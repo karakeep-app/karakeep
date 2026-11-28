@@ -4,12 +4,21 @@
 # Debian's Chromium. Google Chrome is preferred where available: bot-protection
 # vendors are much more suspicious of the Chromium build than of Chrome.
 ARG DEBIAN_DIGEST=sha256:a99cfc517144bc59b1978475ec53b46ecabec7e43635402ee5b77cc54cd1b20a
+ARG GOOGLE_CHROME_VERSION=158.0.8127.88
 
-FROM docker.io/library/debian:trixie-slim@${DEBIAN_DIGEST}
+FROM docker.io/library/debian:trixie-slim@${DEBIAN_DIGEST} AS base-amd64
+ARG GOOGLE_CHROME_VERSION
+LABEL org.opencontainers.image.version="${GOOGLE_CHROME_VERSION}"
+
+# arm64 installs whatever Chromium Debian ships, so it doesn't claim the Google
+# Chrome version.
+FROM docker.io/library/debian:trixie-slim@${DEBIAN_DIGEST} AS base-arm64
+
+FROM base-${TARGETARCH}
 
 ARG TARGETARCH
 ARG DEBIAN_DIGEST
-ARG GOOGLE_CHROME_VERSION=158.0.8127.88
+ARG GOOGLE_CHROME_VERSION
 ARG BUILD_REVISION=unknown
 ARG BUILD_CREATED=unknown
 
@@ -18,7 +27,6 @@ LABEL org.opencontainers.image.title="Karakeep Chrome" \
       org.opencontainers.image.source="https://github.com/karakeep-app/karakeep" \
       org.opencontainers.image.revision="${BUILD_REVISION}" \
       org.opencontainers.image.created="${BUILD_CREATED}" \
-      org.opencontainers.image.version="${GOOGLE_CHROME_VERSION}" \
       org.opencontainers.image.base.name="docker.io/library/debian:trixie-slim" \
       org.opencontainers.image.base.digest="${DEBIAN_DIGEST}"
 
