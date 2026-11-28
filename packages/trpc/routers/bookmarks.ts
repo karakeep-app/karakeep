@@ -61,6 +61,7 @@ import {
   zSearchBookmarksRequestSchema,
   zUpdateBookmarksRequestSchema,
 } from "@karakeep/shared/types/bookmarks";
+import { zGetBookmarkHistoryResponseSchema } from "@karakeep/shared/types/bookmarkHistory";
 import type { ZBookmarkTags } from "@karakeep/shared/types/tags";
 import { ANCHOR_TEXT_MAX_LENGTH } from "@karakeep/shared/utils/reading-progress-dom";
 import { normalizeTagName } from "@karakeep/shared/utils/tag";
@@ -76,6 +77,16 @@ import {
   emitRateLimitedEvent,
   router,
 } from "../index";
+import {
+  diffBookmarkUpdate,
+  diffCollection,
+  diffTextUpdate,
+  getBookmarkHistory,
+  readBookmarkHistorySnapshot,
+  readBookmarkTagItems,
+  recordBookmarkChanges,
+  rollbackPendingEdit,
+} from "../lib/bookmarkHistory";
 import { RuleEngine } from "../lib/ruleEngine";
 import { getBookmarkIdsFromMatcher } from "../lib/search";
 import { reciprocalRankFusion } from "../lib/searchRanking";
@@ -299,15 +310,30 @@ export const bookmarksAppRouter = router({
             ...(input.note !== undefined ? { note: input.note } : {}),
             ...(input.summary !== undefined ? { summary: input.summary } : {}),
           };
-          await ctx.db
-            .update(bookmarks)
-            .set({ ...resaved, modifiedAt: now })
-            .where(
-              and(
-                eq(bookmarks.userId, ctx.user.id),
-                eq(bookmarks.id, alreadyExists.id),
-              ),
+          await ctx.db.transaction((tx) => {
+            const historySnapshot = readBookmarkHistorySnapshot(
+              tx,
+              alreadyExists.id,
             );
+            tx.update(bookmarks)
+              .set({ ...resaved, modifiedAt: now })
+              .where(
+                and(
+                  eq(bookmarks.userId, ctx.user.id),
+                  eq(bookmarks.id, alreadyExists.id),
+                ),
+              )
+              .run();
+            // A re-save is an edit like any other: it's recorded, and it
+            // replaces the pending edit.
+            if (historySnapshot) {
+              recordBookmarkChanges(tx, {
+                bookmarkId: alreadyExists.id,
+                userId: ctx.user.id,
+                changes: diffBookmarkUpdate(historySnapshot, resaved),
+              });
+            }
+          });
           await Promise.all([
             triggerSearchReindex(alreadyExists.id, {
               groupId: ctx.user.id,
@@ -469,6 +495,12 @@ export const bookmarksAppRouter = router({
             }
           }
 
+          recordBookmarkChanges(tx, {
+            bookmarkId: bookmark.id,
+            userId: ctx.user.id,
+            changes: [{ field: "created", oldValue: null, newValue: null }],
+          });
+
           return {
             alreadyExists: false,
             tags: [] as ZBookmarkTags[],
@@ -585,6 +617,10 @@ export const bookmarksAppRouter = router({
     .mutation(async ({ input, ctx }) => {
       await ctx.db.transaction((tx) => {
         let somethingChanged = false;
+        const historySnapshot = readBookmarkHistorySnapshot(
+          tx,
+          input.bookmarkId,
+        );
 
         // Update link-specific fields if any are provided
         const linkUpdateData: Partial<{
@@ -710,6 +746,15 @@ export const bookmarksAppRouter = router({
             )
             .run();
         }
+
+        // Recorded last, so an update that throws above leaves no history.
+        if (historySnapshot) {
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: diffBookmarkUpdate(historySnapshot, input),
+          });
+        }
       });
 
       // Refetch the updated bookmark data to return the full object
@@ -769,6 +814,41 @@ export const bookmarksAppRouter = router({
       return updatedBookmark;
     }),
 
+  // Undoes the bookmark's latest edit (its pending history entry), restoring
+  // the previous field values. Only the owner, who is the only one who can
+  // edit, can roll back.
+  rollbackBookmarkEdit: bookmarksProcedure
+    .input(z.object({ bookmarkId: z.string() }))
+    .output(zBookmarkSchema)
+    .use(ensureBookmarkOwnership)
+    .mutation(async ({ input, ctx }) => {
+      ctx.db.transaction((tx) => rollbackPendingEdit(tx, input.bookmarkId));
+
+      const updatedBookmark = (
+        await Bookmark.fromId(
+          ctx,
+          input.bookmarkId,
+          /* includeContent: */ false,
+        )
+      ).asZBookmark();
+
+      await Promise.all([
+        triggerSearchReindex(input.bookmarkId, {
+          groupId: ctx.user.id,
+        }),
+        new WebhooksService(ctx.db).triggerWebhook(
+          input.bookmarkId,
+          "edited",
+          updatedBookmark.userId,
+          {
+            groupId: ctx.user.id,
+          },
+        ),
+      ]);
+
+      return updatedBookmark;
+    }),
+
   // DEPRECATED: use updateBookmark instead
   updateBookmarkText: bookmarksProcedure
     .input(
@@ -780,6 +860,10 @@ export const bookmarksAppRouter = router({
     .use(ensureBookmarkOwnership)
     .mutation(async ({ input, ctx }) => {
       await ctx.db.transaction((tx) => {
+        const historySnapshot = readBookmarkHistorySnapshot(
+          tx,
+          input.bookmarkId,
+        );
         const res = tx
           .update(bookmarkTexts)
           .set({
@@ -803,6 +887,13 @@ export const bookmarksAppRouter = router({
             ),
           )
           .run();
+        if (historySnapshot) {
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: diffTextUpdate(historySnapshot, input.text),
+          });
+        }
       });
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
@@ -1011,6 +1102,23 @@ export const bookmarksAppRouter = router({
         readingProgressAnchor: progress?.readingProgressAnchor ?? null,
         readingProgressPercent: progress?.readingProgressPercent ?? null,
       };
+    }),
+  getBookmarkHistory: bookmarksProcedure
+    .input(
+      z.object({
+        bookmarkId: z.string(),
+      }),
+    )
+    .output(zGetBookmarkHistoryResponseSchema)
+    // Anyone who can view the bookmark (owner or list collaborator) can see
+    // its history. Changes to owner-only fields are hidden from
+    // collaborators, matching Bookmark.asZBookmark().
+    .use(ensureBookmarkAccess)
+    .query(async ({ input, ctx }) => {
+      const events = await getBookmarkHistory(ctx.db, input.bookmarkId, {
+        includeOwnerOnlyFields: ctx.bookmark.userId === ctx.user.id,
+      });
+      return { events };
     }),
   getBookmark: bookmarksProcedure
     .use(createBookmarksQueriedMiddleware())
@@ -1458,6 +1566,7 @@ export const bookmarksAppRouter = router({
 
       const res = await ctx.db.transaction((tx) => {
         let numChanges = 0;
+        const tagsBefore = readBookmarkTagItems(tx, input.bookmarkId);
         // Detaches
         if (idsToRemove.length > 0) {
           const res = tx
@@ -1499,6 +1608,19 @@ export const bookmarksAppRouter = router({
               ),
             )
             .run();
+
+          const tagChange = diffCollection(
+            "tags",
+            tagsBefore,
+            readBookmarkTagItems(tx, input.bookmarkId),
+          );
+          if (tagChange) {
+            recordBookmarkChanges(tx, {
+              bookmarkId: input.bookmarkId,
+              userId: ctx.user.id,
+              changes: [tagChange],
+            });
+          }
         }
 
         return {
@@ -1734,13 +1856,30 @@ export const bookmarksAppRouter = router({
         "inference.total_tokens": summary.totalTokens,
       });
 
-      await ctx.db
-        .update(bookmarks)
-        .set({
-          summary: summary.response,
-          summarizationStatus: "success",
-        })
-        .where(eq(bookmarks.id, input.bookmarkId));
+      const newSummary = summary.response;
+      ctx.db.transaction((tx) => {
+        const historySnapshot = readBookmarkHistorySnapshot(
+          tx,
+          input.bookmarkId,
+        );
+        tx.update(bookmarks)
+          .set({
+            summary: newSummary,
+            summarizationStatus: "success",
+          })
+          .where(eq(bookmarks.id, input.bookmarkId))
+          .run();
+        if (historySnapshot) {
+          // The user asked for it, so it's their change (and can be undone).
+          recordBookmarkChanges(tx, {
+            bookmarkId: input.bookmarkId,
+            userId: ctx.user.id,
+            changes: diffBookmarkUpdate(historySnapshot, {
+              summary: newSummary,
+            }),
+          });
+        }
+      });
       await Promise.all([
         triggerSearchReindex(input.bookmarkId, {
           groupId: ctx.user.id,

@@ -41,6 +41,7 @@ import {
   hashPassword,
   verifyUserPassword,
 } from "../auth";
+import { deletePendingEditsOfUser } from "../lib/bookmarkHistory";
 
 export class User {
   constructor(
@@ -180,11 +181,15 @@ export class User {
   private static async deleteInternal(db: Context["db"], userId: string) {
     await User.assertNoActiveStripeSubscriptionForUser(db, userId);
 
-    const res = await db.delete(users).where(eq(users.id, userId));
-
-    if (res.changes === 0) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
+    await db.transaction((tx) => {
+      // Pending bookmark edits are outside the foreign-key cascades (see
+      // deletePendingEditsOfUser), so they're deleted along with the user.
+      deletePendingEditsOfUser(tx, userId);
+      const res = tx.delete(users).where(eq(users.id, userId)).run();
+      if (res.changes === 0) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+    });
 
     // The user's bookmarks are cascade deleted from the DB, so no per-bookmark
     // delete jobs get enqueued for them. Purge their documents from the

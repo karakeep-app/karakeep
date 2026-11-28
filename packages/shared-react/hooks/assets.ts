@@ -20,6 +20,11 @@ export function useAttachBookmarkAsset(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
         queryClient.invalidateQueries(api.assets.list.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -43,6 +48,11 @@ export function useReplaceBookmarkAsset(
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
         );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
+        );
         queryClient.invalidateQueries(api.assets.list.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);
       },
@@ -65,6 +75,11 @@ export function useDetachBookmarkAsset(
         );
         queryClient.invalidateQueries(
           api.bookmarks.getBookmark.queryFilter({ bookmarkId: req.bookmarkId }),
+        );
+        queryClient.invalidateQueries(
+          api.bookmarks.getBookmarkHistory.queryFilter({
+            bookmarkId: req.bookmarkId,
+          }),
         );
         queryClient.invalidateQueries(api.assets.list.pathFilter());
         return opts?.onSuccess?.(res, req, meta, context);

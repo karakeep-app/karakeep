@@ -55,6 +55,7 @@ import type { PreviewNavigation } from "./usePreviewNavigation";
 import { isEditable } from "./usePreviewNavigation";
 import { AssetContentSection } from "./AssetContentSection";
 import AttachmentBox from "./AttachmentBox";
+import BookmarkHistoryBox from "./BookmarkHistoryBox";
 import BookmarkLoadError, { retryBookmarkQuery } from "./BookmarkLoadError";
 import { BookmarkListsField } from "./BookmarkListsField";
 import HighlightsBox from "./HighlightsBox";
@@ -533,6 +534,7 @@ export default function BookmarkPreview({
       <HighlightsBox bookmarkId={bookmark.id} readOnly={!isOwner} />
       <Separator />
       <AttachmentBox bookmark={bookmark} readOnly={!isOwner} />
+      <BookmarkHistoryBox bookmarkId={bookmark.id} canUndo={isOwner} />
     </div>
   );
 
