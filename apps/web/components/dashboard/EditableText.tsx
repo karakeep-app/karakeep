@@ -18,6 +18,7 @@ interface Props {
   isSaving: boolean;
   originalText: string | null;
   setEditable: (editable: boolean) => void;
+  ariaLabel?: string;
 }
 
 function EditMode({
@@ -26,6 +27,7 @@ function EditMode({
   isSaving,
   originalText,
   setEditable,
+  ariaLabel,
 }: Props) {
   const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
@@ -54,7 +56,8 @@ function EditMode({
     <div className="flex gap-3">
       <div
         ref={ref}
-        role="presentation"
+        role="textbox"
+        aria-label={ariaLabel ?? t("actions.edit_title")}
         className={className}
         contentEditable={true}
         onKeyDown={(e) => {
@@ -139,6 +142,7 @@ export function EditableText(props: {
   originalText: string | null;
   onSave: (title: string | null) => void;
   isSaving: boolean;
+  ariaLabel?: string;
 }) {
   const [editable, setEditable] = useState(false);
 

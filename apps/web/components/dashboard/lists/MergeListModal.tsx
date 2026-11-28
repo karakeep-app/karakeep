@@ -142,9 +142,9 @@ export function MergeListModal({
               name="deleteSourceAfterMerge"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between space-x-2 space-y-0 pb-4">
-                  <label className="text-xs text-muted-foreground">
+                  <FormLabel className="text-xs text-muted-foreground">
                     {t("lists.delete_after_merge")}
-                  </label>
+                  </FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
