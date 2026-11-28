@@ -45,10 +45,8 @@ function isAsciiAlphaRange(html: string, start: number, end: number): boolean {
   return true;
 }
 
-function isTagBoundaryChar(code: number): boolean {
+function isAsciiWhitespace(code: number): boolean {
   return (
-    code === 62 || // >
-    code === 47 || // /
     code === 32 || // space
     code === 9 || // \t
     code === 10 || // \n
@@ -57,37 +55,102 @@ function isTagBoundaryChar(code: number): boolean {
   );
 }
 
+function isTagBoundaryChar(code: number): boolean {
+  return code === 62 || code === 47 || isAsciiWhitespace(code);
+}
+
 /**
  * Finds the closing `>` of an HTML start tag starting after the tag name,
- * respecting single- and double-quoted attribute values so `>` inside an
- * attribute doesn't prematurely end the tag. Returns -1 if unclosed.
+ * following HTML5 attribute tokenization states:
+ * - Only quotes in the before-attribute-value state (after `=`) open a quoted
+ *   attribute value (skipped with native `indexOf` for large data URIs).
+ * - Quotes inside unquoted attribute values (e.g. `media=x"`) stay in the
+ *   unquoted value and still close at the next `>`.
+ * Returns -1 if unclosed.
  */
 function findStartTagEnd(html: string, start: number): number {
   const len = html.length;
+  // 0 = before attr name, 1 = attr name, 2 = after attr name,
+  // 3 = before attr value, 4 = unquoted attr value
+  let state = 0;
   for (let i = start; i < len; i++) {
     const code = html.charCodeAt(i);
-    if (code === 34 || code === 39) {
-      // " or ' — skip quoted attribute values with native indexOf so large
-      // data-URI attributes don't scan character by character.
-      const closeQuote = html.indexOf(code === 34 ? '"' : "'", i + 1);
-      if (closeQuote === -1) {
-        return -1;
-      }
-      i = closeQuote;
-    } else if (code === 62) {
+    if (code === 62) {
       // >
       return i;
+    }
+    if (state === 0) {
+      if (!isAsciiWhitespace(code) && code !== 47) {
+        state = 1;
+      }
+    } else if (state === 1) {
+      if (code === 61) {
+        // =
+        state = 3;
+      } else if (isAsciiWhitespace(code)) {
+        state = 2;
+      } else if (code === 47) {
+        state = 0;
+      }
+    } else if (state === 2) {
+      if (code === 61) {
+        // =
+        state = 3;
+      } else if (code === 47) {
+        state = 0;
+      } else if (!isAsciiWhitespace(code)) {
+        state = 1;
+      }
+    } else if (state === 3) {
+      if (isAsciiWhitespace(code)) {
+        continue;
+      }
+      if (code === 34 || code === 39) {
+        // " or ' — skip quoted attribute values with native indexOf so large
+        // data-URI attributes don't scan character by character.
+        const closeQuote = html.indexOf(code === 34 ? '"' : "'", i + 1);
+        if (closeQuote === -1) {
+          return -1;
+        }
+        i = closeQuote;
+        state = 0;
+      } else {
+        state = 4;
+      }
+    } else if (isAsciiWhitespace(code)) {
+      // state === 4 (unquoted attr value)
+      state = 0;
     }
   }
   return -1;
 }
 
+function matchesAsciiLowerTagAt(
+  html: string,
+  offset: number,
+  tagName: string,
+): boolean {
+  const nameLen = tagName.length;
+  const afterName = offset + nameLen;
+  if (
+    afterName >= html.length ||
+    !isTagBoundaryChar(html.charCodeAt(afterName))
+  ) {
+    return false;
+  }
+  for (let j = 0; j < nameLen; j++) {
+    if ((html.charCodeAt(offset + j) | 32) !== tagName.charCodeAt(j)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /**
  * Finds the start and end (exclusive) indices of a matching closing tag
  * `</tagName...>` directly in `html` without allocating a lowercased copy.
- * `tagName` must consist strictly of lowercase ASCII letters (`a-z`), so
- * `(code | 32) === tagName.charCodeAt(j)` matches only that ASCII letter
- * case-insensitively. Strictly linear across the document.
+ * `tagName` must consist strictly of lowercase ASCII letters (`a-z`).
+ * Strictly linear across the document.
  */
 function findCloseTag(
   html: string,
@@ -102,21 +165,99 @@ function findCloseTag(
     if (idx === -1) {
       return null;
     }
-    const afterName = idx + 2 + nameLen;
-    if (afterName < len && isTagBoundaryChar(html.charCodeAt(afterName))) {
-      let matched = true;
-      for (let j = 0; j < nameLen; j++) {
-        if ((html.charCodeAt(idx + 2 + j) | 32) !== tagName.charCodeAt(j)) {
-          matched = false;
-          break;
-        }
-      }
-      if (matched) {
-        const gt = html.indexOf(">", afterName);
-        return gt === -1 ? null : { start: idx, end: gt + 1 };
-      }
+    if (matchesAsciiLowerTagAt(html, idx + 2, tagName)) {
+      const gt = html.indexOf(">", idx + 2 + nameLen);
+      return gt === -1 ? null : { start: idx, end: gt + 1 };
     }
     searchFrom = idx + 2;
+  }
+  return null;
+}
+
+/**
+ * Finds the closing `</script>` tag while respecting the HTML5 script-data
+ * escaped and double-escaped states (so `<!--<script>...</script>` inside a
+ * preserved script doesn't prematurely end the element). Uses the fast
+ * `findCloseTag` path whenever no `<!--` precedes the first `</script>`.
+ */
+function findScriptCloseTag(
+  html: string,
+  contentStart: number,
+): { start: number; end: number } | null {
+  const firstClose = findCloseTag(html, "script", contentStart);
+  if (!firstClose) {
+    return null;
+  }
+  const firstComment = html.indexOf("<!--", contentStart);
+  if (firstComment === -1 || firstComment > firstClose.start) {
+    return firstClose;
+  }
+
+  const len = html.length;
+  let escaped = false;
+  let doubleEscaped = false;
+  let pos = firstComment;
+  // Cache the next `-->` position so a script with many `<` and no `-->`
+  // stays strictly O(n) instead of rescanning to EOF on every `<`.
+  let nextCommentEnd = html.indexOf("-->", firstComment + 4);
+
+  while (pos < len) {
+    const nextLt = html.indexOf("<", pos);
+    if (escaped && nextCommentEnd !== -1 && nextCommentEnd < pos) {
+      nextCommentEnd = html.indexOf("-->", pos);
+    }
+
+    if (
+      escaped &&
+      nextCommentEnd !== -1 &&
+      (nextLt === -1 || nextCommentEnd < nextLt)
+    ) {
+      escaped = false;
+      doubleEscaped = false;
+      pos = nextCommentEnd + 3;
+      continue;
+    }
+    if (nextLt === -1) {
+      return null;
+    }
+
+    if (
+      !escaped &&
+      nextLt + 3 < len &&
+      html.charCodeAt(nextLt + 1) === 33 && // !
+      html.charCodeAt(nextLt + 2) === 45 && // -
+      html.charCodeAt(nextLt + 3) === 45 // -
+    ) {
+      escaped = true;
+      pos = nextLt + 4;
+      continue;
+    }
+
+    if (
+      escaped &&
+      !doubleEscaped &&
+      matchesAsciiLowerTagAt(html, nextLt + 1, "script")
+    ) {
+      doubleEscaped = true;
+      pos = nextLt + 7; // "<script".length
+      continue;
+    }
+
+    if (
+      nextLt + 1 < len &&
+      html.charCodeAt(nextLt + 1) === 47 && // /
+      matchesAsciiLowerTagAt(html, nextLt + 2, "script")
+    ) {
+      if (doubleEscaped) {
+        doubleEscaped = false;
+        pos = nextLt + 8; // "</script".length
+        continue;
+      }
+      const gt = html.indexOf(">", nextLt + 8);
+      return gt === -1 ? null : { start: nextLt, end: gt + 1 };
+    }
+
+    pos = nextLt + 1;
   }
   return null;
 }
@@ -305,7 +446,9 @@ export function stripHtmlElements(
     }
 
     const contentStart = startTagEnd + 1;
-    const closeTag = findCloseTag(html, tagName, contentStart);
+    const closeTag = isScript
+      ? findScriptCloseTag(html, contentStart)
+      : findCloseTag(html, tagName, contentStart);
     if (!closeTag) {
       // Unclosed raw-text element: stop stripping so we stay O(n) and never
       // delete trailing content.

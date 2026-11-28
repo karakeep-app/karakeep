@@ -143,6 +143,20 @@ describe("stripNonContentMarkupForDom", () => {
     expect(strippedJson).toContain('"@type":"Article"');
     expect(strippedJson).toContain('{"ok":true}');
     expect(strippedJson).not.toContain("dropMe()");
+
+    // Quote inside an unquoted attribute value doesn't enter quoted state.
+    const unquotedAttrQuote =
+      '<style media=x">css</style><p>Visible</p>" ><style>real</style>';
+    expect(stripNonContentMarkupForDom(unquotedAttrQuote)).toBe(
+      '<p>Visible</p>" >',
+    );
+
+    // HTML5 script-data double-escaped state (`<!--<script></script>`).
+    const doubleEscapedScript =
+      '<script type="application/json">{"x":"<!--<script></script><style>"}</script><p>Visible</p><style>x</style>';
+    expect(stripNonContentMarkupForDom(doubleEscapedScript)).toBe(
+      '<script type="application/json">{"x":"<!--<script></script><style>"}</script><p>Visible</p>',
+    );
   });
 });
 

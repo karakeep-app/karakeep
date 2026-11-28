@@ -92,6 +92,19 @@ describe("extractReadableContent", () => {
     expect(fragResult.readableContent?.content).toContain(
       'href="https://example.com/posts/next.html"',
     );
+
+    // Valid HTML5 that omits the optional <body> tag.
+    const omittedBody = `<html><head><title>No Body Tag</title></head><main><article><h1>Omitted Body</h1><p>${paragraph}</p><p>${paragraph}</p></article></main></html>`;
+    const omittedBodyResult = extractReadableContent(
+      omittedBody,
+      "https://example.com/posts/omitted-body",
+    );
+    expect(omittedBodyResult.readableContent?.content).toContain(
+      "Omitted Body",
+    );
+    expect(omittedBodyResult.readableContent?.content).toContain(
+      "article paragraph",
+    );
   });
 
   test("sanitizes provided HTML and assesses reader view", () => {

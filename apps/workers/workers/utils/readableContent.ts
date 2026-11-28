@@ -48,12 +48,29 @@ function attachDocumentUrls(
 function parseSourceDocument(html: string, url: string): Document {
   let { document } = parseHTML(html);
   // Unlike JSDOM, linkedom doesn't synthesize `<html>`/`<body>` wrappers for
-  // fragments or empty strings, which Readability and `document.body` expect.
+  // fragments or empty strings, and leaves omitted `<body>` content as direct
+  // children of `<html>` (making `document.body` empty). Ensure we always have
+  // an `<html>` root with a `<body>` containing any non-`<head>` children.
   if (document.documentElement?.tagName !== "HTML") {
     const wrapped = /<body[\s>/]/i.test(html)
       ? `<!doctype html><html>${html}</html>`
       : `<!doctype html><html><head></head><body>${html}</body></html>`;
     ({ document } = parseHTML(wrapped));
+  } else {
+    const root = document.documentElement;
+    const hasBody = Array.from(root.children).some(
+      (el) => el.tagName === "BODY" || el.tagName === "FRAMESET",
+    );
+    if (!hasBody) {
+      const body = document.createElement("body");
+      for (const child of Array.from(root.childNodes)) {
+        if (child.nodeType === 1 && (child as Element).tagName === "HEAD") {
+          continue;
+        }
+        body.appendChild(child);
+      }
+      root.appendChild(body);
+    }
   }
 
   const doc = document as unknown as Document;
