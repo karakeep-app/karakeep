@@ -1,6 +1,12 @@
+import metascraper from "metascraper";
+import metascraperDate from "metascraper-date";
 import { describe, expect, it } from "vitest";
 
-import { isValidMetadataValue, parseIsoDateValue } from "./htmlMetadata";
+import {
+  createYoutubeDatePublishedRule,
+  isValidMetadataValue,
+  parseIsoDateValue,
+} from "./htmlMetadata";
 
 describe("isValidMetadataValue", () => {
   it("rejects interstitial phrases as publisher names", () => {
@@ -35,5 +41,44 @@ describe("parseIsoDateValue", () => {
     expect(parseIsoDateValue("")).toBeUndefined();
     expect(parseIsoDateValue("not-a-date")).toBeUndefined();
     expect(parseIsoDateValue(null)).toBeUndefined();
+  });
+});
+
+describe("createYoutubeDatePublishedRule", () => {
+  it("prefers the video's itemprop publish date over nested comment dateCreated in JSON-LD", async () => {
+    const html = `
+      <html>
+        <head>
+          <meta itemprop="datePublished" content="2009-10-24T23:57:33-07:00" />
+          <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "VideoObject",
+              "uploadDate": "2009-10-24T23:57:33-07:00",
+              "comment": [
+                {
+                  "@type": "Comment",
+                  "dateCreated": "2026-11-28T02:48:55-08:00",
+                  "text": "Recent comment"
+                }
+              ]
+            }
+          </script>
+        </head>
+        <body></body>
+      </html>
+    `;
+    const url = "https://www.youtube.com/watch?v=example";
+
+    const withoutFix = await metascraper([
+      metascraperDate({ datePublished: true, dateModified: true }),
+    ])({ html, url, validateUrl: false });
+    expect(withoutFix.datePublished).toBe("2026-11-28T10:48:55.000Z");
+
+    const withFix = await metascraper([
+      createYoutubeDatePublishedRule(),
+      metascraperDate({ datePublished: true, dateModified: true }),
+    ])({ html, url, validateUrl: false });
+    expect(withFix.datePublished).toBe("2009-10-25T06:57:33.000Z");
   });
 });

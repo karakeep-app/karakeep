@@ -115,6 +115,12 @@ describe("isDeepPathRedirectedToRoot", () => {
     ).toBe(false);
     expect(
       isDeepPathRedirectedToRoot(
+        "https://example.com/posts/42",
+        "https://example.com/#/posts/42",
+      ),
+    ).toBe(false);
+    expect(
+      isDeepPathRedirectedToRoot(
         "https://short.example/xyz",
         "https://destination.example/",
       ),

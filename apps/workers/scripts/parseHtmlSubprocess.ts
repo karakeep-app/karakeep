@@ -16,13 +16,13 @@ import logger from "@karakeep/shared/logger";
 
 import metascraperSafeFavicon from "../metascraper-plugins/metascraper-safe-favicon";
 import {
+  createYoutubeDatePublishedRule,
   isAmazonHost,
   isRedditHost,
   isValidMetadataValue,
   isXHost,
   isYoutubeHost,
   normalizeMetadata,
-  parseIsoDateValue,
 } from "../workers/utils/html/htmlMetadata";
 import { preprocessHtmlForMetadata } from "../workers/utils/html/htmlPreprocess";
 import {
@@ -44,17 +44,7 @@ async function buildMetascraperParser(url: string) {
   const rules: Rules[] = [];
 
   if (isYoutubeHost(url)) {
-    // YouTube embeds comments with `dateCreated` inside VideoObject JSON-LD,
-    // which otherwise beats `<meta itemprop="datePublished">` in
-    // metascraper-date's rule order. Prefer the video's own date meta tags.
-    rules.push({
-      datePublished: [
-        ({ htmlDom: $ }) =>
-          parseIsoDateValue($('[itemprop="datePublished" i]').attr("content")),
-        ({ htmlDom: $ }) =>
-          parseIsoDateValue($('[itemprop="uploadDate" i]').attr("content")),
-      ],
-    });
+    rules.push(createYoutubeDatePublishedRule());
   }
 
   rules.push(

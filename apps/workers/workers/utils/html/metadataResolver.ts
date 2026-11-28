@@ -195,7 +195,9 @@ export function isDeepPathRedirectedToRoot(
     const requestedIsDeep =
       requested.pathname !== "/" && requested.pathname !== "";
     const finalIsBareRoot =
-      (final.pathname === "/" || final.pathname === "") && !final.search;
+      (final.pathname === "/" || final.pathname === "") &&
+      !final.search &&
+      !final.hash;
     return requestedIsDeep && finalIsBareRoot;
   } catch {
     return false;
