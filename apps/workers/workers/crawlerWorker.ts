@@ -1035,7 +1035,7 @@ const storeOfflineCopies = traced(
     const pageTitle = extractHtmlTitle(page.htmlContent);
     if (
       !shouldRetryCrawlStatusCode(page.statusCode) &&
-      isHumanOnlyInterstitial(pageTitle)
+      isHumanOnlyInterstitial(pageTitle, page.htmlContent)
     ) {
       // Consent walls and human-solved verification interstitials are
       // deterministic for a given egress IP/region, so retrying won't clear

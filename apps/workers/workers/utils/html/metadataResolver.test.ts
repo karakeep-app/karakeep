@@ -213,6 +213,7 @@ describe("isWaitableChallenge", () => {
   it("doesn't wait on human-solved verification or consent interstitials", () => {
     for (const title of [
       "Reddit - Prove your humanity",
+      "Log in or sign up to view",
       "Before you continue to YouTube",
       "安全验证 - 知乎",
     ]) {
@@ -221,6 +222,10 @@ describe("isWaitableChallenge", () => {
         isWaitableChallenge(title, `<html><title>${title}</title></html>`),
       ).toBe(false);
     }
+    const wechatCaptcha =
+      "<html><title>微信公众平台</title><body>当前环境异常，完成验证后即可继续访问。</body></html>";
+    expect(isHumanOnlyInterstitial("微信公众平台", wechatCaptcha)).toBe(true);
+    expect(isWaitableChallenge("微信公众平台", wechatCaptcha)).toBe(false);
     expect(isHumanOnlyInterstitial("Just a moment...")).toBe(false);
   });
 
