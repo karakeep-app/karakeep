@@ -285,6 +285,9 @@ export const bookmarks = sqliteTable(
         "import",
       ],
     }),
+    // Set when the bookmark is moved to the trash. It's the time at which the
+    // bookmark will be permanently deleted.
+    deleteAt: integer("deleteAt", { mode: "timestamp" }),
   },
   (b) => [
     index("bookmarks_lastSavedAt_idx").on(b.createdAt),
@@ -306,6 +309,7 @@ export const bookmarks = sqliteTable(
       b.createdAt,
       b.id,
     ),
+    index("bookmarks_deleteAt_idx").on(b.deleteAt),
   ],
 );
 

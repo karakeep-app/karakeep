@@ -687,6 +687,13 @@
       "when": 1794141285242,
       "tag": "0097_assets_highlights_pagination_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "6",
+      "when": 1794728862943,
+      "tag": "0098_add_bookmark_trash",
+      "breakpoints": true
     }
   ]
 }

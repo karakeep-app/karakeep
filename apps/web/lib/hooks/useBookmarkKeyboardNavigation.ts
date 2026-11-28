@@ -447,6 +447,7 @@ function useBookmarkDeleteHotkeys({
   hasBulkSelection,
   isNavigating,
   deleteBookmarkMutator,
+  permanentlyDeleteBookmarkMutator,
   deleteSelectedBookmarksSettled,
   selectedOwnedBookmarks,
   setDeleteDialogOpen,
@@ -459,6 +460,9 @@ function useBookmarkDeleteHotkeys({
   deleteBookmarkMutator: ReturnType<
     typeof useBookmarkBulkMutations
   >["deleteBookmarkMutator"];
+  permanentlyDeleteBookmarkMutator: ReturnType<
+    typeof useBookmarkBulkMutations
+  >["permanentlyDeleteBookmarkMutator"];
   deleteSelectedBookmarksSettled: ReturnType<
     typeof useBookmarkBulkMutations
   >["deleteSelectedBookmarksSettled"];
@@ -469,18 +473,18 @@ function useBookmarkDeleteHotkeys({
   const { t } = useTranslation();
   const bulkActionsStore = useBulkActionsStore();
   const [isBulkDeletePending, setIsBulkDeletePending] = useState(false);
-  const modalBookmarkIdRef = useRef<string | null>(null);
+  const modalBookmarkRef = useRef<ZBookmark | null>(null);
 
   const openDeleteDialog = useCallback(() => {
     if (hasBulkSelection) {
       if (selectedOwnedBookmarks().length === 0) {
         return;
       }
-      modalBookmarkIdRef.current = null;
+      modalBookmarkRef.current = null;
       setDeleteDialogOpen(true);
     } else {
       withOwnedFocusedBookmark((bookmark) => {
-        modalBookmarkIdRef.current = bookmark.id;
+        modalBookmarkRef.current = bookmark;
         setDeleteDialogOpen(true);
       });
     }
@@ -498,8 +502,14 @@ function useBookmarkDeleteHotkeys({
     [disabled, hasBulkSelection, isNavigating, openDeleteDialog],
   );
 
-  const isBulkDelete = deleteDialogOpen && modalBookmarkIdRef.current === null;
+  const isBulkDelete = deleteDialogOpen && modalBookmarkRef.current === null;
   const deleteCount = isBulkDelete ? selectedOwnedBookmarks().length : 1;
+  // Bookmarks that are already in the trash get deleted permanently
+  const isPermanentDelete =
+    deleteDialogOpen &&
+    (isBulkDelete
+      ? selectedOwnedBookmarks().some((b) => b.deleteAt)
+      : !!modalBookmarkRef.current?.deleteAt);
 
   const confirmDelete = useCallback(async () => {
     if (isBulkDelete) {
@@ -520,10 +530,14 @@ function useBookmarkDeleteHotkeys({
         setDeleteDialogOpen(false);
         bulkActionsStore.setIsBulkEditEnabled(false);
       }
-    } else if (modalBookmarkIdRef.current) {
-      deleteBookmarkMutator.mutate(
+    } else if (modalBookmarkRef.current) {
+      // Deleting a bookmark that's already in the trash deletes it permanently
+      const mutator = modalBookmarkRef.current.deleteAt
+        ? permanentlyDeleteBookmarkMutator
+        : deleteBookmarkMutator;
+      mutator.mutate(
         {
-          bookmarkId: modalBookmarkIdRef.current,
+          bookmarkId: modalBookmarkRef.current.id,
         },
         {
           onSuccess: () => {
@@ -538,6 +552,7 @@ function useBookmarkDeleteHotkeys({
     deleteBookmarkMutator,
     deleteSelectedBookmarksSettled,
     isBulkDelete,
+    permanentlyDeleteBookmarkMutator,
     t,
   ]);
 
@@ -546,8 +561,12 @@ function useBookmarkDeleteHotkeys({
     setDeleteDialogOpen,
     isBulkDelete,
     deleteCount,
+    isPermanentDelete,
     confirmDelete,
-    isDeletePending: deleteBookmarkMutator.isPending || isBulkDeletePending,
+    isDeletePending:
+      deleteBookmarkMutator.isPending ||
+      permanentlyDeleteBookmarkMutator.isPending ||
+      isBulkDeletePending,
   };
 }
 
@@ -637,6 +656,7 @@ export function useBookmarkKeyboardNavigation({
   const {
     updateBookmarkMutator,
     deleteBookmarkMutator,
+    permanentlyDeleteBookmarkMutator,
     setSelectedBookmarksToNextState,
     deleteSelectedBookmarksSettled,
   } = useBookmarkBulkMutations({
@@ -700,6 +720,7 @@ export function useBookmarkKeyboardNavigation({
     hasBulkSelection,
     isNavigating: focusNavigation.isNavigating,
     deleteBookmarkMutator,
+    permanentlyDeleteBookmarkMutator,
     deleteSelectedBookmarksSettled,
     selectedOwnedBookmarks: selectedActionableBookmarks,
     setDeleteDialogOpen,
@@ -721,6 +742,7 @@ export function useBookmarkKeyboardNavigation({
     focusedBookmark: focusNavigation.focusedBookmark,
     isBulkDelete: deletion.isBulkDelete,
     deleteCount: deletion.deleteCount,
+    isPermanentDelete: deletion.isPermanentDelete,
     confirmDelete: deletion.confirmDelete,
     isDeletePending: deletion.isDeletePending,
   };

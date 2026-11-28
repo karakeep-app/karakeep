@@ -8,6 +8,7 @@ import type { ZBookmarkList } from "@karakeep/shared/types/lists";
 import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import {
   useDeleteBookmark,
+  usePermanentlyDeleteBookmark,
   useRecrawlBookmark,
   useUpdateBookmark,
 } from "@karakeep/shared-react/hooks/bookmarks";
@@ -38,6 +39,10 @@ export function useBookmarkBulkMutations({
     onError,
   });
   const deleteBookmarkMutator = useDeleteBookmark({
+    onSuccess: onBulkEditDone,
+    onError,
+  });
+  const permanentlyDeleteBookmarkMutator = usePermanentlyDeleteBookmark({
     onSuccess: onBulkEditDone,
     onError,
   });
@@ -97,32 +102,37 @@ export function useBookmarkBulkMutations({
     [selectedActionableBookmarks, updateSelectedBookmarks],
   );
 
+  // Bookmarks that are already in the trash get deleted permanently
+  const deleteBookmark = useCallback(
+    (bookmark: ZBookmark) =>
+      bookmark.deleteAt
+        ? permanentlyDeleteBookmarkMutator.mutateAsync({
+            bookmarkId: bookmark.id,
+          })
+        : deleteBookmarkMutator.mutateAsync({ bookmarkId: bookmark.id }),
+    [deleteBookmarkMutator, permanentlyDeleteBookmarkMutator],
+  );
+
   const deleteSelectedBookmarks = useCallback(async () => {
     const selected = selectedActionableBookmarks();
     await Promise.all(
       limitConcurrency(
-        selected.map(
-          (bookmark) => () =>
-            deleteBookmarkMutator.mutateAsync({ bookmarkId: bookmark.id }),
-        ),
+        selected.map((bookmark) => () => deleteBookmark(bookmark)),
         MAX_CONCURRENT_BULK_ACTIONS,
       ),
     );
     return selected;
-  }, [deleteBookmarkMutator, selectedActionableBookmarks]);
+  }, [deleteBookmark, selectedActionableBookmarks]);
 
   const deleteSelectedBookmarksSettled = useCallback(async () => {
     const selected = selectedActionableBookmarks();
     return Promise.allSettled(
       limitConcurrency(
-        selected.map(
-          (bookmark) => () =>
-            deleteBookmarkMutator.mutateAsync({ bookmarkId: bookmark.id }),
-        ),
+        selected.map((bookmark) => () => deleteBookmark(bookmark)),
         MAX_CONCURRENT_BULK_ACTIONS,
       ),
     );
-  }, [deleteBookmarkMutator, selectedActionableBookmarks]);
+  }, [deleteBookmark, selectedActionableBookmarks]);
 
   const recrawlSelectedLinkBookmarks = useCallback(
     async (archiveFullPage: boolean) => {
@@ -177,6 +187,7 @@ export function useBookmarkBulkMutations({
   return {
     updateBookmarkMutator,
     deleteBookmarkMutator,
+    permanentlyDeleteBookmarkMutator,
     recrawlBookmarkMutator,
     removeBookmarkFromListMutator,
     updateSelectedBookmarks,

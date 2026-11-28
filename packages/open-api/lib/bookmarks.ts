@@ -372,7 +372,7 @@ registry.registerPath({
   method: "delete",
   path: "/bookmarks/{bookmarkId}",
   description:
-    "Permanently delete a bookmark and all its associated data (tags, highlights, assets).",
+    "Move a bookmark to the trash. Bookmarks in the trash are permanently deleted, along with all their associated data (tags, highlights, assets), after 30 days.",
   summary: "Delete a bookmark",
   tags: ["Bookmarks"],
   security: [{ [BearerAuth.name]: [] }],
@@ -381,7 +381,7 @@ registry.registerPath({
   },
   responses: {
     204: {
-      description: "No content — the bookmark was deleted successfully.",
+      description: "No content — the bookmark was moved to the trash.",
     },
     401: UnauthorizedResponse,
     404: {

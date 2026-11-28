@@ -7,6 +7,7 @@ import {
   eq,
   gt,
   inArray,
+  isNotNull,
   like,
   notExists,
   sql,
@@ -15,7 +16,7 @@ import { z } from "zod";
 
 import type { ZAttachedByEnum } from "@karakeep/shared/types/tags";
 import { SqliteError } from "@karakeep/db";
-import { bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
+import { bookmarks, bookmarkTags, tagsOnBookmarks } from "@karakeep/db/schema";
 import { triggerSearchReindex } from "@karakeep/shared-server";
 import {
   zCreateTagRequestSchema,
@@ -26,6 +27,24 @@ import {
 import { switchCase } from "@karakeep/shared/utils/switch";
 
 import { AuthedContext } from "..";
+
+// Join condition for counting a tag's bookmarks while skipping the ones in the trash
+function tagOnLiveBookmark(db: AuthedContext["db"]) {
+  return and(
+    eq(bookmarkTags.id, tagsOnBookmarks.tagId),
+    notExists(
+      db
+        .select({ id: bookmarks.id })
+        .from(bookmarks)
+        .where(
+          and(
+            eq(bookmarks.id, tagsOnBookmarks.bookmarkId),
+            isNotNull(bookmarks.deleteAt),
+          ),
+        ),
+    ),
+  );
+}
 
 export class Tag {
   constructor(
@@ -113,7 +132,7 @@ export class Tag {
         count: countAny.as("count"),
       })
       .from(bookmarkTags)
-      .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
+      .leftJoin(tagsOnBookmarks, tagOnLiveBookmark(ctx.db))
       .where(
         and(
           eq(bookmarkTags.userId, ctx.user.id),
@@ -416,7 +435,7 @@ export class Tag {
         count: count(),
       })
       .from(bookmarkTags)
-      .leftJoin(tagsOnBookmarks, eq(bookmarkTags.id, tagsOnBookmarks.tagId))
+      .leftJoin(tagsOnBookmarks, tagOnLiveBookmark(this.ctx.db))
       .where(
         and(
           eq(bookmarkTags.id, this.tag.id),

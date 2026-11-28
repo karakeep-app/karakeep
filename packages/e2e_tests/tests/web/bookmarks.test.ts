@@ -97,16 +97,35 @@ it("archives a bookmark and shows it in Archive", async ({ page }) => {
   ).toBeVisible();
 });
 
-it("deletes a bookmark after confirmation", async ({ page }) => {
+it("moves a deleted bookmark to the trash and undoes it", async ({ page }) => {
   const bookmark = await seedBookmark(page);
   await bookmark.locator('button[aria-haspopup="menu"]').click();
   await page.getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await expect(bookmark).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(bookmark).toHaveText(/A bookmark for the weekend/);
+  await reload(page);
+  await expect(bookmark).toHaveCount(1);
+});
+
+it("permanently deletes a bookmark from the trash", async ({ page }) => {
+  const bookmark = await seedBookmark(page);
+  await bookmark.locator('button[aria-haspopup="menu"]').click();
+  await page.getByRole("menuitem", { name: "Delete", exact: true }).click();
+  await expect(bookmark).toHaveCount(0);
+  await page.getByRole("link", { name: "Trash", exact: true }).click();
+  await expect(page).toHaveURL(/\/dashboard\/trash$/);
+  await expect(bookmark).toHaveText(/A bookmark for the weekend/);
+  await bookmark.hover();
+  await bookmark.locator('button[aria-haspopup="menu"]').click();
+  await page
+    .getByRole("menuitem", { name: "Delete permanently", exact: true })
+    .click();
   await page
     .getByRole("dialog", { name: "Delete bookmark" })
-    .getByRole("button", { name: "Delete", exact: true })
+    .getByRole("button", { name: "Delete permanently", exact: true })
     .click();
   await expect(bookmark).toHaveCount(0);
   await reload(page);
-  await expect(bookmarkEditor(page)).toBeVisible();
   await expect(bookmark).toHaveCount(0);
 });
