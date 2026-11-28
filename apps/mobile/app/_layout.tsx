@@ -33,10 +33,14 @@ Sentry.init({
   enableLogs: false,
 
   // Expo's DOM component wrapper re-sends props to the reader's webview on
-  // every render without catching the result, so once Android drops the view
+  // every render without catching the result, so once the native view is gone
   // each render reports an unhandled rejection. Harmless, but it used up the
-  // whole Sentry quota.
-  ignoreErrors: [/DomWebView\.injectJavaScript/],
+  // whole Sentry quota. Android wraps the error in the function call; iOS
+  // reports only the missing view.
+  ignoreErrors: [
+    /DomWebView\.injectJavaScript/,
+    /Unable to find the 'DomWebView' view with tag/,
+  ],
 });
 
 export default Sentry.wrap(function RootLayout() {
