@@ -81,20 +81,21 @@ function ShareSheetIllustration() {
     <View
       importantForAccessibility="no-hide-descendants"
       accessibilityElementsHidden
-      className="flex-row items-start justify-center gap-4 rounded-2xl bg-card px-4 py-4"
+      // Fits a 320pt-wide window: five 48pt tiles and four 12pt gaps.
+      className="flex-row items-start justify-center gap-3 rounded-2xl bg-card px-4 py-4"
       style={{ borderCurve: "continuous" }}
     >
       <View className="items-center gap-1.5">
         <Image
           source={appIcon}
-          style={{ width: 52, height: 52, borderRadius: 12 }}
+          style={{ width: 48, height: 48, borderRadius: 11 }}
         />
         <Text variant="caption2">Karakeep</Text>
       </View>
       {[0, 1, 2].map((i) => (
         <View key={i} className="items-center gap-1.5 opacity-40">
           <View
-            className="h-[52px] w-[52px] rounded-xl bg-muted"
+            className="h-12 w-12 rounded-xl bg-muted"
             style={{ borderCurve: "continuous" }}
           />
           <View className="mt-1 h-2 w-9 rounded-full bg-muted" />
@@ -102,7 +103,7 @@ function ShareSheetIllustration() {
       ))}
       {Platform.OS === "ios" ? (
         <View className="items-center gap-1.5 opacity-60">
-          <View className="h-[52px] w-[52px] items-center justify-center rounded-full bg-muted">
+          <View className="h-12 w-12 items-center justify-center rounded-full bg-muted">
             <AppIcon icon={Ellipsis} size={22} color={colors.foreground} />
           </View>
         </View>
