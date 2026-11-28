@@ -55,9 +55,13 @@ Karakeep (previously Hoarder) is a self-hostable bookmark-everything app with a 
 
 You can access the demo at [https://try.karakeep.com](https://try.karakeep.com). Login with the following creds:
 
+email:
 ```
-email: demo@karakeep.app
-password: demodemo
+ demo@karakeep.app
+```
+password:
+```
+demodemo
 ```
 
 The demo is seeded with some content, but it's in read-only mode to prevent abuse.
