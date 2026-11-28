@@ -11,7 +11,10 @@ import serverConfig from "@karakeep/shared/config";
 import logger from "@karakeep/shared/logger";
 
 import { abortRace, raceWith } from "../../utils";
-import { isLikelyChallengePage, isWaitableChallenge } from "./metadataResolver";
+import {
+  isLikelyChallengePage,
+  isWaitableChallenge,
+} from "./html/metadataResolver";
 
 // Statuses bot-protection vendors serve their interstitials with.
 const CHALLENGE_STATUS_CODES = new Set([401, 403, 429, 503]);

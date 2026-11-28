@@ -22,14 +22,14 @@ import {
   isXHost,
   isYoutubeHost,
   normalizeMetadata,
-} from "../workers/utils/htmlMetadata";
-import { preprocessHtmlForMetadata } from "../workers/utils/htmlPreprocess";
+} from "../workers/utils/html/htmlMetadata";
+import { preprocessHtmlForMetadata } from "../workers/utils/html/htmlPreprocess";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessInputSchema,
   parseSubprocessOutputSchema,
-} from "../workers/utils/parseHtmlSubprocessIpc";
-import type { ReaderViewAssessment } from "../workers/utils/readerViewAssessment";
+} from "../workers/utils/html/parseHtmlSubprocessIpc";
+import type { ReaderViewAssessment } from "../workers/utils/html/readerViewAssessment";
 
 // Redirect all log output to stderr so it doesn't interfere with the JSON protocol on stdout.
 logger.clear();
@@ -155,7 +155,7 @@ async function main() {
     // Loaded on demand: jsdom and Defuddle are slow to load, and metadata-only
     // runs don't need them.
     const { extractReadableContent, sanitizeProvidedContent } =
-      await import("../workers/utils/readableContent");
+      await import("../workers/utils/html/readableContent");
 
     // Skip extraction if metascraper already provided readable content (e.g.
     // the Reddit plugin).

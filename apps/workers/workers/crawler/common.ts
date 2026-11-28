@@ -9,7 +9,7 @@ import type { RunProxyConfig } from "../../network";
 import { getTracer, withSpan } from "@karakeep/shared-server";
 import logger from "@karakeep/shared/logger";
 
-import type { ParseSubprocessOutput } from "../utils/parseHtmlSubprocessIpc";
+import type { ParseSubprocessOutput } from "../utils/html/parseHtmlSubprocessIpc";
 
 const tracer = getTracer("@karakeep/workers");
 

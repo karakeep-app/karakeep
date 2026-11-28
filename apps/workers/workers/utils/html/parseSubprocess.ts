@@ -15,10 +15,10 @@ import type {
   ParseSubprocessError,
   ParseSubprocessOutput,
 } from "./parseHtmlSubprocessIpc";
-import { getScriptCommand } from "./subprocessScript";
-import type { RunProxyConfig } from "../../network";
-import { getBookmarkDomain } from "../../network";
-import { truncateUrl } from "./crawlerUtils";
+import { getScriptCommand } from "../subprocessScript";
+import type { RunProxyConfig } from "../../../network";
+import { getBookmarkDomain } from "../../../network";
+import { truncateUrl } from "../crawlerUtils";
 import {
   parseSubprocessErrorSchema,
   parseSubprocessOutputSchema,

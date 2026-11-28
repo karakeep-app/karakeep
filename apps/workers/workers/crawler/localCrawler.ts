@@ -61,8 +61,8 @@ import {
   shouldRetryCrawlStatusCode,
   truncateUrl,
 } from "../utils/crawlerUtils";
-import { isLikelyChallengePage } from "../utils/metadataResolver";
-import { runParseSubprocess } from "../utils/parseSubprocess";
+import { isLikelyChallengePage } from "../utils/html/metadataResolver";
+import { runParseSubprocess } from "../utils/html/parseSubprocess";
 import { installRedirectGuard } from "../utils/redirectGuard";
 import { CAPTURED_ASSETS, span, traced } from "./common";
 

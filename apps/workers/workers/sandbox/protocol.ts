@@ -45,7 +45,7 @@ import { z } from "zod";
 import {
   parseSubprocessMetadataSchema,
   parseSubprocessOutputSchema,
-} from "../utils/parseHtmlSubprocessIpc";
+} from "../utils/html/parseHtmlSubprocessIpc";
 
 export const SANDBOX_BASE_PATH = "/sandbox/v1";
 

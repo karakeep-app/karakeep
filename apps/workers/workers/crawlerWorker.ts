@@ -73,7 +73,7 @@ import { BookmarkTypes } from "@karakeep/shared/types/bookmarks";
 import { WebhooksService } from "@karakeep/trpc/models/webhooks.service";
 
 import type { CrawlContext, Crawler, UrlProbeResult } from "./crawler/common";
-import type { ParseSubprocessOutput } from "./utils/parseHtmlSubprocessIpc";
+import type { ParseSubprocessOutput } from "./utils/html/parseHtmlSubprocessIpc";
 import { CAPTURED_ASSETS, crawlLogger, span, traced } from "./crawler/common";
 import { localCrawler } from "./crawler/localCrawler";
 import { remoteCrawler } from "./crawler/remoteCrawler";
@@ -98,7 +98,7 @@ import {
   isHumanOnlyInterstitial,
   isLikelyChallengePage,
   resolveMetadata,
-} from "./utils/metadataResolver";
+} from "./utils/html/metadataResolver";
 
 const crawler: Crawler = serverConfig.sandbox.url
   ? remoteCrawler
