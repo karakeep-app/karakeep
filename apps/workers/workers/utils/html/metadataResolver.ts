@@ -166,6 +166,42 @@ export function isWaitableChallenge(
   );
 }
 
+function normalizeHostForRedirectCheck(hostname: string): string {
+  return hostname.toLowerCase().replace(/^(?:www|m)\./, "");
+}
+
+/**
+ * Whether a deep bookmark URL was redirected by the browser to the bare root
+ * homepage of the same site (for example, an unauthenticated share link that
+ * bounced to `/`). In that case the preflight probe often still holds the
+ * specific page's metadata while the render only reflects the generic homepage.
+ */
+export function isDeepPathRedirectedToRoot(
+  requestedUrl: string,
+  finalUrl: string,
+): boolean {
+  if (!requestedUrl || !finalUrl || requestedUrl === finalUrl) {
+    return false;
+  }
+  try {
+    const requested = new URL(requestedUrl);
+    const final = new URL(finalUrl);
+    if (
+      normalizeHostForRedirectCheck(requested.hostname) !==
+      normalizeHostForRedirectCheck(final.hostname)
+    ) {
+      return false;
+    }
+    const requestedIsDeep =
+      requested.pathname !== "/" && requested.pathname !== "";
+    const finalIsBareRoot =
+      (final.pathname === "/" || final.pathname === "") && !final.search;
+    return requestedIsDeep && finalIsBareRoot;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Merges the browser render's metadata with the preflight probe's, per field.
  * The render normally wins (it sees the post-JS DOM), with the probe filling

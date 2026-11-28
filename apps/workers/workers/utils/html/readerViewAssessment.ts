@@ -5,7 +5,7 @@ import type {
   ZReaderViewStatus,
 } from "@karakeep/shared/types/bookmarks";
 
-export const READER_VIEW_CLASSIFIER_VERSION = 5;
+export const READER_VIEW_CLASSIFIER_VERSION = 6;
 
 export interface ReaderViewAssessment {
   status: ZReaderViewStatus;
@@ -103,6 +103,37 @@ export function unavailableReaderViewAssessment(): ReaderViewAssessment {
   };
 }
 
+/**
+ * Downgrades an assessment when the rendered page turned out to be a
+ * bot-protection or consent challenge page, so challenge pages are never
+ * stored as `readable`.
+ */
+export function applyChallengePageAssessment(
+  assessment: ReaderViewAssessment | null,
+  isChallengePage: boolean,
+): ReaderViewAssessment | null {
+  if (!assessment || !isChallengePage) {
+    return assessment;
+  }
+  const reasons: ZReaderViewReason[] = assessment.reasons.includes(
+    "challenge_page",
+  )
+    ? assessment.reasons
+    : [...assessment.reasons, "challenge_page"];
+  if (assessment.status === "unavailable") {
+    return {
+      ...assessment,
+      reasons,
+    };
+  }
+  return {
+    ...assessment,
+    status: "not_readable",
+    score: 0,
+    reasons,
+  };
+}
+
 export function assessReaderView(
   sourceDocument: Document,
   extractedDocument: Document,
@@ -113,7 +144,13 @@ export function assessReaderView(
   const extractedText = normalizedText(extractedDocument);
   const textLength = extractedText.length;
   const articleMetadata = hasArticleMetadata(sourceDocument);
-  const rootPage = isRootUrl(url) && !articleMetadata;
+  const controls = sourceDocument.querySelectorAll(
+    "button, input, select, textarea",
+  ).length;
+  const sourceParagraphs =
+    sourceDocument.querySelectorAll("p, pre, blockquote").length;
+  const controlHeavyPage = controls >= 3 && controls > sourceParagraphs;
+  const rootPage = isRootUrl(url) && (!articleMetadata || controlHeavyPage);
 
   if (articleMetadata) {
     score += 20;
@@ -212,12 +249,7 @@ export function assessReaderView(
     reasons.push("low_link_density");
   }
 
-  const controls = sourceDocument.querySelectorAll(
-    "button, input, select, textarea",
-  ).length;
-  const sourceParagraphs =
-    sourceDocument.querySelectorAll("p, pre, blockquote").length;
-  if (controls >= 3 && controls > sourceParagraphs) {
+  if (controlHeavyPage) {
     score -= 15;
     reasons.push("control_heavy_page");
   }
@@ -233,7 +265,8 @@ export function assessReaderView(
     reasons.push("link_collection");
   }
 
-  if (hasSearchUrlSignal(url) && !articleMetadata) {
+  const searchPage = hasSearchUrlSignal(url) && !articleMetadata;
+  if (searchPage) {
     score -= 25;
     reasons.push("search_url");
   }
@@ -253,7 +286,8 @@ export function assessReaderView(
     reasons.push("low_sentence_density");
   }
 
-  if (isProbablyReaderable(sourceDocument)) {
+  const probablyReaderable = isProbablyReaderable(sourceDocument);
+  if (probablyReaderable) {
     score += 10;
     reasons.push("probably_readerable");
   } else {
@@ -261,10 +295,18 @@ export function assessReaderView(
     reasons.push("probably_not_readerable");
   }
 
-  // A homepage can contain a large amount of polished marketing copy while
-  // still lacking a coherent standalone document. Without explicit article
-  // metadata, require the user to opt into Reader View.
-  if (rootPage) {
+  // A homepage, search results page, or block-less portal/card page can have
+  // lots of extracted text without forming a coherent standalone document.
+  // Require the user to opt into Reader View instead of auto-selecting it.
+  if (searchPage) {
+    score = Math.min(score, 50);
+  }
+  if (
+    rootPage ||
+    (substantiveBlocks === 0 &&
+      !hasLongPreformattedBlock &&
+      !probablyReaderable)
+  ) {
     score = Math.min(score, 60);
   }
 

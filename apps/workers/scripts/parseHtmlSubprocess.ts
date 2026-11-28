@@ -22,6 +22,7 @@ import {
   isXHost,
   isYoutubeHost,
   normalizeMetadata,
+  parseIsoDateValue,
 } from "../workers/utils/html/htmlMetadata";
 import { preprocessHtmlForMetadata } from "../workers/utils/html/htmlPreprocess";
 import {
@@ -40,12 +41,28 @@ logger.add(new winston.transports.Stream({ stream: process.stderr }));
  * (and their heavy network/proxy dependencies) only when the URL matches.
  */
 async function buildMetascraperParser(url: string) {
-  const rules: Rules[] = [
+  const rules: Rules[] = [];
+
+  if (isYoutubeHost(url)) {
+    // YouTube embeds comments with `dateCreated` inside VideoObject JSON-LD,
+    // which otherwise beats `<meta itemprop="datePublished">` in
+    // metascraper-date's rule order. Prefer the video's own date meta tags.
+    rules.push({
+      datePublished: [
+        ({ htmlDom: $ }) =>
+          parseIsoDateValue($('[itemprop="datePublished" i]').attr("content")),
+        ({ htmlDom: $ }) =>
+          parseIsoDateValue($('[itemprop="uploadDate" i]').attr("content")),
+      ],
+    });
+  }
+
+  rules.push(
     metascraperDate({
       dateModified: true,
       datePublished: true,
     }),
-  ];
+  );
 
   if (isAmazonHost(url)) {
     const [

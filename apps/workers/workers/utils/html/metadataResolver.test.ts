@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   extractHtmlTitle,
+  isDeepPathRedirectedToRoot,
   isHumanOnlyInterstitial,
   isLikelyChallengePage,
   isWaitableChallenge,
@@ -74,6 +75,50 @@ describe("resolveMetadata", () => {
     resolveMetadata(render, probe, false);
     expect(render.title).toBeNull();
     expect(probe.title).toBe("Probe Title");
+  });
+});
+
+describe("isDeepPathRedirectedToRoot", () => {
+  it("detects deep-path redirects back to the bare root of the same host", () => {
+    expect(
+      isDeepPathRedirectedToRoot(
+        "https://chatgpt.com/share/abc-123",
+        "https://chatgpt.com/",
+      ),
+    ).toBe(true);
+    expect(
+      isDeepPathRedirectedToRoot(
+        "https://m.example.com/posts/42",
+        "https://www.example.com/",
+      ),
+    ).toBe(true);
+  });
+
+  it("ignores non-root targets, query-bearing roots, root requests, and cross-host redirects", () => {
+    expect(
+      isDeepPathRedirectedToRoot(
+        "https://example.com/",
+        "https://example.com/",
+      ),
+    ).toBe(false);
+    expect(
+      isDeepPathRedirectedToRoot(
+        "https://example.com/post/1",
+        "https://example.com/post/1-renamed",
+      ),
+    ).toBe(false);
+    expect(
+      isDeepPathRedirectedToRoot(
+        "https://example.com/search/foo",
+        "https://example.com/?q=foo",
+      ),
+    ).toBe(false);
+    expect(
+      isDeepPathRedirectedToRoot(
+        "https://short.example/xyz",
+        "https://destination.example/",
+      ),
+    ).toBe(false);
   });
 });
 
