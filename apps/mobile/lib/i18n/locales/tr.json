@@ -88,6 +88,23 @@
     "header_value": "Başlık değeri",
     "value": "Değer"
   },
+  "client_certificate": {
+    "header": "İstemci Sertifikası (mTLS)",
+    "footer": "Yalnızca sunucunuz veya vekil sunucusu bir TLS istemci sertifikası gerektiriyorsa gereklidir. Sertifika bu cihazın anahtar zincirinde saklanır ve yalnızca sunucunuza gönderilir.",
+    "import": "Sertifikayı İçe Aktar…",
+    "replace": "Sertifikayı Değiştir…",
+    "remove": "Sertifikayı kaldır",
+    "unnamed": "Sertifika",
+    "import_confirm": "İçe Aktar",
+    "expires": "Bitiş tarihi: {{date}}",
+    "expired": "Süresi doldu: {{date}}",
+    "password_title": "Sertifika Parolası",
+    "password_message": "{{name}} dosyasını koruyan parolayı girin.",
+    "wrong_password": "Bu parola yanlış.",
+    "invalid_file": "Bu dosya, özel anahtar içeren bir PKCS#12 (.p12 veya .pfx) sertifikası değil.",
+    "import_failed": "Sertifika içe aktarılamadı.",
+    "http_warning": "Sunucu adresiniz http:// kullanıyor, bu nedenle sertifika kullanılmayacak."
+  },
   "connection_test": {
     "running": "Bağlantı testi çalıştırılıyor…",
     "network_failed": "Ağ bağlantısı başarısız: ",

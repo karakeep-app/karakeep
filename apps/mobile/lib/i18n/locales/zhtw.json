@@ -88,6 +88,23 @@
     "header_value": "標頭值",
     "value": "值"
   },
+  "client_certificate": {
+    "header": "用戶端憑證 (mTLS)",
+    "footer": "僅當你的伺服器或其代理要求 TLS 用戶端憑證時才需要。憑證儲存在此裝置的鑰匙圈中，且只會傳送到你的伺服器。",
+    "import": "匯入憑證…",
+    "replace": "取代憑證…",
+    "remove": "移除憑證",
+    "unnamed": "憑證",
+    "import_confirm": "匯入",
+    "expires": "{{date}} 到期",
+    "expired": "已於 {{date}} 過期",
+    "password_title": "憑證密碼",
+    "password_message": "請輸入保護 {{name}} 的密碼。",
+    "wrong_password": "密碼不正確。",
+    "invalid_file": "此檔案不是包含私密金鑰的 PKCS#12（.p12 或 .pfx）憑證。",
+    "import_failed": "無法匯入憑證。",
+    "http_warning": "你的伺服器位址使用 http://，因此不會使用憑證。"
+  },
   "connection_test": {
     "running": "正在執行連線測試…",
     "network_failed": "網路連線失敗：",

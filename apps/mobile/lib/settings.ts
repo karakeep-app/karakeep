@@ -5,6 +5,8 @@ import { create } from "zustand";
 
 import { zReaderFontFamilySchema } from "@karakeep/shared/types/users";
 
+import { setClientCertificateServer } from "@/modules/client-certificate";
+
 const SETTING_NAME = "settings";
 
 const zToolbarActionId = z.enum([
@@ -95,6 +97,9 @@ const useSettings = create<AppSettingsState>((set, get) => ({
   },
   setSettings: async (settings) => {
     await SecureStore.setItemAsync(SETTING_NAME, JSON.stringify(settings));
+    // Before the state update, so requests it triggers already use the
+    // client certificate against the new server.
+    setClientCertificateServer(settings.address);
     set((_state) => ({ settings: { isLoading: false, settings } }));
   },
   load: async () => {
@@ -103,6 +108,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
     }
     const strVal = await SecureStore.getItemAsync(SETTING_NAME);
     if (!strVal) {
+      setClientCertificateServer(get().settings.settings.address);
       set((state) => ({
         settings: { isLoading: false, settings: state.settings.settings },
       }));
@@ -130,6 +136,7 @@ const useSettings = create<AppSettingsState>((set, get) => ({
       ];
     }
 
+    setClientCertificateServer(parsed.data.address);
     set((_state) => ({
       settings: { isLoading: false, settings: parsed.data },
     }));

@@ -88,6 +88,23 @@
     "header_value": "Valoarea antetului",
     "value": "Valoare"
   },
+  "client_certificate": {
+    "header": "Certificat client (mTLS)",
+    "footer": "Necesar doar dacă serverul tău sau proxy-ul său cere un certificat client TLS. Certificatul este stocat în portcheiul acestui dispozitiv și este trimis doar către serverul tău.",
+    "import": "Importă certificat…",
+    "replace": "Înlocuiește certificatul…",
+    "remove": "Elimină certificatul",
+    "unnamed": "Certificat",
+    "import_confirm": "Importă",
+    "expires": "Expiră la {{date}}",
+    "expired": "A expirat la {{date}}",
+    "password_title": "Parola certificatului",
+    "password_message": "Introdu parola care protejează {{name}}.",
+    "wrong_password": "Parola este incorectă.",
+    "invalid_file": "Acest fișier nu este un certificat PKCS#12 (.p12 sau .pfx) cu cheie privată.",
+    "import_failed": "Certificatul nu a putut fi importat.",
+    "http_warning": "Adresa serverului tău folosește http://, așa că certificatul nu va fi folosit."
+  },
   "connection_test": {
     "running": "Se rulează testul de conexiune…",
     "network_failed": "Conexiunea la rețea a eșuat: ",

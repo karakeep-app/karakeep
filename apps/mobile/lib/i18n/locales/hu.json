@@ -88,6 +88,23 @@
     "header_value": "Fejléc értéke",
     "value": "Érték"
   },
+  "client_certificate": {
+    "header": "Ügyféltanúsítvány (mTLS)",
+    "footer": "Csak akkor szükséges, ha a szervered vagy annak proxyja TLS-ügyféltanúsítványt igényel. A tanúsítvány az eszköz kulcskarikáján tárolódik, és kizárólag a szerverednek küldjük el.",
+    "import": "Tanúsítvány importálása…",
+    "replace": "Tanúsítvány cseréje…",
+    "remove": "Tanúsítvány eltávolítása",
+    "unnamed": "Tanúsítvány",
+    "import_confirm": "Importálás",
+    "expires": "Lejár: {{date}}",
+    "expired": "Lejárt: {{date}}",
+    "password_title": "Tanúsítvány jelszava",
+    "password_message": "Add meg a(z) {{name}} fájlt védő jelszót.",
+    "wrong_password": "Ez a jelszó helytelen.",
+    "invalid_file": "Ez a fájl nem privát kulcsot tartalmazó PKCS#12 tanúsítvány (.p12 vagy .pfx).",
+    "import_failed": "A tanúsítványt nem sikerült importálni.",
+    "http_warning": "A szervered címe http://-t használ, ezért a tanúsítvány nem lesz használva."
+  },
   "connection_test": {
     "running": "Kapcsolatteszt folyamatban…",
     "network_failed": "Hálózati kapcsolat sikertelen: ",

@@ -88,6 +88,23 @@
     "header_value": "Valor del encabezado",
     "value": "Valor"
   },
+  "client_certificate": {
+    "header": "Certificado de cliente (mTLS)",
+    "footer": "Solo es necesario si tu servidor o su proxy requiere un certificado de cliente TLS. El certificado se guarda en el llavero de este dispositivo y solo se envía a tu servidor.",
+    "import": "Importar certificado…",
+    "replace": "Reemplazar certificado…",
+    "remove": "Eliminar certificado",
+    "unnamed": "Certificado",
+    "import_confirm": "Importar",
+    "expires": "Caduca el {{date}}",
+    "expired": "Caducó el {{date}}",
+    "password_title": "Contraseña del certificado",
+    "password_message": "Introduce la contraseña que protege {{name}}.",
+    "wrong_password": "Esa contraseña es incorrecta.",
+    "invalid_file": "Este archivo no es un certificado PKCS#12 (.p12 o .pfx) con clave privada.",
+    "import_failed": "No se pudo importar el certificado.",
+    "http_warning": "La dirección de tu servidor usa http://, por lo que el certificado no se utilizará."
+  },
   "connection_test": {
     "running": "Probando la conexión…",
     "network_failed": "Error de conexión de red: ",

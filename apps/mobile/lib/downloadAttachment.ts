@@ -42,7 +42,12 @@ export async function downloadAttachment(
     const result = await FileSystem.downloadAsync(
       `${settings.address.replace(/\/$/, "")}${getAssetUrl(asset.id)}`,
       `${directory}download`,
-      { headers: buildApiHeaders(settings.apiKey, settings.customHeaders) },
+      {
+        headers: buildApiHeaders(settings.apiKey, settings.customHeaders),
+        // Foreground: a background session can't present the TLS client
+        // certificate, and this download is awaited on screen anyway.
+        sessionType: FileSystem.FileSystemSessionType.FOREGROUND,
+      },
     );
     if (result.status !== 200) {
       throw new Error("Failed to download attachment. Please try again.");

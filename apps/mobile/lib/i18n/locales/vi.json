@@ -88,6 +88,23 @@
     "header_value": "Giá trị header",
     "value": "Giá trị"
   },
+  "client_certificate": {
+    "header": "Chứng chỉ máy khách (mTLS)",
+    "footer": "Chỉ cần thiết nếu máy chủ của bạn hoặc proxy của nó yêu cầu chứng chỉ máy khách TLS. Chứng chỉ được lưu trong chuỗi khóa của thiết bị này và chỉ được gửi đến máy chủ của bạn.",
+    "import": "Nhập chứng chỉ…",
+    "replace": "Thay chứng chỉ…",
+    "remove": "Xóa chứng chỉ",
+    "unnamed": "Chứng chỉ",
+    "import_confirm": "Nhập",
+    "expires": "Hết hạn vào {{date}}",
+    "expired": "Đã hết hạn vào {{date}}",
+    "password_title": "Mật khẩu chứng chỉ",
+    "password_message": "Nhập mật khẩu bảo vệ {{name}}.",
+    "wrong_password": "Mật khẩu không đúng.",
+    "invalid_file": "Tệp này không phải là chứng chỉ PKCS#12 (.p12 hoặc .pfx) có khóa riêng.",
+    "import_failed": "Không thể nhập chứng chỉ.",
+    "http_warning": "Địa chỉ máy chủ của bạn dùng http://, vì vậy chứng chỉ sẽ không được sử dụng."
+  },
   "connection_test": {
     "running": "Đang kiểm tra kết nối…",
     "network_failed": "Kết nối mạng thất bại: ",

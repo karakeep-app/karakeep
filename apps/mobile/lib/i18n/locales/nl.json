@@ -88,6 +88,23 @@
     "header_value": "Headerwaarde",
     "value": "Waarde"
   },
+  "client_certificate": {
+    "header": "Clientcertificaat (mTLS)",
+    "footer": "Alleen nodig als je server of de proxy ervoor een TLS-clientcertificaat vereist. Het certificaat wordt bewaard in de sleutelhanger van dit apparaat en wordt alleen naar je server gestuurd.",
+    "import": "Certificaat importeren…",
+    "replace": "Certificaat vervangen…",
+    "remove": "Certificaat verwijderen",
+    "unnamed": "Certificaat",
+    "import_confirm": "Importeren",
+    "expires": "Verloopt op {{date}}",
+    "expired": "Verlopen op {{date}}",
+    "password_title": "Certificaatwachtwoord",
+    "password_message": "Voer het wachtwoord in waarmee {{name}} is beveiligd.",
+    "wrong_password": "Dat wachtwoord is onjuist.",
+    "invalid_file": "Dit bestand is geen PKCS#12-certificaat (.p12 of .pfx) met een privésleutel.",
+    "import_failed": "Het certificaat kon niet worden geïmporteerd.",
+    "http_warning": "Je serveradres gebruikt http://, dus het certificaat wordt niet gebruikt."
+  },
   "connection_test": {
     "running": "Verbindingstest wordt uitgevoerd…",
     "network_failed": "Netwerkverbinding mislukt: ",

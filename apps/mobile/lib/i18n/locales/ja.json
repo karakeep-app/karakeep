@@ -88,6 +88,23 @@
     "header_value": "ヘッダーの値",
     "value": "値"
   },
+  "client_certificate": {
+    "header": "クライアント証明書 (mTLS)",
+    "footer": "サーバーまたはそのプロキシが TLS クライアント証明書を要求する場合にのみ必要です。証明書はこのデバイスのキーチェーンに保存され、あなたのサーバーにのみ送信されます。",
+    "import": "証明書を読み込む…",
+    "replace": "証明書を置き換える…",
+    "remove": "証明書を削除",
+    "unnamed": "証明書",
+    "import_confirm": "読み込む",
+    "expires": "有効期限: {{date}}",
+    "expired": "期限切れ: {{date}}",
+    "password_title": "証明書のパスワード",
+    "password_message": "{{name}} を保護しているパスワードを入力してください。",
+    "wrong_password": "パスワードが正しくありません。",
+    "invalid_file": "このファイルは秘密鍵を含む PKCS#12 (.p12 または .pfx) 証明書ではありません。",
+    "import_failed": "証明書を読み込めませんでした。",
+    "http_warning": "サーバーアドレスが http:// のため、証明書は使用されません。"
+  },
   "connection_test": {
     "running": "接続テストを実行中…",
     "network_failed": "ネットワーク接続に失敗しました: ",

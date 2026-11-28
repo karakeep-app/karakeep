@@ -88,6 +88,23 @@
     "header_value": "Luach an cheanntáisc",
     "value": "Luach"
   },
+  "client_certificate": {
+    "header": "Teastas cliaint (mTLS)",
+    "footer": "Níl sé ag teastáil ach amháin má éilíonn do fhreastalaí nó a sheachfhreastalaí teastas cliaint TLS. Stóráiltear an teastas i slabhra eochracha an ghléis seo agus ní sheoltar é ach chuig do fhreastalaí.",
+    "import": "Iompórtáil teastas…",
+    "replace": "Ionadaigh an teastas…",
+    "remove": "Bain an teastas",
+    "unnamed": "Teastas",
+    "import_confirm": "Iompórtáil",
+    "expires": "Rachaidh sé in éag {{date}}",
+    "expired": "Chuaigh sé in éag {{date}}",
+    "password_title": "Pasfhocal an teastais",
+    "password_message": "Cuir isteach an pasfhocal a chosnaíonn {{name}}.",
+    "wrong_password": "Tá an pasfhocal sin mícheart.",
+    "invalid_file": "Ní teastas PKCS#12 (.p12 nó .pfx) le heochair phríobháideach é an comhad seo.",
+    "import_failed": "Níorbh fhéidir an teastas a iompórtáil.",
+    "http_warning": "Úsáideann seoladh do fhreastalaí http://, mar sin ní úsáidfear an teastas."
+  },
   "connection_test": {
     "running": "Tástáil cheangail ar siúl…",
     "network_failed": "Theip ar an gceangal líonra: ",

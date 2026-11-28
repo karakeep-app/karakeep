@@ -427,6 +427,9 @@ importers:
       expo-dev-client:
         specifier: ~58.0.15
         version: 58.0.20(expo@58.0.25)(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))
+      expo-document-picker:
+        specifier: ~58.0.5
+        version: 58.0.5(expo@58.0.25)
       expo-file-system:
         specifier: ~58.0.11
         version: 58.0.13(expo@58.0.25)(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1))
@@ -9779,6 +9782,11 @@ packages:
     peerDependencies:
       expo: '*'
       react-native: '*'
+
+  expo-document-picker@58.0.5:
+    resolution: {integrity: sha512-DHv8GhjDwu2BbDWhV2j52iaqwWsA9P7n5nAwreiKRGQSxv0wpF/C0Cqpqj1B72io8E2KXddwxxKPWVPlV/kgtA==}
+    peerDependencies:
+      expo: '*'
 
   expo-file-system@58.0.13:
     resolution: {integrity: sha512-+/1aFErkawyky5UdWI06zYeO2DeHUnfaWnYHeiI8M8Z/sB6L66gI3WUxqtvUvKJoaM0Ti1CximD3x3JwteLYIg==}
@@ -25080,6 +25088,10 @@ snapshots:
       expo: 58.0.25(8a4de7b7779d642dcd0c89d47cd42b9f)
       expo-dev-menu-interface: 58.0.2(expo@58.0.25)
       react-native: 0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
+
+  expo-document-picker@58.0.5(expo@58.0.25):
+    dependencies:
+      expo: 58.0.25(8a4de7b7779d642dcd0c89d47cd42b9f)
 
   expo-file-system@58.0.13(expo@58.0.25)(react-native@0.88.1(patch_hash=491ba7dc2b54e34aae156987bef5916ac91c2440b53b0659f7504aea21f9f361)(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/metro-config@0.88.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)):
     dependencies:
