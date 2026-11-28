@@ -151,11 +151,11 @@ export function assessReaderView(
   let substantiveBlocks = [
     ...extractedDocument.querySelectorAll("p, pre, blockquote"),
   ].filter((node) => (node.textContent?.trim().length ?? 0) >= 80).length;
-  // Classic HTML essays (e.g. Paul Graham's essays) separate paragraphs with
-  // `<br><br>` inside `<font>`/`<td>` rather than `<p>` elements. When the
-  // extracted HTML has no `<p>` tags and isn't a link-heavy index, count
-  // `<br><br>`-delimited prose chunks (excluding link text) as substantive
-  // blocks so long essays aren't misclassified as link collections.
+  // Classic HTML essays separate paragraphs with `<br><br>` inside
+  // `<font>`/`<td>` rather than `<p>` elements. When the extracted HTML has no
+  // `<p>` tags and isn't a link-heavy index, count `<br><br>`-delimited prose
+  // chunks (excluding link text) as substantive blocks so long essays aren't
+  // misclassified as link collections.
   if (
     substantiveBlocks < 4 &&
     linkDensity <= 0.2 &&

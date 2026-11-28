@@ -157,6 +157,13 @@ describe("stripNonContentMarkupForDom", () => {
     expect(stripNonContentMarkupForDom(doubleEscapedScript)).toBe(
       '<script type="application/json">{"x":"<!--<script></script><style>"}</script><p>Visible</p>',
     );
+
+    // HTML5 "in select" mode ignores `<style>` instead of entering raw-text mode.
+    const styleInSelect =
+      "<select><style>ignored</select><p>Visible</p><style>x{}</style>";
+    expect(stripNonContentMarkupForDom(styleInSelect)).toBe(
+      "<select><style>ignored</select><p>Visible</p>",
+    );
   });
 });
 

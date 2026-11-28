@@ -41,7 +41,7 @@ describe("extractReadableContent", () => {
         <head><meta property="og:type" content="article"></head>
         <body>
           <article>
-            <div class="a-section aok-hidden"><p>{"desktop_buybox_group_1":[{"priceAmount":14.08}]}</p></div>
+            <div class="a-section aok-hidden"><p>{"buybox_data":[{"price":9.99}]}</p></div>
             ${Array.from({ length: 5 }, () => `<p>${paragraph}</p>`).join("")}
           </article>
         </body>
@@ -50,12 +50,10 @@ describe("extractReadableContent", () => {
 
     const amazonResult = extractReadableContent(
       html,
-      "https://www.amazon.com/dp/0735211299",
+      "https://www.amazon.com/dp/B000000001",
     );
     expect(amazonResult.readableContent).not.toBeNull();
-    expect(amazonResult.readableContent?.content).not.toContain(
-      "desktop_buybox_group_1",
-    );
+    expect(amazonResult.readableContent?.content).not.toContain("buybox_data");
     expect(amazonResult.readableContent?.content).toContain(
       "article paragraph",
     );
@@ -65,9 +63,7 @@ describe("extractReadableContent", () => {
       html,
       "https://example.com/posts/test",
     );
-    expect(nonAmazonResult.readableContent?.content).toContain(
-      "desktop_buybox_group_1",
-    );
+    expect(nonAmazonResult.readableContent?.content).toContain("buybox_data");
   });
 
   test("falls back to Readability with an intact document when Defuddle returns empty", () => {
@@ -107,6 +103,18 @@ describe("extractReadableContent", () => {
       expect(result.readableContent?.content).toContain("article paragraph");
       expect(result.readerViewAssessment.status).toBe("readable");
     }
+
+    // Content appearing between </head> and <body> keeps original order.
+    const preBodyHtml = `<html><head><title>Order</title></head><p>FIRST_PARAGRAPH ${paragraph}</p><body><p>SECOND_PARAGRAPH ${paragraph}</p></body></html>`;
+    const preBodyResult = extractReadableContent(
+      preBodyHtml,
+      "https://example.com/posts/order",
+    );
+    const orderedContent = preBodyResult.readableContent?.content ?? "";
+    expect(orderedContent.indexOf("FIRST_PARAGRAPH")).toBeGreaterThanOrEqual(0);
+    expect(orderedContent.indexOf("SECOND_PARAGRAPH")).toBeGreaterThan(
+      orderedContent.indexOf("FIRST_PARAGRAPH"),
+    );
   });
 
   test("sanitizes provided HTML and assesses reader view", () => {

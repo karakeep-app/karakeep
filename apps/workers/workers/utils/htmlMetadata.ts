@@ -29,15 +29,14 @@ export function isXHost(url: string): boolean {
 }
 
 // Leading/trailing whitespace and invisible Unicode bidi / zero-width
-// formatting characters (e.g. Apple App Store prepends U+200E LEFT-TO-RIGHT
-// MARK to page titles, and Amazon UK sometimes emits a lone U+200E as meta
-// description).
+// formatting characters (e.g. U+200E LEFT-TO-RIGHT MARK emitted in titles or
+// as lone placeholder meta descriptions).
 const INVISIBLE_FORMAT_CHARS_PATTERN =
   /^[\s\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+|[\s\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+$/g;
 
 // Purely numeric author values (e.g. Facebook page/profile IDs in
-// `article:author`, such as GitHub Gist's `262588213843476`) are not human
-// author names; rejecting them lets metascraper fall through to DOM rules.
+// `article:author`) are not human author names; rejecting them lets
+// metascraper fall through to DOM rules.
 const NUMERIC_ONLY_PATTERN = /^\d+$/;
 
 // Obvious non-banner placeholder / tracking-pixel / favicon image URLs that
@@ -97,7 +96,7 @@ export function normalizeMetadata<T extends Record<string, unknown>>(
   const author = cleanTextField(meta.author);
   let publisher = cleanTextField(meta.publisher);
   // metascraper-publisher falls back to `[class*="logo"] img[alt]`, which
-  // often yields alt text like "Requests logo".
+  // often yields alt text like "Example logo".
   if (publisher && /\s+logo$/i.test(publisher)) {
     publisher = publisher.replace(/\s+logo$/i, "").trim() || publisher;
   }

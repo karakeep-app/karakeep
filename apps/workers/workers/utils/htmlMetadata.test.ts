@@ -27,13 +27,13 @@ describe("htmlMetadata", () => {
   });
 
   test("rejects numeric author IDs, placeholder/ico images, and invisible-only text", () => {
-    expect(
-      isValidMetadataValue("262588213843476", { propName: "author" }),
-    ).toBe(false);
-    expect(isValidMetadataValue("mileu", { propName: "author" })).toBe(true);
+    expect(isValidMetadataValue("123456789012", { propName: "author" })).toBe(
+      false,
+    );
+    expect(isValidMetadataValue("alice", { propName: "author" })).toBe(true);
 
     expect(
-      isValidMetadataValue("https://apps.apple.com/assets/artwork/1x1.gif", {
+      isValidMetadataValue("https://example.com/assets/1x1.gif", {
         propName: "image",
       }),
     ).toBe(false);
@@ -55,24 +55,24 @@ describe("htmlMetadata", () => {
       false,
     );
     expect(
-      isValidMetadataValue("\u200eInstagram App", { propName: "title" }),
+      isValidMetadataValue("\u200eExample App", { propName: "title" }),
     ).toBe(true);
   });
 
   test("strips leading/trailing invisible format chars and trailing 'logo' on publisher", () => {
     expect(
       normalizeMetadata({
-        title: "\u200eInstagram App - App Store",
+        title: "\u200eExample App - Store",
         description: "\u200e",
         author: "\ufeffJane Doe\u200f",
-        publisher: "Requests logo",
+        publisher: "Acme Docs logo",
         image: "https://example.com/img.png",
       }),
     ).toEqual({
-      title: "Instagram App - App Store",
+      title: "Example App - Store",
       description: null,
       author: "Jane Doe",
-      publisher: "Requests",
+      publisher: "Acme Docs",
       image: "https://example.com/img.png",
     });
   });

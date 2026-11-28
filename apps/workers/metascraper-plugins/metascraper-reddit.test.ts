@@ -20,8 +20,8 @@ describe("metascraperReddit", () => {
     const nonPostUrls = [
       "https://www.reddit.com/",
       "https://www.reddit.com/r/programming/",
-      "https://www.reddit.com/user/spez/",
-      "https://old.reddit.com/login?reason=lor2&dest=https%3A%2F%2Fold.reddit.com%2Fr%2FIAmA%2Fcomments%2Fz1c9z%2F",
+      "https://www.reddit.com/user/example/",
+      "https://old.reddit.com/login?dest=https%3A%2F%2Fold.reddit.com%2Fr%2Fexample%2Fcomments%2Fabc123%2F",
     ];
 
     for (const url of nonPostUrls) {

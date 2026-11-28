@@ -8,19 +8,19 @@ describe("metascraperAmazonImproved", () => {
 
   test("cleans storefront wrapper text from Amazon product bylines", async () => {
     const cases = [
-      ["Visit the Apple Store", "Apple"],
-      ["Besuche den Niorasen-Store", "Niorasen"],
-      ["Visit the アイメディア(Aimedia) Store", "アイメディア(Aimedia)"],
-      ["Brand: Anker", "Anker"],
-      ["Visiter la boutique Sony", "Sony"],
-      ["Bezoek de Philips winkel", "Philips"],
-      ["Visite a loja Logitech", "Logitech"],
-      ["Samsung Mağazasını ziyaret edin", "Samsung"],
+      ["Visit the Acme Store", "Acme"],
+      ["Besuche den Beispiel-Store", "Beispiel"],
+      ["Visit the サンプル商店 Store", "サンプル商店"],
+      ["Brand: Contoso", "Contoso"],
+      ["Visiter la boutique Example", "Example"],
+      ["Bezoek de Voorbeeld winkel", "Voorbeeld"],
+      ["Visite a loja Exemplo", "Exemplo"],
+      ["Örnek Mağazasını ziyaret edin", "Örnek"],
     ];
 
     for (const [byline, expected] of cases) {
       const meta = await parser({
-        url: "https://www.amazon.com/dp/B0GJTXVN9Z",
+        url: "https://www.amazon.com/dp/B000000001",
         html: `<html><body><a id="bylineInfo">${byline}</a></body></html>`,
         validateUrl: false,
       });
@@ -30,11 +30,11 @@ describe("metascraperAmazonImproved", () => {
 
   test("extracts clean book authors and prefers primary authors over translators", async () => {
     const meta = await parser({
-      url: "https://www.amazon.com/dp/0735211299",
+      url: "https://www.amazon.com/dp/0000000001",
       html: `
         <html><body>
           <div id="bylineInfo">
-            by <span class="author"><a href="/author/james-clear">James Clear</a> (Author)</span>,
+            by <span class="author"><a href="/author/alex-rivera">Alex Rivera</a> (Author)</span>,
             <span class="author"><a href="/author/someone">Jane Smith</a> (Translator)</span>
             <span>Format: Hardcover</span>
           </div>
@@ -42,6 +42,6 @@ describe("metascraperAmazonImproved", () => {
       `,
       validateUrl: false,
     });
-    expect(meta.author).toBe("James Clear");
+    expect(meta.author).toBe("Alex Rivera");
   });
 });

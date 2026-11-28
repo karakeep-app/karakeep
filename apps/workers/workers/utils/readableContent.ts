@@ -65,11 +65,14 @@ function parseSourceDocument(html: string, url: string): Document {
     );
     if (!existingContainer || existingContainer.tagName === "BODY") {
       let body = existingContainer ?? null;
+      const firstBodyChild = body?.firstChild ?? null;
+      let seenBody = false;
       for (const child of Array.from(root.childNodes)) {
-        if (
-          child === body ||
-          (child.nodeType === 1 && (child as Element).tagName === "HEAD")
-        ) {
+        if (child === body) {
+          seenBody = true;
+          continue;
+        }
+        if (child.nodeType === 1 && (child as Element).tagName === "HEAD") {
           continue;
         }
         if (body && child.nodeType === 3 && !(child.textContent ?? "").trim()) {
@@ -79,7 +82,11 @@ function parseSourceDocument(html: string, url: string): Document {
           body = document.createElement("body");
           root.appendChild(body);
         }
-        body.appendChild(child);
+        if (!seenBody && firstBodyChild) {
+          body.insertBefore(child, firstBodyChild);
+        } else {
+          body.appendChild(child);
+        }
       }
       if (!body) {
         root.appendChild(document.createElement("body"));

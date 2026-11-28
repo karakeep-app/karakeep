@@ -304,6 +304,7 @@ export function stripHtmlElements(
   let copyFrom = 0;
   let pos = 0;
   let foreignDepth = 0;
+  let inSelect = false;
 
   while (pos < len) {
     const lt = html.indexOf("<", pos);
@@ -350,15 +351,20 @@ export function stripHtmlElements(
       ) {
         closeNameEnd++;
       }
-      if (foreignDepth > 0) {
+      if (foreignDepth > 0 || inSelect) {
         const closeNameLen = closeNameEnd - (lt + 2);
         if (
-          (closeNameLen === 3 || closeNameLen === 4) &&
+          (closeNameLen === 3 || closeNameLen === 4 || closeNameLen === 6) &&
           isAsciiAlphaRange(html, lt + 2, closeNameEnd)
         ) {
           const closeName = html.slice(lt + 2, closeNameEnd).toLowerCase();
-          if (closeName === "svg" || closeName === "math") {
+          if (
+            foreignDepth > 0 &&
+            (closeName === "svg" || closeName === "math")
+          ) {
             foreignDepth--;
+          } else if (foreignDepth === 0 && closeName === "select") {
+            inSelect = false;
           }
         }
       }
@@ -416,8 +422,28 @@ export function stripHtmlElements(
       break;
     }
 
+    if (foreignDepth === 0 && tagName === "select") {
+      // In HTML5 "in select" mode, another `<select>` closes the open one.
+      inSelect = !inSelect;
+      pos = startTagEnd + 1;
+      continue;
+    }
+    if (
+      inSelect &&
+      foreignDepth === 0 &&
+      (tagName === "input" || tagName === "keygen" || tagName === "textarea")
+    ) {
+      inSelect = false;
+    }
+
     const isStyle = tagName === "style";
     const isScript = tagName === "script";
+    if (isStyle && inSelect && foreignDepth === 0) {
+      // HTML5 "in select" insertion mode ignores `<style>` start tags instead
+      // of switching to raw-text mode.
+      pos = startTagEnd + 1;
+      continue;
+    }
     if (!isStyle && !isScript && !RAW_TEXT_SKIP_TAGS.has(tagName)) {
       // Skip the entire opening tag (including quoted attributes that may
       // contain literal `<style>` / `<script>` examples).
