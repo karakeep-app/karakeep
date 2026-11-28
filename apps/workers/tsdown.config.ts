@@ -18,6 +18,8 @@ export default defineConfig({
     // Keep native binaries external (transitive deps of bundled workspace packages)
     "better-sqlite3",
     "liteque",
+    // Loads its WASM file relative to its own directory
+    /^tiktoken/,
   ],
   noExternal: [
     // Bundle workspace packages (since they're not published to npm)
