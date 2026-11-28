@@ -3,6 +3,21 @@ import { decode as decodeHtmlEntities } from "html-entities";
 import type { ParseSubprocessOutput } from "./parseHtmlSubprocessIpc";
 
 /**
+ * Challenge or consent interstitial titles that require human interaction and
+ * never clear on their own by waiting in the browser or retrying.
+ */
+const NON_WAITABLE_CHALLENGE_TITLES = new Set([
+  // Reddit
+  "reddit - prove your humanity",
+  // Google / YouTube EU/UK consent wall
+  "before you continue to youtube",
+  "before you continue to google",
+  // Zhihu security verification
+  "安全验证 - 知乎",
+  "安全验证",
+]);
+
+/**
  * Exact (lowercased, trimmed) page titles used by common bot-protection
  * interstitials and block pages. Matched exactly, not as substrings, so a
  * legitimate article about bot walls doesn't trip the heuristic.
@@ -30,6 +45,7 @@ const CHALLENGE_PAGE_TITLES = new Set([
   "bot verification",
   // Vercel
   "vercel security checkpoint",
+  ...NON_WAITABLE_CHALLENGE_TITLES,
 ]);
 
 /**
@@ -102,6 +118,17 @@ export function isLikelyChallengePage({
 const DATADOME_HARD_CAPTCHA = /['"]rt['"]\s*:\s*['"]c['"]/;
 
 /**
+ * Whether the page title matches a deterministic human-only interstitial
+ * (consent wall or interactive verification) that will not clear on its own
+ * by waiting or retrying.
+ */
+export function isHumanOnlyInterstitial(title?: string | null): boolean {
+  return (
+    !!title && NON_WAITABLE_CHALLENGE_TITLES.has(title.trim().toLowerCase())
+  );
+}
+
+/**
  * Whether the page is a bot challenge that may clear by itself (and reload
  * into the real page) if the browser keeps waiting.
  */
@@ -109,6 +136,9 @@ export function isWaitableChallenge(
   title: string,
   htmlContent: string,
 ): boolean {
+  if (isHumanOnlyInterstitial(title)) {
+    return false;
+  }
   return (
     isLikelyChallengePage({ title, htmlContent }) &&
     !DATADOME_HARD_CAPTCHA.test(htmlContent)

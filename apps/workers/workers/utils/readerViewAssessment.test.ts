@@ -125,12 +125,41 @@ describe("reader view assessment", () => {
     expect(result.reasons).toContain("long_preformatted_content");
   });
 
+  test("accepts classic br-delimited essays with no <p> tags", () => {
+    const body = Array.from({ length: 10 }, () => paragraph).join("<br><br>");
+    const links = Array.from(
+      { length: 10 },
+      (_, i) => `<a href="#n${i}">[${i}]</a>`,
+    ).join(" ");
+    const html = `<html><body><font>${body}<br><br>${links}</font></body></html>`;
+
+    const result = assess(html, html, "https://example.com/essay.html");
+
+    expect(result.status).toBe("readable");
+    expect(result.reasons).toContain("multiple_substantive_blocks");
+    expect(result.reasons).not.toContain("link_collection");
+  });
+
+  test("does not count link-only br-delimited lists as substantive prose blocks", () => {
+    const linkList = Array.from(
+      { length: 12 },
+      (_, i) =>
+        `01/26 <a href="/post-${i}">A long title for an archived engineering blog post number ${i} about systems and performance</a>`,
+    ).join("<br><br>");
+    const html = `<html><body>${linkList}</body></html>`;
+
+    const result = assess(html, html, "https://example.com/");
+
+    expect(result.status).toBe("not_readable");
+    expect(result.reasons).toContain("no_substantive_blocks");
+  });
+
   test("represents a missing extraction separately", () => {
     expect(unavailableReaderViewAssessment()).toEqual({
       status: "unavailable",
       score: 0,
       reasons: ["no_extracted_content"],
-      classifierVersion: 3,
+      classifierVersion: 4,
     });
   });
 });

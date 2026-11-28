@@ -6,6 +6,8 @@ import { DefuddleClass } from "defuddle/node";
 import DOMPurify from "dompurify";
 import { JSDOM, VirtualConsole } from "jsdom";
 
+import { isAmazonHost } from "./htmlMetadata";
+import { stripNonContentMarkupForDom } from "./htmlPreprocess";
 import type { ReaderViewAssessment } from "./readerViewAssessment";
 import {
   assessReaderView,
@@ -75,11 +77,30 @@ function normalizeLazyLoadImages(document: Document): void {
 }
 
 /**
+ * Removes elements hidden by Amazon's `.aok-hidden` utility class (which
+ * Defuddle's built-in hidden-element pass does not recognize and which often
+ * wraps raw buybox JSON blobs that otherwise leak into reader view).
+ */
+function removeAmazonHiddenElements(document: Document): void {
+  for (const el of document.querySelectorAll(".aok-hidden")) {
+    if (
+      el.tagName.toLowerCase() === "math" ||
+      el.querySelector("math, [data-mathml], .katex-mathml")
+    ) {
+      continue;
+    }
+    el.remove();
+  }
+}
+
+/**
  * Extracts the main content with Defuddle. Its async extractors (YouTube
  * transcripts, Reddit/X/Bilibili APIs, ...) stay disabled: they make their own
  * HTTP requests, which would bypass the crawler's proxy settings. The sync
  * parse() never calls them; the throwing fetch is a backstop in case a future
  * version adds a network call to the sync path.
+ *
+ * Defuddle clones `document` internally and never mutates the caller's tree.
  */
 function runDefuddle(document: Document, url: string): string | null {
   const result = new DefuddleClass(document, {
@@ -104,12 +125,10 @@ function runReadability(document: Document): string | null {
  * pages (e.g. it removes trailing headings, so a page that is just an `<h1>`
  * comes back empty).
  */
-function hasVisibleContent(sanitizedHtml: string, document: Document): boolean {
-  const container = document.createElement("div");
-  container.innerHTML = sanitizedHtml;
+function hasVisibleContent(root: HTMLElement): boolean {
   return (
-    !!container.textContent?.trim() ||
-    !!container.querySelector("img, picture, video, audio, iframe, svg")
+    !!root.textContent?.trim() ||
+    !!root.querySelector("img, picture, video, audio, iframe, svg")
   );
 }
 
@@ -121,14 +140,21 @@ export function extractReadableContent(
   readerViewAssessment: ReaderViewAssessment;
 } {
   const virtualConsole = new VirtualConsole();
-  const dom = new JSDOM(htmlContent, { url, virtualConsole });
+  const dom = new JSDOM(stripNonContentMarkupForDom(htmlContent), {
+    url,
+    virtualConsole,
+  });
   const purifyWindow = new JSDOM("").window;
   try {
     normalizeLazyLoadImages(dom.window.document);
+    if (isAmazonHost(url)) {
+      removeAmazonHiddenElements(dom.window.document);
+    }
     const purify = DOMPurify(purifyWindow);
-    // Both extractors mutate the document they're given, so each gets a clone.
+    // Defuddle clones internally and leaves `dom.window.document` intact;
+    // Readability mutates its input, so only the fallback clones the document.
     const extractors = [
-      () => runDefuddle(dom.window.document.cloneNode(true) as Document, url),
+      () => runDefuddle(dom.window.document, url),
       // Fallback for the rare pages where Defuddle extracts nothing.
       () => runReadability(dom.window.document.cloneNode(true) as Document),
     ];
@@ -140,7 +166,8 @@ export function extractReadableContent(
         continue;
       }
       const sanitized = purify.sanitize(content);
-      if (hasVisibleContent(sanitized, purifyWindow.document)) {
+      purifyWindow.document.body.innerHTML = sanitized;
+      if (hasVisibleContent(purifyWindow.document.body)) {
         purifiedHTML = sanitized;
         break;
       }
@@ -153,19 +180,14 @@ export function extractReadableContent(
       };
     }
 
-    const extractedDom = new JSDOM(purifiedHTML, { url, virtualConsole });
-    try {
-      return {
-        readableContent: { content: purifiedHTML },
-        readerViewAssessment: assessReaderView(
-          dom.window.document,
-          extractedDom.window.document,
-          url,
-        ),
-      };
-    } finally {
-      extractedDom.window.close();
-    }
+    return {
+      readableContent: { content: purifiedHTML },
+      readerViewAssessment: assessReaderView(
+        dom.window.document,
+        purifyWindow.document,
+        url,
+      ),
+    };
   } finally {
     purifyWindow.close();
     dom.window.close();
@@ -184,23 +206,26 @@ export function sanitizeProvidedContent(
   readableContent: { content: string };
   readerViewAssessment: ReaderViewAssessment;
 } {
+  const virtualConsole = new VirtualConsole();
   const purifyWindow = new JSDOM("").window;
   try {
     const purifiedHTML = DOMPurify(purifyWindow).sanitize(contentHtml);
-    const sourceDom = new JSDOM(sourceHtml, { url });
-    const extractedDom = new JSDOM(purifiedHTML, { url });
+    purifyWindow.document.body.innerHTML = purifiedHTML;
+    const sourceDom = new JSDOM(stripNonContentMarkupForDom(sourceHtml), {
+      url,
+      virtualConsole,
+    });
     try {
       return {
         readableContent: { content: purifiedHTML },
         readerViewAssessment: assessReaderView(
           sourceDom.window.document,
-          extractedDom.window.document,
+          purifyWindow.document,
           url,
         ),
       };
     } finally {
       sourceDom.window.close();
-      extractedDom.window.close();
     }
   } finally {
     purifyWindow.close();

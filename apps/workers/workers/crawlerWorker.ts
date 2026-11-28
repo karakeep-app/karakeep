@@ -95,6 +95,7 @@ import {
 } from "./utils/crawlerUtils";
 import {
   extractHtmlTitle,
+  isHumanOnlyInterstitial,
   isLikelyChallengePage,
   resolveMetadata,
 } from "./utils/metadataResolver";
@@ -1031,11 +1032,24 @@ const storeOfflineCopies = traced(
 
     // Unlike a regular crawl, there's nothing worth keeping from a blocked
     // page, and storing it would replace a good copy from an earlier capture.
+    const pageTitle = extractHtmlTitle(page.htmlContent);
+    if (
+      !shouldRetryCrawlStatusCode(page.statusCode) &&
+      isHumanOnlyInterstitial(pageTitle)
+    ) {
+      // Consent walls and human-solved verification interstitials are
+      // deterministic for a given egress IP/region, so retrying won't clear
+      // them. Leave any existing offline copies untouched without burning retries.
+      log.warn(
+        `The page returned a human-only interstitial ("${pageTitle}"); skipping offline copy capture without retrying.`,
+      );
+      return;
+    }
     if (
       shouldRetryCrawlStatusCode(page.statusCode) ||
       isLikelyChallengePage({
         // The page isn't parsed, so read the title straight from the html.
-        title: extractHtmlTitle(page.htmlContent),
+        title: pageTitle,
         htmlContent: page.htmlContent,
       })
     ) {

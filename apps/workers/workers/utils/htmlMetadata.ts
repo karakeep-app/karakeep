@@ -1,0 +1,110 @@
+const AMAZON_HOST_PATTERN = /(?:^|\.)(?:amazon|amzn)\.|(?:^|\.)a\.co$/i;
+const YOUTUBE_HOST_PATTERN =
+  /(?:^|\.)(?:youtube\.com|youtu\.be|youtube-nocookie\.com)$/i;
+const REDDIT_HOST_PATTERN = /(?:^|\.)reddit\.[^.]+$/i;
+const X_HOST_PATTERN = /(?:^|\.)(?:twitter\.com|x\.com)$/i;
+
+export function getHostname(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
+}
+
+export function isAmazonHost(url: string): boolean {
+  return AMAZON_HOST_PATTERN.test(getHostname(url));
+}
+
+export function isYoutubeHost(url: string): boolean {
+  return YOUTUBE_HOST_PATTERN.test(getHostname(url));
+}
+
+export function isRedditHost(url: string): boolean {
+  return REDDIT_HOST_PATTERN.test(getHostname(url));
+}
+
+export function isXHost(url: string): boolean {
+  return X_HOST_PATTERN.test(getHostname(url));
+}
+
+// Invisible Unicode bidi / zero-width formatting characters (e.g. Apple App
+// Store prepends U+200E LEFT-TO-RIGHT MARK to page titles, and Amazon UK
+// sometimes emits a lone U+200E as meta description).
+const INVISIBLE_FORMAT_CHARS_PATTERN =
+  /^[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+|[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+$/g;
+
+// Purely numeric author values (e.g. Facebook page/profile IDs in
+// `article:author`, such as GitHub Gist's `262588213843476`) are not human
+// author names; rejecting them lets metascraper fall through to DOM rules.
+const NUMERIC_ONLY_PATTERN = /^\d+$/;
+
+// Obvious non-banner placeholder / tracking-pixel / favicon image URLs that
+// metascraper-image's generic `img[src]` fallback can pick up on SPAs.
+const PLACEHOLDER_OR_ICON_IMAGE_PATTERN =
+  /(?:(?:^|[/._-])1x1\.(?:gif|png|jpe?g|webp)|\/(?:spacer|blank|pixel|transparent)\.(?:gif|png)|\.ico)(?:$|[?#])/i;
+
+const TEXT_METADATA_PROPS = new Set([
+  "title",
+  "description",
+  "author",
+  "publisher",
+]);
+
+export function stripInvisibleFormatChars(value: string): string {
+  return value.replace(INVISIBLE_FORMAT_CHARS_PATTERN, "").trim();
+}
+
+/**
+ * Per-candidate validator passed to metascraper's `validate` option. Returning
+ * `false` rejects that rule's result so metascraper continues trying fallback
+ * rules instead of returning junk or empty-after-cleaning values.
+ */
+export function isValidMetadataValue(
+  value: unknown,
+  { propName }: { propName?: string },
+): boolean {
+  if (typeof value !== "string") {
+    return true;
+  }
+  const cleaned = stripInvisibleFormatChars(value);
+  if (propName && TEXT_METADATA_PROPS.has(propName) && cleaned.length === 0) {
+    return false;
+  }
+  if (propName === "author" && NUMERIC_ONLY_PATTERN.test(cleaned)) {
+    return false;
+  }
+  if (propName === "image" && PLACEHOLDER_OR_ICON_IMAGE_PATTERN.test(cleaned)) {
+    return false;
+  }
+  return true;
+}
+
+function cleanTextField(value: unknown): string | null | undefined {
+  if (typeof value !== "string") {
+    return value as null | undefined;
+  }
+  const cleaned = stripInvisibleFormatChars(value);
+  return cleaned || null;
+}
+
+export function normalizeMetadata<T extends Record<string, unknown>>(
+  meta: T,
+): T {
+  const title = cleanTextField(meta.title);
+  const description = cleanTextField(meta.description);
+  const author = cleanTextField(meta.author);
+  let publisher = cleanTextField(meta.publisher);
+  // metascraper-publisher falls back to `[class*="logo"] img[alt]`, which
+  // often yields alt text like "Requests logo".
+  if (publisher && /\s+logo$/i.test(publisher)) {
+    publisher = publisher.replace(/\s+logo$/i, "").trim() || publisher;
+  }
+  return {
+    ...meta,
+    title,
+    description,
+    author,
+    publisher,
+  };
+}

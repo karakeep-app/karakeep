@@ -211,7 +211,24 @@ const fallbackDomTitle = ({ htmlDom }: { htmlDom: CheerioAPI }) => {
   return postTitle ? postTitle.trim() : undefined;
 };
 
+const isRedditPostUrl = (url: string): boolean => {
+  try {
+    const { pathname } = new URL(url);
+    return (
+      /\/comments\/[^/]+/i.test(pathname) ||
+      /\/r\/[^/]+\/s\/[^/]+/i.test(pathname) ||
+      /\/gallery\/[^/]+/i.test(pathname)
+    );
+  } catch {
+    return false;
+  }
+};
+
 const fetchRedditPostData = async (url: string): Promise<RedditFetchResult> => {
+  if (!isRedditPostUrl(url)) {
+    return { fetched: false };
+  }
+
   const cached = redditJsonCache.get(url);
   const now = Date.now();
 
