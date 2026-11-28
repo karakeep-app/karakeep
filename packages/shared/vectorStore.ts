@@ -61,6 +61,11 @@ export interface VectorStoreClient {
   deleteVectors(ids: string[]): Promise<void>;
 
   /**
+   * Delete every vector belonging to the given user
+   */
+  deleteUserVectors(userId: string): Promise<void>;
+
+  /**
    * Search for similar vectors
    */
   search(options: VectorSearchOptions): Promise<VectorSearchResponse>;

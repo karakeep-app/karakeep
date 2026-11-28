@@ -76,6 +76,15 @@ class MeiliSearchVectorClient implements VectorStoreClient {
     await Promise.all(ids.map((id) => this.batchQueue.deleteDocument(id)));
   }
 
+  async deleteUserVectors(userId: string): Promise<void> {
+    // Filter-based deletion can't go through the id-based batch queue, so it
+    // is sent directly.
+    const task = await this.index.deleteDocuments({
+      filter: `userId = ${JSON.stringify(userId)}`,
+    });
+    await this.ensureTaskSuccess(task.taskUid);
+  }
+
   async search(options: VectorSearchOptions): Promise<VectorSearchResponse> {
     const result = await this.index.search("", {
       vector: options.vector,

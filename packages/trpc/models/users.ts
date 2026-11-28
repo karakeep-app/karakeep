@@ -17,7 +17,12 @@ import {
   tagsOnBookmarks,
   users,
 } from "@karakeep/db/schema";
-import { deleteAsset, deleteUserAssets } from "@karakeep/shared-server";
+import {
+  deleteAsset,
+  deleteUserAssets,
+  EmbeddingsQueue,
+  SearchIndexingQueue,
+} from "@karakeep/shared-server";
 import serverConfig from "@karakeep/shared/config";
 import {
   zUpdateUserProfileSchema,
@@ -182,6 +187,30 @@ export class User {
     }
 
     await deleteUserAssets({ userId: userId });
+
+    // The user's bookmarks are cascade deleted from the DB, so no per-bookmark
+    // delete jobs get enqueued for them. Purge their documents from the
+    // search index and the vector store explicitly.
+    await Promise.all([
+      SearchIndexingQueue.enqueue(
+        {
+          userId,
+          type: "delete_user",
+        },
+        {
+          idempotencyKey: `delete_user:${userId}`,
+        },
+      ),
+      EmbeddingsQueue.enqueue(
+        {
+          userId,
+          type: "delete_user",
+        },
+        {
+          idempotencyKey: `delete_user:${userId}`,
+        },
+      ),
+    ]);
   }
 
   static async deleteAsAdmin(

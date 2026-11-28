@@ -85,14 +85,14 @@ type EventLogInternal =
     }
   | {
       ["event.name"]: "searchWorker.run";
-      "search.op"?: "index" | "delete";
+      "search.op"?: "index" | "delete" | "delete_user";
       "bookmark.id"?: string;
       "search.document_size"?: number;
     }
   | {
       ["event.name"]: "embeddingsWorker.run";
       "bookmark.id"?: string;
-      "embedding.mode"?: "embed" | "index" | "delete";
+      "embedding.mode"?: "embed" | "index" | "delete" | "delete_user";
       "embedding.text_size"?: number;
       "embedding.prompt_tokens"?: number;
       "embedding.total_tokens"?: number;

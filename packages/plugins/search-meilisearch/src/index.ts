@@ -82,6 +82,15 @@ class MeiliSearchIndexClient implements SearchIndexClient {
     }
   }
 
+  async deleteUserDocuments(userId: string): Promise<void> {
+    // Filter-based deletion can't go through the id-based batch queue, so it
+    // is sent directly.
+    const task = await this.index.deleteDocuments({
+      filter: `userId = ${JSON.stringify(userId)}`,
+    });
+    await this.ensureTaskSuccess(task.taskUid);
+  }
+
   async search(options: SearchOptions): Promise<SearchResponse> {
     const result = await this.index.search(options.query, {
       filter: options.filter?.map((f) => filterToMeiliSearchFilter(f)),

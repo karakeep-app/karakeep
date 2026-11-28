@@ -128,10 +128,10 @@ async function enqueueTagging(
 async function enqueueTaggingFallback(
   job: DequeuedJob<ZEmbeddingsRequest> | DequeuedJobError<ZEmbeddingsRequest>,
 ) {
-  const bookmarkId = job.data?.bookmarkId;
-  if (!bookmarkId) {
+  if (job.data?.type !== "embed") {
     return;
   }
+  const bookmarkId = job.data.bookmarkId;
   const bookmark = await db.query.bookmarks.findFirst({
     where: eq(bookmarks.id, bookmarkId),
     columns: {
@@ -349,10 +349,11 @@ type EmbedRequest = Extract<ZEmbeddingsRequest, { type: "embed" }>;
 async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
   const jobId = job.id;
   const data = job.data;
-  const bookmarkId = data.bookmarkId;
   addLogFields<"embeddingsWorker.run">({
-    "bookmark.id": bookmarkId,
     "embedding.mode": data.type,
+    ...(data.type === "delete_user"
+      ? { "user.id": data.userId }
+      : { "bookmark.id": data.bookmarkId }),
   });
 
   const vectorStoreClient = await getVectorStoreClient();
@@ -368,12 +369,21 @@ async function runEmbeddings(job: DequeuedJob<ZEmbeddingsRequest>) {
   }
 
   switch (data.type) {
+    case "delete_user": {
+      await vectorStoreClient.deleteUserVectors(data.userId);
+      logger.info(
+        `[embeddings][${jobId}] Deleted all embeddings of user ${data.userId}`,
+      );
+      return;
+    }
     case "delete": {
+      const bookmarkId = data.bookmarkId;
       await vectorStoreClient.deleteVectors([bookmarkId]);
       logger.info(`[embeddings][${jobId}] Deleted embedding for ${bookmarkId}`);
       return;
     }
     case "index": {
+      const bookmarkId = data.bookmarkId;
       const document: BookmarkVectorDocument = {
         id: bookmarkId,
         userId: data.userId,
