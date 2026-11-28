@@ -8,6 +8,7 @@ import { AppIcon } from "@/components/ui/AppIcon";
 import BookmarkListHeader from "@/components/bookmarks/BookmarkListHeader";
 import UpdatingBookmarkList from "@/components/bookmarks/UpdatingBookmarkList";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
+import { ShareSheetTip } from "@/components/ShareSheetTip";
 import InlineSearch from "@/components/search/InlineSearch";
 import { ProfileAvatarButton } from "@/components/settings/ProfileAvatarButton";
 import AndroidSearchBar from "@/components/ui/AndroidSearchBar";
@@ -78,6 +79,8 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
     Haptics.selectionAsync();
     if (nativeEvent.event === "new") {
       openNewBookmarkModal();
+    } else if (nativeEvent.event === "other_apps") {
+      router.push("/dashboard/settings/share-sheet");
     } else if (nativeEvent.event === "library") {
       try {
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -184,6 +187,12 @@ function useNewBookmarkActions(openNewBookmarkModal: () => void) {
       image: Platform.select({ ios: "photo" }),
       imageColor: Platform.select({ ios: menuIconColor }),
     },
+    {
+      id: "other_apps",
+      title: t("home.menu_save_from_other_apps"),
+      image: Platform.select({ ios: "square.and.arrow.up" }),
+      imageColor: Platform.select({ ios: menuIconColor }),
+    },
   ];
 
   return { onPressAction, actions };
@@ -212,7 +221,12 @@ export default function Home() {
         />
       )}
       <UpdatingBookmarkList
-        header={<ConnectionBanner />}
+        header={
+          <>
+            <ConnectionBanner />
+            <ShareSheetTip />
+          </>
+        }
         query={{ archived: false }}
         scrollToTopOnSave
         emptyState={{

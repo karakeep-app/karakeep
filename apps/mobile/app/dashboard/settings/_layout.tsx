@@ -75,6 +75,10 @@ export default function SettingsLayout() {
       />
       <Stack.Screen name="usage" options={{ title: t("headers.statistics") }} />
       <Stack.Screen
+        name="share-sheet"
+        options={{ title: t("share_sheet.title") }}
+      />
+      <Stack.Screen
         name="toolbar-settings"
         options={{ title: t("headers.reader_toolbar") }}
       />

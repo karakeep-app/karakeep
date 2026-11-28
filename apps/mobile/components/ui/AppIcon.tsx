@@ -35,6 +35,7 @@ import {
   Tag,
   Trash2,
   Users,
+  X,
 } from "lucide-react-native";
 
 /**
@@ -75,6 +76,7 @@ const SF_SYMBOLS = new Map<LucideIcon, SFSymbol>([
   [Tag, "tag"],
   [Trash2, "trash"],
   [Users, "person.2"],
+  [X, "xmark"],
 ]);
 
 export function AppIcon({

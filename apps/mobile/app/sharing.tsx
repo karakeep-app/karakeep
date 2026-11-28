@@ -9,7 +9,7 @@ import SuccessAnimation from "@/components/sharing/SuccessAnimation";
 import { Button } from "@/components/ui/Button";
 import { Text } from "@/components/ui/Text";
 import { useTranslation } from "@/lib/i18n/hooks";
-import useAppSettings from "@/lib/settings";
+import useAppSettings, { useSettings } from "@/lib/settings";
 import { useUploadAsset } from "@/lib/upload";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -29,6 +29,16 @@ function SaveBookmark({ setMode }: { setMode: (mode: Mode) => void }) {
 
   const onSaved = (d: ZBookmark & { alreadyExists: boolean }) => {
     queryClient.invalidateQueries(api.bookmarks.getBookmarks.pathFilter());
+    // They've found the share sheet, so the home tip has nothing left to say.
+    // A slow save can finish after people have moved on and changed settings
+    // or signed out, so write against the store as it is now.
+    const current = useSettings.getState();
+    if (!current.settings.settings.shareSheetTipSeen) {
+      void current.setSettings({
+        ...current.settings.settings,
+        shareSheetTipSeen: true,
+      });
+    }
     setMode({
       type: d.alreadyExists ? "alreadyExists" : "success",
       bookmarkId: d.id,
