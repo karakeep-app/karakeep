@@ -202,6 +202,7 @@ const allEnv = z.object({
   // Legal
   TERMS_OF_SERVICE_URL: z.string().url().optional(),
   PRIVACY_POLICY_URL: z.string().url().optional(),
+  ALLOW_SIGNIN_PAGE_INDEXING: stringBool("false"),
 
   // Build only flag
   SERVER_VERSION: z.string().optional(),
@@ -555,6 +556,7 @@ const serverConfigSchema = allEnv.transform((val, ctx) => {
       termsOfServiceUrl: val.TERMS_OF_SERVICE_URL,
       privacyPolicyUrl: val.PRIVACY_POLICY_URL,
     },
+    allowSigninPageIndexing: val.ALLOW_SIGNIN_PAGE_INDEXING,
     serverVersion: val.SERVER_VERSION,
     changelogVersion: val.CHANGELOG_VERSION,
     disableNewReleaseCheck: val.DISABLE_NEW_RELEASE_CHECK,

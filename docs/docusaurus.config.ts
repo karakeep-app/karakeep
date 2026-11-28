@@ -3,6 +3,17 @@ import type { Config } from "@docusaurus/types";
 import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 import { themes as prismThemes } from "prism-react-renderer";
 
+import versions from "./versions.json";
+
+// Only the latest release is meant to show up in search results. Old versions
+// and the unreleased docs are marked noindex rather than blocked in robots.txt:
+// pages linked from elsewhere get indexed anyway when they can't be crawled,
+// and then show up without a title or description.
+const [, ...olderVersions] = versions;
+const noIndexVersions = Object.fromEntries(
+  [...olderVersions, "current"].map((version) => [version, { noIndex: true }]),
+);
+
 const config: Config = {
   title: "Karakeep",
   tagline: "The bookmark everything app",
@@ -48,11 +59,12 @@ const config: Config = {
           editUrl: "https://github.com/karakeep-app/karakeep/tree/main/docs/",
           routeBasePath: "/",
           docItemComponent: "@theme/ApiItem",
+          versions: noIndexVersions,
         },
         blog: false,
         sitemap: {
-          // Old versions and the unreleased docs are blocked in robots.txt,
-          // so don't advertise them to crawlers either.
+          // Old versions and the unreleased docs are noindex, so don't
+          // advertise them to crawlers either.
           ignorePatterns: ["/v[0-9]*/**", "/next/**"],
         },
         theme: {
@@ -62,10 +74,7 @@ const config: Config = {
     ],
   ],
   plugins: [
-    [
-      "@docusaurus/plugin-client-redirects",
-      {},
-    ],
+    ["@docusaurus/plugin-client-redirects", {}],
     [
       "docusaurus-plugin-openapi-docs",
       {
